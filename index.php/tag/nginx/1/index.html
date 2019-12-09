@@ -58,6 +58,41 @@
 <div class="col-mb-12 col-8" id="main" role="main">
 <h3 class="archive-title">标签 nginx 下的文章</h3>
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/730.html">限制用户名密码访问页面 in nginx</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2019-12-09T16:21:00+08:00" itemprop="datePublished">2019-12-09</time></li>
+<li>分类: <a href="../../../category/Linux/index.html">Linux</a>,<a href="../../../category/web/index.html">web</a></li>
+<li itemprop="interactionCount"><a href="../../../archives/730.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。</p><p>如果使用 <strong>nginx</strong> 作为反向代理服务器，可以使用 <strong>auth_basic</strong> 来实现页面加密。</p><p><strong>环境需求：</strong></p><p>Linux env<br>nginx<br><strong>apache2-utils</strong> (Debian, Ubuntu) or <strong>httpd-tools</strong> (RHEL/CentOS/Oracle Linux)</p><p><strong>安装环境：</strong></p><p>nginx 安装参考：<a href="../../../archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p>安装 apache2-utils：</p><pre><code>apt-get install apache2-utils
+</code></pre><p><strong>创建账户密码：</strong></p><p>使用了 htpasswd 命令创建用户。</p><p>关于 htpasswd 的详细使用：<a href="https://httpd.apache.org/docs/2.4/programs/htpasswd.html">https://httpd.apache.org/docs/2.4/programs/htpasswd.html</a></p><p>建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：</p><pre><code>htpasswd -c /etc/nginx/users/.adminpasswd user1
+</code></pre><p>.adminpasswd 为隐藏的存储所有账户信息的文件，user1 为用户名，回车后会提示输入密码，然后确认密码。</p><p>建立其他账户：</p><pre><code>htpasswd /etc/nginx/users/.adminpasswd user2
+</code></pre><p>不需要 <code>-c</code> 参数，因为文件已经建立了。</p><p>验证账户密码 <code>-v</code>：</p><pre><code>htpasswd -v /etc/nginx/users/.adminpasswd user1
+</code></pre><p>删除账户 <code>-D</code>：</p><pre><code>htpasswd -D /etc/nginx/users/.adminpasswd user1
+</code></pre><p><strong>使用账户：</strong></p><p>打开 nginx 配置文件，在需要账户登录的路径段修改如下：</p><pre><code>location /path {
+    ...
+    auth_basic           &quot;Administrator's Area&quot;;
+    auth_basic_user_file /etc/nginx/users/.adminpasswd;
+    ...
+    ...
+}</code></pre><p>重新加载配置文件：</p><pre><code>service nginx configtest
+service nginx reload
+</code></pre><p>打开对应页面测试是否提示输入账号密码。</p> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/725.html">fancyindex 插件模块美化 nginx 的默认 index 页面</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2019-12-09T15:14:00+08:00" itemprop="datePublished">2019-12-09</time></li>
+<li>分类: <a href="../../../category/Linux/index.html">Linux</a>,<a href="../../../category/web/index.html">web</a></li>
+<li itemprop="interactionCount"><a href="../../../archives/725.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p><img src="../../../../usr/uploads/2019/12/4133735129.png" alt="2019-12-09T06:50:25.png" title="2019-12-09T06:50:25.png"></p><p>使用 <strong>nginx</strong> 的 <strong>autoindex</strong> 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：<br><img src="../../../../usr/uploads/2019/12/3380876021.png" alt="2019-12-09T06:48:13.png" title="2019-12-09T06:48:13.png"></p><p><strong>autoindex</strong> 搭建教程参考：<a href="../../../archives/26.html">https://niekun.net/index.php/archives/26.html</a></p><p>如果需要更加美观和丰富的页面，可以使用第三方模块 <strong>fancyindex</strong> 来实现。</p><p class="more"><a href="../../../archives/725.html" title="fancyindex 插件模块美化 nginx 的默认 index 页面">- 阅读剩余部分 -</a></p> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/195.html">NGINX Rewrite 规则的应用</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
@@ -91,59 +126,12 @@
 <p>如果还没有安装nginx，参考教程：<a href="../../../archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p><strong>此功能使用的是 Nginx 的 ngx_http_mp4_module 模块。</strong></p><p>首先查看当前 nginx 是否已经安装了 ngx_http_mp4_module 模块：</p><pre><code>nginx -v
 </code></pre><p>查看是否已经有了对应模块，一般使用 apt 安装的都集成了此模块。</p><p class="more"><a href="../../../archives/177.html" title="nginx实现mp4流媒体播放">- 阅读剩余部分 -</a></p> </div>
 </article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/118.html">重定向 HTTP to HTTPS in Nginx</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-02-26T21:21:00+08:00" itemprop="datePublished">2019-02-26</time></li>
-<li>分类: <a href="../../../category/Linux/index.html">Linux</a>,<a href="../../../category/web/index.html">web</a></li>
-<li itemprop="interactionCount"><a href="../../../archives/118.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>将http请求重定向为https，使所有连接都使用安全的ssl。</p><h2>重定向所有http请求</h2><p>以下配置为将所有收到的80端口的请求都重定向到443端口,这会把此ip下的所有域名都转换：</p><pre><code>server {
-    listen           80;
-    listen           [::]:80;
-    server_name      _;
-    return           301 https://$host$request_uri;
-}</code></pre><p>listen 80 default_server 表示这是唯一监听80端口的server块<br>server_name _ 表示监听所有使用的域名</p><h2>重定向特定域名</h2><p>以下配置为重定向特定域名的请求，此方式适用于此ip下绑定多个域名的情况：</p><pre><code>server {
-    listen           80;
-    listen           [::]:80;
-    server_name      your.domain;
-    return           301 https://your.domain$request_uri;
-}</code></pre><h2>443 server block</h2><p>设定我们的域名只接收443端口的访问：</p><pre><code>server {
-    listen                443 ssl default_server;
-    listen                [::]:443 ssl;
-    server_name           foo.com;
-}
-
-server {
-    listen                443 ssl;
-    listen                [::]:443 ssl;
-    server_name           bar.com;
-}
-
-...
-</code></pre><p>只能设置一个域名为default_server。</p> </div>
-</article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/34.html">使用acme.sh生成证书并部署</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-02-19T09:02:00+08:00" itemprop="datePublished">2019-02-19</time></li>
-<li>分类: <a href="../../../category/Linux/index.html">Linux</a>,<a href="../../../category/web/index.html">web</a></li>
-<li itemprop="interactionCount"><a href="../../../archives/34.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>acme.sh 实现了 <code>acme</code> 协议, 可以从 letsencrypt 生成免费的证书.</p><p>官方说明：<a href="https://github.com/Neilpang/acme.sh">https://github.com/Neilpang/acme.sh</a></p><h2>安装acme.sh</h2><p>安装很简单:</p><pre><code>apt-get install curl
-curl  https://get.acme.sh | sh
-</code></pre><p>安装过程进行了以下几步:</p><ul><li>把 acme.sh 安装到你的 root 目录下: <code>/root/.acme.sh/</code></li><li>自动为你创建 cronjob, 每天 0:00 点自动检测所有的证书, 如果快过期了, 需要更新, 则会自动更新证书.</li><li>在 /root/.bashrc 创建 一个 bash 的 alias: <code>alias acme.sh=&quot;/root/.acme.sh/acme.sh&quot;</code></li></ul><p class="more"><a href="../../../archives/34.html" title="使用acme.sh生成证书并部署">- 阅读剩余部分 -</a></p> </div>
-</article>
 <ol class="page-navigator"><li class="current"><a href="index.html">1</a></li><li><a href="../2/index.html">2</a></li><li class="next"><a href="../2/index.html">后一页 &raquo;</a></li></ol> </div>
 <div class="col-mb-12 col-offset-1 col-3 kit-hidden-tb" id="secondary" role="complementary">
 <section class="widget">
 <h3 class="widget-title">最新文章</h3>
 <ul class="widget-list">
-<li><a href="../../../archives/696.html">观察图层的使用 in Photoshop</a></li><li><a href="../../../archives/719.html">人像简单抠图及头发处理 in Photoshop</a></li><li><a href="../../../archives/704.html">抠图边沿平滑处理 in Photoshop</a></li><li><a href="../../../archives/703.html">overlay 处理蒙版亮部/暗部</a></li><li><a href="../../../archives/700.html">Photoshop 常用快捷键</a></li><li><a href="../../../archives/691.html">简易匹配颜色 in Photoshop</a></li><li><a href="../../../archives/680.html">精细匹配颜色 in Photoshop</a></li><li><a href="../../../archives/654.html">消除提取出物体的白边 in Photoshop</a></li><li><a href="../../../archives/639.html">提取图像阴影 in Photoshop</a></li><li><a href="../../../archives/635.html">Docker 容器简介</a></li> </ul>
+<li><a href="../../../archives/730.html">限制用户名密码访问页面 in nginx</a></li><li><a href="../../../archives/725.html">fancyindex 插件模块美化 nginx 的默认 index 页面</a></li><li><a href="../../../archives/696.html">观察图层的使用 in Photoshop</a></li><li><a href="../../../archives/719.html">人像简单抠图及头发处理 in Photoshop</a></li><li><a href="../../../archives/704.html">抠图边沿平滑处理 in Photoshop</a></li><li><a href="../../../archives/703.html">overlay 处理蒙版亮部/暗部</a></li><li><a href="../../../archives/700.html">Photoshop 常用快捷键</a></li><li><a href="../../../archives/691.html">简易匹配颜色 in Photoshop</a></li><li><a href="../../../archives/680.html">精细匹配颜色 in Photoshop</a></li><li><a href="../../../archives/654.html">消除提取出物体的白边 in Photoshop</a></li> </ul>
 </section>
 <section class="widget">
 <h3 class="widget-title">分类</h3>
@@ -167,6 +155,5 @@ curl  https://get.acme.sh | sh
 <footer id="footer" role="contentinfo">
 &copy; 2019 <a href="../../../../index.html">Marco Nie</a>. All rights reserved.
 </footer>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"rayId":"5420d093c916d342","version":"2019.10.2","startTime":1575829870743}'></script>
 </body>
 </html>

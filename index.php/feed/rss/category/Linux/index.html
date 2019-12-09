@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://niekun.net/index.php/archives/730.html"/>
+<rdf:li resource="https://niekun.net/index.php/archives/725.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/635.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/547.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/546.html"/>
@@ -17,11 +19,34 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://niekun.net/index.php/archives/534.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/526.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/525.html"/>
-<rdf:li resource="https://niekun.net/index.php/archives/482.html"/>
-<rdf:li resource="https://niekun.net/index.php/archives/466.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://niekun.net/index.php/archives/730.html">
+<title>限制用户名密码访问页面 in nginx</title>
+<link>https://niekun.net/index.php/archives/730.html</link>
+<dc:date>2019-12-09T16:21:00+08:00</dc:date>
+<description>有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。如果使用 nginx 作为反向代理服务器，可以使用 auth_basic 来实现页面加密。环境需求：Linux envnginxapache2-utils (Debian, Ubuntu) or httpd-tools (RHEL/CentOS/Oracle Linux)安装环境：nginx 安装参考：https://niekun.net/index.php/archives/30.html安装 apache2-utils：apt-get install apache2-utils
+创建账户密码：使用了 htpasswd 命令创建用户。关于 htpasswd 的详细使用：https://httpd.apache.org/docs/2.4/programs/htpasswd.html建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：htpasswd -c /etc/nginx/users/.adminpasswd user1
+.adminpasswd 为隐藏的存储所有账户信息的文件，user1 为用户名，回车后会提示输入密码，然后确认密码。建立其他账户：htpasswd /etc/nginx/users/.adminpasswd user2
+不需要 -c 参数，因为文件已经建立了。验证账户密码 -v：htpasswd -v /etc/nginx/users/.adminpasswd user1
+删除账户 -D：htpasswd -D /etc/nginx/users/.adminpasswd user1
+使用账户：打开 nginx 配置文件，在需要账户登录的路径段修改如下：location /path {
+    ...
+    auth_basic           &quot;Administrator's Area&quot;;
+    auth_basic_user_file /etc/nginx/users/.adminpasswd;
+    ...
+    ...
+}重新加载配置文件：service nginx configtest
+service nginx reload
+打开对应页面测试是否提示输入账号密码。</description>
+</item>
+<item rdf:about="https://niekun.net/index.php/archives/725.html">
+<title>fancyindex 插件模块美化 nginx 的默认 index 页面</title>
+<link>https://niekun.net/index.php/archives/725.html</link>
+<dc:date>2019-12-09T15:14:00+08:00</dc:date>
+<description>使用 nginx 的 autoindex 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：autoindex 搭建教程参考：https://niekun.net/index.php/archives/26.html如果需要更加美观和丰富的页面，可以使用第三方模块 fancyindex 来实现。[...]</description>
+</item>
 <item rdf:about="https://niekun.net/index.php/archives/635.html">
 <title>Docker 容器简介</title>
 <link>https://niekun.net/index.php/archives/635.html</link>
@@ -83,17 +108,5 @@ strFile：将匹配所有包含此字符串的文件option：-i：不区分大�
 <dc:date>2019-11-17T21:25:18+08:00</dc:date>
 <description>当需要输入一段很长的命令时，为了书写或查看方便，可以对命令分割换行处理，使用换行符 \例如：sudo apt-get install --install-recommends -y \
 linux-generic-lts-xenial等价于：sudo apt-get install --install-recommends -y linux-generic-lts-xenial</description>
-</item>
-<item rdf:about="https://niekun.net/index.php/archives/482.html">
-<title>linux 修改 hostname</title>
-<link>https://niekun.net/index.php/archives/482.html</link>
-<dc:date>2019-11-13T08:41:45+08:00</dc:date>
-<description>Linux 系统默认的变量 $hostname 值为 localhost.localdomain, 想要自定义的话需要修改对应文件。打开文件 /etc/hostname 编辑内容为你想要修改的名字。打开文件 /etc/hosts 编辑 127.0.1.1 后的值为你想要的字符。此设置影响命令行头部的描述：</description>
-</item>
-<item rdf:about="https://niekun.net/index.php/archives/466.html">
-<title>VPS 自动备份脚本</title>
-<link>https://niekun.net/index.php/archives/466.html</link>
-<dc:date>2019-11-08T13:43:44+08:00</dc:date>
-<description>此脚本转载自 秋水逸冰 博客：https://teddysun.com/469.html需要用到的工具：LinuxMySQLopensslgdrivecrontab脚本实现定时自动备份数据库及指定目录文件夹，备份文件加密处理，自动上传到google drive。可设定备份文件保留天数。[...]</description>
 </item>
 </rdf:RDF>

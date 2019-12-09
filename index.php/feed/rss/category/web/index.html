@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://niekun.net/index.php/archives/730.html"/>
+<rdf:li resource="https://niekun.net/index.php/archives/725.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/539.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/524.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/522.html"/>
@@ -17,11 +19,34 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://niekun.net/index.php/archives/460.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/449.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/428.html"/>
-<rdf:li resource="https://niekun.net/index.php/archives/399.html"/>
-<rdf:li resource="https://niekun.net/index.php/archives/371.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://niekun.net/index.php/archives/730.html">
+<title>限制用户名密码访问页面 in nginx</title>
+<link>https://niekun.net/index.php/archives/730.html</link>
+<dc:date>2019-12-09T16:21:00+08:00</dc:date>
+<description>有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。如果使用 nginx 作为反向代理服务器，可以使用 auth_basic 来实现页面加密。环境需求：Linux envnginxapache2-utils (Debian, Ubuntu) or httpd-tools (RHEL/CentOS/Oracle Linux)安装环境：nginx 安装参考：https://niekun.net/index.php/archives/30.html安装 apache2-utils：apt-get install apache2-utils
+创建账户密码：使用了 htpasswd 命令创建用户。关于 htpasswd 的详细使用：https://httpd.apache.org/docs/2.4/programs/htpasswd.html建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：htpasswd -c /etc/nginx/users/.adminpasswd user1
+.adminpasswd 为隐藏的存储所有账户信息的文件，user1 为用户名，回车后会提示输入密码，然后确认密码。建立其他账户：htpasswd /etc/nginx/users/.adminpasswd user2
+不需要 -c 参数，因为文件已经建立了。验证账户密码 -v：htpasswd -v /etc/nginx/users/.adminpasswd user1
+删除账户 -D：htpasswd -D /etc/nginx/users/.adminpasswd user1
+使用账户：打开 nginx 配置文件，在需要账户登录的路径段修改如下：location /path {
+    ...
+    auth_basic           &quot;Administrator's Area&quot;;
+    auth_basic_user_file /etc/nginx/users/.adminpasswd;
+    ...
+    ...
+}重新加载配置文件：service nginx configtest
+service nginx reload
+打开对应页面测试是否提示输入账号密码。</description>
+</item>
+<item rdf:about="https://niekun.net/index.php/archives/725.html">
+<title>fancyindex 插件模块美化 nginx 的默认 index 页面</title>
+<link>https://niekun.net/index.php/archives/725.html</link>
+<dc:date>2019-12-09T15:14:00+08:00</dc:date>
+<description>使用 nginx 的 autoindex 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：autoindex 搭建教程参考：https://niekun.net/index.php/archives/26.html如果需要更加美观和丰富的页面，可以使用第三方模块 fancyindex 来实现。[...]</description>
+</item>
 <item rdf:about="https://niekun.net/index.php/archives/539.html">
 <title>使用 frp 实现内网穿透</title>
 <link>https://niekun.net/index.php/archives/539.html</link>
@@ -70,25 +95,5 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <link>https://niekun.net/index.php/archives/428.html</link>
 <dc:date>2019-10-16T15:56:00+08:00</dc:date>
 <description>需要环境：Linuxpython3python-telegram-botyoutube-dl[...]</description>
-</item>
-<item rdf:about="https://niekun.net/index.php/archives/399.html">
-<title>IP-CIDR</title>
-<link>https://niekun.net/index.php/archives/399.html</link>
-<dc:date>2019-10-13T19:58:00+08:00</dc:date>
-<description>无类别域间路由（Classless Inter-Domain Routing、CIDR）是一个用于给用户分配IP地址以及在互联网上有效地路由IP数据包的对IP地址进行归类的方法。[...]</description>
-</item>
-<item rdf:about="https://niekun.net/index.php/archives/371.html">
-<title>typecho 修改默认上传文件大小限制</title>
-<link>https://niekun.net/index.php/archives/371.html</link>
-<dc:date>2019-08-15T12:38:00+08:00</dc:date>
-<description>修改 php.ini 文件，我使用的是 php5.6 版，所以首先查找 fpm 的配置文件：locate php.ini
-找到后打开文件，如：vim /etc/php5.6/fpm/php.ini
-使用 / 搜索字段，修改如下：upload_max_filesize = 1024M;
-post_max_size = 1024M;
-max_execution_time=600;
-重启 php 服务：service php5.6-fpm restart
-nginx 配置中 http 段增加如下：client_max_body_size 50m;
-重启 nginx：service nginx reload
-</description>
 </item>
 </rdf:RDF>

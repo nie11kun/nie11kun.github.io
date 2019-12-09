@@ -6,24 +6,71 @@ xml:base="https://niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">I’m dancing at the feet of my lord...</subtitle>
-<updated>2019-12-08T14:39:35+08:00</updated>
+<updated>2019-12-09T16:21:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://niekun.net/" />
 <id>https://niekun.net/index.php/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://niekun.net/index.php/feed/atom/" />
 <entry>
-<title type="html"><![CDATA[观察图层的使用 in Photoshop]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/index.php/archives/696.html" />
-<id>https://niekun.net/index.php/archives/696.html</id>
-<updated>2019-12-08T14:39:35+08:00</updated>
-<published>2019-12-08T14:39:35+08:00</published>
+<title type="html"><![CDATA[限制用户名密码访问页面 in nginx]]></title>
+<link rel="alternate" type="text/html" href="https://niekun.net/index.php/archives/730.html" />
+<id>https://niekun.net/index.php/archives/730.html</id>
+<updated>2019-12-09T16:21:00+08:00</updated>
+<published>2019-12-09T16:21:00+08:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[观察图层主要是用来让我的的处理 focus on 我们需要处理的部分，使要处理的细节更加清晰。可以建立的观察图层有以下几种：斑点检查图层亮度检查图层色彩检查图层饱和度检查图层以下分别介绍几种图层...]]></summary>
+<summary type="html"><![CDATA[有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。如果使用 nginx 作为反向代理服务器，可以使用 auth_basic 来实现页面加密。环境需求：Linux envnginxap...]]></summary>
+<content type="html" xml:base="https://niekun.net/index.php/archives/730.html" xml:lang="zh-CN"><![CDATA[
+<p>有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。</p><p>如果使用 <strong>nginx</strong> 作为反向代理服务器，可以使用 <strong>auth_basic</strong> 来实现页面加密。</p><p><strong>环境需求：</strong></p><p>Linux env<br>nginx<br><strong>apache2-utils</strong> (Debian, Ubuntu) or <strong>httpd-tools</strong> (RHEL/CentOS/Oracle Linux)</p><p><strong>安装环境：</strong></p><p>nginx 安装参考：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p>安装 apache2-utils：</p><pre><code>apt-get install apache2-utils
+</code></pre><p><strong>创建账户密码：</strong></p><p>使用了 htpasswd 命令创建用户。</p><p>关于 htpasswd 的详细使用：<a href="https://httpd.apache.org/docs/2.4/programs/htpasswd.html">https://httpd.apache.org/docs/2.4/programs/htpasswd.html</a></p><p>建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：</p><pre><code>htpasswd -c /etc/nginx/users/.adminpasswd user1
+</code></pre><p>.adminpasswd 为隐藏的存储所有账户信息的文件，user1 为用户名，回车后会提示输入密码，然后确认密码。</p><p>建立其他账户：</p><pre><code>htpasswd /etc/nginx/users/.adminpasswd user2
+</code></pre><p>不需要 <code>-c</code> 参数，因为文件已经建立了。</p><p>验证账户密码 <code>-v</code>：</p><pre><code>htpasswd -v /etc/nginx/users/.adminpasswd user1
+</code></pre><p>删除账户 <code>-D</code>：</p><pre><code>htpasswd -D /etc/nginx/users/.adminpasswd user1
+</code></pre><p><strong>使用账户：</strong></p><p>打开 nginx 配置文件，在需要账户登录的路径段修改如下：</p><pre><code>location /path {
+    ...
+    auth_basic           &quot;Administrator's Area&quot;;
+    auth_basic_user_file /etc/nginx/users/.adminpasswd;
+    ...
+    ...
+}</code></pre><p>重新加载配置文件：</p><pre><code>service nginx configtest
+service nginx reload
+</code></pre><p>打开对应页面测试是否提示输入账号密码。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://niekun.net/index.php/archives/730.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://niekun.net/index.php/feed/atom/archives/730.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[fancyindex 插件模块美化 nginx 的默认 index 页面]]></title>
+<link rel="alternate" type="text/html" href="https://niekun.net/index.php/archives/725.html" />
+<id>https://niekun.net/index.php/archives/725.html</id>
+<updated>2019-12-09T15:14:00+08:00</updated>
+<published>2019-12-09T15:14:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[使用 nginx 的 autoindex 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：autoindex 搭建教程参考：https://niekun.net/index.php/arc...]]></summary>
+<content type="html" xml:base="https://niekun.net/index.php/archives/725.html" xml:lang="zh-CN"><![CDATA[
+<p><img src="https://niekun.net/usr/uploads/2019/12/4133735129.png" alt="2019-12-09T06:50:25.png" title="2019-12-09T06:50:25.png"></p><p>使用 <strong>nginx</strong> 的 <strong>autoindex</strong> 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：<br><img src="https://niekun.net/usr/uploads/2019/12/3380876021.png" alt="2019-12-09T06:48:13.png" title="2019-12-09T06:48:13.png"></p><p><strong>autoindex</strong> 搭建教程参考：<a href="https://niekun.net/index.php/archives/26.html">https://niekun.net/index.php/archives/26.html</a></p><p>如果需要更加美观和丰富的页面，可以使用第三方模块 <strong>fancyindex</strong> 来实现。</p><p class="more"><a href="https://niekun.net/index.php/archives/725.html" title="fancyindex 插件模块美化 nginx 的默认 index 页面">[...]</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://niekun.net/index.php/archives/725.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://niekun.net/index.php/feed/atom/archives/725.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[观察图层的使用 in Photoshop]]></title>
+<link rel="alternate" type="text/html" href="https://niekun.net/index.php/archives/696.html" />
+<id>https://niekun.net/index.php/archives/696.html</id>
+<updated>2019-12-08T14:39:00+08:00</updated>
+<published>2019-12-08T14:39:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[观察图层主要是用来让我的的处理 focus on 我们需要处理的部分，使要处理的细节更加清晰。可以建立的观察图层有以下几种：反差检查图层亮度检查图层色彩检查图层饱和度检查图层以下分别介绍几种图层...]]></summary>
 <content type="html" xml:base="https://niekun.net/index.php/archives/696.html" xml:lang="zh-CN"><![CDATA[
-<p>观察图层主要是用来让我的的处理 focus on 我们需要处理的部分，使要处理的细节更加清晰。</p><p>可以建立的观察图层有以下几种：</p><ul><li>斑点检查图层</li><li>亮度检查图层</li><li>色彩检查图层</li><li>饱和度检查图层</li></ul><p>以下分别介绍几种图层的建立。</p><p class="more"><a href="https://niekun.net/index.php/archives/696.html" title="观察图层的使用 in Photoshop">[...]</a></p>
+<p><img src="https://niekun.net/usr/uploads/2019/12/3736000843.png" alt="2019-12-09T13:29:53.png" title="2019-12-09T13:29:53.png"></p><p>观察图层主要是用来让我的的处理 focus on 我们需要处理的部分，使要处理的细节更加清晰。</p><p>可以建立的观察图层有以下几种：</p><ul><li>反差检查图层</li><li>亮度检查图层</li><li>色彩检查图层</li><li>饱和度检查图层</li></ul><p>以下分别介绍几种图层的建立。</p><p class="more"><a href="https://niekun.net/index.php/archives/696.html" title="观察图层的使用 in Photoshop">[...]</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://niekun.net/index.php/archives/696.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://niekun.net/index.php/feed/atom/archives/696.html" thr:count="0"/>
@@ -146,39 +193,5 @@ xml:base="https://niekun.net/"
 ]]></content>
 <link rel="replies" type="text/html" href="https://niekun.net/index.php/archives/654.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://niekun.net/index.php/feed/atom/archives/654.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[提取图像阴影 in Photoshop]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/index.php/archives/639.html" />
-<id>https://niekun.net/index.php/archives/639.html</id>
-<updated>2019-12-07T21:39:54+08:00</updated>
-<published>2019-12-07T21:39:54+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[提取图像阴影 in Photoshop]]></summary>
-<content type="html" xml:base="https://niekun.net/index.php/archives/639.html" xml:lang="zh-CN"><![CDATA[
-<p><img src="https://niekun.net/usr/uploads/2019/12/1956975635.png" alt="2019-12-07T12:54:40.png" title="2019-12-07T12:54:40.png"></p><p class="more"><a href="https://niekun.net/index.php/archives/639.html" title="提取图像阴影 in Photoshop">[...]</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/index.php/archives/639.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/index.php/feed/atom/archives/639.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[Docker 容器简介]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/index.php/archives/635.html" />
-<id>https://niekun.net/index.php/archives/635.html</id>
-<updated>2019-12-04T08:30:06+08:00</updated>
-<published>2019-12-04T08:30:06+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[http://www.ruanyifeng.com/blog/2018/02/docker-tutorial.htmlhttp://www.ruanyifeng.com/blog/2018/02...]]></summary>
-<content type="html" xml:base="https://niekun.net/index.php/archives/635.html" xml:lang="zh-CN"><![CDATA[
-<p><a href="http://www.ruanyifeng.com/blog/2018/02/docker-tutorial.html">http://www.ruanyifeng.com/blog/2018/02/docker-tutorial.html</a><br><a href="http://www.ruanyifeng.com/blog/2018/02/docker-wordpress-tutorial.html">http://www.ruanyifeng.com/blog/2018/02/docker-wordpress-tutorial.html</a><br><a href="https://hub.docker.com/">https://hub.docker.com/</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/index.php/archives/635.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/index.php/feed/atom/archives/635.html" thr:count="0"/>
 </entry>
 </feed>

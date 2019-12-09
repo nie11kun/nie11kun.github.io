@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://niekun.net/index.php/archives/730.html"/>
+<rdf:li resource="https://niekun.net/index.php/archives/725.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/195.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/187.html"/>
 <rdf:li resource="https://niekun.net/index.php/archives/177.html"/>
@@ -20,6 +22,31 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://niekun.net/index.php/archives/730.html">
+<title>限制用户名密码访问页面 in nginx</title>
+<link>https://niekun.net/index.php/archives/730.html</link>
+<dc:date>2019-12-09T16:21:00+08:00</dc:date>
+<description>有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。如果使用 nginx 作为反向代理服务器，可以使用 auth_basic 来实现页面加密。环境需求：Linux envnginxapache2-utils (Debian, Ubuntu) or httpd-tools (RHEL/CentOS/Oracle Linux)安装环境：nginx 安装参考：https://niekun.net/index.php/archives/30.html安装 apache2-utils：apt-get install apache2-utils
+创建账户密码：使用了 htpasswd 命令创建用户。关于 htpasswd 的详细使用：https://httpd.apache.org/docs/2.4/programs/htpasswd.html建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：htpasswd -c /etc/nginx/users/.adminpasswd user1
+.adminpasswd 为隐藏的存储所有账户信息的文件，user1 为用户名，回车后会提示输入密码，然后确认密码。建立其他账户：htpasswd /etc/nginx/users/.adminpasswd user2
+不需要 -c 参数，因为文件已经建立了。验证账户密码 -v：htpasswd -v /etc/nginx/users/.adminpasswd user1
+删除账户 -D：htpasswd -D /etc/nginx/users/.adminpasswd user1
+使用账户：打开 nginx 配置文件，在需要账户登录的路径段修改如下：location /path {
+    ...
+    auth_basic           &quot;Administrator's Area&quot;;
+    auth_basic_user_file /etc/nginx/users/.adminpasswd;
+    ...
+    ...
+}重新加载配置文件：service nginx configtest
+service nginx reload
+打开对应页面测试是否提示输入账号密码。</description>
+</item>
+<item rdf:about="https://niekun.net/index.php/archives/725.html">
+<title>fancyindex 插件模块美化 nginx 的默认 index 页面</title>
+<link>https://niekun.net/index.php/archives/725.html</link>
+<dc:date>2019-12-09T15:14:00+08:00</dc:date>
+<description>使用 nginx 的 autoindex 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：autoindex 搭建教程参考：https://niekun.net/index.php/archives/26.html如果需要更加美观和丰富的页面，可以使用第三方模块 fancyindex 来实现。[...]</description>
+</item>
 <item rdf:about="https://niekun.net/index.php/archives/195.html">
 <title>NGINX Rewrite 规则的应用</title>
 <link>https://niekun.net/index.php/archives/195.html</link>
