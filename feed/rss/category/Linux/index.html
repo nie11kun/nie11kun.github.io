@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://niekun.net/archives/1258.html"/>
+<rdf:li resource="https://niekun.net/archives/1257.html"/>
 <rdf:li resource="https://niekun.net/archives/1243.html"/>
 <rdf:li resource="https://niekun.net/archives/1212.html"/>
 <rdf:li resource="https://niekun.net/archives/1195.html"/>
@@ -17,11 +19,22 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://niekun.net/archives/891.html"/>
 <rdf:li resource="https://niekun.net/archives/883.html"/>
 <rdf:li resource="https://niekun.net/archives/882.html"/>
-<rdf:li resource="https://niekun.net/archives/832.html"/>
-<rdf:li resource="https://niekun.net/archives/730.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://niekun.net/archives/1258.html">
+<title>Windows 10 WSL 不支持 systemd</title>
+<link>https://niekun.net/archives/1258.html</link>
+<dc:date>2020-03-04T11:44:25+08:00</dc:date>
+<description>在使用 WSL 中发现无法使用 systemd 指令，会有如下报错信息：System has not been booted with systemd as init system (PID 1). Can't operate查询后发现 WSL 的确有这个问题：https://github.com/MicrosoftDocs/WSL/issues/457解决方法是用管理员权限打开 WSL，然后使用 sudo service 来控制进程，如：sudo service nginx start
+</description>
+</item>
+<item rdf:about="https://niekun.net/archives/1257.html">
+<title>Nginx 可用指令和变量索引</title>
+<link>https://niekun.net/archives/1257.html</link>
+<dc:date>2020-03-04T11:19:18+08:00</dc:date>
+<description>手册：http://nginx.org/en/docs/涵盖了安装教程，开始使用教程，常用使用情景教程，指令索引，变量索引 等链接。变量：http://nginx.org/en/docs/varindex.html变量在 nginx 配置中使用很多，使用变量可以根据需要处理特定部分。如：$rui, $scheme, $request_filename, $host, $request_uri指令：http://nginx.org/en/docs/dirindex.html如：listen, include, location, if, auth_basic</description>
+</item>
 <item rdf:about="https://niekun.net/archives/1243.html">
 <title>Typecho 配合 Nginx 设置伪静态链接</title>
 <link>https://niekun.net/archives/1243.html</link>
@@ -79,30 +92,5 @@ ls -l *          #显示当前目录下所有文件的大小信息
 ls -al *         #显示当前目录下所有文件的大小信息，包括隐藏文件
 ls -al /dir/      #显示特定目录下所有文件的大小信息，包括隐藏文件使用 ls 命令，文件夹的大小会显示此文件夹本身的大小，而不是问价夹内内容的总大小。du查看文件夹内容大小du -sh directory_name    #显示总的 summarized(-s) 目录大小 in human readable(-h) format
 du -bsh *                #Gives you the apparent(-b) summarized(-s) size of all the files and directories in the current directory in human readable(-h) format</description>
-</item>
-<item rdf:about="https://niekun.net/archives/832.html">
-<title>Linux 自动删除指定天数前文件</title>
-<link>https://niekun.net/archives/832.html</link>
-<dc:date>2019-12-20T10:15:00+08:00</dc:date>
-<description>服务器上搭建了个云盘，有个 temp 目录存放一些临时文件，想要设定指定天数后自动删除，可以使用 Linux 脚本实现。用到的命令：find mtime crontab基本思路是使用 find 命令筛选符合条件的文件或文件夹，使用 crontab 创建定时任务。find 的详细用法：https://niekun.net/index.php/archives/543.htmlcrontab 的详细用法：https://niekun.net/index.php/archives/461.html[...]</description>
-</item>
-<item rdf:about="https://niekun.net/archives/730.html">
-<title>限制用户名密码访问页面 in nginx</title>
-<link>https://niekun.net/archives/730.html</link>
-<dc:date>2019-12-09T16:21:00+08:00</dc:date>
-<description>有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。如果使用 nginx 作为反向代理服务器，可以使用 auth_basic 来实现页面加密。环境需求：Linux envnginxapache2-utils (Debian, Ubuntu) or httpd-tools (RHEL/CentOS/Oracle Linux)安装环境：nginx 安装参考：https://niekun.net/index.php/archives/30.html安装 apache2-utils：apt-get install apache2-utils
-创建账户密码：使用了 htpasswd 命令创建用户。关于 htpasswd 的详细使用：https://httpd.apache.org/docs/2.4/programs/htpasswd.html建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：htpasswd -c /etc/nginx/users/.adminpasswd user1
-.adminpasswd 为隐藏的存储所有账户信息的文件，user1 为用户名，回车后会提示输入密码，然后确认密码。建立其他账户：htpasswd /etc/nginx/users/.adminpasswd user2
-不需要 -c 参数，因为文件已经建立了。验证账户密码 -v：htpasswd -v /etc/nginx/users/.adminpasswd user1
-删除账户 -D：htpasswd -D /etc/nginx/users/.adminpasswd user1
-使用账户：打开 nginx 配置文件，在需要账户登录的路径段修改如下：location /path {
-    ...
-    auth_basic           &quot;Administrator's Area&quot;;
-    auth_basic_user_file /etc/nginx/users/.adminpasswd;
-    ...
-    ...
-}重新加载配置文件：service nginx configtest
-service nginx reload
-打开对应页面测试是否提示输入账号密码。</description>
 </item>
 </rdf:RDF>
