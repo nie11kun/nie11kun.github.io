@@ -11,8 +11,29 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://niekun.net/feed/category/software/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Wed, 04 Mar 2020 11:19:18 +0800</lastBuildDate>
-<pubDate>Wed, 04 Mar 2020 11:19:18 +0800</pubDate>
+<lastBuildDate>Thu, 05 Mar 2020 08:53:00 +0800</lastBuildDate>
+<pubDate>Thu, 05 Mar 2020 08:53:00 +0800</pubDate>
+<item>
+<title>Nginx upstream timed out 问题的处理</title>
+<link>https://niekun.net/archives/1280.html</link>
+<guid>https://niekun.net/archives/1280.html</guid>
+<pubDate>Thu, 05 Mar 2020 08:53:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在 fastCGI 上:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
+proxy_send_timeout 600;
+proxy_read_timeout 600;
+send_timeout 600;</code></pre><p>将上述内容加入 config 文件，reload nginx 测试页面加载是否正常：</p><pre><code>sudo service nginx configtest
+sudo service nginx reload
+
+
+</code></pre>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://niekun.net/archives/1280.html#comments</comments>
+<wfw:commentRss>https://niekun.net/feed/archives/1280.html</wfw:commentRss>
+</item>
 <item>
 <title>Nginx 可用指令和变量索引</title>
 <link>https://niekun.net/archives/1257.html</link>
@@ -126,18 +147,18 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <wfw:commentRss>https://niekun.net/feed/archives/444.html</wfw:commentRss>
 </item>
 <item>
-<title>typecho 修改默认上传文件大小限制</title>
+<title>Nginx PHP 修改上传限制</title>
 <link>https://niekun.net/archives/371.html</link>
 <guid>https://niekun.net/archives/371.html</guid>
 <pubDate>Thu, 15 Aug 2019 12:38:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
-<description><![CDATA[修改 php.ini 文件，我使用的是 php5.6 版，所以首先查找 fpm 的配置文件：locate php.ini找到后打开文件，如：vim /etc/php5.6/fpm/php.ini...]]></description>
+<description><![CDATA[使用 typecho 时，发现附件过大时无法上传，wordpress 也出现：413 request entity too large 这个错误码，这是 php 和 nginx 端的限制，修改配...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>修改 php.ini 文件，我使用的是 php5.6 版，所以首先查找 fpm 的配置文件：</p><pre><code>locate php.ini
+<p>使用 typecho 时，发现附件过大时无法上传，wordpress 也出现：413 request entity too large 这个错误码，这是 php 和 nginx 端的限制，修改配置文件可以提高上传文件大小。</p><p>修改 php.ini 文件，我使用的是 php5.6 版，所以首先查找 fpm 的配置文件：</p><pre><code>locate php.ini
 </code></pre><p>找到后打开文件，如：</p><pre><code>vim /etc/php5.6/fpm/php.ini
-</code></pre><p>使用 <strong>/</strong> 搜索字段，修改如下：</p><pre><code>upload_max_filesize = 1024M;
-post_max_size = 1024M;
-max_execution_time=600;
+</code></pre><p>使用 <strong>/</strong> 搜索字段，修改如下：</p><pre><code>upload_max_filesize = 1024M
+post_max_size = 1024M
+max_execution_time=600
 </code></pre><p>重启 php 服务：</p><pre><code>service php5.6-fpm restart
 </code></pre><p>nginx 配置中 http 段增加如下：</p><pre><code>client_max_body_size 50m;
 </code></pre><p>重启 nginx：</p><pre><code>service nginx reload
@@ -146,20 +167,6 @@ max_execution_time=600;
 <slash:comments>0</slash:comments>
 <comments>https://niekun.net/archives/371.html#comments</comments>
 <wfw:commentRss>https://niekun.net/feed/archives/371.html</wfw:commentRss>
-</item>
-<item>
-<title>curl简单使用</title>
-<link>https://niekun.net/archives/216.html</link>
-<guid>https://niekun.net/archives/216.html</guid>
-<pubDate>Thu, 18 Apr 2019 15:04:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[command line tool and library for transferring data with URLs官网：https://curl.haxx.se/everything c...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<blockquote>command line tool and library for transferring data with URLs</blockquote><p>官网：<a href="https://curl.haxx.se/">https://curl.haxx.se/</a></p><p>everything curl: <a href="https://ec.haxx.se/">https://ec.haxx.se/</a></p><p class="more"><a href="https://niekun.net/archives/216.html" title="curl简单使用">[...]</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://niekun.net/archives/216.html#comments</comments>
-<wfw:commentRss>https://niekun.net/feed/archives/216.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

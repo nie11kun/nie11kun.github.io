@@ -6,11 +6,35 @@ xml:base="https://niekun.net/category/software/"
 >
 <title type="text">Marco Nie - software</title>
 <subtitle type="text"></subtitle>
-<updated>2020-03-04T11:19:18+08:00</updated>
+<updated>2020-03-05T08:53:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://niekun.net/category/software/" />
 <id>https://niekun.net/feed/atom/category/software/</id>
 <link rel="self" type="application/atom+xml" href="https://niekun.net/feed/atom/category/software/" />
+<entry>
+<title type="html"><![CDATA[Nginx upstream timed out 问题的处理]]></title>
+<link rel="alternate" type="text/html" href="https://niekun.net/archives/1280.html" />
+<id>https://niekun.net/archives/1280.html</id>
+<updated>2020-03-05T08:53:00+08:00</updated>
+<published>2020-03-05T08:53:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ...]]></summary>
+<content type="html" xml:base="https://niekun.net/archives/1280.html" xml:lang="zh-CN"><![CDATA[
+<p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在 fastCGI 上:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
+proxy_send_timeout 600;
+proxy_read_timeout 600;
+send_timeout 600;</code></pre><p>将上述内容加入 config 文件，reload nginx 测试页面加载是否正常：</p><pre><code>sudo service nginx configtest
+sudo service nginx reload
+
+
+</code></pre>
+]]></content>
+<link rel="replies" type="text/html" href="https://niekun.net/archives/1280.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1280.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Nginx 可用指令和变量索引]]></title>
 <link rel="alternate" type="text/html" href="https://niekun.net/archives/1257.html" />
@@ -148,7 +172,7 @@ xml:base="https://niekun.net/category/software/"
 <link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/444.html" thr:count="0"/>
 </entry>
 <entry>
-<title type="html"><![CDATA[typecho 修改默认上传文件大小限制]]></title>
+<title type="html"><![CDATA[Nginx PHP 修改上传限制]]></title>
 <link rel="alternate" type="text/html" href="https://niekun.net/archives/371.html" />
 <id>https://niekun.net/archives/371.html</id>
 <updated>2019-08-15T12:38:00+08:00</updated>
@@ -157,13 +181,13 @@ xml:base="https://niekun.net/category/software/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[修改 php.ini 文件，我使用的是 php5.6 版，所以首先查找 fpm 的配置文件：locate php.ini找到后打开文件，如：vim /etc/php5.6/fpm/php.ini...]]></summary>
+<summary type="html"><![CDATA[使用 typecho 时，发现附件过大时无法上传，wordpress 也出现：413 request entity too large 这个错误码，这是 php 和 nginx 端的限制，修改配...]]></summary>
 <content type="html" xml:base="https://niekun.net/archives/371.html" xml:lang="zh-CN"><![CDATA[
-<p>修改 php.ini 文件，我使用的是 php5.6 版，所以首先查找 fpm 的配置文件：</p><pre><code>locate php.ini
+<p>使用 typecho 时，发现附件过大时无法上传，wordpress 也出现：413 request entity too large 这个错误码，这是 php 和 nginx 端的限制，修改配置文件可以提高上传文件大小。</p><p>修改 php.ini 文件，我使用的是 php5.6 版，所以首先查找 fpm 的配置文件：</p><pre><code>locate php.ini
 </code></pre><p>找到后打开文件，如：</p><pre><code>vim /etc/php5.6/fpm/php.ini
-</code></pre><p>使用 <strong>/</strong> 搜索字段，修改如下：</p><pre><code>upload_max_filesize = 1024M;
-post_max_size = 1024M;
-max_execution_time=600;
+</code></pre><p>使用 <strong>/</strong> 搜索字段，修改如下：</p><pre><code>upload_max_filesize = 1024M
+post_max_size = 1024M
+max_execution_time=600
 </code></pre><p>重启 php 服务：</p><pre><code>service php5.6-fpm restart
 </code></pre><p>nginx 配置中 http 段增加如下：</p><pre><code>client_max_body_size 50m;
 </code></pre><p>重启 nginx：</p><pre><code>service nginx reload
@@ -171,22 +195,5 @@ max_execution_time=600;
 ]]></content>
 <link rel="replies" type="text/html" href="https://niekun.net/archives/371.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/371.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[curl简单使用]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/216.html" />
-<id>https://niekun.net/archives/216.html</id>
-<updated>2019-04-18T15:04:00+08:00</updated>
-<published>2019-04-18T15:04:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[command line tool and library for transferring data with URLs官网：https://curl.haxx.se/everything c...]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/216.html" xml:lang="zh-CN"><![CDATA[
-<blockquote>command line tool and library for transferring data with URLs</blockquote><p>官网：<a href="https://curl.haxx.se/">https://curl.haxx.se/</a></p><p>everything curl: <a href="https://ec.haxx.se/">https://ec.haxx.se/</a></p><p class="more"><a href="https://niekun.net/archives/216.html" title="curl简单使用">[...]</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/216.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/216.html" thr:count="0"/>
 </entry>
 </feed>

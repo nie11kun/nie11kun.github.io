@@ -11,8 +11,29 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>I’m dancing at the feet of my lord...</description>
-<lastBuildDate>Wed, 04 Mar 2020 11:44:25 +0800</lastBuildDate>
-<pubDate>Wed, 04 Mar 2020 11:44:25 +0800</pubDate>
+<lastBuildDate>Thu, 05 Mar 2020 08:53:00 +0800</lastBuildDate>
+<pubDate>Thu, 05 Mar 2020 08:53:00 +0800</pubDate>
+<item>
+<title>Nginx upstream timed out 问题的处理</title>
+<link>https://niekun.net/archives/1280.html</link>
+<guid>https://niekun.net/archives/1280.html</guid>
+<pubDate>Thu, 05 Mar 2020 08:53:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在 fastCGI 上:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
+proxy_send_timeout 600;
+proxy_read_timeout 600;
+send_timeout 600;</code></pre><p>将上述内容加入 config 文件，reload nginx 测试页面加载是否正常：</p><pre><code>sudo service nginx configtest
+sudo service nginx reload
+
+
+</code></pre>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://niekun.net/archives/1280.html#comments</comments>
+<wfw:commentRss>https://niekun.net/feed/archives/1280.html</wfw:commentRss>
+</item>
 <item>
 <title>Windows 10 WSL 不支持 systemd</title>
 <link>https://niekun.net/archives/1258.html</link>
@@ -139,20 +160,6 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <slash:comments>0</slash:comments>
 <comments>https://niekun.net/archives/1199.html#comments</comments>
 <wfw:commentRss>https://niekun.net/feed/archives/1199.html</wfw:commentRss>
-</item>
-<item>
-<title>使用 tmux 建立多个 sessions</title>
-<link>https://niekun.net/archives/1195.html</link>
-<guid>https://niekun.net/archives/1195.html</guid>
-<pubDate>Fri, 28 Feb 2020 11:18:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[Linux 中，当前对话框就是一个 session，如果正在执行某个进程而不能中断，而又想操作一些其他事情，这是时候可以建立另一个 session 来处理。单独建立的 session 只要没有 ...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>Linux 中，当前对话框就是一个 session，如果正在执行某个进程而不能中断，而又想操作一些其他事情，这是时候可以建立另一个 session 来处理。</p><p>单独建立的 session 只要没有 kill 掉，在返回主 session 并退出登录后，下次登录依然可以返回已经建立的 session。可以达到进程守护的目的。</p><p>可以使用的软件有 screen 和 tmux，这里介绍 tmux 的使用方法。</p><p>GitHub 主页：<a href="https://github.com/tmux/tmux">https://github.com/tmux/tmux</a><br>参考文章：<a href="https://helpful.knobs-dials.com/index.php/Screen_and_tmux">https://helpful.knobs-dials.com/index.php/Screen_and_tmux</a></p><p class="more"><a href="https://niekun.net/archives/1195.html" title="使用 tmux 建立多个 sessions">[...]</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://niekun.net/archives/1195.html#comments</comments>
-<wfw:commentRss>https://niekun.net/feed/archives/1195.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

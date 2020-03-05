@@ -6,11 +6,35 @@ xml:base="https://niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">I’m dancing at the feet of my lord...</subtitle>
-<updated>2020-03-04T11:44:25+08:00</updated>
+<updated>2020-03-05T08:53:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://niekun.net/" />
 <id>https://niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[Nginx upstream timed out 问题的处理]]></title>
+<link rel="alternate" type="text/html" href="https://niekun.net/archives/1280.html" />
+<id>https://niekun.net/archives/1280.html</id>
+<updated>2020-03-05T08:53:00+08:00</updated>
+<published>2020-03-05T08:53:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ...]]></summary>
+<content type="html" xml:base="https://niekun.net/archives/1280.html" xml:lang="zh-CN"><![CDATA[
+<p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在 fastCGI 上:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
+proxy_send_timeout 600;
+proxy_read_timeout 600;
+send_timeout 600;</code></pre><p>将上述内容加入 config 文件，reload nginx 测试页面加载是否正常：</p><pre><code>sudo service nginx configtest
+sudo service nginx reload
+
+
+</code></pre>
+]]></content>
+<link rel="replies" type="text/html" href="https://niekun.net/archives/1280.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1280.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Windows 10 WSL 不支持 systemd]]></title>
 <link rel="alternate" type="text/html" href="https://niekun.net/archives/1258.html" />
@@ -164,22 +188,5 @@ xml:base="https://niekun.net/"
 ]]></content>
 <link rel="replies" type="text/html" href="https://niekun.net/archives/1199.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1199.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[使用 tmux 建立多个 sessions]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/1195.html" />
-<id>https://niekun.net/archives/1195.html</id>
-<updated>2020-02-28T11:18:00+08:00</updated>
-<published>2020-02-28T11:18:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[Linux 中，当前对话框就是一个 session，如果正在执行某个进程而不能中断，而又想操作一些其他事情，这是时候可以建立另一个 session 来处理。单独建立的 session 只要没有 ...]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/1195.html" xml:lang="zh-CN"><![CDATA[
-<p>Linux 中，当前对话框就是一个 session，如果正在执行某个进程而不能中断，而又想操作一些其他事情，这是时候可以建立另一个 session 来处理。</p><p>单独建立的 session 只要没有 kill 掉，在返回主 session 并退出登录后，下次登录依然可以返回已经建立的 session。可以达到进程守护的目的。</p><p>可以使用的软件有 screen 和 tmux，这里介绍 tmux 的使用方法。</p><p>GitHub 主页：<a href="https://github.com/tmux/tmux">https://github.com/tmux/tmux</a><br>参考文章：<a href="https://helpful.knobs-dials.com/index.php/Screen_and_tmux">https://helpful.knobs-dials.com/index.php/Screen_and_tmux</a></p><p class="more"><a href="https://niekun.net/archives/1195.html" title="使用 tmux 建立多个 sessions">[...]</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/1195.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1195.html" thr:count="0"/>
 </entry>
 </feed>
