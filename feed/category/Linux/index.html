@@ -11,8 +11,35 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://niekun.net/feed/category/Linux/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Thu, 05 Mar 2020 08:53:00 +0800</lastBuildDate>
-<pubDate>Thu, 05 Mar 2020 08:53:00 +0800</pubDate>
+<lastBuildDate>Fri, 06 Mar 2020 15:00:08 +0800</lastBuildDate>
+<pubDate>Fri, 06 Mar 2020 15:00:08 +0800</pubDate>
+<item>
+<title>获取用户真实 IP in Nginx</title>
+<link>https://niekun.net/archives/1296.html</link>
+<guid>https://niekun.net/archives/1296.html</guid>
+<pubDate>Fri, 06 Mar 2020 15:00:08 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[对于没有连代理访问网站的用户或者没有加 CND 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，$remote_addr 存储了当前链接用户的 IP:https:/...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>对于没有连代理访问网站的用户或者没有加 CND 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，<strong>$remote_addr</strong> 存储了当前链接用户的 IP:<a href="https://nginx.org/en/docs/http/ngx_http_access_module.html#deny">https://nginx.org/en/docs/http/ngx_http_access_module.html#deny</a></p><pre><code>location / {
+    deny  192.168.1.1;
+    allow 192.168.1.0/24;
+    allow 10.1.1.0/16;
+    allow 2001:0db8::/32;
+    deny  all;
+}</code></pre><p>如果加了代理或者 CND 就没法直接获取到用户真实 IP 了，可以在 nginx 使用以下指令提取用户真实 IP：</p><pre><code>#获取用户真实IP，并赋值给变量$clientRealIP
+map $http_x_forwarded_for  $clientRealIp {
+        &quot;&quot;      $remote_addr;
+        ~^(?P&lt;firstAddr&gt;[0-9\.]+),?.*$  $firstAddr;
+}</code></pre><p>或者：</p><pre><code>set $realip $remote_addr;
+  if ($http_x_forwarded_for ~ &quot;^(\d+\.\d+\.\d+\.\d+)&quot;) {
+    set $realip $1;
+  }</code></pre>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://niekun.net/archives/1296.html#comments</comments>
+<wfw:commentRss>https://niekun.net/feed/archives/1296.html</wfw:commentRss>
+</item>
 <item>
 <title>Nginx upstream timed out 问题的处理</title>
 <link>https://niekun.net/archives/1280.html</link>
@@ -151,20 +178,6 @@ sudo service nginx reload
 <slash:comments>0</slash:comments>
 <comments>https://niekun.net/archives/891.html#comments</comments>
 <wfw:commentRss>https://niekun.net/feed/archives/891.html</wfw:commentRss>
-</item>
-<item>
-<title>Linux 下从源码编译和安装程序以及程序的管理</title>
-<link>https://niekun.net/archives/883.html</link>
-<guid>https://niekun.net/archives/883.html</guid>
-<pubDate>Wed, 05 Feb 2020 19:47:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[Linux 下最方便和常用的包安装方式是通过系统内置的管理工具，例如 apt 或 yum，但有时候这些分发系统里的包不是最新的或者需要对包进行一些特定的修改，这时候需要自己从源码进行编译安装。本...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>Linux 下最方便和常用的包安装方式是通过系统内置的管理工具，例如 apt 或 yum，但有时候这些分发系统里的包不是最新的或者需要对包进行一些特定的修改，这时候需要自己从源码进行编译安装。</p><p>本文对 Linux 下普遍的编译安装方式进行介绍。</p><p>参考链接：<br><a href="https://itsfoss.com/install-software-from-source-code/">https://itsfoss.com/install-software-from-source-code/</a></p><h2>从源码安装程序</h2><p>我们以安装最新版 node.js 为例。</p><p class="more"><a href="https://niekun.net/archives/883.html" title="Linux 下从源码编译和安装程序以及程序的管理">[...]</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://niekun.net/archives/883.html#comments</comments>
-<wfw:commentRss>https://niekun.net/feed/archives/883.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

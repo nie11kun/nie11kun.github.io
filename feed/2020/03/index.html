@@ -11,8 +11,35 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://niekun.net/feed/2020/03/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>I’m dancing at the feet of my lord...</description>
-<lastBuildDate>Thu, 05 Mar 2020 08:53:00 +0800</lastBuildDate>
-<pubDate>Thu, 05 Mar 2020 08:53:00 +0800</pubDate>
+<lastBuildDate>Fri, 06 Mar 2020 15:00:08 +0800</lastBuildDate>
+<pubDate>Fri, 06 Mar 2020 15:00:08 +0800</pubDate>
+<item>
+<title>获取用户真实 IP in Nginx</title>
+<link>https://niekun.net/archives/1296.html</link>
+<guid>https://niekun.net/archives/1296.html</guid>
+<pubDate>Fri, 06 Mar 2020 15:00:08 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[对于没有连代理访问网站的用户或者没有加 CND 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，$remote_addr 存储了当前链接用户的 IP:https:/...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>对于没有连代理访问网站的用户或者没有加 CND 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，<strong>$remote_addr</strong> 存储了当前链接用户的 IP:<a href="https://nginx.org/en/docs/http/ngx_http_access_module.html#deny">https://nginx.org/en/docs/http/ngx_http_access_module.html#deny</a></p><pre><code>location / {
+    deny  192.168.1.1;
+    allow 192.168.1.0/24;
+    allow 10.1.1.0/16;
+    allow 2001:0db8::/32;
+    deny  all;
+}</code></pre><p>如果加了代理或者 CND 就没法直接获取到用户真实 IP 了，可以在 nginx 使用以下指令提取用户真实 IP：</p><pre><code>#获取用户真实IP，并赋值给变量$clientRealIP
+map $http_x_forwarded_for  $clientRealIp {
+        &quot;&quot;      $remote_addr;
+        ~^(?P&lt;firstAddr&gt;[0-9\.]+),?.*$  $firstAddr;
+}</code></pre><p>或者：</p><pre><code>set $realip $remote_addr;
+  if ($http_x_forwarded_for ~ &quot;^(\d+\.\d+\.\d+\.\d+)&quot;) {
+    set $realip $1;
+  }</code></pre>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://niekun.net/archives/1296.html#comments</comments>
+<wfw:commentRss>https://niekun.net/feed/archives/1296.html</wfw:commentRss>
+</item>
 <item>
 <title>Nginx upstream timed out 问题的处理</title>
 <link>https://niekun.net/archives/1280.html</link>

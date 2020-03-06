@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>admin</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://niekun.net/archives/1296.html"/>
 <rdf:li resource="https://niekun.net/archives/1280.html"/>
 <rdf:li resource="https://niekun.net/archives/1258.html"/>
 <rdf:li resource="https://niekun.net/archives/1257.html"/>
@@ -18,10 +19,28 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://niekun.net/archives/1237.html"/>
 <rdf:li resource="https://niekun.net/archives/1219.html"/>
 <rdf:li resource="https://niekun.net/archives/1212.html"/>
-<rdf:li resource="https://niekun.net/archives/1199.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://niekun.net/archives/1296.html">
+<title>获取用户真实 IP in Nginx</title>
+<link>https://niekun.net/archives/1296.html</link>
+<dc:date>2020-03-06T15:00:08+08:00</dc:date>
+<description>对于没有连代理访问网站的用户或者没有加 CND 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，$remote_addr 存储了当前链接用户的 IP:https://nginx.org/en/docs/http/ngx_http_access_module.html#denylocation / {
+    deny  192.168.1.1;
+    allow 192.168.1.0/24;
+    allow 10.1.1.0/16;
+    allow 2001:0db8::/32;
+    deny  all;
+}如果加了代理或者 CND 就没法直接获取到用户真实 IP 了，可以在 nginx 使用以下指令提取用户真实 IP：#获取用户真实IP，并赋值给变量$clientRealIP
+map $http_x_forwarded_for  $clientRealIp {
+        &quot;&quot;      $remote_addr;
+        ~^(?P&lt;firstAddr&gt;[0-9\.]+),?.*$  $firstAddr;
+}或者：set $realip $remote_addr;
+  if ($http_x_forwarded_for ~ &quot;^(\d+\.\d+\.\d+\.\d+)&quot;) {
+    set $realip $1;
+  }</description>
+</item>
 <item rdf:about="https://niekun.net/archives/1280.html">
 <title>Nginx upstream timed out 问题的处理</title>
 <link>https://niekun.net/archives/1280.html</link>
@@ -83,11 +102,5 @@ sudo service nginx reload
 <link>https://niekun.net/archives/1212.html</link>
 <dc:date>2020-03-02T11:16:00+08:00</dc:date>
 <description>vim 是 Linux 下常用的编辑器，学会常用的操作如：光标移动 复制 粘贴 删除 撤销 等指令，对于日常使用很有必要，下面介绍常用指令。注意 vim 所有控制指令都区分大小写。[...]</description>
-</item>
-<item rdf:about="https://niekun.net/archives/1199.html">
-<title>aria2 使用指南</title>
-<link>https://niekun.net/archives/1199.html</link>
-<dc:date>2020-02-28T17:10:00+08:00</dc:date>
-<description>aria2 是一款轻量级的下载器，支持 HTTP/HTTPS, FTP, SFTP, BitTorrent and Metalink 等多种协议。它有如下特点：多节点链接：下载一个文件可以同时链接多个源来提速轻量级：占用系统资源极少，一般下载任务内存占用 10mb 内全功能的 BitTorrent 客户端：支持 DHT, PEX, Encryption, Magnet URI, Web-Seeding, Selective Downloads, Local Peer Discovery and UDP tracker支持 metalink 链接支持远程控制：支持 RPC 界面控制 aria2 进程官网：https://aria2.github.io/GitHub 主页：https://github.com/aria2/aria2webui-aria2：https://github.com/ziahamza/webui-aria2[...]</description>
 </item>
 </rdf:RDF>
