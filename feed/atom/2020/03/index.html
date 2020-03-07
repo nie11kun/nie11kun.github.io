@@ -2,19 +2,19 @@
 <feed xmlns="http://www.w3.org/2005/Atom"
 xmlns:thr="http://purl.org/syndication/thread/1.0"
 xml:lang="zh-CN"
-xml:base="https://niekun.net/2020/03/"
+xml:base="https://blog.niekun.net/2020/03/"
 >
 <title type="text">Marco Nie - 2020年3月</title>
 <subtitle type="text">I’m dancing at the feet of my lord...</subtitle>
 <updated>2020-03-06T15:00:08+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
-<link rel="alternate" type="text/html" href="https://niekun.net/2020/03/" />
-<id>https://niekun.net/feed/atom/2020/03/</id>
-<link rel="self" type="application/atom+xml" href="https://niekun.net/feed/atom/2020/03/" />
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/2020/03/" />
+<id>https://blog.niekun.net/feed/atom/2020/03/</id>
+<link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2020/03/" />
 <entry>
 <title type="html"><![CDATA[获取用户真实 IP in Nginx]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/1296.html" />
-<id>https://niekun.net/archives/1296.html</id>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1296.html" />
+<id>https://blog.niekun.net/archives/1296.html</id>
 <updated>2020-03-06T15:00:08+08:00</updated>
 <published>2020-03-06T15:00:08+08:00</published>
 <author>
@@ -22,7 +22,7 @@ xml:base="https://niekun.net/2020/03/"
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[对于没有连代理访问网站的用户或者没有加 CND 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，$remote_addr 存储了当前链接用户的 IP:https:/...]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/1296.html" xml:lang="zh-CN"><![CDATA[
+<content type="html" xml:base="https://blog.niekun.net/archives/1296.html" xml:lang="zh-CN"><![CDATA[
 <p>对于没有连代理访问网站的用户或者没有加 CND 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，<strong>$remote_addr</strong> 存储了当前链接用户的 IP:<a href="https://nginx.org/en/docs/http/ngx_http_access_module.html#deny">https://nginx.org/en/docs/http/ngx_http_access_module.html#deny</a></p><pre><code>location / {
     deny  192.168.1.1;
     allow 192.168.1.0/24;
@@ -38,13 +38,13 @@ map $http_x_forwarded_for  $clientRealIp {
     set $realip $1;
   }</code></pre>
 ]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/1296.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1296.html" thr:count="0"/>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1296.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1296.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[Nginx upstream timed out 问题的处理]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/1280.html" />
-<id>https://niekun.net/archives/1280.html</id>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1280.html" />
+<id>https://blog.niekun.net/archives/1280.html</id>
 <updated>2020-03-05T08:53:00+08:00</updated>
 <published>2020-03-05T08:53:00+08:00</published>
 <author>
@@ -52,7 +52,7 @@ map $http_x_forwarded_for  $clientRealIp {
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ...]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/1280.html" xml:lang="zh-CN"><![CDATA[
+<content type="html" xml:base="https://blog.niekun.net/archives/1280.html" xml:lang="zh-CN"><![CDATA[
 <p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在 fastCGI 上:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
 proxy_send_timeout 600;
 proxy_read_timeout 600;
@@ -62,13 +62,13 @@ sudo service nginx reload
 
 </code></pre>
 ]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/1280.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1280.html" thr:count="0"/>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1280.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1280.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[Windows 10 WSL 不支持 systemd]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/1258.html" />
-<id>https://niekun.net/archives/1258.html</id>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1258.html" />
+<id>https://blog.niekun.net/archives/1258.html</id>
 <updated>2020-03-04T11:44:25+08:00</updated>
 <published>2020-03-04T11:44:25+08:00</published>
 <author>
@@ -76,17 +76,17 @@ sudo service nginx reload
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[在使用 WSL 中发现无法使用 systemd 指令，会有如下报错信息：System has not been booted with systemd as init system (PID 1...]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/1258.html" xml:lang="zh-CN"><![CDATA[
+<content type="html" xml:base="https://blog.niekun.net/archives/1258.html" xml:lang="zh-CN"><![CDATA[
 <p>在使用 WSL 中发现无法使用 systemd 指令，会有如下报错信息：System has not been booted with systemd as init system (PID 1). Can't operate</p><p>查询后发现 WSL 的确有这个问题：<a href="https://github.com/MicrosoftDocs/WSL/issues/457">https://github.com/MicrosoftDocs/WSL/issues/457</a></p><p>解决方法是用<strong>管理员权限打开 WSL</strong>，然后使用 <code>sudo service</code> 来控制进程，如：</p><pre><code>sudo service nginx start
 </code></pre>
 ]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/1258.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1258.html" thr:count="0"/>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1258.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1258.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[Nginx 可用指令和变量索引]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/1257.html" />
-<id>https://niekun.net/archives/1257.html</id>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1257.html" />
+<id>https://blog.niekun.net/archives/1257.html</id>
 <updated>2020-03-04T11:19:18+08:00</updated>
 <published>2020-03-04T11:19:18+08:00</published>
 <author>
@@ -94,16 +94,16 @@ sudo service nginx reload
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[手册：http://nginx.org/en/docs/涵盖了安装教程，开始使用教程，常用使用情景教程，指令索引，变量索引 等链接。变量：http://nginx.org/en/docs/var...]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/1257.html" xml:lang="zh-CN"><![CDATA[
+<content type="html" xml:base="https://blog.niekun.net/archives/1257.html" xml:lang="zh-CN"><![CDATA[
 <p>手册：<a href="http://nginx.org/en/docs/">http://nginx.org/en/docs/</a></p><blockquote>涵盖了<strong>安装教程，开始使用教程，常用使用情景教程，指令索引，变量索引</strong> 等链接。</blockquote><p>变量：<a href="http://nginx.org/en/docs/varindex.html">http://nginx.org/en/docs/varindex.html</a></p><blockquote>变量在 nginx 配置中使用很多，使用变量可以根据需要处理特定部分。如：$rui, $scheme, $request_filename, $host, $request_uri</blockquote><p>指令：<a href="http://nginx.org/en/docs/dirindex.html">http://nginx.org/en/docs/dirindex.html</a></p><blockquote>如：listen, include, location, if, auth_basic</blockquote>
 ]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/1257.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1257.html" thr:count="0"/>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1257.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1257.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[Git 命令行基本操作]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/1252.html" />
-<id>https://niekun.net/archives/1252.html</id>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1252.html" />
+<id>https://blog.niekun.net/archives/1252.html</id>
 <updated>2020-03-04T09:53:00+08:00</updated>
 <published>2020-03-04T09:53:00+08:00</published>
 <author>
@@ -111,16 +111,16 @@ sudo service nginx reload
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[Git 是目前世界上最流行的版本控制工具，它可以记录历史操作和协同工作。Git is a free and open source distributed version control sys...]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/1252.html" xml:lang="zh-CN"><![CDATA[
-<p><img src="https://niekun.net/usr/uploads/2020/03/2690364336.png" alt="2020-03-04T00:56:38.png" title="2020-03-04T00:56:38.png"></p><p>Git 是目前世界上最流行的版本控制工具，它可以记录历史操作和协同工作。</p><blockquote>Git is a free and open source distributed version control system designed to handle everything from small to very large projects with speed and efficiency.</blockquote><p>下面介绍 Git 命令行工具的安装和使用。</p><p class="more"><a href="https://niekun.net/archives/1252.html" title="Git 命令行基本操作">[...]</a></p>
+<content type="html" xml:base="https://blog.niekun.net/archives/1252.html" xml:lang="zh-CN"><![CDATA[
+<p><img src="https://niekun.net/usr/uploads/2020/03/2690364336.png" alt="2020-03-04T00:56:38.png" title="2020-03-04T00:56:38.png"></p><p>Git 是目前世界上最流行的版本控制工具，它可以记录历史操作和协同工作。</p><blockquote>Git is a free and open source distributed version control system designed to handle everything from small to very large projects with speed and efficiency.</blockquote><p>下面介绍 Git 命令行工具的安装和使用。</p><p class="more"><a href="https://blog.niekun.net/archives/1252.html" title="Git 命令行基本操作">[...]</a></p>
 ]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/1252.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1252.html" thr:count="0"/>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1252.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1252.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[关于手机端无法使用 typecho 的搜索框解决]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/1249.html" />
-<id>https://niekun.net/archives/1249.html</id>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1249.html" />
+<id>https://blog.niekun.net/archives/1249.html</id>
 <updated>2020-03-03T22:34:48+08:00</updated>
 <published>2020-03-03T22:34:48+08:00</published>
 <author>
@@ -128,16 +128,16 @@ sudo service nginx reload
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[最近自己做了一个 typecho 的主题，主要是手机端的页面优化和字体优化，使用了 bootstrap 来渲染，主题在 GitHub 上开源：https://github.com/nie11ku...]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/1249.html" xml:lang="zh-CN"><![CDATA[
+<content type="html" xml:base="https://blog.niekun.net/archives/1249.html" xml:lang="zh-CN"><![CDATA[
 <p>最近自己做了一个 typecho 的主题，主要是手机端的页面优化和字体优化，使用了 bootstrap 来渲染，主题在 GitHub 上开源：<a href="https://github.com/nie11kun/TypechoAwesome">https://github.com/nie11kun/TypechoAwesome</a></p><p>但是测试发现搜索框无法正确搜索，总是返回主页。</p><p>今天终于发现问题所在了，由于我的网站使用的 NS 服务是 cloudflare 的，在当时设置的时候，把移动端 Mobile Redirect 优化选择上了，每次访问网站都会重定向到 <strong>m.niekun.net</strong>，估计是 cf 做了什么精简，导致功能丢失，把 Mobile Redirect 关闭就正常了。</p><p>具体修改路径是 speed - optimisation：<br><img src="https://niekun.net/usr/uploads/2020/03/448267460.png" alt="2020-03-03T14:33:02.png" title="2020-03-03T14:33:02.png"></p><p>页面拉到最下方，将 Mobile Redirect 关掉：<br><img src="https://niekun.net/usr/uploads/2020/03/412183147.png" alt="2020-03-03T14:33:36.png" title="2020-03-03T14:33:36.png"></p><p>再次访问主页，就不会重定向到 <strong>m.niekun.net</strong> 而是 <strong>niekun.net</strong> 了。</p>
 ]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/1249.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1249.html" thr:count="0"/>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1249.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1249.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[Typecho 配合 Nginx 设置伪静态链接]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/1243.html" />
-<id>https://niekun.net/archives/1243.html</id>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1243.html" />
+<id>https://blog.niekun.net/archives/1243.html</id>
 <updated>2020-03-03T21:57:00+08:00</updated>
 <published>2020-03-03T21:57:00+08:00</published>
 <author>
@@ -145,16 +145,16 @@ sudo service nginx reload
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[由于 typecho 是一个动态网页，每篇文章都 URL 都是形如：https://niekun.net/index.php/archives/192.html这种包含 php 的动态网站首先不...]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/1243.html" xml:lang="zh-CN"><![CDATA[
-<p>由于 typecho 是一个动态网页，每篇文章都 URL 都是形如：<a href="https://niekun.net/index.php/archives/192.html">https://niekun.net/index.php/archives/192.html</a></p><p>这种包含 php 的动态网站首先不太美观链接比较长，而且在搜索引擎索引时也对动态链接不太友好。所以需要将以上链接形式进行处理，使网页看起来更像静态链接，形如：<a href="https://niekun.net/archives/192.html">https://niekun.net/archives/192.html</a>。</p><p class="more"><a href="https://niekun.net/archives/1243.html" title="Typecho 配合 Nginx 设置伪静态链接">[...]</a></p>
+<content type="html" xml:base="https://blog.niekun.net/archives/1243.html" xml:lang="zh-CN"><![CDATA[
+<p>由于 typecho 是一个动态网页，每篇文章都 URL 都是形如：<a href="https://niekun.net/index.php/archives/192.html">https://niekun.net/index.php/archives/192.html</a></p><p>这种包含 php 的动态网站首先不太美观链接比较长，而且在搜索引擎索引时也对动态链接不太友好。所以需要将以上链接形式进行处理，使网页看起来更像静态链接，形如：<a href="https://niekun.net/archives/192.html">https://niekun.net/archives/192.html</a>。</p><p class="more"><a href="https://blog.niekun.net/archives/1243.html" title="Typecho 配合 Nginx 设置伪静态链接">[...]</a></p>
 ]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/1243.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1243.html" thr:count="0"/>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1243.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1243.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[Gradient Map in Photoshop]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/1237.html" />
-<id>https://niekun.net/archives/1237.html</id>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1237.html" />
+<id>https://blog.niekun.net/archives/1237.html</id>
 <updated>2020-03-03T14:28:00+08:00</updated>
 <published>2020-03-03T14:28:00+08:00</published>
 <author>
@@ -162,16 +162,16 @@ sudo service nginx reload
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[Photoshop 中的 Gradient Map 常用来进行颜色替换，它的原理是根据当前图像的亮度和 gradient map 里定义的渐变进行转换。在图层里画三个亮度不一样的线段：]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/1237.html" xml:lang="zh-CN"><![CDATA[
-<p><img src="https://niekun.net/usr/uploads/2020/03/3124380177.png" alt="2020-03-03T06:19:19.png" title="2020-03-03T06:19:19.png"></p><p>Photoshop 中的 Gradient Map 常用来进行颜色替换，它的原理是根据当前图像的亮度和 gradient map 里定义的渐变进行转换。</p><p>在图层里画三个亮度不一样的线段：<br><img src="https://niekun.net/usr/uploads/2020/03/784718980.png" alt="2020-03-03T06:22:48.png" title="2020-03-03T06:22:48.png"></p><p class="more"><a href="https://niekun.net/archives/1237.html" title="Gradient Map in Photoshop">[...]</a></p>
+<content type="html" xml:base="https://blog.niekun.net/archives/1237.html" xml:lang="zh-CN"><![CDATA[
+<p><img src="https://niekun.net/usr/uploads/2020/03/3124380177.png" alt="2020-03-03T06:19:19.png" title="2020-03-03T06:19:19.png"></p><p>Photoshop 中的 Gradient Map 常用来进行颜色替换，它的原理是根据当前图像的亮度和 gradient map 里定义的渐变进行转换。</p><p>在图层里画三个亮度不一样的线段：<br><img src="https://niekun.net/usr/uploads/2020/03/784718980.png" alt="2020-03-03T06:22:48.png" title="2020-03-03T06:22:48.png"></p><p class="more"><a href="https://blog.niekun.net/archives/1237.html" title="Gradient Map in Photoshop">[...]</a></p>
 ]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/1237.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1237.html" thr:count="0"/>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1237.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1237.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[SSD 安装 Windows 那些事]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/1219.html" />
-<id>https://niekun.net/archives/1219.html</id>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1219.html" />
+<id>https://blog.niekun.net/archives/1219.html</id>
 <updated>2020-03-03T09:32:32+08:00</updated>
 <published>2020-03-03T09:32:32+08:00</published>
 <author>
@@ -179,16 +179,16 @@ sudo service nginx reload
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[最近给笔记本买了一块 SSD，重装了一次系统。经过这些天的使用出现的问题，发现了一些需要注意的事项，在此做一下记录。关键词：UEFI GPT ESP MSR 4K LPM]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/1219.html" xml:lang="zh-CN"><![CDATA[
-<p>最近给笔记本买了一块 SSD，重装了一次系统。经过这些天的使用出现的问题，发现了一些需要注意的事项，在此做一下记录。</p><p>关键词：UEFI GPT ESP MSR 4K LPM</p><p class="more"><a href="https://niekun.net/archives/1219.html" title="SSD 安装 Windows 那些事">[...]</a></p>
+<content type="html" xml:base="https://blog.niekun.net/archives/1219.html" xml:lang="zh-CN"><![CDATA[
+<p>最近给笔记本买了一块 SSD，重装了一次系统。经过这些天的使用出现的问题，发现了一些需要注意的事项，在此做一下记录。</p><p>关键词：UEFI GPT ESP MSR 4K LPM</p><p class="more"><a href="https://blog.niekun.net/archives/1219.html" title="SSD 安装 Windows 那些事">[...]</a></p>
 ]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/1219.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1219.html" thr:count="0"/>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1219.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1219.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[vim 常用指令]]></title>
-<link rel="alternate" type="text/html" href="https://niekun.net/archives/1212.html" />
-<id>https://niekun.net/archives/1212.html</id>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1212.html" />
+<id>https://blog.niekun.net/archives/1212.html</id>
 <updated>2020-03-02T11:16:00+08:00</updated>
 <published>2020-03-02T11:16:00+08:00</published>
 <author>
@@ -196,10 +196,10 @@ sudo service nginx reload
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[vim 是 Linux 下常用的编辑器，学会常用的操作如：光标移动 复制 粘贴 删除 撤销 等指令，对于日常使用很有必要，下面介绍常用指令。注意 vim 所有控制指令都区分大小写。]]></summary>
-<content type="html" xml:base="https://niekun.net/archives/1212.html" xml:lang="zh-CN"><![CDATA[
-<p>vim 是 Linux 下常用的编辑器，学会常用的操作如：光标移动 复制 粘贴 删除 撤销 等指令，对于日常使用很有必要，下面介绍常用指令。</p><p><strong>注意 vim 所有控制指令都区分大小写。</strong></p><p class="more"><a href="https://niekun.net/archives/1212.html" title="vim 常用指令">[...]</a></p>
+<content type="html" xml:base="https://blog.niekun.net/archives/1212.html" xml:lang="zh-CN"><![CDATA[
+<p>vim 是 Linux 下常用的编辑器，学会常用的操作如：光标移动 复制 粘贴 删除 撤销 等指令，对于日常使用很有必要，下面介绍常用指令。</p><p><strong>注意 vim 所有控制指令都区分大小写。</strong></p><p class="more"><a href="https://blog.niekun.net/archives/1212.html" title="vim 常用指令">[...]</a></p>
 ]]></content>
-<link rel="replies" type="text/html" href="https://niekun.net/archives/1212.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://niekun.net/feed/atom/archives/1212.html" thr:count="0"/>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1212.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1212.html" thr:count="0"/>
 </entry>
 </feed>
