@@ -6,11 +6,28 @@ xml:base="https://blog.niekun.net/category/Linux/"
 >
 <title type="text">Marco Nie - Linux</title>
 <subtitle type="text"></subtitle>
-<updated>2020-03-20T09:00:07+08:00</updated>
+<updated>2020-03-30T11:05:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/Linux/" />
 <id>https://blog.niekun.net/feed/atom/category/Linux/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" />
+<entry>
+<title type="html"><![CDATA[NGINX Reverse Proxy 反向代理的使用]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1378.html" />
+<id>https://blog.niekun.net/archives/1378.html</id>
+<updated>2020-03-30T11:05:00+08:00</updated>
+<published>2020-03-30T11:05:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[Proxying is typically used to distribute the load among several servers, seamlessly show content ...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1378.html" xml:lang="zh-CN"><![CDATA[
+<blockquote>Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.</blockquote><p>nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有： <strong> HTTP，FastCGI, uwsgi, SCGI, and memcached。</strong></p><p>不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：<a href="https://blog.niekun.net/archives/195.html">https://blog.niekun.net/archives/195.html</a></p><p>下面介绍 ngx_http_proxy_module 模块的使用方式。</p><p class="more"><a href="https://blog.niekun.net/archives/1378.html" title="NGINX Reverse Proxy 反向代理的使用">[...]</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1378.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1378.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[traceroute 路由 IP 查看]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1376.html" />
@@ -97,14 +114,11 @@ xml:base="https://blog.niekun.net/category/Linux/"
     allow 10.1.1.0/16;
     allow 2001:0db8::/32;
     deny  all;
-}</code></pre><p>如果加了代理或者 CDN 就没法直接获取到用户真实 IP 了，可以在 nginx 使用以下指令提取用户真实 IP：</p><pre><code>#获取用户真实IP，并赋值给变量$clientRealIP
+}</code></pre><p>如果加了代理或者 CDN 就没法直接获取到用户真实 IP 了，可以在 nginx 使用以下 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：</p><pre><code>#获取用户真实IP，并赋值给变量$clientRealIP
 map $http_x_forwarded_for  $clientRealIp {
-        &quot;&quot;      $remote_addr;
-        ~^(?P&lt;firstAddr&gt;[0-9\.]+),?.*$  $firstAddr;
-}</code></pre><p>或者：</p><pre><code>set $realip $remote_addr;
-  if ($http_x_forwarded_for ~ &quot;^(\d+\.\d+\.\d+\.\d+)&quot;) {
-    set $realip $1;
-  }</code></pre>
+    default    $remote_addr;
+    ~^([0-9\.]+),?.*$  $1;
+}</code></pre><p>$clientRealIp 变量就是真是客户端的 IP 地址。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1296.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1296.html" thr:count="0"/>
@@ -121,7 +135,7 @@ map $http_x_forwarded_for  $clientRealIp {
 </author>
 <summary type="html"><![CDATA[在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/1280.html" xml:lang="zh-CN"><![CDATA[
-<p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在 fastCGI 上:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
+<p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在转发到代理服务器 fastCGI 时超时了:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
 proxy_send_timeout 600;
 proxy_read_timeout 600;
 send_timeout 600;</code></pre><p>将上述内容加入 config 文件，reload nginx 测试页面加载是否正常：</p><pre><code>sudo service nginx configtest
@@ -184,22 +198,5 @@ sudo service nginx reload
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1243.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1243.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[vim 常用指令]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1212.html" />
-<id>https://blog.niekun.net/archives/1212.html</id>
-<updated>2020-03-02T11:16:00+08:00</updated>
-<published>2020-03-02T11:16:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[vim 是 Linux 下常用的编辑器，学会常用的操作如：光标移动 复制 粘贴 删除 撤销 等指令，对于日常使用很有必要，下面介绍常用指令。注意 vim 所有控制指令都区分大小写。]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1212.html" xml:lang="zh-CN"><![CDATA[
-<p>vim 是 Linux 下常用的编辑器，学会常用的操作如：光标移动 复制 粘贴 删除 撤销 等指令，对于日常使用很有必要，下面介绍常用指令。</p><p><strong>注意 vim 所有控制指令都区分大小写。</strong></p><p class="more"><a href="https://blog.niekun.net/archives/1212.html" title="vim 常用指令">[...]</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1212.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1212.html" thr:count="0"/>
 </entry>
 </feed>

@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1378.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1376.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1375.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1334.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1258.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1257.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1243.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1212.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1378.html">
+<title>NGINX Reverse Proxy 反向代理的使用</title>
+<link>https://blog.niekun.net/archives/1378.html</link>
+<dc:date>2020-03-30T11:05:00+08:00</dc:date>
+<description>Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有：  HTTP，FastCGI, uwsgi, SCGI, and memcached。不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：https://blog.niekun.net/archives/195.html下面介绍 ngx_http_proxy_module 模块的使用方式。[...]</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1376.html">
 <title>traceroute 路由 IP 查看</title>
 <link>https://blog.niekun.net/archives/1376.html</link>
@@ -56,20 +62,17 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
     allow 10.1.1.0/16;
     allow 2001:0db8::/32;
     deny  all;
-}如果加了代理或者 CDN 就没法直接获取到用户真实 IP 了，可以在 nginx 使用以下指令提取用户真实 IP：#获取用户真实IP，并赋值给变量$clientRealIP
+}如果加了代理或者 CDN 就没法直接获取到用户真实 IP 了，可以在 nginx 使用以下 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：#获取用户真实IP，并赋值给变量$clientRealIP
 map $http_x_forwarded_for  $clientRealIp {
-        &quot;&quot;      $remote_addr;
-        ~^(?P&lt;firstAddr&gt;[0-9\.]+),?.*$  $firstAddr;
-}或者：set $realip $remote_addr;
-  if ($http_x_forwarded_for ~ &quot;^(\d+\.\d+\.\d+\.\d+)&quot;) {
-    set $realip $1;
-  }</description>
+    default    $remote_addr;
+    ~^([0-9\.]+),?.*$  $1;
+}$clientRealIp 变量就是真是客户端的 IP 地址。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1280.html">
 <title>Nginx upstream timed out 问题的处理</title>
 <link>https://blog.niekun.net/archives/1280.html</link>
 <dc:date>2020-03-05T08:53:00+08:00</dc:date>
-<description>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在 fastCGI 上:https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：proxy_connect_timeout 600;
+<description>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在转发到代理服务器 fastCGI 时超时了:https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：proxy_connect_timeout 600;
 proxy_send_timeout 600;
 proxy_read_timeout 600;
 send_timeout 600;将上述内容加入 config 文件，reload nginx 测试页面加载是否正常：sudo service nginx configtest
@@ -96,11 +99,5 @@ sudo service nginx reload
 <link>https://blog.niekun.net/archives/1243.html</link>
 <dc:date>2020-03-03T21:57:00+08:00</dc:date>
 <description>由于 typecho 是一个动态网页，每篇文章都 URL 都是形如：https://niekun.net/index.php/archives/192.html这种包含 php 的动态网站首先不太美观链接比较长，而且在搜索引擎索引时也对动态链接不太友好。所以需要将以上链接形式进行处理，使网页看起来更像静态链接，形如：https://niekun.net/archives/192.html。[...]</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1212.html">
-<title>vim 常用指令</title>
-<link>https://blog.niekun.net/archives/1212.html</link>
-<dc:date>2020-03-02T11:16:00+08:00</dc:date>
-<description>vim 是 Linux 下常用的编辑器，学会常用的操作如：光标移动 复制 粘贴 删除 撤销 等指令，对于日常使用很有必要，下面介绍常用指令。注意 vim 所有控制指令都区分大小写。[...]</description>
 </item>
 </rdf:RDF>

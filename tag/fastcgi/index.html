@@ -92,7 +92,7 @@
 <li itemprop="interactionCount"><a href="../../archives/1280.html#comments">评论</a></li>
 </ul>
 <div class="post-content" itemprop="articleBody">
-<p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在 fastCGI 上:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
+<p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在转发到代理服务器 fastCGI 时超时了:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
 proxy_send_timeout 600;
 proxy_read_timeout 600;
 send_timeout 600;</code></pre><p>将上述内容加入 config 文件，reload nginx 测试页面加载是否正常：</p><pre><code>sudo service nginx configtest
@@ -106,7 +106,7 @@ sudo service nginx reload
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../archives/1455.html">进阶锐化控制 in Photoshop</a></li><li><a href="../../archives/1443.html">百度云网盘直链获取及下载</a></li><li><a href="../../archives/1432.html">HTTP 协议结构</a></li><li><a href="../../archives/1428.html">指定颜色修改 in Photoshop</a></li><li><a href="../../archives/1379.html">电脑屏幕录制及鼠标轨迹追踪</a></li><li><a href="../../archives/1376.html">traceroute 路由 IP 查看</a></li><li><a href="../../archives/1375.html">wkhtmltopdf 将 html为 pdf</a></li><li><a href="../../archives/1369.html">使用 perspective warp 来修复变形 in Photoshop</a></li><li><a href="../../archives/1364.html">自动剪裁矫直 in Photoshop</a></li><li><a href="../../archives/1355.html">剪裁工具 Crop tool in Photoshop</a></li> </ul>
+<li><a href="../../archives/1489.html">使用 echo 模块输出 nginx 变量</a></li><li><a href="../../archives/1378.html">NGINX Reverse Proxy 反向代理的使用</a></li><li><a href="../../archives/1455.html">进阶锐化控制 in Photoshop</a></li><li><a href="../../archives/1443.html">百度云网盘直链获取及下载</a></li><li><a href="../../archives/1432.html">HTTP 协议结构</a></li><li><a href="../../archives/1428.html">指定颜色修改 in Photoshop</a></li><li><a href="../../archives/1379.html">电脑屏幕录制及鼠标轨迹追踪</a></li><li><a href="../../archives/1376.html">traceroute 路由 IP 查看</a></li><li><a href="../../archives/1375.html">wkhtmltopdf 将 html为 pdf</a></li><li><a href="../../archives/1369.html">使用 perspective warp 来修复变形 in Photoshop</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -142,12 +142,12 @@ sudo service nginx reload
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="8cc168d63d82cefd681788e3-text/javascript">
+<script type="b07f47d41252cee571caf734-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="8cc168d63d82cefd681788e3-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="8cc168d63d82cefd681788e3-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="8cc168d63d82cefd681788e3-text/javascript"></script>
-<script src="../../usr/themes/TypechoAwesome/navItem.js" type="8cc168d63d82cefd681788e3-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="8cc168d63d82cefd681788e3-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="b07f47d41252cee571caf734-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="b07f47d41252cee571caf734-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="b07f47d41252cee571caf734-text/javascript"></script>
+<script src="../../usr/themes/TypechoAwesome/navItem.js" type="b07f47d41252cee571caf734-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="b07f47d41252cee571caf734-|49" defer=""></script></body>
 </html>
