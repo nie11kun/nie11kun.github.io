@@ -24,7 +24,7 @@
 <link rel="alternate" type="application/rss+xml" title="获取用户真实 IP in Nginx &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1296.html" />
 <link rel="alternate" type="application/rdf+xml" title="获取用户真实 IP in Nginx &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1296.html" />
 <link rel="alternate" type="application/atom+xml" title="获取用户真实 IP in Nginx &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1296.html" />
-<script type="f18be934eef3ee9c3c2099df-text/javascript">
+<script type="486f4dca9ec0ae80f36e56a6-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -96,7 +96,7 @@
     };
 })();
 </script>
-<script type="f18be934eef3ee9c3c2099df-text/javascript">
+<script type="486f4dca9ec0ae80f36e56a6-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -114,29 +114,34 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _HZ13kFa = //'7Bf'
-'a'+//'s'
-'s'+'E'//'E'
-+'b27'//'BS'
-+//'Xsg'
-'9df'+'ca'//'v5p'
-+//'uGV'
-'28d'+//'z'
-'700'+//'iHU'
-'6a'+'ef2'//'XU'
-+'2d'//'v'
-+//'Q'
-'5c'+//'Ccp'
-'8'+//'Xbl'
-'31f'+'0a'//'U'
-+'93'//'es'
-, _fwWIybH = [[1,2],[1,2]];
+    var _asfx6Wu = 'a'//'S'
++'b'//'LMb'
++//'n'
+'279'+'df'//'G'
++//'x'
+'ca'+//'Xl'
+'2'+''///*'PO'*/'PO'
++//'wpH'
+'8'+'d'//'Vw8'
++//'5'
+'5'+//'Sz'
+'Sz'+'70'//'Ik'
++/* 'n'//'n' */''+'06'//'JJg'
++//'sT'
+'a'+//'Uy'
+'ef'+'2'//'g'
++'2d'//'6m1'
++//'z8a'
+'5'+//'J4'
+'c83'+//'nN'
+'1f0'+'a93'//'Q'
+, _OGI = [[12,13],[12,14]];
     
-    for (var i = 0; i < _fwWIybH.length; i ++) {
-        _HZ13kFa = _HZ13kFa.substring(0, _fwWIybH[i][0]) + _HZ13kFa.substring(_fwWIybH[i][1]);
+    for (var i = 0; i < _OGI.length; i ++) {
+        _asfx6Wu = _asfx6Wu.substring(0, _OGI[i][0]) + _asfx6Wu.substring(_OGI[i][1]);
     }
 
-    return _HZ13kFa;
+    return _asfx6Wu;
 })();
 
         if (null != r) {
@@ -230,17 +235,26 @@
     allow 10.1.1.0/16;
     allow 2001:0db8::/32;
     deny  all;
-}</code></pre><p>如果加了代理或者 CDN 就没法直接获取到用户真实 IP 了，可以在 nginx 使用以下 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：</p><pre><code>#获取用户真实IP，并赋值给变量$clientRealIP
-map $http_x_forwarded_for  $clientRealIp {
-    default    $remote_addr;
-    ~^([0-9\.]+),?.*$  $1;
-}</code></pre><p>$clientRealIp 变量就是真是客户端的 IP 地址。</p> </div>
+}</code></pre><p>如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。</p><p>$remote_addr 变量默认读取 $proxy_add_x_forwarded_for 变量最后一个 IP 地址，一般情况下这个就是客户端原始 IP，但当网站加了 CDN，最后一个 IP 就成了 CDN 分配的 IP，如用户本地 IP为：<code>1.81.218.204</code>，访问没有加 CDN 的网站：</p><pre><code>$remote_addr：1.81.218.204
+$http_x_forwarded_for: 1.81.218.204
+$proxy_add_x_forwarded_for: 1.81.218.204
+</code></pre><p>如果网站加了 CDN 返回信息如下：</p><pre><code>$remote_addr：172.69.34.194
+$http_x_forwarded_for: 1.81.218.204
+$proxy_add_x_forwarded_for: 1.81.218.204, 172.69.34.194
+</code></pre><p>可以看到 $remote_addr 发生了变化。$http_x_forwarded_for 的值没有包含 CDN 代理 IP。</p><p>客户端也可以伪造 X-Forwarded-For 信息，如下使用 curl -H 参数设置头信息：</p><pre><code>curl https://info.niekun.net -H 'X-Forwarded-For: 2.2.2.2' -H 'X-Forwarded-For: 3.3.3.3'
+</code></pre><p>这时候 nginx 的变量就发生了变化：</p><pre><code>$remote_addr：172.69.34.194
+$http_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204
+$proxy_add_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204, 172.69.34.194
+</code></pre><p>可以看到 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 变量值都附加上了伪造的信息。</p><p>根据观察 $http_x_forwarded_for 的最后一个 IP，永远是真实的用户 IP，可以进行提取。</p><p>使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：</p><pre><code>map $http_x_forwarded_for  $client_real_ip {
+    default                         $remote_addr;
+    ~^(([0-9\.]+),\s?)*([0-9\.]+)$  $3;
+}</code></pre><p>如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。</p> </div>
 <p itemprop="keywords" class="tags">标签: none</p>
 </article>
 <div id="comments">
 <div id="respond-post-1296" class="respond">
 <div class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1296.html#respond-post-1296" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-f18be934eef3ee9c3c2099df-="">取消回复</a> </div>
+<a id="cancel-comment-reply-link" href="1296.html#respond-post-1296" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-486f4dca9ec0ae80f36e56a6-="">取消回复</a> </div>
 <h3 id="response">添加新评论</h3>
 <form method="post" action="https://blog.niekun.net/archives/1296.html/comment" id="comment-form" role="form">
 <p>
@@ -310,12 +324,12 @@ map $http_x_forwarded_for  $clientRealIp {
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="f18be934eef3ee9c3c2099df-text/javascript">
+<script type="486f4dca9ec0ae80f36e56a6-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="f18be934eef3ee9c3c2099df-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="f18be934eef3ee9c3c2099df-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="f18be934eef3ee9c3c2099df-text/javascript"></script>
-<script src="../usr/themes/TypechoAwesome/navItem.js" type="f18be934eef3ee9c3c2099df-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="f18be934eef3ee9c3c2099df-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="486f4dca9ec0ae80f36e56a6-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="486f4dca9ec0ae80f36e56a6-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="486f4dca9ec0ae80f36e56a6-text/javascript"></script>
+<script src="../usr/themes/TypechoAwesome/navItem.js" type="486f4dca9ec0ae80f36e56a6-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="486f4dca9ec0ae80f36e56a6-|49" defer=""></script></body>
 </html>

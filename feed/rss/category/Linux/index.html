@@ -62,11 +62,20 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
     allow 10.1.1.0/16;
     allow 2001:0db8::/32;
     deny  all;
-}如果加了代理或者 CDN 就没法直接获取到用户真实 IP 了，可以在 nginx 使用以下 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：#获取用户真实IP，并赋值给变量$clientRealIP
-map $http_x_forwarded_for  $clientRealIp {
-    default    $remote_addr;
-    ~^([0-9\.]+),?.*$  $1;
-}$clientRealIp 变量就是真是客户端的 IP 地址。</description>
+}如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。$remote_addr 变量默认读取 $proxy_add_x_forwarded_for 变量最后一个 IP 地址，一般情况下这个就是客户端原始 IP，但当网站加了 CDN，最后一个 IP 就成了 CDN 分配的 IP，如用户本地 IP为：1.81.218.204，访问没有加 CDN 的网站：$remote_addr：1.81.218.204
+$http_x_forwarded_for: 1.81.218.204
+$proxy_add_x_forwarded_for: 1.81.218.204
+如果网站加了 CDN 返回信息如下：$remote_addr：172.69.34.194
+$http_x_forwarded_for: 1.81.218.204
+$proxy_add_x_forwarded_for: 1.81.218.204, 172.69.34.194
+可以看到 $remote_addr 发生了变化。$http_x_forwarded_for 的值没有包含 CDN 代理 IP。客户端也可以伪造 X-Forwarded-For 信息，如下使用 curl -H 参数设置头信息：curl https://info.niekun.net -H 'X-Forwarded-For: 2.2.2.2' -H 'X-Forwarded-For: 3.3.3.3'
+这时候 nginx 的变量就发生了变化：$remote_addr：172.69.34.194
+$http_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204
+$proxy_add_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204, 172.69.34.194
+可以看到 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 变量值都附加上了伪造的信息。根据观察 $http_x_forwarded_for 的最后一个 IP，永远是真实的用户 IP，可以进行提取。使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：map $http_x_forwarded_for  $client_real_ip {
+    default                         $remote_addr;
+    ~^(([0-9\.]+),\s?)*([0-9\.]+)$  $3;
+}如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1280.html">
 <title>Nginx upstream timed out 问题的处理</title>
