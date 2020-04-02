@@ -11,17 +11,24 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/tag/hostname/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Wed, 13 Nov 2019 08:41:45 +0800</lastBuildDate>
-<pubDate>Wed, 13 Nov 2019 08:41:45 +0800</pubDate>
+<lastBuildDate>Wed, 13 Nov 2019 08:41:00 +0800</lastBuildDate>
+<pubDate>Wed, 13 Nov 2019 08:41:00 +0800</pubDate>
 <item>
-<title>linux 修改 hostname</title>
+<title>hostname 与 hosts 文件功能分析</title>
 <link>https://blog.niekun.net/archives/482.html</link>
 <guid>https://blog.niekun.net/archives/482.html</guid>
-<pubDate>Wed, 13 Nov 2019 08:41:45 +0800</pubDate>
+<pubDate>Wed, 13 Nov 2019 08:41:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
-<description><![CDATA[Linux 系统默认的变量 $hostname 值为 localhost.localdomain, 想要自定义的话需要修改对应文件。打开文件 /etc/hostname 编辑内容为你想要修改的名...]]></description>
+<description><![CDATA[hostnameLinux/windows 系统的设备都会有一个 hostname，也就是设备的名称，执行命令可以查看当前名称：hostname这一名称会在终端命令头显示：root@niekun...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>Linux 系统默认的变量 $hostname 值为 localhost.localdomain, 想要自定义的话需要修改对应文件。</p><p>打开文件 /etc/hostname 编辑内容为你想要修改的名字。</p><p>打开文件 /etc/hosts 编辑 127.0.1.1 后的值为你想要的字符。此设置影响命令行头部的描述：<br><img src="https://niekun.net/usr/uploads/2019/11/1797895468.png" alt="2019-11-13T00:38:56.png" title="2019-11-13T00:38:56.png"></p>
+<h3>hostname</h3><p>Linux/windows 系统的设备都会有一个 hostname，也就是设备的名称，执行命令可以查看当前名称：</p><pre><code>hostname
+</code></pre><p>这一名称会在终端命令头显示：</p><pre><code>root@niekun-bandwagon:~#
+</code></pre><p>root 是当前登陆用户名，niekun-bandwagon 就是本机设备名称。可以执行 <code>whoami</code> 命令查看当前登陆用户名：</p><pre><code>whoami
+</code></pre><p>想要修改 hostname 可以编辑 /etc/hostname 将里面名称换为你想要修改的名字即可，重启系统生效新的 hostname。</p><h3>hosts</h3><p>hosts 文件作用是将 hostname 映射到本地 IP 地址，可以定义多个 hostnames 和 IP 的对应关系。</p><p>Linux 系统路径是：/etc/hosts<br>windows 系统路径是：c:\Windows\System32\Drivers\etc\hosts</p><pre><code>Marcos_Router /home/root]# cat /etc/hosts
+127.0.0.1 localhost.localdomain localhost
+192.168.123.1 Marcos_Router.lan Marcos_Router
+192.168.123.1 my.router
+192.168.123.1 my.pdcn</code></pre><p>以上是我路由的 hosts 文件内容，访问 my.router 就相当于访问 192.168.123.1</p><h3>局域网通过 hostname 访问其他设备</h3><p>连接到同一局域网的设备都会分配一个内网 IP 地址，比如：<br>路由器地址：192.168.0.1<br>设备 A 地址：192.168.0.2<br>设备 B 地址：192.168.0.3</p><p>在设备 A 上操作：要访问路由器可以通过访问：192.168.0.1，访问设备 B 通过地址：192.168.0.3</p><p>如果想要使用各自设备的 hostname 来访问就需要设置 hosts 了。</p><p>在设备 A 上的 hosts 文件加入如下内容：<br>192.168.0.1 my.router<br>192.168.0.1 machine.b</p><p>修改完成后要访问路由器可以通过访问：my.router，访问设备 B 通过地址：machine.b (注意如果在浏览器里直接访问 hostname 要加上 <a href="http://">http://</a> 前缀，不然可能访问不到)</p><p>另一个简单的方法是直接在路由器上设置各个设备的 IP 地址映射的 hostname，这样就不需要在每个设备上设置了。</p><p>在路由器的 DHCP 列表里根据 MAC 地址区分设备，单独设置设备的名称即可，不过一般会自动识别到设备的 hostname，默认直接就可以使用了。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/482.html#comments</comments>
