@@ -55,9 +55,17 @@ xml:base="https://blog.niekun.net/author/1/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[最近升级了我的 macbook pro 2015 的 ssd，买了一块第三方的 nvme 512G 硬盘。更换很顺利，使用 time machine 还原系统后就跟什么都没发生一样。但是随着这几...]]></summary>
+<summary type="html"><![CDATA[20-07-12 update:经过上周几天的观察和这个周末两天休眠的情况，发现一晚上休眠耗电基本2%左右，但是连续休眠两天发现跑了50%电量，今天下午来通过 pmset -g log | gr...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/1622.html" xml:lang="zh-CN"><![CDATA[
-<p>最近升级了我的 macbook pro 2015 的 ssd，买了一块第三方的 nvme 512G 硬盘。更换很顺利，使用 time machine 还原系统后就跟什么都没发生一样。</p><p>但是随着这几天的使用，发现待机耗电巨大，一晚上合盖耗电 20% 左右。查看 activity monitor 也没发现什么耗电量大的后台服务。发现可能是合盖后依然没有进入休眠，一直有什么东西在运转有关。回想我在安装好新硬盘进入系统后，修改了些什么设置，好像就是打开了 find my mac，可能就是休眠后一直存在网络活动有关吧。</p><p class="more"><a href="https://blog.niekun.net/archives/1622.html" title="修复 MacBook Pro 休眠耗电大问题">[...]</a></p>
+<p><strong>20-07-12 update:</strong><br>经过上周几天的观察和这个周末两天休眠的情况，发现一晚上休眠耗电基本2%左右，但是连续休眠两天发现跑了50%电量，今天下午来通过 <code>pmset -g log | grep Wake</code> 查看日志，发现一些情况：</p><pre><code>2020-07-10 17:15:08 +0800 Wake Requests           [*process=powerd request=AdaptiveWake deltaSecs=50391 wakeAt=2020-07-11 07:14:59] [process=powerd request=UserWake deltaSecs=150292 wakeAt=2020-07-12 11:00:00 info=&quot;com.apple.alarm.user-visible-com.apple.remindd.time-alarm,315&quot;] 
+...
+2020-07-12 11:00:02 +0800 Assertions              PID 127(powerd) Created UserIsActive &quot;com.apple.powermanagement.wakeschedule&quot; 00:00:00  id:0x0x900008234 [System: DeclUser IntPrevDisp kDisp]
+...</code></pre><p>发现一些和 reminder 和 schedule 有关的唤醒日志。执行 <code>pmset -g sched</code> 的确有很多 remainder 的计划任务：</p><pre><code>marconie@marco-mbp ~ % pmset -g sched
+Scheduled power events:
+ [0]  wake at 07/13/20 08:01:56 by 'com.apple.alarm.user-visible-Weekly Usage Report'
+ [1]  wake at 07/17/20 20:00:00 by 'com.apple.alarm.user-visible-com.apple.remindd.time-alarm' User visible: true
+ [2]  wake at 07/19/20 21:00:00 by 'com.apple.alarm.user-visible-com.apple.remindd.time-alarm' User visible: true
+ [3]  wake at 07/19/20 21:00:00 by 'com.apple.alarm.user-visible-com.apple.remindd.time-alarm' User visible: true</code></pre><p>这些可能跟我在 remainder 设定的一些事项有关吧，经过查询，网上人也发现这个问题：<a href="https://discussions.apple.com/thread/250736022">eminders app waking mac from sleep</a>，貌似目前没有好的解决方法。</p><p class="more"><a href="https://blog.niekun.net/archives/1622.html" title="修复 MacBook Pro 休眠耗电大问题">[...]</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1622.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1622.html" thr:count="0"/>
