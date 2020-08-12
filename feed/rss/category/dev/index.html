@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1688.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1685.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1684.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1563.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1174.html"/>
@@ -17,11 +19,63 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/438.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/428.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/413.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/376.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/95.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1688.html">
+<title>string &amp;lt;-&amp;gt; byte in python</title>
+<link>https://blog.niekun.net/archives/1688.html</link>
+<dc:date>2020-08-12T14:08:00+08:00</dc:date>
+<description>To transform a unicode string to a byte string in Python do this:&gt;&gt;&gt; 'foo'.encode('utf_8')
+b'foo'
+To transform a byte string to a unicode string:&gt;&gt;&gt; b'foo'.decode('utf_8')
+'foo'
+
+To convert a string to bytes.data = &quot;&quot;               #string
+data = &quot;&quot;.encode()      #bytes
+data = b&quot;&quot;              #bytesTo convert bytes to a String.data = b&quot;&quot;              #bytes
+data = b&quot;&quot;.decode()     #string
+data = str(b&quot;&quot;)         #string</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1685.html">
+<title>winreg 操作 Windows 注册表 in python</title>
+<link>https://blog.niekun.net/archives/1685.html</link>
+<dc:date>2020-08-12T13:56:00+08:00</dc:date>
+<description>https://docs.python.org/3/library/winreg.html#https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registryimport winreg
+
+REG_PATH = r&quot;Control Panel\Mouse&quot;
+
+def set_reg(name, value):
+    try:
+        winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, 
+                                       winreg.KEY_WRITE)
+        winreg.SetValueEx(registry_key, name, 0, winreg.REG_SZ, value)
+        winreg.CloseKey(registry_key)
+        return True
+    except WindowsError:
+        return False
+
+def get_reg(name):
+    try:
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
+                                       winreg.KEY_READ)
+        value, regtype = winreg.QueryValueEx(registry_key, name)
+        winreg.CloseKey(registry_key)
+        return value
+    except WindowsError:
+        return None
+
+#Example MouseSensitivity
+#Read value 
+print (get_reg('MouseSensitivity'))
+
+#Set Value 1/20 (will just write the value to reg, the changed mouse val requires a win re-log to apply*)
+set_reg('MouseSensitivity', str(10))
+
+#*For instant apply of SystemParameters like the mouse speed on-write, you can use win32gui/SPI
+#http://docs.activestate.com/activepython/3.4/pywin32/win32gui__SystemParametersInfo_meth.html</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1684.html">
 <title>使用 opencv 处理图像</title>
 <link>https://blog.niekun.net/archives/1684.html</link>
@@ -72,23 +126,5 @@ STR1=&quot;TEST&quot;
 <link>https://blog.niekun.net/archives/413.html</link>
 <dc:date>2019-10-15T10:51:00+08:00</dc:date>
 <description>windows打开高级系统设置：[...]</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/376.html">
-<title>SIEMENS 坐标系转换</title>
-<link>https://blog.niekun.net/archives/376.html</link>
-<dc:date>2019-09-18T14:23:00+08:00</dc:date>
-<description>编写 NC 程序时，遇到需要进行坐标系旋转的地方。研究了下手册，发现使用起来很方便。[...]</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/95.html">
-<title>boost库里使用path的指针问题</title>
-<link>https://blog.niekun.net/archives/95.html</link>
-<dc:date>2019-02-21T14:03:00+08:00</dc:date>
-<description>近期在开发过程中遇到一个奇怪的问题，当我复制一个文件夹到新目录时候总是失败，查看日志发现是传递地址出错了。我是使用的是Boost的filesystem C++库处理文件，下面是代码片段，将path类型的地址放入一个指针，然后调用其他function：fs::path childDir = np;
-childDir += &quot;/\\&quot; + dir_itr-&gt;path().filename().string();
-const char* c_childDir = childDir.string().c_str();
-我在本机实验是没有问题，但在他人电脑上提示directory error。我将path里的地址先存放到一个string里然后在转换为char*，发现问题解决了。我想可能的原因就是path不能直接使用其指针地址。下面是修改后的程序片段：string s_childDir = newDir;
-s_childDir += &quot;/\\&quot; + dir_itr-&gt;path().filename().string();
-const char* c_childDir = s_childDir.c_str();
-以上就是关于boost库里使用path的指针问题的解决方法。</description>
 </item>
 </rdf:RDF>

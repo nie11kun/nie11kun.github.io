@@ -11,8 +11,78 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/dev/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Fri, 07 Aug 2020 11:37:51 +0800</lastBuildDate>
-<pubDate>Fri, 07 Aug 2020 11:37:51 +0800</pubDate>
+<lastBuildDate>Wed, 12 Aug 2020 14:08:00 +0800</lastBuildDate>
+<pubDate>Wed, 12 Aug 2020 14:08:00 +0800</pubDate>
+<item>
+<title>string &amp;lt;-&amp;gt; byte in python</title>
+<link>https://blog.niekun.net/archives/1688.html</link>
+<guid>https://blog.niekun.net/archives/1688.html</guid>
+<pubDate>Wed, 12 Aug 2020 14:08:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[To transform a unicode string to a byte string in Python do this:&gt;&gt;&gt; 'foo'.encode('utf_8...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>To transform a unicode string to a byte string in Python do this:</p><pre><code>&gt;&gt;&gt; 'foo'.encode('utf_8')
+b'foo'
+</code></pre><p>To transform a byte string to a unicode string:</p><pre><code>&gt;&gt;&gt; b'foo'.decode('utf_8')
+'foo'
+
+</code></pre><ol><li>To convert a string to bytes.</li></ol><pre><code>data = &quot;&quot;               #string
+data = &quot;&quot;.encode()      #bytes
+data = b&quot;&quot;              #bytes</code></pre><ol><li>To convert bytes to a String.</li></ol><pre><code>data = b&quot;&quot;              #bytes
+data = b&quot;&quot;.decode()     #string
+data = str(b&quot;&quot;)         #string</code></pre>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1688.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1688.html</wfw:commentRss>
+</item>
+<item>
+<title>winreg 操作 Windows 注册表 in python</title>
+<link>https://blog.niekun.net/archives/1685.html</link>
+<guid>https://blog.niekun.net/archives/1685.html</guid>
+<pubDate>Wed, 12 Aug 2020 13:56:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[https://docs.python.org/3/library/winreg.html#https://stackoverflow.com/questions/15128225/python...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p><a href="https://docs.python.org/3/library/winreg.html#">https://docs.python.org/3/library/winreg.html#</a><br><a href="https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registry">https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registry</a></p><pre><code>import winreg
+
+REG_PATH = r&quot;Control Panel\Mouse&quot;
+
+def set_reg(name, value):
+    try:
+        winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, 
+                                       winreg.KEY_WRITE)
+        winreg.SetValueEx(registry_key, name, 0, winreg.REG_SZ, value)
+        winreg.CloseKey(registry_key)
+        return True
+    except WindowsError:
+        return False
+
+def get_reg(name):
+    try:
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
+                                       winreg.KEY_READ)
+        value, regtype = winreg.QueryValueEx(registry_key, name)
+        winreg.CloseKey(registry_key)
+        return value
+    except WindowsError:
+        return None
+
+#Example MouseSensitivity
+#Read value 
+print (get_reg('MouseSensitivity'))
+
+#Set Value 1/20 (will just write the value to reg, the changed mouse val requires a win re-log to apply*)
+set_reg('MouseSensitivity', str(10))
+
+#*For instant apply of SystemParameters like the mouse speed on-write, you can use win32gui/SPI
+#http://docs.activestate.com/activepython/3.4/pywin32/win32gui__SystemParametersInfo_meth.html</code></pre>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1685.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1685.html</wfw:commentRss>
+</item>
 <item>
 <title>使用 opencv 处理图像</title>
 <link>https://blog.niekun.net/archives/1684.html</link>
@@ -127,40 +197,6 @@ STR1=&quot;TEST&quot;
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/413.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/413.html</wfw:commentRss>
-</item>
-<item>
-<title>SIEMENS 坐标系转换</title>
-<link>https://blog.niekun.net/archives/376.html</link>
-<guid>https://blog.niekun.net/archives/376.html</guid>
-<pubDate>Wed, 18 Sep 2019 14:23:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[编写 NC 程序时，遇到需要进行坐标系旋转的地方。研究了下手册，发现使用起来很方便。]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p><strong>编写 NC 程序时，遇到需要进行坐标系旋转的地方。研究了下手册，发现使用起来很方便。</strong></p><p><img src="https://niekun.net/usr/uploads/2019/09/2723381540.png" alt="2019-09-18T03:03:16.png" title="2019-09-18T03:03:16.png"></p><p class="more"><a href="https://blog.niekun.net/archives/376.html" title="SIEMENS 坐标系转换">[...]</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/376.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/376.html</wfw:commentRss>
-</item>
-<item>
-<title>boost库里使用path的指针问题</title>
-<link>https://blog.niekun.net/archives/95.html</link>
-<guid>https://blog.niekun.net/archives/95.html</guid>
-<pubDate>Thu, 21 Feb 2019 14:03:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[近期在开发过程中遇到一个奇怪的问题，当我复制一个文件夹到新目录时候总是失败，查看日志发现是传递地址出错了。我是使用的是Boost的filesystem C++库处理文件，下面是代码片段，将pat...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>近期在开发过程中遇到一个奇怪的问题，当我复制一个文件夹到新目录时候总是失败，查看日志发现是传递地址出错了。<br>我是使用的是Boost的filesystem C++库处理文件，下面是代码片段，将path类型的地址放入一个指针，然后调用其他function：</p><pre><code>fs::path childDir = np;
-childDir += &quot;/\\&quot; + dir_itr-&gt;path().filename().string();
-const char* c_childDir = childDir.string().c_str();
-</code></pre><p>我在本机实验是没有问题，但在他人电脑上提示directory error。<br>我将path里的地址先存放到一个string里然后在转换为char*，发现问题解决了。<br>我想可能的原因就是path不能直接使用其指针地址。下面是修改后的程序片段：</p><pre><code>string s_childDir = newDir;
-s_childDir += &quot;/\\&quot; + dir_itr-&gt;path().filename().string();
-const char* c_childDir = s_childDir.c_str();
-</code></pre><p>以上就是关于boost库里使用path的指针问题的解决方法。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/95.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/95.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

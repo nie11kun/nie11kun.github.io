@@ -85,6 +85,87 @@
 <div class="col-md-9 col-12" id="main" role="main">
 <h3 class="archive-title">2020年8月</h3>
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1688.html">string &lt;-&gt; byte in python</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-08-12T14:08:00+08:00" itemprop="datePublished">2020-08-12</time></li>
+<li>分类: <a href="../../category/py/index.html">python</a></li>
+<li itemprop="interactionCount"><a href="../../archives/1688.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>To transform a unicode string to a byte string in Python do this:</p><pre><code>&gt;&gt;&gt; 'foo'.encode('utf_8')
+b'foo'
+</code></pre><p>To transform a byte string to a unicode string:</p><pre><code>&gt;&gt;&gt; b'foo'.decode('utf_8')
+'foo'
+
+</code></pre><ol><li>To convert a string to bytes.</li></ol><pre><code>data = &quot;&quot;               #string
+data = &quot;&quot;.encode()      #bytes
+data = b&quot;&quot;              #bytes</code></pre><ol><li>To convert bytes to a String.</li></ol><pre><code>data = b&quot;&quot;              #bytes
+data = b&quot;&quot;.decode()     #string
+data = str(b&quot;&quot;)         #string</code></pre> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1687.html">hex &lt;-&gt; str in python </a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-08-12T14:07:00+08:00" itemprop="datePublished">2020-08-12</time></li>
+<li>分类: <a href="../../category/py/index.html">python</a></li>
+<li itemprop="interactionCount"><a href="../../archives/1687.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p><strong>str to hex:</strong></p><pre><code>import codecs
+hexlify = codecs.getencoder('hex')
+hexlify(b'Blaah')[0]</code></pre><p>out:</p><pre><code>b'426c616168'
+</code></pre><p><strong>hex to str:</strong></p><pre><code>import codecs
+decode_hex = codecs.getdecoder(&quot;hex_codec&quot;)
+s = decode_hex(b'426c616168')[0]</code></pre><p>out:</p><pre><code>b'Blaah'
+</code></pre> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1685.html">winreg 操作 Windows 注册表 in python</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-08-12T13:56:00+08:00" itemprop="datePublished">2020-08-12</time></li>
+<li>分类: <a href="../../category/py/index.html">python</a></li>
+<li itemprop="interactionCount"><a href="../../archives/1685.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p><a href="https://docs.python.org/3/library/winreg.html#">https://docs.python.org/3/library/winreg.html#</a><br><a href="https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registry">https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registry</a></p><pre><code>import winreg
+
+REG_PATH = r&quot;Control Panel\Mouse&quot;
+
+def set_reg(name, value):
+    try:
+        winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, 
+                                       winreg.KEY_WRITE)
+        winreg.SetValueEx(registry_key, name, 0, winreg.REG_SZ, value)
+        winreg.CloseKey(registry_key)
+        return True
+    except WindowsError:
+        return False
+
+def get_reg(name):
+    try:
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
+                                       winreg.KEY_READ)
+        value, regtype = winreg.QueryValueEx(registry_key, name)
+        winreg.CloseKey(registry_key)
+        return value
+    except WindowsError:
+        return None
+
+#Example MouseSensitivity
+#Read value 
+print (get_reg('MouseSensitivity'))
+
+#Set Value 1/20 (will just write the value to reg, the changed mouse val requires a win re-log to apply*)
+set_reg('MouseSensitivity', str(10))
+
+#*For instant apply of SystemParameters like the mouse speed on-write, you can use win32gui/SPI
+#http://docs.activestate.com/activepython/3.4/pywin32/win32gui__SystemParametersInfo_meth.html</code></pre> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1684.html">使用 opencv 处理图像</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
@@ -100,7 +181,7 @@
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../archives/1684.html">使用 opencv 处理图像</a></li><li><a href="../../archives/1680.html">xattr 命令清除 app 的隔离属性</a></li><li><a href="../../archives/1677.html">cinema 4D 快捷键</a></li><li><a href="../../archives/1666.html">Linux 下使用 OptiPNG 压缩图片</a></li><li><a href="../../archives/1653.html">快速给黑白照上色 in Photoshop</a></li><li><a href="../../archives/1652.html">关于构图</a></li><li><a href="../../archives/1643.html">使用 graduated filter 处理特定颜色的区域 in lightroom</a></li><li><a href="../../archives/1640.html">MacBook Pro 2015 升级 SSD</a></li><li><a href="../../archives/1632.html">Windows 10 无法同步设置</a></li><li><a href="../../archives/1629.html">macOS 使用终端命令设置系统代理</a></li> </ul>
+<li><a href="../../archives/1688.html">string &lt;-&gt; byte in python</a></li><li><a href="../../archives/1687.html">hex &lt;-&gt; str in python </a></li><li><a href="../../archives/1685.html">winreg 操作 Windows 注册表 in python</a></li><li><a href="../../archives/1684.html">使用 opencv 处理图像</a></li><li><a href="../../archives/1680.html">xattr 命令清除 app 的隔离属性</a></li><li><a href="../../archives/1677.html">cinema 4D 快捷键</a></li><li><a href="../../archives/1666.html">Linux 下使用 OptiPNG 压缩图片</a></li><li><a href="../../archives/1653.html">快速给黑白照上色 in Photoshop</a></li><li><a href="../../archives/1652.html">关于构图</a></li><li><a href="../../archives/1643.html">使用 graduated filter 处理特定颜色的区域 in lightroom</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -138,12 +219,12 @@
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="f2b89ba1bbb24dc2e0d1d280-text/javascript">
+<script type="ed85e56745d683ea1343f981-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="f2b89ba1bbb24dc2e0d1d280-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="f2b89ba1bbb24dc2e0d1d280-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="f2b89ba1bbb24dc2e0d1d280-text/javascript"></script>
-<script src="../../usr/themes/TypechoAwesome/navItem.js" type="f2b89ba1bbb24dc2e0d1d280-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="f2b89ba1bbb24dc2e0d1d280-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="ed85e56745d683ea1343f981-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="ed85e56745d683ea1343f981-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="ed85e56745d683ea1343f981-text/javascript"></script>
+<script src="../../usr/themes/TypechoAwesome/navItem.js" type="ed85e56745d683ea1343f981-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="ed85e56745d683ea1343f981-|49" defer=""></script></body>
 </html>
