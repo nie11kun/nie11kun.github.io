@@ -11,13 +11,13 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/tag/powershell/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Thu, 21 Feb 2019 20:33:00 +0800</lastBuildDate>
-<pubDate>Thu, 21 Feb 2019 20:33:00 +0800</pubDate>
+<lastBuildDate>Thu, 21 Feb 2019 07:33:00 -0500</lastBuildDate>
+<pubDate>Thu, 21 Feb 2019 07:33:00 -0500</pubDate>
 <item>
 <title>macOS/Linux/windows设置终端 proxy 代理</title>
 <link>https://blog.niekun.net/archives/97.html</link>
 <guid>https://blog.niekun.net/archives/97.html</guid>
-<pubDate>Thu, 21 Feb 2019 20:33:00 +0800</pubDate>
+<pubDate>Thu, 21 Feb 2019 07:33:00 -0500</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[macOS/Linux通过设置代理来让终端流量走代理端口(socks5适用于大部分的流量，有些程序不走http)，在终端输入：export all_proxy=socks5://127.0.0....]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -27,7 +27,90 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 alias unproxy='unset all_proxy'
 </code></pre><p>然后开启代理就输入：</p><pre><code>proxy
 </code></pre><p>取消代理输入：</p><pre><code>unproxy
-</code></pre><p><strong>设置只对当前窗口有效，关闭后取消。</strong></p><p class="more"><a href="https://blog.niekun.net/archives/97.html" title="macOS/Linux/windows设置终端 proxy 代理">[...]</a></p>
+</code></pre><p><strong>设置只对当前窗口有效，关闭后取消。</strong></p><!--more--><p>可以通过bash文件保存<em>alias</em>，快速设置/取消proxy。</p><p>打开 <code>~/.bash_profile</code>, <code>~/.bashrc</code>, 或者 <code>~/.profile</code>，The difference between these files is (primarily) when they get read by the shell. If you're not sure where to put it, ~/.bashrc is a good choice.</p><h4>macOS/Linux</h4><p>此文件一般不存在，可新建：</p><pre><code>vim ~/.bashrc
+</code></pre><p>将下面代码加入文件：</p><pre><code>alias proxy='export all_proxy=socks5://127.0.0.1:1080 &amp;&amp; export http_proxy=http://127.0.0.1:1082 &amp;&amp; export https_proxy=http://127.0.0.1:1082'
+alias unproxy='unset all_proxy &amp;&amp; export http_proxy= &amp;&amp; export https_proxy='</code></pre><p>保存文件后，重新载入配置：</p><pre><code>source ~/.bashrc
+</code></pre><p>运行命令测试alias是否生效：</p><pre><code>proxy
+</code></pre><p>对于 macOS，默认的 shell 是 zsh，它的默认加载文件是 <code>~/.zshrc</code>，所以修改上面的文件后每次启动 zsh 都需要手动运行 <code>source ~/.bashrc</code> 指令，解决方法打开 <code>~/.zshrc</code>，在文件内加入 <code>source ~/.bashrc</code> 即可，这样每次启动就可以正常使用设置的 alias 了。</p><h3>windows</h3><h4>CMD</h4><p><strong>cmd 中用 set http_proxy 设置</strong></p><pre><code>set http_proxy=http://127.0.0.1:1082
+set https_proxy=http://127.0.0.1:1082
+</code></pre><p>恢复</p><pre><code>set http_proxy=
+set https_proxy=
+</code></pre><p><strong> command prompt 使用 doskey 命令建立类似 alias 功能：</strong><br>新建 cmd_profile.bat 文件内容如下：</p><pre><code>@echo off
+doskey phttp = set http_proxy=http://127.0.0.1:1082
+doskey phttps = set https_proxy=http://127.0.0.1:1082
+doskey unphttp = set http_proxy=
+doskey unphttps = set https_proxy=</code></pre><p>打开注册表：win + r 输入 regedit，定位到 <code>HKEY_CURRENT_USER\Software\Microsoft\Command Processor\</code>,右键 new - string value，重命名为：Autorun，值设置为 bat 文件路径：<br><img src="https://niekun.net/usr/uploads/2019/10/3156600933.png" alt="2019-10-15T06:04:07.png" title="2019-10-15T06:04:07.png"></p><p>重新打开 cmd 输入 phttp phttps，查看当前IP：</p><pre><code>curl ipecho.net/plain ; echo
+</code></pre><p><strong>注意，如果默认终端是 powershell 则无法通过上述方式在注册表加载 bat 脚本，建议将脚本路径设置到系统 path 中，然后启动 CMD 后输入脚本文件名运行一次即可。</strong></p><h4>power shell</h4><p>power shell 稍微麻烦一下，需要建立 PowerShell profile 文件设置 alias。</p><p>在启动 power shell 时会执行 profile 里的命令，类似与上面的 .bashrc 文件，关于建立 PowerShell profile 文件参考：<a href="https://docs.microsoft.com/en-us/previous-versions/system-center/service-manager-2010-sp1/ff461033(v=technet.10)?redirectedfrom=MSDN">https://docs.microsoft.com/en-us/previous-versions/system-center/service-manager-2010-sp1/ff461033(v=technet.10)?redirectedfrom=MSDN</a></p><p>开始建立 profile，首先以管理员权限运行 power shell，执行以下命令：</p><pre><code>Test-path $profile
+</code></pre><p>如果返回值为 false 执行以下命令，返回值为 true 跳过此步骤：</p><pre><code>New-item –type file –force $profile
+</code></pre><p>打开 profile 文件：</p><pre><code>Notepad $profile
+</code></pre><p>加入以下内容：</p><pre><code># Set-Proxy command
+
+Function SetProxy() {
+    Param(
+        $Addr = $null,
+        [switch]$ApplyToSystem
+    )
+    
+    $env:HTTP_PROXY = $Addr;
+    $env:HTTPS_PROXY = $Addr; 
+    $env:http_proxy = $Addr;
+    $env:https_proxy = $Addr;
+  
+    if ($addr -eq $null) {
+        [Net.WebRequest]::DefaultWebProxy = New-Object Net.WebProxy;
+        if ($ApplyToSystem) { SetSystemProxy $null; }
+        Write-Output &quot;Successful unset all proxy variable&quot;;
+    }
+    else {
+        [Net.WebRequest]::DefaultWebProxy = New-Object Net.WebProxy $Addr;
+        if ($ApplyToSystem) {
+            $matchedResult = ValidHttpProxyFormat $Addr;
+            # Matched result: [URL Without Protocol][Input String]
+            if (-not ($matchedResult -eq $null)) {
+                SetSystemProxy $matchedResult.1;
+            }
+        }
+        Write-Output &quot;Successful set proxy as $Addr&quot;;
+    }
+}
+
+Function SetSystemProxy($Addr = $null) {
+    Write-Output $Addr
+    $proxyReg = &quot;HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings&quot;;
+
+    if ($Addr -eq $null) {
+        Set-ItemProperty -Path $proxyReg -Name ProxyEnable -Value 0;
+        return;
+    }
+    Set-ItemProperty -Path $proxyReg -Name ProxyServer -Value $Addr;
+    Set-ItemProperty -Path $proxyReg -Name ProxyEnable -Value 1;
+}
+
+Function ValidHttpProxyFormat ($Addr) {
+    $regex = &quot;(?:https?:\/\/)(\w+(?:.\w+)*(?::\d+)?)&quot;;
+    $result = $Addr -match $regex;
+    if ($result -eq $false) {
+        throw [System.ArgumentException]&quot;The input $Addr is not a valid HTTP proxy URI.&quot;;
+    }
+
+    return $Matches;
+}
+
+Set-Alias -Name set-proxy -Value SetProxy</code></pre><p>上面的脚本主要就是建立了三个 function：设置代理 设置系统代理 检查 uri 是否正确，然后设置 alias。</p><p>关于 Set-Alias 语法参考：<a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-alias?view=powershell-7">https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-alias?view=powershell-7</a></p><p>保存文件后，继续输入下面命令：</p><pre><code>Set-ExecutionPolicy RemoteSigned
+. $profile
+</code></pre><p>以上就完成了 profile 的设置，使用语法如下:</p><pre><code># 设置当前窗口代理 ：
+set-proxy http://your-proxy:port
+
+#设置当前窗口代理 + 系统代理：
+set-proxy http://your-proxy:port -ApplyToSystem
+
+#取消当前窗口代理：
+set-proxy (没有参数)
+
+#取消当前窗口代理 + 系统代理：
+set-proxy -ApplyToSystem</code></pre><p>测试代理然后查看当前IP：</p><pre><code>set-proxy http://127.0.0.1:1082
+curl https://info.niekun.net/ip ; echo
+</code></pre>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/97.html#comments</comments>

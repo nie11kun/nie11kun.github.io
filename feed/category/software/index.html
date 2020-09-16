@@ -11,17 +11,60 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/software/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Sat, 18 Apr 2020 21:57:00 +0800</lastBuildDate>
-<pubDate>Sat, 18 Apr 2020 21:57:00 +0800</pubDate>
+<lastBuildDate>Sat, 18 Apr 2020 09:57:00 -0400</lastBuildDate>
+<pubDate>Sat, 18 Apr 2020 09:57:00 -0400</pubDate>
 <item>
 <title>pandownload keep alive</title>
 <link>https://blog.niekun.net/archives/1553.html</link>
 <guid>https://blog.niekun.net/archives/1553.html</guid>
-<pubDate>Sat, 18 Apr 2020 21:57:00 +0800</pubDate>
+<pubDate>Sat, 18 Apr 2020 09:57:00 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[下载百度云的资源一直是比较头疼的，限速严重影响到了使用体验，我对百度产品又不太喜欢所以就排除了充值会员的选项。前段时间发了一篇百度云网盘直链获取及下载的文章，但是封锁很严重，基本处于不能用的状态...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2020/04/3072236758.png" alt="2020-04-20T13:35:22.png" title="2020-04-20T13:35:22.png"><br>下载百度云的资源一直是比较头疼的，限速严重影响到了使用体验，我对百度产品又不太喜欢所以就排除了充值会员的选项。前段时间发了一篇<a href="https://blog.niekun.net/archives/1443.html">百度云网盘直链获取及下载</a>的文章，但是封锁很严重，基本处于不能用的状态。</p><p>这两天 pandownload 这款百度盘下载器的话题很多。由于服务器被关闭，导致软件打不开。研究了下可以绕过程序启动同服务器的链接正常使用软件。原理就是利用别人备份的 pandownload.com 的网站的内容托管到别的服务器，再将对 pandownload.com 域名的请求解析到对应的服务器地址。</p><p class="more"><a href="https://blog.niekun.net/archives/1553.html" title="pandownload keep alive">[...]</a></p>
+<p><img src="https://blog.niekun.net/usr/uploads/2020/04/3072236758.png" alt="2020-04-20T13:35:22.png" title="2020-04-20T13:35:22.png"><br>下载百度云的资源一直是比较头疼的，限速严重影响到了使用体验，我对百度产品又不太喜欢所以就排除了充值会员的选项。前段时间发了一篇<a href="https://blog.niekun.net/archives/1443.html">百度云网盘直链获取及下载</a>的文章，但是封锁很严重，基本处于不能用的状态。</p><p>这两天 pandownload 这款百度盘下载器的话题很多。由于服务器被关闭，导致软件打不开。研究了下可以绕过程序启动同服务器的链接正常使用软件。原理就是利用别人备份的 pandownload.com 的网站的内容托管到别的服务器，再将对 pandownload.com 域名的请求解析到对应的服务器地址。</p><!--more--><h3>pandownload app</h3><p>pandownload 只提供了 Windows 版本，这里提供程序的备份：<a href="https://blog.niekun.net/usr/uploads/2020/04/PanDownload_add_temp.zip">PanDownload_add_temp.zip</a></p><h3>网站托管</h3><p>程序启动时会同 pandownload.com 发起请求，感谢有人对网站内容做了备份，这里只需要将网站托管到其他的服务器即可。</p><p>网站备份：<a href="https://github.com/AyagawaSeirin/PandownloadFake">https://github.com/AyagawaSeirin/PandownloadFake</a></p><p>下载仓库到服务器，使用 nginx 监听 pandownload.com 域名的访问:</p><pre><code>server {
+    listen        80;
+    server_name   pandownload.com;
+    root          /path/PandownloadFake;
+    index         index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    location /api {
+    }
+}</code></pre><h3>域名解析</h3><p>网站托管到新的服务器后，就可以将本地 dns 解析到服务器地址了。有很多方法可以实现，这里介绍修改 hosts 文件和 v2ray 的 dns 服务器实现。</p><h4>hosts</h4><p>修改 hosts 文件是最基本的方法，就是强制将某个域名的访问解析到对应的 IP 地址。</p><p>hosts 文件地址：C:\Windows\System32\Drivers\etc\hosts</p><p>打开 hosts 文件，在最后加入如下：</p><pre><code>xxx.xxx.xxx.xxx    pandownload.com
+</code></pre><p>解析地址可以填写服务器 IP，如果服务器原本的域名加了 CDN，可以填写 CDN 分配的 IP，隐藏服务器真实地址。也可以直接填写域名。</p><p>修改 hosts 完成后再 cmd 执行下面命令以刷新 dns 缓存：</p><pre><code>ipconfig /flushdns
+</code></pre><p>启动 pandownload 查看是否可以启动。</p><h4>配置 v2ray dns 服务器</h4><p>如果正在使用 v2ray，可以配置 dns 服务器来达到同样的效果。</p><p>dns 段添加设置如下：</p><pre><code>{
+    &quot;dns&quot;: {
+        &quot;hosts&quot;: {
+            &quot;domain:pandownload.com&quot;: &quot;xxx.xxx.xxx.xxx&quot;
+        }
+    }
+}</code></pre><p>routing 段添加设置如下：</p><pre><code>{
+    &quot;routing&quot;: {
+        &quot;domainStrategy&quot;: &quot;IPOnDemand&quot;,
+        &quot;rules&quot;: [
+            {
+                &quot;type&quot;: &quot;field&quot;,
+                &quot;domain&quot;: [
+                    &quot;pandownload.com&quot;
+                ],
+                &quot;outboundTag&quot;: &quot;direct-customDNS&quot;
+            }
+        ]
+    }
+}</code></pre><p>outbounds 段添加设置如下：</p><pre><code>{
+    &quot;outbounds&quot;: [
+        {
+            &quot;protocol&quot;: &quot;freedom&quot;,
+            &quot;settings&quot;: {
+                &quot;domainStrategy&quot;: &quot;UseIP&quot;
+            },
+            &quot;tag&quot;: &quot;direct-customDNS&quot;
+        }
+    ]
+}</code></pre><p>以上 v2ray 配置完成后，需要让 pandownload 走 v2ray 监听的代理地址。修改 <code>PanData\config.ini</code>：</p><pre><code>proxy=127.0.0.1:1082
+</code></pre><p>proxy 地址为 v2ray http 监听地址。启动 pandownload 测试是否启动正常。</p><h3>使用</h3><p>网上有人搭建好现成的服务端，自己搭建不方便的话可以直接使用别人搭建好的 hosts 地址：<br>185.199.108.153<br>64.52.84.68</p><p>登录百度账户即可进行下载，这里测试需要设置为<strong>PCS接口</strong>才能正常下载：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2377157041.png" alt="2020-04-18T14:03:44.png" title="2020-04-18T14:03:44.png"></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1553.html#comments</comments>
@@ -31,11 +74,17 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>使用 SCP 管理远程服务器文件</title>
 <link>https://blog.niekun.net/archives/1547.html</link>
 <guid>https://blog.niekun.net/archives/1547.html</guid>
-<pubDate>Fri, 03 Apr 2020 08:55:39 +0800</pubDate>
+<pubDate>Thu, 02 Apr 2020 20:55:39 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[安全复制（英语：Secure copy，缩写SCP）是指在本地主机与远程主机或者两台远程主机之间基于Secure Shell（SSH）协议安全地传输电脑文件。SCP是一种基于BSD RCP协议的...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>安全复制（英语：Secure copy，缩写SCP）是指在本地主机与远程主机或者两台远程主机之间基于Secure Shell（SSH）协议安全地传输电脑文件。</p><p>SCP是一种基于BSD RCP协议的网络传输协议，[3] 支持同一个网络上主机之间传输文件。SCP使用Secure Shell（SSH）完成数据传输，并使用同时用它进行身份认证，从而确保数据传输时的真实性和保密性。客户端可以向服务器发送（上传）文件，可选包含其基本属性（权限、时间戳）。客户端也可以请求（下载）一个服务器的文件或目录。SCP默认通过TCP端口22运行。</p><p>和 SCP 类似功能的是 SFTP 协议，也是使用 SSH 传输数据，具体使用方法参考：<a href="https://blog.niekun.net/archives/130.html">https://blog.niekun.net/archives/130.html</a></p><p>Linux 系统可以直接使用 scp 命令进行操作，Windows 系统可以安装 <a href="http://winscp.net/">WinSCP</a>，进行操作。</p><p class="more"><a href="https://blog.niekun.net/archives/1547.html" title="使用 SCP 管理远程服务器文件">[...]</a></p>
+<p>安全复制（英语：Secure copy，缩写SCP）是指在本地主机与远程主机或者两台远程主机之间基于Secure Shell（SSH）协议安全地传输电脑文件。</p><p>SCP是一种基于BSD RCP协议的网络传输协议，[3] 支持同一个网络上主机之间传输文件。SCP使用Secure Shell（SSH）完成数据传输，并使用同时用它进行身份认证，从而确保数据传输时的真实性和保密性。客户端可以向服务器发送（上传）文件，可选包含其基本属性（权限、时间戳）。客户端也可以请求（下载）一个服务器的文件或目录。SCP默认通过TCP端口22运行。</p><p>和 SCP 类似功能的是 SFTP 协议，也是使用 SSH 传输数据，具体使用方法参考：<a href="https://blog.niekun.net/archives/130.html">https://blog.niekun.net/archives/130.html</a></p><p>Linux 系统可以直接使用 scp 命令进行操作，Windows 系统可以安装 <a href="http://winscp.net/">WinSCP</a>，进行操作。</p><!--more--><p>下面介绍 Linux 下使用 scp 进行文件传输。</p><p>复制远程文件到本地:</p><pre><code>scp -P port username@from_host:file.txt /local/directory/
+</code></pre><p>复制本地文件到远程:</p><pre><code>scp file.txt username@to_host:/remote/directory/
+</code></pre><p>复制远程文件夹到本地:</p><pre><code>scp -r username@from_host:/remote/directory/  /local/directory/
+
+</code></pre><p>复制本地文件夹到远程:</p><pre><code>scp -r /local/directory/ username@to_host:/remote/directory/
+</code></pre><p>复制远程文件到另一个远程服务器:</p><pre><code>scp username@from_host:/remote/directory/file.txt username@to_host:/remote/directory/
+</code></pre><p>执行上面的命令后会提示要求输入所登录的远程用户密码。</p><p>如果远程服务器 ssh 端口不是默认的 22，需要使用 <code>-P</code> 参数进行设置，注意是大写 P。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1547.html#comments</comments>
@@ -45,11 +94,11 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>Remote Desktop Manager 使用指南</title>
 <link>https://blog.niekun.net/archives/1506.html</link>
 <guid>https://blog.niekun.net/archives/1506.html</guid>
-<pubDate>Wed, 01 Apr 2020 14:31:00 +0800</pubDate>
+<pubDate>Wed, 01 Apr 2020 02:31:00 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[Remote Desktop Manager(RDM) 是一个功能强大的远程链接平台，支持：Microsoft Remote Desktop Protocol(RDP)，Apple Remote...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2020/04/728150323.png" alt="2020-04-01T05:34:24.png" title="2020-04-01T05:34:24.png"><br>Remote Desktop Manager(RDM) 是一个功能强大的远程链接平台，支持：Microsoft Remote Desktop Protocol(RDP)，Apple Remote Desktop(ARD)，VNC，SSH，FTP，SFTP 等多种协议，覆盖各种类型的远程连接及各大网盘访问。</p><p>官网：<a href="https://remotedesktopmanager.com">https://remotedesktopmanager.com</a><br>官方配置手册：<a href="https://help.remotedesktopmanager.com">https://help.remotedesktopmanager.com</a></p><p>客户端支持：Windows，macOS，iOS，Android。有免费版和付费版区分，普通用户使用免费版即可。</p><p>下面介绍他的常规使用方法。</p><p class="more"><a href="https://blog.niekun.net/archives/1506.html" title="Remote Desktop Manager 使用指南">[...]</a></p>
+<p><img src="https://blog.niekun.net/usr/uploads/2020/04/728150323.png" alt="2020-04-01T05:34:24.png" title="2020-04-01T05:34:24.png"><br>Remote Desktop Manager(RDM) 是一个功能强大的远程链接平台，支持：Microsoft Remote Desktop Protocol(RDP)，Apple Remote Desktop(ARD)，VNC，SSH，FTP，SFTP 等多种协议，覆盖各种类型的远程连接及各大网盘访问。</p><p>官网：<a href="https://remotedesktopmanager.com">https://remotedesktopmanager.com</a><br>官方配置手册：<a href="https://help.remotedesktopmanager.com">https://help.remotedesktopmanager.com</a></p><p>客户端支持：Windows，macOS，iOS，Android。有免费版和付费版区分，普通用户使用免费版即可。</p><p>下面介绍他的常规使用方法。</p><!--more--><h3>安装及注册</h3><p>在下载页面下载合适平台的安装包：<a href="https://remotedesktopmanager.com/home/download">https://remotedesktopmanager.com/home/download</a>，这里以安装 Windows 平台为例。</p><p>安装完成后启动 RemoteDesktopManagerFree，第一次启动会要求注册产品，点击下方的 create a free account 注册 devolutions 账户：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/93790875.png" alt="2020-04-01T05:46:08.png" title="2020-04-01T05:46:08.png"></p><p>注册完成后需要验证邮箱，然后返回应用界面选择第一项使用 devolutions 账户登录：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2588948767.png" alt="2020-04-01T05:45:32.png" title="2020-04-01T05:45:32.png"></p><p>登录成功后就可以使用 RemoteDesktopManagerFree 了，主界面如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/1690961626.png" alt="2020-04-01T05:49:25.png" title="2020-04-01T05:49:25.png"></p><h3>设置程序访问密码</h3><p>由于远程连接涉及隐私较多，最好设置一个主密码用来访问 RDM，选择 file - option，左侧选择 security：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/366110144.png" alt="2020-04-01T05:52:50.png" title="2020-04-01T05:52:50.png"></p><p>选项中设置 <strong>use application password</strong>，下方设置 password，然后设置锁定应用的情景，我设置了 <strong>最小化/系统锁定/30分钟无操作</strong> 后锁定应用：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/1887532089.png" alt="2020-04-01T05:55:22.png" title="2020-04-01T05:55:22.png"></p><h3>远程链接打开模式</h3><p><img src="https://blog.niekun.net/usr/uploads/2020/04/2035621665.png" alt="2020-04-01T13:36:50.png" title="2020-04-01T13:36:50.png"></p><p>建立不同的连接时，有三种模式可供选择：<br>•External 启动远程连接时作为外部进程打开窗口，一般用来启动本地应用程序，如 rdp 会启动微软的 mstsc.exe<br>•Embedded (tabbed) 在 RDM 窗口建立新的选项卡打开远程连接，方便管理打开的进程<br>•Undocked 启动连接时会打开新的 RDM 窗口</p><h3>建立文件夹</h3><p>当建立了很多个远程连接后，为了方便管理，可以建立文件夹将连接进行分类放置。</p><p>在导航栏根路径： <strong>local data source</strong> 右键选择 add - add folder：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/120824632.png" alt="2020-04-01T06:11:04.png" title="2020-04-01T06:11:04.png"></p><p>设置文件夹名然后确认即可，在导航栏就可以看到新建的文件夹了，将需要放到这个文件夹的连接拖动到这位文件夹即可完成归类：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/614521210.png" alt="2020-04-01T06:12:54.png" title="2020-04-01T06:12:54.png"></p><h3>建立 SSH 连接</h3><p>dashboard 界面点击 new entry：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2648469406.png" alt="2020-04-01T05:56:46.png" title="2020-04-01T05:56:46.png"></p><p>上方搜索 ssh，然后选择 ssh shell 点击 ok：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2416306302.png" alt="2020-04-01T05:57:34.png" title="2020-04-01T05:57:34.png"></p><p>设置 name 方便识别这个连接，然后下方设置 ssh IP 地址/端口，以及账户/密码：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/4058666984.png" alt="2020-04-01T05:59:44.png" title="2020-04-01T05:59:44.png"></p><p>为避免长时间不操作，ssh 连接中断，选项卡切换到 advanced 设置 <strong>send keepalive ping</strong>: 30s，Windows 版里的名称是 <strong>ping interval</strong>，点击确认完成，：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/3322647774.png" alt="Screen Shot 2020-04-01 at 21.21.47.png" title="Screen Shot 2020-04-01 at 21.21.47.png"></p><p>完成后，在左侧导航栏找到刚建立的连接 name，点击 open session 即可建立连接：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/4009763518.png" alt="2020-04-01T06:03:20.png" title="2020-04-01T06:03:20.png"></p><h3>建立 SFTP 连接</h3><p>SFTP 用来管理服务器的文件，建立方法和 ssh 类似。sftp 用的链接协议是 ssh 的，所以登录端口以及账户密码和 ssh 一样。</p><p>设置 Name 代表这个连接名，然后设置 host/port/username/password 即可：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/477739667.png" alt="2020-04-01T06:07:52.png" title="2020-04-01T06:07:52.png"></p><h3>建立 RDP 连接</h3><p>RDP 是微软远程连接的协议，走的是 TCP 流量，默认端口是 3389。下面介绍如何添加 RDP 连接。</p><p>首先进行系统设置，打开远程连接功能。进入设置界面搜索 remote，选择 remote desktop settings：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/1681963866.png" alt="2020-04-01T06:17:50.png" title="2020-04-01T06:17:50.png"></p><p>点击 enable 即可打开远程功能，下方提示的 pc name 是在局域网内电脑的名称。可以进行局域网连接：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2405131847.png" alt="2020-04-01T06:19:52.png" title="2020-04-01T06:19:52.png"></p><p>系统设置完成后，返回 RDM 点击 new entry 添加一个 rdp 连接：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/3427198668.png" alt="2020-04-01T06:15:37.png" title="2020-04-01T06:15:37.png"></p><p>然后在 rdp 设置栏设置 name 定义此连接名称，然后是 host/port/username/password：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2015891144.png" alt="2020-04-01T06:23:26.png" title="2020-04-01T06:23:26.png"></p><p>在此解释下 host/port/username/password 如何设置：</p><ul><li>如果是在同一局域网下访问 rdp，host 设置为上面打开系统远程时提供的 pc name  或者 cmd 执行 <code>hostname</code> 查看，RDM 就会搜索局域网下的这个设备，端口号默认就是 3389</li><li>如果是在外网访问，则 host 要设置为此设备的外网 IP 地址，需要设备有公网 IP。</li><li>如果通过 frp 等内网穿透工具转发 rdp 连接到外网，则 host 和 port 要设置为 frp 服务端 IP 地址和设定的端口</li><li>username 是 Windows 用户名，可以打开 cmd 执行 <code>whoami</code> 查看</li><li>password 就是你开机时候登录系统的密码，如果登陆的是 Microsoft 账号，则密码就是微软账户密码</li></ul><p>如果远程连接要降低带宽占用，可以设置 advanced 选项里的 encoding 类型。</p><p>关于 frp 内网穿透参考我的教程：<a href="https://blog.niekun.net/archives/539.html">https://blog.niekun.net/archives/539.html</a></p><p>RDP 的详细设置参数参考<a href="https://help.remotedesktopmanager.com/session_rdp.html">官方 RDP 配置手册</a>。</p><h3>macOS ARD 设置</h3><p>macOS 系统的远程连接协议是 ARD，走的是 TCP 流量，默认端口是 5900。下面介绍如何添加 ARD 连接。</p><p>首先在 macOS 系统打开远程连接功能：</p><ul><li>打开 system preference - sharing</li><li>打开 remote management 其他设备就可以使用 ARD 访问本机了</li><li>打开 remote login 可以打开远程设备对本机的 ssh 访问，在其他设备上使用上面的 ssh 连接方式建立连接</li></ul><p><strong>本机 host 名称可以在终端执行 <code>hostname</code> 查看，也可以直接设置本机局域网 IP，使用 ifconfig 查看</strong></p><p>系统设置完成后，就可以配置 ARD 了，建立新的 ARD entry，设置 name：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/3264639510.png" alt="2020-04-01T14:09:04.png" title="2020-04-01T14:09:04.png"></p><p>然后类似 RDP 设置 host/port/username/password：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2498368069.png" alt="2020-04-01T14:18:49.png" title="2020-04-01T14:18:49.png"></p><p>下面介绍 host/port/username/password 各项参数如何设置：</p><ul><li>如果在本地远程访问设备就 host 就直接用设备局域网地址或在终端执行 <code>hostname</code> 命令得到本机 host，port 默认为 5900</li><li>如果是在外网访问，则 host 要设置为此设备的外网 IP 地址，需要设备有公网 IP。</li><li>如果通过 frp 等内网穿透工具转发 rdp 连接到外网，则 host 和 port 要设置为 frp 服务端 IP 地址和设定的端口</li><li>username 就是本机用户名，用户名可以打开终端执行命令 <code>whoami</code> 查看</li><li>密码就是上面设置的用户名对应访问密码</li></ul><p>如果远程连接要降低带宽占用，可以设置 advanced 选项里的 encoding 类型。</p><p>关于 frp 内网穿透参考我的教程：<a href="https://blog.niekun.net/archives/539.html">https://blog.niekun.net/archives/539.html</a></p><p>ARD 的详细设置参数参考<a href="https://help.remotedesktopmanager.com/sessions_appleremotedesktop.html">官方 ARD 配置手册</a>。</p><h3>备份/恢复数据</h3><p>当我们使用 RDM 建立了很多连接及文件夹后，为了在其他设备上同步配置及数据备份/恢复，我们需要设置数据备份配置。</p><p>首先需要登陆 devolutions 账号，也就是开始安装 RDM 时注册的账号。如果没有登陆的话点击 file - devolutions account - sign in 登陆账号，注意选上下面的 automatically sign-in at start up，这样下次打开 RDM 就会自动登陆账号了：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/511657788.png" alt="2020-04-02T13:49:57.png" title="2020-04-02T13:49:57.png"></p><p>点击 file - backup - backup configuration：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/1190518483.png" alt="2020-04-01T14:32:37.png" title="2020-04-01T14:32:37.png"></p><p>点击 select：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2610934896.png" alt="Screen Shot 2020-04-01 at 22.33.10.png" title="Screen Shot 2020-04-01 at 22.33.10.png"></p><p>如果之前没有建立过备份配置，在下方设置配置名称，点击 create：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/1528413674.png" alt="2020-04-01T14:35:18.png" title="2020-04-01T14:35:18.png"></p><p>上方显示当前账号已建立的配置，要选择已有的配置作为本机配置，则直接选中对应配置名点击 select，然后点击 ok，就配置好了本机备份配置：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2519179958.png" alt="2020-04-01T14:37:06.png" title="2020-04-01T14:37:06.png"></p><p><strong>可以多个客户端使用同一个备份名的存档，这样就可以实现多设备同步数据了。</strong></p><p>如果要备份当前数据，选择 file - backup - execute backup：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/710893406.png" alt="2020-04-01T14:40:46.png" title="2020-04-01T14:40:46.png"></p><p>要恢复数据到某个备份节点，选择 file - backup - restore，会弹出所有存在的备份，根据需要选中某个备份，点击 ok 即可恢复：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/596164637.png" alt="2020-04-01T14:46:31.png" title="2020-04-01T14:46:31.png"></p><hr><p>以上就是 RDM 的使用方法，更多复杂的配置方法或细节参数设置，可以参考官方文档：<a href="https://help.remotedesktopmanager.com/remote-connections.html">https://help.remotedesktopmanager.com/remote-connections.html</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1506.html#comments</comments>
@@ -59,11 +108,20 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>使用 echo 模块输出 nginx 变量</title>
 <link>https://blog.niekun.net/archives/1489.html</link>
 <guid>https://blog.niekun.net/archives/1489.html</guid>
-<pubDate>Mon, 30 Mar 2020 15:43:00 +0800</pubDate>
+<pubDate>Mon, 30 Mar 2020 03:43:00 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[最近在学习 nginx 的反向代理，在处理请求和响应的时候，需要处理 header 头信息用到了很多 nignx 变量，但是在传递给代理服务器时，我不知道我设置的 proxy_set_heade...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>最近在学习 nginx 的反向代理，在处理请求和响应的时候，需要处理 header 头信息用到了很多 nignx 变量，但是在传递给代理服务器时，我不知道我设置的 proxy_set_header 等信息是否设置正确，以及其他用到的变量到底当前值是多少我也不知道。调试起来很费劲。</p><p>发现一个第三方 nginx 模块：<strong>echo</strong>，可以方便的输出信息，利用这一模块可以实现变量值读取到 html，调试方便了很多。</p><p>echo GitHub 主页：<a href="https://github.com/openresty/echo-nginx-module">https://github.com/openresty/echo-nginx-module</a></p><p class="more"><a href="https://blog.niekun.net/archives/1489.html" title="使用 echo 模块输出 nginx 变量">[...]</a></p>
+<p>最近在学习 nginx 的反向代理，在处理请求和响应的时候，需要处理 header 头信息用到了很多 nignx 变量，但是在传递给代理服务器时，我不知道我设置的 proxy_set_header 等信息是否设置正确，以及其他用到的变量到底当前值是多少我也不知道。调试起来很费劲。</p><p>发现一个第三方 nginx 模块：<strong>echo</strong>，可以方便的输出信息，利用这一模块可以实现变量值读取到 html，调试方便了很多。</p><p>echo GitHub 主页：<a href="https://github.com/openresty/echo-nginx-module">https://github.com/openresty/echo-nginx-module</a></p><!--more--><h3>编译</h3><p>echo 模块需要从源码编译 nginx 时使用指令：<code>--add-module=</code> 加入，源码编译 nginx 及加入第三方模块参考我的教程：<a href="https://blog.niekun.net/archives/30.html">Nginx 安装/编译教程</a></p><h3>使用</h3><p>echo 使用命令很简单：</p><pre><code>server{
+    listen 80;
+    server_name 127.0.0.1;
+
+    location /echo {
+        default_type text/plain;
+        echo 'remote address: $remote_addr';
+        echo 'remote_port: $remote_port';
+    }
+}</code></pre><p>default_type text/plain 指令设置响应内容的格式，不设置的话浏览器访问会返回下载文件而不是网页。</p><p>执行 <code>curl 127.0.0.1/echo</code> 或浏览器访问 127.0.0.1/echo 路径就会看到 echo 定义的内容。</p><p>**注意如果在 echo 指令下面定义了其他 html 页面或者 proxy_pass 反向代理，则 echo 的内容会被覆盖，如果 echo 指令在 <br> location 段的最后，则会显示 echo 指令的内容。**</p>
 ]]></content:encoded>
 <slash:comments>1</slash:comments>
 <comments>https://blog.niekun.net/archives/1489.html#comments</comments>
@@ -73,11 +131,139 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>NGINX Reverse Proxy 反向代理的使用</title>
 <link>https://blog.niekun.net/archives/1378.html</link>
 <guid>https://blog.niekun.net/archives/1378.html</guid>
-<pubDate>Mon, 30 Mar 2020 11:05:00 +0800</pubDate>
+<pubDate>Sun, 29 Mar 2020 23:05:00 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[Proxying is typically used to distribute the load among several servers, seamlessly show content ...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<blockquote>Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.</blockquote><p>nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有： <strong> HTTP，FastCGI, uwsgi, SCGI, and memcached。</strong></p><p>不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：<a href="https://blog.niekun.net/archives/195.html">https://blog.niekun.net/archives/195.html</a></p><p>下面介绍 ngx_http_proxy_module 模块的使用方式。</p><p class="more"><a href="https://blog.niekun.net/archives/1378.html" title="NGINX Reverse Proxy 反向代理的使用">[...]</a></p>
+<blockquote>Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.</blockquote><p>nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有： <strong> HTTP，FastCGI, uwsgi, SCGI, and memcached。</strong></p><p>不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：<a href="https://blog.niekun.net/archives/195.html">https://blog.niekun.net/archives/195.html</a></p><p>下面介绍 ngx_http_proxy_module 模块的使用方式。</p><!--more--><h3>语法</h3><p>proxy_pass 指令将请求转发到其他代理服务器。</p><p>转发一个 http 请求到另一个地址：</p><pre><code>location /some/path/ {
+    proxy_pass http://www.example.com/link/;
+}</code></pre><p>以上示例将访问 location 段的请求转发到特定地址，这里有几个规则需要注意：</p><p>1.代理地址如果不写明 location 段，则转发请求 location 到新的地址：</p><pre><code>location /some/path/ {
+    proxy_pass http://www.example.com;
+}</code></pre><p>以上规则下，访问 /some/path/.test.html 时，会转发到 <a href="http://www.example.com/some/path/.test.html">http://www.example.com/some/path/.test.html</a></p><pre><code>location ~ \.php {
+    proxy_pass http://127.0.0.1:8000;
+}</code></pre><p>以上规则下，访问 /some/path/test.php 时，会转发到 127.0.0.1:8000/some/path/test.php</p><p>2.代理地址包含新的 location 时会替换掉请求 location 部分：</p><pre><code>location /some/path/ {
+    proxy_pass http://www.example.com/new/;
+}</code></pre><p>以上规则下，访问 /some/path/test.html 时，会转发到 <a href="http://www.example.com/new/test.html">http://www.example.com/new/test.html</a>，注意 <a href="http://www.example.com/">http://www.example.com/</a> 和 <a href="http://www.example.com">http://www.example.com</a> 不同，也属于包含根路径 location 段的。</p><p>proxy_pass 语法用来转发给 http 服务，还支持转发给其他协议的服务：</p><ul><li>fastcgi_pass 转发给 FastCGI server 如 php 服务</li><li>uwsgi_pass 转发给 uwsgi server 如 python 服务</li><li>scgi_pass 转发给 SCGI server</li><li>memcached_pass 转发给 memcached server</li></ul><p>转发的服务地址可以用一个 <strong>upstream</strong> 组来实现负载均衡：</p><pre><code>http {
+    upstream backend {
+        server backend1.example.com;
+        server backend2.example.com;
+        server 192.0.0.1 backup;
+    }
+    
+    server {
+        ...
+        location / {
+            proxy_pass http://backend;
+        }
+    }
+}</code></pre><p>以上是一个简单的负载均衡代理转发示例。关于 upstream 详细使用参考<a href="https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/">官方教程</a></p><h3>proxy_redirect 响应头 location/refresh 重定向</h3><p>当上游服务器返回的响应是重定向或刷新请求（如HTTP响应码是301或者302）时，proxy_redirect可以重设HTTP头部的location/Refresh 字段。</p><p>语法结构：</p><pre><code>proxy_redirect default;
+proxy_redirect off;
+proxy_redirect redirect replacement;
+</code></pre><p>默认设置是：proxy_redirect default。</p><p>http 响应头的 location 段 HTTP Location 是在两种情况使用在响应头中：</p><ul><li>要求网页浏览器加载其他网页(域名转址)。在这种情况下，应该使用HTTP状态码3xx发送Location头。</li><li>提供有关新创建资源位置的信息。在这种情况下，应该使用HTTP状态码201或202发送Location头。</li></ul><p>通过修改 location 可以让客户端接收到响应后，访问重定向到新的 location。</p><p>更详细的关于重定向/刷新请求头概念，需要理解 http 协议的结构，查看我的教程：<a href="https://blog.niekun.net/archives/1432.html">HTTP 协议结构</a></p><p>如果设置：<br>server {</p><pre><code>listen 8080;
+servername frontend;
+
+proxy_redirect http://localhost:8000/two/ http://frontend:8080/one/;
+...</code></pre><p>}</p><p>代理服务器返回的 http 头信息：</p><pre><code>HTTP/1.1 302 Found
+Location: http://localhost:8000/two/some/uri/
+</code></pre><p>则返回给客户端的 Location 段被重写为: <a href="http://frontend">http://frontend</a>:8080/one/some/uri/，客户端接收到后就会去重新访问这个新的地址。</p><p>server 名也可以被省略：</p><pre><code>proxy_redirect http://localhost:8000/two/ /
+</code></pre><p>以上指令返回给客户端的 Location 段被重写为: <a href="http://frontend">http://frontend</a>:8080/some/uri/</p><p>proxy_redirect 默认设置值为：<strong>default</strong>，它会自动根据 server location 段和 proxy_pass 地址来修改头信息，以下两种写法效果一样：</p><pre><code>location /one/ {
+    proxy_pass     http://localhost:8000/two/;
+    proxy_redirect default;
+
+location /one/ {
+    proxy_pass     http://localhost:8000/two/;
+    proxy_redirect http://localhost:8000/two/ /one/;</code></pre><p>以上两种写法都是将返回 location 头信息中 <a href="http://localhost">http://localhost</a>:8000/two/ 修改为 <a href="http://frontend">http://frontend</a>:8080/one/</p><p>redirect 和 replacement 都可以包含参数：</p><pre><code>proxy_redirect http://$proxy_host:8000/ $scheme$host:$server_port/;
+</code></pre><p>rederect 可以使用正则匹配：</p><pre><code>proxy_redirect ~^(http://[^:]+):\d+(/.+)$ $1$2;
+proxy_redirect ~*/user/([^/]+)/(.+)$      http://$1.example.com/$2;
+</code></pre><p>可以同时写多个 proxy_redirect 指令来处理不同的重定向地址。<br>使用 proxy_redirect off 具有最高优先级，会取消当前同一级的所有 proxy_redirect 指令。</p><p>一个完整例子：</p><pre><code>server {
+    listen           8080;
+    server_name      127.0.0.1;
+
+    location /return {
+        return 301 https://niekun.net;
+    }
+    location /proxy {
+        proxy_pass  $scheme://$http_host/return;
+        proxy_redirect https://niekun.net /echo;
+    }
+    location /echo {
+        default_type text/plain;
+        echo 'remote address: $remote_addr';
+    }
+}</code></pre><p><strong>代理过程：</strong></p><ul><li>客户端访问：<a href="http://127.0.0.1">http://127.0.0.1</a>:8080/proxy</li><li>nginx 转发到：<a href="http://127.0.0.1">http://127.0.0.1</a>:8080/return</li><li>代理服务器响应 301 重定向到：<a href="https://niekun.net">https://niekun.net</a>，http 头的 location 值为：<a href="https://niekun.net">https://niekun.net</a></li><li>nginx 将 http 头的 location 修改为：<a href="http://127.0.0.1">http://127.0.0.1</a>:8080/echo</li><li>nginx 将修改后的响应内容发送给客户端</li><li>客户端根据响应再次访问：<a href="http://127.0.0.1">http://127.0.0.1</a>:8080/echo</li></ul><h3>转发请求头信息</h3><p>默认情况下，nginx 反向代理时会舍弃<strong>原始请求头中的空字符串项</strong>，并重新设定两个请求头内容：<strong>Host</strong> 和 <strong>Connection</strong>：</p><ul><li>Host -&gt; $proxy_host  也就是 proxy_pass 里的 host</li><li>Connection -&gt; close</li></ul><p>关于 http 请求头 header 的可定义的项目参考我的教程：<a href="https://blog.niekun.net/archives/1432.html">HTTP 协议结构</a></p><p>想要设置或修改传递给代理服务的请求头，使用 proxy_set_header 指令：</p><pre><code>location /some/path/ {
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header Accept-Encoding &quot;&quot;;
+    proxy_pass http://localhost:8000;
+}</code></pre><p>以上示例的处理结果是：</p><ul><li>设置 Host 为本 server 的host 地址而不是转发地址</li><li>设置 X-Real-IP 为客户端 IP 地址，用来识别访问服务的客户信息</li><li>清空 Accept-Encoding 的内容</li></ul><h3>mapping headers 动态请求头内容</h3><p>proxy_set_header 支持使用内部变量来定义，也可以使用 map 指令配合自定义参数来根据请求清空动态设置相关 header 内容，注意 map 指令要写在 http 段：</p><pre><code>map $http_cloudfront_forwarded_proto $cloudfront_proto {
+    default &quot;http&quot;;
+    https &quot;https&quot;;
+}
+server {
+    ...
+    location / {
+        proxy_set_header X-Forwarded-Proto $cloudfront_proto;
+        proxy_pass http://app;
+        proxy_redirect off;
+        ...
+    }
+}</code></pre><p>以上示例中 <code>$http_cloudfront_forwarded_proto</code> 是已知变量，<code>$cloudfront_proto</code> 是我自定义的变量，使用 map 指令来根据前者的值设置后者的值，然后在 proxy_set_header 设置。</p><p>map 指令支持以两个因变量来给终变量赋值,语法示例如下：</p><pre><code>map &quot;$http_cloudfront_forwarded_proto:$http_x_forwarded_proto&quot; $cloudfront_proto {
+    default &quot;http&quot;;
+    &quot;:https&quot; &quot;https&quot;;
+    &quot;https:&quot; &quot;https&quot;;
+    &quot;https:http&quot; &quot;https&quot;;
+    &quot;http:https&quot; &quot;https&quot;;
+    &quot;https:https&quot; &quot;https&quot;;
+}</code></pre><p>如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。客户端也可以伪造 X-Forwarded-For 信息，使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：</p><pre><code>map $http_x_forwarded_for  $client_real_ip {
+    default                         $remote_addr;
+    ~^(([0-9\.]+),\s?)*([0-9\.]+)$  $3;
+}
+
+server {
+    echo 'remote address: $client_real_ip';
+}</code></pre><p>如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。</p><p>关于 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 参考我的文章：<a href="https://blog.niekun.net/archives/1296.html">获取用户真实 IP in Nginx</a></p><h3>buffers 缓存区</h3><p>默认情况下 nginx 缓存来自 proxy server 的响应内容。nginx 会一直在内部缓存来自代理服务器的响应内容直到内容接收完成，然后才发送给客户端。缓存能够帮助减轻客户端的压力，但会浪费服务器的资源和响应。但是打开缓存功能的另一个好处是当客户端再次进行一个缓存过的请求时，nginx 可以快速的返回已经在缓存区的内容。</p><p>使用 proxy_buffering 指令控制缓存打开/关闭。默认是 on 状态。proxy_buffers 指令控制缓存区数量和缓存大小。第一个来自代理服务器的响应会缓存到单独的区域，proxy_buffer_size 指令控制这一区域的大小：</p><pre><code>location /some/path/ {
+    proxy_buffers 16 4k;
+    proxy_buffer_size 2k;
+    proxy_pass http://localhost:8000;
+}</code></pre><p>以上示例会给 来自代理服务器：<a href="http://localhost">http://localhost</a>:8000 的响应建立 16 个缓存区，每个区域 4kb 空间，第一个响应缓存区 2kb 空间。</p><p>如果关闭缓存，来自代理服务器的响应会即时发送给客户端，对于想要快速响应的使用场景可以关闭缓存：</p><pre><code>location /some/path/ {
+    proxy_buffering off;
+    proxy_pass http://localhost:8000;
+}</code></pre><h3>设置出口 IP 地址</h3><p>默认情况下 nginx 向 proxy 上游发起请求连接，代理服务器看到的请求 IP 地址来自 nignx 服务器地址。有时候 web 服务器会设置只允许特定 IP 地址的访问，可以通过 proxy_bind 指令来修改，<strong>nginx 用户必须是 root 才行</strong>：</p><pre><code>user root;
+...
+http{
+    ...
+    server {
+        location /app1/ {
+            proxy_bind proxy_bind $remote_addr transparent;
+            proxy_pass http://example.com/app1/;
+        }
+    }
+}</code></pre><p>以上示例中，代理服务器看到的请求来源就会是真正的访问客户端 IP 地址,也就是实现了<strong>透明代理</strong>。</p><p>nginx 配置后还需要配置 iptables 路由表来处理代理服务器响应内容：</p><ul><li>新建一个链，把过来的tcp包都打上标记。</li><li>新建一个路由表100，让有标记的包都走表100。</li><li>在路由表100加入一个默认路由，把所有包都扔到lo网卡上去。</li></ul><pre><code>      #### 新建一个 DIVERT 给包打标签
+     sudo iptables -t mangle -N DIVERT;
+     sudo iptables -t mangle -A DIVERT -j MARK --set-mark 1;
+     sudo iptables -t mangle -A DIVERT -j ACCEPT;
+
+     #### 把tcp的包给DIVERT处理
+     sudo iptables -t mangle -A PREROUTING -p tcp -m socket -j DIVERT;
+
+     #### 有标签的包去查名为 100 的路由表
+     sudo ip rule add fwmark 1 lookup 100
+
+     #### 100的路由表里就一条默认路由，把所有包都扔到lo网卡上去
+     sudo ip route add local 0.0.0.0/0 dev lo table 100;</code></pre><p>具体实现我还不太懂，后期再研究下。</p><p>以上就是 http 代理服务器基本使用，下面简单介绍其他集中代理服务器的语法。</p><h3>fastcgi 代理服务器</h3><p>Nginx must rely on a separate PHP processor to handle PHP requests. Most often, this processing is handled with php-fpm, a PHP processor that has been extensively tested to work with Nginx.</p><p>简单说就是 FastCGI 实现了使用 Nginx 代理 php 请求的过程，将请求转发给 php-fpm：php 进程管理器。</p><pre><code>location / {
+    fastcgi_pass  localhost:9000;
+    # fastcgi_pass unix:/run/php/php7.3-fpm.sock;
+    fastcgi_index index.php;
+    
+    fastcgi_split_path_info ^(.+?\.php)(.*)$;
+    try_files $fastcgi_script_name =404;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include fastcgi_params;
+
+    fastcgi_param HTTP_X-REAL-IP $remote_addr;
+    fastcgi_param HTTP_X-FORWARED-FOR $proxy_add_x_forwarded_for;
+    fastcgi_param HOST $http_host;
+}</code></pre><ul><li>$fastcgi_split_path_info 用来将 请求 url 拆分成两部分：php 文件之前的 $fastcgi_script_name 和之后的部分：$fastcgi_path_info</li><li>fastcgi_pass 定义真正的用来处理 FastCGI 代理的服务，一般默认地址为：127.0.0.1:9000，可自定义指定为特定版本的php</li><li>fastcgi_param 定义 FastCGI 参数</li><li>fastcgi_params 一般在 nginx 配置目录下，包含了常用的 php 需要设定的参数。</li></ul><p>总结下和 http 语法区别：</p><ul><li>fastcgi_pass 类似于 proxy_pass</li><li>fastcgi_param  类似于 proxy_set_header，注意 fastcgi_param 添加 http 请求头信息要加上 <code>HTTP_</code> 前缀，如：<code>HTTP_X-FORWARED-FOR</code></li></ul><p>关于 FastCGI 的详细分析参考：<a href="https://www.digitalocean.com/community/tutorials/understanding-and-implementing-fastcgi-proxying-in-nginx">Understanding and Implementing FastCGI Proxying in Nginx</a></p><h3>uWSGI web 服务器</h3><p>uWSGI 是一个独立的 web 服务器，和 nginx 是一个类型的应用。一般 uWSGI 作为后端服务器使用，用 nginx 代理来访问。</p><p>uWSGI 可以用来部署 python 应用。之前我学习 django 的时候就使用过这个。</p><p>未完待续。。。</p><h3>参考链接</h3><p><a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html">ngx_http_proxy_module 模块所有指令</a><br><a href="https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/">NGINX Reverse Proxy</a><br><a href="https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/">HTTP Load Balancing</a><br><a href="https://docs.nginx.com/nginx/admin-guide/security-controls/securing-http-traffic-upstream/">Securing HTTP Traffic to Upstream Servers</a><br><a href="https://pengpengxp.github.io/archive/before-2018-11-10/2017-06-27-%E4%BD%BF%E7%94%A8nginx%E7%9A%84proxy_bind%E9%80%89%E9%A1%B9%E9%85%8D%E7%BD%AE%E9%80%8F%E6%98%8E%E7%9A%84%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86.html">使用nginx的proxy_bind选项配置透明的反向代理</a><br><a href="https://serversforhackers.com/c/nginx-mapping-headers">Mapping Headers in Nginx</a><br><a href="https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass">ngx_http_fastcgi_module 模块所有指令</a><br>[]()</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1378.html#comments</comments>
@@ -87,11 +273,164 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>百度云网盘直链获取及下载</title>
 <link>https://blog.niekun.net/archives/1443.html</link>
 <guid>https://blog.niekun.net/archives/1443.html</guid>
-<pubDate>Fri, 27 Mar 2020 11:46:00 +0800</pubDate>
+<pubDate>Thu, 26 Mar 2020 23:46:00 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[众所周知，现在百度盘非会员下载速度十分慢，还要求必须使用他的客户端下载，我的资料现在也基本不会存在百度云了。但是在下载已经保存在上面的资源或者网络别人分享的资源，还是偶尔要用到，而我又对百度十分...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2020/03/1366780471.png" alt="2020-03-27T01:40:28.png" title="2020-03-27T01:40:28.png"><br>众所周知，现在百度盘非会员下载速度十分慢，还要求必须使用他的客户端下载，我的资料现在也基本不会存在百度云了。但是在下载已经保存在上面的资源或者网络别人分享的资源，还是偶尔要用到，而我又对百度十分的讨厌，也不会去充值会员，所以研究了下如何解决非会员的限速问题。</p><p class="more"><a href="https://blog.niekun.net/archives/1443.html" title="百度云网盘直链获取及下载">[...]</a></p>
+<p><img src="https://blog.niekun.net/usr/uploads/2020/03/1366780471.png" alt="2020-03-27T01:40:28.png" title="2020-03-27T01:40:28.png"><br>众所周知，现在百度盘非会员下载速度十分慢，还要求必须使用他的客户端下载，我的资料现在也基本不会存在百度云了。但是在下载已经保存在上面的资源或者网络别人分享的资源，还是偶尔要用到，而我又对百度十分的讨厌，也不会去充值会员，所以研究了下如何解决非会员的限速问题。</p><!--more--><h3>BaiduPCS-Go</h3><p>BaiduPCS-Go 是我之前一直使用的工具，他是 GO 语言编写的命令行工具，需要登录你的账号使用，集成下载/上传等功能。就是一个第三方命令行客户端。</p><p>他可以设置<strong>缓存/并发数/user agent</strong>等，理论上可以加速下载。</p><p>GitHub 主页(作者已删除)：<a href="https://github.com/iikira/BaiduPCS-Go">https://github.com/iikira/BaiduPCS-Go</a><br>fork：<a href="https://github.com/Erope/BaiduPCS-Go">https://github.com/Erope/BaiduPCS-Go</a></p><p>可以下载 release 页面发布的版本，也可以使用源码自己编译，go 语言编译教程参考我的文章：<a href="https://blog.niekun.net/archives/468.html">https://blog.niekun.net/archives/468.html</a></p><p>打开 BaiduPCS-Go 客户端，进入命令行界面，登录完成后可以输入 <code>help</code> 指令查看支持的命令。</p><pre><code>----
+  BaiduPCS-Go - 百度网盘客户端 for windows/amd64
+
+USAGE:
+  BaiduPCS-Go.exe [global options] command [command options] [arguments...]
+
+VERSION:
+  v3.6.1-devel
+
+DESCRIPTION:
+  BaiduPCS-Go 使用Go语言编写的百度网盘命令行客户端, 为操作百度网盘, 提供实用功能.
+  具体功能, 参见 COMMANDS 列表
+
+  特色:
+    网盘内列出文件和目录, 支持通配符匹配路径;
+    下载网盘内文件, 支持网盘内目录 (文件夹) 下载, 支持多个文件或目录下载, 支持断点续传和高并发高速下载.
+
+  ---------------------------------------------------
+  前往 https://github.com/iikira/BaiduPCS-Go 以获取更多帮助信息!
+  前往 https://github.com/iikira/BaiduPCS-Go/releases 以获取程序更新信息!
+  ---------------------------------------------------
+
+  交流反馈:
+    提交Issue: https://github.com/iikira/BaiduPCS-Go/issues
+    邮箱: i@mail.iikira.com
+
+AUTHOR:
+  iikira/BaiduPCS-Go: https://github.com/iikira/BaiduPCS-Go
+
+COMMANDS:
+    tool           工具箱
+    help, h, ?, ？  Shows a list of commands or help for one command
+  其他:
+    bg           管理后台任务
+    clear, cls   清空控制台
+    env          显示程序环境变量
+    run          执行系统命令
+    sumfile, sf  获取本地文件的秒传信息
+    update       检测程序更新
+  百度帐号:
+    login    登录百度账号
+    loglist  列出帐号列表
+    logout   退出百度帐号
+    su       切换百度帐号
+    who      获取当前帐号
+  百度网盘:
+    cd                      切换工作目录
+    cp                      拷贝文件/目录
+    createsuperfile, csf    手动分片上传—合并分片文件
+    download, d             下载文件/目录
+    export, ep              导出文件/目录
+    fixmd5                  修复文件MD5
+    locate, lt              获取下载直链
+    ls, l, ll               列出目录
+    match                   测试通配符
+    meta                    获取文件/目录的元信息
+    mkdir                   创建目录
+    mv                      移动/重命名文件/目录
+    offlinedl, clouddl, od  离线下载
+    pwd                     输出工作目录
+    quota                   获取网盘配额
+    rapidupload, ru         手动秒传文件
+    recycle                 回收站
+    rm                      删除文件/目录
+    search, s               搜索文件
+    share                   分享文件/目录
+    tree, t                 列出目录的树形图
+    upload, u               上传文件/目录
+  配置:
+    config  显示和修改程序配置项
+
+GLOBAL OPTIONS:
+  --verbose      启用调试 [%BAIDUPCS_GO_VERBOSE%]
+  --help, -h     show help
+  --version, -v  print the version
+
+COPYRIGHT:
+  (c) 2016-2019 iikira.</code></pre><p>执行 <code>login</code> 指令，登录百度账户，根据提示输入密码及验证码。</p><p>登录完成后可以使用 <code>ls</code> <code>cd</code> 等命令来访问目录及文件。</p><p>执行 <code>config</code> 命令查看当前配置信息：</p><pre><code>运行 BaiduPCS-Go config set 可进行设置配置
+
+当前配置:
+  名称                 值             描述                                             建议值                                                                                                                     
+  appid             421937       百度 PCS 应用ID
+  cache_size      256.00KB      下载缓存, 如果硬盘占用高或下载速度慢, 请尝试 调大此值     1KB ~ 256KB                                                                                                                
+  max_parallel         64       下载最大并发量                                         50 ~ 500                                                                                                                   
+  max_upload_parallel  64       上传最大并发量                                         1 ~ 100                                                                                                                    
+  max_download_load    3         同时进行下载文件的最大数                               1 ~ 5                                                                                                                      
+  max_download_rate    不限制    限制最大下载速度, 0代表不限制
+  max_upload_rate      不限制    限制最大上传速度, 0代表不限制
+  savedir      C:\Users\Marco Nie\Downloads          下载文件的储存目录
+  enable_https         true      启用 https                                             true                                                                                                                       
+  user_agent           Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36  Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36      浏览器标识
+  pcs_ua                         PCS 浏览器标识
+  pan_ua     netdisk;2.2.51.6;netdisk;10.0.63;PC;android-android    Pan 浏览器标识    netdisk;2.2.51.6;netdisk;10.0.63;PC;android-android                 
+  proxy                         设置代理, 支持 http/socks5 代理
+  local_addrs                   设置本地网卡地址, 多个地址用逗号隔开</code></pre><p>执行 <code>config set --名称=value</code> 可以修改设置值。</p><p>下载指令是 <code>d file_name</code>。</p><p>我当前使用 BaiduPCS-Go 速度非常慢，在下载时使用参数 --verbose 和 --status 查看详细信息，发现链接都是错误的，经过查询发现可能是 appid 的问题，我的账号可能上了黑名单了，需要修改 appid 来修复。</p><p>找了半天网上提供的 appid 都没法用，这个 python 小程序可以扫描可用的 appid：<a href="https://gist.github.com/pcmid/5818b1165bc3f5f2088e19299278a613">https://gist.github.com/pcmid/5818b1165bc3f5f2088e19299278a613</a></p><pre><code>from __future__ import print_function
+
+import requests
+import threading
+
+import sys
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
+class GetterTread(threading.Thread):
+    def __init__(self, thread_id, app_id, times=1000):
+        threading.Thread.__init__(self)
+
+        self.__thread_id = thread_id
+
+        self.__URL = &quot;http://pcs.baidu.com/rest/2.0/pcs/file?app_id={}&amp;method=list&amp;path=%2F&quot;
+
+        with open(&quot;./BDUSS.txt&quot;) as f:
+            BDUSS = f.readline()
+            self.__COOKIES = {&quot;BDUSS&quot;: BDUSS}
+
+        self.app_id = app_id
+        self.times = times
+
+    def run(self):
+        current_id = self.app_id
+        while current_id - self.app_id &lt; self.times:  # 250000:
+            url = self.__URL.format(current_id)
+
+            try:
+                r = requests.get(url, cookies=self.__COOKIES)
+                if r.status_code == 200:
+                    print(current_id)
+            except Exception:
+                eprint(&quot;Exception: &quot; + str(current_id))
+
+            current_id += 1
+            # print(&quot;id &quot; + str(self.__thread_id) + &quot; over&quot;)
+
+
+if __name__ == '__main__':
+
+    start_app_id = 300000
+    times = 1000
+
+    threads_list = []
+
+    while start_app_id &lt; 500000:
+        thread = GetterTread(start_app_id, start_app_id, times)
+        thread.start()
+        threads_list.append(thread)
+        start_app_id += times
+
+    # print(&quot;size: &quot; + str(len(threads_list)))
+
+    for thread in threads_list:
+        thread.join()</code></pre><p>需要在目录下放一个 BDUSS.txt，里面填上你的账号的 BDUSS <a href="https://github.com/iikira/BaiduPCS-Go/wiki/%E5%85%B3%E4%BA%8E-%E8%8E%B7%E5%8F%96%E7%99%BE%E5%BA%A6-BDUSS">获取 BDUSS 的方法参考</a></p><h3>网盘直链下载助手</h3><p>BaiduPCS-Go 慢慢失效后，我开始找寻其他的有效方法，发现有一个网盘直链下载助手挺好用的。</p><p>官网：<a href="https://www.baiduyun.wiki/">https://www.baiduyun.wiki/</a><br>GitHub 主页：<a href="https://github.com/syhyz1990/baiduyun">https://github.com/syhyz1990/baiduyun</a></p><p>这是一个油猴脚本，需要在 chrome 安装 Tampermonkey 脚本管理器，在 chrome <a href="https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en-US">安装 tampermonkey</a></p><p>安装好管理器后，访问 <a href="https://github.com/syhyz1990/baiduyun/raw/master/baiduyun.user.js">GitHub脚本</a>，会自动跳转到 tampermonkey 安装界面，然后点击安装即可。</p><p>进入百度云盘，会出现一个下载助手按钮：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/455780567.png" alt="2020-03-27T03:20:35.png" title="2020-03-27T03:20:35.png"></p><p>勾选想要下载的资源，点击下载助手，里面有几个选项：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1769818541.png" alt="2020-03-27T03:21:20.png" title="2020-03-27T03:21:20.png"></p><p>第一个是直接获取 api 下载链接，可以在浏览器或其他下载软件粘贴链接即可下载：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1015860586.png" alt="2020-03-27T03:22:18.png" title="2020-03-27T03:22:18.png"></p><p>第二个是 aria2 下载链接，可以导入 aria2 进行下载，关于 aria2 的安装参考我的教程：<a href="https://blog.niekun.net/archives/1199.html">https://blog.niekun.net/archives/1199.html</a></p><p>安装好 aria2 后还需要安装<strong>网盘万能助手</strong> chrome 插件才能使用这个功能。插件地址：<a href="https://www.baiduyun.wiki/download.html">https://www.baiduyun.wiki/download.html</a></p><p>插件安装步骤：</p><ul><li>下载好 zip 包后解压到文件夹</li><li>chrome 访问：chrome://extensions/ 右边打开 develop mode，点击 load unpacked 打开解压的文件夹就自动安装了</li><li>关闭 develop mode</li><li>重启浏览器</li></ul><p>第三个是远程 aria2 rpc 下载，也是需要安装 aria2 并启用 rpc，然后点击 rpc 配置，设置参数：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3217135409.png" alt="2020-03-27T03:24:48.png" title="2020-03-27T03:24:48.png"></p><p>点击显示链接可以直接发送到 aria2：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/701382724.png" alt="2020-03-27T03:25:32.png" title="2020-03-27T03:25:32.png"></p><p>下载客户端推荐：<br>aria2：<a href="https://blog.niekun.net/archives/1199.html">https://blog.niekun.net/archives/1199.html</a><br>IDM：<a href="https://www.internetdownloadmanager.com/">https://www.internetdownloadmanager.com/</a> 可以设置最大链接数到 32 来提高下载速度 download - option - connection<br>xdown：<a href="https://xdown.org/">https://xdown.org/</a> 可以识别 aria2 的链接</p>
 ]]></content:encoded>
 <slash:comments>1</slash:comments>
 <comments>https://blog.niekun.net/archives/1443.html#comments</comments>
@@ -101,11 +440,11 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>电脑屏幕录制及鼠标轨迹追踪</title>
 <link>https://blog.niekun.net/archives/1379.html</link>
 <guid>https://blog.niekun.net/archives/1379.html</guid>
-<pubDate>Mon, 23 Mar 2020 10:39:00 +0800</pubDate>
+<pubDate>Sun, 22 Mar 2020 22:39:00 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[当你需要给别人进行演示的时候，你在电脑上的操作流程，可能由于距离或者颜色让观看者无法很好的看清楚。当你正在进行 Photoshop 教学的时候，你需要录制你的屏幕记录你的操作过程，以及再进行相关...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2020/03/1618495293.png" alt="2020-03-23T01:25:28.png" title="2020-03-23T01:25:28.png"><br>当你需要给别人进行演示的时候，你在电脑上的操作流程，可能由于距离或者颜色让观看者无法很好的看清楚。当你正在进行 Photoshop 教学的时候，你需要录制你的屏幕记录你的操作过程，以及再进行相关操作时能够清晰地注释出点击方式。</p><p>如果你有遇到以上场景，这篇教程就能够帮助到你。</p><p class="more"><a href="https://blog.niekun.net/archives/1379.html" title="电脑屏幕录制及鼠标轨迹追踪">[...]</a></p>
+<p><img src="https://blog.niekun.net/usr/uploads/2020/03/1618495293.png" alt="2020-03-23T01:25:28.png" title="2020-03-23T01:25:28.png"><br>当你需要给别人进行演示的时候，你在电脑上的操作流程，可能由于距离或者颜色让观看者无法很好的看清楚。当你正在进行 Photoshop 教学的时候，你需要录制你的屏幕记录你的操作过程，以及再进行相关操作时能够清晰地注释出点击方式。</p><p>如果你有遇到以上场景，这篇教程就能够帮助到你。</p><!--more--><h3>屏幕录制</h3><p>屏幕录制我使用的是 OBS Studio，一款开源的视频录制及流媒体传输的软件，支持 Windows macOS Linux。</p><p>官网：<a href="https://obsproject.com/">https://obsproject.com/</a><br>GitHub 主页：<a href="https://github.com/obsproject/obs-studio/wiki/Sources-Guide">https://github.com/obsproject/obs-studio/wiki/Sources-Guide</a></p><p>在官网下载最新版并安装，然后运行 OBS。</p><p>第一次启动会有几个设置项，首先根据提示选择自动配置或手动配置，选择自动识别硬件并配置。</p><p>然后选择要进行流媒体传输还是只进行视频录制，我选择只视频录制：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3114260238.png" alt="2020-03-23T01:27:15.png" title="2020-03-23T01:27:15.png"></p><p>设置录制分辨率及刷新率，默认即可：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1636243839.png" alt="2020-03-23T01:28:09.png" title="2020-03-23T01:28:09.png"></p><p>主界面如下，默认没有设置视频源输入，所以背景为黑色：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/2917339287.png" alt="2020-03-23T02:18:37.png" title="2020-03-23T02:18:37.png"></p><p>界面中间为当前监听的视频源预览，界面下方有 5 个区域 senses，sources，audio mixer，senses transitions，control。</p><h4>senses</h4><p>可以创建多个 sense，每个 sense 都有单独的 sources 设置，可以通过切换 sense 快速切换不同的 sources。</p><h4>sources</h4><p>source 就是添加监听源，点击下方加号可以添加 source：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1805242704.png" alt="2020-03-23T02:33:55.png" title="2020-03-23T02:33:55.png"></p><p>可以添加多种不同的 source，如：<strong>音频，窗口，应用，监视器</strong>等，如果录制某个打开的应用窗口，点击 Windows capture：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/842948532.png" alt="2020-03-23T02:42:20.png" title="2020-03-23T02:42:20.png"></p><p>可以起个名字点击 ok：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1832177071.png" alt="2020-03-23T02:43:13.png" title="2020-03-23T02:43:13.png"></p><p>Windows 菜单下会列出当前打开的窗口，选择需要的即可：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1776203799.png" alt="2020-03-23T02:45:16.png" title="2020-03-23T02:45:16.png"></p><p>有时候我们需要录制的内容要在多个窗口下切换，这时候可以录制整个监视器，选择 display capture：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/2604344008.png" alt="2020-03-23T02:46:35.png" title="2020-03-23T02:46:35.png"></p><p>这时就会录制当前屏幕显示的内容了：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/2838584746.png" alt="2020-03-23T02:47:24.png" title="2020-03-23T02:47:24.png"></p><p>如果选择 display capture 后显示的是黑屏，需要设置 app 的 graphic setting，搜索并打开 graphic setting：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3116204092.png" alt="2020-03-23T03:01:36.png" title="2020-03-23T03:01:36.png"></p><p>点击 browse 找到 OBS 主程序：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1055503346.png" alt="2020-03-23T03:02:28.png" title="2020-03-23T03:02:28.png"></p><p>点击 option 选择 power saving：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/2647968167.png" alt="2020-03-23T03:02:58.png" title="2020-03-23T03:02:58.png"></p><p>重新启动 OBS 应该就可以捕获到监视器了。</p><p>官方对此的解释：<a href="https://obsproject.com/forum/threads/laptop-black-screen-when-capturing-read-here-first.5965/">https://obsproject.com/forum/threads/laptop-black-screen-when-capturing-read-here-first.5965/</a></p><h4>audio mixer</h4><p>默认会捕获输入输出的 audio，可以调节滑块了控制音量大小或者屏蔽某个音频。</p><h4>sense transitions</h4><p>当建立了多个 sense 时，可以设定在 sense 间切换时的过渡延时时间，时间越长过渡越慢。</p><h4>control</h4><p><img src="https://blog.niekun.net/usr/uploads/2020/03/4009374536.png" alt="2020-03-23T03:32:51.png" title="2020-03-23T03:32:51.png"></p><p>我常用的就是 start recoding。可以设置快捷键来录制，点击 settings- hotkeys，在 start recoding 右侧设置快捷键，我设置的是 ctrl shift 9，stop recoding 默认也会使用这个快捷键：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3608309800.png" alt="2020-03-23T03:37:54.png" title="2020-03-23T03:37:54.png"></p><h4>开始录制</h4><p>设置好 sense，source，audio 就可以开始录制了，点击 start recoding 或者快捷键开始录制，然后点击 stop recoding 结束录制，默认保存路径是用户目录下的 videos 文件夹，默认格式是 MKV。<br>如果需要 mp4 格式，可以使用内置的 remux reroders 来转码，点击 file - remux recoders：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/2131635967.png" alt="2020-03-23T03:45:22.png" title="2020-03-23T03:45:22.png"></p><p>在左侧输入录制的 MKV 文件，右侧就是要转码的 mp4 文件路径，点击 remux 即可。</p><h3>鼠标轨迹追踪</h3><p>使用 OBS 录制的视频默认会有鼠标，想要更多的功能，如：<strong>局部放大，聚光灯效果，轨迹绘制，按键提示</strong>等就需要其他 app 了。</p><p>我这里使用的是 SwordSoft Mousetrack，可以实现这些功能，但是只支持 Windows。</p><p>除了屏幕录制时使用，在给别人进行演示或者做报告的时候，使用 SwordSoft Mousetrack 也是很好的选择。</p><p>官网：<a href="http://www.swordsoft.idv.tw/mousetrack/">http://www.swordsoft.idv.tw/mousetrack/</a></p><blockquote>SwordSoft Mousetrack is a useful tool for presentations or demos. It can puts a spotlight on the area around the mouse pointer, show animation effect when you click your mouse and displays your keystrokes on the screen.</blockquote><p>SwordSoft Mousetrack 可以免费使用，但是如果想要保存设置项，就需要付费买授权了。下面介绍他的几个功能。</p><h4>聚光灯效果</h4><p>general 选项卡，在 show spotlight 前打勾，就开启了聚光灯模式，鼠标周围区域高亮，其他区域变暗：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/2148827491.png" alt="2020-03-23T05:53:53.png" title="2020-03-23T05:53:53.png"></p><p>可以设置圆圈半径轮廓颜色，不透明度等。在 spotlight 选项卡进行设置：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/580864327.png" alt="2020-03-23T05:55:14.png" title="2020-03-23T05:55:14.png"></p><h4>live draw</h4><p>live draw 就是在当前屏幕用鼠标进行画线，在 show livedraw 前打勾即可激活：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1999174665.png" alt="2020-03-23T05:57:12.png" title="2020-03-23T05:57:12.png"></p><p>默认会有一行提示信息，可以使用鼠标进行绘制了：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3692065323.png" alt="2020-03-23T05:58:56.png" title="2020-03-23T05:58:56.png"></p><p>按 esc 退出 livedraw。在 livedraw 选项卡进行线条粗细/透明度/颜色的设置：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/4082242415.png" alt="2020-03-23T06:01:34.png" title="2020-03-23T06:01:34.png"></p><h4>zoom</h4><p>zoom 可以放大鼠标局部区域，在 show livezoom 前打勾即可激活：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3679589178.png" alt="2020-03-23T06:02:55.png" title="2020-03-23T06:02:55.png"></p><p>激活后，在鼠标附近或有当前区域放大图：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3410046157.png" alt="2020-03-23T06:04:28.png" title="2020-03-23T06:04:28.png"></p><p>在 zoom 选项卡可以进行放大倍率/放大区域宽高等设置项。</p><h4>mouse click</h4><p>点击鼠标位置效果，在 show mouse click 前打勾激活，当点击鼠标时，当前位置会显示一个动态效果：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3176686477.png" alt="2020-03-23T06:08:20.png" title="2020-03-23T06:08:20.png"></p><p>默认显示一个红色圆环，需要设定其他效果，可以到 mouse click 选项卡设置。</p><h4>keystroke</h4><p>在 show keystroke 前打勾激活。再按下键盘上的任意键后，会在屏幕下方提示栏显示按下的键：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/4287989982.png" alt="2020-03-23T06:10:43.png" title="2020-03-23T06:10:43.png"></p><p>在 keystroke 选项卡可以设置提示栏位置/大小/透明度/颜色等信息。</p><h4>快捷键</h4><p>每次需要使用什么功能可以在 general 进行选择，也可以为每个功能设置快捷键，这样就可以快速的激活/关闭相关功能了。</p><p>在 general 选项卡，每个功能右侧都可以定义快捷键，我设置的快捷键如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3000524271.png" alt="2020-03-23T06:15:39.png" title="2020-03-23T06:15:39.png"></p><p>设置好后只需要按下 <strong>ctrl shift 1</strong> 即可激活 聚光灯效果。</p><h3>截屏</h3><p>有时我们需要截取当前屏幕，并做一些标注。Windows 10 和 macOS 都有原生工具可供使用。</p><p><strong>macOS：</strong><br>shift command 3 截取全屏<br>shift command 4 截取部分区域</p><p>截屏后会在右下角显示预览，点击后可进行编辑。或者截屏会自动存储在桌面。</p><p><strong>Windows 10：</strong><br>shift win S 截屏</p><h3>总结</h3><p>使用 OBS 和 SwordSoft Mousetrack 可以很好的实现屏幕录制效果。先打开 SwordSoft Mousetrack 然后打开 OBS 开始录制即可。免费版的 SwordSoft Mousetrack，不能保存设置，重新启动后所有设置会恢复默认。默认激活的功能是 mouse click 和 keystroke。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1379.html#comments</comments>
@@ -115,11 +454,18 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>wkhtmltopdf 将 html为 pdf</title>
 <link>https://blog.niekun.net/archives/1375.html</link>
 <guid>https://blog.niekun.net/archives/1375.html</guid>
-<pubDate>Wed, 18 Mar 2020 12:58:56 +0800</pubDate>
+<pubDate>Wed, 18 Mar 2020 00:58:56 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[一般浏览器都可以将当前页面输出为 pdf，但当有很多个 html 文件时一个一个转换就很麻烦了，可以使用 wkhtmltopdf 命令行工具来实现自动化批量转换。wkhtmltopdf and ...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>一般浏览器都可以将当前页面输出为 pdf，但当有很多个 html 文件时一个一个转换就很麻烦了，可以使用 wkhtmltopdf 命令行工具来实现自动化批量转换。</p><blockquote>wkhtmltopdf and wkhtmltoimage are open source (LGPLv3) command line tools to render HTML into PDF and various image formats using the Qt WebKit rendering engine. These run entirely "headless" and do not require a display or display service.</blockquote><p>wkhtmltopdf 官网：<a href="https://wkhtmltopdf.org/">https://wkhtmltopdf.org/</a><br>GitHub 主页：<a href="https://github.com/wkhtmltopdf/wkhtmltopdf">https://github.com/wkhtmltopdf/wkhtmltopdf</a></p><p class="more"><a href="https://blog.niekun.net/archives/1375.html" title="wkhtmltopdf 将 html为 pdf">[...]</a></p>
+<p>一般浏览器都可以将当前页面输出为 pdf，但当有很多个 html 文件时一个一个转换就很麻烦了，可以使用 wkhtmltopdf 命令行工具来实现自动化批量转换。</p><blockquote>wkhtmltopdf and wkhtmltoimage are open source (LGPLv3) command line tools to render HTML into PDF and various image formats using the Qt WebKit rendering engine. These run entirely "headless" and do not require a display or display service.</blockquote><p>wkhtmltopdf 官网：<a href="https://wkhtmltopdf.org/">https://wkhtmltopdf.org/</a><br>GitHub 主页：<a href="https://github.com/wkhtmltopdf/wkhtmltopdf">https://github.com/wkhtmltopdf/wkhtmltopdf</a></p><!--more--><h3>下载</h3><p>在 release 页面下载对应系统最新版：<a href="https://github.com/wkhtmltopdf/wkhtmltopdf/releases">https://github.com/wkhtmltopdf/wkhtmltopdf/releases</a></p><p>我要安装到 Ubuntu 18.04，所以下载：wkhtmltox_0.12.5-1.bionic_amd64.deb</p><p>查看 Ubuntu 系统代号可以使用命令：</p><pre><code>lsb_release -c
+</code></pre><h3>安装</h3><p>下载的 deb 包，用以下命令进行安装：</p><pre><code>dpkg -i wkhtmltox_0.12.5-1.bionic_amd64.deb
+</code></pre><h3>使用</h3><p>支持 url 或 本地 html 转换：</p><pre><code>wkhtmltopdf http://bing.com bing.pdf
+wkhtmltopdf path/to/test.html index.pdf
+</code></pre><p>配合 find 命令可以实现批量转换：</p><pre><code>find path/to/html -name '*.html' -exec wkhtmltopdf {} {}.pdf \;
+mkdir pdf/
+find path/to/html -name '*.pdf' -exec mv {} pdf/ \;</code></pre><p>find 命令详细用法参考：<a href="https://blog.niekun.net/archives/543.html">https://blog.niekun.net/archives/543.html</a></p><p>可以使用 wget 命令下载某个网站到本地，然后使用上面命令批量转换：</p><pre><code>wget -m -p -k URL
+</code></pre><p>-m, –mirror 等价于 -r -N -l inf -nr<br>-p：下载所有html文件适合显示的元素<br>-k, –convert-links 转换非相对链接为相对链接,将文档链接都转换成本地的</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1375.html#comments</comments>
@@ -129,7 +475,7 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>Nginx upstream timed out 问题的处理</title>
 <link>https://blog.niekun.net/archives/1280.html</link>
 <guid>https://blog.niekun.net/archives/1280.html</guid>
-<pubDate>Thu, 05 Mar 2020 08:53:00 +0800</pubDate>
+<pubDate>Wed, 04 Mar 2020 19:53:00 -0500</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -150,7 +496,7 @@ sudo service nginx reload
 <title>Nginx 可用指令和变量索引</title>
 <link>https://blog.niekun.net/archives/1257.html</link>
 <guid>https://blog.niekun.net/archives/1257.html</guid>
-<pubDate>Wed, 04 Mar 2020 11:19:18 +0800</pubDate>
+<pubDate>Tue, 03 Mar 2020 22:19:18 -0500</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[手册：http://nginx.org/en/docs/涵盖了安装教程，开始使用教程，常用使用情景教程，指令索引，变量索引 等链接。变量：http://nginx.org/en/docs/var...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[

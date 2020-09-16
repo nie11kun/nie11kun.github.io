@@ -6,7 +6,7 @@ xml:base="https://blog.niekun.net/tag/configure/"
 >
 <title type="text">Marco Nie - configure</title>
 <subtitle type="text"></subtitle>
-<updated>2020-02-05T19:47:00+08:00</updated>
+<updated>2020-02-05T06:47:00-05:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/tag/configure/" />
 <id>https://blog.niekun.net/feed/atom/tag/configure/</id>
@@ -15,15 +15,43 @@ xml:base="https://blog.niekun.net/tag/configure/"
 <title type="html"><![CDATA[Linux 下从源码编译和安装程序以及程序的管理]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/883.html" />
 <id>https://blog.niekun.net/archives/883.html</id>
-<updated>2020-02-05T19:47:00+08:00</updated>
-<published>2020-02-05T19:47:00+08:00</published>
+<updated>2020-02-05T06:47:00-05:00</updated>
+<published>2020-02-05T06:47:00-05:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[Linux 下最方便和常用的包安装方式是通过系统内置的管理工具，例如 apt 或 yum，但有时候这些分发系统里的包不是最新的或者需要对包进行一些特定的修改，这时候需要自己从源码进行编译安装。本...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/883.html" xml:lang="zh-CN"><![CDATA[
-<p>Linux 下最方便和常用的包安装方式是通过系统内置的管理工具，例如 apt 或 yum，但有时候这些分发系统里的包不是最新的或者需要对包进行一些特定的修改，这时候需要自己从源码进行编译安装。</p><p>本文对 Linux 下普遍的编译安装方式进行介绍。</p><p>参考链接：<br><a href="https://itsfoss.com/install-software-from-source-code/">https://itsfoss.com/install-software-from-source-code/</a></p><h2>从源码安装程序</h2><p>我们以安装最新版 node.js 为例。</p><p class="more"><a href="https://blog.niekun.net/archives/883.html" title="Linux 下从源码编译和安装程序以及程序的管理">[...]</a></p>
+<p>Linux 下最方便和常用的包安装方式是通过系统内置的管理工具，例如 apt 或 yum，但有时候这些分发系统里的包不是最新的或者需要对包进行一些特定的修改，这时候需要自己从源码进行编译安装。</p><p>本文对 Linux 下普遍的编译安装方式进行介绍。</p><p>参考链接：<br><a href="https://itsfoss.com/install-software-from-source-code/">https://itsfoss.com/install-software-from-source-code/</a></p><h2>从源码安装程序</h2><p>我们以安装最新版 node.js 为例。</p><!--more--><h3>下载源码</h3><p>访问 GitHub 发布页，下载最新源码：<a href="https://github.com/nodejs/node/releases">https://github.com/nodejs/node/releases</a></p><pre><code>wget https://github.com/nodejs/node/archive/v13.8.0.tar.gz
+tar xvf v13.8.0.tar.gz
+cd node-13.8.0</code></pre><p>文件夹目录内容如下：<br><img src="https://niekun.net/usr/uploads/2020/02/3398640819.png" alt="2020-02-06T06:41:24.png" title="2020-02-06T06:41:24.png"></p><h3>一个程序的编译系统</h3><p>一个程序的安装环境是天差地别的，不同的软件对于系统环境有着不同的需求，nodejs 使用  <strong>GNU-style build system</strong>，一个开源软件平台很流行的标准。建立和使用一个编译系统是很复杂的，但是对于终端用户，<strong>GNU-style build systems</strong> 这个标准很方便地使用两个工具进行操作：<strong>configure</strong> and <strong>make</strong>。</p><p><strong>configure</strong> 文件是一个本程序专门的脚本文件，用来检查目标设备环境和可用功能来确保程序可以在设备上编译，configure 文件的一个重要功能是建立 <strong>makefile</strong> 文件，此文件包含编译时需要的指令。</p><p><strong>make</strong> 是 Linux 下通用的工具，它会读取 makefile 文件然后执行编译及安装工作。</p><p>configure -help 命令可以用来查看可用的配置参数：</p><pre><code>./configure -help
+</code></pre><p>通常情况下，你需要使用和了解安装的程序后才能理解某些配置参数的意义，但是你需要知道一个标准的 GNU Autotools 配置选项：<strong>--prefix</strong>，此处定义了软件安装的位置和文件系统。</p><p>当使用 GNU Autotools 和其他常用的编译系统时，默认的安装位置是：/usr/local，这是一个通常情况下软件安装不错的位置，方便我们使用，它内部包括了：/usr/local/bin可执行文件，/usr/local/lib库文件，/usr/local/share结构依赖文件。</p><p>当我们安装了很多自己编译的程序后，这些目录下会变得越来越复杂，各种文件交叉在一起很不方便如后的维护或删除，所以对于自己从源码编译的程序，一个不错的选择时安装在 <strong>/opt</strong> 目录下，这样一个文件夹内包含所有此程序的文件，管理很方便。</p><p>在 /opt 目录建立 nodejs 文件夹，创建软连接：</p><pre><code>mkdir /opt/node-18.3.0
+ln -s /opt/node-18.3.0 /opt/node</code></pre><p>软连接的目的是让软件安装使用时更加简洁。</p><p>configure 配置参数：</p><pre><code>./configure --prefix=/opt/node-18.3.0</code></pre><p>如果有 warning 或者错误，根据提示信息处理，多数情况是提示缺少某个依赖程序或需要升级，我这边提示需要升级 g++ 到 6.3以上。</p><p>由于我的系统是 Ubuntu 14.04，无法通过 apt 升级到新版 gcc，通过添加第三方库实现：</p><pre><code>sudo apt-get update &amp;&amp; \
+sudo apt-get install build-essential software-properties-common -y &amp;&amp; \
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &amp;&amp; \
+sudo apt-get update &amp;&amp; \
+sudo apt-get install gcc-snapshot -y &amp;&amp; \
+sudo apt-get update &amp;&amp; \
+sudo apt-get install gcc-6 g++-6 -y &amp;&amp; \
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-6 &amp;&amp; \
+sudo apt-get install gcc-4.8 g++-4.8 -y &amp;&amp; \
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8;
+
+# When completed, you must change to the gcc you want to work with by default. Type in your terminal:
+sudo update-alternatives --config gcc
+
+#To verify if it worked. Just type in your terminal
+gcc -v</code></pre><p>我升级到了 6.5，参考链接：<a href="https://gist.github.com/application2000/73fd6f4bf1be6600a2cf9f56315a2d91">https://gist.github.com/application2000/73fd6f4bf1be6600a2cf9f56315a2d91</a></p><p>make 编译：</p><pre><code>make -j3 &amp;&amp; echo ok</code></pre><p>-j3：表示使用多线程来进行编译，可以提高编译速度，你的平台有N个核心就设置为：-j(N+1)<br>如果最后没有 ok 字符，代表 make 过程有错误，这时候重新执行 make 指令，去掉 -j 参数查看错误地方：</p><pre><code>make
+</code></pre><p>我这边的错误是：g++: internal compiler error: Killed (program cc1plus)</p><p>搜索后发现可能是内存不足引起的：<a href="https://stackoverflow.com/questions/30887143/make-j-8-g-internal-compiler-error-killed-program-cc1plus">https://stackoverflow.com/questions/30887143/make-j-8-g-internal-compiler-error-killed-program-cc1plus</a></p><p>执行：</p><pre><code>dmesg
+</code></pre><p>提示信息如下：</p><pre><code>[436778.797124] Out of memory: Kill process 29504 (cc1plus) score 633 or sacrifice child
+[436778.801288] Killed process 29504 (cc1plus) total-vm:479216kB, anon-rss:410460kB, file-rss:0kB</code></pre><p>如果没有错误信息，可以继续以下步骤进行程序安装。</p><p>make 安装程序：</p><pre><code>make install
+</code></pre><p>测试是否安装成功：</p><pre><code>/opt/node/bin/node --version
+</code></pre><p>返回：v18.3.0 则安装成功。</p><h2>使 shell 定位我们安装的程序</h2><p>我们使用 node 需要执行命令如下：</p><pre><code>/opt/node/bin/node
+</code></pre><p>这可以使用但很不方便，如何能够直接敲入 node 来激活命令？这里有两种方法：</p><p>方法一，创建软连接到系统可执行文件目录：/usr/local/bin：</p><pre><code>ln -s /opt/node/bin/node /usr/local/bin/node
+</code></pre><p>这种方法适合一些依赖少的小型程序。</p><p>方法二，将自定义安装目录加入系统 $PATH 中。</p><pre><code>export PATH=&quot;/opt/node/bin:${PATH}&quot;
+echo $PATH</code></pre><p>在系统 $PATH 前添加程序路径，这样 shell 就可以识别到命令了。注意这样修改 PATH 只会在当前 shell 生效，关闭后自动恢复默认，如果需要永久修改需要修改文件：/.bashrc，具体教程参考：<a href="https://niekun.net/index.php/archives/97.html">https://niekun.net/index.php/archives/97.html</a></p><h2>删除程序</h2><p>通过以上方法编译和安装的程序，删除就很简单了：</p><pre><code>rm -rf /opt/node-v18.3.0
+</code></pre><p>如果修改了 PATH，需要删掉 PATH 中添加的内容。<br>如果是添加了软连接，需要删掉链接文件：</p><pre><code>find /usr/local/bin -type l -iname node</code></pre><p>以上就是在 Linux 上从源码编译安装程序的简单过程。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/883.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/883.html" thr:count="0"/>

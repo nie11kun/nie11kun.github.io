@@ -11,17 +11,37 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/tag/fancyindex/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Mon, 09 Dec 2019 15:14:00 +0800</lastBuildDate>
-<pubDate>Mon, 09 Dec 2019 15:14:00 +0800</pubDate>
+<lastBuildDate>Mon, 09 Dec 2019 02:14:00 -0500</lastBuildDate>
+<pubDate>Mon, 09 Dec 2019 02:14:00 -0500</pubDate>
 <item>
 <title>fancyindex 插件模块美化 nginx 的默认 index 页面</title>
 <link>https://blog.niekun.net/archives/725.html</link>
 <guid>https://blog.niekun.net/archives/725.html</guid>
-<pubDate>Mon, 09 Dec 2019 15:14:00 +0800</pubDate>
+<pubDate>Mon, 09 Dec 2019 02:14:00 -0500</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[使用 nginx 的 autoindex 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：autoindex 搭建教程参考：https://niekun.net/index.php/arc...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p><img src="https://niekun.net/usr/uploads/2019/12/4133735129.png" alt="2019-12-09T06:50:25.png" title="2019-12-09T06:50:25.png"></p><p>使用 <strong>nginx</strong> 的 <strong>autoindex</strong> 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：<br><img src="https://niekun.net/usr/uploads/2019/12/3380876021.png" alt="2019-12-09T06:48:13.png" title="2019-12-09T06:48:13.png"></p><p><strong>autoindex</strong> 搭建教程参考：<a href="https://niekun.net/index.php/archives/26.html">https://niekun.net/index.php/archives/26.html</a></p><p>如果需要更加美观和丰富的页面，可以使用第三方模块 <strong>fancyindex</strong> 来实现。</p><p class="more"><a href="https://blog.niekun.net/archives/725.html" title="fancyindex 插件模块美化 nginx 的默认 index 页面">[...]</a></p>
+<p><img src="https://niekun.net/usr/uploads/2019/12/4133735129.png" alt="2019-12-09T06:50:25.png" title="2019-12-09T06:50:25.png"></p><p>使用 <strong>nginx</strong> 的 <strong>autoindex</strong> 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：<br><img src="https://niekun.net/usr/uploads/2019/12/3380876021.png" alt="2019-12-09T06:48:13.png" title="2019-12-09T06:48:13.png"></p><p><strong>autoindex</strong> 搭建教程参考：<a href="https://niekun.net/index.php/archives/26.html">https://niekun.net/index.php/archives/26.html</a></p><p>如果需要更加美观和丰富的页面，可以使用第三方模块 <strong>fancyindex</strong> 来实现。</p><!--more--><p>fancyindex GitHub 主页：<a href="https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format">https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format</a></p><blockquote>The Fancy Index module makes possible the generation of file listings, like the built-in autoindex module does, but adding a touch of style.</blockquote><h2>安装</h2><p>使用 fancyindex 首先需要安装带有 fancyindex 模块的 nginx，需要在编译 nginx 的时候加载 fancyindex 源码作为 add-module。</p><p>从源码编译 nginx 及加载 第三方模块教程参考：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p>查看当前安装 nginx 是否包含 fancyindex：</p><pre><code>nginx -V
+</code></pre><h2>使用</h2><p>使用方法很简单，在需要作为共享目录的 location 段，修改如下：</p><pre><code>location /shared {
+  fancyindex on;              # Enable fancy indexes.
+  fancyindex_exact_size off;  # Output human-readable file sizes.
+}</code></pre><p>重新加载配置查看效果：</p><pre><code>service nginx reload
+
+</code></pre><h2>使用自定义配置美化页面</h2><p>由于 fancyindex 支持自定义页眉页脚和主题风格，所以可以使用 html 来进行修饰。</p><p>我的主题：<a href="https://github.com/nie11kun/FancyIndexTheme">https://github.com/nie11kun/FancyIndexTheme</a></p><p>下载主题到服务器，我放置在：/home/www/FancyIndexTheme</p><p>新建 fancyindex 的配置文件：fancyindex，我放在 /etc/nginx/my-server/fancyindex，内容如下：</p><pre><code>fancyindex             on;
+fancyindex_header      &quot;/FancyIndexTheme/header.html&quot;;
+fancyindex_footer      &quot;/FancyIndexTheme/footer.html&quot;;
+fancyindex_show_path   off;
+fancyindex_name_length 255;
+fancyindex_exact_size  off;
+fancyindex_localtime   on;
+fancyindex_time_format &quot;%Y-%m-%d %H:%M&quot;;</code></pre><p>详细的配置参数使用方法参考：<a href="https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format">https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format</a></p><p>在 nginx 配置文件中，需要作为共享文件夹的路径如 download 修改如下：</p><pre><code>    location /download {
+        root /home/www;
+        include my-server/fancyindex;
+    }</code></pre><p>在 nginx 配置文件中，配置外部 html 配置页面文件夹访问路径，我的主题文件夹路径为 /home/www/FancyIndexTheme：</p><pre><code>    location /FancyIndexTheme {
+        root /home/www;
+    }</code></pre><p>重新加载配置文件：</p><pre><code>service nginx configtest
+service nginx reload
+</code></pre><p>现在可以打开共享页面查看效果。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/725.html#comments</comments>

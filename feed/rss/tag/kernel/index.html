@@ -16,7 +16,50 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/526.html">
 <title>Linux kernel 内核相关</title>
 <link>https://blog.niekun.net/archives/526.html</link>
-<dc:date>2019-11-17T22:36:00+08:00</dc:date>
-<description>Linux内核（英语：Linux kernel），是一种开源的类Unix操作系统宏内核。如果你在安装新硬件后遇到：网卡不能使用，亮度不能调节，触摸板不能识别，蓝牙不能使用等等，这些关系都和linux的内核有关系。Kernel 是 Linux 系统的核心，主要负责硬件的支持。Linux 内核提供了安全补丁，bugfix 和新特性。参考链接：https://linux.cn/article-10103-1.htmlhttps://www.cyberciti.biz/faq/installing-latest-stable-mainline-linux-kernel-on-ubuntu-with-apt-get/Ubuntu 不同版本系统支持内核情况：https://wiki.ubuntu.com/Kernel/Support[...]</description>
+<dc:date>2019-11-17T09:36:00-05:00</dc:date>
+<description>Linux内核（英语：Linux kernel），是一种开源的类Unix操作系统宏内核。如果你在安装新硬件后遇到：网卡不能使用，亮度不能调节，触摸板不能识别，蓝牙不能使用等等，这些关系都和linux的内核有关系。Kernel 是 Linux 系统的核心，主要负责硬件的支持。Linux 内核提供了安全补丁，bugfix 和新特性。参考链接：https://linux.cn/article-10103-1.htmlhttps://www.cyberciti.biz/faq/installing-latest-stable-mainline-linux-kernel-on-ubuntu-with-apt-get/Ubuntu 不同版本系统支持内核情况：https://wiki.ubuntu.com/Kernel/Support查看当前运行内核：uname -r
+
+4.4.0-124-genericLinux 内核版本号由 3 组数字组成：第一个组数字。第二组数字。第三组数字第一个组数字：目前发布的内核主版本。第二个组数字：偶数表示稳定版本；奇数表示开发中版本。第三个组数字：错误修补的次数。查看当前设备已安装的内核：dpkg --get-selections| grep linux
+
+libselinux1:amd64                               install
+linux-firmware                                  install
+linux-generic-lts-xenial                        install
+linux-headers-4.4.0-124                         install
+linux-headers-4.4.0-124-generic                 install
+linux-headers-generic-lts-xenial                install
+linux-image-4.4.0-116-generic                   deinstall
+linux-image-4.4.0-119-generic                   deinstall
+linux-image-4.4.0-121-generic                   deinstall
+linux-image-4.4.0-124-generic                   install
+linux-image-4.4.0-31-generic                    deinstall
+linux-image-extra-4.4.0-116-generic             deinstall
+linux-image-extra-4.4.0-119-generic             deinstall
+linux-image-extra-4.4.0-121-generic             deinstall
+linux-image-extra-4.4.0-124-generic             install
+linux-image-extra-4.4.0-31-generic              deinstall
+linux-image-generic-lts-xenial                  install
+linux-libc-dev:amd64                            install
+python-selinux                                  install
+selinux-policy-default                          install
+selinux-utils                                   install
+util-linux                                      install可以看到一台设备可以安装多个内核，但只能使用一个。apt 安装内核apt 安装首先搜索可用内核：apt-get update
+apt-cache search linux-generic
+在输出的结果中，找到合适的内核版本进行安装：apt-get install linux-image-4.10.0-27-generic
+清空下载的 deb 安装包文件，重启系统：rm *.deb
+sudo reboot
+重启后查看内核版本：uname -r
+此方法一般无法安装最新版内核。apt 卸载内核首先使用以上命令查看当前已安装的内核，然后卸载：dpkg --get-selections| grep linux
+sudo apt-get purge -f xxx
+切换内核版本一个系统可以同时安装多个内核，但是运行时只能选择一个，当启动电脑时，在显示 grub 菜单时可以选择加载哪一个内核。（当只有一个系统安装时，grub 菜单可能被跳过，强制显示 grub 菜单可以在启动电脑时一直按住 Shift 按键）从 kernel 官网安装内核官网：https://www.kernel.org/以上官网列出的多个版本内核代表意义不同：5.3.11 是最新的稳定版4.19.84 是最新的 LTS 版本4.14.154、4.9.202、以及 4.4.202 是仍然处于维护状态的老的 LTS 版本建议使用的内核的分级，从最佳的方案到最差的方案如下：你最喜欢的 Linux 发行版支持的内核最新的稳定版最新的 LTS （长期支持）版本仍然处于维护状态的老的 LTS 版本绝对不要去使用的内核：不再维护的内核版本下载安装首先根据自己 Linux 系统版本，找到合适的可安装的最高版本内核：https://wiki.ubuntu.com/Kernel/Support了解到需要安装的内核后，进入一下官方网站找到需要版本内核的目录进入：https://kernel.ubuntu.com/~kernel-ppa/mainline/下载对应版本的 deb 安装包：wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.3.11/linux-headers-5.3.11-050311_5.3.11-050311.201911121635_all.deb
+wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.3.11/linux-headers-5.3.11-050311-generic_5.3.11-050311.201911121635_amd64.deb
+wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.3.11/linux-image-unsigned-5.3.11-050311-generic_5.3.11-050311.201911121635_amd64.deb
+wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.3.11/linux-modules-5.3.11-050311-generic_5.3.11-050311.201911121635_amd64.deb
+安装：dpkg -i *.deb
+如果安装过程报错，需要立刻卸载掉已安装的相关新内核部分：dpkg --get-selections| grep linux
+sudo apt-get purge -f xxx
+如果安装顺利完成，重启系统：reboot
+查看内核版本：uname -r
+
+</description>
 </item>
 </rdf:RDF>

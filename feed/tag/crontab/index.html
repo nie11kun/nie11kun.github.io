@@ -11,17 +11,18 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/tag/crontab/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Fri, 08 Nov 2019 13:43:44 +0800</lastBuildDate>
-<pubDate>Fri, 08 Nov 2019 13:43:44 +0800</pubDate>
+<lastBuildDate>Fri, 08 Nov 2019 00:43:44 -0500</lastBuildDate>
+<pubDate>Fri, 08 Nov 2019 00:43:44 -0500</pubDate>
 <item>
 <title>VPS 自动备份脚本</title>
 <link>https://blog.niekun.net/archives/466.html</link>
 <guid>https://blog.niekun.net/archives/466.html</guid>
-<pubDate>Fri, 08 Nov 2019 13:43:44 +0800</pubDate>
+<pubDate>Fri, 08 Nov 2019 00:43:44 -0500</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[此脚本转载自 秋水逸冰 博客：https://teddysun.com/469.html需要用到的工具：LinuxMySQLopensslgdrivecrontab脚本实现定时自动备份数据库及指...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>此脚本转载自 <strong>秋水逸冰</strong> 博客：<a href="https://teddysun.com/469.html">https://teddysun.com/469.html</a></p><p>需要用到的工具：<br>Linux<br>MySQL<br>openssl<br>gdrive<br>crontab</p><p>脚本实现定时自动备份数据库及指定目录文件夹，备份文件加密处理，自动上传到google drive。可设定备份文件保留天数。</p><p class="more"><a href="https://blog.niekun.net/archives/466.html" title="VPS 自动备份脚本">[...]</a></p>
+<p>此脚本转载自 <strong>秋水逸冰</strong> 博客：<a href="https://teddysun.com/469.html">https://teddysun.com/469.html</a></p><p>需要用到的工具：<br>Linux<br>MySQL<br>openssl<br>gdrive<br>crontab</p><p>脚本实现定时自动备份数据库及指定目录文件夹，备份文件加密处理，自动上传到google drive。可设定备份文件保留天数。</p><!--more--><p>脚本下载，设定权限：</p><pre><code>wget --no-check-certificate https://github.com/teddysun/across/raw/master/backup.sh
+chmod +x backup.sh</code></pre><p>修改脚本配置 具体参考：<a href="https://teddysun.com/469.html">https://teddysun.com/469.html</a></p><p>安装 openssl 参考：<a href="https://niekun.net/index.php/archives/449.html">https://niekun.net/index.php/archives/449.html</a></p><p>安装 gdrive 参考：<a href="https://niekun.net/index.php/archives/460.html">https://niekun.net/index.php/archives/460.html</a></p><p>设置 crontab 定时 参考：<a href="https://niekun.net/index.php/archives/461.html">https://niekun.net/index.php/archives/461.html</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/466.html#comments</comments>
@@ -31,11 +32,31 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>使用 crontab 设置 Linux 定时任务</title>
 <link>https://blog.niekun.net/archives/461.html</link>
 <guid>https://blog.niekun.net/archives/461.html</guid>
-<pubDate>Fri, 08 Nov 2019 11:49:00 +0800</pubDate>
+<pubDate>Thu, 07 Nov 2019 22:49:00 -0500</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[crontab 是 Linux 的一个执行定时任务的程序。]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p><strong>crontab</strong> 是 Linux 的一个执行定时任务的程序。</p><p class="more"><a href="https://blog.niekun.net/archives/461.html" title="使用 crontab 设置 Linux 定时任务">[...]</a></p>
+<p><strong>crontab</strong> 是 Linux 的一个执行定时任务的程序。</p><!--more--><p>当前用户配置 crontab 配置情况：</p><pre><code>crontab -l
+</code></pre><p>编辑用户配置文件：</p><pre><code>crontab -e
+</code></pre><p><strong>以上命令是将设置写入用户级配置文件，以下方法可以直接修改系统级配置。</strong></p><p>system wide 配置文件地址：/etc/crontab</p><p>配置文件文件格式：</p><pre><code>SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=root
+HOME=/root
+
+30  1  *  *  * root bash /root/backup.sh</code></pre><p>前几个设置是 corn 执行环境设置，尤其是 <strong>PATH</strong> 和 <strong>HOME</strong> 需要正确设置才能保证部分命令正确执行。</p><pre><code># Example of job definition:
+# .---------------- minute (0 - 59)
+# |  .------------- hour (0 - 23)
+# |  |  .---------- day of month (1 - 31)
+# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |  |  |  |  |
+# *  *  *  *  * user-name command to be executed
+30  1  *  *  * root bash /root/backup.sh</code></pre><p>以上指令代表每天 1:30 执行脚本。每个字段的写法可以有多种类型：<strong>单一数字 数字段 数字组 数字间隔</strong></p><p>单一数字，指定时间点运行：</p><pre><code>30  1  *  *  * root bash /root/backup.sh
+</code></pre><p>数字段，指定时间段运行：</p><pre><code>30  1-6  *  *  * root bash /root/backup.sh
+</code></pre><p>数字组，指定多个时间点运行:</p><pre><code>30  1,3,5  *  *  * root bash /root/backup.sh
+</code></pre><p>数字间隔，指定每隔多少时间执行：</p><pre><code>*/30  *  *  *  * root bash /root/backup.sh
+0  */3  *  *  * root bash /root/backup.sh
+</code></pre>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/461.html#comments</comments>

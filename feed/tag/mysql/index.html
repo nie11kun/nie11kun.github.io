@@ -11,13 +11,13 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/tag/mysql/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Mon, 18 Feb 2019 10:47:00 +0800</lastBuildDate>
-<pubDate>Mon, 18 Feb 2019 10:47:00 +0800</pubDate>
+<lastBuildDate>Sun, 17 Feb 2019 21:47:00 -0500</lastBuildDate>
+<pubDate>Sun, 17 Feb 2019 21:47:00 -0500</pubDate>
 <item>
 <title>MySQL基本操作</title>
 <link>https://blog.niekun.net/archives/23.html</link>
 <guid>https://blog.niekun.net/archives/23.html</guid>
-<pubDate>Mon, 18 Feb 2019 10:47:00 +0800</pubDate>
+<pubDate>Sun, 17 Feb 2019 21:47:00 -0500</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[我使用的blog系统基于动态数据库。使用了MySQL管理数据，使用过程中学习了简单常用的指令，涉及创建，查看，备份数据库。进入MySQLmysql -uUSER -pPASSWORDUSER为用...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -31,7 +31,41 @@ FLUSH PRIVILEGES;
 # 授予某个数据库权限
 grant all privileges on DB.* to &quot;NEWUSER&quot;@&quot;localhost&quot;;
 FLUSH PRIVILEGES;
-</code></pre><p class="more"><a href="https://blog.niekun.net/archives/23.html" title="MySQL基本操作">[...]</a></p>
+</code></pre><!--more--><h2>查看当前已建立的用户</h2><pre><code>SELECT user,authentication_string,plugin,host FROM mysql.user;
+</code></pre><p>返回结果中 plugin 里显示 auth_socket 的用户为管理员用户，有最高权限。</p><h2>删除某个用户</h2><pre><code>drop user WHICHUSER@localhost;
+</code></pre><h2>创建数据库</h2><pre><code>//创建数据库`newDB`
+create database newDB;
+//授权所有权限
+grant all privileges on newDB.* to &quot;newuser&quot;@&quot;localhost&quot; identified by &quot;PASSWORD&quot;;
+FLUSH PRIVILEGES;
+</code></pre><h2>查看数据库</h2><pre><code>//查看所有数据库
+show databases;
+
+//查看数据库信息    
+show create database newDB;
+
+**//删除数据库**
+drop database newDB;
+
+//查看一个数据库内容
+use newDB;
+show tables;
+
+//例如显示tables内容为：test1 test2 test3
+//查看数据表信息，后面加上参数/G可使结果更加美观
+show create table test1;
+
+//查看表的的字段信息
+desc test1;
+</code></pre><h2>修改用户密码</h2><pre><code>set password for 'YOURUSER'@'localhost'=password('NEWPASSWORD');
+flush privileges;
+</code></pre><h2>备份数据库</h2><p>备份所有数据库：</p><pre><code>mysqldump -uUSER -pPASSWORD --all-databases &gt; /path/to/backup.sql
+</code></pre><p>备份特定一个数据库：</p><pre><code>mysqldump -uUSER -pPASSWORD DATABASE_NAME &gt; /path/to/backup.sql
+</code></pre><h2>还原数据库</h2><p>还原特定一个数据库：</p><pre><code>mysqldump -uUSER -pPASSWORD DATABASE_NAME &lt; /path/to/backup.sql
+</code></pre><p>恢复新建立数据库数据，我在恢复数据的时候使用了这种方法：</p><pre><code>use YOUDATABASE
+source /path/to/mysql.sql
+grant all privileges on blog.* to &quot;root&quot;@&quot;localhost&quot; identified by &quot;password&quot;;
+</code></pre>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/23.html#comments</comments>

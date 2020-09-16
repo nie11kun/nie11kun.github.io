@@ -6,7 +6,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <channel rdf:about="https://blog.niekun.net/feed/rss/2020/02/">
 <title>Marco Nie - 2020年2月</title>
 <link>https://blog.niekun.net/2020/02/</link>
-<description>I’m dancing at the feet of my lord...</description>
+<description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
 <rdf:li resource="https://blog.niekun.net/archives/1199.html"/>
@@ -25,45 +25,290 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/1199.html">
 <title>aria2 使用指南</title>
 <link>https://blog.niekun.net/archives/1199.html</link>
-<dc:date>2020-02-28T17:10:00+08:00</dc:date>
-<description>aria2 是一款轻量级的下载器，支持 HTTP/HTTPS, FTP, SFTP, BitTorrent and Metalink 等多种协议。它有如下特点：多节点链接：下载一个文件可以同时链接多个源来提速轻量级：占用系统资源极少，一般下载任务内存占用 10mb 内全功能的 BitTorrent 客户端：支持 DHT, PEX, Encryption, Magnet URI, Web-Seeding, Selective Downloads, Local Peer Discovery and UDP tracker支持 metalink 链接支持远程控制：支持 RPC 界面控制 aria2 进程官网：https://aria2.github.io/GitHub 主页：https://github.com/aria2/aria2webui-aria2：https://github.com/ziahamza/webui-aria2[...]</description>
+<dc:date>2020-02-28T04:10:00-05:00</dc:date>
+<description>aria2 是一款轻量级的下载器，支持 HTTP/HTTPS, FTP, SFTP, BitTorrent and Metalink 等多种协议。它有如下特点：多节点链接：下载一个文件可以同时链接多个源来提速轻量级：占用系统资源极少，一般下载任务内存占用 10mb 内全功能的 BitTorrent 客户端：支持 DHT, PEX, Encryption, Magnet URI, Web-Seeding, Selective Downloads, Local Peer Discovery and UDP tracker支持 metalink 链接支持远程控制：支持 RPC 界面控制 aria2 进程官网：https://aria2.github.io/GitHub 主页：https://github.com/aria2/aria2webui-aria2：https://github.com/ziahamza/webui-aria2aria2 下载安装从官方发布页下载对应平台的最新版包，我是 Windows x64 系统下载了 aria2-1.35.0-win-64bit-build1.zip：https://github.com/aria2/aria2/releases/
+解压压缩包到本地，我的解压目录是：C:\Users\Marco Nie\Application\aria2aria2c.exe 就是 aria2 主程序。命令行使用aria2 原生支持命令行控制，它的控制语句形式由 主程序 - 选项参数 - 链接 构成：aria2c [&lt;OPTIONS&gt;] [&lt;URI&gt;|&lt;MAGNET&gt;|&lt;TORRENT_FILE&gt;|&lt;METALINK_FILE&gt;]
+全部的可用参数参考官方文档：https://aria2.github.io/manual/en/html/aria2c.html#synopsis下面简单介绍几个常用的下载命令修改下载目录终端里切换到 aria2 目录，使用下面命令将文件下载到 /home 目录下，使用参数 --dir 控制下载目录：aria2c --dir=/home http://www.file.zip
+注意如果不定义 dir 目录，则默认下载到当前用户根目录。下载指定文档内的链接aria2c --input-file=dl.txt --max-concurrent-downloads=5 --dir=/home
+下载 dl.txt 内所有的链接，同时下载5个文件。多路链接下载aria2c --split=5 http://www.file.zip
+同时建立 5 个链接来下载这个文件，如果链接源速度不够快，这样可以达到提速效果。远程控制aric2c --enable-rpc=true --rpc-listen-all=true
+开启远程控制，默认端口为 6800 可使用 --rpc-listen-port 参数修改。以上命令执行后，可以使用 JSON-RPC/XML-RPC 来控制，下一章节会详细介绍。指定配置文件aria2c --conf-path=/home/aria2.conf http://www.file.zip
+当设置的 option 参数很多的时候，每次启动都敲入大量的命令就很麻烦了，可以将所有需要的配置参数放到一个配置文件里，使用 --conf-path 加载配置文件就可以了。由于命令行方式控制不便于个人使用，所以这里介绍以 webUI 的方式控制 aria2。webui-aria2webui-aria2 是一个官方推荐的 web RPC 控制器，图形化的界面方便管理进程。GitHub 主页：https://github.com/ziahamza/webui-aria2下载仓库包到本地：解压压缩包到本地，我放在了 aria2 文件夹目录，在 docs 文件夹下启动 indix.html 就打开了 web 控制面板：这时候页面会报错，因为 aria2 源程序还没有启动，命令行执行一下指令启动 rpc：aric2c --enable-rpc=true --rpc-listen-all=true
+刷新页面就可以连接到 aria2 了。下面系统介绍配置文件的建立和断点续传的使用。配置文件在 aria2 根目录下新建四个文件：aria2.conf，aria2.session，aria2.log，dht.dataria2.conf：aria2 的配置参数文件，定义了 aria2 的启动参数aria2.session：会话信息记录文件，用来进行断点续传aria2.log：日志文件dht.dat：DHT 网络路由缓存文件路径，BT 相关aria2.conf 推荐设置内容如下(自行修改里面的目录)：# 文件的保存路径(可使用绝对路径或相对路径), 默认: 当前启动位置
+dir=C:\Users\Marco Nie\Downloads
+
+# 启动的时候，从会话文件中读取下载任务
+input-file=C:\Users\Marco Nie\Application\aria2\aria2.session
+
+# 在Aria2退出时保存`错误/未完成`的下载任务到会话文件
+save-session=C:\Users\Marco Nie\Application\aria2\aria2.session
+
+# DHT 路由文件路径，BT 相关
+dht-file-path=C:\Users\Marco Nie\Application\aria2\dht.dat
+
+# log 日志文件，没有的话输出到 stdout
+log=C:\Users\Marco Nie\Application\aria2\aria2.log
+
+# 日志级别 debug, info, notice, warn or error. Default: debug
+log-level=warn
+
+#下载完成后删除.aria2的同名文件
+# on-download-complete=执行 cmd 命令
+
+# Windows 下不关闭的话会出现 Timeout while contacting DNS servers
+async-dns=false
+
+# 启用磁盘缓存, 0为禁用缓存, 需1.16以上版本, 默认:16M
+#disk-cache=32M
+#disk-cache=32M
+
+# 文件预分配方式, 能有效降低磁盘碎片, 默认:prealloc
+# 预分配所需时间: none &lt; falloc &lt; trunc &lt; prealloc
+# falloc和trunc则需要文件系统和内核支持
+# NTFS建议使用falloc, EXT3/4建议trunc, MAC 下需要注释此项
+file-allocation=prealloc
+
+# 断点续传
+continue=true
+
+## 下载连接相关 ##
+
+# 最大同时下载任务数, 运行时可修改, 默认:5
+max-concurrent-downloads=10
+
+# 同一服务器连接数, 添加时可指定, 默认:1 最大16
+max-connection-per-server=16
+
+# 最小文件分片大小, 添加时可指定, 取值范围1M -1024M, 默认:20M
+# 假定size=10M, 文件为20MiB 则使用两个来源下载; 文件为15MiB 则使用一个来源下载
+min-split-size=10M
+
+# 单个任务最大线程数, 添加时可指定, 默认:5
+split=5
+
+# 整体下载速度限制, 运行时可修改, 默认:0
+#max-overall-download-limit=0
+
+# 单个任务下载速度限制, 默认:0
+#max-download-limit=0
+
+# 整体上传速度限制, 运行时可修改, 默认:0
+#max-overall-upload-limit=0
+
+# 单个任务上传速度限制, 默认:0
+#max-upload-limit=0
+
+# 禁用IPv6, 默认:false
+disable-ipv6=true
+
+# 定时保存会话, 0为退出时才保存, 需1.16.1以上版本, 默认:0
+save-session-interval=60
+
+## RPC相关设置 ##
+
+# 启用RPC, 默认:false
+enable-rpc=true
+
+# 添加任务后默认暂停下载
+pause=false
+
+# 允许所有来源, 默认:false
+rpc-allow-origin-all=true
+
+# 允许外网访问, 默认:false
+rpc-listen-all=true
+
+# save torrent or metalink meta data to --dir
+rpc-save-upload-metadata=true
+
+# 设置的RPC授权令牌, v1.18.4新增功能, 取代 --rpc-user 和 --rpc-passwd 选项
+rpc-secret=&lt;设置自定义 token，要和远程设置一样&gt;
+
+# RPC监听端口, 端口被占用时可以修改, 默认:6800
+rpc-listen-port=6800
+
+## BT/PT下载相关 ##
+
+# 当下载的是一个种子(以.torrent结尾)时, 自动开始BT任务, 默认:true
+follow-torrent=true
+
+# BT监听端口, 当端口被屏蔽时使用, 默认:6881-6999
+#listen-port=51413
+
+# 单个种子最大连接数, 默认:55
+bt-max-peers=55
+
+# 打开DHT功能, PT需要禁用, 默认:true
+enable-dht=true
+
+# 打开IPv6 DHT功能, PT需要禁用
+#enable-dht6=false
+
+# DHT网络监听端口, 默认:6881-6999
+dht-listen-port=6881-6999
+
+# 本地节点查找, PT需要禁用, 默认:false
+bt-enable-lpd=true
+
+# 种子交换, PT需要禁用, 默认:true
+enable-peer-exchange=true
+
+# 每个种子限速, 对少种的PT很有用, 默认:50K
+#bt-request-peer-speed-limit=50K
+
+# 客户端伪装, PT需要
+#peer-id-prefix=-TR2770-
+user-agent=Transmission/2.92
+#user-agent=netdisk;4.4.0.6;PC;PC-Windows;6.2.9200;WindowsBaiduYunGuanJia
+
+# 当种子的分享率达到这个数时, 自动停止做种, 0为一直做种, 默认:1.0
+seed-ratio=1.0
+
+#作种时间大于30分钟，则停止作种
+seed-time=30
+
+# 强制保存会话, 话即使任务已经完成, 默认:false，BitTorrent seeding which is recognized as completed state
+#force-save=false
+
+# BT校验相关, 默认:true
+#bt-hash-check-seed=true
+
+# 继续之前的BT任务时, 无需再次校验, 默认:false
+bt-seed-unverified=true
+
+# 保存磁力链接元数据为种子文件(.torrent文件), 默认:false
+bt-save-metadata=true
+
+# 加密传输 防止吸血
+bt-force-encryption=true
+
+# 添加自定义的 bt tracker 地址，从 https://github.com/ngosang/trackerslist 找最新的链接
+bt-tracker=udp://tracker.coppersurfer.tk:6969/announce,udp://tracker.leechers-paradise.org:6969/announce,udp://tracker.opentrackr.org:1337/announce,udp://p4p.arenabg.com:1337/announce,udp://9.rarbg.to:2710/announce,udp://9.rarbg.me:2710/announce,udp://tracker.internetwarriors.net:1337/announce,udp://exodus.desync.com:6969/announce,udp://tracker.tiny-vps.com:6969/announce,udp://tracker.torrent.eu.org:451/announce,udp://tracker.cyberia.is:6969/announce,udp://open.stealth.si:80/announce,udp://open.demonii.si:1337/announce,udp://denis.stalker.upeer.me:6969/announce,udp://tracker.sbsub.com:2710/announce,udp://tracker.moeking.me:6969/announce,udp://retracker.lanta-net.ru:2710/announce,udp://ipv4.tracker.harry.lu:80/announce,udp://explodie.org:6969/announce,udp://zephir.monocul.us:6969/announce启动 aria2上述文件设置完毕后，就可以启动 aria2 了，在终端执行如下命令：cd /to/aria2/path
+aria2c --conf-path=aria2.conf
+然后启动 webui-aria2 的 index.html 网页，根据 aria2.conf 配置文件情况设置 setting - connection 内容，就可以正常使用了。我将 webui-aria2 托管到了我的网站：https://webui-aria2.niekun.net。但是发现如果 webui 是 https 的就无法连接上 aria2 了，查了下好像是 web 加密问题，所以还是把 webui-aria2 放在本地使用吧。外网远程控制如果服务器在内网，可能需要进行内网穿透，可以参考我的 frp 教程，建立 http 转发：https://niekun.net/archives/539.htmlfrpc 配置示例片段：[aria2]
+type = http
+local_ip = 127.0.0.1
+local_port = 6800
+subdomain = aria2
+use_encryption = true
+use_compression = true如果按照我 frp 教程配置 nginx 代理 frp 的话，完成后就可以通过：https://aria2.youdomain.net:443 来控制 aria2 了。开机自启动可以建立脚本来实现开机自启动。Windows在 aria2 目录新建 bat 文件，内容如下：@echo off
+if &quot;%1&quot; == &quot;h&quot; goto begin
+mshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;&quot;&quot;%~nx0&quot;&quot; h&quot;,0)(window.close)&amp;&amp;exit
+:begin
+REM
+cd %USERPROFILE%\Application\aria2
+aria2c --conf-path=aria2.conf
+exit建立脚本快捷方式，将快捷方式放到开机启动文件夹内即可，Windows 10 开机启动目录为：%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1195.html">
 <title>使用 tmux 建立多个 sessions</title>
 <link>https://blog.niekun.net/archives/1195.html</link>
-<dc:date>2020-02-28T11:18:00+08:00</dc:date>
-<description>Linux 中，当前对话框就是一个 session，如果正在执行某个进程而不能中断，而又想操作一些其他事情，这是时候可以建立另一个 session 来处理。单独建立的 session 只要没有 kill 掉，在返回主 session 并退出登录后，下次登录依然可以返回已经建立的 session。可以达到进程守护的目的。可以使用的软件有 screen 和 tmux，这里介绍 tmux 的使用方法。GitHub 主页：https://github.com/tmux/tmux参考文章：https://helpful.knobs-dials.com/index.php/Screen_and_tmux[...]</description>
+<dc:date>2020-02-27T22:18:00-05:00</dc:date>
+<description>Linux 中，当前对话框就是一个 session，如果正在执行某个进程而不能中断，而又想操作一些其他事情，这是时候可以建立另一个 session 来处理。单独建立的 session 只要没有 kill 掉，在返回主 session 并退出登录后，下次登录依然可以返回已经建立的 session。可以达到进程守护的目的。可以使用的软件有 screen 和 tmux，这里介绍 tmux 的使用方法。GitHub 主页：https://github.com/tmux/tmux参考文章：https://helpful.knobs-dials.com/index.php/Screen_and_tmux基本概念tmux 建立的 session 结构层级是 session - window - panel。使用 tmux 命令可以建立多个 sessions一个 session 下可以建立多个 windows一个 window 下可以建立多个 panels新建 sessiontmux
+列出当前建立的 sessiontmux ls
+打开最后关闭的 sessiontmux att
+下面命令在打开的 tmux 中执行命令中 ctrl + b 代表 prifix。查看已建立的 sessionsprefix + s查看已建立的 windowsprefix + w退出当前 sessionprefix + d
+当前 session 新建 windowprefix + c下方当前 session 激活的 Window 会有一个星号：当前 window 重命名prefix + ,
+kill 当前 windowprefix + &amp;
+下方会显示确认对话框，选择 y/n:切换到上一个 sessionprefix + (
+切换到上一个 windowprefix + l (小写 L)
+在当前 session 中根据编号切换 windowsprefix + 0-9
+当前 window 垂直分割为两个 panelprefix + %
+左边是上一个 window，右边是新建的 window。kill 当前 panelprefix + x
+下方会显示确认对话框，选择 y/n:以上就是 tmux 的用法。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1187.html">
 <title>Windows 环境变量</title>
 <link>https://blog.niekun.net/archives/1187.html</link>
-<dc:date>2020-02-28T09:11:00+08:00</dc:date>
-<description>在写一些脚本或软件的时候，需要索引或存储文件到特定的目录，但由于客户机上用户名，磁盘名等各不相同，往往不能很好的通过一个固定链接访问到目标路径。这时候可以使用系统环境变量(Environment Variable) 来实现需求。如果我要访问用户系统根目录，一般情况下路径为：C:。但是有些人的系统目录在 D 盘，这时候就出错了。如果使用 %SystemDrive% 变量来代表系统目录，就会自动识别系统路径，访问到目标结果。下面表格列出常用的环境变量：[...]</description>
+<dc:date>2020-02-27T20:11:00-05:00</dc:date>
+<description>在写一些脚本或软件的时候，需要索引或存储文件到特定的目录，但由于客户机上用户名，磁盘名等各不相同，往往不能很好的通过一个固定链接访问到目标路径。这时候可以使用系统环境变量(Environment Variable) 来实现需求。如果我要访问用户系统根目录，一般情况下路径为：C:。但是有些人的系统目录在 D 盘，这时候就出错了。如果使用 %SystemDrive% 变量来代表系统目录，就会自动识别系统路径，访问到目标结果。下面表格列出常用的环境变量：Windows Vista, Windows 7, Windows 8/8.1 and Windows 10Environment VariablePath%ALLUSERSPROFILE%C:\ProgramData%APPDATA%C:\Users\Username\AppData\Roaming%COMMONPROGRAMFILES%C:\Program Files\Common Files%COMMONPROGRAMFILES(x86)%C:\Program Files (x86)\Common Files%COMSPEC%C:\Windows\System32\cmd.exe%HOMEDRIVE%C:%HOMEPATH%C:\Users\Username%LOCALAPPDATA%C:\Users\Username\AppData\Local%PROGRAMDATA%C:\ProgramData%PROGRAMFILES%C:\Program Files%PROGRAMFILES(X86)%C:\Program Files (x86) (only in 64-bit version)%PUBLIC%C:\Users\Public%SystemDrive%C:%SystemRoot%C:\Windows%TEMP% and %TMP%C:\Users\Username\AppData\Local\Temp%USERPROFILE%C:\Users\Username%WINDIR%C:\WindowsWindows XPEnvironment VariablePath%ALLUSERSPROFILE%C:\Documents and Settings\All Users%APPDATA%C:\Documents and Settings\Username\Application Data%COMMONPROGRAMFILES%C:\Program Files\Common Files%COMMONPROGRAMFILES(x86)%C:\Program Files (x86)\Common Files%COMSPEC%C:\Windows\System32\cmd.exe%HOMEDRIVE%C:%HOMEPATH%C:\Documents and Settings\Username%PROGRAMFILES%C:\Program Files%PROGRAMFILES(X86)%C:\Program Files (x86) (only in 64-bit version)%SystemDrive%C:%SystemRoot%C:\Windows%TEMP% and %TMP%C:\Documents and Settings\Username\Local Settings\Temp%USERPROFILE%C:\Documents and Settings\Username%WINDIR%C:\Windows</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1174.html">
 <title>Windows 下编译 boost 静态库</title>
 <link>https://blog.niekun.net/archives/1174.html</link>
-<dc:date>2020-02-27T13:39:00+08:00</dc:date>
-<description>boost 是很流行的一个 c++ 库，他的部分模块使用只需要引用 head 文件即可，部分需要编译链接库才能使用。下面介绍如何编译模块的静态链接库。官方网站：https://www.boost.org/开始教程：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html官方编译教程：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html#prepare-to-use-a-boost-library-binary关于 B2 编译系统：https://boostorg.github.io/build/关于 Microsoft Visual C++(MSVC) 版本号：https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B#Internal_version_numbering关于静态库和动态库：[...]</description>
+<dc:date>2020-02-27T00:39:00-05:00</dc:date>
+<description>boost 是很流行的一个 c++ 库，他的部分模块使用只需要引用 head 文件即可，部分需要编译链接库才能使用。下面介绍如何编译模块的静态链接库。官方网站：https://www.boost.org/开始教程：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html官方编译教程：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html#prepare-to-use-a-boost-library-binary关于 B2 编译系统：https://boostorg.github.io/build/关于 Microsoft Visual C++(MSVC) 版本号：https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B#Internal_version_numbering关于静态库和动态库：boost 库下载从官方链接下载最新版 boost 库：https://www.boost.org/users/download/解压到磁盘目录，最好放置在单独管理软件环境库的目录，方便管理。需要编译库文件才能使有的模块如下：    - atomic
+    - chrono
+    - container
+    - context
+    - contract
+    - coroutine
+    - date_time
+    - exception
+    - fiber
+    - filesystem
+    - graph
+    - graph_parallel
+    - headers
+    - iostreams
+    - locale
+    - log
+    - math
+    - mpi
+    - program_options
+    - python
+    - random
+    - regex
+    - serialization
+    - stacktrace
+    - system
+    - test
+    - thread
+    - timer
+    - type_erasure
+    - wave编译器配置各平台支持的编译器类型：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html#identify-your-toolsetWindows 下支持的编译器是：gcc 和 msvc，我电脑安装的是 visual studio 2019 的 c++ 开发包，所以我使用 msvc 作为编译器。使用 msvc 编译，需要在 c++ 开发包的基础上在 visual studio installer 里安装 Windows CRT SDK，不然在执行 bootstrap 时会报错：booost 支持指定 msvc 版本，所以首先查看我安装的 msvc 版本，可以在 visual studio installer 里查看当前安装的 msvc：或者可以通过 VS 版本号来查询 msvc 版本：https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B#Internal_version_numbering打开 boost 文件夹目录下的 bootstrap.bat 可以看到在执行脚本时也可以通过参数指定 msvc 版本：SET TOOLSET=msvc
+
+IF &quot;%1&quot;==&quot;gcc&quot; SET TOOLSET=gcc
+
+IF &quot;%1&quot;==&quot;vc71&quot; SET TOOLSET=msvc : 7.1
+IF &quot;%1&quot;==&quot;vc8&quot; SET TOOLSET=msvc : 8.0
+IF &quot;%1&quot;==&quot;vc9&quot; SET TOOLSET=msvc : 9.0
+IF &quot;%1&quot;==&quot;vc10&quot; SET TOOLSET=msvc : 10.0
+IF &quot;%1&quot;==&quot;vc11&quot; SET TOOLSET=msvc : 11.0
+IF &quot;%1&quot;==&quot;vc12&quot; SET TOOLSET=msvc : 12.0
+IF &quot;%1&quot;==&quot;vc14&quot; SET TOOLSET=msvc : 14.0
+IF &quot;%1&quot;==&quot;vc141&quot; SET TOOLSET=msvc : 14.1
+IF &quot;%1&quot;==&quot;vc142&quot; SET TOOLSET=msvc : 14.2编译模块首先通过 boost 文件夹目录下的 bootstrap.bat 来安装 Boost.Build (b2) 编译工具。关于什么是 Boost.Build (b2) 参考：https://boostorg.github.io/build/使用 vc++ 的终端来执行脚本如 native tool cmd，也可以在终端下指定 msvc 版本来编译，将目录 cd 到 boost 目录然后运行 bootstrap，使用 vc142 作为参数：如果出错，会在 boost 目录下生成 bootstrap.log 文件，查看具体出错信息。成功执行后在 boost 目录会有一个 b2.exe 文件，执行 .\b2 --help 可以查看帮助，下面需要这个 b2 来编辑模块库文件。再次打开终端，切换到 boost 目录，运行下面的命令：cd \TOYOURBOOSTPATH
+b2 --toolset=msvc-14.2 link=static runtime-link=static --build-type=complete stage
+--toolset=msvc-14.2       定义了编译器名称link=static               定义了链接库为静态，就是将链接库本身编译为静态的runtime-link=static       定义了运行链接库为静态，就是程序使用此库打包时为静态的--build-type=complete 定义了编译所有支持的变种库stage                 定义了库文件路径：.\stage\lib。想要更换其他路径使用 --stagedir=directory 参数来定义关于 link 和 runtime-link 参考：https://www.quora.com/What-is-the-difference-between-static-runtime-and-dynamic-linking其他可用的参数使用 b2 --help 来查看。成功编译完成后，链接库文件在 .\stage\lib\ 目录下。boost 库的使用使用 boost 库需要将 head 头文件文件夹和 lib 链接库文件夹在编译器里指定。官方手册：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html#link-your-program-to-a-boost-libraryhead 文件夹路径：PathTo\boost_1_72_0\boostlib 库文件夹路径：PathTo\boost_1_72_0\stage\lib下面介绍在 visual studio 2019 如何使用 boost。打开 c++ 项目文件，在右侧 solution explorer 中，在项目名右键点击 properties 或者 快捷键 alt + enter：选择 c/c++ - general，右侧菜单 additional include directories 中输入 boost 根路径：选择 linker - general，右侧菜单 additional library directories 中输入 lib 路径，来包含 lib 库文件：由于我们编译的是静态链接库，所以需要将 runtime library 设置为静态，选择 c/c++ - code generation，右侧菜单 runtime library 选择 MT/MTD，MT 代表 release，MTD 代表 debug：以上就把 boost 连接到了环境中，使用只需要 include 需要的模块即可，例如：#include &quot;boost/filesystem.hpp&quot;
+
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1166.html">
 <title>WSL 下使用 VS Code 编辑器</title>
 <link>https://blog.niekun.net/archives/1166.html</link>
-<dc:date>2020-02-26T15:50:00+08:00</dc:date>
-<description>Windows Subsystem for Linux (WSL) 就是 Windows 10 下安装的 Linux 子系统，有了它可以很方便的使用 Linux，WSL 也可以很方便的访问本地磁盘文件。vs code 已经成为目前个平台最流行的代码编辑平台，也是我最常用的编辑器，通过插件设置，可以在 WSL 环境下使用 vs code，这对于环境开发和编辑工作有极大的帮助，下面介绍设置方法。相关链接：Windows 10 上使安装 WSL：https://niekun.net/index.php/archives/1148.html在 Windows 和 WSL 中共享 Git 证书：https://niekun.net/index.php/archives/1159.html在 Git 中缓存 GitHub 密码信息：https://niekun.net/index.php/archives/444.html[...]</description>
+<dc:date>2020-02-26T02:50:00-05:00</dc:date>
+<description>Windows Subsystem for Linux (WSL) 就是 Windows 10 下安装的 Linux 子系统，有了它可以很方便的使用 Linux，WSL 也可以很方便的访问本地磁盘文件。vs code 已经成为目前个平台最流行的代码编辑平台，也是我最常用的编辑器，通过插件设置，可以在 WSL 环境下使用 vs code，这对于环境开发和编辑工作有极大的帮助，下面介绍设置方法。相关链接：Windows 10 上使安装 WSL：https://niekun.net/index.php/archives/1148.html在 Windows 和 WSL 中共享 Git 证书：https://niekun.net/index.php/archives/1159.html在 Git 中缓存 GitHub 密码信息：https://niekun.net/index.php/archives/444.html安装 remote-WSL 插件在 vs code 插件管理搜索并安装 remote-WSL，安装后可能需要重新打开 vs code：以 WSL 打开新窗口在 vs code 中按 F1 打开命令控制器，输入 remote-WSL:new window：也可以点击左下角绿色图标，也会弹出相关的命令：点击 remote-WSL:new window 后会打开新窗口，左下角图标就会显示当前是在 WSL 系统下：现在就可以进行下面的开发工作了，可以新建一个终端：可以看到已经在 Linux 环境下了。想要打开文件或文件夹，直接从菜单中选择 file - open folder/file，首次会显示 WSL 用户根目录，根据导航选择到需要的文件/文件夹：我为了方便操作磁盘文件，将 Windows 用户目录 link 到了 WSL 用户目录：ln -s /mnt/c/users/YOURNAME ~/windows10
+其它对于 WSL 下使用 git 共享 Windows 证书，从而不用输入账户密码，可以参考我的文章：https://niekun.net/index.php/archives/1159.html首次使用 git 可能会提示要定义 user.name 等信息，设置命令如下；git config --global user.email &quot;you@example.com&quot;
+git config --global user.name &quot;Your Name&quot;
+git config --global push.default simple</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1161.html">
 <title>Ubuntu 修改 apt 国内源</title>
 <link>https://blog.niekun.net/archives/1161.html</link>
-<dc:date>2020-02-26T13:25:00+08:00</dc:date>
+<dc:date>2020-02-26T00:25:00-05:00</dc:date>
 <description>国内使用 apt 安装软件如果感觉比较慢，可能是 deb 源是国外的，通过修改为国内源，可以很好的进行加速下载。系统代号每一个版本的 Ubuntu 都会有一个代号，用来识别不同的版本，比如：14.04 LTS 代号是 trusty16.04 LTS 代号是 xenial18.04 LTS 代号是 bionic在更换源的时候需要使用到代号，可以使用如下命令查看当前系统版本代号：lsb_release -c
 
-[...]</description>
+备份系统源文件为防止修改错误或其他问题，将系统自带源文件进行备份很有必要，执行如下指令：sudo cp /etc/apt/sources.list /etc/apt/sources.list_bak
+修改 sources.list 源文件打开 sources.list 文件，将内容修改为想要的国内源：vim /etc/apt/sources.list
+输入命令 ggdG 清空内容，修改为清华源加入如下内容：# 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+
+# 预发布软件源，不建议启用
+# deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse可以看到每行内容里都有对应系统代号信息，如果要修改其他版本系统的 apt 源，只需要将里面系统代号替换即可。常用国内源：清华源：https://mirror.tuna.tsinghua.edu.cn/help/ubuntu/中科大源：https://lug.ustc.edu.cn/wiki/mirrors/help/ubuntu</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1159.html">
 <title>在 Windows 和 WSL 中共享 Git credentials 证书</title>
 <link>https://blog.niekun.net/archives/1159.html</link>
-<dc:date>2020-02-26T12:34:00+08:00</dc:date>
+<dc:date>2020-02-25T23:34:00-05:00</dc:date>
 <description>将 Git 的 credential 证书保留在系统，可以避免每次操作都需要输入账户密码。各系统中设置缓存参考我的文章：https://niekun.net/index.php/archives/444.html对于 Windows 10 用户，系统内置了 Windows subsystem for Linux (WSL)，我们可以共享存储在本地的 Git credential 证书，这样两个系统使用 git 都很方便。关于 WSL 的安装与使用参考：https://niekun.net/index.php/archives/1148.html首先在 Windows 10 下设置 credentials，在 power shell 下输入如下命令：git config --global credential.helper wincred
 可以在仓库内测试执行 git push 命令，如果提示输入账户密码，则输入一次，以后就不会再提示了。然后在 WSL 设置，打开系统内安装好的 WSL，首先安装好 git，然后敲入如下命令：git config --global credential.helper &quot;/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-wincred.exe&quot;
 
@@ -72,19 +317,23 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/1148.html">
 <title>Windows 10 上使安装 Windows Subsystem for Linux (WSL)</title>
 <link>https://blog.niekun.net/archives/1148.html</link>
-<dc:date>2020-02-26T09:18:00+08:00</dc:date>
-<description>Windows 10 上自带了完整的 Linux 子系统，对于 Windows 用户调试 Linux 有很大帮助，不需要安装虚拟机或双系统了。下面就介绍如何启用这一功能。官方文档：https://docs.microsoft.com/en-us/windows/wsl/aboutwsl1 已经升级到了 wsl2，官方升级安装教程：https://docs.microsoft.com/en-us/windows/wsl/install-win10有两个步骤：激活 Windows Subsystem for Linux 功能选择安装 Linux 分发版[...]</description>
+<dc:date>2020-02-25T20:18:00-05:00</dc:date>
+<description>Windows 10 上自带了完整的 Linux 子系统，对于 Windows 用户调试 Linux 有很大帮助，不需要安装虚拟机或双系统了。下面就介绍如何启用这一功能。官方文档：https://docs.microsoft.com/en-us/windows/wsl/aboutwsl1 已经升级到了 wsl2，官方升级安装教程：https://docs.microsoft.com/en-us/windows/wsl/install-win10有两个步骤：激活 Windows Subsystem for Linux 功能选择安装 Linux 分发版激活 Windows Subsystem for Linux有两种方法激活，一种是进入系统设置项，一种是命令行。系统设置项激活：搜索进入控制面板 control panel：选择 programs：选择 turn Windows features on or off：找到 Windows Subsystem for Linux 打勾：根据提示重启系统。命令行激活：以管理员权限打开 power shell 执行以下命令：Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
+根据提示重启系统即可。安装 Linux 分发版激活 WSL 后，就要安装需要的 Linux 版本了，需要在 Microsoft store 里安装，访问网址：https://aka.ms/wslstore目前有以下分发版可供选择：我选择了 Ubuntu，安装完成后启动 Ubuntu，会打开终端进行系统安装，等待安装完成。系统安装完成后，在终端会提示建立用户账户，输入用户名，我输入 marco：接下来提示输入用户密码，以及密码确认，完成后就可以进入 Linux 系统了：系统管理想要启动 WSL 可以打开 power shell 然后 输入 ubuntu 回车即可，或者在程序里找到 Ubuntu 点击启动。启动后会默认使用上面建立的用户登录。想要以 root 用户权限执行命令，需要在命令前 加 sudo。用户密码修改：启动 WSL 后输入命令：passwd
+根据提示输入当前密码和新密码即可。忘记密码重置：如果忘记了账户密码，可以在 power shell 使用下面命令进入 root 账户：wsl -u root
+进入后，使用 passwd 命令设置新密码：完成后输入命令 exit 退出 wsl 然后重新登录 ubuntu 即可。访问 Windows 系统文件Windows 磁盘目录在：/mnt 下，如 C 盘路径： /mnt/c，系统用户目录：/mnt/c/users/YOURNAME为方便 WSL 下访问 Windows 目录，可以创建软连接来作为快捷方式，如下将 Windows 用户目录链接到 WSL 用户目录：ln -s /mnt/c/users/YOURNAME ~/windows10
+这样想要访问 Windows 用户目录只需要使用链接：~/windows10 即可。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1124.html">
 <title>电子设备屏幕优劣简要分析</title>
 <link>https://blog.niekun.net/archives/1124.html</link>
-<dc:date>2020-02-22T16:59:00+08:00</dc:date>
-<description>现在的电脑/手机在追求 cpu gpu 等硬件性能的同时，对于屏幕的好坏也是一个重要的指标，下面探讨如何判断一个屏幕的好坏。主要指标有以下几个：液晶面板 色域/色准/色深 可视角度 像素密度 对比度 亮度 响应时间 刷新率作为超高标准的代表，首先列一下 Apple 的 Pro Display XDR 的数据：Nano-texture 纳米纹理玻璃面板IPS LCD 显示屏，采用氧化物 TFT (薄膜晶体管) 技术分辨率： 6016 x 3384 像素 (2040 万像素)，218 ppi亮度：1000 尼特持续亮度 (全屏),1600 尼特峰值亮度对比度：1000000:1色彩：P3 广色域，10 位色深可呈现 10.73 亿种色彩平面式背光系统，采用 576 个全阵列局部调光分区Apple 设计的时序控制器 (TCON) 芯片采用原彩显示技术，配备两个环境光传感器刷新率 60HZ据说华硕新款的 Asus PA32UCG 显示器和 Pro Display XDR 有一拼！相关链接：色彩空间的定义：https://niekun.net/index.php/archives/1048.html色差 delta E 理论分析：http://zschuessler.github.io/DeltaE/learn/色域测试软件 DisplayCAL：https://displaycal.net/sRGB 和 NTSC 本质区别：https://www.zhihu.com/question/25337649/answer/655284153屏库网型号数据查询：http://www.panelook.cn/屏幕坏点在线检测：https://screen.51240.com/#welcome显示器选购指南：https://www.youtube.com/watch?v=9ZwCDBBwSdU[...]</description>
+<dc:date>2020-02-22T03:59:00-05:00</dc:date>
+<description>现在的电脑/手机在追求 cpu gpu 等硬件性能的同时，对于屏幕的好坏也是一个重要的指标，下面探讨如何判断一个屏幕的好坏。主要指标有以下几个：液晶面板 色域/色准/色深 可视角度 像素密度 对比度 亮度 响应时间 刷新率作为超高标准的代表，首先列一下 Apple 的 Pro Display XDR 的数据：Nano-texture 纳米纹理玻璃面板IPS LCD 显示屏，采用氧化物 TFT (薄膜晶体管) 技术分辨率： 6016 x 3384 像素 (2040 万像素)，218 ppi亮度：1000 尼特持续亮度 (全屏),1600 尼特峰值亮度对比度：1000000:1色彩：P3 广色域，10 位色深可呈现 10.73 亿种色彩平面式背光系统，采用 576 个全阵列局部调光分区Apple 设计的时序控制器 (TCON) 芯片采用原彩显示技术，配备两个环境光传感器刷新率 60HZ据说华硕新款的 Asus PA32UCG 显示器和 Pro Display XDR 有一拼！相关链接：色彩空间的定义：https://niekun.net/index.php/archives/1048.html色差 delta E 理论分析：http://zschuessler.github.io/DeltaE/learn/色域测试软件 DisplayCAL：https://displaycal.net/sRGB 和 NTSC 本质区别：https://www.zhihu.com/question/25337649/answer/655284153屏库网型号数据查询：http://www.panelook.cn/屏幕坏点在线检测：https://screen.51240.com/#welcome显示器选购指南：https://www.youtube.com/watch?v=9ZwCDBBwSdU屏幕型号确认购买笔记本前，最好能够查询到电脑使用的对应屏幕的型号，如：京东方的 NV140FHM-N62 (BOE0718)，LG 的 LP156WF6-SPK3，三星的 ATNA56WR06-0。或者自己手头的电脑可以使用 AIDA64 等软件查看显示器信息：根据型号信息查找具体技术指标，可到屏库网进行查询：http://www.panelook.cn/液晶面板液晶显示器的常用面板有TN（Twisted Nematic扭曲向列型）、IPS（In-Plane-Switching平面转换型）、VA（Vertical Alignment多象限垂直配向型）和 OLED 4 种类型，前两种相对常见。下图列出了各种液晶的优缺点：TN 屏就是较早前常见的软屏，用手能按出水波纹，这是较早使用的LCD面板之一，目前也在大量使用，因为它的技术成熟，成本低。TN面板的缺陷也很明显，输出灰阶少，原生只有 6bit 色彩，画面色彩偏白、可视角度小，显示效果一般，通过不同角度观看会出现偏色和亮度差别。因此，如果你从事设计、影视后期相关工作或在观影娱乐时对屏幕色彩有较高要求，不建议使用这种屏幕。IPS 屏面板较硬，用手指轻触屏幕，画面不会变形。IPS屏在色彩显示、可视角度等方面比TN面板好上不少，对于色彩的呈现范围与准确性也都有亮眼的表现，广视角是IPS面板的原生优势，不论哪个角度观看都不会产生色偏。目前跟影像处理有关的专业屏幕大多采用IPS面板。苹果也一直与IPS屏捆绑宣传，对于偏爱Mac的用户，IPS屏是一个不错的选择。VA 类面板也属于软屏，只要用手指轻触面板，显现梅花纹的是VA面板，出现水波纹的则是TN面板。VA面板是在中高端液晶显示器应用比较多的面板类型，富士通、三星、奇美电子、友达光电等面板企业均采用了这项面板技术。VA屏的特点是宽容度和对比度都更高，可达到3000:1的高对比度，画面中黑色和白色都更加纯净，且不会出现漏光等问题。OLED 越来越多的移动设备使用了 OLED 屏，它的优势主要有：OLED屏幕非常容易把手机或者显示器做薄，OLED是可以和纸一样对折，OLED黑色不发光，所以可以直接关闭黑色区域部分像素点，这时候黑色几乎为0，所以理论对比度可以说是无限，OLED每个像素点都是独立的，所以OLED可以单独点亮某些像素点，可以实现很多新功能，同时耗电相比 LCD 有很大优势。色域/色准/色深sRGB, NTSC, 还有 AdobeRGB 和 P3, 是我们经常能在一些手机或者 PC 厂商标注屏幕色域时看到的标准。专业显示器领域只会提 sRGB, DCI-P3, AdobeRGB, Rec.2020 标准任何宣传 NTSC 色域的厂商和评测，非蠢即坏。如果你进行过图像处理的话，应该知道目前大部分的图片或其他媒体最普遍的色彩配置文件就是 sRGB，所及基于这一基准，硬件制造商也会以此为标准进行色彩管理。当然高端的设备可能还会支持更加广的色域空间如：Adobe RGB，P3，Rec.2020。sRGB, NTSC, 还有 AdobeRGB 和 P3 色域等到底指的是什么？而上图彩色的底则是我们人眼可见的所有颜色，每一个三角形都代表着这个色域能覆盖人眼可见颜色的区域。可以看到 AdobeRGB 覆盖范围最大，同 P3 类似。关于色彩空间的分析，参考我的另一篇博客：https://niekun.net/index.php/archives/1048.html对于 PC, Mac 或是 iOS & Android 来说，最为适合描述屏幕色域的就是 sRGB, Adobe RGB 和 P3。对于 TV 或者家庭影院，最为适合描述屏幕色域的是 P3 和 Rec.2020。所以如果用 NTSC 来评价一个屏幕能显示的颜色，对于消费者来说是没有任何直观价值的，因为 NTSC 的色域和 sRGB, Adobe RGB, P3 色域有交叉重叠区域也有完全不同的区域。也就是说我们买回来这一块只知道 NTSC 覆盖比率的屏幕，却完全不知道它能显示出多少图片、视频、电影、游戏创作者们想要给我们看到的颜色。更何况，由于 NTSC 不与任何一个当前沿用的色域标准重合，所以当你买到一个所谓 72% NTSC 屏幕的时候，它可能等于 80% sRGB, 也可能等于 100% sRGB, 没有定数，也就没有什么参考价值。由于理论上 sRGB 和 NTSC 交叉部分的总面积大约等于 72% NTSC 色域的总面积。所以有很多无良厂家和媒体给出过这么一个等式：72% NTSC = 100% sRGB。并且以此来宣传自己的屏幕很优秀，能够用于专业的工作，不比当年 MacBook Pro 100% sRGB 差，理由就是用 NTSC 测试的话，MacBook Pro 屏幕也是 72% NTSC 色域。虽然是 72% NTSC, 但是偏离了 sRGB 标准，会产生色准差距较大。如果用这样的屏幕进行专业的工作，那么结果只会是你经手的影像在黄绿色、橙色、蓝色和紫色部分不够饱和，颜色出现明显偏差。可以在本机用软件粗略检测色域 DisplayCAL：https://displaycal.net/色准判别标准是 delta E，数值越小代表色差越小，小于 1 则肉眼几乎难以察觉。需要专业外部设备进行测试才能检测。关于 delta E 的详细说明参考介绍文章：http://zschuessler.github.io/DeltaE/learn/色深指的是能够显示多少种颜色，6bit是26万色，8bit是1600万色，10bit是10亿色，越高显示的颜色过渡就越精细。总结一下，色域越大能显示的色彩空间就越大，色准越高颜色还原就越好，色深越高颜色显示就越精细。可视角度TN屏可视角度普遍较低，VA中等，IPS普遍较大，OLED有一对测会偏绿因此在该对侧的可视角度比其他两侧低。TN面板可视角度低的主要原因为，光线经过等差液晶组后，导致出光角度被限制。而IPS由于水平旋转后，液晶对透射的表面积不变，因此不会限制多少出光角度。像素密度像素密度就是 PPI，当让是越高越好，越高显示越细腻。一般分辨率低于 1080P 就不用考虑了。对比度通常使用静态对比度衡量，几年前笔记本屏幕大多为700：1，但近年来超过1500：1的屏幕开始铺货。对比度自然也是越大越好，如果不足感觉画面是灰蒙蒙的一片。亮度单位cd/m2或者nit（尼特）笔记本至少要300nit，亮度很高可以调低，但亮度不够就不行了。响应时间目前最低可接受的 25ms，有游戏需求的尽量选择响应时间为个位数 ms 的设备。刷新率响应速度是指液晶的刷新速度，也就是一秒钟显示器物理可以显示多少画面，刷新率越高，屏幕拖尾效应越轻。如果你有用笔记本玩FPS类游戏就直接选120/144赫兹。如果没有游戏需求，考虑60赫兹。各品牌显示屏推荐华硕 ProArt PA27AC：色彩饱和度: 100%(sRGB) ΔE &lt; 2 色彩准确度面板类型 : IPS分辨率 : 2560x1440亮度 : 400 cd/㎡华硕智能动态对比度 (ASCR) : 100000000:1可视角度 (CR≧10) : 178°(H)/178°(V)响应时间 : 5ms (灰阶至灰阶)显示颜色 : 16.7M (8位)三星 ATNA56WR06-0：类型 AM-OLED , OLED屏解析度 3840(RGB)×2160   [UHD]支持颜色 1.06B , 100% DCI-P3帧频率 60Hz显示亮度 440 cd/m² (Typ.)对比度 100000:1 (Typ.) (透射)响应时间 1ms京东方 EV270QUM-N10：类型 a-Si TFT-LCD, 液晶模组解析度 3840(RGB)×2160   [UHD]  163PPI支持颜色 1.07B , 100% sRGB亮度 1000 cd/m² (Typ.)对比度 1000:1 (Typ.) (透射)响应时间 14 (Typ.)(G to G) ms帧频率 60HzLG 34WK95U-W：分辨率    5120 x 2160面板材质 Nano IPS宽高比    21:9亮度 450 (Typ), 360 (min) cd/m2色彩空间 DCI-P3 98% (Typ)响应速度 5ms对比度    1200:1 (Typ)可视角度 178/178 (CR≥10)夏普 LQ315D1LG93：像素数量 3840(RGB)×2160 , UHD面板类型 Oxide TFT-LCD, 液晶模组显示颜色 1.07B sRGB面板亮度 800 cd/m² (Typ.)对比度 1000:1 (Typ.) (TM)反应时间 8 (Typ.)(Tr+Td) ms工作频率 60Hz光源类型 WLED，含LED驱动器</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1113.html">
 <title>Windows BitLocker 的启用和恢复相关</title>
 <link>https://blog.niekun.net/archives/1113.html</link>
-<dc:date>2020-02-22T11:49:25+08:00</dc:date>
-<description>BitLocker 是 Windows 自带的硬盘加密工具，加密后无法在直接其他电脑上看到硬盘内容，需要输入密钥。了解清除 BitLocker 的详细机制是必要的，避免出现数据无法恢复的情况。[...]</description>
+<dc:date>2020-02-21T22:49:25-05:00</dc:date>
+<description>BitLocker 是 Windows 自带的硬盘加密工具，加密后无法在直接其他电脑上看到硬盘内容，需要输入密钥。了解清除 BitLocker 的详细机制是必要的，避免出现数据无法恢复的情况。启用 BitLocker在 Windows 10 中，进入设置，输入 BitLocker 选择列出的 manage BitLocker：菜单中会列出所有的分区，点击需要进行加密的分区，点击 turn on BitLocker：下一步会提示设置密码或使用 smart card 解锁，一般使用密码：下一步会提示将恢复码保存到什么地方，如果上一步设置的密码忘记，可以使用恢复码进行解锁，建议保存到 Microsoft 账户里，如果要保存到本地，建议保存到其他设备或网盘，以免丢失：下一步选择只加密当前文件还是加密全盘，默认即可：下一步选择加密方式，默认为新加密模式即可：最后一步确认界面，点击开始加密：然后就会重启计算机开始进行加密。recovery key如果忘记了密码，需要 recovery key 进行恢复，如果保存到了 Microsoft 账户访问下面网址查看 key：https://onedrive.live.com/RecoveryKey在其他设备访问在其他电脑上访问经过 BitLocker 加密的硬盘，会提示输入密码或恢复码。双击加密的硬盘，弹出对话框：如果忘记了密码，点击更多选项，输入恢复密钥 recovery key：</description>
 </item>
 </rdf:RDF>

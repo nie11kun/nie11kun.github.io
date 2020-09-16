@@ -6,7 +6,7 @@ xml:base="https://blog.niekun.net/category/macos/"
 >
 <title type="text">Marco Nie - macOS</title>
 <subtitle type="text"></subtitle>
-<updated>2020-07-21T12:37:00+08:00</updated>
+<updated>2020-07-21T00:37:00-04:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/macos/" />
 <id>https://blog.niekun.net/feed/atom/category/macos/</id>
@@ -15,15 +15,38 @@ xml:base="https://blog.niekun.net/category/macos/"
 <title type="html"><![CDATA[xattr 命令清除 app 的隔离属性]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1680.html" />
 <id>https://blog.niekun.net/archives/1680.html</id>
-<updated>2020-07-21T12:37:00+08:00</updated>
-<published>2020-07-21T12:37:00+08:00</published>
+<updated>2020-07-21T00:37:00-04:00</updated>
+<published>2020-07-21T00:37:00-04:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - securit...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/1680.html" xml:lang="zh-CN"><![CDATA[
-<p>macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - security 里可以手动允许运行，但是有时候使用这种方法也无法打开，这是由于系统识别到这个 app 可能有问题所以给它加上了 <code>com.apple.quarantine</code> 隔离属性阻止了他的运行。</p><p>如果我们需要运行它，就需要删除 app 的 <code>com.apple.quarantine</code> 属性，可以使用 <code>xattr</code> 来处理。</p><p class="more"><a href="https://blog.niekun.net/archives/1680.html" title="xattr 命令清除 app 的隔离属性">[...]</a></p>
+<p>macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - security 里可以手动允许运行，但是有时候使用这种方法也无法打开，这是由于系统识别到这个 app 可能有问题所以给它加上了 <code>com.apple.quarantine</code> 隔离属性阻止了他的运行。</p><p>如果我们需要运行它，就需要删除 app 的 <code>com.apple.quarantine</code> 属性，可以使用 <code>xattr</code> 来处理。</p><!--more--><p>macOS 上的文件不只有 "normal" 属性，也有 "读", "写", "执行" 等其他属性。常规属性可以用 <code>ls -l myfile</code> 命令来查看。除此之外还可以定义<strong>扩展属性</strong>，扩展属性的修改可以用 <code>xattr</code> 来处理。</p><p>命令语法如下：</p><pre><code>xattr [options] attributes [files]
+</code></pre><p>可用 option：</p><pre><code>   -c  CLear all Atrributes.
+   -d  Delete the given attribute.
+   -h  Help.
+   -l  By default, the first two command forms either display just the attribute names or
+       values, respectively. The -l option causes both the attribute names and corresponding
+       values to be displayed. For hex display of values, the output is preceeded with the hex
+       offset values and followed by ASCII display, enclosed by '|'.
+   -p  Print the value associated with the given attribute.
+   -r  If a file argument is a directory, act as if the entire contents of the directory
+       recursively were also specified (so that every file in the directory tree is acted upon).
+   -s  If a file argument is a symbolic link, act on the symbolic link itself, rather than
+       the file that the symbolic link points at.
+   -v  Force the the file name to be displayed, even for a single file.
+   -w  Write a given attribute name with a value.
+   -x  Force the attribute value to be displayed in the hexadecimal representation.   </code></pre><p>显示一个文件的存在的扩展属性：</p><pre><code>xattr myfile
+</code></pre><p>显示一个文件的存在的扩展属性及这个属性的值：</p><pre><code>xattr -l myfile
+</code></pre><p>给一个文件添加 <code>com.example.color</code> 属性：</p><pre><code>xattr -w com.example.color myfile
+</code></pre><p>清除一个文件的 <code>com.example.color</code> 属性：</p><pre><code>xattr -d com.example.color myfile
+</code></pre><p>清除一个文件夹内所有文件的 <code>com.example.color</code> 属性：</p><pre><code>xattr -d -r com.example.color mydir
+</code></pre><p>清除一个文件的所有扩展属性：</p><pre><code>xattr -c myfile
+</code></pre><hr><p>对于被屏蔽的 app 需要清除<code>com.apple.quarantine</code>  这一属性，处理过程如下：</p><p>首先查看 app 的现有属性：</p><pre><code>xattr /path/to/MyApp.app
+</code></pre><p>如果返回的结果有 <code>com.apple.quarantine</code> 属性则执行下面命令删除：</p><pre><code>sudo xattr -r -d com.apple.quarantine /path/to/MyApp.app
+</code></pre><p>执行后就可以正常打开 app 了。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1680.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1680.html" thr:count="0"/>
@@ -32,8 +55,8 @@ xml:base="https://blog.niekun.net/category/macos/"
 <title type="html"><![CDATA[MacBook Pro 2015 升级 SSD]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1640.html" />
 <id>https://blog.niekun.net/archives/1640.html</id>
-<updated>2020-07-13T14:15:00+08:00</updated>
-<published>2020-07-13T14:15:00+08:00</published>
+<updated>2020-07-13T02:15:00-04:00</updated>
+<published>2020-07-13T02:15:00-04:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
@@ -49,15 +72,79 @@ xml:base="https://blog.niekun.net/category/macos/"
 <title type="html"><![CDATA[macOS 使用终端命令设置系统代理]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1629.html" />
 <id>https://blog.niekun.net/archives/1629.html</id>
-<updated>2020-07-07T23:38:00+08:00</updated>
-<published>2020-07-07T23:38:00+08:00</published>
+<updated>2020-07-07T11:38:00-04:00</updated>
+<published>2020-07-07T11:38:00-04:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[在平时使用中，我一般是在浏览器内设置代理服务器，还有就是终端设置了代理切换脚本来实现快速切换，系统默认没有代理。关于 macOS/Windows 下设置终端代理可以参考我之前的文章：https:...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/1629.html" xml:lang="zh-CN"><![CDATA[
-<p>在平时使用中，我一般是在浏览器内设置代理服务器，还有就是终端设置了代理切换脚本来实现快速切换，系统默认没有代理。关于 macOS/Windows 下设置终端代理可以参考我之前的文章：<a href="https://blog.niekun.net/archives/97.html">https://blog.niekun.net/archives/97.html</a></p><p>如果想要设置系统级的代理，需要在 system preference - network - proxies 里设置，常用的需要设置 http/https/socks 代理，基本覆盖大多数应用的流量了：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/600970559.png" alt="2020-07-07T14:34:57.png" title="2020-07-07T14:34:57.png"></p><p class="more"><a href="https://blog.niekun.net/archives/1629.html" title="macOS 使用终端命令设置系统代理">[...]</a></p>
+<p>在平时使用中，我一般是在浏览器内设置代理服务器，还有就是终端设置了代理切换脚本来实现快速切换，系统默认没有代理。关于 macOS/Windows 下设置终端代理可以参考我之前的文章：<a href="https://blog.niekun.net/archives/97.html">https://blog.niekun.net/archives/97.html</a></p><p>如果想要设置系统级的代理，需要在 system preference - network - proxies 里设置，常用的需要设置 http/https/socks 代理，基本覆盖大多数应用的流量了：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/600970559.png" alt="2020-07-07T14:34:57.png" title="2020-07-07T14:34:57.png"></p><!--more--><p>但是每次需要让其他应用走代理时都要进入系统设置项里打开代理开关很麻烦，可以通过设置 terminal 命令来实现快速切换。</p><h3>networksetup</h3><p>这里需要使用的命令是 <code>networksetup</code>，它可以查看及设置系统网络配置。</p><p>man page：<a href="https://www.unix.com/man-page/osx/8/networksetup/">https://www.unix.com/man-page/osx/8/networksetup/</a></p><p><strong>查看设备可用的网络服务：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -listallnetworkservices
+An asterisk (*) denotes that a network service is disabled.
+Apple USB Ethernet Hub
+iPhone USB
+Wi-Fi
+Bluetooth PAN
+Thunderbolt Bridge</code></pre><p>可以看到设备支持的有线和无线网络服务，<strong>后续设置中需要使用对应的服务名</strong>。</p><p><strong>查看各个网络服务的端口名：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -listallhardwareports
+
+Hardware Port: Wi-Fi
+Device: en0
+Ethernet Address: a0:99:9b:04:a6:9d
+
+Hardware Port: Bluetooth PAN
+Device: en3
+Ethernet Address: a0:99:9b:04:a6:9e
+
+Hardware Port: Thunderbolt 1
+Device: en1
+Ethernet Address: 82:13:07:10:b9:80
+
+Hardware Port: Thunderbolt 2
+Device: en2
+Ethernet Address: 82:13:07:10:b9:81
+
+Hardware Port: Thunderbolt Bridge
+Device: bridge0
+Ethernet Address: 82:13:07:10:b9:80
+
+VLAN Configurations
+===================</code></pre><p>在后续的设置中会用到 device 名称，可以用以上命令来查询。</p><p><strong>查看某个网络服务的信息：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -getinfo Wi-Fi
+DHCP Configuration
+IP address: 192.168.123.25
+Subnet mask: 255.255.255.0
+Router: 192.168.123.1
+Client ID: 
+IPv6: Automatic
+IPv6 IP address: none
+IPv6 Router: none
+Wi-Fi ID: a0:99:9b:04:a6:9d</code></pre><p><strong>查看系统记录的可连接的无线信号，可以使用命令来查看，需要用到上面得到的 device name：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -listpreferredwirelessnetworks en0
+Preferred networks on en0:
+    zhang_4lou
+    Phicomm_A196D8
+    TP-LINK_27BB
+    MERCURY_F610
+    iPhone (MISS)
+    Marco Nie’s 8
+    Office_Diagnosis</code></pre><p><strong>查看当前连接的无线接入点名称：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -getairportnetwork en0
+Current Wi-Fi Network: My2.4G</code></pre><p><strong>关闭无线连接：</strong></p><pre><code>networksetup -setairportpower en0 off
+</code></pre><p><strong>打开无线连接：</strong></p><pre><code>networksetup -setairportpower en0 on
+</code></pre><p><strong>查询当前无线连接是否打开状态：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -getairportpower en0
+Wi-Fi Power (en0): On
+</code></pre><p><strong>设置系统 http 代理：</strong></p><pre><code>networksetup -setwebproxy networkservices address port
+</code></pre><p><strong>设置系统 https 代理：</strong></p><pre><code>networksetup -setsecurewebproxy networkservices address port
+</code></pre><p><strong>设置系统 socks 代理：</strong></p><pre><code>networksetup -setsocksfirewallproxy networkservices address port
+</code></pre><p>打开/关闭系统代理：</p><pre><code>networksetup [-setwebproxystate | -setsecurewebproxystate | -setsocksfirewallproxystate] networkservices [on | off]
+</code></pre><h3>应用</h3><p>上面介绍的常用的 <code>networksetup</code> 命令，下面介绍具体如何设置系统代理。这里以 Wi-Fi 网络服务举例。我的 http 代理地址为：127.0.0.1:1082，socks 代理地址为：127.0.0.1:1080。</p><p>首先设置代理地址：</p><pre><code>networksetup -setwebproxy Wi-Fi 127.0.0.1 1082
+networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 1082
+networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 1080</code></pre><p>以上设置只需要设置一次，以后使用只需要执行打开/关闭代理操作即可。</p><p>打开系统代理：</p><pre><code>networksetup -setwebproxystate Wi-Fi on
+networksetup -setsecurewebproxystate Wi-Fi on
+networksetup -setsocksfirewallproxystate Wi-Fi on</code></pre><p>关闭系统代理：</p><pre><code>networksetup -setwebproxystate Wi-Fi off
+networksetup -setsecurewebproxystate Wi-Fi off
+networksetup -setsocksfirewallproxystate Wi-Fi off</code></pre><p>可以在终端执行上述命令，然后打开系统代理设置界面验证是否设置成功。</p><h3>设置 alias 快捷命令</h3><p>如果需要频繁的打开/关闭代理，每次都需要输入以上命令比较麻烦，比较好的方法是设置 alias。关于 alias 我在<a href="https://blog.niekun.net/archives/97.html">macOS/Linux/windows设置终端 proxy 代理</a>里有详细介绍。</p><p>编辑 ~/.bash_frofile 添加如下并保存文件：</p><pre><code>alias pset='networksetup -setwebproxy Wi-Fi 127.0.0.1 1082 &amp;&amp; networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 1082 &amp;&amp; networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 1080'
+alias psystem='networksetup -setwebproxystate Wi-Fi on &amp;&amp; networksetup -setsecurewebproxystate Wi-Fi on &amp;&amp; networksetup -setsocksfirewallproxystate Wi-Fi on'
+alias upsystem='networksetup -setwebproxystate Wi-Fi off &amp;&amp; networksetup -setsecurewebproxystate Wi-Fi off &amp;&amp; networksetup -setsocksfirewallproxystate Wi-Fi off'</code></pre><p>更新缓存，macOS 终端使用的是 zsh，所有要先在 <code>~/.zshrc</code> 里添加一句 <code>source ~/.bash_profile</code>，具体查看我上面提到的文章：</p><pre><code>source ~/.zshrc
+</code></pre><p>设置完成后，执行 <code>pset</code> 设置代理地址，执行 <code>psystem</code> 打开系统代理，执行 <code>upsystem</code> 关闭系统代理。</p><h3>参考连接：</h3><p><a href="http://support.moonpoint.com/os/os-x/networksetup-wifi.php">http://support.moonpoint.com/os/os-x/networksetup-wifi.php</a><br><a href="https://superuser.com/questions/316502/how-to-change-proxy-setting-using-command-line-in-mac-os">https://superuser.com/questions/316502/how-to-change-proxy-setting-using-command-line-in-mac-os</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1629.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1629.html" thr:count="0"/>
@@ -66,8 +153,8 @@ xml:base="https://blog.niekun.net/category/macos/"
 <title type="html"><![CDATA[修复 MacBook Pro 休眠耗电大问题]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1622.html" />
 <id>https://blog.niekun.net/archives/1622.html</id>
-<updated>2020-07-07T10:16:00+08:00</updated>
-<published>2020-07-07T10:16:00+08:00</published>
+<updated>2020-07-06T22:16:00-04:00</updated>
+<published>2020-07-06T22:16:00-04:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
@@ -82,7 +169,342 @@ Scheduled power events:
  [0]  wake at 07/13/20 08:01:56 by 'com.apple.alarm.user-visible-Weekly Usage Report'
  [1]  wake at 07/17/20 20:00:00 by 'com.apple.alarm.user-visible-com.apple.remindd.time-alarm' User visible: true
  [2]  wake at 07/19/20 21:00:00 by 'com.apple.alarm.user-visible-com.apple.remindd.time-alarm' User visible: true
- [3]  wake at 07/19/20 21:00:00 by 'com.apple.alarm.user-visible-com.apple.remindd.time-alarm' User visible: true</code></pre><p>这些可能跟我在 remainder 设定的一些事项有关吧，经过查询，网上人也发现这个问题：<a href="https://discussions.apple.com/thread/250736022">eminders app waking mac from sleep</a>，貌似目前没有好的解决方法。</p><p class="more"><a href="https://blog.niekun.net/archives/1622.html" title="修复 MacBook Pro 休眠耗电大问题">[...]</a></p>
+ [3]  wake at 07/19/20 21:00:00 by 'com.apple.alarm.user-visible-com.apple.remindd.time-alarm' User visible: true</code></pre><p>这些可能跟我在 remainder 设定的一些事项有关吧，经过查询，网上人也发现这个问题：<a href="https://discussions.apple.com/thread/250736022">eminders app waking mac from sleep</a>，貌似目前没有好的解决方法。</p><!--more--><p>最近升级了我的 macbook pro 2015 的 ssd，买了一块第三方的 nvme 512G 硬盘。更换很顺利，使用 time machine 还原系统后就跟什么都没发生一样。</p><p>但是随着这几天的使用，发现待机耗电巨大，一晚上合盖耗电 20% 左右。查看 activity monitor 也没发现什么耗电量大的后台服务。发现可能是合盖后依然没有进入休眠，一直有什么东西在运转有关。回想我在安装好新硬盘进入系统后，修改了些什么设置，好像就是打开了 find my mac，可能就是休眠后一直存在网络活动有关吧。</p><p>macOS 上可以在设置里对接上电源和使用电池的情况下系统休眠进行单独设置。但是里面的设置项比较少，在使用电池的界面上已经把 休眠后进行网络活动的选项关掉了。</p><p>想要进行更加详细的设置可以使用命令 <code>pmset</code> 处理。<code>pmset</code> 是 macOS 上的电源管理工具，它可以查看，修改系统休眠及唤醒的相关设置。</p><h2>pmset</h2><p><strong>pmset 命令必须在 root 权限下执行。</strong></p><h3>电源管理参数设置</h3><pre><code>sudo pmset [−a | −b | −c | −u] [setting value] [...]
+</code></pre><p>pmset 可以对不同电源状态下进行独立设置。</p><ul><li>-a(all, default) 代表对所有供电情况下统一设置，也是默认的选项</li><li>-b(battery) 电池供电情况下的设置参数</li><li>-c(charger) 修改连接上外接电源情况下的设置参数</li><li>-u(UPS) 连接上 ups 情况下的设置参数</li></ul><p>例如，在电池供电情况下，无操作5分钟后屏幕休眠：</p><pre><code>sudo pmset -b displaysleep 5
+</code></pre><p>常用的参数有：</p><ul><li>displaysleep – display sleep timer in minutes, 0 to disable display sleep</li><li>disksleep – disk spin-down timer in minutes, 0 to disable disk sleep</li><li>sleep – system sleep timer in minutes, 0 to disable sleep</li><li>hibernatemode - change hibernation mode, 0 for RAM powered while sleeping; 1 for RAM contents written to disk and system totally unpowered; 3 for RAM both powered and written to disk; 5 is the same as mode 1, but for use with secure virtual memory; 7 is the same as mode 3, but for use with secure virtual memory; 25 for hibernation in Mac OS X 10.7, with RAM contents written to disk and system totally unpowered</li><li>autorestart - automatic restart after loss of power, 1 to enable or 0 to disable</li><li>tcpkeepalive - keep network process when sleep, 1 to enable or 0 to disable</li></ul><h3>计划任务的设置</h3><pre><code>sudo pmset [repeat, schedule] [sleep, wake, poweron, shutdown, wakeorpoweron] [&lt;MTWRFSU&gt; &lt;date/time&gt;]
+</code></pre><p>pmset 可以设置计划任务，来根据日期来将设备休眠或唤醒。</p><p>例如，每天晚上 23:59 自动关机，每天早上 7:00 自动唤醒或开机：</p><pre><code>sudo pmset repeat shutdown MTWRFSU 23:59:00 wakeorpoweron MTWRFSU 7:00:00
+</code></pre><ul><li>type; one of sleep, wake, poweron, shutdown or wakeorpoweron</li><li>date and time (schedule only); in the format "MM/dd/yy HH:mm:ss"; must be in 24-hour format, must be in quotes</li><li>time (repeat only); in the format HH:mm:ss; must be in 24 format, but does not have to be in quotes</li><li>weekdays; a subset of MTWRFSU such as M or MTWRF are valid, as are strings weekdays, weekends, and everyday</li><li>owner; a string describing the person or program who is scheduling the power event (optional)</li></ul><h3>查看电源信息</h3><pre><code>sudo pmset −g [option]
+</code></pre><p>当我们想要知道当前系统进行了那些设置，我们可以使用 <code>-g</code> 参数来查看。</p><p>查看当前状况下的电源参数设置：</p><pre><code>sudo pmset -g
+</code></pre><p>查看所有电源情况下的参数设置：</p><pre><code>sudo pmset -g custom
+</code></pre><p>查看计划任务的设置：</p><pre><code>sudo pmset -g sched
+</code></pre><p>查看历史日志：</p><pre><code>sudo pmset -g log
+</code></pre><p>日志的查看一般可以配合 grep 来过滤有用的信息，例如想要查看那些进程唤醒了设备可以使用：</p><pre><code>sudo pmset -g log | grep Wake
+</code></pre><h3>修复电源问题</h3><p>首先查看我的电池供电情况下的参数设置：</p><pre><code>sudo pmset -g custom
+</code></pre><p>在 Battery Power 列表里可以找到 tcpkeepalive 当前的设置为 1。</p><p>根据我的情况，我修改了电池供电情况下的 tcpkeepalive 为 0，问题就解决了：</p><pre><code>sudo pmset -b tcpkeepalive 0
+</code></pre><p>执行命令后，会提示关闭这个参数会导致 find my mac 等功能失效。</p><h3>man pmset</h3><pre><code>PMSET(1)                  BSD General Commands Manual                 PMSET(1)
+
+NAME
+     pmset -- manipulate power management settings
+
+SYNOPSIS
+     pmset [-a | -b | -c | -u] [setting value] [...]
+     pmset -u [haltlevel percent] [haltafter minutes] [haltremain minutes]
+     pmset -g [option]
+     pmset schedule [cancel | cancelall] type date+time [owner]
+     pmset repeat cancel
+     pmset repeat type weekdays time
+     pmset relative [wake | poweron] seconds
+     pmset [touch | sleepnow | displaysleepnow | boot]
+
+DESCRIPTION
+     pmset manages power management settings such as idle sleep timing, wake
+     on administrative access, automatic restart on power loss, etc.
+
+     Note that processes may dynamically override these power management set-
+     tings by using I/O Kit power assertions.  Whenever processes override any
+     system power settings, pmset will list those processes and their power
+     assertions in -g and -g assertions. See caffeinate(8).
+
+SETTING
+     pmset can modify the values of any of the power management settings
+     defined below. You may specify one or more setting &amp; value pairs on the
+     command-line invocation of pmset.  The -a, -b, -c, -u flags determine
+     whether the settings apply to battery ( -b ), charger (wall power) ( -c
+     ), UPS ( -u ) or all ( -a ).
+
+     Use a minutes argument of 0 to set the idle time to never for sleep
+     disksleep and displaysleep
+
+     pmset must be run as root in order to modify any settings.
+
+SETTINGS
+     displaysleep - display sleep timer; replaces 'dim' argument in 10.4
+     (value in minutes, or 0 to disable)
+     disksleep - disk spindown timer; replaces 'spindown' argument in 10.4
+     (value in minutes, or 0 to disable)
+     sleep - system sleep timer (value in minutes, or 0 to disable)
+     womp - wake on ethernet magic packet (value = 0/1). Same as &quot;Wake for
+     network access&quot; in the Energy Saver preferences.
+     ring - wake on modem ring (value = 0/1)
+     powernap - enable/disable Power Nap on supported machines (value = 0/1)
+     proximitywake - On supported systems, this option controls system wake
+     from sleep based on proximity of devices using same iCloud id. (value =
+     0/1)
+     autorestart - automatic restart on power loss (value = 0/1)
+     lidwake - wake the machine when the laptop lid (or clamshell) is opened
+     (value = 0/1)
+     acwake - wake the machine when power source (AC/battery) is changed
+     (value = 0/1)
+     lessbright - slightly turn down display brightness when switching to this
+     power source (value = 0/1)
+     halfdim - display sleep will use an intermediate half-brightness state
+     between full brightness and fully off  (value = 0/1)
+     sms - use Sudden Motion Sensor to park disk heads on sudden changes in G
+     force (value = 0/1)
+     hibernatemode - change hibernation mode. Please use caution. (value =
+     integer)
+     hibernatefile - change hibernation image file location. Image may only be
+     located on the root volume. Please use caution. (value = path)
+     ttyskeepawake - prevent idle system sleep when any tty (e.g. remote login
+     session) is 'active'. A tty is 'inactive' only when its idle time exceeds
+     the system sleep timer. (value = 0/1)
+     networkoversleep - this setting affects how OS X networking presents
+     shared network services during system sleep. This setting is not used by
+     all platforms; changing its value is unsupported.
+     destroyfvkeyonstandby - Destroy File Vault Key when going to standby
+     mode. By default File vault keys are retained even when system goes to
+     standby. If the keys are destroyed, user will be prompted to enter the
+     password while coming out of standby mode.(value: 1 - Destroy, 0 -
+     Retain)
+
+GETTING
+     -g (with no argument) will display the settings currently in use.
+     -g live displays the settings currently in use.
+     -g custom displays custom settings for all power sources.
+     -g cap displays which power management features the machine supports.
+     -g sched displays scheduled startup/wake and shutdown/sleep events.
+     -g ups displays UPS emergency thresholds.
+     -g ps / batt displays status of batteries and UPSs.
+     -g pslog displays an ongoing log of power source (battery and UPS) state.
+     -g rawlog displays an ongoing log of battery state as read directly from
+     battery.
+     -g therm shows thermal conditions that affect CPU speed. Not available on
+     all platforms.
+     -g thermlog shows a log of thermal notifications that affect CPU speed.
+     Not available on all platforms.
+     -g assertions displays a summary of power assertions. Assertions may pre-
+     vent system sleep or display sleep. Available 10.6 and later.
+     -g assertionslog shows a log of assertion creations and releases. Avail-
+     able 10.6 and later.
+     -g sysload displays the &quot;system load advisory&quot; - a summary of system
+     activity available from the IOGetSystemLoadAdvisory API. Available 10.6
+     and later.
+     -g sysloadlog displays an ongoing log of lives changes to the system load
+     advisory. Available 10.6 and later.
+     -g ac / adapter will display details about an attached AC power adapter.
+     Only supported for MacBook and MacBook Pro.
+     -g log displays a history of sleeps, wakes, and other power management
+     events. This log is for admin &amp; debugging purposes.
+     -g uuid displays the currently active sleep/wake UUID; used within OS X
+     to correlate sleep/wake activity within one sleep cycle.  history
+     -g uuidlog displays the currently active sleep/wake UUID, and prints a
+     new UUID as they're set by the system.
+     -g history is a debugging tool. Prints a timeline of system sleeplwake
+     UUIDs, when enabled with boot-arg io=0x3000000.
+     -g historydetailed Prints driver-level timings for a sleep/wake. Pass a
+     UUID as an argument.
+     -g powerstate [class names] Prints the current power states for I/O Kit
+     drivers. Caller may provide one or more I/O Kit class names (separated by
+     spaces) as an argument. If no classes are provided, it will print all
+     drivers' power states.
+     -g powerstatelog [-i interval] [class names] Periodically prints the
+     power state residency times for some drivers. Caller may provide one or
+     more I/O Kit class names (separated by spaces). If no classes are pro-
+     vided, it will log the IOPower plane's root registry entry. Caller may
+     specify a polling interval, in seconds with -i &lt;polling interval&gt;; other-
+     wise it defaults to 5 seconds.
+     -g stats Prints the counts for number sleeps and wakes system has gone
+     thru since boot.
+     -g systemstate Prints the current power state of the system and available
+     capabilites.
+     -g everything Prints output from every argument under the GETTING header.
+     This is useful for quickly collecting all the output that pmset provides.
+     Available in 10.8.
+
+SAFE SLEEP ARGUMENTS
+     hibernatemode supports values of 0, 3, or 25. Whether or not a hiberna-
+     tion image gets written is also dependent on the values of standby and
+     autopoweroff
+
+     For example, on desktops that support standby a hibernation image will be
+     written after the specified standbydelay time. To disable hibernation
+     images completely, ensure hibernatemode standby and autopoweroff are all
+     set to 0.
+
+     hibernatemode = 0 by default on desktops. The system will not back memory
+     up to persistent storage. The system must wake from the contents of mem-
+     ory; the system will lose context on power loss. This is, historically,
+     plain old sleep.
+
+     hibernatemode = 3 by default on portables. The system will store a copy
+     of memory to persistent storage (the disk), and will power memory during
+     sleep. The system will wake from memory, unless a power loss forces it to
+     restore from hibernate image.
+
+     hibernatemode = 25 is only settable via pmset. The system will store a
+     copy of memory to persistent storage (the disk), and will remove power to
+     memory. The system will restore from disk image. If you want &quot;hiberna-
+     tion&quot; - slower sleeps, slower wakes, and better battery life, you should
+     use this setting.
+
+     Please note that hibernatefile may only point to a file located on the
+     root volume.
+
+STANDBY ARGUMENTS
+     standby causes kernel power management to automatically hibernate a
+     machine after it has slept for a specified time period. This saves power
+     while asleep. This setting defaults to ON for supported hardware. The
+     setting standby will be visible in pmset -g if the feature is supported
+     on this machine.
+
+     standbydelayhigh and standbydelaylow specify the delay, in seconds,
+     before writing the hibernation image to disk and powering off memory for
+     Standby.  standbydelayhigh is used when the remaining battery capacity is
+     above highstandbythreshold , and standbydelaylow is used when the remain-
+     ing battery capacity is below highstandbythreshold.
+
+     highstandbythreshold has a default value of 50 percent.
+
+     autopoweroff is enabled by default on supported platforms as an implemen-
+     tation of Lot 6 to the European Energy-related Products Directive. After
+     sleeping for &lt;autopoweroffdelay&gt; seconds, the system will write a hiber-
+     nation image and go into a lower power chipset sleep. Wakeups from this
+     state will take longer than wakeups from regular sleep.
+
+     autopoweroffdelay specifies the delay, in seconds, before entering
+     autopoweroff mode.
+
+UPS SPECIFIC ARGUMENTS
+     UPS-specific arguments are only valid following the -u option. UPS set-
+     tings also have an on/off value. Use a -1 argument instead of percent or
+     minutes to turn any of these settings off. If multiple halt conditions
+     are specified, the system will halt on the first condition that occurs in
+     a low power situation.
+
+     haltlevel - when draining UPS battery, battery level at which to trigger
+     an emergency shutdown (value in %)
+     haltafter - when draining UPS battery, trigger emergency shutdown after
+     this long running on UPS power (value in minutes, or 0 to disable)
+     haltremain - when draining UPS battery, trigger emergency shutdown when
+     this much time remaining on UPS power is estimated (value in minutes, or
+     0 to disable)
+
+     Note: None of these settings are observed on a system with support for an
+     internal battery, such as a laptop. UPS emergency shutdown settings are
+     for desktop and server only.
+
+SCHEDULED EVENT ARGUMENTS
+     pmset allows you to schedule system sleep, shutdown, wakeup and/or power
+     on. &quot;schedule&quot; is for setting up one-time power events, and &quot;repeat&quot; is
+     for setting up daily/weekly power on and power off events. Note that you
+     may only have one pair of repeating events scheduled - a &quot;power on&quot; event
+     and a &quot;power off&quot; event. For sleep cycling applications, pmset can sched-
+     ule a &quot;relative&quot; wakeup or poweron to occur in seconds from the end of
+     system sleep/shutdown, but this event cannot be cancelled and is inher-
+     ently imprecise.
+
+     type - one of sleep, wake, poweron, shutdown, wakeorpoweron
+     date/time - &quot;MM/dd/yy HH:mm:ss&quot; (in 24 hour format; must be in quotes)
+     time - HH:mm:ss
+     weekdays - a subset of MTWRFSU (&quot;M&quot; and &quot;MTWRF&quot; are valid strings)
+     owner - a string describing the person or program who is scheduling this
+     one-time power event (optional)
+
+POWER SOURCE ARGUMENTS
+     -g with a 'batt' or 'ps' argument will show the state of all attached
+     power sources.
+
+     -g with a 'pslog' or 'rawlog' argument is normally used for debugging,
+     such as isolating a problem with an aging battery.
+
+OTHER ARGUMENTS
+     boot - tell the kernel that system boot is complete (normally LoginWindow
+     does this). May be useful to Darwin users.
+     touch - PM re-reads existing settings from disk.
+     noidle - pmset prevents idle sleep by creating a PM assertion to prevent
+     idle sleep(while running; hit ctrl-c to cancel). This argument is depre-
+     cated in favor of caffeinate(8). Please use caffeinate(8) instead.
+     sleepnow - causes an immediate system sleep.
+     restoredefaults - Restores Energy Saver settings to their default values.
+     (Like clicking &quot;Restore Defaults&quot; in Energy Saver GUI).
+     displaysleepnow - causes display to go to sleep immediately.
+     resetdisplayambientparams - resets the ambient light parameters for cer-
+     tain Apple displays.
+     dim - deprecated in 10.4 in favor of 'displaysleep'. 'dim' will continue
+     to work.
+     spindown - deprecated in 10.4 in favor of 'disksleep'. 'spindown' will
+     continue to work.
+
+EXAMPLES
+     This command sets displaysleep to a 5 minute timer on battery power,
+     leaving other settings on battery power and other power sources unper-
+     turbed.
+
+     pmset -b displaysleep 5
+
+     Sets displaysleep to 10, disksleep to 10, system sleep to 30, and turns
+     on WakeOnMagicPacket for ALL power sources (AC, Battery, and UPS) as
+     appropriate
+
+     pmset -a displaysleep 10 disksleep 10 sleep 30 womp 1
+
+     Restores the system's energy settings to their default values.
+
+     For a system with an attached and supported UPS, this instructs the sys-
+     tem to perform an emergency shutdown when UPS battery drains to below
+     40%.
+
+     pmset -u haltlevel 40
+
+     For a system with an attached and supported UPS, this instructs the sys-
+     tem to perform an emergency shutdown when UPS battery drains to below
+     25%, or when the UPS estimates it has less than 30 minutes remaining run-
+     time. The system shuts down as soon as either of these conditions is met.
+
+     pmset -u haltlevel 25 haltremain 30
+
+     For a system with an attached and supported UPS, this instructs the sys-
+     tem to perform an emergency shutdown after 2 minutes of running on UPS
+     battery power.
+
+     pmset -u haltafter 2
+
+     Schedules the system to automatically wake from sleep on July 4, 2016, at
+     8PM.
+
+     pmset schedule wake &quot;07/04/16 20:00:00&quot;
+
+     Schedules a repeating shutdown to occur each day, Tuesday through Satur-
+     day, at 11AM.
+
+     pmset repeat shutdown TWRFS 11:00:00
+
+     Schedules a repeating wake or power on event every tuesday at 12:00 noon,
+     and a repeating sleep event every night at 8:00 PM.
+
+     pmset repeat wakeorpoweron T 12:00:00 sleep MTWRFSU 20:00:00
+
+     Prints the power management settings in use by the system.
+
+     pmset -g
+
+     Prints a snapshot of battery/power source state at the moment.
+
+     pmset -g batt
+
+     If your system suddenly sleeps on battery power with 20-50% of capacity
+     remaining, leave this command running in a Terminal window. When you see
+     the problem and later power and wake the computer, you'll be able to
+     detect sudden discontinuities (like a jump from 30% to 0%) indicative of
+     an aging battery.
+
+     pmset -g pslog
+
+SEE ALSO
+     caffeinate(8)
+
+FILES
+     All changes made through pmset are saved in a persistent preferences file
+     (per-system, not per-user) at
+     /Library/Preferences/SystemConfiguration/com.apple.PowerManagement.plist
+
+     Scheduled power on/off events are stored separately in
+     /Library/Preferences/SystemConfiguration/com.apple.AutoWake.plist
+
+     pmset modifies the same file that System Preferences Energy Saver modi-
+     fies.
+
+Darwin                         November 9, 2012                         Darwin</code></pre><h3>参考链接</h3><p><a href="https://en.wikipedia.org/wiki/Pmset">https://en.wikipedia.org/wiki/Pmset</a><br><a href="https://www.dssw.co.uk/reference/pmset.html">https://www.dssw.co.uk/reference/pmset.html</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1622.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1622.html" thr:count="0"/>
@@ -91,15 +513,15 @@ Scheduled power events:
 <title type="html"><![CDATA[VMware Workstation 虚拟机导入 VMware Fusion]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1575.html" />
 <id>https://blog.niekun.net/archives/1575.html</id>
-<updated>2020-07-02T22:28:00+08:00</updated>
-<published>2020-07-02T22:28:00+08:00</published>
+<updated>2020-07-02T10:28:00-04:00</updated>
+<published>2020-07-02T10:28:00-04:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[在 Windows 下我一直在使用 vmware workstation pro 虚拟机，最近需要在 mac 上使用 Windows 软件，所以尝试安装虚拟机，vmware 同样有 mac 下的...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/1575.html" xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2020/07/2900570012.png" alt="2020-07-03T13:43:03.png" title="2020-07-03T13:43:03.png"><br>在 Windows 下我一直在使用 vmware workstation pro 虚拟机，最近需要在 mac 上使用 Windows 软件，所以尝试安装虚拟机，vmware 同样有 mac 下的产品 vmware fusion，最便捷的方法就是直接导入 workstation 的到 fusion，这样就不需要重新安装系统和软件了。</p><p>官网：<a href="https://www.vmware.com/products/fusion.html">https://www.vmware.com/products/fusion.html</a></p><p class="more"><a href="https://blog.niekun.net/archives/1575.html" title="VMware Workstation 虚拟机导入 VMware Fusion">[...]</a></p>
+<p><img src="https://blog.niekun.net/usr/uploads/2020/07/2900570012.png" alt="2020-07-03T13:43:03.png" title="2020-07-03T13:43:03.png"><br>在 Windows 下我一直在使用 vmware workstation pro 虚拟机，最近需要在 mac 上使用 Windows 软件，所以尝试安装虚拟机，vmware 同样有 mac 下的产品 vmware fusion，最便捷的方法就是直接导入 workstation 的到 fusion，这样就不需要重新安装系统和软件了。</p><p>官网：<a href="https://www.vmware.com/products/fusion.html">https://www.vmware.com/products/fusion.html</a></p><!--more--><h3>下载</h3><p>首先到官网下载最新版 vmware fusion，目前版本为 11.5：<a href="https://www.vmware.com/products/fusion/fusion-evaluation.html">https://www.vmware.com/products/fusion/fusion-evaluation.html</a></p><h3>安装</h3><p>安装下载的 dmg 文件，安装过程中会要求输入序列号，请自行查找。</p><p>运行 vmware fusion 需要系统 accessibility 的权限，安装完成后请到 <code>system preference - security &amp; privacy</code> 里打开对应权限：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/4104120793.png" alt="2020-07-03T13:35:03.png" title="2020-07-03T13:35:03.png"></p><h3>复制虚拟机</h3><p>把 Windows 下 workstation 的虚拟机文件夹复制到 mac 端，虚拟机文件夹默认在用户目录 document - Virtual Machines 文件夹内，找到需要复制的虚拟机文件夹如：<code>windows 7</code>,然后拷贝到 mac。</p><p>复制到 mac 后给文件夹名添加后缀：<code>.vmwarevm</code>，如：<code>Windows 7.vmwarevm</code>，会自动识别为 fusion 可打开的类型。</p><p>运行 vmware fusion，选择 file - open and run：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/2165730683.png" alt="2020-07-03T13:44:20.png" title="2020-07-03T13:44:20.png"></p><p>在打开的对话框找到重命名后的文件夹，选择 open，会启动虚拟机，如果无法启动提示：<code>Could not open /dev/vmmon: Broken pipe</code>，则是由于 accessibility 权限未打开。请根据上面的方法打开权限，然后重新运行 fusion。</p><p>启动后可以点击上方的设置，进行具体设置：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/514672474.png" alt="2020-07-03T13:49:54.png" title="2020-07-03T13:49:54.png"></p><h3>usb 连接</h3><p>如果无法将 usb 挂在到虚拟机，提示不可识别的设备，则可能是由于没有打开 usb 3.0 兼容。首先关闭虚拟机，打开<code>设置 - usb &amp; Bluetooth - advanced usb options</code>，将下方的 usb capability 切换到 <code>usb 3.1</code>：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/1422211913.png" alt="2020-07-03T13:53:44.png" title="2020-07-03T13:53:44.png"></p><p>重新启动虚拟机测试是否可以正常识别 usb。如果还是无法识别这可能是 windows usb 3.0 驱动没有安装，可以到 intel 官网下载驱动：<a href="https://downloadcenter.intel.com/download/22824/USB-3-0-Driver-Intel-USB-3-0-eXtensible-Host-Controller-Driver-for-Intel-8-9-100-Series-and-C220-C610-Chipset-Family">下载地址</a></p><p>进入虚拟机安装以上驱动，如果安装出错，则可能需要打 KB2533623 系统补丁，可以到微软官网下载补丁：<a href="https://www.microsoft.com/zh-CN/download/details.aspx?id=26767">点我下载</a></p><p>安装好补丁后重启系统，然后安装 usb 驱动，完成后再次将 usb 设备切换到虚拟机测试是否可以正常识别到了：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/3689437433.png" alt="2020-07-03T14:00:01.png" title="2020-07-03T14:00:01.png"></p><p>以上就是 Windows 下 vmware workstation 虚拟机迁移到 mac 下 vmware fusion 的方法。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1575.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1575.html" thr:count="0"/>
@@ -108,8 +530,8 @@ Scheduled power events:
 <title type="html"><![CDATA[Mac 的启动组合键]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1570.html" />
 <id>https://blog.niekun.net/archives/1570.html</id>
-<updated>2020-06-29T08:35:00+08:00</updated>
-<published>2020-06-29T08:35:00+08:00</published>
+<updated>2020-06-28T20:35:00-04:00</updated>
+<published>2020-06-28T20:35:00-04:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
@@ -125,15 +547,15 @@ Scheduled power events:
 <title type="html"><![CDATA[我的 MacBook Pro 维修记]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1311.html" />
 <id>https://blog.niekun.net/archives/1311.html</id>
-<updated>2020-03-12T16:16:00+08:00</updated>
-<published>2020-03-12T16:16:00+08:00</published>
+<updated>2020-03-12T04:16:00-04:00</updated>
+<published>2020-03-12T04:16:00-04:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[我的 mbp 是 15款 13寸的，已经用了快 5 年了，最近想着把小本存在的问题都修复一下，就全方位检查了一下。第一个问题是后背板螺丝损坏，由于螺丝很小而且在当时拆机时由于使用了劣质螺丝刀，导...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/1311.html" xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2020/03/4011691609.png" alt="2020-03-12T08:12:19.png" title="2020-03-12T08:12:19.png"></p><p>我的 mbp 是 15款 13寸的，已经用了快 5 年了，最近想着把小本存在的问题都修复一下，就全方位检查了一下。</p><ul><li>第一个问题是后背板螺丝损坏，由于螺丝很小而且在当时拆机时由于使用了劣质螺丝刀，导致大部分螺丝都花了。</li><li>第二个问题是 USB 接口，在购买一年后因为故障到售后维修后，就出现右边的 USB 无法识别的问题，但当时着急用就没有送到售后去一直将就使用左边的 USB 口。</li></ul><p class="more"><a href="https://blog.niekun.net/archives/1311.html" title="我的 MacBook Pro 维修记">[...]</a></p>
+<p><img src="https://blog.niekun.net/usr/uploads/2020/03/4011691609.png" alt="2020-03-12T08:12:19.png" title="2020-03-12T08:12:19.png"></p><p>我的 mbp 是 15款 13寸的，已经用了快 5 年了，最近想着把小本存在的问题都修复一下，就全方位检查了一下。</p><ul><li>第一个问题是后背板螺丝损坏，由于螺丝很小而且在当时拆机时由于使用了劣质螺丝刀，导致大部分螺丝都花了。</li><li>第二个问题是 USB 接口，在购买一年后因为故障到售后维修后，就出现右边的 USB 无法识别的问题，但当时着急用就没有送到售后去一直将就使用左边的 USB 口。</li></ul><!--more--><hr><p><strong>对于第一个问题</strong>，我购买了新的螺丝，一共十颗，8颗长的2颗短的。同时购买了南旗的 23 合一新款螺丝刀。里面有齐全的 apple 设备拆机 S2 披头，而且做工质量都没得说，这次不会把螺丝损坏了吧：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/2910876089.png" alt="2020-03-12T07:39:52.png" title="2020-03-12T07:39:52.png"></p><p>后壳螺丝是五角星的 1.2mm，中间两颗是短螺丝：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/4005656100.png" alt="2020-03-12T07:41:19.png" title="2020-03-12T07:41:19.png"></p><p>使用南旗的螺丝刀，费了好大的劲才把以前的坏螺丝拆下来，按照大小换上新螺丝就行啦，由于我还要处理第二个问题，所以打开后盖后先不更换新的螺丝。</p><hr><p><strong>对于第二个问题</strong>，我开始从软件上找问题，经过查询发现有可能是 SMC 或者 NVRAM 重置下可能会解决问题，于是进行尝试。</p><p>重置 SMC 方法为：<a href="https://support.apple.com/zh-cn/HT201295">https://support.apple.com/zh-cn/HT201295</a></p><ul><li>关机</li><li>按住左边的 shift ctrl option 再按住电源键</li><li>保持 10 秒钟</li><li>松开再按下电源键开机</li></ul><p>尝试后无效，usb 依然无法识别，尝试重置 NVRAM。</p><p>重置 NVRAM 方法为：<a href="https://support.apple.com/zh-cn/HT204063">https://support.apple.com/zh-cn/HT204063</a></p><ul><li>关机</li><li>开机</li><li>立刻按下 option command P R</li><li>保持 20 秒左右，听到两声开机声音后可以松开</li><li>经过大概 5 次开机声音后自动启动</li></ul><p>尝试后依然无效。</p><p>使用软件修复的方法无效后，我判断应该是硬件问题，经过查询，发现右边的 USB 是在一块单独的小板上，这块板子集成了：<strong>无线模块 USB HDMI SD-card 接口</strong>，通过一根排线了主板相连：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/971436223.png" alt="2020-03-12T07:54:39.png" title="2020-03-12T07:54:39.png"></p><p>那么我的故障原因很大可能就是出在这块小板上了，于是就开始淘宝查找同型号，果然有很多拆机件。最后是在闲鱼上找了一家看起来靠谱的卖家买了一块。</p><p>下面就开始更换小板啦：</p><ul><li>首先通过上面介绍的拆卸背板方法，打开后盖</li><li>断开电源排线</li><li>然后拆掉散热铜管和风扇才能拿下小板</li></ul><p><img src="https://blog.niekun.net/usr/uploads/2020/03/2315970545.png" alt="2020-03-12T07:59:17.png" title="2020-03-12T07:59:17.png"></p><p>更换上新的小板。</p><p>由于需要拆掉铜管，原始的散热硅脂被破坏了：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1534916130.png" alt="2020-03-12T08:01:54.png" title="2020-03-12T08:01:54.png"><br><img src="https://blog.niekun.net/usr/uploads/2020/03/2634357592.png" alt="2020-03-12T08:02:54.png" title="2020-03-12T08:02:54.png"></p><p>所以需要重新更换硅脂，将铜管和 cpu 上的硅脂擦干净后涂抹上新的硅脂：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3627475678.png" alt="2020-03-12T08:05:03.png" title="2020-03-12T08:05:03.png"></p><p>硅脂更换好后，将风扇和铜管安装回去，再将背板用新螺丝安装好就完成了！</p><hr><p><a href="https://zh.ifixit.com/Guide/MacBook+Pro+%EF%BC%8813%E8%8B%B1%E5%AF%B8%EF%BC%8C%E9%85%8D%E5%A4%87Retina%E6%98%BE%E7%A4%BA%E5%B1%8F%EF%BC%8C2015%E5%88%9D%E6%9C%9F%EF%BC%89%E6%8B%86%E8%A7%A3/38300">ifixit 拆机教程</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1311.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1311.html" thr:count="0"/>
@@ -142,8 +564,8 @@ Scheduled power events:
 <title type="html"><![CDATA[macOS使用brew安装的模块提示命令不存在的解决方法]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/100.html" />
 <id>https://blog.niekun.net/archives/100.html</id>
-<updated>2019-02-21T20:51:00+08:00</updated>
-<published>2019-02-21T20:51:00+08:00</published>
+<updated>2019-02-21T07:51:00-05:00</updated>
+<published>2019-02-21T07:51:00-05:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
@@ -163,8 +585,8 @@ Scheduled power events:
 <title type="html"><![CDATA[macOS/Linux/windows设置终端 proxy 代理]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/97.html" />
 <id>https://blog.niekun.net/archives/97.html</id>
-<updated>2019-02-21T20:33:00+08:00</updated>
-<published>2019-02-21T20:33:00+08:00</published>
+<updated>2019-02-21T07:33:00-05:00</updated>
+<published>2019-02-21T07:33:00-05:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
@@ -177,7 +599,90 @@ Scheduled power events:
 alias unproxy='unset all_proxy'
 </code></pre><p>然后开启代理就输入：</p><pre><code>proxy
 </code></pre><p>取消代理输入：</p><pre><code>unproxy
-</code></pre><p><strong>设置只对当前窗口有效，关闭后取消。</strong></p><p class="more"><a href="https://blog.niekun.net/archives/97.html" title="macOS/Linux/windows设置终端 proxy 代理">[...]</a></p>
+</code></pre><p><strong>设置只对当前窗口有效，关闭后取消。</strong></p><!--more--><p>可以通过bash文件保存<em>alias</em>，快速设置/取消proxy。</p><p>打开 <code>~/.bash_profile</code>, <code>~/.bashrc</code>, 或者 <code>~/.profile</code>，The difference between these files is (primarily) when they get read by the shell. If you're not sure where to put it, ~/.bashrc is a good choice.</p><h4>macOS/Linux</h4><p>此文件一般不存在，可新建：</p><pre><code>vim ~/.bashrc
+</code></pre><p>将下面代码加入文件：</p><pre><code>alias proxy='export all_proxy=socks5://127.0.0.1:1080 &amp;&amp; export http_proxy=http://127.0.0.1:1082 &amp;&amp; export https_proxy=http://127.0.0.1:1082'
+alias unproxy='unset all_proxy &amp;&amp; export http_proxy= &amp;&amp; export https_proxy='</code></pre><p>保存文件后，重新载入配置：</p><pre><code>source ~/.bashrc
+</code></pre><p>运行命令测试alias是否生效：</p><pre><code>proxy
+</code></pre><p>对于 macOS，默认的 shell 是 zsh，它的默认加载文件是 <code>~/.zshrc</code>，所以修改上面的文件后每次启动 zsh 都需要手动运行 <code>source ~/.bashrc</code> 指令，解决方法打开 <code>~/.zshrc</code>，在文件内加入 <code>source ~/.bashrc</code> 即可，这样每次启动就可以正常使用设置的 alias 了。</p><h3>windows</h3><h4>CMD</h4><p><strong>cmd 中用 set http_proxy 设置</strong></p><pre><code>set http_proxy=http://127.0.0.1:1082
+set https_proxy=http://127.0.0.1:1082
+</code></pre><p>恢复</p><pre><code>set http_proxy=
+set https_proxy=
+</code></pre><p><strong> command prompt 使用 doskey 命令建立类似 alias 功能：</strong><br>新建 cmd_profile.bat 文件内容如下：</p><pre><code>@echo off
+doskey phttp = set http_proxy=http://127.0.0.1:1082
+doskey phttps = set https_proxy=http://127.0.0.1:1082
+doskey unphttp = set http_proxy=
+doskey unphttps = set https_proxy=</code></pre><p>打开注册表：win + r 输入 regedit，定位到 <code>HKEY_CURRENT_USER\Software\Microsoft\Command Processor\</code>,右键 new - string value，重命名为：Autorun，值设置为 bat 文件路径：<br><img src="https://niekun.net/usr/uploads/2019/10/3156600933.png" alt="2019-10-15T06:04:07.png" title="2019-10-15T06:04:07.png"></p><p>重新打开 cmd 输入 phttp phttps，查看当前IP：</p><pre><code>curl ipecho.net/plain ; echo
+</code></pre><p><strong>注意，如果默认终端是 powershell 则无法通过上述方式在注册表加载 bat 脚本，建议将脚本路径设置到系统 path 中，然后启动 CMD 后输入脚本文件名运行一次即可。</strong></p><h4>power shell</h4><p>power shell 稍微麻烦一下，需要建立 PowerShell profile 文件设置 alias。</p><p>在启动 power shell 时会执行 profile 里的命令，类似与上面的 .bashrc 文件，关于建立 PowerShell profile 文件参考：<a href="https://docs.microsoft.com/en-us/previous-versions/system-center/service-manager-2010-sp1/ff461033(v=technet.10)?redirectedfrom=MSDN">https://docs.microsoft.com/en-us/previous-versions/system-center/service-manager-2010-sp1/ff461033(v=technet.10)?redirectedfrom=MSDN</a></p><p>开始建立 profile，首先以管理员权限运行 power shell，执行以下命令：</p><pre><code>Test-path $profile
+</code></pre><p>如果返回值为 false 执行以下命令，返回值为 true 跳过此步骤：</p><pre><code>New-item –type file –force $profile
+</code></pre><p>打开 profile 文件：</p><pre><code>Notepad $profile
+</code></pre><p>加入以下内容：</p><pre><code># Set-Proxy command
+
+Function SetProxy() {
+    Param(
+        $Addr = $null,
+        [switch]$ApplyToSystem
+    )
+    
+    $env:HTTP_PROXY = $Addr;
+    $env:HTTPS_PROXY = $Addr; 
+    $env:http_proxy = $Addr;
+    $env:https_proxy = $Addr;
+  
+    if ($addr -eq $null) {
+        [Net.WebRequest]::DefaultWebProxy = New-Object Net.WebProxy;
+        if ($ApplyToSystem) { SetSystemProxy $null; }
+        Write-Output &quot;Successful unset all proxy variable&quot;;
+    }
+    else {
+        [Net.WebRequest]::DefaultWebProxy = New-Object Net.WebProxy $Addr;
+        if ($ApplyToSystem) {
+            $matchedResult = ValidHttpProxyFormat $Addr;
+            # Matched result: [URL Without Protocol][Input String]
+            if (-not ($matchedResult -eq $null)) {
+                SetSystemProxy $matchedResult.1;
+            }
+        }
+        Write-Output &quot;Successful set proxy as $Addr&quot;;
+    }
+}
+
+Function SetSystemProxy($Addr = $null) {
+    Write-Output $Addr
+    $proxyReg = &quot;HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings&quot;;
+
+    if ($Addr -eq $null) {
+        Set-ItemProperty -Path $proxyReg -Name ProxyEnable -Value 0;
+        return;
+    }
+    Set-ItemProperty -Path $proxyReg -Name ProxyServer -Value $Addr;
+    Set-ItemProperty -Path $proxyReg -Name ProxyEnable -Value 1;
+}
+
+Function ValidHttpProxyFormat ($Addr) {
+    $regex = &quot;(?:https?:\/\/)(\w+(?:.\w+)*(?::\d+)?)&quot;;
+    $result = $Addr -match $regex;
+    if ($result -eq $false) {
+        throw [System.ArgumentException]&quot;The input $Addr is not a valid HTTP proxy URI.&quot;;
+    }
+
+    return $Matches;
+}
+
+Set-Alias -Name set-proxy -Value SetProxy</code></pre><p>上面的脚本主要就是建立了三个 function：设置代理 设置系统代理 检查 uri 是否正确，然后设置 alias。</p><p>关于 Set-Alias 语法参考：<a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-alias?view=powershell-7">https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-alias?view=powershell-7</a></p><p>保存文件后，继续输入下面命令：</p><pre><code>Set-ExecutionPolicy RemoteSigned
+. $profile
+</code></pre><p>以上就完成了 profile 的设置，使用语法如下:</p><pre><code># 设置当前窗口代理 ：
+set-proxy http://your-proxy:port
+
+#设置当前窗口代理 + 系统代理：
+set-proxy http://your-proxy:port -ApplyToSystem
+
+#取消当前窗口代理：
+set-proxy (没有参数)
+
+#取消当前窗口代理 + 系统代理：
+set-proxy -ApplyToSystem</code></pre><p>测试代理然后查看当前IP：</p><pre><code>set-proxy http://127.0.0.1:1082
+curl https://info.niekun.net/ip ; echo
+</code></pre>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/97.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/97.html" thr:count="0"/>

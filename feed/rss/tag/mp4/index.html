@@ -16,8 +16,14 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/177.html">
 <title>nginx实现mp4流媒体播放</title>
 <link>https://blog.niekun.net/archives/177.html</link>
-<dc:date>2019-03-31T19:14:00+08:00</dc:date>
+<dc:date>2019-03-31T07:14:00-04:00</dc:date>
 <description>如果还没有安装nginx，参考教程：https://niekun.net/index.php/archives/30.html此功能使用的是 Nginx 的 ngx_http_mp4_module 模块。首先查看当前 nginx 是否已经安装了 ngx_http_mp4_module 模块：nginx -v
-查看是否已经有了对应模块，一般使用 apt 安装的都集成了此模块。[...]</description>
+查看是否已经有了对应模块，一般使用 apt 安装的都集成了此模块。编辑你的 nginx 配置文件，加入下面的片段：location /video {
+    mp4;
+    mp4_buffer_size       1m;
+    mp4_max_buffer_size   10m;
+}测试是否配置正确：service nginx configtest
+重新加载配置文件：service nginx reload
+现在你就可以在对应目录下放置一个mp4文件，访问看是否能够正常播放。如果访问网页出现 500 错误，或者 nginx log 里提示mp4 moov atom is too large，则可能需要将 mp4_max_buffer_size 设置大一些。支持的格式：.mp4, .m4v, .m4a可以从任意时间开始播放，如：http://example.com/elephants_dream.mp4?start=238.88start 后的数字为秒也可以设置结束时间点：http://example.com/elephants_dream.mp4?start=238.88&end=555.55</description>
 </item>
 </rdf:RDF>

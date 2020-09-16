@@ -18,21 +18,38 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/1316.html">
 <title>Windows 下 VMware 安装 Ubuntu 虚拟机</title>
 <link>https://blog.niekun.net/archives/1316.html</link>
-<dc:date>2020-03-13T14:00:00+08:00</dc:date>
-<description>虽然 Windows 10 自带有 WSL，可以安装 Linux 系统，但是在实际使用中发现还是有很多限制的。所以想要完整的 Linux 系统，还是安装了虚拟机。WSL 开启参考：https://blog.niekun.net/archives/1148.html我使用的是 VMware workstation 安装了 Ubuntu 18.04 LTS。安装过程中与遇到了一些问题，需要特别的进行处理，在此做一下记录。[...]</description>
+<dc:date>2020-03-13T02:00:00-04:00</dc:date>
+<description>虽然 Windows 10 自带有 WSL，可以安装 Linux 系统，但是在实际使用中发现还是有很多限制的。所以想要完整的 Linux 系统，还是安装了虚拟机。WSL 开启参考：https://blog.niekun.net/archives/1148.html我使用的是 VMware workstation 安装了 Ubuntu 18.04 LTS。安装过程中与遇到了一些问题，需要特别的进行处理，在此做一下记录。VMware workstation & Ubuntu官网下载 VMware workstation，需要购买序列号：https://my.vmware.com/en/web/vmware/info/slug/desktop_end_user_computing/vmware_workstation_pro/15_0下载完成后进行安装，然后根据提示重启及输入序列号。Ubuntu 18.04 LTS 镜像下载：http://releases.ubuntu.com/18.04.4/ubuntu-18.04.4-desktop-amd64.iso镜像下载完成后就可以开始准备安装虚拟机了，点击 文件 - 新建虚拟机：选择 典型 安装，然后下一步，点击浏览找到 Ubuntu 镜像文件：下面就根据提示设置虚拟机账户密码等信息，完成安装后会自动启动虚拟机，使用刚才设置的用户名密码登录虚拟机。分辨率设置光标退出虚拟机的快捷键是：ctrl alt。我的主机显示比例是 16:9 的1920 × 1080，开机后显示比例是 16:10 的，所以需要设置下全屏。首先点击保持纵横比拉伸来让显示尽量铺满全屏：进入 Ubuntu，点击右下角扩展键：搜索 displays，然后进入显示设置：选择一个和主机一样比例的分辨率：这样虚拟机就可以全屏了。VMware toolsVMware tools 可以让主机和虚拟机实现数据交互，很多功能依赖于 VMware tools，如：共享文件夹，网络桥接，共享剪贴板等。但是我在安装虚拟机后，VMware tools 安装项是灰色的：查询后了解到 Linux 的 tools 需要手动安装，官网对 Linux 虚拟机安装 VMware tools  有一篇教程：https://www.vmware.com/support/ws5/doc/ws_newguest_tools_linux.htmlVMware 安装的时候在安装目录下会有一个 linux.iso 文件，这就是 VMware tools 安装镜像，我的路径是：C:Program Files (x86)VMwareVMware Workstationlinux.iso首先在虚拟机设置里添加一个新的 cd/dvd，挂载 VMware 安装目录下的 linux.iso 镜像：进入 Ubuntu，桌面会有 VMware tools，终端路径是：/media/USERNAME/VMware Tools：进入 VMware Tools 目录，里面有一个压缩包：VMwareTools-10.3.10-13959562.tar.gz，执行如下命令：cd /tmp
+tar xvf '/media/USERNAME/VMware Tools/VMwareTools-10.3.10-13959562.tar.gz'
+cd vmware-tools-distrib
+sudo ./vmware-install.pl执行解压目录下的 vmware-install.pl，一路 enter 即可。执行结束后就完成了 VMware Tools 的安装，重启系统。网络设置在虚拟机设置里将网络连接设置为桥接模式，这样虚拟机和主机就在一个 IP 网段内，如果不设置为桥接模式，虚拟机内可能无法执行一些网络命令，如：mtr：设置完成后重启虚拟机，主机使用命令 ipconfig 查看当前 IP：虚拟机使用命令 ifconfig 查看当前 IP：两个 IP 在一个网段内则设置成功。共享文件夹根据需要可以设置共享主机文件夹，在虚拟机内可以访问，共享文件夹路径是：/mnt/hgfs：在虚拟机终端测试访问：共享主机代理如果主机设置了代理，虚拟机可以直接共享此代理设置。首先设置主机代理端口开放给局域网，如果是显示只监听本地地址则 listen 地址设置为 127.0.0.1，如果开放监听局域网地址，则 listen 地址设置为 0.0.0.0 即可。在主机使用命令 ipconfig 查看主机 IP 地址。如果要在虚拟机设置系统代理，在虚拟机 Ubuntu 设置里搜索 proxy，点击 network proxy 手动设置代理地址：如果不想设置系统代理，也可以根据上面的主机地址和端口，在单独的应用程序里设置代理，如浏览器。终端代理设置参考我之前的文章，也是使用上面得到的主机 IP 和代理端口：https://blog.niekun.net/archives/97.html以上就是我用 VMware workstation 安装 Ubuntu 的过程。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1161.html">
 <title>Ubuntu 修改 apt 国内源</title>
 <link>https://blog.niekun.net/archives/1161.html</link>
-<dc:date>2020-02-26T13:25:00+08:00</dc:date>
+<dc:date>2020-02-26T00:25:00-05:00</dc:date>
 <description>国内使用 apt 安装软件如果感觉比较慢，可能是 deb 源是国外的，通过修改为国内源，可以很好的进行加速下载。系统代号每一个版本的 Ubuntu 都会有一个代号，用来识别不同的版本，比如：14.04 LTS 代号是 trusty16.04 LTS 代号是 xenial18.04 LTS 代号是 bionic在更换源的时候需要使用到代号，可以使用如下命令查看当前系统版本代号：lsb_release -c
 
-[...]</description>
+备份系统源文件为防止修改错误或其他问题，将系统自带源文件进行备份很有必要，执行如下指令：sudo cp /etc/apt/sources.list /etc/apt/sources.list_bak
+修改 sources.list 源文件打开 sources.list 文件，将内容修改为想要的国内源：vim /etc/apt/sources.list
+输入命令 ggdG 清空内容，修改为清华源加入如下内容：# 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+
+# 预发布软件源，不建议启用
+# deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse可以看到每行内容里都有对应系统代号信息，如果要修改其他版本系统的 apt 源，只需要将里面系统代号替换即可。常用国内源：清华源：https://mirror.tuna.tsinghua.edu.cn/help/ubuntu/中科大源：https://lug.ustc.edu.cn/wiki/mirrors/help/ubuntu</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/891.html">
 <title>ffmpeg build from source</title>
 <link>https://blog.niekun.net/archives/891.html</link>
-<dc:date>2020-02-09T20:27:00+08:00</dc:date>
+<dc:date>2020-02-09T07:27:00-05:00</dc:date>
 <description>https://trac.ffmpeg.org/wiki/CompilationGuide/UbuntuUbuntu 14.04add ppa：https://launchpad.net/~mc3man/+archive/ubuntu/trusty-media</description>
 </item>
 </rdf:RDF>

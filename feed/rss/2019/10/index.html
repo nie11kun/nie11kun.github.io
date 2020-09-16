@@ -6,7 +6,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <channel rdf:about="https://blog.niekun.net/feed/rss/2019/10/">
 <title>Marco Nie - 2019年10月</title>
 <link>https://blog.niekun.net/2019/10/</link>
-<description>I’m dancing at the feet of my lord...</description>
+<description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
 <rdf:li resource="https://blog.niekun.net/archives/444.html"/>
@@ -25,25 +25,63 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/444.html">
 <title>在 Git 中缓存 GitHub 密码信息-credential</title>
 <link>https://blog.niekun.net/archives/444.html</link>
-<dc:date>2019-10-28T14:22:00+08:00</dc:date>
-<description>git 有两种方式访问服务器：https ssh以下介绍两种方式进行一次设置，以后可以直接操作无需密码。[...]</description>
+<dc:date>2019-10-28T02:22:00-04:00</dc:date>
+<description>git 有两种方式访问服务器：https ssh以下介绍两种方式进行一次设置，以后可以直接操作无需密码。ssh如果下载仓库的时候用的 git@git 的形式，代表是 ssh 方式下载的。在登录的时候需要使用 ssh key代替账号密码。关于 ssh key 参考官方介绍：https://help.github.com/en/articles/generating-an-ssh-keyhttps如果下载仓库的时候用的是 https ，则需要配置一个 credential helper 来告诉 git 记住账户密码。Windows终端执行如下代码，将证书存储到本地：git config --global credential.helper wincred
+运行后操作一次 git push 如果提示输入密码，则输入一次，以后就不会再提示了。MacMac 下需要使用到 osxkeychain 来存储证书。首先检查是否已经安装了 osxkeychain：git credential-osxkeychain
+如果没有安装，系统会自动提示下载包含credential-osxkeychain 的 Xcode Command Line Tools。或者使用 homebrew 来安装 Git 和 the osxkeychain helper：brew install git
+终端执行如下代码，将证书安装到本地：git config --global credential.helper osxkeychain
+运行后操作一次 git push 如果提示输入密码，则输入一次，以后就不会再提示了。LinuxLinux 下打开 credential helper 将账户密码存储在本地或缓存中。使用 cache 选项保存到缓存，默认将会缓存 15 分钟：git config --global credential.helper cache
+修改缓存时间可以使用如下指令，单位：秒：git config --global credential.helper 'cache --timeout=3600'
+使用 store 存储在本地，默认存储在 ~/.git-credentials:git config --global credential.helper store
+二次验证 token如果开启了账户二次验证，则需要生成一个 Personal access token 来代替密码输入：在 github 账户设置中，进入 settings - Developer settings，点击 generate new token，在里面选择 repo 复选框，会生成一串字符，在命令行中输入账户密码时用它代替密码。首次设置如果第一次使用命令行需要做如下设置用户信息：git config --global user.email &quot;you@example.com&quot;
+git config --global user.name &quot;Your Name&quot;
+git config --global push.default simple</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/438.html">
 <title>python 常用语法收集</title>
 <link>https://blog.niekun.net/archives/438.html</link>
-<dc:date>2019-10-17T14:52:00+08:00</dc:date>
-<description>在我使用过程中遇到的常用语法，这里做一些记录。[...]</description>
+<dc:date>2019-10-17T02:52:00-04:00</dc:date>
+<description>在我使用过程中遇到的常用语法，这里做一些记录。os.system()可以用来运行终端命令：import os
+os.system('date')
+-----------------------
+The current date is: 10/17/2019 Thu glob用来将匹配的文件放入数组：import glob
+import os
+CWD = os.getcwd()#当前目录路径
+for name in glob.glob(CWD+'/*'):
+    print(name)以上输出当前目录下所有文件的文件名。for name in glob.glob(CWD+'/file?.txt'):
+    print(name)以上输出  filea.txt, fileb.txt filec.txt 等文件名。可以使用类似正则表达式的方式匹配文件名：glob.glob(CWD+'/*[12].*')
+从python3.5开始，支持使用一下方法进行递归搜索目录内文件及文件夹：for name in glob.glob(CWD+'/**/*', recursive=True):
+    print(name)以上会输出目录内文件及子文件夹内文件。split()字符串分割：按空格分割，注意两个部分之间的空格可以是1个或多个，不影响分割效果：txt = &quot;welcome to the jungle&quot;
+x = txt.split()将 txt 字符串按空格来分成4个部分，x 是数组。分割成设定的个数：txt = &quot;welcome to the jungle&quot;
+x = txt.split(' ', 1)输出结果：x = ['welcome', 'to the jungle']按特定字符分割：txt = &quot;apple#banana#cherry#orange&quot;
+x = txt.split(&quot;#&quot;, 1)输出结果：x = ['apple', 'banana#cherry#orange']next()用于 iterator 的顺序提取。mylist = iter([&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;])
+x = next(mylist)
+print(x)
+y = next(mylist)
+print(x)
+z = next(mylist)
+print(x)输出结果：x = 'apple' y = 'banana' z = 'cherry'format()用于字符串内的赋值：print (&quot;{}, A computer science portal for geeks&quot;.format(&quot;GeeksforGeeks&quot;))输出：GeeksforGeeks, A computer science portal for geeks多个输入参数：print (&quot;Hi ! My name is {} and I am {} years old&quot;
+                            .format(&quot;User&quot;, 19)) 带索引的多参数输入：print(&quot;Every {3} should know the use of {2} {1} programming and {0}&quot;
+        .format(&quot;programmer&quot;, &quot;Open&quot;, &quot;Source&quot;, &quot;Operating Systems&quot;)) 输出结果：Every Operating Systems should know the use of Source Open programming and programmerstrip()删除字符串前和后的空格：txt = &quot;     banana     &quot;
+x = txt.strip()输出：x = 'banana'删除字符串前和后的自定义字符：txt = &quot;,,,,,rrttgg.....banana....rrr&quot;
+x = txt.strip(&quot;,.grt&quot;)输出： x = 'banana'</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/436.html">
 <title>Linux 使用 split 命令分割文件</title>
 <link>https://blog.niekun.net/archives/436.html</link>
-<dc:date>2019-10-17T14:14:00+08:00</dc:date>
-<description>split {options} {file_name} {prefix}[...]</description>
+<dc:date>2019-10-17T02:14:00-04:00</dc:date>
+<description>split {options} {file_name} {prefix}将每个文件分割成指定行数的文件：-lsplit -l200 tuxlap.txt
+每个文件后缀会加上 aa ab ac...将每个文件分割成指定大小：-b有 4 中写法，对应按 byte kb mb gb 来分割：split  -b{bytes}  {file_name}split  -b  nK      {file_name}split  -b   nM    {file_name}split  -b   nG     {file_name}split -b 50M tuxlap.txt
+给分割后的文件指定文件名：split  {file_name}  {prefix_name}split -b 1M tuxlap.txt split_file.txt
+分割后的文件是：split_file.txtaasplit_file.txtabsplit_file.txtac将文件分割成指定个数：-nsplit -n5 linux-lite.iso
+以上指令将文件分割为5个文件。防止分割后的文件大小为0，可加上指令 "-e"，对于小文件适用：split -n60 -e tuxlap.txt
+将分割后的文件进行合并可使用 cat 命令：cat file.mp4* &gt; file.mp4
+注意使用 split 命令分割后的媒体文件无法被打开，需要合并后才能正常发开播放。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/430.html">
 <title>Linux 后台程序/端口占用查看及关闭</title>
 <link>https://blog.niekun.net/archives/430.html</link>
-<dc:date>2019-10-16T16:10:00+08:00</dc:date>
+<dc:date>2019-10-16T04:10:00-04:00</dc:date>
 <description>ps查看当前所有后台进程：ps -aux查看某个脚本进程：ps -aux | grep &quot;test.sh&quot;
 kill关闭进程，通过ps命令查看进程号PID，然后执行：kill %PID
 lsof查看当前端口是否被某个进程占用：lsof -i:8000
@@ -52,19 +90,29 @@ Windows 查看端口占用参考：https://niekun.net/index.php/archives/922.htm
 <item rdf:about="https://blog.niekun.net/archives/428.html">
 <title>使用 telegram bot 做一个 YouTube 下载器</title>
 <link>https://blog.niekun.net/archives/428.html</link>
-<dc:date>2019-10-16T15:56:00+08:00</dc:date>
-<description>需要环境：Linuxpython3python-telegram-botyoutube-dl[...]</description>
+<dc:date>2019-10-16T03:56:00-04:00</dc:date>
+<description>需要环境：Linuxpython3python-telegram-botyoutube-dlpython我是用的是 python3.4，使用系统包管理器安装：apt-get install python3.4
+如果系统内安装了多个版本的 python，修改 /usr/bin/python 的默认链接，具体修改方法查看此教程：https://niekun.net/index.php/archives/413.htmlpython-telegram-bot安装或升级： pip install python-telegram-bot --upgrade
+youtube-dlGitHub：https://github.com/ytdl-org/youtube-dl安装最新版库：sudo curl -L -k https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
+sudo chmod a+rx /usr/local/bin/youtube-dl如果运行 youtube-dl 报错，可以新建链接到系统程序目录：ln -s /usr/local/bin/youtube-dl /usr/bin/youtube-dl
+可能运行报错问题及解决执行脚本后，出现类似如下错误：from tornado.httpserver import HTTPServer from tornado.httpserver import HTTPServer 
+syntaxError: invalid syntax可能是 tornado 版本过高，需要进行降级：pip install tornado==4.5.3
+telegram bot首先在 telegram 客户端内添加 BotFatherCreating a new botUse the /newbot command to create a new bot. The BotFather will ask you for a name and username, then generate an authorization token for your new bot.The name of your bot is displayed in contact details and elsewhere.The Username is a short name, to be used in mentions and telegram.me links. Usernames are 5-32 characters long and are case insensitive, but may only include Latin characters, numbers, and underscores. Your bot's username must end in ‘bot’, e.g. ‘tetris_bot’ or ‘TetrisBot’.The token is a string along the lines of 110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw that is required to authorize the bot and send requests to the Bot API. Keep your token secure and store it safely, it can be used by anyone to control your bot.Generating an authorization tokenIf your existing token is compromised or you lost it for some reason, use the /token command to generate a new one.源码地址https://github.com/nie11kun/telegram-bot-youtube-downloader开机自动运行脚本打开 rc.localvim /etc/init.d/rc.local
+在最后添加：sudo python /your/script/path.py &amp;
+最后使用 "&" 符号功能是让脚本在后台运行，如果要停止脚本需要kill 它的 PID。查看当前脚本的 PID：ps -aux |grep &quot;your.py&quot;
+然后停止脚本：kill %PID
+windows 下可以使用自带的Linux子系统打开 cmd，输入命令：bash，即可打开Linux系统。访问Windows路径：/mnt/your/folder/path注意如果文件夹有空格 " " 在命令行中需要在空格前加转义符 "\"</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/427.html">
 <title>Linux 软链接 link</title>
 <link>https://blog.niekun.net/archives/427.html</link>
-<dc:date>2019-10-16T15:08:00+08:00</dc:date>
+<dc:date>2019-10-16T03:08:00-04:00</dc:date>
 <description>类似于 Windows 下的快捷方式，Linux 下可以创建一个文件/文件夹的 link，用于某个文件/文件夹的快速访问，也可以用在自己安装的 app 能够使用命令调用，或者设置同一 app 不同版本的调用。ln -s source_filename symbolic_filename-s：软连接</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/424.html">
 <title>Linux 设置开机自启动 python/bash 脚本</title>
 <link>https://blog.niekun.net/archives/424.html</link>
-<dc:date>2019-10-15T14:23:00+08:00</dc:date>
+<dc:date>2019-10-15T02:23:00-04:00</dc:date>
 <description>打开 rc.local 文件：vim  /etc/init.d/rc.local
 在 rc.local 后加入启动命令：sudo python /your/path/script.py &amp;
 &符号为让脚本后台运行，不在命令行显示结果.</description>
@@ -72,19 +120,26 @@ Windows 查看端口占用参考：https://niekun.net/index.php/archives/922.htm
 <item rdf:about="https://blog.niekun.net/archives/413.html">
 <title>Linux / windows 设置默认 python 版本</title>
 <link>https://blog.niekun.net/archives/413.html</link>
-<dc:date>2019-10-15T10:51:00+08:00</dc:date>
-<description>windows打开高级系统设置：[...]</description>
+<dc:date>2019-10-14T22:51:00-04:00</dc:date>
+<description>windows打开高级系统设置：打开环境变量设置：系统变量里找到 path 点击编辑：将想要默认版本的 python 路径移动到其他版本前：注意有两个目录，一个是python 程序目录，还有一个 pip 目录。也可以使用命令切换使用不同版本的 python。python 2.x 版：py -2 xxx.py
+py -2 -m pip install xxxxpython 3.x 版：py -3 xxx.py
+py -3 -m pip install xxxx
+Linux先查看系统中有那些Python版本：ls /usr/bin/python*再查看系统默认的Python版本：python --version
+Python 2.7.12
+先删除默认的Python软链接：rm /usr/bin/python
+然后创建一个新的软链接指向需要的Python版本：ln -s /usr/bin/python3.4 /usr/bin/python
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/401.html">
 <title>PS丰富图片的色彩</title>
 <link>https://blog.niekun.net/archives/401.html</link>
-<dc:date>2019-10-14T10:59:00+08:00</dc:date>
-<description>[...]</description>
+<dc:date>2019-10-13T22:59:00-04:00</dc:date>
+<description>新建 black & witer 图层，混合模式设置为 luminosity，将如下参数保存为预设到本地方便下次使用，这套默认参数不会改变原图像亮度：调节每个颜色的亮度到合适位置，增加图片细节：新建曲线图层，使用手抓工具调节局部亮暗对比，可用蒙版选择影响范围：选择性建立 solid color 图层，给图片整体一个色调，混合模式为 soft light，调整不透明度：</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/399.html">
 <title>IP-CIDR</title>
 <link>https://blog.niekun.net/archives/399.html</link>
-<dc:date>2019-10-13T19:58:00+08:00</dc:date>
-<description>无类别域间路由（Classless Inter-Domain Routing、CIDR）是一个用于给用户分配IP地址以及在互联网上有效地路由IP数据包的对IP地址进行归类的方法。[...]</description>
+<dc:date>2019-10-13T07:58:00-04:00</dc:date>
+<description>无类别域间路由（Classless Inter-Domain Routing、CIDR）是一个用于给用户分配IP地址以及在互联网上有效地路由IP数据包的对IP地址进行归类的方法。当想表示一个IP段的时候可以使用 IP-CIDR 来处理。CIDR主要是一个按位的、基于前缀的，用于解释IP地址的标准。它通过把多个地址块组合到一个路由表表项而使得路由更加方便。这些地址块叫做CIDR地址块。当用二进制表示这些地址时，它们有着在开头部分的一系列相同的位。IPv4的CIDR地址块的表示方法和IPv4地址的表示方法是相似的：由四部分组成的点分十进制地址，后跟一个斜线，最后是范围在0到32之间的一个数字：A.B.C.D/N。点分十进制的部分和IPv4地址一样是一个被分成四个八位位组的32位二进制数。斜线后面的数字就是前缀长度，也就是从左到右，被地址块里的地址所共享的位的数目。当只需说明大概时，十进制部分有时会被省略，因此，/20就表示一个前缀长度是20的CIDR地址块。如果一个IP地址的前N位与一个CIDR地址块的前缀是相同的话，那么就说这个地址属于这个CIDR地址块，也可以说是与CIDR地址块的前缀匹配。所以，要理解CIDR，就要把地址写成二进制的形式。因为IPv4地址的长度总是32位，N位长的CIDR前缀就意味着地址里32-N位不匹配。这些位有 2^(32-N) 种不同的组合，即 2^{(32-N) 个IPv4地址与CIDR地址块的前缀匹配。前缀越短就能匹配越多的地址，越长就匹配得越少。</description>
 </item>
 </rdf:RDF>

@@ -6,7 +6,7 @@ xml:base="https://blog.niekun.net/tag/apt-get/"
 >
 <title type="text">Marco Nie - apt-get</title>
 <subtitle type="text"></subtitle>
-<updated>2019-04-08T22:11:00+08:00</updated>
+<updated>2019-04-08T10:11:00-04:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/tag/apt-get/" />
 <id>https://blog.niekun.net/feed/atom/tag/apt-get/</id>
@@ -15,15 +15,52 @@ xml:base="https://blog.niekun.net/tag/apt-get/"
 <title type="html"><![CDATA[关于debian的apt/dpkg包管理相关]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/196.html" />
 <id>https://blog.niekun.net/archives/196.html</id>
-<updated>2019-04-08T22:11:00+08:00</updated>
-<published>2019-04-08T22:11:00+08:00</published>
+<updated>2019-04-08T10:11:00-04:00</updated>
+<published>2019-04-08T10:11:00-04:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[Debian 是一个致力于自由软件开发并宣扬自由软件基金会之理念的自愿者组织。Debian 计划创建于 1993 年。当时，Ian Murdock 发出一份公开信，邀请软件开发者们参与构建一个基...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/196.html" xml:lang="zh-CN"><![CDATA[
-<blockquote>Debian 是一个致力于自由软件开发并宣扬自由软件基金会之理念的自愿者组织。Debian 计划创建于 1993 年。当时，Ian Murdock 发出一份公开信，邀请软件开发者们参与构建一个基于较新的 Linux 内核的完整而紧密的软件发行版。</blockquote><p>官网：<a href="https://www.debian.org/">https://www.debian.org/</a></p><p class="more"><a href="https://blog.niekun.net/archives/196.html" title="关于debian的apt/dpkg包管理相关">[...]</a></p>
+<blockquote>Debian 是一个致力于自由软件开发并宣扬自由软件基金会之理念的自愿者组织。Debian 计划创建于 1993 年。当时，Ian Murdock 发出一份公开信，邀请软件开发者们参与构建一个基于较新的 Linux 内核的完整而紧密的软件发行版。</blockquote><p>官网：<a href="https://www.debian.org/">https://www.debian.org/</a></p><!--more--><p>简单来说就是一个 Linux 的发行版，和 centos Ubuntu是一个类型的。但是其设计初衷为纯粹，更为干净。</p><h1>APT(advanced package tool)</h1><p>Debian 带来了数万个软件包。为了方便用户使用，这些软件包都已经被编译包装为一种方便的格式，开发人员把它叫做 deb 包。</p><p>Debian 系统中，软件包管理可由多种工具协作进行，范围从最底层的 dpkg 命令直到图形界面的 Synaptic 工具。推荐在 Debian 系统中管理软件包的标准工具是 apt 工具集。</p><p>使用 apt 安装软件，就不需要从源码开始编译了，可以有效节省时间。</p><p>有两个主要命令：<br>apt-get：用于安装，升级或清理软件包<br>apt-cache：用户寻找新的软件包</p><h2>apt-get</h2><p>更新软件包元数据：</p><pre><code>apt-get update
+</code></pre><p>升级所有已安装包：</p><pre><code>apt-get upgrade</code></pre><p>或者：</p><pre><code>apt-get dist-upgrade
+</code></pre><p>升级特定软件包：</p><pre><code>apt-get upgrade &lt;package_name&gt;
+</code></pre><p><strong>upgrade 和 dist-upgrade 的区别：</strong></p><p>upgrade 是一个更安全的模式，它不会尝试删除现有或安装一个新的软件包，而 dist-upgrade 会更加“聪明”的替你安装包，这个过程可能会删除或更改你现有的软件包，包括一些你不想进行更改的包，有潜在隐患。</p><p>所以进行一次完整的升级：</p><pre><code>apt-get update &amp;&amp; sudo apt-get upgrade -y
+</code></pre><p>安装一个软件包：</p><pre><code>apt-get install &lt;package_name&gt;
+</code></pre><p>重新安装一个已安装的软件包：</p><pre><code>apt-get install --reinstall &lt;package_name&gt;
+</code></pre><p>同时安装多个包：</p><pre><code>apt-get install &lt;package_1&gt; &lt;package_2&gt; &lt;package_3&gt;
+</code></pre><p>安装一个包的特定版本：</p><pre><code>apt-get install &lt;package_name&gt;=&lt;version_number&gt;
+</code></pre><p>删除一个包：</p><pre><code>apt-get remove &lt;package_name&gt;</code></pre><p>或者：</p><pre><code>apt-get purge &lt;package_name&gt;
+</code></pre><p><strong>apt-get remove 和 apt-get purge 的区别：</strong></p><p>remove 只会删除这个包本身，不会删除其配置文件等残留内容，这意味着如果你重新安装此包，会提示你要覆盖相关配置文件。purge 会删除此包的相关所有内容。</p><p>清理本地缓存仓库文件：</p><pre><code>apt-get clean
+</code></pre><p>清理本地过期缓存文件：</p><pre><code>apt-get autoclean
+</code></pre><p>删除之前自动安装的不再需要的包：</p><pre><code>apt-get autoremove
+</code></pre><p>安装其他包管理源：(注意不要添加不被信任的源，以免危险)</p><pre><code>add-apt-repository ppa:&lt;some/source&gt;
+apt-get update
+</code></pre><p>如果添加一个第三方源后，执行 apt-get update 时提示：GPG error: <a href="http://ppa.launchpad.net">http://ppa.launchpad.net</a> trusty InRelease...<br>这时需要先确定其 key 没有问题，这个可以访问这个源发布者页面查看其 key 比对命令行里出现的 key，如果一样的话需要手动加入 key 到 key管理器：</p><pre><code>apt-key adv --keyserver keyserver.ubuntu.com --recv-keys &lt;PUBKEY&gt;
+</code></pre><p>将 <PUBKEY> 替换为 key。</p><p>删除自己安装的某个包管理源，可以安装 ppa-purge 来管理：</p><pre><code>apt-get install ppa-purge
+ppa-purge ppa:&lt;some/source&gt;
+apt-get update
+</code></pre><p>已安装的第三方源在 <strong>/etc/apt/sources.list.d/</strong> 目录下的 <strong>.list</strong> 文件。</p><p>手动删除 <strong>.list</strong> 文件也可删除对应源，删除后执行 <code>apt-get update</code>。</p><h2>apt-cache</h2><p>搜索你想要的软件：</p><pre><code>apt-cache search &lt;search term&gt;
+</code></pre><p>你不需要精确的包名字，它会自动匹配相近的内容。</p><p>如果你知道确切的包名来搜索，可以这样：</p><pre><code>apt-cache pkgnames &lt;search_term&gt;
+</code></pre><p>或者更精确的搜索到一个包的详细；</p><pre><code>apt-cache showpkg &lt;package_name&gt;
+</code></pre><h2>sources.list</h2><p>List of configured APT data sources</p><p>包管理数据源列表文件地址：<strong>/etc/apt/sources.list</strong> 和 <strong>/etc/apt/sources.list.d/</strong> 目录下的所有 .list 文件。</p><p>在 sources.list.d 下添加源文件，等同于使用上面的 add-apt-repository 命令。</p><p>list 格式解释参考：<a href="http://manpages.ubuntu.com/manpages/trusty/man5/sources.list.5.html">http://manpages.ubuntu.com/manpages/trusty/man5/sources.list.5.html</a></p><p>官方源列表：<a href="https://launchpad.net/ubuntu/+archivemirrors">https://launchpad.net/ubuntu/+archivemirrors</a></p><p>unoffical php: <a href="https://launchpad.net/~ondrej/+archive/ubuntu/php">https://launchpad.net/~ondrej/+archive/ubuntu/php</a><br>unoffical ffmpeg源：<a href="https://launchpad.net/~mc3man/+archive/ubuntu/trusty-media">https://launchpad.net/~mc3man/+archive/ubuntu/trusty-media</a></p><h1>dpkg</h1><p>dpkg 是基于 Debian 的 Linux 系统的包管理器，它可以 安装，删除，创建包，不同于 apt 等其他包管理器，它不可以自动的安装一些依赖文件。所有的安装操作都需要手动完成。</p><p><strong>apt 也是 dpkg 安装包形式的。所以 dpkg 可以管理 apt 安装的包</strong></p><p><strong>常用命令：</strong></p><p>列出当前系统安装的所有包：</p><pre><code>dpkg -l
+</code></pre><p>列出特定包的相关安装信息：</p><pre><code>dpkg -l | grep xxxx
+</code></pre><p>列出安装某个包时创建的文件：</p><pre><code>dpkg -L nginx
+</code></pre><p>查看某个文件是在那个包安装时创建的：</p><pre><code>dpkg -S file
+
+dpkg -S /etc/nginx/naxsi.rules
+nginx-common: /etc/nginx/naxsi.rules
+</code></pre><p>安装一个 deb 包：</p><pre><code>dpkg -i xxx.deb
+</code></pre><p>删除一个包：</p><pre><code>dpkg -r nginx
+或者
+dpkg -p nginx
+
+
+
+
+
+</code></pre>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/196.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/196.html" thr:count="0"/>

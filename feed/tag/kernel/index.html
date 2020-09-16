@@ -11,17 +11,60 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/tag/kernel/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Sun, 17 Nov 2019 22:36:00 +0800</lastBuildDate>
-<pubDate>Sun, 17 Nov 2019 22:36:00 +0800</pubDate>
+<lastBuildDate>Sun, 17 Nov 2019 09:36:00 -0500</lastBuildDate>
+<pubDate>Sun, 17 Nov 2019 09:36:00 -0500</pubDate>
 <item>
 <title>Linux kernel 内核相关</title>
 <link>https://blog.niekun.net/archives/526.html</link>
 <guid>https://blog.niekun.net/archives/526.html</guid>
-<pubDate>Sun, 17 Nov 2019 22:36:00 +0800</pubDate>
+<pubDate>Sun, 17 Nov 2019 09:36:00 -0500</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[Linux内核（英语：Linux kernel），是一种开源的类Unix操作系统宏内核。如果你在安装新硬件后遇到：网卡不能使用，亮度不能调节，触摸板不能识别，蓝牙不能使用等等，这些关系都和lin...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>Linux内核（英语：Linux kernel），是一种开源的类Unix操作系统宏内核。</p><p>如果你在安装新硬件后遇到：网卡不能使用，亮度不能调节，触摸板不能识别，蓝牙不能使用等等，这些关系都和linux的内核有关系。Kernel 是 Linux 系统的核心，主要负责硬件的支持。Linux 内核提供了安全补丁，bugfix 和新特性。</p><p>参考链接：<br><a href="https://linux.cn/article-10103-1.html">https://linux.cn/article-10103-1.html</a><br><a href="https://www.cyberciti.biz/faq/installing-latest-stable-mainline-linux-kernel-on-ubuntu-with-apt-get/">https://www.cyberciti.biz/faq/installing-latest-stable-mainline-linux-kernel-on-ubuntu-with-apt-get/</a></p><p>Ubuntu 不同版本系统支持内核情况：<a href="https://wiki.ubuntu.com/Kernel/Support">https://wiki.ubuntu.com/Kernel/Support</a></p><p class="more"><a href="https://blog.niekun.net/archives/526.html" title="Linux kernel 内核相关">[...]</a></p>
+<p>Linux内核（英语：Linux kernel），是一种开源的类Unix操作系统宏内核。</p><p>如果你在安装新硬件后遇到：网卡不能使用，亮度不能调节，触摸板不能识别，蓝牙不能使用等等，这些关系都和linux的内核有关系。Kernel 是 Linux 系统的核心，主要负责硬件的支持。Linux 内核提供了安全补丁，bugfix 和新特性。</p><p>参考链接：<br><a href="https://linux.cn/article-10103-1.html">https://linux.cn/article-10103-1.html</a><br><a href="https://www.cyberciti.biz/faq/installing-latest-stable-mainline-linux-kernel-on-ubuntu-with-apt-get/">https://www.cyberciti.biz/faq/installing-latest-stable-mainline-linux-kernel-on-ubuntu-with-apt-get/</a></p><p>Ubuntu 不同版本系统支持内核情况：<a href="https://wiki.ubuntu.com/Kernel/Support">https://wiki.ubuntu.com/Kernel/Support</a></p><!--more--><h2>查看当前运行内核：</h2><pre><code>uname -r
+
+4.4.0-124-generic</code></pre><p>Linux 内核版本号由 3 组数字组成：第一个组数字。第二组数字。第三组数字</p><p>第一个组数字：目前发布的内核主版本。<br>第二个组数字：偶数表示稳定版本；奇数表示开发中版本。<br>第三个组数字：错误修补的次数。</p><h2>查看当前设备已安装的内核：</h2><pre><code>dpkg --get-selections| grep linux
+
+libselinux1:amd64                               install
+linux-firmware                                  install
+linux-generic-lts-xenial                        install
+linux-headers-4.4.0-124                         install
+linux-headers-4.4.0-124-generic                 install
+linux-headers-generic-lts-xenial                install
+linux-image-4.4.0-116-generic                   deinstall
+linux-image-4.4.0-119-generic                   deinstall
+linux-image-4.4.0-121-generic                   deinstall
+linux-image-4.4.0-124-generic                   install
+linux-image-4.4.0-31-generic                    deinstall
+linux-image-extra-4.4.0-116-generic             deinstall
+linux-image-extra-4.4.0-119-generic             deinstall
+linux-image-extra-4.4.0-121-generic             deinstall
+linux-image-extra-4.4.0-124-generic             install
+linux-image-extra-4.4.0-31-generic              deinstall
+linux-image-generic-lts-xenial                  install
+linux-libc-dev:amd64                            install
+python-selinux                                  install
+selinux-policy-default                          install
+selinux-utils                                   install
+util-linux                                      install</code></pre><p>可以看到一台设备可以安装多个内核，但只能使用一个。</p><h2>apt 安装内核</h2><h3>apt 安装</h3><p>首先搜索可用内核：</p><pre><code>apt-get update
+apt-cache search linux-generic
+</code></pre><p>在输出的结果中，找到合适的内核版本进行安装：</p><pre><code>apt-get install linux-image-4.10.0-27-generic
+</code></pre><p>清空下载的 deb 安装包文件，重启系统：</p><pre><code>rm *.deb
+sudo reboot
+</code></pre><p>重启后查看内核版本：</p><pre><code>uname -r
+</code></pre><p><strong>此方法一般无法安装最新版内核。</strong></p><h3>apt 卸载内核</h3><p>首先使用以上命令查看当前已安装的内核，然后卸载：</p><pre><code>dpkg --get-selections| grep linux
+sudo apt-get purge -f xxx
+</code></pre><h2>切换内核版本</h2><p>一个系统可以同时安装多个内核，但是运行时只能选择一个，当启动电脑时，在显示 grub 菜单时可以选择加载哪一个内核。（当只有一个系统安装时，grub 菜单可能被跳过，强制显示 grub 菜单可以在启动电脑时一直按住 Shift 按键）</p><hr><h2>从 kernel 官网安装内核</h2><p>官网：<a href="https://www.kernel.org/">https://www.kernel.org/</a></p><p><img src="https://niekun.net/usr/uploads/2019/11/25997780.png" alt="2019-11-17T14:19:48.png" title="2019-11-17T14:19:48.png"></p><p><strong>以上官网列出的多个版本内核代表意义不同：</strong><br>5.3.11 是最新的稳定版<br>4.19.84 是最新的 LTS 版本<br>4.14.154、4.9.202、以及 4.4.202 是仍然处于维护状态的老的 LTS 版本</p><p><strong>建议使用的内核的分级，从最佳的方案到最差的方案如下：</strong></p><p>你最喜欢的 Linux 发行版支持的内核<br>最新的稳定版<br>最新的 LTS （长期支持）版本<br>仍然处于维护状态的老的 LTS 版本</p><p>绝对不要去使用的内核：<br>不再维护的内核版本</p><h3>下载安装</h3><p>首先根据自己 Linux 系统版本，找到合适的可安装的最高版本内核：<a href="https://wiki.ubuntu.com/Kernel/Support">https://wiki.ubuntu.com/Kernel/Support</a></p><p>了解到需要安装的内核后，进入一下官方网站找到需要版本内核的目录进入：<br><a href="https://kernel.ubuntu.com/~kernel-ppa/mainline/">https://kernel.ubuntu.com/~kernel-ppa/mainline/</a></p><p>下载对应版本的 deb 安装包：<br><img src="https://niekun.net/usr/uploads/2019/11/2288673441.png" alt="Screen Shot 2019-11-17 at 22.29.00.png" title="Screen Shot 2019-11-17 at 22.29.00.png"></p><pre><code>wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.3.11/linux-headers-5.3.11-050311_5.3.11-050311.201911121635_all.deb
+wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.3.11/linux-headers-5.3.11-050311-generic_5.3.11-050311.201911121635_amd64.deb
+wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.3.11/linux-image-unsigned-5.3.11-050311-generic_5.3.11-050311.201911121635_amd64.deb
+wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.3.11/linux-modules-5.3.11-050311-generic_5.3.11-050311.201911121635_amd64.deb
+</code></pre><p>安装：</p><pre><code>dpkg -i *.deb
+</code></pre><p>如果安装过程报错，需要立刻卸载掉已安装的相关新内核部分：</p><pre><code>dpkg --get-selections| grep linux
+sudo apt-get purge -f xxx
+</code></pre><p>如果安装顺利完成，重启系统：</p><pre><code>reboot
+</code></pre><p>查看内核版本：</p><pre><code>uname -r
+
+</code></pre>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/526.html#comments</comments>

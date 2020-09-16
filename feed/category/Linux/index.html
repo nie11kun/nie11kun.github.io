@@ -11,17 +11,48 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/Linux/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Tue, 14 Jul 2020 17:25:00 +0800</lastBuildDate>
-<pubDate>Tue, 14 Jul 2020 17:25:00 +0800</pubDate>
+<lastBuildDate>Tue, 14 Jul 2020 05:25:00 -0400</lastBuildDate>
+<pubDate>Tue, 14 Jul 2020 05:25:00 -0400</pubDate>
 <item>
 <title>Linux 下使用 OptiPNG 压缩图片</title>
 <link>https://blog.niekun.net/archives/1666.html</link>
 <guid>https://blog.niekun.net/archives/1666.html</guid>
-<pubDate>Tue, 14 Jul 2020 17:25:00 +0800</pubDate>
+<pubDate>Tue, 14 Jul 2020 05:25:00 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[最近越来也发现自己的博客加载图片变慢了，由于我很多教程是教 PS 的，会使用到很多图片和截图，所以影响尤其明显。每张图片小则 400Kb 大则 2-3Mb，对于网络浏览不太友好。可以直接在服务器...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>最近越来也发现自己的博客加载图片变慢了，由于我很多教程是教 PS 的，会使用到很多图片和截图，所以影响尤其明显。每张图片小则 400Kb 大则 2-3Mb，对于网络浏览不太友好。</p><p>可以直接在服务器上进行图片压缩，用到的工具是 OptiPNG。</p><p>OptiPNG home page：<a href="http://optipng.sourceforge.net/">http://optipng.sourceforge.net/</a></p><p class="more"><a href="https://blog.niekun.net/archives/1666.html" title="Linux 下使用 OptiPNG 压缩图片">[...]</a></p>
+<p>最近越来也发现自己的博客加载图片变慢了，由于我很多教程是教 PS 的，会使用到很多图片和截图，所以影响尤其明显。每张图片小则 400Kb 大则 2-3Mb，对于网络浏览不太友好。</p><p>可以直接在服务器上进行图片压缩，用到的工具是 OptiPNG。</p><p>OptiPNG home page：<a href="http://optipng.sourceforge.net/">http://optipng.sourceforge.net/</a></p><!--more--><h3>编译安装</h3><p>我选择从源码编译安装，这样可以直接使用最新版本。</p><p><strong>如何从源码编译程序可以参考我的文章</strong>：<a href="https://blog.niekun.net/archives/883.html">https://blog.niekun.net/archives/883.html</a></p><p>首先从官网下载源码到 vps 并解压：</p><pre><code>cd /tmp
+wget http://prdownloads.sourceforge.net/optipng/optipng-0.7.7.tar.gz
+tar xvf optipng-0.7.7.tar.gz
+</code></pre><p>新建安装路径：</p><pre><code>mkdir /opt/optipng-0.7.7
+ln -s /opt/optipng-0.7.7 /opt/optipng
+</code></pre><p>configure & make：</p><pre><code>cd /tmp/optipng-0.7.7
+./configure --prefix=/opt/optipng-0.7.7
+make
+make install
+</code></pre><p>测试是否可以执行：</p><pre><code>/opt/optipng/bin/optipng
+</code></pre><p>创建系统链接：</p><pre><code>ln -s /opt/optipng/bin/optipng /usr/local/bin/optipng
+</code></pre><h3>使用</h3><p>可以使用命令查看处理前处理后的图片体积：</p><pre><code>ls -lh a.png
+</code></pre><p>压缩一张 png 图片：</p><pre><code>optipng a.png
+</code></pre><p>压缩目录下的所有 png 图片：</p><pre><code>optipng *.png
+</code></pre><p>可以自定义压缩等级：</p><pre><code>Optimization levels:
+    -o0         &lt;=&gt;     -o1 -nx -nz                             (0 or 1 trials)
+    -o1         &lt;=&gt;     -zc9 -zm8 -zs0 -f0                      (1 trial)
+                (or...) -zc9 -zm8 -zs1 -f5                      (1 trial)
+    -o2         &lt;=&gt;     -zc9 -zm8 -zs0-3 -f0,5                  (8 trials)
+    -o3         &lt;=&gt;     -zc9 -zm8-9 -zs0-3 -f0,5                (16 trials)
+    -o4         &lt;=&gt;     -zc9 -zm8 -zs0-3 -f0-5                  (24 trials)
+    -o5         &lt;=&gt;     -zc9 -zm8-9 -zs0-3 -f0-5                (48 trials)
+    -o6         &lt;=&gt;     -zc1-9 -zm8 -zs0-3 -f0-5                (120 trials)
+    -o7         &lt;=&gt;     -zc1-9 -zm8-9 -zs0-3 -f0-5              (240 trials)
+    -o7 -zm1-9  &lt;=&gt;     -zc1-9 -zm1-9 -zs0-3 -f0-5              (1080 trials)
+Notes:
+    The combination for -o1 is chosen heuristically.
+    Exhaustive combinations such as &quot;-o7 -zm1-9&quot; are not generally recommended.
+Examples:
+    optipng file.png                                            (default speed)
+    optipng -o5 file.png                                        (slow)
+    optipng -o7 file.png                                        (very slow)</code></pre>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1666.html#comments</comments>
@@ -31,11 +62,17 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>使用 SCP 管理远程服务器文件</title>
 <link>https://blog.niekun.net/archives/1547.html</link>
 <guid>https://blog.niekun.net/archives/1547.html</guid>
-<pubDate>Fri, 03 Apr 2020 08:55:39 +0800</pubDate>
+<pubDate>Thu, 02 Apr 2020 20:55:39 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[安全复制（英语：Secure copy，缩写SCP）是指在本地主机与远程主机或者两台远程主机之间基于Secure Shell（SSH）协议安全地传输电脑文件。SCP是一种基于BSD RCP协议的...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>安全复制（英语：Secure copy，缩写SCP）是指在本地主机与远程主机或者两台远程主机之间基于Secure Shell（SSH）协议安全地传输电脑文件。</p><p>SCP是一种基于BSD RCP协议的网络传输协议，[3] 支持同一个网络上主机之间传输文件。SCP使用Secure Shell（SSH）完成数据传输，并使用同时用它进行身份认证，从而确保数据传输时的真实性和保密性。客户端可以向服务器发送（上传）文件，可选包含其基本属性（权限、时间戳）。客户端也可以请求（下载）一个服务器的文件或目录。SCP默认通过TCP端口22运行。</p><p>和 SCP 类似功能的是 SFTP 协议，也是使用 SSH 传输数据，具体使用方法参考：<a href="https://blog.niekun.net/archives/130.html">https://blog.niekun.net/archives/130.html</a></p><p>Linux 系统可以直接使用 scp 命令进行操作，Windows 系统可以安装 <a href="http://winscp.net/">WinSCP</a>，进行操作。</p><p class="more"><a href="https://blog.niekun.net/archives/1547.html" title="使用 SCP 管理远程服务器文件">[...]</a></p>
+<p>安全复制（英语：Secure copy，缩写SCP）是指在本地主机与远程主机或者两台远程主机之间基于Secure Shell（SSH）协议安全地传输电脑文件。</p><p>SCP是一种基于BSD RCP协议的网络传输协议，[3] 支持同一个网络上主机之间传输文件。SCP使用Secure Shell（SSH）完成数据传输，并使用同时用它进行身份认证，从而确保数据传输时的真实性和保密性。客户端可以向服务器发送（上传）文件，可选包含其基本属性（权限、时间戳）。客户端也可以请求（下载）一个服务器的文件或目录。SCP默认通过TCP端口22运行。</p><p>和 SCP 类似功能的是 SFTP 协议，也是使用 SSH 传输数据，具体使用方法参考：<a href="https://blog.niekun.net/archives/130.html">https://blog.niekun.net/archives/130.html</a></p><p>Linux 系统可以直接使用 scp 命令进行操作，Windows 系统可以安装 <a href="http://winscp.net/">WinSCP</a>，进行操作。</p><!--more--><p>下面介绍 Linux 下使用 scp 进行文件传输。</p><p>复制远程文件到本地:</p><pre><code>scp -P port username@from_host:file.txt /local/directory/
+</code></pre><p>复制本地文件到远程:</p><pre><code>scp file.txt username@to_host:/remote/directory/
+</code></pre><p>复制远程文件夹到本地:</p><pre><code>scp -r username@from_host:/remote/directory/  /local/directory/
+
+</code></pre><p>复制本地文件夹到远程:</p><pre><code>scp -r /local/directory/ username@to_host:/remote/directory/
+</code></pre><p>复制远程文件到另一个远程服务器:</p><pre><code>scp username@from_host:/remote/directory/file.txt username@to_host:/remote/directory/
+</code></pre><p>执行上面的命令后会提示要求输入所登录的远程用户密码。</p><p>如果远程服务器 ssh 端口不是默认的 22，需要使用 <code>-P</code> 参数进行设置，注意是大写 P。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1547.html#comments</comments>
@@ -45,11 +82,139 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>NGINX Reverse Proxy 反向代理的使用</title>
 <link>https://blog.niekun.net/archives/1378.html</link>
 <guid>https://blog.niekun.net/archives/1378.html</guid>
-<pubDate>Mon, 30 Mar 2020 11:05:00 +0800</pubDate>
+<pubDate>Sun, 29 Mar 2020 23:05:00 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[Proxying is typically used to distribute the load among several servers, seamlessly show content ...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<blockquote>Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.</blockquote><p>nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有： <strong> HTTP，FastCGI, uwsgi, SCGI, and memcached。</strong></p><p>不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：<a href="https://blog.niekun.net/archives/195.html">https://blog.niekun.net/archives/195.html</a></p><p>下面介绍 ngx_http_proxy_module 模块的使用方式。</p><p class="more"><a href="https://blog.niekun.net/archives/1378.html" title="NGINX Reverse Proxy 反向代理的使用">[...]</a></p>
+<blockquote>Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.</blockquote><p>nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有： <strong> HTTP，FastCGI, uwsgi, SCGI, and memcached。</strong></p><p>不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：<a href="https://blog.niekun.net/archives/195.html">https://blog.niekun.net/archives/195.html</a></p><p>下面介绍 ngx_http_proxy_module 模块的使用方式。</p><!--more--><h3>语法</h3><p>proxy_pass 指令将请求转发到其他代理服务器。</p><p>转发一个 http 请求到另一个地址：</p><pre><code>location /some/path/ {
+    proxy_pass http://www.example.com/link/;
+}</code></pre><p>以上示例将访问 location 段的请求转发到特定地址，这里有几个规则需要注意：</p><p>1.代理地址如果不写明 location 段，则转发请求 location 到新的地址：</p><pre><code>location /some/path/ {
+    proxy_pass http://www.example.com;
+}</code></pre><p>以上规则下，访问 /some/path/.test.html 时，会转发到 <a href="http://www.example.com/some/path/.test.html">http://www.example.com/some/path/.test.html</a></p><pre><code>location ~ \.php {
+    proxy_pass http://127.0.0.1:8000;
+}</code></pre><p>以上规则下，访问 /some/path/test.php 时，会转发到 127.0.0.1:8000/some/path/test.php</p><p>2.代理地址包含新的 location 时会替换掉请求 location 部分：</p><pre><code>location /some/path/ {
+    proxy_pass http://www.example.com/new/;
+}</code></pre><p>以上规则下，访问 /some/path/test.html 时，会转发到 <a href="http://www.example.com/new/test.html">http://www.example.com/new/test.html</a>，注意 <a href="http://www.example.com/">http://www.example.com/</a> 和 <a href="http://www.example.com">http://www.example.com</a> 不同，也属于包含根路径 location 段的。</p><p>proxy_pass 语法用来转发给 http 服务，还支持转发给其他协议的服务：</p><ul><li>fastcgi_pass 转发给 FastCGI server 如 php 服务</li><li>uwsgi_pass 转发给 uwsgi server 如 python 服务</li><li>scgi_pass 转发给 SCGI server</li><li>memcached_pass 转发给 memcached server</li></ul><p>转发的服务地址可以用一个 <strong>upstream</strong> 组来实现负载均衡：</p><pre><code>http {
+    upstream backend {
+        server backend1.example.com;
+        server backend2.example.com;
+        server 192.0.0.1 backup;
+    }
+    
+    server {
+        ...
+        location / {
+            proxy_pass http://backend;
+        }
+    }
+}</code></pre><p>以上是一个简单的负载均衡代理转发示例。关于 upstream 详细使用参考<a href="https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/">官方教程</a></p><h3>proxy_redirect 响应头 location/refresh 重定向</h3><p>当上游服务器返回的响应是重定向或刷新请求（如HTTP响应码是301或者302）时，proxy_redirect可以重设HTTP头部的location/Refresh 字段。</p><p>语法结构：</p><pre><code>proxy_redirect default;
+proxy_redirect off;
+proxy_redirect redirect replacement;
+</code></pre><p>默认设置是：proxy_redirect default。</p><p>http 响应头的 location 段 HTTP Location 是在两种情况使用在响应头中：</p><ul><li>要求网页浏览器加载其他网页(域名转址)。在这种情况下，应该使用HTTP状态码3xx发送Location头。</li><li>提供有关新创建资源位置的信息。在这种情况下，应该使用HTTP状态码201或202发送Location头。</li></ul><p>通过修改 location 可以让客户端接收到响应后，访问重定向到新的 location。</p><p>更详细的关于重定向/刷新请求头概念，需要理解 http 协议的结构，查看我的教程：<a href="https://blog.niekun.net/archives/1432.html">HTTP 协议结构</a></p><p>如果设置：<br>server {</p><pre><code>listen 8080;
+servername frontend;
+
+proxy_redirect http://localhost:8000/two/ http://frontend:8080/one/;
+...</code></pre><p>}</p><p>代理服务器返回的 http 头信息：</p><pre><code>HTTP/1.1 302 Found
+Location: http://localhost:8000/two/some/uri/
+</code></pre><p>则返回给客户端的 Location 段被重写为: <a href="http://frontend">http://frontend</a>:8080/one/some/uri/，客户端接收到后就会去重新访问这个新的地址。</p><p>server 名也可以被省略：</p><pre><code>proxy_redirect http://localhost:8000/two/ /
+</code></pre><p>以上指令返回给客户端的 Location 段被重写为: <a href="http://frontend">http://frontend</a>:8080/some/uri/</p><p>proxy_redirect 默认设置值为：<strong>default</strong>，它会自动根据 server location 段和 proxy_pass 地址来修改头信息，以下两种写法效果一样：</p><pre><code>location /one/ {
+    proxy_pass     http://localhost:8000/two/;
+    proxy_redirect default;
+
+location /one/ {
+    proxy_pass     http://localhost:8000/two/;
+    proxy_redirect http://localhost:8000/two/ /one/;</code></pre><p>以上两种写法都是将返回 location 头信息中 <a href="http://localhost">http://localhost</a>:8000/two/ 修改为 <a href="http://frontend">http://frontend</a>:8080/one/</p><p>redirect 和 replacement 都可以包含参数：</p><pre><code>proxy_redirect http://$proxy_host:8000/ $scheme$host:$server_port/;
+</code></pre><p>rederect 可以使用正则匹配：</p><pre><code>proxy_redirect ~^(http://[^:]+):\d+(/.+)$ $1$2;
+proxy_redirect ~*/user/([^/]+)/(.+)$      http://$1.example.com/$2;
+</code></pre><p>可以同时写多个 proxy_redirect 指令来处理不同的重定向地址。<br>使用 proxy_redirect off 具有最高优先级，会取消当前同一级的所有 proxy_redirect 指令。</p><p>一个完整例子：</p><pre><code>server {
+    listen           8080;
+    server_name      127.0.0.1;
+
+    location /return {
+        return 301 https://niekun.net;
+    }
+    location /proxy {
+        proxy_pass  $scheme://$http_host/return;
+        proxy_redirect https://niekun.net /echo;
+    }
+    location /echo {
+        default_type text/plain;
+        echo 'remote address: $remote_addr';
+    }
+}</code></pre><p><strong>代理过程：</strong></p><ul><li>客户端访问：<a href="http://127.0.0.1">http://127.0.0.1</a>:8080/proxy</li><li>nginx 转发到：<a href="http://127.0.0.1">http://127.0.0.1</a>:8080/return</li><li>代理服务器响应 301 重定向到：<a href="https://niekun.net">https://niekun.net</a>，http 头的 location 值为：<a href="https://niekun.net">https://niekun.net</a></li><li>nginx 将 http 头的 location 修改为：<a href="http://127.0.0.1">http://127.0.0.1</a>:8080/echo</li><li>nginx 将修改后的响应内容发送给客户端</li><li>客户端根据响应再次访问：<a href="http://127.0.0.1">http://127.0.0.1</a>:8080/echo</li></ul><h3>转发请求头信息</h3><p>默认情况下，nginx 反向代理时会舍弃<strong>原始请求头中的空字符串项</strong>，并重新设定两个请求头内容：<strong>Host</strong> 和 <strong>Connection</strong>：</p><ul><li>Host -&gt; $proxy_host  也就是 proxy_pass 里的 host</li><li>Connection -&gt; close</li></ul><p>关于 http 请求头 header 的可定义的项目参考我的教程：<a href="https://blog.niekun.net/archives/1432.html">HTTP 协议结构</a></p><p>想要设置或修改传递给代理服务的请求头，使用 proxy_set_header 指令：</p><pre><code>location /some/path/ {
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header Accept-Encoding &quot;&quot;;
+    proxy_pass http://localhost:8000;
+}</code></pre><p>以上示例的处理结果是：</p><ul><li>设置 Host 为本 server 的host 地址而不是转发地址</li><li>设置 X-Real-IP 为客户端 IP 地址，用来识别访问服务的客户信息</li><li>清空 Accept-Encoding 的内容</li></ul><h3>mapping headers 动态请求头内容</h3><p>proxy_set_header 支持使用内部变量来定义，也可以使用 map 指令配合自定义参数来根据请求清空动态设置相关 header 内容，注意 map 指令要写在 http 段：</p><pre><code>map $http_cloudfront_forwarded_proto $cloudfront_proto {
+    default &quot;http&quot;;
+    https &quot;https&quot;;
+}
+server {
+    ...
+    location / {
+        proxy_set_header X-Forwarded-Proto $cloudfront_proto;
+        proxy_pass http://app;
+        proxy_redirect off;
+        ...
+    }
+}</code></pre><p>以上示例中 <code>$http_cloudfront_forwarded_proto</code> 是已知变量，<code>$cloudfront_proto</code> 是我自定义的变量，使用 map 指令来根据前者的值设置后者的值，然后在 proxy_set_header 设置。</p><p>map 指令支持以两个因变量来给终变量赋值,语法示例如下：</p><pre><code>map &quot;$http_cloudfront_forwarded_proto:$http_x_forwarded_proto&quot; $cloudfront_proto {
+    default &quot;http&quot;;
+    &quot;:https&quot; &quot;https&quot;;
+    &quot;https:&quot; &quot;https&quot;;
+    &quot;https:http&quot; &quot;https&quot;;
+    &quot;http:https&quot; &quot;https&quot;;
+    &quot;https:https&quot; &quot;https&quot;;
+}</code></pre><p>如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。客户端也可以伪造 X-Forwarded-For 信息，使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：</p><pre><code>map $http_x_forwarded_for  $client_real_ip {
+    default                         $remote_addr;
+    ~^(([0-9\.]+),\s?)*([0-9\.]+)$  $3;
+}
+
+server {
+    echo 'remote address: $client_real_ip';
+}</code></pre><p>如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。</p><p>关于 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 参考我的文章：<a href="https://blog.niekun.net/archives/1296.html">获取用户真实 IP in Nginx</a></p><h3>buffers 缓存区</h3><p>默认情况下 nginx 缓存来自 proxy server 的响应内容。nginx 会一直在内部缓存来自代理服务器的响应内容直到内容接收完成，然后才发送给客户端。缓存能够帮助减轻客户端的压力，但会浪费服务器的资源和响应。但是打开缓存功能的另一个好处是当客户端再次进行一个缓存过的请求时，nginx 可以快速的返回已经在缓存区的内容。</p><p>使用 proxy_buffering 指令控制缓存打开/关闭。默认是 on 状态。proxy_buffers 指令控制缓存区数量和缓存大小。第一个来自代理服务器的响应会缓存到单独的区域，proxy_buffer_size 指令控制这一区域的大小：</p><pre><code>location /some/path/ {
+    proxy_buffers 16 4k;
+    proxy_buffer_size 2k;
+    proxy_pass http://localhost:8000;
+}</code></pre><p>以上示例会给 来自代理服务器：<a href="http://localhost">http://localhost</a>:8000 的响应建立 16 个缓存区，每个区域 4kb 空间，第一个响应缓存区 2kb 空间。</p><p>如果关闭缓存，来自代理服务器的响应会即时发送给客户端，对于想要快速响应的使用场景可以关闭缓存：</p><pre><code>location /some/path/ {
+    proxy_buffering off;
+    proxy_pass http://localhost:8000;
+}</code></pre><h3>设置出口 IP 地址</h3><p>默认情况下 nginx 向 proxy 上游发起请求连接，代理服务器看到的请求 IP 地址来自 nignx 服务器地址。有时候 web 服务器会设置只允许特定 IP 地址的访问，可以通过 proxy_bind 指令来修改，<strong>nginx 用户必须是 root 才行</strong>：</p><pre><code>user root;
+...
+http{
+    ...
+    server {
+        location /app1/ {
+            proxy_bind proxy_bind $remote_addr transparent;
+            proxy_pass http://example.com/app1/;
+        }
+    }
+}</code></pre><p>以上示例中，代理服务器看到的请求来源就会是真正的访问客户端 IP 地址,也就是实现了<strong>透明代理</strong>。</p><p>nginx 配置后还需要配置 iptables 路由表来处理代理服务器响应内容：</p><ul><li>新建一个链，把过来的tcp包都打上标记。</li><li>新建一个路由表100，让有标记的包都走表100。</li><li>在路由表100加入一个默认路由，把所有包都扔到lo网卡上去。</li></ul><pre><code>      #### 新建一个 DIVERT 给包打标签
+     sudo iptables -t mangle -N DIVERT;
+     sudo iptables -t mangle -A DIVERT -j MARK --set-mark 1;
+     sudo iptables -t mangle -A DIVERT -j ACCEPT;
+
+     #### 把tcp的包给DIVERT处理
+     sudo iptables -t mangle -A PREROUTING -p tcp -m socket -j DIVERT;
+
+     #### 有标签的包去查名为 100 的路由表
+     sudo ip rule add fwmark 1 lookup 100
+
+     #### 100的路由表里就一条默认路由，把所有包都扔到lo网卡上去
+     sudo ip route add local 0.0.0.0/0 dev lo table 100;</code></pre><p>具体实现我还不太懂，后期再研究下。</p><p>以上就是 http 代理服务器基本使用，下面简单介绍其他集中代理服务器的语法。</p><h3>fastcgi 代理服务器</h3><p>Nginx must rely on a separate PHP processor to handle PHP requests. Most often, this processing is handled with php-fpm, a PHP processor that has been extensively tested to work with Nginx.</p><p>简单说就是 FastCGI 实现了使用 Nginx 代理 php 请求的过程，将请求转发给 php-fpm：php 进程管理器。</p><pre><code>location / {
+    fastcgi_pass  localhost:9000;
+    # fastcgi_pass unix:/run/php/php7.3-fpm.sock;
+    fastcgi_index index.php;
+    
+    fastcgi_split_path_info ^(.+?\.php)(.*)$;
+    try_files $fastcgi_script_name =404;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include fastcgi_params;
+
+    fastcgi_param HTTP_X-REAL-IP $remote_addr;
+    fastcgi_param HTTP_X-FORWARED-FOR $proxy_add_x_forwarded_for;
+    fastcgi_param HOST $http_host;
+}</code></pre><ul><li>$fastcgi_split_path_info 用来将 请求 url 拆分成两部分：php 文件之前的 $fastcgi_script_name 和之后的部分：$fastcgi_path_info</li><li>fastcgi_pass 定义真正的用来处理 FastCGI 代理的服务，一般默认地址为：127.0.0.1:9000，可自定义指定为特定版本的php</li><li>fastcgi_param 定义 FastCGI 参数</li><li>fastcgi_params 一般在 nginx 配置目录下，包含了常用的 php 需要设定的参数。</li></ul><p>总结下和 http 语法区别：</p><ul><li>fastcgi_pass 类似于 proxy_pass</li><li>fastcgi_param  类似于 proxy_set_header，注意 fastcgi_param 添加 http 请求头信息要加上 <code>HTTP_</code> 前缀，如：<code>HTTP_X-FORWARED-FOR</code></li></ul><p>关于 FastCGI 的详细分析参考：<a href="https://www.digitalocean.com/community/tutorials/understanding-and-implementing-fastcgi-proxying-in-nginx">Understanding and Implementing FastCGI Proxying in Nginx</a></p><h3>uWSGI web 服务器</h3><p>uWSGI 是一个独立的 web 服务器，和 nginx 是一个类型的应用。一般 uWSGI 作为后端服务器使用，用 nginx 代理来访问。</p><p>uWSGI 可以用来部署 python 应用。之前我学习 django 的时候就使用过这个。</p><p>未完待续。。。</p><h3>参考链接</h3><p><a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html">ngx_http_proxy_module 模块所有指令</a><br><a href="https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/">NGINX Reverse Proxy</a><br><a href="https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/">HTTP Load Balancing</a><br><a href="https://docs.nginx.com/nginx/admin-guide/security-controls/securing-http-traffic-upstream/">Securing HTTP Traffic to Upstream Servers</a><br><a href="https://pengpengxp.github.io/archive/before-2018-11-10/2017-06-27-%E4%BD%BF%E7%94%A8nginx%E7%9A%84proxy_bind%E9%80%89%E9%A1%B9%E9%85%8D%E7%BD%AE%E9%80%8F%E6%98%8E%E7%9A%84%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86.html">使用nginx的proxy_bind选项配置透明的反向代理</a><br><a href="https://serversforhackers.com/c/nginx-mapping-headers">Mapping Headers in Nginx</a><br><a href="https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass">ngx_http_fastcgi_module 模块所有指令</a><br>[]()</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1378.html#comments</comments>
@@ -59,11 +224,68 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>traceroute 路由 IP 查看</title>
 <link>https://blog.niekun.net/archives/1376.html</link>
 <guid>https://blog.niekun.net/archives/1376.html</guid>
-<pubDate>Fri, 20 Mar 2020 09:00:07 +0800</pubDate>
+<pubDate>Thu, 19 Mar 2020 21:00:07 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[traceroute 是一种电脑网络工具。它可显示数据包在 IP 网络经过的路由器的 IP 地址。程序是利用增加存活时间（TTL）值来实现其功能的。每当数据包经过一个路由器，其存活时间就会减 1...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>traceroute 是一种电脑网络工具。它可显示数据包在 IP 网络经过的路由器的 IP 地址。</p><p>程序是利用增加存活时间（TTL）值来实现其功能的。每当数据包经过一个路由器，其存活时间就会减 1。当其存活时间是 0 时，主机便取消数据包，并发送一个ICMP TTL数据包给原数据包的发出者。</p><p>traceroute 使用<strong>互联网控制信息协议(ICMP)</strong>实现，ICMP 依靠IP来完成它的任务，它是IP的主要部分。它与传输协议（如TCP和UDP）显著不同：它一般不用于在两点间传输数据。由于协议不同所以本地 http 代理对 traceroute 无效。</p><p>现代 Linux 系统称为 <strong>tracepath</strong>，Windows 系统称为 <strong>tracert</strong>，Windows NT 系统有结合 ping 和 traceroute 的 <strong>pathping</strong> 工具。</p><p class="more"><a href="https://blog.niekun.net/archives/1376.html" title="traceroute 路由 IP 查看">[...]</a></p>
+<p>traceroute 是一种电脑网络工具。它可显示数据包在 IP 网络经过的路由器的 IP 地址。</p><p>程序是利用增加存活时间（TTL）值来实现其功能的。每当数据包经过一个路由器，其存活时间就会减 1。当其存活时间是 0 时，主机便取消数据包，并发送一个ICMP TTL数据包给原数据包的发出者。</p><p>traceroute 使用<strong>互联网控制信息协议(ICMP)</strong>实现，ICMP 依靠IP来完成它的任务，它是IP的主要部分。它与传输协议（如TCP和UDP）显著不同：它一般不用于在两点间传输数据。由于协议不同所以本地 http 代理对 traceroute 无效。</p><p>现代 Linux 系统称为 <strong>tracepath</strong>，Windows 系统称为 <strong>tracert</strong>，Windows NT 系统有结合 ping 和 traceroute 的 <strong>pathping</strong> 工具。</p><!--more--><h3>使用</h3><h4>Linux</h4><p>可以使用 tracepath/traceroute 工具来测试，traceroute 可使用 apt 来安装，默认最多检测30个路由节点，超过的话就直接结束：</p><pre><code>root@niekun-bandwagon:~# tracepath github.com
+ 1?: [LOCALHOST]                                         pmtu 1500
+ 1:  no reply
+ 2:  173.254.196.25.static.quadranet.com                   0.980ms
+ 3:  lax1-fatpipe-1.it7.net                                0.395ms
+ 4:  69.12.69.1                                            0.539ms asymm  3
+ 5:  ae12.er4.lax112.us.zip.zayo.com                       0.515ms asymm  4
+ 6:  ae14.cr2.lax112.us.zip.zayo.com                      26.123ms asymm 11
+ 7:  ae2.cs1.sjc2.us.eth.zayo.com                         26.180ms asymm 11
+ 8:  ae3.cs1.sea1.us.eth.zayo.com                         30.307ms asymm 10
+ 9:  ae1.mcs1.sea1.us.eth.zayo.com                        26.299ms asymm  8</code></pre><pre><code>traceroute to github.com (192.30.255.112), 30 hops max, 60 byte packets
+ 1  * * *
+ 2  173.254.196.25.static.quadranet.com (173.254.196.25)  1.172 ms  1.172 ms  1.161 ms
+ 3  lax1-fatpipe-1.it7.net (69.12.70.234)  0.220 ms lax1-fatpipe-1.it7.net (69.12.70.232)  0.341 ms lax1-fatpipe-1.it7.net (69.12.70.234)  0.193 ms
+ 4  ae12.er4.lax112.us.zip.zayo.com (64.124.85.221)  0.397 ms  0.422 ms 69.12.69.1 (69.12.69.1)  0.268 ms
+ 5  ae14.cr2.lax112.us.zip.zayo.com (64.125.30.74)  25.828 ms ae12.er4.lax112.us.zip.zayo.com (64.124.85.221)  0.364 ms  0.345 ms
+ 6  ae2.cs1.sjc2.us.eth.zayo.com (64.125.28.144)  35.091 ms ae14.cr2.lax112.us.zip.zayo.com (64.125.30.74)  26.043 ms  26.009 ms
+ 7  ae2.cs1.sjc2.us.eth.zayo.com (64.125.28.144)  34.909 ms  34.889 ms  34.832 ms
+ 8  ae1.mcs1.sea1.us.eth.zayo.com (64.125.28.133)  28.864 ms  26.124 ms  26.112 ms
+ 9  ae1.mcs1.sea1.us.eth.zayo.com (64.125.28.133)  28.448 ms  28.416 ms 64.125.188.97.IPYX-243981-001-ZYO.zip.zayo.com (64.125.188.97)  30.797 ms
+10  * 64.125.188.97.IPYX-243981-001-ZYO.zip.zayo.com (64.125.188.97)  30.949 ms *
+</code></pre><h4>windows</h4><p>可以使用 tracert/pathping 工具来测试，pathping 多显示了个本地 IP，默认最多检测30个路由节点，超过的话就直接结束：</p><pre><code>PS C:\Users\Marco Nie&gt; tracert niekun.net
+
+Tracing route to niekun.net [104.24.97.72]
+over a maximum of 30 hops:
+
+  1     5 ms     1 ms     1 ms  OrayBox.lan [27.168.1.1]
+  2    67 ms   111 ms    81 ms  192.168.1.1
+  3     3 ms     3 ms     4 ms  100.64.16.1
+  4     4 ms     3 ms     4 ms  10.226.25.13
+  5     9 ms     *        *     219.145.223.105
+  6    33 ms    32 ms    33 ms  202.97.65.41
+  7     *        *        *     Request timed out.
+  8     *       42 ms   131 ms  202.97.12.50
+  9   341 ms   197 ms   201 ms  202.97.41.50
+ 10   237 ms   232 ms   224 ms  202.97.92.45
+ 11   242 ms   252 ms   238 ms  218.30.54.214
+ 12   197 ms   195 ms   196 ms  104.24.97.72
+
+Trace complete.</code></pre><pre><code>PS C:\Users\Marco Nie&gt; pathping niekun.net
+
+Tracing route to niekun.net [104.24.97.72]
+over a maximum of 30 hops:
+  0  Marco-vostro-14.lan [27.168.1.209]
+  1  OrayBox.lan [27.168.1.1]
+  2  192.168.1.1
+  3  100.64.16.1
+  4  10.226.25.13
+  5  219.145.223.105
+  6  202.97.65.41
+  7  202.97.34.74
+  8     *     202.97.12.50
+  9  202.97.41.50
+ 10  202.97.92.45
+ 11  218.30.54.214
+ 12  104.24.97.72
+
+Computing statistics for 300 seconds...</code></pre>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1376.html#comments</comments>
@@ -73,11 +295,18 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>wkhtmltopdf 将 html为 pdf</title>
 <link>https://blog.niekun.net/archives/1375.html</link>
 <guid>https://blog.niekun.net/archives/1375.html</guid>
-<pubDate>Wed, 18 Mar 2020 12:58:56 +0800</pubDate>
+<pubDate>Wed, 18 Mar 2020 00:58:56 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[一般浏览器都可以将当前页面输出为 pdf，但当有很多个 html 文件时一个一个转换就很麻烦了，可以使用 wkhtmltopdf 命令行工具来实现自动化批量转换。wkhtmltopdf and ...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>一般浏览器都可以将当前页面输出为 pdf，但当有很多个 html 文件时一个一个转换就很麻烦了，可以使用 wkhtmltopdf 命令行工具来实现自动化批量转换。</p><blockquote>wkhtmltopdf and wkhtmltoimage are open source (LGPLv3) command line tools to render HTML into PDF and various image formats using the Qt WebKit rendering engine. These run entirely "headless" and do not require a display or display service.</blockquote><p>wkhtmltopdf 官网：<a href="https://wkhtmltopdf.org/">https://wkhtmltopdf.org/</a><br>GitHub 主页：<a href="https://github.com/wkhtmltopdf/wkhtmltopdf">https://github.com/wkhtmltopdf/wkhtmltopdf</a></p><p class="more"><a href="https://blog.niekun.net/archives/1375.html" title="wkhtmltopdf 将 html为 pdf">[...]</a></p>
+<p>一般浏览器都可以将当前页面输出为 pdf，但当有很多个 html 文件时一个一个转换就很麻烦了，可以使用 wkhtmltopdf 命令行工具来实现自动化批量转换。</p><blockquote>wkhtmltopdf and wkhtmltoimage are open source (LGPLv3) command line tools to render HTML into PDF and various image formats using the Qt WebKit rendering engine. These run entirely "headless" and do not require a display or display service.</blockquote><p>wkhtmltopdf 官网：<a href="https://wkhtmltopdf.org/">https://wkhtmltopdf.org/</a><br>GitHub 主页：<a href="https://github.com/wkhtmltopdf/wkhtmltopdf">https://github.com/wkhtmltopdf/wkhtmltopdf</a></p><!--more--><h3>下载</h3><p>在 release 页面下载对应系统最新版：<a href="https://github.com/wkhtmltopdf/wkhtmltopdf/releases">https://github.com/wkhtmltopdf/wkhtmltopdf/releases</a></p><p>我要安装到 Ubuntu 18.04，所以下载：wkhtmltox_0.12.5-1.bionic_amd64.deb</p><p>查看 Ubuntu 系统代号可以使用命令：</p><pre><code>lsb_release -c
+</code></pre><h3>安装</h3><p>下载的 deb 包，用以下命令进行安装：</p><pre><code>dpkg -i wkhtmltox_0.12.5-1.bionic_amd64.deb
+</code></pre><h3>使用</h3><p>支持 url 或 本地 html 转换：</p><pre><code>wkhtmltopdf http://bing.com bing.pdf
+wkhtmltopdf path/to/test.html index.pdf
+</code></pre><p>配合 find 命令可以实现批量转换：</p><pre><code>find path/to/html -name '*.html' -exec wkhtmltopdf {} {}.pdf \;
+mkdir pdf/
+find path/to/html -name '*.pdf' -exec mv {} pdf/ \;</code></pre><p>find 命令详细用法参考：<a href="https://blog.niekun.net/archives/543.html">https://blog.niekun.net/archives/543.html</a></p><p>可以使用 wget 命令下载某个网站到本地，然后使用上面命令批量转换：</p><pre><code>wget -m -p -k URL
+</code></pre><p>-m, –mirror 等价于 -r -N -l inf -nr<br>-p：下载所有html文件适合显示的元素<br>-k, –convert-links 转换非相对链接为相对链接,将文档链接都转换成本地的</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1375.html#comments</comments>
@@ -87,7 +316,7 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>systemd 使用入门</title>
 <link>https://blog.niekun.net/archives/1334.html</link>
 <guid>https://blog.niekun.net/archives/1334.html</guid>
-<pubDate>Fri, 13 Mar 2020 15:27:34 +0800</pubDate>
+<pubDate>Fri, 13 Mar 2020 03:27:34 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-commands.htmlhttp://www.ruanyifeng.com/bl...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -101,11 +330,14 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>Windows 下 VMware 安装 Ubuntu 虚拟机</title>
 <link>https://blog.niekun.net/archives/1316.html</link>
 <guid>https://blog.niekun.net/archives/1316.html</guid>
-<pubDate>Fri, 13 Mar 2020 14:00:00 +0800</pubDate>
+<pubDate>Fri, 13 Mar 2020 02:00:00 -0400</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[虽然 Windows 10 自带有 WSL，可以安装 Linux 系统，但是在实际使用中发现还是有很多限制的。所以想要完整的 Linux 系统，还是安装了虚拟机。WSL 开启参考：https:/...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2020/03/4046207363.png" alt="2020-03-13T03:42:47.png" title="2020-03-13T03:42:47.png"><br>虽然 Windows 10 自带有 WSL，可以安装 Linux 系统，但是在实际使用中发现还是有很多限制的。所以想要完整的 Linux 系统，还是安装了虚拟机。</p><p>WSL 开启参考：<a href="https://blog.niekun.net/archives/1148.html">https://blog.niekun.net/archives/1148.html</a></p><p>我使用的是 VMware workstation 安装了 Ubuntu 18.04 LTS。安装过程中与遇到了一些问题，需要特别的进行处理，在此做一下记录。</p><p class="more"><a href="https://blog.niekun.net/archives/1316.html" title="Windows 下 VMware 安装 Ubuntu 虚拟机">[...]</a></p>
+<p><img src="https://blog.niekun.net/usr/uploads/2020/03/4046207363.png" alt="2020-03-13T03:42:47.png" title="2020-03-13T03:42:47.png"><br>虽然 Windows 10 自带有 WSL，可以安装 Linux 系统，但是在实际使用中发现还是有很多限制的。所以想要完整的 Linux 系统，还是安装了虚拟机。</p><p>WSL 开启参考：<a href="https://blog.niekun.net/archives/1148.html">https://blog.niekun.net/archives/1148.html</a></p><p>我使用的是 VMware workstation 安装了 Ubuntu 18.04 LTS。安装过程中与遇到了一些问题，需要特别的进行处理，在此做一下记录。</p><!--more--><h3>VMware workstation & Ubuntu</h3><p>官网下载 VMware workstation，需要购买序列号：<a href="https://my.vmware.com/en/web/vmware/info/slug/desktop_end_user_computing/vmware_workstation_pro/15_0">https://my.vmware.com/en/web/vmware/info/slug/desktop_end_user_computing/vmware_workstation_pro/15_0</a></p><p>下载完成后进行安装，然后根据提示重启及输入序列号。</p><p>Ubuntu 18.04 LTS 镜像下载：<a href="http://releases.ubuntu.com/18.04.4/ubuntu-18.04.4-desktop-amd64.iso">http://releases.ubuntu.com/18.04.4/ubuntu-18.04.4-desktop-amd64.iso</a></p><p>镜像下载完成后就可以开始准备安装虚拟机了，点击 <strong>文件 - 新建虚拟机</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/803409871.png" alt="2020-03-13T03:44:08.png" title="2020-03-13T03:44:08.png"></p><p>选择 <strong>典型</strong> 安装，然后下一步，点击浏览找到 Ubuntu 镜像文件：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/524270280.png" alt="2020-03-13T03:45:23.png" title="2020-03-13T03:45:23.png"></p><p>下面就根据提示设置虚拟机账户密码等信息，完成安装后会自动启动虚拟机，使用刚才设置的用户名密码登录虚拟机。</p><h3>分辨率设置</h3><p>光标退出虚拟机的快捷键是：<strong>ctrl alt</strong>。</p><p>我的主机显示比例是 16:9 的1920 × 1080，开机后显示比例是 16:10 的，所以需要设置下全屏。<br>首先点击<strong>保持纵横比拉伸</strong>来让显示尽量铺满全屏：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/814311686.png" alt="2020-03-13T03:50:01.png" title="2020-03-13T03:50:01.png"></p><p>进入 Ubuntu，点击右下角扩展键：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/2566564433.png" alt="2020-03-13T03:51:06.png" title="2020-03-13T03:51:06.png"></p><p>搜索 displays，然后进入显示设置：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/85659870.png" alt="2020-03-13T03:51:42.png" title="2020-03-13T03:51:42.png"></p><p>选择一个和主机一样比例的分辨率：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/614154685.png" alt="2020-03-13T03:52:31.png" title="2020-03-13T03:52:31.png"></p><p>这样虚拟机就可以全屏了。</p><h3>VMware tools</h3><p>VMware tools 可以让主机和虚拟机实现数据交互，很多功能依赖于 VMware tools，如：<strong>共享文件夹，网络桥接，共享剪贴板</strong>等。</p><p>但是我在安装虚拟机后，VMware tools 安装项是灰色的：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3527355483.png" alt="2020-03-13T03:56:15.png" title="2020-03-13T03:56:15.png"></p><p>查询后了解到 Linux 的 tools 需要手动安装，官网对 Linux 虚拟机安装 VMware tools  有一篇教程：<a href="https://www.vmware.com/support/ws5/doc/ws_newguest_tools_linux.html">https://www.vmware.com/support/ws5/doc/ws_newguest_tools_linux.html</a></p><p>VMware 安装的时候在安装目录下会有一个 <strong>linux.iso</strong> 文件，这就是 VMware tools 安装镜像，我的路径是：C:Program Files (x86)VMwareVMware Workstationlinux.iso</p><p>首先在虚拟机设置里添加一个新的 cd/dvd，挂载 VMware 安装目录下的 <strong>linux.iso</strong> 镜像：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/704611818.png" alt="2020-03-13T03:59:19.png" title="2020-03-13T03:59:19.png"></p><p>进入 Ubuntu，桌面会有 VMware tools，终端路径是：<code>/media/USERNAME/VMware Tools</code>：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3384185960.png" alt="2020-03-13T05:26:44.png" title="2020-03-13T05:26:44.png"></p><p>进入 VMware Tools 目录，里面有一个压缩包：VMwareTools-10.3.10-13959562.tar.gz，执行如下命令：</p><pre><code>cd /tmp
+tar xvf '/media/USERNAME/VMware Tools/VMwareTools-10.3.10-13959562.tar.gz'
+cd vmware-tools-distrib
+sudo ./vmware-install.pl</code></pre><p>执行解压目录下的 vmware-install.pl，一路 enter 即可。执行结束后就完成了 VMware Tools 的安装，重启系统。</p><h3>网络设置</h3><p>在虚拟机设置里将网络连接设置为<strong>桥接模式</strong>，这样虚拟机和主机就在一个 IP 网段内，如果不设置为<strong>桥接模式</strong>，虚拟机内可能无法执行一些网络命令，如：mtr：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/61701171.png" alt="2020-03-13T05:35:55.png" title="2020-03-13T05:35:55.png"></p><p>设置完成后重启虚拟机，主机使用命令 <strong>ipconfig</strong> 查看当前 IP：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/531046728.png" alt="2020-03-13T05:43:28.png" title="2020-03-13T05:43:28.png"></p><p>虚拟机使用命令 <strong>ifconfig</strong> 查看当前 IP：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/509130697.png" alt="2020-03-13T05:44:14.png" title="2020-03-13T05:44:14.png"></p><p>两个 IP 在一个网段内则设置成功。</p><h3>共享文件夹</h3><p>根据需要可以设置共享主机文件夹，在虚拟机内可以访问，共享文件夹路径是：<code>/mnt/hgfs</code>：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/2015304740.png" alt="2020-03-13T05:37:34.png" title="2020-03-13T05:37:34.png"></p><p>在虚拟机终端测试访问：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1702706035.png" alt="2020-03-13T05:40:46.png" title="2020-03-13T05:40:46.png"></p><h3>共享主机代理</h3><p>如果主机设置了代理，虚拟机可以直接共享此代理设置。</p><p>首先设置主机代理端口开放给局域网，如果是显示只监听本地地址则 <code>listen</code> 地址设置为 <code>127.0.0.1</code>，如果开放监听局域网地址，则 <code>listen</code> 地址设置为 <code>0.0.0.0</code> 即可。</p><p>在主机使用命令 ipconfig 查看主机 IP 地址。如果要在虚拟机设置系统代理，在虚拟机 Ubuntu 设置里搜索 proxy，点击 network proxy 手动设置代理地址：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/816700122.png" alt="2020-03-13T05:52:13.png" title="2020-03-13T05:52:13.png"></p><p>如果不想设置系统代理，也可以根据上面的主机地址和端口，在单独的应用程序里设置代理，如浏览器。</p><p>终端代理设置参考我之前的文章，也是使用上面得到的主机 IP 和代理端口：<a href="https://blog.niekun.net/archives/97.html">https://blog.niekun.net/archives/97.html</a></p><p>以上就是我用 VMware workstation 安装 Ubuntu 的过程。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1316.html#comments</comments>
@@ -115,7 +347,7 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>获取用户真实 IP in Nginx</title>
 <link>https://blog.niekun.net/archives/1296.html</link>
 <guid>https://blog.niekun.net/archives/1296.html</guid>
-<pubDate>Fri, 06 Mar 2020 15:00:00 +0800</pubDate>
+<pubDate>Fri, 06 Mar 2020 02:00:00 -0500</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[对于没有连代理访问网站的用户或者没有加 CDN 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，$remote_addr 存储了当前链接用户的 IP:https:/...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -148,7 +380,7 @@ $proxy_add_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204, 172.69.34.194
 <title>Nginx upstream timed out 问题的处理</title>
 <link>https://blog.niekun.net/archives/1280.html</link>
 <guid>https://blog.niekun.net/archives/1280.html</guid>
-<pubDate>Thu, 05 Mar 2020 08:53:00 +0800</pubDate>
+<pubDate>Wed, 04 Mar 2020 19:53:00 -0500</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -169,7 +401,7 @@ sudo service nginx reload
 <title>Windows 10 WSL 不支持 systemd</title>
 <link>https://blog.niekun.net/archives/1258.html</link>
 <guid>https://blog.niekun.net/archives/1258.html</guid>
-<pubDate>Wed, 04 Mar 2020 11:44:25 +0800</pubDate>
+<pubDate>Tue, 03 Mar 2020 22:44:25 -0500</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[在使用 WSL 中发现无法使用 systemd 指令，会有如下报错信息：System has not been booted with systemd as init system (PID 1...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[

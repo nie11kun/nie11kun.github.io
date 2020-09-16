@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/tag/%E8%87%AA%E5%8A%A8%E5%90%AF%E5%8A%A8/">
+<title>Marco Nie - 自动启动</title>
+<link>https://blog.niekun.net/tag/自动启动/</link>
+<description></description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/539.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/539.html">
+<title>使用 frp 实现内网穿透/远程管理</title>
+<link>https://blog.niekun.net/archives/539.html</link>
+<dc:date>2019-11-25T07:34:00-05:00</dc:date>
+<description>首先判断自己网络 IP 地址是固定 IP/动态 IP/内网 IP，通过站长工具可以查询，或者终端执行如下指令查看外网看本地 IP 地址：curl https://info.niekun.net/ip
+然后从本地通过 ipconfig(win)/ifconfig(linux) 来查看网络路径，如果本地 IP 和上面检测出的一致，那就是有外网 IP，如果不一样则很可能自己分配到的是一个运营商内网。如下是我本地 Windows 电脑的结果，确认是内网：对于有外网 IP 但是是动态的，每隔一段时间自动变化的情况，可以使用 DDNS 来处理。对于大多数家庭网络用户，都没有固定的 IP 地址或者也没有动态的 IP 地址，在本地搭建网络服务无法直接在外网访问，使用 frp 可以实现这一需求。使用场景：路由器远程访问 远程访问/控制电脑 网搭建网站公网访问项目地址：https://github.com/fatedier/frp使用手册：https://github.com/fatedier/frp/blob/master/README_zh.mdWindows 脚本参考：https://sspai.com/post/52523环境需求：一台有独立 IP 的服务器可安装 frp 的本地主机或路由器(windows/linux)安装从 release 页面分别下载合适版本的最新程序到客户端和独立 IP 的服务端。程序内包含服务端程序(frps)及客户端程序(frpc)，以及对应配置文件。使用服务器端修改 frps.ini 文件，示例：[common]
+# 服务端和客户端的 common 配置中的 token 参数一致则身份验证通过
+token=12345678
+
+# 服务端本地地址和客户端握手端口，bind_port 设置同 server_port
+bind_addr = 0.0.0.0
+bind_port = 6000
+
+# udp 内网穿透端口
+bind_udp_port = 6001
+
+# kcp 协议端口，可以和 bind_port 一样，不设置的话不开启
+kcp_bind_port = 6000
+
+# http 和 https web 服务访问端口，如：test.com:8080，即可访问内网 web 页面
+vhost_http_port = 6002
+vhost_https_port = 6003
+
+# frp状态面板端口，用来显示一些连接状态的 web 页面，0.0.0.0 表示开放给外网访问
+dashboard_addr = 0.0.0.0
+dashboard_port = 6004
+
+# 设置面板的账户密码访问，不设置默认为 admin
+dashboard_user = admin
+dashboard_pwd = admin
+
+# 日志记录文件定义，不写则不记录
+log_file = ./frps.log
+log_level = info
+log_max_days = 3
+disable_log_color = false
+
+# 为给客户端开放的端口，用于和客户端数据交互，如不设置此条目，则默认开放所有端口
+allow_ports = 6000-6100,8000
+
+# 如果想要通过域名访问 http/https web 服务，需要在服务端指定服务器的域名
+subdomain_host = niekun.net执行以下命令启动：./frps -c ./frps.ini
+客户端修改 frpc.ini 文件，示例：[common]
+# 服务端和客户端的 common 配置中的 token 参数一致则身份验证通过
+token=12345678
+
+# 远程独立 IP 地址
+server_addr = xxx.xxx.xxx.xxx
+
+# 和服务端握手端口，bind_port 设置同 server_port
+server_port = 6000
+
+# 日志记录文件定义，不写则不记录
+log_file = ./frpc.log
+log_level = info
+log_max_days = 3
+disable_log_color = false
+
+# 查看 frpc 客户端配置文件等信息的 web 地址
+admin_addr = 127.0.0.1
+admin_port = 6005
+admin_user = admin
+admin_pwd = admin
+
+# 定义链接服务器的协议，支持 tcp，kcp，websocket, default is tcp
+protocol = kcp
+
+#加密连接服务端
+tls_enable = true
+
+# ssh 是自定义代理块标记，可以是任意的名称
+[ssh]
+
+# tcp | udp | http | https | stcp | xtcp, default is tcp
+type = tcp
+
+# 客户端 ssh 服务的地址和端口
+local_ip = 127.0.0.1
+local_port = 22
+
+# 远程 frps 连接地址
+remote_port = 6006
+
+# 和 frps 的数据是否加密，默认 false
+use_encryption = false
+
+# if true, 数据会被压缩传输
+use_compression = false
+
+# remote disktop 远程桌面设置
+[rdp]
+type = tcp
+local_ip = 127.0.0.1
+
+# 远程访问端口是3389
+local_port = 3389
+
+remote_port = 6010
+
+use_encryption = true
+use_compression = true
+
+# web 服务
+[web01]
+
+# 支持 http https
+type = http
+
+# 客户端 http 页面的地址和端口
+local_ip = 127.0.0.1
+local_port = 80
+
+use_encryption = false
+use_compression = true
+
+# 如果服务端域名为 niekun.net, 可以通过链接访问 web01: http://web01.niekun.net:8080，此子域名需要在域名服务商处进行 DNS 解析
+subdomain = web01
+
+# custom_domains 为 域名/服务器 IP 如果上面定义了 subdomain 此处可以不要
+#custom_domains = web01.niekun.net/IP
+
+# 如访问 web 页面是不需要密码则去掉 客户端 http_user 及 http_pwd
+http_user = xxxx
+http_pwd = xxxxxxxxxxx
+
+# https web 示例
+[web02]
+type = https
+
+# 客户端 https 页面的地址和端口
+local_ip = 127.0.0.1
+local_port = 443
+
+use_encryption = false
+use_compression = false
+
+subdomain = web02
+
+# if not empty, frpc will use proxy protocol to transfer connection info to your local service
+# v1 or v2 or empty
+proxy_protocol_version = v2执行以下命令启动：./frpc -c ./frpc.ini
+测试访问内网 sshssh -oPort=6006 username@x.x.x.x
+IP 为远程服务器的 IP，username 为内网设备的用户名。输入后提示密码，也为内网设备 ssh 密码。web 服务http://web01.niekun.net:6002
+如果设置有用户名密码，会提示口令，然后进入 web 页面。frps 控制面板http://xxx.xxx.xxx.xxx:6004
+服务端 nginx 代理 frp我服务器上使用 nginx 管理 http 请求，可以使用 nginx 代理 frp 的 http 服务。这样可以实现不带端口访问 frp 和使用 nginx 上已经设置的 https 加密而不需要单独给 frp 配置 https。客户端和服务端使用上面示例的配置，web01 页面可通过：http://web01.niekun.net:6002 访问。下面我们设置 nginx 代理服务：server {
+    listen        443 ssl http2;
+    listen        [::]:443 ssl http2;
+    server_name   frp.niekun.net;
+    include       my-server/ssl; ssl 配置文件
+
+    location / {
+        proxy_pass          http://127.0.0.1:6004;
+        proxy_redirect      off;
+    }
+}
+
+server {
+    listen        443 ssl http2;
+    listen        [::]:443 ssl http2;
+    server_name   web01.niekun.net;
+    include       my-server/ssl;
+
+    location / {
+        proxy_pass          http://127.0.0.1:6002;
+        proxy_redirect      off;
+
+        proxy_set_header    Host              $http_host;
+        proxy_set_header    X-Real-IP         $remote_addr;
+        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Proto $scheme;
+        proxy_set_header    Upgrade           $http_upgrade;
+        proxy_set_header    Connection        &quot;upgrade&quot;;
+        proxy_http_version  1.1;
+    }
+}我的 https 配置文件放在 my-server/ssl 文件内。第一个 server 配置了 frp.niekun.net 域名转发给 frps 控制面板端口 6004，这样访问：https://frp.niekun.net 就可以访问 frps 控制面板。第二个 server 配置了 web01.niekun.net 域名转发给 frps 监听的 http 端口 6002，访问：https://web01.niekun.net 就可以访问内网的 web01 页面了。proxy_set_header 设置转发给 frps 的请求头，有些网页如果缺少一些请求头信息会报错。更详细的 nginx 代理服务器的使用参考我的文章：NGINX Reverse Proxy 反向代理的使用注意：由于 rdp 是 tcp 协议，所以不能通过 nginx 代理使用域名进行访问。nginx 和 frp 的更多配合方式参考示例：https://github.com/raymond9zhou/frps-nginx-httpsWindows 运行脚本及自启动Windows 下可以写一个 bat 脚本，双击直接后台运行命令：@echo off
+if &quot;%1&quot; == &quot;h&quot; goto begin
+mshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;&quot;&quot;%~nx0&quot;&quot; h&quot;,0)(window.close)&amp;&amp;exit
+:begin
+REM
+cd C:\frp
+frpc -c frpc.ini
+exit上面的 frp 地址修改为实际地址，程序会在后台运行，想要关闭可以在任务管理器中结束进程： frpc.exe将脚本快捷方式放到开机启动文件夹可以实现开机自启动，Windows 10 自启文件夹地址是：%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup以上就是 frp 的简单使用，高级用法参考官方手册。详细配置文件：frps：https://github.com/fatedier/frp/blob/master/conf/frps_full.inifrpc：https://github.com/fatedier/frp/blob/master/conf/frpc_full.ini</description>
+</item>
+</rdf:RDF>

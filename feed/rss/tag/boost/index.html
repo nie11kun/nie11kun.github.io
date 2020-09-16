@@ -17,13 +17,58 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/1174.html">
 <title>Windows 下编译 boost 静态库</title>
 <link>https://blog.niekun.net/archives/1174.html</link>
-<dc:date>2020-02-27T13:39:00+08:00</dc:date>
-<description>boost 是很流行的一个 c++ 库，他的部分模块使用只需要引用 head 文件即可，部分需要编译链接库才能使用。下面介绍如何编译模块的静态链接库。官方网站：https://www.boost.org/开始教程：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html官方编译教程：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html#prepare-to-use-a-boost-library-binary关于 B2 编译系统：https://boostorg.github.io/build/关于 Microsoft Visual C++(MSVC) 版本号：https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B#Internal_version_numbering关于静态库和动态库：[...]</description>
+<dc:date>2020-02-27T00:39:00-05:00</dc:date>
+<description>boost 是很流行的一个 c++ 库，他的部分模块使用只需要引用 head 文件即可，部分需要编译链接库才能使用。下面介绍如何编译模块的静态链接库。官方网站：https://www.boost.org/开始教程：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html官方编译教程：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html#prepare-to-use-a-boost-library-binary关于 B2 编译系统：https://boostorg.github.io/build/关于 Microsoft Visual C++(MSVC) 版本号：https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B#Internal_version_numbering关于静态库和动态库：boost 库下载从官方链接下载最新版 boost 库：https://www.boost.org/users/download/解压到磁盘目录，最好放置在单独管理软件环境库的目录，方便管理。需要编译库文件才能使有的模块如下：    - atomic
+    - chrono
+    - container
+    - context
+    - contract
+    - coroutine
+    - date_time
+    - exception
+    - fiber
+    - filesystem
+    - graph
+    - graph_parallel
+    - headers
+    - iostreams
+    - locale
+    - log
+    - math
+    - mpi
+    - program_options
+    - python
+    - random
+    - regex
+    - serialization
+    - stacktrace
+    - system
+    - test
+    - thread
+    - timer
+    - type_erasure
+    - wave编译器配置各平台支持的编译器类型：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html#identify-your-toolsetWindows 下支持的编译器是：gcc 和 msvc，我电脑安装的是 visual studio 2019 的 c++ 开发包，所以我使用 msvc 作为编译器。使用 msvc 编译，需要在 c++ 开发包的基础上在 visual studio installer 里安装 Windows CRT SDK，不然在执行 bootstrap 时会报错：booost 支持指定 msvc 版本，所以首先查看我安装的 msvc 版本，可以在 visual studio installer 里查看当前安装的 msvc：或者可以通过 VS 版本号来查询 msvc 版本：https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B#Internal_version_numbering打开 boost 文件夹目录下的 bootstrap.bat 可以看到在执行脚本时也可以通过参数指定 msvc 版本：SET TOOLSET=msvc
+
+IF &quot;%1&quot;==&quot;gcc&quot; SET TOOLSET=gcc
+
+IF &quot;%1&quot;==&quot;vc71&quot; SET TOOLSET=msvc : 7.1
+IF &quot;%1&quot;==&quot;vc8&quot; SET TOOLSET=msvc : 8.0
+IF &quot;%1&quot;==&quot;vc9&quot; SET TOOLSET=msvc : 9.0
+IF &quot;%1&quot;==&quot;vc10&quot; SET TOOLSET=msvc : 10.0
+IF &quot;%1&quot;==&quot;vc11&quot; SET TOOLSET=msvc : 11.0
+IF &quot;%1&quot;==&quot;vc12&quot; SET TOOLSET=msvc : 12.0
+IF &quot;%1&quot;==&quot;vc14&quot; SET TOOLSET=msvc : 14.0
+IF &quot;%1&quot;==&quot;vc141&quot; SET TOOLSET=msvc : 14.1
+IF &quot;%1&quot;==&quot;vc142&quot; SET TOOLSET=msvc : 14.2编译模块首先通过 boost 文件夹目录下的 bootstrap.bat 来安装 Boost.Build (b2) 编译工具。关于什么是 Boost.Build (b2) 参考：https://boostorg.github.io/build/使用 vc++ 的终端来执行脚本如 native tool cmd，也可以在终端下指定 msvc 版本来编译，将目录 cd 到 boost 目录然后运行 bootstrap，使用 vc142 作为参数：如果出错，会在 boost 目录下生成 bootstrap.log 文件，查看具体出错信息。成功执行后在 boost 目录会有一个 b2.exe 文件，执行 .\b2 --help 可以查看帮助，下面需要这个 b2 来编辑模块库文件。再次打开终端，切换到 boost 目录，运行下面的命令：cd \TOYOURBOOSTPATH
+b2 --toolset=msvc-14.2 link=static runtime-link=static --build-type=complete stage
+--toolset=msvc-14.2       定义了编译器名称link=static               定义了链接库为静态，就是将链接库本身编译为静态的runtime-link=static       定义了运行链接库为静态，就是程序使用此库打包时为静态的--build-type=complete 定义了编译所有支持的变种库stage                 定义了库文件路径：.\stage\lib。想要更换其他路径使用 --stagedir=directory 参数来定义关于 link 和 runtime-link 参考：https://www.quora.com/What-is-the-difference-between-static-runtime-and-dynamic-linking其他可用的参数使用 b2 --help 来查看。成功编译完成后，链接库文件在 .\stage\lib\ 目录下。boost 库的使用使用 boost 库需要将 head 头文件文件夹和 lib 链接库文件夹在编译器里指定。官方手册：https://www.boost.org/doc/libs/1_72_0/more/getting_started/windows.html#link-your-program-to-a-boost-libraryhead 文件夹路径：PathTo\boost_1_72_0\boostlib 库文件夹路径：PathTo\boost_1_72_0\stage\lib下面介绍在 visual studio 2019 如何使用 boost。打开 c++ 项目文件，在右侧 solution explorer 中，在项目名右键点击 properties 或者 快捷键 alt + enter：选择 c/c++ - general，右侧菜单 additional include directories 中输入 boost 根路径：选择 linker - general，右侧菜单 additional library directories 中输入 lib 路径，来包含 lib 库文件：由于我们编译的是静态链接库，所以需要将 runtime library 设置为静态，选择 c/c++ - code generation，右侧菜单 runtime library 选择 MT/MTD，MT 代表 release，MTD 代表 debug：以上就把 boost 连接到了环境中，使用只需要 include 需要的模块即可，例如：#include &quot;boost/filesystem.hpp&quot;
+
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/95.html">
 <title>boost库里使用path的指针问题</title>
 <link>https://blog.niekun.net/archives/95.html</link>
-<dc:date>2019-02-21T14:03:00+08:00</dc:date>
+<dc:date>2019-02-21T01:03:00-05:00</dc:date>
 <description>近期在开发过程中遇到一个奇怪的问题，当我复制一个文件夹到新目录时候总是失败，查看日志发现是传递地址出错了。我是使用的是Boost的filesystem C++库处理文件，下面是代码片段，将path类型的地址放入一个指针，然后调用其他function：fs::path childDir = np;
 childDir += &quot;/\\&quot; + dir_itr-&gt;path().filename().string();
 const char* c_childDir = childDir.string().c_str();
