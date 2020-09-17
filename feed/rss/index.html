@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1747.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1720.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1718.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1690.html"/>
@@ -18,32 +19,108 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1680.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1677.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1666.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1653.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1747.html">
+<title>Linux 系统时间设置问题</title>
+<link>https://blog.niekun.net/archives/1747.html</link>
+<dc:date>2020-09-17T10:47:54+08:00</dc:date>
+<description>昨天重装了 vps 系统，在设置 crontab 定时任务时发现并没有在指定的时间执行脚本。于是就进行排查问题。测试在 /etc/crontab 添加一条测试任务:30  10    *  *  * root python -V &gt; /root/test.log
+在 10：30 并没有看到 test.log 文件生成。通过 systemctl status cron 查看信息：Sep 17 10:21:01 niekun-bandwagon CRON[946]: pam_unix(cron:session): session clos
+Sep 17 10:29:01 niekun-bandwagon cron[451]: (*system*) RELOAD (/etc/crontab)在 10：29 crontab 脚本已经重新加载过了，但是并没有执行任务。通过命令 cat /var/log/syslog | grep cron 查看系统日志：Sep 16 21:46:35 niekun-bandwagon cron[451]: (CRON) INFO (pidfile fd = 3)
+Sep 16 21:46:35 niekun-bandwagon cron[451]: (CRON) INFO (Running @reboot jobs)
+Sep 16 22:29:01 niekun-bandwagon cron[451]: (*system*) RELOAD (/etc/crontab)发现日志的时间比我当前时间晚了 12 个小时，会不会就是系统日期问题导致脚本没有达到设定的时间？在按装新系统的后，使用 date 命令查看当前系统时间，发现时间是 UTC 时间，我通过 tzselect 命令设置了时区：[root@db-server ~]# tzselect 
+Please identify a location so that time zone rules can be set correctly.
+Please select a continent or ocean.
+ 1) Africa
+ 2) Americas
+ 3) Antarctica
+ 4) Arctic Ocean
+ 5) Asia
+ 6) Atlantic Ocean
+ 7) Australia
+ 8) Europe
+ 9) Indian Ocean
+10) Pacific Ocean
+11) none - I want to specify the time zone using the Posix TZ format.
+#? 5
+Please select a country.
+ 1) Afghanistan           18) Israel                35) Palestine
+ 2) Armenia               19) Japan                 36) Philippines
+ 3) Azerbaijan            20) Jordan                37) Qatar
+ 4) Bahrain               21) Kazakhstan            38) Russia
+ 5) Bangladesh            22) Korea (North)         39) Saudi Arabia
+ 6) Bhutan                23) Korea (South)         40) Singapore
+ 7) Brunei                24) Kuwait                41) Sri Lanka
+ 8) Cambodia              25) Kyrgyzstan            42) Syria
+ 9) China                 26) Laos                  43) Taiwan
+10) Cyprus                27) Lebanon               44) Tajikistan
+11) East Timor            28) Macau                 45) Thailand
+12) Georgia               29) Malaysia              46) Turkmenistan
+13) Hong Kong             30) Mongolia              47) United Arab Emirates
+14) India                 31) Myanmar (Burma)       48) Uzbekistan
+15) Indonesia             32) Nepal                 49) Vietnam
+16) Iran                  33) Oman                  50) Yemen
+17) Iraq                  34) Pakistan
+#? 9
+Please select one of the following time zone regions.
+1) east China - Beijing, Guangdong, Shanghai, etc.
+2) Heilongjiang (except Mohe), Jilin
+3) central China - Sichuan, Yunnan, Guangxi, Shaanxi, Guizhou, etc.
+4) most of Tibet &amp; Xinjiang
+5) west Tibet &amp; Xinjiang
+#? 1
+ 
+The following information has been given:
+ 
+        China
+        east China - Beijing, Guangdong, Shanghai, etc.
+ 
+Therefore TZ='Asia/Shanghai' will be used.
+Local time is now:      Sun Jan 11 23:31:51 CST 2015.
+Universal Time is now:  Sun Jan 11 15:31:51 UTC 2015.
+Is the above information OK?
+1) Yes
+2) No
+#? yes
+Please enter 1 for Yes, or 2 for No.
+#? 1
+ 
+You can make this change permanent for yourself by appending the line
+        TZ='Asia/Shanghai'; export TZ
+to the file '.profile' in your home directory; then log out and log in again.
+ 
+Here is that TZ value again, this time on standard output so that you
+can use the /usr/bin/tzselect command in shell scripts:
+Asia/Shanghai将 TZ='Asia/Shanghai'; export TZ 写入 ~/.profile，并刷新文件：source .bash_profile测试当前系统时间：root@niekun-bandwagon:~# date
+Thu Sep 17 10:44:00 CST 2020
+但是系统日志记录的时间还是不对，这就可能还是时区不对，手动复制亚洲时区文件到目录：cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+更新 rsyslog 进程：systemctl restart rsyslog
+再次测试发现系统日志时间对了，crontab 脚本也可以正确执行。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1720.html">
 <title>自由填充 Pattern in Photoshop</title>
 <link>https://blog.niekun.net/archives/1720.html</link>
-<dc:date>2020-08-18T00:09:00-04:00</dc:date>
+<dc:date>2020-08-18T12:09:00+08:00</dc:date>
 <description>对于单个 pattern 模型，如果想要在 layer 内以随机的角度或大小填充来实现更加自然的效果可以使用 script 脚本方便的实现。我们从如何定一个 pattern 开始，下面是一张 1 美元图片：使用 object selection tool 快速将主体选出来：选区边沿如果有多余的或者缺失的部分，通过 按住 shift 和 alt 键来增加/减去选区：点击添加图层蒙版，边沿如果需要调整，可以使用画笔工具来进一步修整蒙版。如果蒙版边沿有锯齿，可以双击蒙版打开属性框，调整 smooth 和 contract 来优化蒙版：使用选区工具框出一个矩形框包含我们的主体：选择 edit - define pattern：定义一个名称，点击 ok：新建图层，快捷键 shift backspace/shift delete 调出填充框：content 选择 pattern：custom pattern 里选中我们刚才新建的模型：script 前打勾，然后右侧菜单里选择 random fill：点击 ok 后进入调整菜单，首先将 下面的 color randomness 设为 0 避免图形的染色改变，brightness randomness 设置为 0.02 左右使亮度轻微可以随机改变，形成层次感：将 density 设置为最大 10，将 minimum/maximum scale factor 设置为 1，这样 pattern 会以 1:1 比例显示：将 rotate pattern 打勾，这样模型会随机旋转：设置完成后点击 ok，可以看到效果：还可以做一些优化来使层叠效果更加真实，过程就是降低 density 和 scale，添加图层阴影效果。新建图层，使用上面的方法填充 pattern，在设置中将 density 设置为 9，scale 设置为 0.25：确认后可以看到效果，单个图形变小，填充密度变小：我们给图层添加阴影效果，双击图层打开 layer style，下方点击添加阴影：再次新建图层，使用上面图层的填充设置填充 pattern，可以将空缺的部分进一步补充完整：按住 alt 键拖拽刚才的阴影特效到新图层，可以快速复制效果：可以看到还是有空白的区域没有填充完整，继续重复上面的步骤，建立多个图层，直到完全充满整个区域为止，最终效果如下：以上就是使用 script 来实现 pattern 自由填充的过程。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1718.html">
 <title>argparse and struct in python</title>
 <link>https://blog.niekun.net/archives/1718.html</link>
-<dc:date>2020-08-13T23:20:39-04:00</dc:date>
+<dc:date>2020-08-14T11:20:39+08:00</dc:date>
 <description>https://docs.python.org/3/library/argparse.htmlhttps://docs.python.org/3/library/struct.html</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1690.html">
 <title>眼睛进阶处理 in Photoshop</title>
 <link>https://blog.niekun.net/archives/1690.html</link>
-<dc:date>2020-08-13T23:16:27-04:00</dc:date>
+<dc:date>2020-08-14T11:16:27+08:00</dc:date>
 <description>在人像照片中，一双炯炯有神的眼睛会让照片整体突出，下面我们来尝试通过提升亮度，增加细节等过程来实现。下图是我们的原图：放大眼睛细节：原图已经很好了，很清晰。下面我们进行调整。强化亮部细节需要提亮的部分是光源点的对面，再此图中就是眼睛光斑的下方，新建图层，画笔工具画圆：擦除多余部分，笔刷选择软笔刷，可以先降低不透明度来看到背景：高斯模糊使过度自然：混合模式改为 overlay 实现提亮：blend option 去掉影响阴影部分：如果想要加强效果可以再次复制图层，调整不透明度。增加高光点新建曲线图层，拉高曲线：ctrl I 反转图层蒙版，白色画笔工具软笔刷在瞳孔下方点击一下：可以看到效果太强了，调低不透明度到合适：增加明暗细节新建曲线图层，提高曲线，反转图层蒙版：白色画笔工具使用软笔刷沿着瞳孔在亮部区域画出射线，这一步注意如果有数位板来画的话会更好：降低不透明度到合适：下面增加暗部细节，再次新建曲线，然后降低曲线，反转蒙版：同样的方法画出射线：降低不透明度：眼白清理首先清理红血丝，新建图层，选择修复画笔工具混合模式设置为 screen，这样可以只处理暗部血丝：按 alt 键采样眼白，涂抹血丝区域：然后进行 dogding and burning 明暗调节，首先建立 soild color 观察图层，混合模式改为 color 来只显示亮度情况：新建图层，混合模式改为 soft light，选择笔刷工具软笔刷流量改为 1，快捷键 D 恢复颜色为黑/白，根据实际用白色笔刷涂抹暗部，黑色笔刷涂抹过亮部分：然后修复亮度调整后的颜色变化，新建图层，混合模式改为 color，快捷键 I 拾取眼白正常部分的颜色，然后在新图层上涂抹出需要修复的区域：复制效果将亮部细节处理/高光点/明暗细节处理部分建立分组然后复制一份，安住 ctrl 拖动分组到另一只眼睛部分，可以配合蒙版清理多余部分：可以使用同样的方法清理另一只眼睛的眼白部分最终效果如下：</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1688.html">
 <title>string &amp;lt;-&amp;gt; byte in python</title>
 <link>https://blog.niekun.net/archives/1688.html</link>
-<dc:date>2020-08-12T02:08:00-04:00</dc:date>
+<dc:date>2020-08-12T14:08:00+08:00</dc:date>
 <description>To transform a unicode string to a byte string in Python do this:&gt;&gt;&gt; 'foo'.encode('utf_8')
 b'foo'
 To transform a byte string to a unicode string:&gt;&gt;&gt; b'foo'.decode('utf_8')
@@ -58,7 +135,7 @@ data = str(b&quot;&quot;)         #string</description>
 <item rdf:about="https://blog.niekun.net/archives/1685.html">
 <title>winreg 操作 Windows 注册表 in python</title>
 <link>https://blog.niekun.net/archives/1685.html</link>
-<dc:date>2020-08-12T01:56:00-04:00</dc:date>
+<dc:date>2020-08-12T13:56:00+08:00</dc:date>
 <description>https://docs.python.org/3/library/winreg.html#https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registryimport winreg
 
 REG_PATH = r&quot;Control Panel\Mouse&quot;
@@ -97,13 +174,13 @@ set_reg('MouseSensitivity', str(10))
 <item rdf:about="https://blog.niekun.net/archives/1684.html">
 <title>使用 opencv 处理图像</title>
 <link>https://blog.niekun.net/archives/1684.html</link>
-<dc:date>2020-08-06T23:37:51-04:00</dc:date>
+<dc:date>2020-08-07T11:37:51+08:00</dc:date>
 <description>安装：https://pypi.org/project/opencv-python/使用：https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_setup/py_table_of_contents_setup/py_table_of_contents_setup.html示例：https://www.askaswiss.com/2016/01/how-to-create-pencil-sketch-opencv-python.html打包 exe：https://pypi.org/project/auto-py-to-exe/</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1680.html">
 <title>xattr 命令清除 app 的隔离属性</title>
 <link>https://blog.niekun.net/archives/1680.html</link>
-<dc:date>2020-07-21T00:37:00-04:00</dc:date>
+<dc:date>2020-07-21T12:37:00+08:00</dc:date>
 <description>macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - security 里可以手动允许运行，但是有时候使用这种方法也无法打开，这是由于系统识别到这个 app 可能有问题所以给它加上了 com.apple.quarantine 隔离属性阻止了他的运行。如果我们需要运行它，就需要删除 app 的 com.apple.quarantine 属性，可以使用 xattr 来处理。macOS 上的文件不只有 "normal" 属性，也有 "读", "写", "执行" 等其他属性。常规属性可以用 ls -l myfile 命令来查看。除此之外还可以定义扩展属性，扩展属性的修改可以用 xattr 来处理。命令语法如下：xattr [options] attributes [files]
 可用 option：   -c  CLear all Atrributes.
    -d  Delete the given attribute.
@@ -132,13 +209,13 @@ set_reg('MouseSensitivity', str(10))
 <item rdf:about="https://blog.niekun.net/archives/1677.html">
 <title>cinema 4D 快捷键</title>
 <link>https://blog.niekun.net/archives/1677.html</link>
-<dc:date>2020-07-19T21:03:00-04:00</dc:date>
+<dc:date>2020-07-20T09:03:00+08:00</dc:date>
 <description>1视角移动2视野放大/缩小3视角旋转  Eobject 移动Robject 旋转Tobject 放大/缩小  object 编辑 U线段功能菜单U + L选择闭合曲线U + U取消区域曲线选择M块功能菜单M + T块生成工具  Q隐藏 subdivision surface  alt + R区域渲染  </description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1666.html">
 <title>Linux 下使用 OptiPNG 压缩图片</title>
 <link>https://blog.niekun.net/archives/1666.html</link>
-<dc:date>2020-07-14T05:25:00-04:00</dc:date>
+<dc:date>2020-07-14T17:25:00+08:00</dc:date>
 <description>最近越来也发现自己的博客加载图片变慢了，由于我很多教程是教 PS 的，会使用到很多图片和截图，所以影响尤其明显。每张图片小则 400Kb 大则 2-3Mb，对于网络浏览不太友好。可以直接在服务器上进行图片压缩，用到的工具是 OptiPNG。OptiPNG home page：http://optipng.sourceforge.net/编译安装我选择从源码编译安装，这样可以直接使用最新版本。如何从源码编译程序可以参考我的文章：https://blog.niekun.net/archives/883.html首先从官网下载源码到 vps 并解压：cd /tmp
 wget http://prdownloads.sourceforge.net/optipng/optipng-0.7.7.tar.gz
 tar xvf optipng-0.7.7.tar.gz
@@ -171,11 +248,5 @@ Examples:
     optipng file.png                                            (default speed)
     optipng -o5 file.png                                        (slow)
     optipng -o7 file.png                                        (very slow)</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1653.html">
-<title>快速给黑白照上色 in Photoshop</title>
-<link>https://blog.niekun.net/archives/1653.html</link>
-<dc:date>2020-07-14T02:37:09-04:00</dc:date>
-<description>如果你需要给黑白照片添加颜色，这个教程可以帮助你快速完成。它通过把照片上传到一个免费的网站来自动给照片上色，然后再 Photoshop 中对自动处理不完美的地方进行精细调整最终得到满意的效果。免费上色网站地址为：https://imagecolorizer.com/我们首先测试人像：将图片上传到网站，等待自动处理完成后下载到本地：自动处理结果如下，可以看到基本比较完善，但是细节处有一些偏色，色条和漏掉颜色的地方：下面我们进入 Photoshop 进行处理，将原图和处理后的图片导入，将处理后的图层模式设置为 color，我们只用处理后的色彩信息：首先处理皮肤表面的不规则色条，选择 filter - blur - furface blur，放大可以看到表面的色条：调整 radius 和 threshold 使表面颜色平滑：然后我们处理脖子部分的颜色丢失：新建图层，混合模式改为 color，拾取附近色彩正常区域的颜色，快捷键 I：使用画笔工具涂抹需要重新上色的区域：面部饱和度过高，新建 hue 图层降低面部饱和度，配合蒙版操作：最终效果如下：</description>
 </item>
 </rdf:RDF>

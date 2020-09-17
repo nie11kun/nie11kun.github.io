@@ -48,7 +48,7 @@
 <div class="dropdown-divider"></div>
 <p class="text-info nav-title">归档</p>
 <ul class="navbar-nav mr-auto">
-<li class="nav-item"><a class="nav-link nav-title" href="../../2020/08/index.html">August 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/07/index.html">July 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/06/index.html">June 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/05/index.html">May 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/04/index.html">April 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/03/index.html">March 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/02/index.html">February 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/01/index.html">January 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/12/index.html">December 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/11/index.html">November 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/10/index.html">October 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/09/index.html">September 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/08/index.html">August 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/07/index.html">July 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/04/index.html">April 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/03/index.html">March 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/02/index.html">February 2019</a></li> </ul>
+<li class="nav-item"><a class="nav-link nav-title" href="../../2020/09/index.html">September 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/08/index.html">August 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/07/index.html">July 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/06/index.html">June 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/05/index.html">May 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/04/index.html">April 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/03/index.html">March 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/02/index.html">February 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2020/01/index.html">January 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/12/index.html">December 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/11/index.html">November 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/10/index.html">October 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/09/index.html">September 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/08/index.html">August 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/07/index.html">July 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/04/index.html">April 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/03/index.html">March 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../../2019/02/index.html">February 2019</a></li> </ul>
 </div>
 </nav>
 </div>
@@ -84,10 +84,44 @@
 <div class="row">
 <div class="col-md-9 col-12" id="main" role="main">
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/118.html">重定向 HTTP to HTTPS in Nginx</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2019-02-26T21:21:00+08:00" itemprop="datePublished">2019-02-26</time></li>
+<li>分类: <a href="../../category/Linux/index.html">Linux</a>,<a href="../../category/web/index.html">web</a></li>
+<li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/118.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>将http请求重定向为https，使所有连接都使用安全的ssl。</p><h2>重定向所有http请求</h2><p>以下配置为将所有收到的80端口的请求都重定向到443端口,这会把此ip下的所有域名都转换：</p><pre><code>server {
+    listen           80;
+    listen           [::]:80;
+    server_name      _;
+    return           301 https://$host$request_uri;
+}</code></pre><p>listen 80 default_server 表示这是唯一监听80端口的server块<br>server_name _ 表示监听所有使用的域名</p><h2>重定向特定域名</h2><p>以下配置为重定向特定域名的请求，此方式适用于此ip下绑定多个域名的情况：</p><pre><code>server {
+    listen           80;
+    listen           [::]:80;
+    server_name      your.domain;
+    return           301 https://your.domain$request_uri;
+}</code></pre><h2>443 server block</h2><p>设定我们的域名只接收443端口的访问：</p><pre><code>server {
+    listen                443 ssl default_server;
+    listen                [::]:443 ssl;
+    server_name           foo.com;
+}
+
+server {
+    listen                443 ssl;
+    listen                [::]:443 ssl;
+    server_name           bar.com;
+}
+
+...
+</code></pre><p>只能设置一个域名为default_server。</p> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/100.html">macOS使用brew安装的模块提示命令不存在的解决方法</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-02-21T19:51:00-05:00" itemprop="datePublished">2019-02-21</time></li>
+<li>时间: <time datetime="2019-02-21T20:51:00+08:00" itemprop="datePublished">2019-02-21</time></li>
 <li>分类: <a href="../../category/macos/index.html">macOS</a></li>
 <li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/100.html#comments">评论</a></li>
 </ul>
@@ -102,7 +136,7 @@
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/97.html">macOS/Linux/windows设置终端 proxy 代理</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-02-21T19:33:00-05:00" itemprop="datePublished">2019-02-21</time></li>
+<li>时间: <time datetime="2019-02-21T20:33:00+08:00" itemprop="datePublished">2019-02-21</time></li>
 <li>分类: <a href="../../category/Linux/index.html">Linux</a>,<a href="../../category/Windows/index.html">Windows</a>,<a href="../../category/macos/index.html">macOS</a></li>
 <li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/97.html#comments">评论</a></li>
 </ul>
@@ -119,7 +153,7 @@ alias unproxy='unset all_proxy'
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/95.html">boost库里使用path的指针问题</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-02-21T13:03:00-05:00" itemprop="datePublished">2019-02-21</time></li>
+<li>时间: <time datetime="2019-02-21T14:03:00+08:00" itemprop="datePublished">2019-02-21</time></li>
 <li>分类: <a href="../../category/cpp/index.html">c++</a>,<a href="../../category/dev/index.html">Program</a></li>
 <li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/95.html#comments">评论</a></li>
 </ul>
@@ -136,41 +170,19 @@ const char* c_childDir = s_childDir.c_str();
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/80.html">V2ray install guide</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-02-20T07:48:00-05:00" itemprop="datePublished">2019-02-20</time></li>
+<li>时间: <time datetime="2019-02-20T08:48:00+08:00" itemprop="datePublished">2019-02-20</time></li>
 <li>分类: <a href="../../category/Linux/index.html">Linux</a>,<a href="../../category/web/index.html">web</a></li>
 <li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/80.html#comments">评论</a></li>
 </ul>
 <div class="post-content" itemprop="articleBody">
 <blockquote>Project V 是一个工具集合，它可以帮助你打造专属的基础通信网络。Project V 的核心工具称为V2Ray，其主要负责网络协议和功能的实现，与其它 Project V 通信。V2Ray 可以单独运行，也可以和其它工具配合，以提供简便的操作流程。</blockquote><p>GitHub：<a href="https://github.com/v2ray/v2ray-core">https://github.com/v2ray/v2ray-core</a><br>官网：<a href="https://www.v2ray.com">https://www.v2ray.com</a><br>客户端下载：<a href="https://github.com/v2ray/v2ray-core/releases">https://github.com/v2ray/v2ray-core/releases</a></p><p class="more"><a href="../../archives/80.html" title="V2ray install guide">- 阅读剩余部分 -</a></p> </div>
 </article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/64.html">HTML5视频嵌入test</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-02-19T13:50:00-05:00" itemprop="datePublished">2019-02-19</time></li>
-<li>分类: <a href="../../category/web/index.html">web</a></li>
-<li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/64.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>测试视频：</p><iframe class="movie" width="100%" src="https://player.bilibili.com/player.html?aid=44031474&amp;cid=77121958&amp;page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-<video controls class="movie" width="100%">
-<source src="https://blog.niekun.net/page/38/myuploads/PianistAtPublic.mp4" type="video/mp4">
-video is not supported
-</video>
-<script type="cd4947d621e83e280e41779e-text/javascript">   
-    var x = document.getElementsByClassName("movie");
-    var i;
-    for (i = 0; i < x.length; i++) {
-        x[i].style.height=x[i].scrollWidth*9/16+"px";
-    }
-</script><p>官方文档：<a href="https://html.spec.whatwg.org/#the-video-element">https://html.spec.whatwg.org/#the-video-element</a></p> </div>
-</article>
 <ol class="page-navigator"><li class="prev"><a href="../37/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../35/index.html">35</a></li><li><a href="../36/index.html">36</a></li><li><a href="../37/index.html">37</a></li><li class="current"><a href="index.html">38</a></li><li><a href="../39/index.html">39</a></li><li><a href="../40/index.html">40</a></li><li><a href="../41/index.html">41</a></li><li class="next"><a href="../39/index.html">后一页 &raquo;</a></li></ol></div>
 <div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../archives/1720.html">自由填充 Pattern in Photoshop</a></li><li><a href="../../archives/1718.html">argparse and struct in python</a></li><li><a href="../../archives/1690.html">眼睛进阶处理 in Photoshop</a></li><li><a href="../../archives/1688.html">string &lt;-&gt; byte in python</a></li><li><a href="../../archives/1687.html">hex &lt;-&gt; str in python </a></li><li><a href="../../archives/1685.html">winreg 操作 Windows 注册表 in python</a></li><li><a href="../../archives/1684.html">使用 opencv 处理图像</a></li><li><a href="../../archives/1680.html">xattr 命令清除 app 的隔离属性</a></li><li><a href="../../archives/1677.html">cinema 4D 快捷键</a></li><li><a href="../../archives/1666.html">Linux 下使用 OptiPNG 压缩图片</a></li> </ul>
+<li><a href="../../archives/1747.html">Linux 系统时间设置问题</a></li><li><a href="../../archives/1720.html">自由填充 Pattern in Photoshop</a></li><li><a href="../../archives/1718.html">argparse and struct in python</a></li><li><a href="../../archives/1690.html">眼睛进阶处理 in Photoshop</a></li><li><a href="../../archives/1688.html">string &lt;-&gt; byte in python</a></li><li><a href="../../archives/1687.html">hex &lt;-&gt; str in python </a></li><li><a href="../../archives/1685.html">winreg 操作 Windows 注册表 in python</a></li><li><a href="../../archives/1684.html">使用 opencv 处理图像</a></li><li><a href="../../archives/1680.html">xattr 命令清除 app 的隔离属性</a></li><li><a href="../../archives/1677.html">cinema 4D 快捷键</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -193,7 +205,7 @@ video is not supported
 <section class="widget">
 <h4 class="Display 2">归档</h4>
 <ul class="widget-list">
-<li><a href="../../2020/08/index.html">August 2020</a></li><li><a href="../../2020/07/index.html">July 2020</a></li><li><a href="../../2020/06/index.html">June 2020</a></li><li><a href="../../2020/05/index.html">May 2020</a></li><li><a href="../../2020/04/index.html">April 2020</a></li><li><a href="../../2020/03/index.html">March 2020</a></li><li><a href="../../2020/02/index.html">February 2020</a></li><li><a href="../../2020/01/index.html">January 2020</a></li><li><a href="../../2019/12/index.html">December 2019</a></li><li><a href="../../2019/11/index.html">November 2019</a></li><li><a href="../../2019/10/index.html">October 2019</a></li><li><a href="../../2019/09/index.html">September 2019</a></li><li><a href="../../2019/08/index.html">August 2019</a></li><li><a href="../../2019/07/index.html">July 2019</a></li><li><a href="../../2019/04/index.html">April 2019</a></li><li><a href="../../2019/03/index.html">March 2019</a></li><li><a href="../../2019/02/index.html">February 2019</a></li> </ul>
+<li><a href="../../2020/09/index.html">September 2020</a></li><li><a href="../../2020/08/index.html">August 2020</a></li><li><a href="../../2020/07/index.html">July 2020</a></li><li><a href="../../2020/06/index.html">June 2020</a></li><li><a href="../../2020/05/index.html">May 2020</a></li><li><a href="../../2020/04/index.html">April 2020</a></li><li><a href="../../2020/03/index.html">March 2020</a></li><li><a href="../../2020/02/index.html">February 2020</a></li><li><a href="../../2020/01/index.html">January 2020</a></li><li><a href="../../2019/12/index.html">December 2019</a></li><li><a href="../../2019/11/index.html">November 2019</a></li><li><a href="../../2019/10/index.html">October 2019</a></li><li><a href="../../2019/09/index.html">September 2019</a></li><li><a href="../../2019/08/index.html">August 2019</a></li><li><a href="../../2019/07/index.html">July 2019</a></li><li><a href="../../2019/04/index.html">April 2019</a></li><li><a href="../../2019/03/index.html">March 2019</a></li><li><a href="../../2019/02/index.html">February 2019</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">其它</h4>
@@ -209,12 +221,13 @@ video is not supported
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="cd4947d621e83e280e41779e-text/javascript">
+<script type="2d4283d96aa7321a1b6f2f01-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="cd4947d621e83e280e41779e-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="cd4947d621e83e280e41779e-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="cd4947d621e83e280e41779e-text/javascript"></script>
-<script src="../../usr/themes/TypechoAwesome/navItem.js" type="cd4947d621e83e280e41779e-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="cd4947d621e83e280e41779e-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="2d4283d96aa7321a1b6f2f01-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="2d4283d96aa7321a1b6f2f01-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="2d4283d96aa7321a1b6f2f01-text/javascript"></script>
+<script src="../../usr/themes/TypechoAwesome/navItem.js" type="2d4283d96aa7321a1b6f2f01-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="2d4283d96aa7321a1b6f2f01-|49" defer=""></script><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"rayId":"5d3f8dde0dd4057d","version":"2020.9.0","si":10}'></script>
+</body>
 </html>

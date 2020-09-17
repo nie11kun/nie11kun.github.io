@@ -11,13 +11,98 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/Linux/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Tue, 14 Jul 2020 05:25:00 -0400</lastBuildDate>
-<pubDate>Tue, 14 Jul 2020 05:25:00 -0400</pubDate>
+<lastBuildDate>Thu, 17 Sep 2020 10:47:54 +0800</lastBuildDate>
+<pubDate>Thu, 17 Sep 2020 10:47:54 +0800</pubDate>
+<item>
+<title>Linux 系统时间设置问题</title>
+<link>https://blog.niekun.net/archives/1747.html</link>
+<guid>https://blog.niekun.net/archives/1747.html</guid>
+<pubDate>Thu, 17 Sep 2020 10:47:54 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[昨天重装了 vps 系统，在设置 crontab 定时任务时发现并没有在指定的时间执行脚本。于是就进行排查问题。测试在 /etc/crontab 添加一条测试任务:30  10    *  * ...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>昨天重装了 vps 系统，在设置 crontab 定时任务时发现并没有在指定的时间执行脚本。于是就进行排查问题。</p><p>测试在 <code>/etc/crontab</code> 添加一条测试任务:</p><pre><code>30  10    *  *  * root python -V &gt; /root/test.log
+</code></pre><p>在 10：30 并没有看到 test.log 文件生成。</p><!--more--><p>通过 <code>systemctl status cron</code> 查看信息：</p><pre><code>Sep 17 10:21:01 niekun-bandwagon CRON[946]: pam_unix(cron:session): session clos
+Sep 17 10:29:01 niekun-bandwagon cron[451]: (*system*) RELOAD (/etc/crontab)</code></pre><p>在 10：29 crontab 脚本已经重新加载过了，但是并没有执行任务。</p><p>通过命令 <code>cat /var/log/syslog | grep cron</code> 查看系统日志：</p><pre><code>Sep 16 21:46:35 niekun-bandwagon cron[451]: (CRON) INFO (pidfile fd = 3)
+Sep 16 21:46:35 niekun-bandwagon cron[451]: (CRON) INFO (Running @reboot jobs)
+Sep 16 22:29:01 niekun-bandwagon cron[451]: (*system*) RELOAD (/etc/crontab)</code></pre><p>发现日志的时间比我当前时间晚了 12 个小时，会不会就是系统日期问题导致脚本没有达到设定的时间？</p><p>在按装新系统的后，使用 <code>date</code> 命令查看当前系统时间，发现时间是 UTC 时间，我通过 <code>tzselect</code> 命令设置了时区：</p><pre><code>[root@db-server ~]# tzselect 
+Please identify a location so that time zone rules can be set correctly.
+Please select a continent or ocean.
+ 1) Africa
+ 2) Americas
+ 3) Antarctica
+ 4) Arctic Ocean
+ 5) Asia
+ 6) Atlantic Ocean
+ 7) Australia
+ 8) Europe
+ 9) Indian Ocean
+10) Pacific Ocean
+11) none - I want to specify the time zone using the Posix TZ format.
+#? 5
+Please select a country.
+ 1) Afghanistan           18) Israel                35) Palestine
+ 2) Armenia               19) Japan                 36) Philippines
+ 3) Azerbaijan            20) Jordan                37) Qatar
+ 4) Bahrain               21) Kazakhstan            38) Russia
+ 5) Bangladesh            22) Korea (North)         39) Saudi Arabia
+ 6) Bhutan                23) Korea (South)         40) Singapore
+ 7) Brunei                24) Kuwait                41) Sri Lanka
+ 8) Cambodia              25) Kyrgyzstan            42) Syria
+ 9) China                 26) Laos                  43) Taiwan
+10) Cyprus                27) Lebanon               44) Tajikistan
+11) East Timor            28) Macau                 45) Thailand
+12) Georgia               29) Malaysia              46) Turkmenistan
+13) Hong Kong             30) Mongolia              47) United Arab Emirates
+14) India                 31) Myanmar (Burma)       48) Uzbekistan
+15) Indonesia             32) Nepal                 49) Vietnam
+16) Iran                  33) Oman                  50) Yemen
+17) Iraq                  34) Pakistan
+#? 9
+Please select one of the following time zone regions.
+1) east China - Beijing, Guangdong, Shanghai, etc.
+2) Heilongjiang (except Mohe), Jilin
+3) central China - Sichuan, Yunnan, Guangxi, Shaanxi, Guizhou, etc.
+4) most of Tibet &amp; Xinjiang
+5) west Tibet &amp; Xinjiang
+#? 1
+ 
+The following information has been given:
+ 
+        China
+        east China - Beijing, Guangdong, Shanghai, etc.
+ 
+Therefore TZ='Asia/Shanghai' will be used.
+Local time is now:      Sun Jan 11 23:31:51 CST 2015.
+Universal Time is now:  Sun Jan 11 15:31:51 UTC 2015.
+Is the above information OK?
+1) Yes
+2) No
+#? yes
+Please enter 1 for Yes, or 2 for No.
+#? 1
+ 
+You can make this change permanent for yourself by appending the line
+        TZ='Asia/Shanghai'; export TZ
+to the file '.profile' in your home directory; then log out and log in again.
+ 
+Here is that TZ value again, this time on standard output so that you
+can use the /usr/bin/tzselect command in shell scripts:
+Asia/Shanghai</code></pre><p>将 <code>TZ='Asia/Shanghai'; export TZ</code> 写入 <code>~/.profile</code>，并刷新文件：</p><pre><code>source .bash_profile</code></pre><p>测试当前系统时间：</p><pre><code>root@niekun-bandwagon:~# date
+Thu Sep 17 10:44:00 CST 2020
+</code></pre><p>但是系统日志记录的时间还是不对，这就可能还是时区不对，手动复制亚洲时区文件到目录：</p><pre><code>cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+</code></pre><p>更新 rsyslog 进程：</p><pre><code>systemctl restart rsyslog
+</code></pre><p>再次测试发现系统日志时间对了，crontab 脚本也可以正确执行。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1747.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1747.html</wfw:commentRss>
+</item>
 <item>
 <title>Linux 下使用 OptiPNG 压缩图片</title>
 <link>https://blog.niekun.net/archives/1666.html</link>
 <guid>https://blog.niekun.net/archives/1666.html</guid>
-<pubDate>Tue, 14 Jul 2020 05:25:00 -0400</pubDate>
+<pubDate>Tue, 14 Jul 2020 17:25:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[最近越来也发现自己的博客加载图片变慢了，由于我很多教程是教 PS 的，会使用到很多图片和截图，所以影响尤其明显。每张图片小则 400Kb 大则 2-3Mb，对于网络浏览不太友好。可以直接在服务器...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -62,7 +147,7 @@ Examples:
 <title>使用 SCP 管理远程服务器文件</title>
 <link>https://blog.niekun.net/archives/1547.html</link>
 <guid>https://blog.niekun.net/archives/1547.html</guid>
-<pubDate>Thu, 02 Apr 2020 20:55:39 -0400</pubDate>
+<pubDate>Fri, 03 Apr 2020 08:55:39 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[安全复制（英语：Secure copy，缩写SCP）是指在本地主机与远程主机或者两台远程主机之间基于Secure Shell（SSH）协议安全地传输电脑文件。SCP是一种基于BSD RCP协议的...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -82,7 +167,7 @@ Examples:
 <title>NGINX Reverse Proxy 反向代理的使用</title>
 <link>https://blog.niekun.net/archives/1378.html</link>
 <guid>https://blog.niekun.net/archives/1378.html</guid>
-<pubDate>Sun, 29 Mar 2020 23:05:00 -0400</pubDate>
+<pubDate>Mon, 30 Mar 2020 11:05:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[Proxying is typically used to distribute the load among several servers, seamlessly show content ...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -224,7 +309,7 @@ http{
 <title>traceroute 路由 IP 查看</title>
 <link>https://blog.niekun.net/archives/1376.html</link>
 <guid>https://blog.niekun.net/archives/1376.html</guid>
-<pubDate>Thu, 19 Mar 2020 21:00:07 -0400</pubDate>
+<pubDate>Fri, 20 Mar 2020 09:00:07 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[traceroute 是一种电脑网络工具。它可显示数据包在 IP 网络经过的路由器的 IP 地址。程序是利用增加存活时间（TTL）值来实现其功能的。每当数据包经过一个路由器，其存活时间就会减 1...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -295,7 +380,7 @@ Computing statistics for 300 seconds...</code></pre>
 <title>wkhtmltopdf 将 html为 pdf</title>
 <link>https://blog.niekun.net/archives/1375.html</link>
 <guid>https://blog.niekun.net/archives/1375.html</guid>
-<pubDate>Wed, 18 Mar 2020 00:58:56 -0400</pubDate>
+<pubDate>Wed, 18 Mar 2020 12:58:56 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[一般浏览器都可以将当前页面输出为 pdf，但当有很多个 html 文件时一个一个转换就很麻烦了，可以使用 wkhtmltopdf 命令行工具来实现自动化批量转换。wkhtmltopdf and ...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -316,7 +401,7 @@ find path/to/html -name '*.pdf' -exec mv {} pdf/ \;</code></pre><p>find 命令�
 <title>systemd 使用入门</title>
 <link>https://blog.niekun.net/archives/1334.html</link>
 <guid>https://blog.niekun.net/archives/1334.html</guid>
-<pubDate>Fri, 13 Mar 2020 03:27:34 -0400</pubDate>
+<pubDate>Fri, 13 Mar 2020 15:27:34 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-commands.htmlhttp://www.ruanyifeng.com/bl...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -330,7 +415,7 @@ find path/to/html -name '*.pdf' -exec mv {} pdf/ \;</code></pre><p>find 命令�
 <title>Windows 下 VMware 安装 Ubuntu 虚拟机</title>
 <link>https://blog.niekun.net/archives/1316.html</link>
 <guid>https://blog.niekun.net/archives/1316.html</guid>
-<pubDate>Fri, 13 Mar 2020 02:00:00 -0400</pubDate>
+<pubDate>Fri, 13 Mar 2020 14:00:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[虽然 Windows 10 自带有 WSL，可以安装 Linux 系统，但是在实际使用中发现还是有很多限制的。所以想要完整的 Linux 系统，还是安装了虚拟机。WSL 开启参考：https:/...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -347,7 +432,7 @@ sudo ./vmware-install.pl</code></pre><p>执行解压目录下的 vmware-install.
 <title>获取用户真实 IP in Nginx</title>
 <link>https://blog.niekun.net/archives/1296.html</link>
 <guid>https://blog.niekun.net/archives/1296.html</guid>
-<pubDate>Fri, 06 Mar 2020 02:00:00 -0500</pubDate>
+<pubDate>Fri, 06 Mar 2020 15:00:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[对于没有连代理访问网站的用户或者没有加 CDN 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，$remote_addr 存储了当前链接用户的 IP:https:/...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -380,7 +465,7 @@ $proxy_add_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204, 172.69.34.194
 <title>Nginx upstream timed out 问题的处理</title>
 <link>https://blog.niekun.net/archives/1280.html</link>
 <guid>https://blog.niekun.net/archives/1280.html</guid>
-<pubDate>Wed, 04 Mar 2020 19:53:00 -0500</pubDate>
+<pubDate>Thu, 05 Mar 2020 08:53:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -396,21 +481,6 @@ sudo service nginx reload
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1280.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1280.html</wfw:commentRss>
-</item>
-<item>
-<title>Windows 10 WSL 不支持 systemd</title>
-<link>https://blog.niekun.net/archives/1258.html</link>
-<guid>https://blog.niekun.net/archives/1258.html</guid>
-<pubDate>Tue, 03 Mar 2020 22:44:25 -0500</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[在使用 WSL 中发现无法使用 systemd 指令，会有如下报错信息：System has not been booted with systemd as init system (PID 1...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>在使用 WSL 中发现无法使用 systemd 指令，会有如下报错信息：System has not been booted with systemd as init system (PID 1). Can't operate</p><p>查询后发现 WSL 的确有这个问题：<a href="https://github.com/MicrosoftDocs/WSL/issues/457">https://github.com/MicrosoftDocs/WSL/issues/457</a></p><p>解决方法是用<strong>管理员权限打开 WSL</strong>，然后使用 <code>sudo service</code> 来控制进程，如：</p><pre><code>sudo service nginx start
-</code></pre>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1258.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1258.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

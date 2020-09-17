@@ -11,13 +11,98 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Tue, 18 Aug 2020 00:09:00 -0400</lastBuildDate>
-<pubDate>Tue, 18 Aug 2020 00:09:00 -0400</pubDate>
+<lastBuildDate>Thu, 17 Sep 2020 10:47:54 +0800</lastBuildDate>
+<pubDate>Thu, 17 Sep 2020 10:47:54 +0800</pubDate>
+<item>
+<title>Linux 系统时间设置问题</title>
+<link>https://blog.niekun.net/archives/1747.html</link>
+<guid>https://blog.niekun.net/archives/1747.html</guid>
+<pubDate>Thu, 17 Sep 2020 10:47:54 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[昨天重装了 vps 系统，在设置 crontab 定时任务时发现并没有在指定的时间执行脚本。于是就进行排查问题。测试在 /etc/crontab 添加一条测试任务:30  10    *  * ...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>昨天重装了 vps 系统，在设置 crontab 定时任务时发现并没有在指定的时间执行脚本。于是就进行排查问题。</p><p>测试在 <code>/etc/crontab</code> 添加一条测试任务:</p><pre><code>30  10    *  *  * root python -V &gt; /root/test.log
+</code></pre><p>在 10：30 并没有看到 test.log 文件生成。</p><!--more--><p>通过 <code>systemctl status cron</code> 查看信息：</p><pre><code>Sep 17 10:21:01 niekun-bandwagon CRON[946]: pam_unix(cron:session): session clos
+Sep 17 10:29:01 niekun-bandwagon cron[451]: (*system*) RELOAD (/etc/crontab)</code></pre><p>在 10：29 crontab 脚本已经重新加载过了，但是并没有执行任务。</p><p>通过命令 <code>cat /var/log/syslog | grep cron</code> 查看系统日志：</p><pre><code>Sep 16 21:46:35 niekun-bandwagon cron[451]: (CRON) INFO (pidfile fd = 3)
+Sep 16 21:46:35 niekun-bandwagon cron[451]: (CRON) INFO (Running @reboot jobs)
+Sep 16 22:29:01 niekun-bandwagon cron[451]: (*system*) RELOAD (/etc/crontab)</code></pre><p>发现日志的时间比我当前时间晚了 12 个小时，会不会就是系统日期问题导致脚本没有达到设定的时间？</p><p>在按装新系统的后，使用 <code>date</code> 命令查看当前系统时间，发现时间是 UTC 时间，我通过 <code>tzselect</code> 命令设置了时区：</p><pre><code>[root@db-server ~]# tzselect 
+Please identify a location so that time zone rules can be set correctly.
+Please select a continent or ocean.
+ 1) Africa
+ 2) Americas
+ 3) Antarctica
+ 4) Arctic Ocean
+ 5) Asia
+ 6) Atlantic Ocean
+ 7) Australia
+ 8) Europe
+ 9) Indian Ocean
+10) Pacific Ocean
+11) none - I want to specify the time zone using the Posix TZ format.
+#? 5
+Please select a country.
+ 1) Afghanistan           18) Israel                35) Palestine
+ 2) Armenia               19) Japan                 36) Philippines
+ 3) Azerbaijan            20) Jordan                37) Qatar
+ 4) Bahrain               21) Kazakhstan            38) Russia
+ 5) Bangladesh            22) Korea (North)         39) Saudi Arabia
+ 6) Bhutan                23) Korea (South)         40) Singapore
+ 7) Brunei                24) Kuwait                41) Sri Lanka
+ 8) Cambodia              25) Kyrgyzstan            42) Syria
+ 9) China                 26) Laos                  43) Taiwan
+10) Cyprus                27) Lebanon               44) Tajikistan
+11) East Timor            28) Macau                 45) Thailand
+12) Georgia               29) Malaysia              46) Turkmenistan
+13) Hong Kong             30) Mongolia              47) United Arab Emirates
+14) India                 31) Myanmar (Burma)       48) Uzbekistan
+15) Indonesia             32) Nepal                 49) Vietnam
+16) Iran                  33) Oman                  50) Yemen
+17) Iraq                  34) Pakistan
+#? 9
+Please select one of the following time zone regions.
+1) east China - Beijing, Guangdong, Shanghai, etc.
+2) Heilongjiang (except Mohe), Jilin
+3) central China - Sichuan, Yunnan, Guangxi, Shaanxi, Guizhou, etc.
+4) most of Tibet &amp; Xinjiang
+5) west Tibet &amp; Xinjiang
+#? 1
+ 
+The following information has been given:
+ 
+        China
+        east China - Beijing, Guangdong, Shanghai, etc.
+ 
+Therefore TZ='Asia/Shanghai' will be used.
+Local time is now:      Sun Jan 11 23:31:51 CST 2015.
+Universal Time is now:  Sun Jan 11 15:31:51 UTC 2015.
+Is the above information OK?
+1) Yes
+2) No
+#? yes
+Please enter 1 for Yes, or 2 for No.
+#? 1
+ 
+You can make this change permanent for yourself by appending the line
+        TZ='Asia/Shanghai'; export TZ
+to the file '.profile' in your home directory; then log out and log in again.
+ 
+Here is that TZ value again, this time on standard output so that you
+can use the /usr/bin/tzselect command in shell scripts:
+Asia/Shanghai</code></pre><p>将 <code>TZ='Asia/Shanghai'; export TZ</code> 写入 <code>~/.profile</code>，并刷新文件：</p><pre><code>source .bash_profile</code></pre><p>测试当前系统时间：</p><pre><code>root@niekun-bandwagon:~# date
+Thu Sep 17 10:44:00 CST 2020
+</code></pre><p>但是系统日志记录的时间还是不对，这就可能还是时区不对，手动复制亚洲时区文件到目录：</p><pre><code>cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+</code></pre><p>更新 rsyslog 进程：</p><pre><code>systemctl restart rsyslog
+</code></pre><p>再次测试发现系统日志时间对了，crontab 脚本也可以正确执行。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1747.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1747.html</wfw:commentRss>
+</item>
 <item>
 <title>自由填充 Pattern in Photoshop</title>
 <link>https://blog.niekun.net/archives/1720.html</link>
 <guid>https://blog.niekun.net/archives/1720.html</guid>
-<pubDate>Tue, 18 Aug 2020 00:09:00 -0400</pubDate>
+<pubDate>Tue, 18 Aug 2020 12:09:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[对于单个 pattern 模型，如果想要在 layer 内以随机的角度或大小填充来实现更加自然的效果可以使用 script 脚本方便的实现。]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -31,7 +116,7 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>argparse and struct in python</title>
 <link>https://blog.niekun.net/archives/1718.html</link>
 <guid>https://blog.niekun.net/archives/1718.html</guid>
-<pubDate>Thu, 13 Aug 2020 23:20:39 -0400</pubDate>
+<pubDate>Fri, 14 Aug 2020 11:20:39 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[https://docs.python.org/3/library/argparse.htmlhttps://docs.python.org/3/library/struct.html]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -45,7 +130,7 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>眼睛进阶处理 in Photoshop</title>
 <link>https://blog.niekun.net/archives/1690.html</link>
 <guid>https://blog.niekun.net/archives/1690.html</guid>
-<pubDate>Thu, 13 Aug 2020 23:16:27 -0400</pubDate>
+<pubDate>Fri, 14 Aug 2020 11:16:27 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[在人像照片中，一双炯炯有神的眼睛会让照片整体突出，下面我们来尝试通过提升亮度，增加细节等过程来实现。]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -59,7 +144,7 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>string &amp;lt;-&amp;gt; byte in python</title>
 <link>https://blog.niekun.net/archives/1688.html</link>
 <guid>https://blog.niekun.net/archives/1688.html</guid>
-<pubDate>Wed, 12 Aug 2020 02:08:00 -0400</pubDate>
+<pubDate>Wed, 12 Aug 2020 14:08:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[To transform a unicode string to a byte string in Python do this:&gt;&gt;&gt; 'foo'.encode('utf_8...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -82,7 +167,7 @@ data = str(b&quot;&quot;)         #string</code></pre>
 <title>winreg 操作 Windows 注册表 in python</title>
 <link>https://blog.niekun.net/archives/1685.html</link>
 <guid>https://blog.niekun.net/archives/1685.html</guid>
-<pubDate>Wed, 12 Aug 2020 01:56:00 -0400</pubDate>
+<pubDate>Wed, 12 Aug 2020 13:56:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[https://docs.python.org/3/library/winreg.html#https://stackoverflow.com/questions/15128225/python...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -129,7 +214,7 @@ set_reg('MouseSensitivity', str(10))
 <title>使用 opencv 处理图像</title>
 <link>https://blog.niekun.net/archives/1684.html</link>
 <guid>https://blog.niekun.net/archives/1684.html</guid>
-<pubDate>Thu, 06 Aug 2020 23:37:51 -0400</pubDate>
+<pubDate>Fri, 07 Aug 2020 11:37:51 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[安装：https://pypi.org/project/opencv-python/使用：https://opencv-python-tutroals.readthedocs.io/en/lat...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -143,7 +228,7 @@ set_reg('MouseSensitivity', str(10))
 <title>xattr 命令清除 app 的隔离属性</title>
 <link>https://blog.niekun.net/archives/1680.html</link>
 <guid>https://blog.niekun.net/archives/1680.html</guid>
-<pubDate>Tue, 21 Jul 2020 00:37:00 -0400</pubDate>
+<pubDate>Tue, 21 Jul 2020 12:37:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - securit...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -180,7 +265,7 @@ set_reg('MouseSensitivity', str(10))
 <title>cinema 4D 快捷键</title>
 <link>https://blog.niekun.net/archives/1677.html</link>
 <guid>https://blog.niekun.net/archives/1677.html</guid>
-<pubDate>Sun, 19 Jul 2020 21:03:00 -0400</pubDate>
+<pubDate>Mon, 20 Jul 2020 09:03:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[1视角移动2视野放大/缩小3视角旋转  Eobject 移动Robject 旋转Tobject 放大/缩小  object 编辑 U线段功能菜单U + L选择闭合曲线U + U取消区域曲线选择M...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -194,7 +279,7 @@ set_reg('MouseSensitivity', str(10))
 <title>Linux 下使用 OptiPNG 压缩图片</title>
 <link>https://blog.niekun.net/archives/1666.html</link>
 <guid>https://blog.niekun.net/archives/1666.html</guid>
-<pubDate>Tue, 14 Jul 2020 05:25:00 -0400</pubDate>
+<pubDate>Tue, 14 Jul 2020 17:25:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[最近越来也发现自己的博客加载图片变慢了，由于我很多教程是教 PS 的，会使用到很多图片和截图，所以影响尤其明显。每张图片小则 400Kb 大则 2-3Mb，对于网络浏览不太友好。可以直接在服务器...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -234,20 +319,6 @@ Examples:
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1666.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1666.html</wfw:commentRss>
-</item>
-<item>
-<title>快速给黑白照上色 in Photoshop</title>
-<link>https://blog.niekun.net/archives/1653.html</link>
-<guid>https://blog.niekun.net/archives/1653.html</guid>
-<pubDate>Tue, 14 Jul 2020 02:37:09 -0400</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[如果你需要给黑白照片添加颜色，这个教程可以帮助你快速完成。它通过把照片上传到一个免费的网站来自动给照片上色，然后再 Photoshop 中对自动处理不完美的地方进行精细调整最终得到满意的效果。免...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2020/07/44560624.png" alt="2020-07-14T06:37:35.png" title="2020-07-14T06:37:35.png"><br>如果你需要给黑白照片添加颜色，这个教程可以帮助你快速完成。它通过把照片上传到一个免费的网站来自动给照片上色，然后再 Photoshop 中对自动处理不完美的地方进行精细调整最终得到满意的效果。</p><p>免费上色网站地址为：<a href="https://imagecolorizer.com/">https://imagecolorizer.com/</a></p><!--more--><p>我们首先测试人像：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/543586783.png" alt="2020-07-14T06:17:56.png" title="2020-07-14T06:17:56.png"></p><p>将图片上传到网站，等待自动处理完成后下载到本地：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/3642678669.png" alt="2020-07-14T06:19:06.png" title="2020-07-14T06:19:06.png"></p><p>自动处理结果如下，可以看到基本比较完善，但是细节处有一些偏色，色条和漏掉颜色的地方：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/3456647720.png" alt="2020-07-14T06:20:27.png" title="2020-07-14T06:20:27.png"></p><p>下面我们进入 Photoshop 进行处理，将原图和处理后的图片导入，将处理后的图层模式设置为 color，我们只用处理后的色彩信息：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/974399740.png" alt="2020-07-14T06:24:06.png" title="2020-07-14T06:24:06.png"></p><p>首先处理皮肤表面的不规则色条，选择 filter - blur - furface blur，放大可以看到表面的色条：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/3152308407.png" alt="2020-07-14T06:26:00.png" title="2020-07-14T06:26:00.png"></p><p>调整 radius 和 threshold 使表面颜色平滑：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/2849828835.png" alt="2020-07-14T06:27:53.png" title="2020-07-14T06:27:53.png"></p><p>然后我们处理脖子部分的颜色丢失：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/3792211515.png" alt="2020-07-14T06:29:15.png" title="2020-07-14T06:29:15.png"></p><p>新建图层，混合模式改为 color，拾取附近色彩正常区域的颜色，快捷键 <code>I</code>：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/3906118047.png" alt="2020-07-14T06:30:39.png" title="2020-07-14T06:30:39.png"></p><p>使用画笔工具涂抹需要重新上色的区域：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/1268283782.png" alt="2020-07-14T06:34:49.png" title="2020-07-14T06:34:49.png"></p><p>面部饱和度过高，新建 hue 图层降低面部饱和度，配合蒙版操作：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/3887876296.png" alt="2020-07-14T06:36:36.png" title="2020-07-14T06:36:36.png"></p><p>最终效果如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/2061429475.png" alt="2020-07-14T06:37:00.png" title="2020-07-14T06:37:00.png"></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1653.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1653.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

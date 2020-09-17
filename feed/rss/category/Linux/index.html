@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1747.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1666.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1547.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1378.html"/>
@@ -18,14 +19,90 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1316.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1296.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1280.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1258.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1747.html">
+<title>Linux 系统时间设置问题</title>
+<link>https://blog.niekun.net/archives/1747.html</link>
+<dc:date>2020-09-17T10:47:54+08:00</dc:date>
+<description>昨天重装了 vps 系统，在设置 crontab 定时任务时发现并没有在指定的时间执行脚本。于是就进行排查问题。测试在 /etc/crontab 添加一条测试任务:30  10    *  *  * root python -V &gt; /root/test.log
+在 10：30 并没有看到 test.log 文件生成。通过 systemctl status cron 查看信息：Sep 17 10:21:01 niekun-bandwagon CRON[946]: pam_unix(cron:session): session clos
+Sep 17 10:29:01 niekun-bandwagon cron[451]: (*system*) RELOAD (/etc/crontab)在 10：29 crontab 脚本已经重新加载过了，但是并没有执行任务。通过命令 cat /var/log/syslog | grep cron 查看系统日志：Sep 16 21:46:35 niekun-bandwagon cron[451]: (CRON) INFO (pidfile fd = 3)
+Sep 16 21:46:35 niekun-bandwagon cron[451]: (CRON) INFO (Running @reboot jobs)
+Sep 16 22:29:01 niekun-bandwagon cron[451]: (*system*) RELOAD (/etc/crontab)发现日志的时间比我当前时间晚了 12 个小时，会不会就是系统日期问题导致脚本没有达到设定的时间？在按装新系统的后，使用 date 命令查看当前系统时间，发现时间是 UTC 时间，我通过 tzselect 命令设置了时区：[root@db-server ~]# tzselect 
+Please identify a location so that time zone rules can be set correctly.
+Please select a continent or ocean.
+ 1) Africa
+ 2) Americas
+ 3) Antarctica
+ 4) Arctic Ocean
+ 5) Asia
+ 6) Atlantic Ocean
+ 7) Australia
+ 8) Europe
+ 9) Indian Ocean
+10) Pacific Ocean
+11) none - I want to specify the time zone using the Posix TZ format.
+#? 5
+Please select a country.
+ 1) Afghanistan           18) Israel                35) Palestine
+ 2) Armenia               19) Japan                 36) Philippines
+ 3) Azerbaijan            20) Jordan                37) Qatar
+ 4) Bahrain               21) Kazakhstan            38) Russia
+ 5) Bangladesh            22) Korea (North)         39) Saudi Arabia
+ 6) Bhutan                23) Korea (South)         40) Singapore
+ 7) Brunei                24) Kuwait                41) Sri Lanka
+ 8) Cambodia              25) Kyrgyzstan            42) Syria
+ 9) China                 26) Laos                  43) Taiwan
+10) Cyprus                27) Lebanon               44) Tajikistan
+11) East Timor            28) Macau                 45) Thailand
+12) Georgia               29) Malaysia              46) Turkmenistan
+13) Hong Kong             30) Mongolia              47) United Arab Emirates
+14) India                 31) Myanmar (Burma)       48) Uzbekistan
+15) Indonesia             32) Nepal                 49) Vietnam
+16) Iran                  33) Oman                  50) Yemen
+17) Iraq                  34) Pakistan
+#? 9
+Please select one of the following time zone regions.
+1) east China - Beijing, Guangdong, Shanghai, etc.
+2) Heilongjiang (except Mohe), Jilin
+3) central China - Sichuan, Yunnan, Guangxi, Shaanxi, Guizhou, etc.
+4) most of Tibet &amp; Xinjiang
+5) west Tibet &amp; Xinjiang
+#? 1
+ 
+The following information has been given:
+ 
+        China
+        east China - Beijing, Guangdong, Shanghai, etc.
+ 
+Therefore TZ='Asia/Shanghai' will be used.
+Local time is now:      Sun Jan 11 23:31:51 CST 2015.
+Universal Time is now:  Sun Jan 11 15:31:51 UTC 2015.
+Is the above information OK?
+1) Yes
+2) No
+#? yes
+Please enter 1 for Yes, or 2 for No.
+#? 1
+ 
+You can make this change permanent for yourself by appending the line
+        TZ='Asia/Shanghai'; export TZ
+to the file '.profile' in your home directory; then log out and log in again.
+ 
+Here is that TZ value again, this time on standard output so that you
+can use the /usr/bin/tzselect command in shell scripts:
+Asia/Shanghai将 TZ='Asia/Shanghai'; export TZ 写入 ~/.profile，并刷新文件：source .bash_profile测试当前系统时间：root@niekun-bandwagon:~# date
+Thu Sep 17 10:44:00 CST 2020
+但是系统日志记录的时间还是不对，这就可能还是时区不对，手动复制亚洲时区文件到目录：cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+更新 rsyslog 进程：systemctl restart rsyslog
+再次测试发现系统日志时间对了，crontab 脚本也可以正确执行。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1666.html">
 <title>Linux 下使用 OptiPNG 压缩图片</title>
 <link>https://blog.niekun.net/archives/1666.html</link>
-<dc:date>2020-07-14T05:25:00-04:00</dc:date>
+<dc:date>2020-07-14T17:25:00+08:00</dc:date>
 <description>最近越来也发现自己的博客加载图片变慢了，由于我很多教程是教 PS 的，会使用到很多图片和截图，所以影响尤其明显。每张图片小则 400Kb 大则 2-3Mb，对于网络浏览不太友好。可以直接在服务器上进行图片压缩，用到的工具是 OptiPNG。OptiPNG home page：http://optipng.sourceforge.net/编译安装我选择从源码编译安装，这样可以直接使用最新版本。如何从源码编译程序可以参考我的文章：https://blog.niekun.net/archives/883.html首先从官网下载源码到 vps 并解压：cd /tmp
 wget http://prdownloads.sourceforge.net/optipng/optipng-0.7.7.tar.gz
 tar xvf optipng-0.7.7.tar.gz
@@ -62,7 +139,7 @@ Examples:
 <item rdf:about="https://blog.niekun.net/archives/1547.html">
 <title>使用 SCP 管理远程服务器文件</title>
 <link>https://blog.niekun.net/archives/1547.html</link>
-<dc:date>2020-04-02T20:55:39-04:00</dc:date>
+<dc:date>2020-04-03T08:55:39+08:00</dc:date>
 <description>安全复制（英语：Secure copy，缩写SCP）是指在本地主机与远程主机或者两台远程主机之间基于Secure Shell（SSH）协议安全地传输电脑文件。SCP是一种基于BSD RCP协议的网络传输协议，[3] 支持同一个网络上主机之间传输文件。SCP使用Secure Shell（SSH）完成数据传输，并使用同时用它进行身份认证，从而确保数据传输时的真实性和保密性。客户端可以向服务器发送（上传）文件，可选包含其基本属性（权限、时间戳）。客户端也可以请求（下载）一个服务器的文件或目录。SCP默认通过TCP端口22运行。和 SCP 类似功能的是 SFTP 协议，也是使用 SSH 传输数据，具体使用方法参考：https://blog.niekun.net/archives/130.htmlLinux 系统可以直接使用 scp 命令进行操作，Windows 系统可以安装 WinSCP，进行操作。下面介绍 Linux 下使用 scp 进行文件传输。复制远程文件到本地:scp -P port username@from_host:file.txt /local/directory/
 复制本地文件到远程:scp file.txt username@to_host:/remote/directory/
 复制远程文件夹到本地:scp -r username@from_host:/remote/directory/  /local/directory/
@@ -74,7 +151,7 @@ Examples:
 <item rdf:about="https://blog.niekun.net/archives/1378.html">
 <title>NGINX Reverse Proxy 反向代理的使用</title>
 <link>https://blog.niekun.net/archives/1378.html</link>
-<dc:date>2020-03-29T23:05:00-04:00</dc:date>
+<dc:date>2020-03-30T11:05:00+08:00</dc:date>
 <description>Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有：  HTTP，FastCGI, uwsgi, SCGI, and memcached。不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：https://blog.niekun.net/archives/195.html下面介绍 ngx_http_proxy_module 模块的使用方式。语法proxy_pass 指令将请求转发到其他代理服务器。转发一个 http 请求到另一个地址：location /some/path/ {
     proxy_pass http://www.example.com/link/;
 }以上示例将访问 location 段的请求转发到特定地址，这里有几个规则需要注意：1.代理地址如果不写明 location 段，则转发请求 location 到新的地址：location /some/path/ {
@@ -208,7 +285,7 @@ http{
 <item rdf:about="https://blog.niekun.net/archives/1376.html">
 <title>traceroute 路由 IP 查看</title>
 <link>https://blog.niekun.net/archives/1376.html</link>
-<dc:date>2020-03-19T21:00:07-04:00</dc:date>
+<dc:date>2020-03-20T09:00:07+08:00</dc:date>
 <description>traceroute 是一种电脑网络工具。它可显示数据包在 IP 网络经过的路由器的 IP 地址。程序是利用增加存活时间（TTL）值来实现其功能的。每当数据包经过一个路由器，其存活时间就会减 1。当其存活时间是 0 时，主机便取消数据包，并发送一个ICMP TTL数据包给原数据包的发出者。traceroute 使用互联网控制信息协议(ICMP)实现，ICMP 依靠IP来完成它的任务，它是IP的主要部分。它与传输协议（如TCP和UDP）显著不同：它一般不用于在两点间传输数据。由于协议不同所以本地 http 代理对 traceroute 无效。现代 Linux 系统称为 tracepath，Windows 系统称为 tracert，Windows NT 系统有结合 ping 和 traceroute 的 pathping 工具。使用Linux可以使用 tracepath/traceroute 工具来测试，traceroute 可使用 apt 来安装，默认最多检测30个路由节点，超过的话就直接结束：root@niekun-bandwagon:~# tracepath github.com
  1?: [LOCALHOST]                                         pmtu 1500
  1:  no reply
@@ -271,7 +348,7 @@ Computing statistics for 300 seconds...</description>
 <item rdf:about="https://blog.niekun.net/archives/1375.html">
 <title>wkhtmltopdf 将 html为 pdf</title>
 <link>https://blog.niekun.net/archives/1375.html</link>
-<dc:date>2020-03-18T00:58:56-04:00</dc:date>
+<dc:date>2020-03-18T12:58:56+08:00</dc:date>
 <description>一般浏览器都可以将当前页面输出为 pdf，但当有很多个 html 文件时一个一个转换就很麻烦了，可以使用 wkhtmltopdf 命令行工具来实现自动化批量转换。wkhtmltopdf and wkhtmltoimage are open source (LGPLv3) command line tools to render HTML into PDF and various image formats using the Qt WebKit rendering engine. These run entirely "headless" and do not require a display or display service.wkhtmltopdf 官网：https://wkhtmltopdf.org/GitHub 主页：https://github.com/wkhtmltopdf/wkhtmltopdf下载在 release 页面下载对应系统最新版：https://github.com/wkhtmltopdf/wkhtmltopdf/releases我要安装到 Ubuntu 18.04，所以下载：wkhtmltox_0.12.5-1.bionic_amd64.deb查看 Ubuntu 系统代号可以使用命令：lsb_release -c
 安装下载的 deb 包，用以下命令进行安装：dpkg -i wkhtmltox_0.12.5-1.bionic_amd64.deb
 使用支持 url 或 本地 html 转换：wkhtmltopdf http://bing.com bing.pdf
@@ -284,13 +361,13 @@ find path/to/html -name '*.pdf' -exec mv {} pdf/ \;find 命令详细用法参考
 <item rdf:about="https://blog.niekun.net/archives/1334.html">
 <title>systemd 使用入门</title>
 <link>https://blog.niekun.net/archives/1334.html</link>
-<dc:date>2020-03-13T03:27:34-04:00</dc:date>
+<dc:date>2020-03-13T15:27:34+08:00</dc:date>
 <description>http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-commands.htmlhttp://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1316.html">
 <title>Windows 下 VMware 安装 Ubuntu 虚拟机</title>
 <link>https://blog.niekun.net/archives/1316.html</link>
-<dc:date>2020-03-13T02:00:00-04:00</dc:date>
+<dc:date>2020-03-13T14:00:00+08:00</dc:date>
 <description>虽然 Windows 10 自带有 WSL，可以安装 Linux 系统，但是在实际使用中发现还是有很多限制的。所以想要完整的 Linux 系统，还是安装了虚拟机。WSL 开启参考：https://blog.niekun.net/archives/1148.html我使用的是 VMware workstation 安装了 Ubuntu 18.04 LTS。安装过程中与遇到了一些问题，需要特别的进行处理，在此做一下记录。VMware workstation & Ubuntu官网下载 VMware workstation，需要购买序列号：https://my.vmware.com/en/web/vmware/info/slug/desktop_end_user_computing/vmware_workstation_pro/15_0下载完成后进行安装，然后根据提示重启及输入序列号。Ubuntu 18.04 LTS 镜像下载：http://releases.ubuntu.com/18.04.4/ubuntu-18.04.4-desktop-amd64.iso镜像下载完成后就可以开始准备安装虚拟机了，点击 文件 - 新建虚拟机：选择 典型 安装，然后下一步，点击浏览找到 Ubuntu 镜像文件：下面就根据提示设置虚拟机账户密码等信息，完成安装后会自动启动虚拟机，使用刚才设置的用户名密码登录虚拟机。分辨率设置光标退出虚拟机的快捷键是：ctrl alt。我的主机显示比例是 16:9 的1920 × 1080，开机后显示比例是 16:10 的，所以需要设置下全屏。首先点击保持纵横比拉伸来让显示尽量铺满全屏：进入 Ubuntu，点击右下角扩展键：搜索 displays，然后进入显示设置：选择一个和主机一样比例的分辨率：这样虚拟机就可以全屏了。VMware toolsVMware tools 可以让主机和虚拟机实现数据交互，很多功能依赖于 VMware tools，如：共享文件夹，网络桥接，共享剪贴板等。但是我在安装虚拟机后，VMware tools 安装项是灰色的：查询后了解到 Linux 的 tools 需要手动安装，官网对 Linux 虚拟机安装 VMware tools  有一篇教程：https://www.vmware.com/support/ws5/doc/ws_newguest_tools_linux.htmlVMware 安装的时候在安装目录下会有一个 linux.iso 文件，这就是 VMware tools 安装镜像，我的路径是：C:Program Files (x86)VMwareVMware Workstationlinux.iso首先在虚拟机设置里添加一个新的 cd/dvd，挂载 VMware 安装目录下的 linux.iso 镜像：进入 Ubuntu，桌面会有 VMware tools，终端路径是：/media/USERNAME/VMware Tools：进入 VMware Tools 目录，里面有一个压缩包：VMwareTools-10.3.10-13959562.tar.gz，执行如下命令：cd /tmp
 tar xvf '/media/USERNAME/VMware Tools/VMwareTools-10.3.10-13959562.tar.gz'
 cd vmware-tools-distrib
@@ -299,7 +376,7 @@ sudo ./vmware-install.pl执行解压目录下的 vmware-install.pl，一路 ente
 <item rdf:about="https://blog.niekun.net/archives/1296.html">
 <title>获取用户真实 IP in Nginx</title>
 <link>https://blog.niekun.net/archives/1296.html</link>
-<dc:date>2020-03-06T02:00:00-05:00</dc:date>
+<dc:date>2020-03-06T15:00:00+08:00</dc:date>
 <description>对于没有连代理访问网站的用户或者没有加 CDN 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，$remote_addr 存储了当前链接用户的 IP:https://nginx.org/en/docs/http/ngx_http_access_module.html#denylocation / {
     deny  192.168.1.1;
     allow 192.168.1.0/24;
@@ -324,7 +401,7 @@ $proxy_add_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204, 172.69.34.194
 <item rdf:about="https://blog.niekun.net/archives/1280.html">
 <title>Nginx upstream timed out 问题的处理</title>
 <link>https://blog.niekun.net/archives/1280.html</link>
-<dc:date>2020-03-04T19:53:00-05:00</dc:date>
+<dc:date>2020-03-05T08:53:00+08:00</dc:date>
 <description>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在转发到代理服务器 fastCGI 时超时了:https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：proxy_connect_timeout 600;
 proxy_send_timeout 600;
 proxy_read_timeout 600;
@@ -332,13 +409,6 @@ send_timeout 600;将上述内容加入 config 文件，reload nginx 测试页面
 sudo service nginx reload
 
 
-</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1258.html">
-<title>Windows 10 WSL 不支持 systemd</title>
-<link>https://blog.niekun.net/archives/1258.html</link>
-<dc:date>2020-03-03T22:44:25-05:00</dc:date>
-<description>在使用 WSL 中发现无法使用 systemd 指令，会有如下报错信息：System has not been booted with systemd as init system (PID 1). Can't operate查询后发现 WSL 的确有这个问题：https://github.com/MicrosoftDocs/WSL/issues/457解决方法是用管理员权限打开 WSL，然后使用 sudo service 来控制进程，如：sudo service nginx start
 </description>
 </item>
 </rdf:RDF>
