@@ -16,7 +16,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/1747.html">
 <title>Linux 系统时间设置问题</title>
 <link>https://blog.niekun.net/archives/1747.html</link>
-<dc:date>2020-09-17T10:47:54+08:00</dc:date>
+<dc:date>2020-09-17T10:47:00+08:00</dc:date>
 <description>昨天重装了 vps 系统，在设置 crontab 定时任务时发现并没有在指定的时间执行脚本。于是就进行排查问题。测试在 /etc/crontab 添加一条测试任务:30  10    *  *  * root python -V &gt; /root/test.log
 在 10：30 并没有看到 test.log 文件生成。通过 systemctl status cron 查看信息：Sep 17 10:21:01 niekun-bandwagon CRON[946]: pam_unix(cron:session): session clos
 Sep 17 10:29:01 niekun-bandwagon cron[451]: (*system*) RELOAD (/etc/crontab)在 10：29 crontab 脚本已经重新加载过了，但是并没有执行任务。通过命令 cat /var/log/syslog | grep cron 查看系统日志：Sep 16 21:46:35 niekun-bandwagon cron[451]: (CRON) INFO (pidfile fd = 3)
@@ -88,6 +88,13 @@ Asia/Shanghai将 TZ='Asia/Shanghai'; export TZ 写入 ~/.profile，并刷新文�
 Thu Sep 17 10:44:00 CST 2020
 但是系统日志记录的时间还是不对，这就可能还是时区不对，手动复制亚洲时区文件到目录：cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 更新 rsyslog 进程：systemctl restart rsyslog
-再次测试发现系统日志时间对了，crontab 脚本也可以正确执行。</description>
+再次测试发现系统日志时间对了，crontab 脚本也可以正确执行。也可以使用 timedatectl 命令设置时区：# 查看当前时区设置
+$ timedatectl
+
+# 显示所有可用的时区
+$ timedatectl list-timezones                                                                                   
+
+# 设置当前时区
+$ sudo timedatectl set-timezone Asia/Shanghai</description>
 </item>
 </rdf:RDF>

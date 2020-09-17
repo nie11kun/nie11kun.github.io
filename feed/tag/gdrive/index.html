@@ -32,15 +32,15 @@ chmod +x backup.sh</code></pre><p>修改脚本配置 具体参考：<a href="htt
 <title>gdrive 实现服务器文件的备份/同步</title>
 <link>https://blog.niekun.net/archives/460.html</link>
 <guid>https://blog.niekun.net/archives/460.html</guid>
-<pubDate>Fri, 08 Nov 2019 11:30:00 +0800</pubDate>
+<pubDate>Fri, 08 Nov 2019 10:30:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[gdrive 是 Linux 下访问 google drive 的工具，可以实现文件的上传下载及同步，对于服务器文件的备份很方便。配合 定时运行脚本，可实现自动化操作。]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>gdrive 是 Linux 下访问 google drive 的工具，可以实现文件的上传下载及同步，对于服务器文件的备份很方便。配合 定时运行脚本，可实现自动化操作。</p><!--more--><p>项目地址：<a href="https://github.com/gdrive-org/gdrive">https://github.com/gdrive-org/gdrive</a></p><h2>安装</h2><p>从发布页下载合适的执行文件到本地可执行目录，设置执行权限：<a href="https://github.com/gdrive-org/gdrive">https://github.com/gdrive-org/gdrive</a></p><pre><code>wget -O /usr/local/bin/gdrive-linux-x64 https://github.com/gdrive-org/gdrive/releases/download/2.1.0/gdrive-linux-x64
-chmod +x gdrive-linux-x64
-</code></pre><p>创建软链接：</p><pre><code>ln -s /usr/local/bin/gdrive-linux-x64 /usr/local/bin/gdrive
-</code></pre><h2>绑定账号</h2><p>执行以下代码，访问输出的网址，输入得到的 code：</p><pre><code>gdrive about
-</code></pre><p>输入返回的 code，完成账号的绑定，账户信息存储在本地用户根目录下，不要泄露此文件，一般为：/root/.gdrive</p><h2>使用</h2><h3>list</h3><pre><code>gdrive list [options]
+<p>gdrive 是 Linux 下访问 google drive 的工具，可以实现文件的上传下载及同步，对于服务器文件的备份很方便。配合 定时运行脚本，可实现自动化操作。</p><!--more--><p>项目地址：<a href="https://github.com/prasmussen/gdrive">https://github.com/prasmussen/gdrive</a></p><h2>编译安装</h2><p>新版的 gdrive 无法在 Google 账户授权了，需要自己手动编译安装并绑定 ID。</p><p>有一个自动脚本可以完成这一过程：<a href="https://github.com/mbrother2/backuptogoogle">https://github.com/mbrother2/backuptogoogle</a></p><pre><code>curl -o butgg.bash https://raw.githubusercontent.com/mbrother2/backuptogoogle/master/butgg.bash
+bash butgg.bash --setup
+</code></pre><p>运行脚本会自动安装 go 环境和下载 gdrive 最新源码，期间会提示输入 Google credential，申请自己的 credential 教程如下：<a href="https://github.com/mbrother2/backuptogoogle/wiki/Create-own-Google-credential-step-by-step">https://github.com/mbrother2/backuptogoogle/wiki/Create-own-Google-credential-step-by-step</a></p><p>输入两个 ID 后，脚本提示设置需要备份的目录之类的，这里我们只需要编译好的 gdrvie，所以直接 ctrl C 结束当前脚本即可，编译好的可执行文件在 <code>~/go/bin</code> 目录下，复制到系统路径并设置可执行属性：</p><pre><code>    cp ~/go/bin/gdrvie /usr/local/bin
+    chmod +x /usr/local/bin/gdrive</code></pre><p>执行测试账号是否已经绑定：</p><pre><code>gdrive about
+</code></pre><p>返回值为你的google drvie 信息即可。</p><h2>使用</h2><h3>list</h3><pre><code>gdrive list [options]
 
 options:
   -m, --max &lt;maxFiles&gt;       Max files to list, default: 30
