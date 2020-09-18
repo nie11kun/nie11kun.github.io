@@ -9,6 +9,9 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1757.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1754.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1752.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1747.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1666.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1547.html"/>
@@ -16,12 +19,394 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1376.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1375.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1334.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1316.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1296.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1280.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1757.html">
+<title>awk 命令的用法</title>
+<link>https://blog.niekun.net/archives/1757.html</link>
+<dc:date>2020-09-18T16:20:00+08:00</dc:date>
+<description>awk 是常用的 Linux 文本操作命令和脚本语言。用来按行提取和处理文本内容，也可以执行简单的逻辑处理。比如我们有一个 txt 文件：ab.c 123 e.rt 456
+oh.g 324 b.na 756
+si.d 156 o.ui 452执行命令：$ awk '{print $1}' test.txt
+ab.c
+oh.g
+si.d可以看到返回结果为每一行的第一个字符串。默认以空格作为分隔符。$1 为每行第一个字符串，$2 为每行第二个字符串，以此类推。$0 为整个文本。可以同时输出多个内容：$ awk '{print $1, $2}' test.txt
+ab.c 123
+oh.g 324
+si.d 156内部集成的参数FS 区域分割符awk 默认使用空格来分割字符串，也可以自己定义分割符：$ awk 'FS = &quot;.&quot; {print $1, $2}' test.txt
+ab c 123 e
+oh g 324 b
+si d 156 o这时候，ab 和 c 123 e 分别是一个整体。还有一种写法使用 -F 表示，要写在引号外部：$ awk -F. '{print $1, $2}' test.txt
+NF 每行字符串个数用 $NF 来表示每行最后一个串：$ awk '{print $NF}' test.txt
+456
+756
+452用 NF 来判断每行字符串格个数：只输出有 4 个字符串的所在行的内容$ awk 'NF == 4 {print $1, $2}' test.txt
+ab.c 123
+oh.g 324
+si.d 156NR 当前行号NR 记录当前行的行号：$ awk '{print NR}' test.txt
+1
+2
+3$ awk '{print NR, $0}' test.txt
+1 ab.c 123 e.rt 456
+2 oh.g 324 b.na 756
+3 si.d 156 o.ui 452OFS 定义输出串分割符字符串输出是可以自定义分割符号：$ awk 'OFS=&quot;/&quot; {print $1, $2}' test.txt
+ab.c/123
+oh.g/324
+si.d/156BEGIN 和 END 规则BEGIN 规则是在 awk 读取输入文本前执行的指令，END 规则是在 awk 输出完字符串后执行的指令。$ awk 'BEGIN {print &quot;begin process&quot;} {print $0} END {print &quot;end process&quot;}' test.txt
+begin process
+ab.c 123 e.rt 456
+oh.g 324 b.na 756
+si.d 156 o.ui 452
+end process判断模块可以使用常用的判断来过滤输出结果：设置第4个字符串数字需要大于等于500：$ awk '$4 &gt;=500 {print $0}' test.txt
+oh.g 324 b.na 756设置行内必须包含字符串 ab:$ awk '/ab/ {print $0}' test.txt
+ab.c 123 e.rt 456设置行开始必须包含字符串 ab:$ awk '/^ab/ {print $0}' test.txt
+ab.c 123 e.rt 456awk script 脚本如果命令很复杂，可以建立一个脚本来单独执行。建立文件：test.awk#!/usr/bin/awk -f
+
+BEGIN {
+  # set the input and output field separators
+  FS=&quot;:&quot;
+  OFS=&quot;:&quot;
+  # zero the accounts counter
+  accounts=0
+}
+{
+  # set field 2 to nothing
+  $2=&quot;&quot;
+  # print the entire line
+  print $0
+  # count another account
+  accounts++
+}
+END {
+  # print the results
+  print accounts &quot; accounts.\n&quot;
+}可执行权限：chmod +x test.awk
+执行：./test.awk /etc/passwd
+参考链接https://www.howtogeek.com/562941/how-to-use-the-awk-command-on-linux/http://linuxcommand.org/lc3_adv_awk.php</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1754.html">
+<title>${1%str} 在 shell 脚本的用法</title>
+<link>https://blog.niekun.net/archives/1754.html</link>
+<dc:date>2020-09-18T15:25:00+08:00</dc:date>
+<description>执行 shell 脚本时经常会有传入参数，如：./test.sh abcdef abc.bbb
+以上的命令使用了两个传入参数，abcdef,abc.bbb。在脚本里使用时，$1 就表示第一个参数，$2 就表示第二个参数:var1 = $1
+var2 = $2在脚本中有一种用法，如：${1%def}jjj。他的意思就是将 $1 最后的字符 def 替换为 jjj：newstr1 = ${1%def}jjjnewstr1 的值就是 abcjjj。newstr2 = ${2%.bbb}.cccnewstr2 的值就是 abc.ccc。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1752.html">
+<title>FFmpeg 简单用法</title>
+<link>https://blog.niekun.net/archives/1752.html</link>
+<dc:date>2020-09-18T15:03:12+08:00</dc:date>
+<description>FFmpeg 是视频处理最常用的开源软件。它功能强大，用途广泛，大量用于视频网站和商业软件（比如 Youtube 和 iTunes），也是许多音频和视频格式的标准编码/解码实现。官方网站：https://www.ffmpeg.org/安装最简单的方法就是用包管理工具如：apt 安装：apt update
+apt install ffmpeg
+或者也可以从源码安装，可以参考我之前的教程：https://blog.niekun.net/archives/891.html常用指令查看 ffmpeg 版本：ffmpeg -version
+查看支持的编码格式：如 h.264, h.265ffmpeg -codecs
+查看支持的容器：如 mp4, mp3, mkvffmpeg -formats
+查看已安装的编码器：如 libx264, libx265, libvpx, aacffmpeg -encoders
+使用格式FFmpeg 的命令行参数非常多，可以分成五个部分。ffmpeg {1} {2} -i {3} {4} {5}
+上面命令中，五个部分的参数依次如下：全局参数
+输入文件参数
+输入文件
+输出文件参数
+输出文件参数太多的时候，为了便于查看，ffmpeg 命令可以写成多行:$ ffmpeg \
+[全局参数] \
+[输入文件参数] \
+-i [输入文件] \
+[输出文件参数] \
+[输出文件]下面是一个例子:ffmpeg \
+-y \ # 全局参数
+-c:a libfdk_aac -c:v libx264 \ # 输入文件参数
+-i input.mp4 \ # 输入文件
+-c:v libvpx-vp9 -c:a libvorbis \ # 输出文件参数
+output.webm # 输出文件上面的命令将 mp4 文件转成 webm 文件，这两个都是容器格式。输入的 mp4 文件的音频编码格式是 aac，视频编码格式是 H.264；输出的 webm 文件的视频编码格式是 VP9，音频格式是 Vorbis。如果不指明编码格式，FFmpeg 会自己判断输入文件的编码。一般可以省略输入文件参数。常用命令参数-c：指定编码器
+-c copy：直接复制，不经过重新编码（这样比较快）
+-c:v：指定视频编码器
+-c:a：指定音频编码器
+-i：指定输入文件
+-an：去除音频流
+-vn： 去除视频流
+-preset：指定输出的视频质量，会影响文件的生成速度，有以下几个可用的值 ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow。
+-y：不经过确认，输出时直接覆盖同名文件。常规使用方法查看元数据信息，如时长，比特率等：ffmpeg -i test.mp4
+输出的信息较多，可以通过 -hide_banner 只显示媒体文件信息：ffmpeg -i test.mp4 -hide_banner
+转码，如 avi to h.264:ffmpeg -i test.avi -c:v libx264 test.mp4
+转换容器：ffmpeg -i test.mp4 -c copy test.webm转换容器不需要转码，所以直接 copy 即可。转换码率，转换成固定码率：ffmpeg -i test.mp4 -b:v 500k test_out.mp4
+转换码率，转换成一个码率范围：ffmpeg -i test.mp4 -minrate 964K -maxrate 3856K -bufsize 2000K test_out.mp4
+改变分辨率：转换成 480pffmpeg \
+-i input.mp4 \
+-vf scale=480:-1 \
+output.mp4视频中提取音频：ffmpeg \
+-i input.mp4 \
+-vn -c:a copy \
+output.aac上面例子中，-vn 表示去掉视频，-c:a copy 表示不改变音频编码，直接拷贝。视频截图：下面的例子是从指定时间开始，连续对1秒钟的视频进行截图ffmpeg \
+-y \
+-i input.mp4 \
+-ss 00:01:24 -t 00:00:01 \
+output_%3d.jpg%3d 在 shell 里表示至少输出3个字符空间的数字：% means &quot;Print a variable here&quot;
+3 means &quot;use at least 3 spaces to display, padding as needed&quot;
+d means &quot;The variable will be an integer&quot;如果只需要截一张图，可以指定只截取一帧。$ ffmpeg \
+-ss 01:23:45 \
+-i input \
+-vframes 1 -q:v 2 \
+output.jpg上面例子中，-vframes 1 指定只截取一帧，-q:v 2 表示输出的图片质量，一般是1到5之间（1 为质量最高）。裁剪:裁剪（cutting）指的是，截取原始视频里面的一个片段，输出为一个新视频。可以指定开始时间（start）和持续时间（duration），也可以指定结束时间（end）。$ ffmpeg -ss [start] -i [input] -t [duration] -c copy [output]
+$ ffmpeg -ss [start] -i [input] -to [end] -c copy [output]下面是实际的例子。# 从1分50秒开始截取10.5秒
+ffmpeg -ss 00:01:50 -i test.mp4 -t 10.5 -c copy out.mp4
+
+# 从25秒开始截取10秒
+ffmpeg -ss 25 -i test.mp4 -to 10 -c copy out.mp4
+ffmpeg -i test.mp4 -ss 25 -to 10 -c copy out.mp4上面例子中，-c copy 表示不改变音频和视频的编码格式，直接拷贝，这样会快很多。高级用法压缩视频内容到指定容量大小使用的技术主要是 ffmpeg 的 2 pass 方法和 ffprobe 得到码率和时长信息。bash脚本：#!/bin/bash
+
+target_video_size_MB=&quot;$2&quot;
+origin_duration_s=$(ffprobe -v error -show_streams -select_streams a &quot;$1&quot; | grep -Po &quot;(?&lt;=^duration\=)\d*\.\d*&quot;)
+origin_audio_bitrate_kbit_s=$(ffprobe -v error -pretty -show_streams -select_streams a &quot;$1&quot; | grep -Po &quot;(?&lt;=^bit_rate\=)\d*\.\d*&quot;)
+target_audio_bitrate_kbit_s=$origin_audio_bitrate_kbit_s # TODO for now, make audio bitrate the same
+target_video_bitrate_kbit_s=$(\
+    awk \
+    -v size=&quot;$target_video_size_MB&quot; \
+    -v duration=&quot;$origin_duration_s&quot; \
+    -v audio_rate=&quot;$target_audio_bitrate_kbit_s&quot; \
+    'BEGIN { print  ( ( size * 8192.0 ) / ( 1.048576 * duration ) - audio_rate ) }')
+
+ffmpeg \
+    -y \
+    -i &quot;$1&quot; \
+    -c:v libx264 \
+    -b:v &quot;$target_video_bitrate_kbit_s&quot;k \
+    -pass 1 \
+    -an \
+    -f mp4 \
+    /dev/null \
+&amp;&amp; \
+ffmpeg \
+    -i &quot;$1&quot; \
+    -c:v libx264 \
+    -b:v &quot;$target_video_bitrate_kbit_s&quot;k \
+    -pass 2 \
+    -c:a aac \
+    -b:a &quot;$target_audio_bitrate_kbit_s&quot;k \
+    &quot;${1%.*}-$2mB.mp4&quot;使用方法：压缩视频到 50 MB 大小./script.sh test.mp4 50
+切割视频到指定时长的多个视频使用的技术主要是 python，ffprobe 得到视频时长，然后计算需要切割为几个视频。python 脚本：#!/usr/bin/env python
+
+import csv
+import subprocess
+import math
+import json
+import os
+import shlex
+from optparse import OptionParser
+
+
+def split_by_manifest(filename, manifest, vcodec=&quot;copy&quot;, acodec=&quot;copy&quot;,
+                      extra=&quot;&quot;, **kwargs):
+
+    if not os.path.exists(manifest):
+        print(&quot;File does not exist: %s&quot; % manifest)
+        raise SystemExit
+
+    with open(manifest) as manifest_file:
+        manifest_type = manifest.split(&quot;.&quot;)[-1]
+        if manifest_type == &quot;json&quot;:
+            config = json.load(manifest_file)
+        elif manifest_type == &quot;csv&quot;:
+            config = csv.DictReader(manifest_file)
+        else:
+            print(&quot;Format not supported. File must be a csv or json file&quot;)
+            raise SystemExit
+
+        split_cmd = [&quot;ffmpeg&quot;, &quot;-i&quot;, filename, &quot;-vcodec&quot;, vcodec,
+                     &quot;-acodec&quot;, acodec, &quot;-y&quot;] + shlex.split(extra)
+        try:
+            fileext = filename.split(&quot;.&quot;)[-1]
+        except IndexError as e:
+            raise IndexError(&quot;No . in filename. Error: &quot; + str(e))
+        for video_config in config:
+            split_str = &quot;&quot;
+            split_args = []
+            try:
+                split_start = video_config[&quot;start_time&quot;]
+                split_length = video_config.get(&quot;end_time&quot;, None)
+                if not split_length:
+                    split_length = video_config[&quot;length&quot;]
+                filebase = video_config[&quot;rename_to&quot;]
+                if fileext in filebase:
+                    filebase = &quot;.&quot;.join(filebase.split(&quot;.&quot;)[:-1])
+
+                split_args += [&quot;-ss&quot;, str(split_start), &quot;-t&quot;,
+                               str(split_length), filebase + &quot;.&quot; + fileext]
+                print(&quot;########################################################&quot;)
+                print(&quot;About to run: &quot;+&quot; &quot;.join(split_cmd+split_args))
+                print(&quot;########################################################&quot;)
+                subprocess.check_output(split_cmd+split_args)
+            except KeyError as e:
+                print(&quot;############# Incorrect format ##############&quot;)
+                if manifest_type == &quot;json&quot;:
+                    print(&quot;The format of each json array should be:&quot;)
+                    print(&quot;{start_time: &lt;int&gt;, length: &lt;int&gt;, rename_to: &lt;string&gt;}&quot;)
+                elif manifest_type == &quot;csv&quot;:
+                    print(&quot;start_time,length,rename_to should be the first line &quot;)
+                    print(&quot;in the csv file.&quot;)
+                print(&quot;#############################################&quot;)
+                print(e)
+                raise SystemExit
+
+
+def get_video_length(filename):
+
+    output = subprocess.check_output((&quot;ffprobe&quot;, &quot;-v&quot;, &quot;error&quot;, &quot;-show_entries&quot;,
+                                      &quot;format=duration&quot;, &quot;-of&quot;, &quot;default=noprint_wrappers=1:nokey=1&quot;, filename)).strip()
+    video_length = int(float(output))
+    print(&quot;Video length in seconds: &quot;+str(video_length))
+
+    return video_length
+
+
+def ceildiv(a, b):
+    return int(math.ceil(a / float(b)))
+
+
+def split_by_seconds(filename, split_length, vcodec=&quot;copy&quot;, acodec=&quot;copy&quot;,
+                     extra=&quot;&quot;, video_length=None, **kwargs):
+    if split_length and split_length &lt;= 0:
+        print(&quot;Split length can't be 0&quot;)
+        raise SystemExit
+
+    if not video_length:
+        video_length = get_video_length(filename)
+    split_count = ceildiv(video_length, split_length)
+    if(split_count == 1):
+        print(&quot;Video length is less then the target split length.&quot;)
+        raise SystemExit
+
+    split_cmd = [&quot;ffmpeg&quot;, &quot;-i&quot;, filename, &quot;-vcodec&quot;,
+                 vcodec, &quot;-acodec&quot;, acodec] + shlex.split(extra)
+    try:
+        filebase = &quot;.&quot;.join(filename.split(&quot;.&quot;)[:-1])
+        fileext = filename.split(&quot;.&quot;)[-1]
+    except IndexError as e:
+        raise IndexError(&quot;No . in filename. Error: &quot; + str(e))
+    for n in range(0, split_count):
+        split_args = []
+        if n == 0:
+            split_start = 0
+        else:
+            split_start = split_length * n
+
+        split_args += [&quot;-ss&quot;, str(split_start), &quot;-t&quot;, str(split_length),
+                       filebase + &quot;-&quot; + str(n+1) + &quot;-of-&quot; +
+                       str(split_count) + &quot;.&quot; + fileext]
+        print(&quot;About to run: &quot;+&quot; &quot;.join(split_cmd+split_args))
+        subprocess.check_output(split_cmd+split_args)
+
+
+def main():
+    parser = OptionParser()
+
+    parser.add_option(&quot;-f&quot;, &quot;--file&quot;,
+                      dest=&quot;filename&quot;,
+                      help=&quot;File to split, for example sample.avi&quot;,
+                      type=&quot;string&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-s&quot;, &quot;--split-size&quot;,
+                      dest=&quot;split_length&quot;,
+                      help=&quot;Split or chunk size in seconds, for example 10&quot;,
+                      type=&quot;int&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-c&quot;, &quot;--split-chunks&quot;,
+                      dest=&quot;split_chunks&quot;,
+                      help=&quot;Number of chunks to split to&quot;,
+                      type=&quot;int&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-S&quot;, &quot;--split-filesize&quot;,
+                      dest=&quot;split_filesize&quot;,
+                      help=&quot;Split or chunk size in bytes (approximate)&quot;,
+                      type=&quot;int&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;--filesize-factor&quot;,
+                      dest=&quot;filesize_factor&quot;,
+                      help=&quot;with --split-filesize, use this factor in time to&quot;
+                      &quot; size heuristics [default: %default]&quot;,
+                      type=&quot;float&quot;,
+                      action=&quot;store&quot;,
+                      default=0.95
+                      )
+    parser.add_option(&quot;--chunk-strategy&quot;,
+                      dest=&quot;chunk_strategy&quot;,
+                      help=&quot;with --split-filesize, allocate chunks according to&quot;
+                      &quot; given strategy (eager or even)&quot;,
+                      type=&quot;choice&quot;,
+                      action=&quot;store&quot;,
+                      choices=['eager', 'even'],
+                      default='eager'
+                      )
+    parser.add_option(&quot;-m&quot;, &quot;--manifest&quot;,
+                      dest=&quot;manifest&quot;,
+                      help=&quot;Split video based on a json manifest file. &quot;,
+                      type=&quot;string&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-v&quot;, &quot;--vcodec&quot;,
+                      dest=&quot;vcodec&quot;,
+                      help=&quot;Video codec to use. &quot;,
+                      type=&quot;string&quot;,
+                      default=&quot;copy&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-a&quot;, &quot;--acodec&quot;,
+                      dest=&quot;acodec&quot;,
+                      help=&quot;Audio codec to use. &quot;,
+                      type=&quot;string&quot;,
+                      default=&quot;copy&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-e&quot;, &quot;--extra&quot;,
+                      dest=&quot;extra&quot;,
+                      help=&quot;Extra options for ffmpeg, e.g. '-e -threads 8'. &quot;,
+                      type=&quot;string&quot;,
+                      default=&quot;&quot;,
+                      action=&quot;store&quot;
+                      )
+    (options, args) = parser.parse_args()
+
+    def bailout():
+        parser.print_help()
+        raise SystemExit
+
+    if not options.filename:
+        bailout()
+
+    if options.manifest:
+        split_by_manifest(**(options.__dict__))
+    else:
+        video_length = None
+        if not options.split_length:
+            video_length = get_video_length(options.filename)
+            file_size = os.stat(options.filename).st_size
+            split_filesize = None
+            if options.split_filesize:
+                split_filesize = int(
+                    options.split_filesize * options.filesize_factor)
+            if split_filesize and options.chunk_strategy == 'even':
+                options.split_chunks = ceildiv(file_size, split_filesize)
+            if options.split_chunks:
+                options.split_length = ceildiv(
+                    video_length, options.split_chunks)
+            if not options.split_length and split_filesize:
+                options.split_length = int(
+                    split_filesize / float(file_size) * video_length)
+        if not options.split_length:
+            bailout()
+        split_by_seconds(video_length=video_length, **(options.__dict__))
+
+
+if __name__ == '__main__':
+    main()使用方法：将视频切割为单个视频100秒./split.py -f test.mp4 -s 100
+ffprobe 使用ffprobe 可以用来得到视频信息。视频时长：秒ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 input.mp4
+视频码率：bitffprobe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nokey=1 input.mp4
+参考链接http://www.ruanyifeng.com/blog/2020/01/ffmpeg.htmlhttps://stackoverflow.com/questions/29082422/ffmpeg-video-compression-specific-file-sizehttps://github.com/c0decracker/video-splitterhttps://trac.ffmpeg.org/wiki/FFprobeTips</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1747.html">
 <title>Linux 系统时间设置问题</title>
 <link>https://blog.niekun.net/archives/1747.html</link>
@@ -503,52 +888,5 @@ $ sudo journalctl -u nginx.service应用开机启动对于那些支持 Systemd �
 有时候，该命令可能没有响应，服务停不下来。这时候就不得不"杀进程"了，向正在运行的进程发出 kill 信号:sudo systemctl kill httpd.service
 此外，重启服务要执行 systemctl restart 命令：sudo systemctl restart httpd.service
 参考链接http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-commands.htmlhttp://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1316.html">
-<title>Windows 下 VMware 安装 Ubuntu 虚拟机</title>
-<link>https://blog.niekun.net/archives/1316.html</link>
-<dc:date>2020-03-13T14:00:00+08:00</dc:date>
-<description>虽然 Windows 10 自带有 WSL，可以安装 Linux 系统，但是在实际使用中发现还是有很多限制的。所以想要完整的 Linux 系统，还是安装了虚拟机。WSL 开启参考：https://blog.niekun.net/archives/1148.html我使用的是 VMware workstation 安装了 Ubuntu 18.04 LTS。安装过程中与遇到了一些问题，需要特别的进行处理，在此做一下记录。VMware workstation & Ubuntu官网下载 VMware workstation，需要购买序列号：https://my.vmware.com/en/web/vmware/info/slug/desktop_end_user_computing/vmware_workstation_pro/15_0下载完成后进行安装，然后根据提示重启及输入序列号。Ubuntu 18.04 LTS 镜像下载：http://releases.ubuntu.com/18.04.4/ubuntu-18.04.4-desktop-amd64.iso镜像下载完成后就可以开始准备安装虚拟机了，点击 文件 - 新建虚拟机：选择 典型 安装，然后下一步，点击浏览找到 Ubuntu 镜像文件：下面就根据提示设置虚拟机账户密码等信息，完成安装后会自动启动虚拟机，使用刚才设置的用户名密码登录虚拟机。分辨率设置光标退出虚拟机的快捷键是：ctrl alt。我的主机显示比例是 16:9 的1920 × 1080，开机后显示比例是 16:10 的，所以需要设置下全屏。首先点击保持纵横比拉伸来让显示尽量铺满全屏：进入 Ubuntu，点击右下角扩展键：搜索 displays，然后进入显示设置：选择一个和主机一样比例的分辨率：这样虚拟机就可以全屏了。VMware toolsVMware tools 可以让主机和虚拟机实现数据交互，很多功能依赖于 VMware tools，如：共享文件夹，网络桥接，共享剪贴板等。但是我在安装虚拟机后，VMware tools 安装项是灰色的：查询后了解到 Linux 的 tools 需要手动安装，官网对 Linux 虚拟机安装 VMware tools  有一篇教程：https://www.vmware.com/support/ws5/doc/ws_newguest_tools_linux.htmlVMware 安装的时候在安装目录下会有一个 linux.iso 文件，这就是 VMware tools 安装镜像，我的路径是：C:Program Files (x86)VMwareVMware Workstationlinux.iso首先在虚拟机设置里添加一个新的 cd/dvd，挂载 VMware 安装目录下的 linux.iso 镜像：进入 Ubuntu，桌面会有 VMware tools，终端路径是：/media/USERNAME/VMware Tools：进入 VMware Tools 目录，里面有一个压缩包：VMwareTools-10.3.10-13959562.tar.gz，执行如下命令：cd /tmp
-tar xvf '/media/USERNAME/VMware Tools/VMwareTools-10.3.10-13959562.tar.gz'
-cd vmware-tools-distrib
-sudo ./vmware-install.pl执行解压目录下的 vmware-install.pl，一路 enter 即可。执行结束后就完成了 VMware Tools 的安装，重启系统。网络设置在虚拟机设置里将网络连接设置为桥接模式，这样虚拟机和主机就在一个 IP 网段内，如果不设置为桥接模式，虚拟机内可能无法执行一些网络命令，如：mtr：设置完成后重启虚拟机，主机使用命令 ipconfig 查看当前 IP：虚拟机使用命令 ifconfig 查看当前 IP：两个 IP 在一个网段内则设置成功。共享文件夹根据需要可以设置共享主机文件夹，在虚拟机内可以访问，共享文件夹路径是：/mnt/hgfs：在虚拟机终端测试访问：共享主机代理如果主机设置了代理，虚拟机可以直接共享此代理设置。首先设置主机代理端口开放给局域网，如果是显示只监听本地地址则 listen 地址设置为 127.0.0.1，如果开放监听局域网地址，则 listen 地址设置为 0.0.0.0 即可。在主机使用命令 ipconfig 查看主机 IP 地址。如果要在虚拟机设置系统代理，在虚拟机 Ubuntu 设置里搜索 proxy，点击 network proxy 手动设置代理地址：如果不想设置系统代理，也可以根据上面的主机地址和端口，在单独的应用程序里设置代理，如浏览器。终端代理设置参考我之前的文章，也是使用上面得到的主机 IP 和代理端口：https://blog.niekun.net/archives/97.html以上就是我用 VMware workstation 安装 Ubuntu 的过程。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1296.html">
-<title>获取用户真实 IP in Nginx</title>
-<link>https://blog.niekun.net/archives/1296.html</link>
-<dc:date>2020-03-06T15:00:00+08:00</dc:date>
-<description>对于没有连代理访问网站的用户或者没有加 CDN 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，$remote_addr 存储了当前链接用户的 IP:https://nginx.org/en/docs/http/ngx_http_access_module.html#denylocation / {
-    deny  192.168.1.1;
-    allow 192.168.1.0/24;
-    allow 10.1.1.0/16;
-    allow 2001:0db8::/32;
-    deny  all;
-}如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。$remote_addr 变量默认读取 $proxy_add_x_forwarded_for 变量最后一个 IP 地址，一般情况下这个就是客户端原始 IP，但当网站加了 CDN，最后一个 IP 就成了 CDN 分配的 IP，如用户本地 IP为：1.81.218.204，访问没有加 CDN 的网站：$remote_addr：1.81.218.204
-$http_x_forwarded_for: 1.81.218.204
-$proxy_add_x_forwarded_for: 1.81.218.204
-如果网站加了 CDN 返回信息如下：$remote_addr：172.69.34.194
-$http_x_forwarded_for: 1.81.218.204
-$proxy_add_x_forwarded_for: 1.81.218.204, 172.69.34.194
-可以看到 $remote_addr 发生了变化。$http_x_forwarded_for 的值没有包含 CDN 代理 IP。客户端也可以伪造 X-Forwarded-For 信息，如下使用 curl -H 参数设置头信息：curl https://info.niekun.net -H 'X-Forwarded-For: 2.2.2.2' -H 'X-Forwarded-For: 3.3.3.3'
-这时候 nginx 的变量就发生了变化：$remote_addr：172.69.34.194
-$http_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204
-$proxy_add_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204, 172.69.34.194
-可以看到 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 变量值都附加上了伪造的信息。根据观察 $http_x_forwarded_for 的最后一个 IP，永远是真实的用户 IP，可以进行提取。使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：map $http_x_forwarded_for  $client_real_ip {
-    default                         $remote_addr;
-    ~^(([0-9\.]+),\s?)*([0-9\.]+)$  $3;
-}如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1280.html">
-<title>Nginx upstream timed out 问题的处理</title>
-<link>https://blog.niekun.net/archives/1280.html</link>
-<dc:date>2020-03-05T08:53:00+08:00</dc:date>
-<description>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在转发到代理服务器 fastCGI 时超时了:https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：proxy_connect_timeout 600;
-proxy_send_timeout 600;
-proxy_read_timeout 600;
-send_timeout 600;将上述内容加入 config 文件，reload nginx 测试页面加载是否正常：sudo service nginx configtest
-sudo service nginx reload
-
-
-</description>
 </item>
 </rdf:RDF>

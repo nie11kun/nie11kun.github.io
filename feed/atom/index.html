@@ -6,11 +6,450 @@ xml:base="https://blog.niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2020-09-17T10:47:00+08:00</updated>
+<updated>2020-09-18T16:20:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/" />
 <id>https://blog.niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[awk 命令的用法]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1757.html" />
+<id>https://blog.niekun.net/archives/1757.html</id>
+<updated>2020-09-18T16:20:00+08:00</updated>
+<published>2020-09-18T16:20:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[awk 是常用的 Linux 文本操作命令和脚本语言。用来按行提取和处理文本内容，也可以执行简单的逻辑处理。比如我们有一个 txt 文件：ab.c 123 e.rt 456oh.g 324 b....]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1757.html" xml:lang="zh-CN"><![CDATA[
+<p>awk 是常用的 Linux 文本操作命令和脚本语言。用来按行提取和处理文本内容，也可以执行简单的逻辑处理。</p><p>比如我们有一个 txt 文件：</p><pre><code>ab.c 123 e.rt 456
+oh.g 324 b.na 756
+si.d 156 o.ui 452</code></pre><!--more--><p>执行命令：</p><pre><code>$ awk '{print $1}' test.txt
+ab.c
+oh.g
+si.d</code></pre><p>可以看到返回结果为每一行的第一个字符串。默认以<strong>空格</strong>作为分隔符。</p><p><code>$1</code> 为每行第一个字符串，<code>$2</code> 为每行第二个字符串，以此类推。<code>$0</code> 为整个文本。</p><p>可以同时输出多个内容：</p><pre><code>$ awk '{print $1, $2}' test.txt
+ab.c 123
+oh.g 324
+si.d 156</code></pre><h3>内部集成的参数</h3><h4>FS 区域分割符</h4><p>awk 默认使用空格来分割字符串，也可以自己定义分割符：</p><pre><code>$ awk 'FS = &quot;.&quot; {print $1, $2}' test.txt
+ab c 123 e
+oh g 324 b
+si d 156 o</code></pre><p>这时候，<code>ab</code> 和 <code>c 123 e</code> 分别是一个整体。</p><p>还有一种写法使用 <code>-F</code> 表示，要写在引号外部：</p><pre><code>$ awk -F. '{print $1, $2}' test.txt
+</code></pre><h4>NF 每行字符串个数</h4><p>用 <code>$NF</code> 来表示每行最后一个串：</p><pre><code>$ awk '{print $NF}' test.txt
+456
+756
+452</code></pre><p>用 NF 来判断每行字符串格个数：只输出有 4 个字符串的所在行的内容</p><pre><code>$ awk 'NF == 4 {print $1, $2}' test.txt
+ab.c 123
+oh.g 324
+si.d 156</code></pre><h4>NR 当前行号</h4><p><code>NR</code> 记录当前行的行号：</p><pre><code>$ awk '{print NR}' test.txt
+1
+2
+3</code></pre><pre><code>$ awk '{print NR, $0}' test.txt
+1 ab.c 123 e.rt 456
+2 oh.g 324 b.na 756
+3 si.d 156 o.ui 452</code></pre><h3>OFS 定义输出串分割符</h3><p>字符串输出是可以自定义分割符号：</p><pre><code>$ awk 'OFS=&quot;/&quot; {print $1, $2}' test.txt
+ab.c/123
+oh.g/324
+si.d/156</code></pre><h4>BEGIN 和 END 规则</h4><p>BEGIN 规则是在 awk 读取输入文本前执行的指令，END 规则是在 awk 输出完字符串后执行的指令。</p><pre><code>$ awk 'BEGIN {print &quot;begin process&quot;} {print $0} END {print &quot;end process&quot;}' test.txt
+begin process
+ab.c 123 e.rt 456
+oh.g 324 b.na 756
+si.d 156 o.ui 452
+end process</code></pre><h4>判断模块</h4><p>可以使用常用的判断来过滤输出结果：</p><p>设置第4个字符串数字需要大于等于500：</p><pre><code>$ awk '$4 &gt;=500 {print $0}' test.txt
+oh.g 324 b.na 756</code></pre><p>设置行内必须包含字符串 <code>ab</code>:</p><pre><code>$ awk '/ab/ {print $0}' test.txt
+ab.c 123 e.rt 456</code></pre><p>设置行开始必须包含字符串 <code>ab</code>:</p><pre><code>$ awk '/^ab/ {print $0}' test.txt
+ab.c 123 e.rt 456</code></pre><h3>awk script 脚本</h3><p>如果命令很复杂，可以建立一个脚本来单独执行。</p><p>建立文件：<code>test.awk</code></p><pre><code>#!/usr/bin/awk -f
+
+BEGIN {
+  # set the input and output field separators
+  FS=&quot;:&quot;
+  OFS=&quot;:&quot;
+  # zero the accounts counter
+  accounts=0
+}
+{
+  # set field 2 to nothing
+  $2=&quot;&quot;
+  # print the entire line
+  print $0
+  # count another account
+  accounts++
+}
+END {
+  # print the results
+  print accounts &quot; accounts.\n&quot;
+}</code></pre><p>可执行权限：</p><pre><code>chmod +x test.awk
+</code></pre><p>执行：</p><pre><code>./test.awk /etc/passwd
+</code></pre><h3>参考链接</h3><p><a href="https://www.howtogeek.com/562941/how-to-use-the-awk-command-on-linux/">https://www.howtogeek.com/562941/how-to-use-the-awk-command-on-linux/</a><br><a href="http://linuxcommand.org/lc3_adv_awk.php">http://linuxcommand.org/lc3_adv_awk.php</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1757.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1757.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[${1%str} 在 shell 脚本的用法]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1754.html" />
+<id>https://blog.niekun.net/archives/1754.html</id>
+<updated>2020-09-18T15:25:00+08:00</updated>
+<published>2020-09-18T15:25:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[执行 shell 脚本时经常会有传入参数，如：./test.sh abcdef abc.bbb以上的命令使用了两个传入参数，abcdef,abc.bbb。在脚本里使用时，$1 就表示第一个参数，...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1754.html" xml:lang="zh-CN"><![CDATA[
+<p>执行 shell 脚本时经常会有传入参数，如：</p><pre><code>./test.sh abcdef abc.bbb
+</code></pre><p>以上的命令使用了两个传入参数，<code>abcdef</code>,<code>abc.bbb</code>。</p><p>在脚本里使用时，<code>$1</code> 就表示第一个参数，<code>$2</code> 就表示第二个参数:</p><pre><code>var1 = $1
+var2 = $2</code></pre><p>在脚本中有一种用法，如：<code>${1%def}jjj</code>。<br>他的意思就是将 <code>$1</code> 最后的字符 <code>def</code> 替换为 <code>jjj</code>：</p><pre><code>newstr1 = ${1%def}jjj</code></pre><p><code>newstr1</code> 的值就是 <code>abcjjj</code>。</p><pre><code>newstr2 = ${2%.bbb}.ccc</code></pre><p><code>newstr2</code> 的值就是 <code>abc.ccc</code>。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1754.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1754.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[使用 subprocess.check_output 执行cmd命令并返回结果到字符串]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1753.html" />
+<id>https://blog.niekun.net/archives/1753.html</id>
+<updated>2020-09-18T15:13:51+08:00</updated>
+<published>2020-09-18T15:13:51+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[语法：subprocess.check_output(args, *, stdin=None, stderr=None, shell=False, universal_newlines=Fals...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1753.html" xml:lang="zh-CN"><![CDATA[
+<p>语法：</p><pre><code>subprocess.check_output(args, *, stdin=None, stderr=None, shell=False, universal_newlines=False)
+</code></pre><p>执行cmd命令并返回结果到字符串。</p><p>用法：</p><pre><code>import subprocess
+
+output = check_output([&quot;cat&quot;, &quot;/etc/hostname&quot;]).strip()
+print(output)</code></pre><p>以上脚本会执行 <code>cat /etc/hostname</code> 命令然后将结果赋值给 <code>output</code> 变量。<br><code>strip()</code> 可以将 string 的前后空格去掉。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1753.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1753.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[FFmpeg 简单用法]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1752.html" />
+<id>https://blog.niekun.net/archives/1752.html</id>
+<updated>2020-09-18T15:03:12+08:00</updated>
+<published>2020-09-18T15:03:12+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[FFmpeg 是视频处理最常用的开源软件。它功能强大，用途广泛，大量用于视频网站和商业软件（比如 Youtube 和 iTunes），也是许多音频和视频格式的标准编码/解码实现。官方网站：htt...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1752.html" xml:lang="zh-CN"><![CDATA[
+<p>FFmpeg 是视频处理最常用的开源软件。</p><p>它功能强大，用途广泛，大量用于视频网站和商业软件（比如 Youtube 和 iTunes），也是许多音频和视频格式的标准编码/解码实现。</p><p>官方网站：<a href="https://www.ffmpeg.org/">https://www.ffmpeg.org/</a></p><!--more--><h3>安装</h3><p>最简单的方法就是用包管理工具如：apt 安装：</p><pre><code>apt update
+apt install ffmpeg
+</code></pre><p>或者也可以从源码安装，可以参考我之前的教程：<a href="https://blog.niekun.net/archives/891.html">https://blog.niekun.net/archives/891.html</a></p><h3>常用指令</h3><p>查看 ffmpeg 版本：</p><pre><code>ffmpeg -version
+</code></pre><p>查看支持的编码格式：如 h.264, h.265</p><pre><code>ffmpeg -codecs
+</code></pre><p>查看支持的容器：如 mp4, mp3, mkv</p><pre><code>ffmpeg -formats
+</code></pre><p>查看已安装的编码器：如 libx264, libx265, libvpx, aac</p><pre><code>ffmpeg -encoders
+</code></pre><h3>使用格式</h3><p>FFmpeg 的命令行参数非常多，可以分成五个部分。</p><pre><code>ffmpeg {1} {2} -i {3} {4} {5}
+</code></pre><p>上面命令中，五个部分的参数依次如下：</p><pre><code>全局参数
+输入文件参数
+输入文件
+输出文件参数
+输出文件</code></pre><p>参数太多的时候，为了便于查看，ffmpeg 命令可以写成多行:</p><pre><code>$ ffmpeg \
+[全局参数] \
+[输入文件参数] \
+-i [输入文件] \
+[输出文件参数] \
+[输出文件]</code></pre><p>下面是一个例子:</p><pre><code>ffmpeg \
+-y \ # 全局参数
+-c:a libfdk_aac -c:v libx264 \ # 输入文件参数
+-i input.mp4 \ # 输入文件
+-c:v libvpx-vp9 -c:a libvorbis \ # 输出文件参数
+output.webm # 输出文件</code></pre><p>上面的命令将 mp4 文件转成 webm 文件，这两个都是容器格式。输入的 mp4 文件的音频编码格式是 aac，视频编码格式是 H.264；输出的 webm 文件的视频编码格式是 VP9，音频格式是 Vorbis。</p><p>如果不指明编码格式，FFmpeg 会自己判断输入文件的编码。<strong>一般可以省略输入文件参数。</strong></p><h3>常用命令参数</h3><pre><code>-c：指定编码器
+-c copy：直接复制，不经过重新编码（这样比较快）
+-c:v：指定视频编码器
+-c:a：指定音频编码器
+-i：指定输入文件
+-an：去除音频流
+-vn： 去除视频流
+-preset：指定输出的视频质量，会影响文件的生成速度，有以下几个可用的值 ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow。
+-y：不经过确认，输出时直接覆盖同名文件。</code></pre><h3>常规使用方法</h3><p>查看元数据信息，如时长，比特率等：</p><pre><code>ffmpeg -i test.mp4
+</code></pre><p>输出的信息较多，可以通过 -hide_banner 只显示媒体文件信息：</p><pre><code>ffmpeg -i test.mp4 -hide_banner
+</code></pre><p>转码，如 avi to h.264:</p><pre><code>ffmpeg -i test.avi -c:v libx264 test.mp4
+</code></pre><p>转换容器：</p><pre><code>ffmpeg -i test.mp4 -c copy test.webm</code></pre><p>转换容器不需要转码，所以直接 copy 即可。</p><p>转换码率，转换成固定码率：</p><pre><code>ffmpeg -i test.mp4 -b:v 500k test_out.mp4
+</code></pre><p>转换码率，转换成一个码率范围：</p><pre><code>ffmpeg -i test.mp4 -minrate 964K -maxrate 3856K -bufsize 2000K test_out.mp4
+</code></pre><p>改变分辨率：转换成 480p</p><pre><code>ffmpeg \
+-i input.mp4 \
+-vf scale=480:-1 \
+output.mp4</code></pre><p>视频中提取音频：</p><pre><code>ffmpeg \
+-i input.mp4 \
+-vn -c:a copy \
+output.aac</code></pre><p>上面例子中，<code>-vn</code> 表示去掉视频，<code>-c:a copy</code> 表示不改变音频编码，直接拷贝。</p><p>视频截图：下面的例子是从指定时间开始，连续对1秒钟的视频进行截图</p><pre><code>ffmpeg \
+-y \
+-i input.mp4 \
+-ss 00:01:24 -t 00:00:01 \
+output_%3d.jpg</code></pre><p><code>%3d</code> 在 shell 里表示至少输出3个字符空间的数字：</p><pre><code>% means &quot;Print a variable here&quot;
+3 means &quot;use at least 3 spaces to display, padding as needed&quot;
+d means &quot;The variable will be an integer&quot;</code></pre><p>如果只需要截一张图，可以指定只截取一帧。</p><pre><code>$ ffmpeg \
+-ss 01:23:45 \
+-i input \
+-vframes 1 -q:v 2 \
+output.jpg</code></pre><p>上面例子中，<code>-vframes 1</code> 指定只截取一帧，<code>-q:v 2</code> 表示输出的图片质量，一般是1到5之间（1 为质量最高）。</p><p><strong>裁剪:</strong><br>裁剪（cutting）指的是，截取原始视频里面的一个片段，输出为一个新视频。可以指定开始时间（start）和持续时间（duration），也可以指定结束时间（end）。</p><pre><code>$ ffmpeg -ss [start] -i [input] -t [duration] -c copy [output]
+$ ffmpeg -ss [start] -i [input] -to [end] -c copy [output]</code></pre><p>下面是实际的例子。</p><pre><code># 从1分50秒开始截取10.5秒
+ffmpeg -ss 00:01:50 -i test.mp4 -t 10.5 -c copy out.mp4
+
+# 从25秒开始截取10秒
+ffmpeg -ss 25 -i test.mp4 -to 10 -c copy out.mp4
+ffmpeg -i test.mp4 -ss 25 -to 10 -c copy out.mp4</code></pre><p>上面例子中，<code>-c copy</code> 表示不改变音频和视频的编码格式，直接拷贝，这样会快很多。</p><h3>高级用法</h3><h4>压缩视频内容到指定容量大小</h4><p>使用的技术主要是 ffmpeg 的 2 pass 方法和 ffprobe 得到码率和时长信息。</p><p>bash脚本：</p><pre><code>#!/bin/bash
+
+target_video_size_MB=&quot;$2&quot;
+origin_duration_s=$(ffprobe -v error -show_streams -select_streams a &quot;$1&quot; | grep -Po &quot;(?&lt;=^duration\=)\d*\.\d*&quot;)
+origin_audio_bitrate_kbit_s=$(ffprobe -v error -pretty -show_streams -select_streams a &quot;$1&quot; | grep -Po &quot;(?&lt;=^bit_rate\=)\d*\.\d*&quot;)
+target_audio_bitrate_kbit_s=$origin_audio_bitrate_kbit_s # TODO for now, make audio bitrate the same
+target_video_bitrate_kbit_s=$(\
+    awk \
+    -v size=&quot;$target_video_size_MB&quot; \
+    -v duration=&quot;$origin_duration_s&quot; \
+    -v audio_rate=&quot;$target_audio_bitrate_kbit_s&quot; \
+    'BEGIN { print  ( ( size * 8192.0 ) / ( 1.048576 * duration ) - audio_rate ) }')
+
+ffmpeg \
+    -y \
+    -i &quot;$1&quot; \
+    -c:v libx264 \
+    -b:v &quot;$target_video_bitrate_kbit_s&quot;k \
+    -pass 1 \
+    -an \
+    -f mp4 \
+    /dev/null \
+&amp;&amp; \
+ffmpeg \
+    -i &quot;$1&quot; \
+    -c:v libx264 \
+    -b:v &quot;$target_video_bitrate_kbit_s&quot;k \
+    -pass 2 \
+    -c:a aac \
+    -b:a &quot;$target_audio_bitrate_kbit_s&quot;k \
+    &quot;${1%.*}-$2mB.mp4&quot;</code></pre><p><strong>使用方法：</strong>压缩视频到 50 MB 大小</p><pre><code>./script.sh test.mp4 50
+</code></pre><h4>切割视频到指定时长的多个视频</h4><p>使用的技术主要是 python，ffprobe 得到视频时长，然后计算需要切割为几个视频。<br>python 脚本：</p><pre><code>#!/usr/bin/env python
+
+import csv
+import subprocess
+import math
+import json
+import os
+import shlex
+from optparse import OptionParser
+
+
+def split_by_manifest(filename, manifest, vcodec=&quot;copy&quot;, acodec=&quot;copy&quot;,
+                      extra=&quot;&quot;, **kwargs):
+
+    if not os.path.exists(manifest):
+        print(&quot;File does not exist: %s&quot; % manifest)
+        raise SystemExit
+
+    with open(manifest) as manifest_file:
+        manifest_type = manifest.split(&quot;.&quot;)[-1]
+        if manifest_type == &quot;json&quot;:
+            config = json.load(manifest_file)
+        elif manifest_type == &quot;csv&quot;:
+            config = csv.DictReader(manifest_file)
+        else:
+            print(&quot;Format not supported. File must be a csv or json file&quot;)
+            raise SystemExit
+
+        split_cmd = [&quot;ffmpeg&quot;, &quot;-i&quot;, filename, &quot;-vcodec&quot;, vcodec,
+                     &quot;-acodec&quot;, acodec, &quot;-y&quot;] + shlex.split(extra)
+        try:
+            fileext = filename.split(&quot;.&quot;)[-1]
+        except IndexError as e:
+            raise IndexError(&quot;No . in filename. Error: &quot; + str(e))
+        for video_config in config:
+            split_str = &quot;&quot;
+            split_args = []
+            try:
+                split_start = video_config[&quot;start_time&quot;]
+                split_length = video_config.get(&quot;end_time&quot;, None)
+                if not split_length:
+                    split_length = video_config[&quot;length&quot;]
+                filebase = video_config[&quot;rename_to&quot;]
+                if fileext in filebase:
+                    filebase = &quot;.&quot;.join(filebase.split(&quot;.&quot;)[:-1])
+
+                split_args += [&quot;-ss&quot;, str(split_start), &quot;-t&quot;,
+                               str(split_length), filebase + &quot;.&quot; + fileext]
+                print(&quot;########################################################&quot;)
+                print(&quot;About to run: &quot;+&quot; &quot;.join(split_cmd+split_args))
+                print(&quot;########################################################&quot;)
+                subprocess.check_output(split_cmd+split_args)
+            except KeyError as e:
+                print(&quot;############# Incorrect format ##############&quot;)
+                if manifest_type == &quot;json&quot;:
+                    print(&quot;The format of each json array should be:&quot;)
+                    print(&quot;{start_time: &lt;int&gt;, length: &lt;int&gt;, rename_to: &lt;string&gt;}&quot;)
+                elif manifest_type == &quot;csv&quot;:
+                    print(&quot;start_time,length,rename_to should be the first line &quot;)
+                    print(&quot;in the csv file.&quot;)
+                print(&quot;#############################################&quot;)
+                print(e)
+                raise SystemExit
+
+
+def get_video_length(filename):
+
+    output = subprocess.check_output((&quot;ffprobe&quot;, &quot;-v&quot;, &quot;error&quot;, &quot;-show_entries&quot;,
+                                      &quot;format=duration&quot;, &quot;-of&quot;, &quot;default=noprint_wrappers=1:nokey=1&quot;, filename)).strip()
+    video_length = int(float(output))
+    print(&quot;Video length in seconds: &quot;+str(video_length))
+
+    return video_length
+
+
+def ceildiv(a, b):
+    return int(math.ceil(a / float(b)))
+
+
+def split_by_seconds(filename, split_length, vcodec=&quot;copy&quot;, acodec=&quot;copy&quot;,
+                     extra=&quot;&quot;, video_length=None, **kwargs):
+    if split_length and split_length &lt;= 0:
+        print(&quot;Split length can't be 0&quot;)
+        raise SystemExit
+
+    if not video_length:
+        video_length = get_video_length(filename)
+    split_count = ceildiv(video_length, split_length)
+    if(split_count == 1):
+        print(&quot;Video length is less then the target split length.&quot;)
+        raise SystemExit
+
+    split_cmd = [&quot;ffmpeg&quot;, &quot;-i&quot;, filename, &quot;-vcodec&quot;,
+                 vcodec, &quot;-acodec&quot;, acodec] + shlex.split(extra)
+    try:
+        filebase = &quot;.&quot;.join(filename.split(&quot;.&quot;)[:-1])
+        fileext = filename.split(&quot;.&quot;)[-1]
+    except IndexError as e:
+        raise IndexError(&quot;No . in filename. Error: &quot; + str(e))
+    for n in range(0, split_count):
+        split_args = []
+        if n == 0:
+            split_start = 0
+        else:
+            split_start = split_length * n
+
+        split_args += [&quot;-ss&quot;, str(split_start), &quot;-t&quot;, str(split_length),
+                       filebase + &quot;-&quot; + str(n+1) + &quot;-of-&quot; +
+                       str(split_count) + &quot;.&quot; + fileext]
+        print(&quot;About to run: &quot;+&quot; &quot;.join(split_cmd+split_args))
+        subprocess.check_output(split_cmd+split_args)
+
+
+def main():
+    parser = OptionParser()
+
+    parser.add_option(&quot;-f&quot;, &quot;--file&quot;,
+                      dest=&quot;filename&quot;,
+                      help=&quot;File to split, for example sample.avi&quot;,
+                      type=&quot;string&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-s&quot;, &quot;--split-size&quot;,
+                      dest=&quot;split_length&quot;,
+                      help=&quot;Split or chunk size in seconds, for example 10&quot;,
+                      type=&quot;int&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-c&quot;, &quot;--split-chunks&quot;,
+                      dest=&quot;split_chunks&quot;,
+                      help=&quot;Number of chunks to split to&quot;,
+                      type=&quot;int&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-S&quot;, &quot;--split-filesize&quot;,
+                      dest=&quot;split_filesize&quot;,
+                      help=&quot;Split or chunk size in bytes (approximate)&quot;,
+                      type=&quot;int&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;--filesize-factor&quot;,
+                      dest=&quot;filesize_factor&quot;,
+                      help=&quot;with --split-filesize, use this factor in time to&quot;
+                      &quot; size heuristics [default: %default]&quot;,
+                      type=&quot;float&quot;,
+                      action=&quot;store&quot;,
+                      default=0.95
+                      )
+    parser.add_option(&quot;--chunk-strategy&quot;,
+                      dest=&quot;chunk_strategy&quot;,
+                      help=&quot;with --split-filesize, allocate chunks according to&quot;
+                      &quot; given strategy (eager or even)&quot;,
+                      type=&quot;choice&quot;,
+                      action=&quot;store&quot;,
+                      choices=['eager', 'even'],
+                      default='eager'
+                      )
+    parser.add_option(&quot;-m&quot;, &quot;--manifest&quot;,
+                      dest=&quot;manifest&quot;,
+                      help=&quot;Split video based on a json manifest file. &quot;,
+                      type=&quot;string&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-v&quot;, &quot;--vcodec&quot;,
+                      dest=&quot;vcodec&quot;,
+                      help=&quot;Video codec to use. &quot;,
+                      type=&quot;string&quot;,
+                      default=&quot;copy&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-a&quot;, &quot;--acodec&quot;,
+                      dest=&quot;acodec&quot;,
+                      help=&quot;Audio codec to use. &quot;,
+                      type=&quot;string&quot;,
+                      default=&quot;copy&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-e&quot;, &quot;--extra&quot;,
+                      dest=&quot;extra&quot;,
+                      help=&quot;Extra options for ffmpeg, e.g. '-e -threads 8'. &quot;,
+                      type=&quot;string&quot;,
+                      default=&quot;&quot;,
+                      action=&quot;store&quot;
+                      )
+    (options, args) = parser.parse_args()
+
+    def bailout():
+        parser.print_help()
+        raise SystemExit
+
+    if not options.filename:
+        bailout()
+
+    if options.manifest:
+        split_by_manifest(**(options.__dict__))
+    else:
+        video_length = None
+        if not options.split_length:
+            video_length = get_video_length(options.filename)
+            file_size = os.stat(options.filename).st_size
+            split_filesize = None
+            if options.split_filesize:
+                split_filesize = int(
+                    options.split_filesize * options.filesize_factor)
+            if split_filesize and options.chunk_strategy == 'even':
+                options.split_chunks = ceildiv(file_size, split_filesize)
+            if options.split_chunks:
+                options.split_length = ceildiv(
+                    video_length, options.split_chunks)
+            if not options.split_length and split_filesize:
+                options.split_length = int(
+                    split_filesize / float(file_size) * video_length)
+        if not options.split_length:
+            bailout()
+        split_by_seconds(video_length=video_length, **(options.__dict__))
+
+
+if __name__ == '__main__':
+    main()</code></pre><p><strong>使用方法：</strong>将视频切割为单个视频100秒</p><pre><code>./split.py -f test.mp4 -s 100
+</code></pre><h3>ffprobe 使用</h3><p>ffprobe 可以用来得到视频信息。</p><p>视频时长：秒</p><pre><code>ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 input.mp4
+</code></pre><p>视频码率：bit</p><pre><code>ffprobe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nokey=1 input.mp4
+</code></pre><h3>参考链接</h3><p><a href="http://www.ruanyifeng.com/blog/2020/01/ffmpeg.html">http://www.ruanyifeng.com/blog/2020/01/ffmpeg.html</a><br><a href="https://stackoverflow.com/questions/29082422/ffmpeg-video-compression-specific-file-size">https://stackoverflow.com/questions/29082422/ffmpeg-video-compression-specific-file-size</a><br><a href="https://github.com/c0decracker/video-splitter">https://github.com/c0decracker/video-splitter</a><br><a href="https://trac.ffmpeg.org/wiki/FFprobeTips">https://trac.ffmpeg.org/wiki/FFprobeTips</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1752.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1752.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Linux 系统时间设置问题]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1747.html" />
@@ -232,127 +671,5 @@ set_reg('MouseSensitivity', str(10))
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1685.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1685.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[使用 opencv 处理图像]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1684.html" />
-<id>https://blog.niekun.net/archives/1684.html</id>
-<updated>2020-08-07T11:37:51+08:00</updated>
-<published>2020-08-07T11:37:51+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[安装：https://pypi.org/project/opencv-python/使用：https://opencv-python-tutroals.readthedocs.io/en/lat...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1684.html" xml:lang="zh-CN"><![CDATA[
-<p>安装：<a href="https://pypi.org/project/opencv-python/">https://pypi.org/project/opencv-python/</a><br>使用：<a href="https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_setup/py_table_of_contents_setup/py_table_of_contents_setup.html">https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_setup/py_table_of_contents_setup/py_table_of_contents_setup.html</a><br>示例：<a href="https://www.askaswiss.com/2016/01/how-to-create-pencil-sketch-opencv-python.html">https://www.askaswiss.com/2016/01/how-to-create-pencil-sketch-opencv-python.html</a><br>打包 exe：<a href="https://pypi.org/project/auto-py-to-exe/">https://pypi.org/project/auto-py-to-exe/</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1684.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1684.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[xattr 命令清除 app 的隔离属性]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1680.html" />
-<id>https://blog.niekun.net/archives/1680.html</id>
-<updated>2020-07-21T12:37:00+08:00</updated>
-<published>2020-07-21T12:37:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - securit...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1680.html" xml:lang="zh-CN"><![CDATA[
-<p>macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - security 里可以手动允许运行，但是有时候使用这种方法也无法打开，这是由于系统识别到这个 app 可能有问题所以给它加上了 <code>com.apple.quarantine</code> 隔离属性阻止了他的运行。</p><p>如果我们需要运行它，就需要删除 app 的 <code>com.apple.quarantine</code> 属性，可以使用 <code>xattr</code> 来处理。</p><!--more--><p>macOS 上的文件不只有 "normal" 属性，也有 "读", "写", "执行" 等其他属性。常规属性可以用 <code>ls -l myfile</code> 命令来查看。除此之外还可以定义<strong>扩展属性</strong>，扩展属性的修改可以用 <code>xattr</code> 来处理。</p><p>命令语法如下：</p><pre><code>xattr [options] attributes [files]
-</code></pre><p>可用 option：</p><pre><code>   -c  CLear all Atrributes.
-   -d  Delete the given attribute.
-   -h  Help.
-   -l  By default, the first two command forms either display just the attribute names or
-       values, respectively. The -l option causes both the attribute names and corresponding
-       values to be displayed. For hex display of values, the output is preceeded with the hex
-       offset values and followed by ASCII display, enclosed by '|'.
-   -p  Print the value associated with the given attribute.
-   -r  If a file argument is a directory, act as if the entire contents of the directory
-       recursively were also specified (so that every file in the directory tree is acted upon).
-   -s  If a file argument is a symbolic link, act on the symbolic link itself, rather than
-       the file that the symbolic link points at.
-   -v  Force the the file name to be displayed, even for a single file.
-   -w  Write a given attribute name with a value.
-   -x  Force the attribute value to be displayed in the hexadecimal representation.   </code></pre><p>显示一个文件的存在的扩展属性：</p><pre><code>xattr myfile
-</code></pre><p>显示一个文件的存在的扩展属性及这个属性的值：</p><pre><code>xattr -l myfile
-</code></pre><p>给一个文件添加 <code>com.example.color</code> 属性：</p><pre><code>xattr -w com.example.color myfile
-</code></pre><p>清除一个文件的 <code>com.example.color</code> 属性：</p><pre><code>xattr -d com.example.color myfile
-</code></pre><p>清除一个文件夹内所有文件的 <code>com.example.color</code> 属性：</p><pre><code>xattr -d -r com.example.color mydir
-</code></pre><p>清除一个文件的所有扩展属性：</p><pre><code>xattr -c myfile
-</code></pre><hr><p>对于被屏蔽的 app 需要清除<code>com.apple.quarantine</code>  这一属性，处理过程如下：</p><p>首先查看 app 的现有属性：</p><pre><code>xattr /path/to/MyApp.app
-</code></pre><p>如果返回的结果有 <code>com.apple.quarantine</code> 属性则执行下面命令删除：</p><pre><code>sudo xattr -r -d com.apple.quarantine /path/to/MyApp.app
-</code></pre><p>执行后就可以正常打开 app 了。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1680.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1680.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[cinema 4D 快捷键]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1677.html" />
-<id>https://blog.niekun.net/archives/1677.html</id>
-<updated>2020-07-20T09:03:00+08:00</updated>
-<published>2020-07-20T09:03:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[1视角移动2视野放大/缩小3视角旋转  Eobject 移动Robject 旋转Tobject 放大/缩小  object 编辑 U线段功能菜单U + L选择闭合曲线U + U取消区域曲线选择M...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1677.html" xml:lang="zh-CN"><![CDATA[
-<table><tbody><tr><td align="center">1</td><td align="center">视角移动</td></tr><tr><td align="center">2</td><td align="center">视野放大/缩小</td></tr><tr><td align="center">3</td><td align="center">视角旋转</td></tr><tr><td align="center"> </td><td align="center"> </td></tr><tr><td align="center">E</td><td align="center">object 移动</td></tr><tr><td align="center">R</td><td align="center">object 旋转</td></tr><tr><td align="center">T</td><td align="center">object 放大/缩小</td></tr><tr><td align="center"> </td><td align="center"> </td></tr><tr><td align="center"><strong>object 编辑</strong></td><td align="center"> </td></tr><tr><td align="center">U</td><td align="center">线段功能菜单</td></tr><tr><td align="center">U + L</td><td align="center">选择闭合曲线</td></tr><tr><td align="center">U + U</td><td align="center">取消区域曲线选择</td></tr><tr><td align="center">M</td><td align="center">块功能菜单</td></tr><tr><td align="center">M + T</td><td align="center">块生成工具</td></tr><tr><td align="center"> </td><td align="center"> </td></tr><tr><td align="center">Q</td><td align="center">隐藏 subdivision surface</td></tr><tr><td align="center"> </td><td align="center"> </td></tr><tr><td align="center">alt + R</td><td align="center">区域渲染</td></tr><tr><td align="center"> </td><td align="center"> </td></tr></tbody></table>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1677.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1677.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[Linux 下使用 OptiPNG 压缩图片]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1666.html" />
-<id>https://blog.niekun.net/archives/1666.html</id>
-<updated>2020-07-14T17:25:00+08:00</updated>
-<published>2020-07-14T17:25:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[最近越来也发现自己的博客加载图片变慢了，由于我很多教程是教 PS 的，会使用到很多图片和截图，所以影响尤其明显。每张图片小则 400Kb 大则 2-3Mb，对于网络浏览不太友好。可以直接在服务器...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1666.html" xml:lang="zh-CN"><![CDATA[
-<p>最近越来也发现自己的博客加载图片变慢了，由于我很多教程是教 PS 的，会使用到很多图片和截图，所以影响尤其明显。每张图片小则 400Kb 大则 2-3Mb，对于网络浏览不太友好。</p><p>可以直接在服务器上进行图片压缩，用到的工具是 OptiPNG。</p><p>OptiPNG home page：<a href="http://optipng.sourceforge.net/">http://optipng.sourceforge.net/</a></p><!--more--><h3>编译安装</h3><p>我选择从源码编译安装，这样可以直接使用最新版本。</p><p><strong>如何从源码编译程序可以参考我的文章</strong>：<a href="https://blog.niekun.net/archives/883.html">https://blog.niekun.net/archives/883.html</a></p><p>首先从官网下载源码到 vps 并解压：</p><pre><code>cd /tmp
-wget http://prdownloads.sourceforge.net/optipng/optipng-0.7.7.tar.gz
-tar xvf optipng-0.7.7.tar.gz
-</code></pre><p>新建安装路径：</p><pre><code>mkdir /opt/optipng-0.7.7
-ln -s /opt/optipng-0.7.7 /opt/optipng
-</code></pre><p>configure & make：</p><pre><code>cd /tmp/optipng-0.7.7
-./configure --prefix=/opt/optipng-0.7.7
-make
-make install
-</code></pre><p>测试是否可以执行：</p><pre><code>/opt/optipng/bin/optipng
-</code></pre><p>创建系统链接：</p><pre><code>ln -s /opt/optipng/bin/optipng /usr/local/bin/optipng
-</code></pre><h3>使用</h3><p>可以使用命令查看处理前处理后的图片体积：</p><pre><code>ls -lh a.png
-</code></pre><p>压缩一张 png 图片：</p><pre><code>optipng a.png
-</code></pre><p>压缩目录下的所有 png 图片：</p><pre><code>optipng *.png
-</code></pre><p>可以自定义压缩等级：</p><pre><code>Optimization levels:
-    -o0         &lt;=&gt;     -o1 -nx -nz                             (0 or 1 trials)
-    -o1         &lt;=&gt;     -zc9 -zm8 -zs0 -f0                      (1 trial)
-                (or...) -zc9 -zm8 -zs1 -f5                      (1 trial)
-    -o2         &lt;=&gt;     -zc9 -zm8 -zs0-3 -f0,5                  (8 trials)
-    -o3         &lt;=&gt;     -zc9 -zm8-9 -zs0-3 -f0,5                (16 trials)
-    -o4         &lt;=&gt;     -zc9 -zm8 -zs0-3 -f0-5                  (24 trials)
-    -o5         &lt;=&gt;     -zc9 -zm8-9 -zs0-3 -f0-5                (48 trials)
-    -o6         &lt;=&gt;     -zc1-9 -zm8 -zs0-3 -f0-5                (120 trials)
-    -o7         &lt;=&gt;     -zc1-9 -zm8-9 -zs0-3 -f0-5              (240 trials)
-    -o7 -zm1-9  &lt;=&gt;     -zc1-9 -zm1-9 -zs0-3 -f0-5              (1080 trials)
-Notes:
-    The combination for -o1 is chosen heuristically.
-    Exhaustive combinations such as &quot;-o7 -zm1-9&quot; are not generally recommended.
-Examples:
-    optipng file.png                                            (default speed)
-    optipng -o5 file.png                                        (slow)
-    optipng -o7 file.png                                        (very slow)</code></pre>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1666.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1666.html" thr:count="0"/>
 </entry>
 </feed>

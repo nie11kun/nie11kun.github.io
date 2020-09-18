@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1752.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1720.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1690.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1677.html"/>
@@ -18,10 +19,323 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1593.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1586.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1455.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1428.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1752.html">
+<title>FFmpeg 简单用法</title>
+<link>https://blog.niekun.net/archives/1752.html</link>
+<dc:date>2020-09-18T15:03:12+08:00</dc:date>
+<description>FFmpeg 是视频处理最常用的开源软件。它功能强大，用途广泛，大量用于视频网站和商业软件（比如 Youtube 和 iTunes），也是许多音频和视频格式的标准编码/解码实现。官方网站：https://www.ffmpeg.org/安装最简单的方法就是用包管理工具如：apt 安装：apt update
+apt install ffmpeg
+或者也可以从源码安装，可以参考我之前的教程：https://blog.niekun.net/archives/891.html常用指令查看 ffmpeg 版本：ffmpeg -version
+查看支持的编码格式：如 h.264, h.265ffmpeg -codecs
+查看支持的容器：如 mp4, mp3, mkvffmpeg -formats
+查看已安装的编码器：如 libx264, libx265, libvpx, aacffmpeg -encoders
+使用格式FFmpeg 的命令行参数非常多，可以分成五个部分。ffmpeg {1} {2} -i {3} {4} {5}
+上面命令中，五个部分的参数依次如下：全局参数
+输入文件参数
+输入文件
+输出文件参数
+输出文件参数太多的时候，为了便于查看，ffmpeg 命令可以写成多行:$ ffmpeg \
+[全局参数] \
+[输入文件参数] \
+-i [输入文件] \
+[输出文件参数] \
+[输出文件]下面是一个例子:ffmpeg \
+-y \ # 全局参数
+-c:a libfdk_aac -c:v libx264 \ # 输入文件参数
+-i input.mp4 \ # 输入文件
+-c:v libvpx-vp9 -c:a libvorbis \ # 输出文件参数
+output.webm # 输出文件上面的命令将 mp4 文件转成 webm 文件，这两个都是容器格式。输入的 mp4 文件的音频编码格式是 aac，视频编码格式是 H.264；输出的 webm 文件的视频编码格式是 VP9，音频格式是 Vorbis。如果不指明编码格式，FFmpeg 会自己判断输入文件的编码。一般可以省略输入文件参数。常用命令参数-c：指定编码器
+-c copy：直接复制，不经过重新编码（这样比较快）
+-c:v：指定视频编码器
+-c:a：指定音频编码器
+-i：指定输入文件
+-an：去除音频流
+-vn： 去除视频流
+-preset：指定输出的视频质量，会影响文件的生成速度，有以下几个可用的值 ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow。
+-y：不经过确认，输出时直接覆盖同名文件。常规使用方法查看元数据信息，如时长，比特率等：ffmpeg -i test.mp4
+输出的信息较多，可以通过 -hide_banner 只显示媒体文件信息：ffmpeg -i test.mp4 -hide_banner
+转码，如 avi to h.264:ffmpeg -i test.avi -c:v libx264 test.mp4
+转换容器：ffmpeg -i test.mp4 -c copy test.webm转换容器不需要转码，所以直接 copy 即可。转换码率，转换成固定码率：ffmpeg -i test.mp4 -b:v 500k test_out.mp4
+转换码率，转换成一个码率范围：ffmpeg -i test.mp4 -minrate 964K -maxrate 3856K -bufsize 2000K test_out.mp4
+改变分辨率：转换成 480pffmpeg \
+-i input.mp4 \
+-vf scale=480:-1 \
+output.mp4视频中提取音频：ffmpeg \
+-i input.mp4 \
+-vn -c:a copy \
+output.aac上面例子中，-vn 表示去掉视频，-c:a copy 表示不改变音频编码，直接拷贝。视频截图：下面的例子是从指定时间开始，连续对1秒钟的视频进行截图ffmpeg \
+-y \
+-i input.mp4 \
+-ss 00:01:24 -t 00:00:01 \
+output_%3d.jpg%3d 在 shell 里表示至少输出3个字符空间的数字：% means &quot;Print a variable here&quot;
+3 means &quot;use at least 3 spaces to display, padding as needed&quot;
+d means &quot;The variable will be an integer&quot;如果只需要截一张图，可以指定只截取一帧。$ ffmpeg \
+-ss 01:23:45 \
+-i input \
+-vframes 1 -q:v 2 \
+output.jpg上面例子中，-vframes 1 指定只截取一帧，-q:v 2 表示输出的图片质量，一般是1到5之间（1 为质量最高）。裁剪:裁剪（cutting）指的是，截取原始视频里面的一个片段，输出为一个新视频。可以指定开始时间（start）和持续时间（duration），也可以指定结束时间（end）。$ ffmpeg -ss [start] -i [input] -t [duration] -c copy [output]
+$ ffmpeg -ss [start] -i [input] -to [end] -c copy [output]下面是实际的例子。# 从1分50秒开始截取10.5秒
+ffmpeg -ss 00:01:50 -i test.mp4 -t 10.5 -c copy out.mp4
+
+# 从25秒开始截取10秒
+ffmpeg -ss 25 -i test.mp4 -to 10 -c copy out.mp4
+ffmpeg -i test.mp4 -ss 25 -to 10 -c copy out.mp4上面例子中，-c copy 表示不改变音频和视频的编码格式，直接拷贝，这样会快很多。高级用法压缩视频内容到指定容量大小使用的技术主要是 ffmpeg 的 2 pass 方法和 ffprobe 得到码率和时长信息。bash脚本：#!/bin/bash
+
+target_video_size_MB=&quot;$2&quot;
+origin_duration_s=$(ffprobe -v error -show_streams -select_streams a &quot;$1&quot; | grep -Po &quot;(?&lt;=^duration\=)\d*\.\d*&quot;)
+origin_audio_bitrate_kbit_s=$(ffprobe -v error -pretty -show_streams -select_streams a &quot;$1&quot; | grep -Po &quot;(?&lt;=^bit_rate\=)\d*\.\d*&quot;)
+target_audio_bitrate_kbit_s=$origin_audio_bitrate_kbit_s # TODO for now, make audio bitrate the same
+target_video_bitrate_kbit_s=$(\
+    awk \
+    -v size=&quot;$target_video_size_MB&quot; \
+    -v duration=&quot;$origin_duration_s&quot; \
+    -v audio_rate=&quot;$target_audio_bitrate_kbit_s&quot; \
+    'BEGIN { print  ( ( size * 8192.0 ) / ( 1.048576 * duration ) - audio_rate ) }')
+
+ffmpeg \
+    -y \
+    -i &quot;$1&quot; \
+    -c:v libx264 \
+    -b:v &quot;$target_video_bitrate_kbit_s&quot;k \
+    -pass 1 \
+    -an \
+    -f mp4 \
+    /dev/null \
+&amp;&amp; \
+ffmpeg \
+    -i &quot;$1&quot; \
+    -c:v libx264 \
+    -b:v &quot;$target_video_bitrate_kbit_s&quot;k \
+    -pass 2 \
+    -c:a aac \
+    -b:a &quot;$target_audio_bitrate_kbit_s&quot;k \
+    &quot;${1%.*}-$2mB.mp4&quot;使用方法：压缩视频到 50 MB 大小./script.sh test.mp4 50
+切割视频到指定时长的多个视频使用的技术主要是 python，ffprobe 得到视频时长，然后计算需要切割为几个视频。python 脚本：#!/usr/bin/env python
+
+import csv
+import subprocess
+import math
+import json
+import os
+import shlex
+from optparse import OptionParser
+
+
+def split_by_manifest(filename, manifest, vcodec=&quot;copy&quot;, acodec=&quot;copy&quot;,
+                      extra=&quot;&quot;, **kwargs):
+
+    if not os.path.exists(manifest):
+        print(&quot;File does not exist: %s&quot; % manifest)
+        raise SystemExit
+
+    with open(manifest) as manifest_file:
+        manifest_type = manifest.split(&quot;.&quot;)[-1]
+        if manifest_type == &quot;json&quot;:
+            config = json.load(manifest_file)
+        elif manifest_type == &quot;csv&quot;:
+            config = csv.DictReader(manifest_file)
+        else:
+            print(&quot;Format not supported. File must be a csv or json file&quot;)
+            raise SystemExit
+
+        split_cmd = [&quot;ffmpeg&quot;, &quot;-i&quot;, filename, &quot;-vcodec&quot;, vcodec,
+                     &quot;-acodec&quot;, acodec, &quot;-y&quot;] + shlex.split(extra)
+        try:
+            fileext = filename.split(&quot;.&quot;)[-1]
+        except IndexError as e:
+            raise IndexError(&quot;No . in filename. Error: &quot; + str(e))
+        for video_config in config:
+            split_str = &quot;&quot;
+            split_args = []
+            try:
+                split_start = video_config[&quot;start_time&quot;]
+                split_length = video_config.get(&quot;end_time&quot;, None)
+                if not split_length:
+                    split_length = video_config[&quot;length&quot;]
+                filebase = video_config[&quot;rename_to&quot;]
+                if fileext in filebase:
+                    filebase = &quot;.&quot;.join(filebase.split(&quot;.&quot;)[:-1])
+
+                split_args += [&quot;-ss&quot;, str(split_start), &quot;-t&quot;,
+                               str(split_length), filebase + &quot;.&quot; + fileext]
+                print(&quot;########################################################&quot;)
+                print(&quot;About to run: &quot;+&quot; &quot;.join(split_cmd+split_args))
+                print(&quot;########################################################&quot;)
+                subprocess.check_output(split_cmd+split_args)
+            except KeyError as e:
+                print(&quot;############# Incorrect format ##############&quot;)
+                if manifest_type == &quot;json&quot;:
+                    print(&quot;The format of each json array should be:&quot;)
+                    print(&quot;{start_time: &lt;int&gt;, length: &lt;int&gt;, rename_to: &lt;string&gt;}&quot;)
+                elif manifest_type == &quot;csv&quot;:
+                    print(&quot;start_time,length,rename_to should be the first line &quot;)
+                    print(&quot;in the csv file.&quot;)
+                print(&quot;#############################################&quot;)
+                print(e)
+                raise SystemExit
+
+
+def get_video_length(filename):
+
+    output = subprocess.check_output((&quot;ffprobe&quot;, &quot;-v&quot;, &quot;error&quot;, &quot;-show_entries&quot;,
+                                      &quot;format=duration&quot;, &quot;-of&quot;, &quot;default=noprint_wrappers=1:nokey=1&quot;, filename)).strip()
+    video_length = int(float(output))
+    print(&quot;Video length in seconds: &quot;+str(video_length))
+
+    return video_length
+
+
+def ceildiv(a, b):
+    return int(math.ceil(a / float(b)))
+
+
+def split_by_seconds(filename, split_length, vcodec=&quot;copy&quot;, acodec=&quot;copy&quot;,
+                     extra=&quot;&quot;, video_length=None, **kwargs):
+    if split_length and split_length &lt;= 0:
+        print(&quot;Split length can't be 0&quot;)
+        raise SystemExit
+
+    if not video_length:
+        video_length = get_video_length(filename)
+    split_count = ceildiv(video_length, split_length)
+    if(split_count == 1):
+        print(&quot;Video length is less then the target split length.&quot;)
+        raise SystemExit
+
+    split_cmd = [&quot;ffmpeg&quot;, &quot;-i&quot;, filename, &quot;-vcodec&quot;,
+                 vcodec, &quot;-acodec&quot;, acodec] + shlex.split(extra)
+    try:
+        filebase = &quot;.&quot;.join(filename.split(&quot;.&quot;)[:-1])
+        fileext = filename.split(&quot;.&quot;)[-1]
+    except IndexError as e:
+        raise IndexError(&quot;No . in filename. Error: &quot; + str(e))
+    for n in range(0, split_count):
+        split_args = []
+        if n == 0:
+            split_start = 0
+        else:
+            split_start = split_length * n
+
+        split_args += [&quot;-ss&quot;, str(split_start), &quot;-t&quot;, str(split_length),
+                       filebase + &quot;-&quot; + str(n+1) + &quot;-of-&quot; +
+                       str(split_count) + &quot;.&quot; + fileext]
+        print(&quot;About to run: &quot;+&quot; &quot;.join(split_cmd+split_args))
+        subprocess.check_output(split_cmd+split_args)
+
+
+def main():
+    parser = OptionParser()
+
+    parser.add_option(&quot;-f&quot;, &quot;--file&quot;,
+                      dest=&quot;filename&quot;,
+                      help=&quot;File to split, for example sample.avi&quot;,
+                      type=&quot;string&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-s&quot;, &quot;--split-size&quot;,
+                      dest=&quot;split_length&quot;,
+                      help=&quot;Split or chunk size in seconds, for example 10&quot;,
+                      type=&quot;int&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-c&quot;, &quot;--split-chunks&quot;,
+                      dest=&quot;split_chunks&quot;,
+                      help=&quot;Number of chunks to split to&quot;,
+                      type=&quot;int&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-S&quot;, &quot;--split-filesize&quot;,
+                      dest=&quot;split_filesize&quot;,
+                      help=&quot;Split or chunk size in bytes (approximate)&quot;,
+                      type=&quot;int&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;--filesize-factor&quot;,
+                      dest=&quot;filesize_factor&quot;,
+                      help=&quot;with --split-filesize, use this factor in time to&quot;
+                      &quot; size heuristics [default: %default]&quot;,
+                      type=&quot;float&quot;,
+                      action=&quot;store&quot;,
+                      default=0.95
+                      )
+    parser.add_option(&quot;--chunk-strategy&quot;,
+                      dest=&quot;chunk_strategy&quot;,
+                      help=&quot;with --split-filesize, allocate chunks according to&quot;
+                      &quot; given strategy (eager or even)&quot;,
+                      type=&quot;choice&quot;,
+                      action=&quot;store&quot;,
+                      choices=['eager', 'even'],
+                      default='eager'
+                      )
+    parser.add_option(&quot;-m&quot;, &quot;--manifest&quot;,
+                      dest=&quot;manifest&quot;,
+                      help=&quot;Split video based on a json manifest file. &quot;,
+                      type=&quot;string&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-v&quot;, &quot;--vcodec&quot;,
+                      dest=&quot;vcodec&quot;,
+                      help=&quot;Video codec to use. &quot;,
+                      type=&quot;string&quot;,
+                      default=&quot;copy&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-a&quot;, &quot;--acodec&quot;,
+                      dest=&quot;acodec&quot;,
+                      help=&quot;Audio codec to use. &quot;,
+                      type=&quot;string&quot;,
+                      default=&quot;copy&quot;,
+                      action=&quot;store&quot;
+                      )
+    parser.add_option(&quot;-e&quot;, &quot;--extra&quot;,
+                      dest=&quot;extra&quot;,
+                      help=&quot;Extra options for ffmpeg, e.g. '-e -threads 8'. &quot;,
+                      type=&quot;string&quot;,
+                      default=&quot;&quot;,
+                      action=&quot;store&quot;
+                      )
+    (options, args) = parser.parse_args()
+
+    def bailout():
+        parser.print_help()
+        raise SystemExit
+
+    if not options.filename:
+        bailout()
+
+    if options.manifest:
+        split_by_manifest(**(options.__dict__))
+    else:
+        video_length = None
+        if not options.split_length:
+            video_length = get_video_length(options.filename)
+            file_size = os.stat(options.filename).st_size
+            split_filesize = None
+            if options.split_filesize:
+                split_filesize = int(
+                    options.split_filesize * options.filesize_factor)
+            if split_filesize and options.chunk_strategy == 'even':
+                options.split_chunks = ceildiv(file_size, split_filesize)
+            if options.split_chunks:
+                options.split_length = ceildiv(
+                    video_length, options.split_chunks)
+            if not options.split_length and split_filesize:
+                options.split_length = int(
+                    split_filesize / float(file_size) * video_length)
+        if not options.split_length:
+            bailout()
+        split_by_seconds(video_length=video_length, **(options.__dict__))
+
+
+if __name__ == '__main__':
+    main()使用方法：将视频切割为单个视频100秒./split.py -f test.mp4 -s 100
+ffprobe 使用ffprobe 可以用来得到视频信息。视频时长：秒ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 input.mp4
+视频码率：bitffprobe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nokey=1 input.mp4
+参考链接http://www.ruanyifeng.com/blog/2020/01/ffmpeg.htmlhttps://stackoverflow.com/questions/29082422/ffmpeg-video-compression-specific-file-sizehttps://github.com/c0decracker/video-splitterhttps://trac.ffmpeg.org/wiki/FFprobeTips</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1720.html">
 <title>自由填充 Pattern in Photoshop</title>
 <link>https://blog.niekun.net/archives/1720.html</link>
@@ -75,11 +389,5 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <link>https://blog.niekun.net/archives/1455.html</link>
 <dc:date>2020-03-29T23:21:30+08:00</dc:date>
 <description>一幅图像能否吸引眼球，最简单的方式就是将主体突出，比如人物的眼睛。所以，在修图中最后一步往往是锐化图像。锐化的原理就是将像素颜色反差的地方加强反差，而不破坏颜色相似地方的自然过渡。下面介绍三种不同的方式进行图像锐化。使用的工具主要有以下：smart sharpen，blend mode：darken and lightengaussian blur，apply image：subtracthigh pass，contract智能锐化首先介绍使用智能锐化工具配合混合模式来进行锐化。智能锐化相比较其他几个锐化工具多个几个调节项目，可以通过滑块进行精细调节。配合混合模式主要是为了消除部分锐化过后的边沿亮条。我们的主体是石狮子：首先复制图层，转换为智能图层，然后选择 filter - sharpen - smart sharpen：调节 radius 等参数进行适当锐化：确认后，图像整体已经相比之前突出很多了，但是仔细观察会发现在和背景衔接处有明显的亮条，这就是锐化的副作用：下面通过混合模式来处理，将锐化后的图层复制一个，将两个图层混合模式分别设置为 darken 和 lighten，这样就可以分别控制亮部和暗部了：通过分离亮暗部分，通过蒙版来去除我们不想要的锐化过度区域。在 lighten 图层建立蒙版，使用黑色笔刷刷掉亮条部分：在需要的时候也可以涂抹暗部锐化过度区域，此图经过上面的调节已经可以了：频率分离第二种方法叫做：频率分离。以人物图像来举例，皮肤部分色彩过度较均匀，叫做低频部分；睫毛，头发，皮肤纹理等地方颜色反差大，叫做高频部分。在处理人像时，我们常规操作是将低频部分进一步使色彩平滑过渡，也就是磨皮，高频部分进一步加大反差增加清晰感，也就是锐化。以下面人物为例，介绍操作方法：复制两个图层，分别命名为 color 和 texture，将 color 图层转换为智能图层方便后期调节参数：color 图层复制柔化皮肤，texture 图层负责锐化细节。暂时关闭 texture 图层，选中 color 图层，执行 filter - blur - gaussian blur，调节 radius 使皮肤柔化到合适感觉，暂时不必理会细节丢失：打开并选中 texture 图层，执行 image - apply image：layer 选择 color 图层，blending 选择 subtract，scale 设置为 2，offset 设置 128。以上设置的意思是：将 texture 图层剪掉和 color 图层相同像素部分，并将剪掉部分填充为 50% 灰，scale 影响反差敏感度：将 texture 图层混合模式设置为 linear light：这样处理后，color 和 texture 就实现了分离，两个图层和原图层几乎是一样的。然后我们就可以单独对texture进行控制了。复制 texture 图层，图像会明显的锐化过度，调节 fill 填充值来降低锐化效果到合适：我只想锐化眼睛等区域，配合蒙版来处理：最终效果：高反差保留最后一种方法是高反差保留，配合对比度调节工具，能够实现更加方便的锐化程度调节体验。还是以上面人物为例进行处理，首先还是复制图层，然后转换为智能图层，将混合模式设置为 overlay：执行 filter - other - high pass，调节 radius 观察锐化效果，注意不要设置过大而在反差地方出现光晕：为了能够更加方便的调节锐化强度而不用复制图层，我们执行 image - adjustment - brightness/contrast，选中 use legacy，通过调节 contrast 可以实现锐化强度的调节：由于我们的图层是智能图层，后期可以根据实际情况再次调节 high pass 和 contrast 的值到合适。可以配合蒙版来调节锐化影响范围，这里还是只锐化面部重点区域即可用画笔涂抹出想要锐化的部分，最终效果如下：</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1428.html">
-<title>指定颜色修改 in Photoshop</title>
-<link>https://blog.niekun.net/archives/1428.html</link>
-<dc:date>2020-03-23T15:03:00+08:00</dc:date>
-<description>上图是我拍摄的油菜花照片，当我想要单独修改花的颜色或者修改绿色枝干的颜色时可以方便的实现吗？使用 Photoshop 可以轻松达到想要的效果。这里用到的技术细节其实就是提取出想要修改部分，然后修改颜色。有两个方法可以进行提取：color range 和 hue。color range首先使用 color range 来进行选区，选择 select - color range：首先将 fuzziness 设为 0，关闭 localized color clutter，preview 设为 none：选择右侧 eyedrop，点击花朵，然后选择带加号的 eyedrop 进行区域添加：将 preview 设置为 black matte 更清晰的观察选取：适当调整 fuzziness 使过渡平滑：确认后就建立了选区，新建 hue 图层，会自动添加蒙版，这样修改只影响花朵部分：调节 hue 或 saturation 来修改颜色：如果要修改背景色彩，可以新建 hue 图层，按住 alt 拖动蒙版到新的图层，然后 ctrl I 反转蒙版，这样就可以单独调整背景色彩了：最终效果如下：hue/saturation也可以直接使用 hue/saturation 图层来提取颜色。新建 hue/saturation 图层，先选择任意一种颜色：下方 eyedrop 就可以使用了，选择左侧 eyedrop 上方选择 3×3，点击花朵部分：先将 hue 和 saturation 设置到最大，这样方便观察当前影响的颜色范围：调节左右滑块使影响的颜色只包含花朵：恢复 hue/saturation 值，然后调节到合适位置：最终效果如下：</description>
 </item>
 </rdf:RDF>
