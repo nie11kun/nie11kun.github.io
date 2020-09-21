@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>admin</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1758.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1757.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1754.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1753.html"/>
@@ -18,10 +19,32 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1718.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1690.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1688.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1685.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1758.html">
+<title>从源码编译安装 python</title>
+<link>https://blog.niekun.net/archives/1758.html</link>
+<dc:date>2020-09-21T16:35:00+08:00</dc:date>
+<description>从源码编译程序的好处是可以使用最新版本，下面介绍如何在 Linux 下编译安装 python 和 pip 环境。下载源码包python 官网：https://www.python.org/当前最新版是 3.8.5，在这个页面找到地址：https://www.python.org/downloads/release/python-385/下载 tgz 压缩包到本地并解压：cd /tmp
+wget https://www.python.org/ftp/python/3.8.5/Python-3.8.5.tgz
+tar xvf Python-3.8.5.tgz环境安装编译需要安装一些依赖：apt install libffi-dev libgdbm-dev libsqlite3-dev libssl-dev zlib1g-dev
+编译python 源码使用标准 GNU 编译系统，详细说明参考：https://blog.niekun.net/archives/883.html将 python 安装到 /opt 目录，先创建文件夹：mkdir /opt/python3.8.5
+然后配置 configure：cd /tmp/Python-3.8.5
+
+./configure \
+--prefix=/opt/python3.8.5 \
+--enable-optimizations \没有错误提示的话就开始编译和安装：make
+make install
+安装完成后测试执行：/opt/python3.8.5/bin/python3 --version
+返回版本信息则安装完成。下面将可执行文件加入系统路径，创建软连接：ln -s /opt/python3.8.5/bin/python3 /usr/bin/python
+测试运行：python --version
+安装 pip源码编译安装的 python 不自带 pip，需要自己安装，可以使用 get-pip.py 脚本来安装。官网：https://pip.pypa.io/en/stable/installing/下载脚本到本地：curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py使用刚才安装的 python 执行脚本：/opt/python3.8.5/bin/python3 get-pip.py
+pip 的安装路径是 /opt/python3.8.5/bin/，测试命令：/opt/python3.8.5/bin/pip3 --version
+返回版本信息则安装完成。添加软连接到系统路径：ln -s /opt/python3.8.5/bin/pip3 /usr/bin/pip
+测试命令：pip --version
+参考链接https://docs.rstudio.com/resources/install-python-source/</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1757.html">
 <title>awk 命令的用法</title>
 <link>https://blog.niekun.net/archives/1757.html</link>
@@ -533,44 +556,5 @@ data = &quot;&quot;.encode()      #bytes
 data = b&quot;&quot;              #bytesTo convert bytes to a String.data = b&quot;&quot;              #bytes
 data = b&quot;&quot;.decode()     #string
 data = str(b&quot;&quot;)         #string</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1685.html">
-<title>winreg 操作 Windows 注册表 in python</title>
-<link>https://blog.niekun.net/archives/1685.html</link>
-<dc:date>2020-08-12T13:56:00+08:00</dc:date>
-<description>https://docs.python.org/3/library/winreg.html#https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registryimport winreg
-
-REG_PATH = r&quot;Control Panel\Mouse&quot;
-
-def set_reg(name, value):
-    try:
-        winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
-        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, 
-                                       winreg.KEY_WRITE)
-        winreg.SetValueEx(registry_key, name, 0, winreg.REG_SZ, value)
-        winreg.CloseKey(registry_key)
-        return True
-    except WindowsError:
-        return False
-
-def get_reg(name):
-    try:
-        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
-                                       winreg.KEY_READ)
-        value, regtype = winreg.QueryValueEx(registry_key, name)
-        winreg.CloseKey(registry_key)
-        return value
-    except WindowsError:
-        return None
-
-#Example MouseSensitivity
-#Read value 
-print (get_reg('MouseSensitivity'))
-
-#Set Value 1/20 (will just write the value to reg, the changed mouse val requires a win re-log to apply*)
-set_reg('MouseSensitivity', str(10))
-
-#*For instant apply of SystemParameters like the mouse speed on-write, you can use win32gui/SPI
-#http://docs.activestate.com/activepython/3.4/pywin32/win32gui__SystemParametersInfo_meth.html</description>
 </item>
 </rdf:RDF>
