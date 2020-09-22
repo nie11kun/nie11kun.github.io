@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1763.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/730.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/725.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/195.html"/>
@@ -18,10 +19,21 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/34.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/30.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/26.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/3.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1763.html">
+<title>Failed to parse PID from file /opt/nginx/logs/nginx.pid 处理</title>
+<link>https://blog.niekun.net/archives/1763.html</link>
+<dc:date>2020-09-22T16:27:00+08:00</dc:date>
+<description>今天在使用 journalctl 查看 nginx 日志时看到在每次启动服务后会出现一条错误信息：$ journalctl -u nginx
+...
+nginx.service: Failed to parse PID from file /opt/nginx/logs/nginx.pid: Invalid argument
+...
+查找了下原因，可能是 nginx 在启动时创建 nginx.pid 文件前 systemd 就在请求这个文件，所以出错了。解决办法就是题前手动创建 systemd 需要的文件：mkdir /etc/systemd/system/nginx.service.d
+printf &quot;[Service]\nExecStartPost=/bin/sleep 0.1\n&quot; &gt; /etc/systemd/system/nginx.service.d/override.conf
+systemctl daemon-reload以上处理就可以解决问题。参考链接：https://bugs.launchpad.net/ubuntu/+source/nginx/+bug/1581864</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/730.html">
 <title>限制用户名密码访问页面 in nginx</title>
 <link>https://blog.niekun.net/archives/730.html</link>
@@ -258,20 +270,5 @@ apt-get remove nginx-common
     autoindex_localtime on;
 }
 后三句为打开当前location段的目录索引功能，显示文件大小，显示文件创建日期，建议只对需要共享的目录打开目录功能。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/3.html">
-<title>Nginx配置重定向到其他网页或端口</title>
-<link>https://blog.niekun.net/archives/3.html</link>
-<dc:date>2019-02-15T14:32:00+08:00</dc:date>
-<description>打开nginx配置文件nginx.conf默认路径为：/etc/nginx/nginx.conf可以使用find指令找到这个文件：find / -name nginx.conf重定向到外部网站server内加入如下片段：location /you/path {
-    return 301 https://example.com;
-}重定向到内部其他端口server内加入如下片段：location /ray {
-    proxy_redirect off;
-    proxy_pass http://127.0.0.1:10000;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection &quot;upgrade&quot;;
-    proxy_set_header Host $http_host;
-}修改好后重启nginx：service nginx restart</description>
 </item>
 </rdf:RDF>

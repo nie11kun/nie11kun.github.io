@@ -11,8 +11,28 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/author/1/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>admin</description>
-<lastBuildDate>Mon, 21 Sep 2020 16:35:00 +0800</lastBuildDate>
-<pubDate>Mon, 21 Sep 2020 16:35:00 +0800</pubDate>
+<lastBuildDate>Tue, 22 Sep 2020 16:27:00 +0800</lastBuildDate>
+<pubDate>Tue, 22 Sep 2020 16:27:00 +0800</pubDate>
+<item>
+<title>Failed to parse PID from file /opt/nginx/logs/nginx.pid 处理</title>
+<link>https://blog.niekun.net/archives/1763.html</link>
+<guid>https://blog.niekun.net/archives/1763.html</guid>
+<pubDate>Tue, 22 Sep 2020 16:27:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[今天在使用 journalctl 查看 nginx 日志时看到在每次启动服务后会出现一条错误信息：$ journalctl -u nginx...nginx.service: Failed to...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>今天在使用 <code>journalctl</code> 查看 nginx 日志时看到在每次启动服务后会出现一条错误信息：</p><pre><code>$ journalctl -u nginx
+...
+nginx.service: Failed to parse PID from file /opt/nginx/logs/nginx.pid: Invalid argument
+...
+</code></pre><p>查找了下原因，可能是 nginx 在启动时创建 nginx.pid 文件前 systemd 就在请求这个文件，所以出错了。</p><p>解决办法就是题前手动创建 systemd 需要的文件：</p><pre><code>mkdir /etc/systemd/system/nginx.service.d
+printf &quot;[Service]\nExecStartPost=/bin/sleep 0.1\n&quot; &gt; /etc/systemd/system/nginx.service.d/override.conf
+systemctl daemon-reload</code></pre><p>以上处理就可以解决问题。</p><p>参考链接：<br><a href="https://bugs.launchpad.net/ubuntu/+source/nginx/+bug/1581864">https://bugs.launchpad.net/ubuntu/+source/nginx/+bug/1581864</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1763.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1763.html</wfw:commentRss>
+</item>
 <item>
 <title>从源码编译安装 python</title>
 <link>https://blog.niekun.net/archives/1758.html</link>
@@ -604,29 +624,6 @@ $ sudo timedatectl set-timezone Asia/Shanghai</code></pre>
 <slash:comments>1</slash:comments>
 <comments>https://blog.niekun.net/archives/1690.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1690.html</wfw:commentRss>
-</item>
-<item>
-<title>string &amp;lt;-&amp;gt; byte in python</title>
-<link>https://blog.niekun.net/archives/1688.html</link>
-<guid>https://blog.niekun.net/archives/1688.html</guid>
-<pubDate>Wed, 12 Aug 2020 14:08:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[To transform a unicode string to a byte string in Python do this:&gt;&gt;&gt; 'foo'.encode('utf_8...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>To transform a unicode string to a byte string in Python do this:</p><pre><code>&gt;&gt;&gt; 'foo'.encode('utf_8')
-b'foo'
-</code></pre><p>To transform a byte string to a unicode string:</p><pre><code>&gt;&gt;&gt; b'foo'.decode('utf_8')
-'foo'
-
-</code></pre><ol><li>To convert a string to bytes.</li></ol><pre><code>data = &quot;&quot;               #string
-data = &quot;&quot;.encode()      #bytes
-data = b&quot;&quot;              #bytes</code></pre><ol><li>To convert bytes to a String.</li></ol><pre><code>data = b&quot;&quot;              #bytes
-data = b&quot;&quot;.decode()     #string
-data = str(b&quot;&quot;)         #string</code></pre>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1688.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1688.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

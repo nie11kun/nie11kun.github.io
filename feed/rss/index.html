@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1763.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1758.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1757.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1754.html"/>
@@ -18,10 +19,21 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1720.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1718.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1690.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1688.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1763.html">
+<title>Failed to parse PID from file /opt/nginx/logs/nginx.pid 处理</title>
+<link>https://blog.niekun.net/archives/1763.html</link>
+<dc:date>2020-09-22T16:27:00+08:00</dc:date>
+<description>今天在使用 journalctl 查看 nginx 日志时看到在每次启动服务后会出现一条错误信息：$ journalctl -u nginx
+...
+nginx.service: Failed to parse PID from file /opt/nginx/logs/nginx.pid: Invalid argument
+...
+查找了下原因，可能是 nginx 在启动时创建 nginx.pid 文件前 systemd 就在请求这个文件，所以出错了。解决办法就是题前手动创建 systemd 需要的文件：mkdir /etc/systemd/system/nginx.service.d
+printf &quot;[Service]\nExecStartPost=/bin/sleep 0.1\n&quot; &gt; /etc/systemd/system/nginx.service.d/override.conf
+systemctl daemon-reload以上处理就可以解决问题。参考链接：https://bugs.launchpad.net/ubuntu/+source/nginx/+bug/1581864</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1758.html">
 <title>从源码编译安装 python</title>
 <link>https://blog.niekun.net/archives/1758.html</link>
@@ -541,20 +553,5 @@ $ sudo timedatectl set-timezone Asia/Shanghai</description>
 <link>https://blog.niekun.net/archives/1690.html</link>
 <dc:date>2020-08-14T11:16:27+08:00</dc:date>
 <description>在人像照片中，一双炯炯有神的眼睛会让照片整体突出，下面我们来尝试通过提升亮度，增加细节等过程来实现。下图是我们的原图：放大眼睛细节：原图已经很好了，很清晰。下面我们进行调整。强化亮部细节需要提亮的部分是光源点的对面，再此图中就是眼睛光斑的下方，新建图层，画笔工具画圆：擦除多余部分，笔刷选择软笔刷，可以先降低不透明度来看到背景：高斯模糊使过度自然：混合模式改为 overlay 实现提亮：blend option 去掉影响阴影部分：如果想要加强效果可以再次复制图层，调整不透明度。增加高光点新建曲线图层，拉高曲线：ctrl I 反转图层蒙版，白色画笔工具软笔刷在瞳孔下方点击一下：可以看到效果太强了，调低不透明度到合适：增加明暗细节新建曲线图层，提高曲线，反转图层蒙版：白色画笔工具使用软笔刷沿着瞳孔在亮部区域画出射线，这一步注意如果有数位板来画的话会更好：降低不透明度到合适：下面增加暗部细节，再次新建曲线，然后降低曲线，反转蒙版：同样的方法画出射线：降低不透明度：眼白清理首先清理红血丝，新建图层，选择修复画笔工具混合模式设置为 screen，这样可以只处理暗部血丝：按 alt 键采样眼白，涂抹血丝区域：然后进行 dogding and burning 明暗调节，首先建立 soild color 观察图层，混合模式改为 color 来只显示亮度情况：新建图层，混合模式改为 soft light，选择笔刷工具软笔刷流量改为 1，快捷键 D 恢复颜色为黑/白，根据实际用白色笔刷涂抹暗部，黑色笔刷涂抹过亮部分：然后修复亮度调整后的颜色变化，新建图层，混合模式改为 color，快捷键 I 拾取眼白正常部分的颜色，然后在新图层上涂抹出需要修复的区域：复制效果将亮部细节处理/高光点/明暗细节处理部分建立分组然后复制一份，安住 ctrl 拖动分组到另一只眼睛部分，可以配合蒙版清理多余部分：可以使用同样的方法清理另一只眼睛的眼白部分最终效果如下：</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1688.html">
-<title>string &amp;lt;-&amp;gt; byte in python</title>
-<link>https://blog.niekun.net/archives/1688.html</link>
-<dc:date>2020-08-12T14:08:00+08:00</dc:date>
-<description>To transform a unicode string to a byte string in Python do this:&gt;&gt;&gt; 'foo'.encode('utf_8')
-b'foo'
-To transform a byte string to a unicode string:&gt;&gt;&gt; b'foo'.decode('utf_8')
-'foo'
-
-To convert a string to bytes.data = &quot;&quot;               #string
-data = &quot;&quot;.encode()      #bytes
-data = b&quot;&quot;              #bytesTo convert bytes to a String.data = b&quot;&quot;              #bytes
-data = b&quot;&quot;.decode()     #string
-data = str(b&quot;&quot;)         #string</description>
 </item>
 </rdf:RDF>

@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1763.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1758.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1757.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1754.html"/>
@@ -18,10 +19,21 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1547.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1378.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1376.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1375.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1763.html">
+<title>Failed to parse PID from file /opt/nginx/logs/nginx.pid 处理</title>
+<link>https://blog.niekun.net/archives/1763.html</link>
+<dc:date>2020-09-22T16:27:00+08:00</dc:date>
+<description>今天在使用 journalctl 查看 nginx 日志时看到在每次启动服务后会出现一条错误信息：$ journalctl -u nginx
+...
+nginx.service: Failed to parse PID from file /opt/nginx/logs/nginx.pid: Invalid argument
+...
+查找了下原因，可能是 nginx 在启动时创建 nginx.pid 文件前 systemd 就在请求这个文件，所以出错了。解决办法就是题前手动创建 systemd 需要的文件：mkdir /etc/systemd/system/nginx.service.d
+printf &quot;[Service]\nExecStartPost=/bin/sleep 0.1\n&quot; &gt; /etc/systemd/system/nginx.service.d/override.conf
+systemctl daemon-reload以上处理就可以解决问题。参考链接：https://bugs.launchpad.net/ubuntu/+source/nginx/+bug/1581864</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1758.html">
 <title>从源码编译安装 python</title>
 <link>https://blog.niekun.net/archives/1758.html</link>
@@ -759,18 +771,5 @@ over a maximum of 30 hops:
  12  104.24.97.72
 
 Computing statistics for 300 seconds...</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1375.html">
-<title>wkhtmltopdf 将 html为 pdf</title>
-<link>https://blog.niekun.net/archives/1375.html</link>
-<dc:date>2020-03-18T12:58:56+08:00</dc:date>
-<description>一般浏览器都可以将当前页面输出为 pdf，但当有很多个 html 文件时一个一个转换就很麻烦了，可以使用 wkhtmltopdf 命令行工具来实现自动化批量转换。wkhtmltopdf and wkhtmltoimage are open source (LGPLv3) command line tools to render HTML into PDF and various image formats using the Qt WebKit rendering engine. These run entirely "headless" and do not require a display or display service.wkhtmltopdf 官网：https://wkhtmltopdf.org/GitHub 主页：https://github.com/wkhtmltopdf/wkhtmltopdf下载在 release 页面下载对应系统最新版：https://github.com/wkhtmltopdf/wkhtmltopdf/releases我要安装到 Ubuntu 18.04，所以下载：wkhtmltox_0.12.5-1.bionic_amd64.deb查看 Ubuntu 系统代号可以使用命令：lsb_release -c
-安装下载的 deb 包，用以下命令进行安装：dpkg -i wkhtmltox_0.12.5-1.bionic_amd64.deb
-使用支持 url 或 本地 html 转换：wkhtmltopdf http://bing.com bing.pdf
-wkhtmltopdf path/to/test.html index.pdf
-配合 find 命令可以实现批量转换：find path/to/html -name '*.html' -exec wkhtmltopdf {} {}.pdf \;
-mkdir pdf/
-find path/to/html -name '*.pdf' -exec mv {} pdf/ \;find 命令详细用法参考：https://blog.niekun.net/archives/543.html可以使用 wget 命令下载某个网站到本地，然后使用上面命令批量转换：wget -m -p -k URL
--m, –mirror 等价于 -r -N -l inf -nr-p：下载所有html文件适合显示的元素-k, –convert-links 转换非相对链接为相对链接,将文档链接都转换成本地的</description>
 </item>
 </rdf:RDF>

@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1763.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1758.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1757.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1754.html"/>
@@ -18,6 +19,18 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1763.html">
+<title>Failed to parse PID from file /opt/nginx/logs/nginx.pid 处理</title>
+<link>https://blog.niekun.net/archives/1763.html</link>
+<dc:date>2020-09-22T16:27:00+08:00</dc:date>
+<description>今天在使用 journalctl 查看 nginx 日志时看到在每次启动服务后会出现一条错误信息：$ journalctl -u nginx
+...
+nginx.service: Failed to parse PID from file /opt/nginx/logs/nginx.pid: Invalid argument
+...
+查找了下原因，可能是 nginx 在启动时创建 nginx.pid 文件前 systemd 就在请求这个文件，所以出错了。解决办法就是题前手动创建 systemd 需要的文件：mkdir /etc/systemd/system/nginx.service.d
+printf &quot;[Service]\nExecStartPost=/bin/sleep 0.1\n&quot; &gt; /etc/systemd/system/nginx.service.d/override.conf
+systemctl daemon-reload以上处理就可以解决问题。参考链接：https://bugs.launchpad.net/ubuntu/+source/nginx/+bug/1581864</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1758.html">
 <title>从源码编译安装 python</title>
 <link>https://blog.niekun.net/archives/1758.html</link>
