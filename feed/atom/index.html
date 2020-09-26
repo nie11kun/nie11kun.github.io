@@ -6,11 +6,43 @@ xml:base="https://blog.niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2020-09-22T16:27:00+08:00</updated>
+<updated>2020-09-26T21:42:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/" />
 <id>https://blog.niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[macOS 下命令行控制显示系统通知]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1773.html" />
+<id>https://blog.niekun.net/archives/1773.html</id>
+<updated>2020-09-26T21:42:00+08:00</updated>
+<published>2020-09-26T21:42:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[在使用 aira2 的 rpc 下载功能时，默认没有下载完成提示，所以需要手动打开 webui 进行查看。关于 aria2 的使用参考我的教程：https://blog.niekun.net/a...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1773.html" xml:lang="zh-CN"><![CDATA[
+<p>在使用 aira2 的 rpc 下载功能时，默认没有下载完成提示，所以需要手动打开 webui 进行查看。</p><p>关于 aria2 的使用参考我的教程：<a href="https://blog.niekun.net/archives/1199.html">https://blog.niekun.net/archives/1199.html</a></p><p>注意到配置文件里有一个：<code>on-download-complete</code> 选项，可以在下载完成后执行脚本，具体解释参考<a href="https://aria2.github.io/manual/en/html/aria2c.html#cmdoption-on-download-complete">官方网页</a></p><p>可以利用这一点，编写一个脚本来触发系统通知，这样就可以知道文件下载完成了。</p><!--more--><h3>on-download-complete</h3><p>在 aria2 下载完成后，执行 <code>on-download-complete</code> 脚本时会自动传递三个参数：</p><ul><li>GID <em>GID is an ID of a download which aria2c uses to identify a particular download</em></li><li>下载文件个数</li><li>文件路径</li></ul><p>示例：</p><pre><code>$ cat hook.sh
+#!/bin/sh
+echo &quot;Called with [$1] [$2] [$3]&quot;
+$ aria2c --on-download-complete hook.sh http://example.org/file.iso
+Called with [1] [1] [/path/to/file.iso]</code></pre><h3>osascript</h3><p>这里使用 AppleScript 来编写简单的系统通知，使用 osascript 可以在 terminal 终端执行 AppleScript 脚本。</p><p>语法结构：</p><pre><code>osascript [-l language] [-i] [-s flags] [-e statement | programfile] [argument ...]
+</code></pre><p>这里主要使用 <code>-e</code>选项 来执行 AppleScript 脚本。</p><h4>显示通知</h4><p>显示一个简单的通知很简单：</p><pre><code>osascript -e 'display notification &quot;hello world!&quot;'
+</code></pre><p>引号内的就是纯 AppleScript 脚本，很简单。</p><h4>显示带标题的通知</h4><pre><code>osascript -e 'display notification &quot;hello world!&quot; with title &quot;This is the title&quot;'
+</code></pre><h4>显示带主副标题的通知</h4><pre><code>osascript -e 'display notification &quot;hello world!&quot; with title &quot;Greeting&quot; subtitle &quot;More text&quot;'
+</code></pre><h4>显示带声音提醒的通知</h4><p>系统内置的声音音频在：<code>/System/Library/Sounds</code> 目录：</p><pre><code>$ ls /System/Library/Sounds
+Basso.aiff    Frog.aiff    Hero.aiff    Pop.aiff    Submarine.aiff
+Blow.aiff    Funk.aiff    Morse.aiff    Purr.aiff    Tink.aiff
+Bottle.aiff    Glass.aiff    Ping.aiff    Sosumi.aif</code></pre><p><code>Pop.aiff</code> 这个声音就是默认的提示音。</p><pre><code>osascript -e 'display notification &quot;hello world!&quot; with title &quot;Greeting&quot; subtitle &quot;More text&quot; sound name &quot;Pop.aiff&quot;'
+</code></pre><h4>显示需要点击确认的提示框</h4><pre><code>osascript -e 'display alert &quot;Hello World!&quot; message &quot;longer text can be added in the message field.&quot;'
+</code></pre><h4>音频提示</h4><p>除了显示系统通知外，也可以用音频提示，使用 <code>say</code> 命令来完成。</p><pre><code>osascript -e 'say &quot;Hello World!&quot;'
+</code></pre><p>提示信息将不显示而是语音播报出来。</p><h4>aria2 下载完成提示脚本</h4><p><code>download-complete.sh</code></p><pre><code>#!/bin/sh
+osascript -e 'display notification &quot;download complete&quot; sound name &quot;Pop.aiff&quot;'</code></pre><p>参考连接：<br><a href="https://code-maven.com/display-notification-from-the-mac-command-line">https://code-maven.com/display-notification-from-the-mac-command-line</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1773.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1773.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Failed to parse PID from file /opt/nginx/logs/nginx.pid 处理]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1763.html" />
@@ -635,22 +667,5 @@ $ sudo timedatectl set-timezone Asia/Shanghai</code></pre>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1718.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1718.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[眼睛进阶处理 in Photoshop]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1690.html" />
-<id>https://blog.niekun.net/archives/1690.html</id>
-<updated>2020-08-14T11:16:27+08:00</updated>
-<published>2020-08-14T11:16:27+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[在人像照片中，一双炯炯有神的眼睛会让照片整体突出，下面我们来尝试通过提升亮度，增加细节等过程来实现。]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1690.html" xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2020/08/480024501.jpg" alt="26.jpg" title="26.jpg"><br>在人像照片中，一双炯炯有神的眼睛会让照片整体突出，下面我们来尝试通过提升亮度，增加细节等过程来实现。</p><!--more--><p>下图是我们的原图：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/1396099294.jpg" alt="1.jpg" title="1.jpg"></p><p>放大眼睛细节：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/3561747204.jpg" alt="2.jpg" title="2.jpg"></p><p>原图已经很好了，很清晰。下面我们进行调整。</p><h3>强化亮部细节</h3><p>需要提亮的部分是光源点的对面，再此图中就是眼睛光斑的下方，新建图层，画笔工具画圆：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/3017674335.jpg" alt="3.jpg" title="3.jpg"></p><p>擦除多余部分，笔刷选择软笔刷，可以先降低不透明度来看到背景：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/3764677799.jpg" alt="4.jpg" title="4.jpg"></p><p>高斯模糊使过度自然：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/3996858297.jpg" alt="5.jpg" title="5.jpg"><br><img src="https://blog.niekun.net/usr/uploads/2020/08/501671708.jpg" alt="6.jpg" title="6.jpg"></p><p>混合模式改为 overlay 实现提亮：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/335821335.jpg" alt="7.jpg" title="7.jpg"></p><p>blend option 去掉影响阴影部分：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/3804539933.jpg" alt="8.jpg" title="8.jpg"></p><p>如果想要加强效果可以再次复制图层，调整不透明度。</p><h3>增加高光点</h3><p>新建曲线图层，拉高曲线：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/1354307723.jpg" alt="9.jpg" title="9.jpg"></p><p>ctrl I 反转图层蒙版，白色画笔工具软笔刷在瞳孔下方点击一下：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/3285907289.jpg" alt="10.jpg" title="10.jpg"></p><p>可以看到效果太强了，调低不透明度到合适：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/295434221.jpg" alt="11.jpg" title="11.jpg"></p><h3>增加明暗细节</h3><p>新建曲线图层，提高曲线，反转图层蒙版：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/4087592833.jpg" alt="12.jpg" title="12.jpg"></p><p>白色画笔工具使用软笔刷沿着瞳孔在亮部区域画出射线，这一步注意如果有数位板来画的话会更好：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/1796541048.jpg" alt="13.jpg" title="13.jpg"></p><p>降低不透明度到合适：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/3436373763.jpg" alt="14.jpg" title="14.jpg"></p><p>下面增加暗部细节，再次新建曲线，然后降低曲线，反转蒙版：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/691635148.jpg" alt="15.jpg" title="15.jpg"></p><p>同样的方法画出射线：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/1700268067.jpg" alt="16.jpg" title="16.jpg"></p><p>降低不透明度：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/3272285669.jpg" alt="17.jpg" title="17.jpg"></p><h3>眼白清理</h3><p>首先清理红血丝，新建图层，选择修复画笔工具混合模式设置为 screen，这样可以只处理暗部血丝：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/912985796.jpg" alt="18.jpg" title="18.jpg"><br><img src="https://blog.niekun.net/usr/uploads/2020/08/3994121998.jpg" alt="19.jpg" title="19.jpg"></p><p>按 alt 键采样眼白，涂抹血丝区域：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/2541180553.jpg" alt="20.jpg" title="20.jpg"></p><p>然后进行 dogding and burning 明暗调节，首先建立 soild color 观察图层，混合模式改为 color 来只显示亮度情况：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/2919767102.jpg" alt="21.jpg" title="21.jpg"></p><p>新建图层，混合模式改为 soft light，选择笔刷工具软笔刷流量改为 1，快捷键 D 恢复颜色为黑/白，根据实际用白色笔刷涂抹暗部，黑色笔刷涂抹过亮部分：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/3803864790.jpg" alt="22.jpg" title="22.jpg"></p><p>然后修复亮度调整后的颜色变化，新建图层，混合模式改为 color，快捷键 I 拾取眼白正常部分的颜色，然后在新图层上涂抹出需要修复的区域：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/825482316.jpg" alt="23.jpg" title="23.jpg"></p><h3>复制效果</h3><p>将亮部细节处理/高光点/明暗细节处理部分建立分组然后复制一份，安住 ctrl 拖动分组到另一只眼睛部分，可以配合蒙版清理多余部分：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/3182465625.jpg" alt="24.jpg" title="24.jpg"></p><p>可以使用同样的方法清理另一只眼睛的眼白部分最终效果如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/08/2262252084.jpg" alt="25.jpg" title="25.jpg"></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1690.html#comments" thr:count="1" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1690.html" thr:count="1"/>
 </entry>
 </feed>

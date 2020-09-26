@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1773.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1680.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1640.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1629.html"/>
@@ -21,6 +22,27 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1773.html">
+<title>macOS 下命令行控制显示系统通知</title>
+<link>https://blog.niekun.net/archives/1773.html</link>
+<dc:date>2020-09-26T21:42:00+08:00</dc:date>
+<description>在使用 aira2 的 rpc 下载功能时，默认没有下载完成提示，所以需要手动打开 webui 进行查看。关于 aria2 的使用参考我的教程：https://blog.niekun.net/archives/1199.html注意到配置文件里有一个：on-download-complete 选项，可以在下载完成后执行脚本，具体解释参考官方网页可以利用这一点，编写一个脚本来触发系统通知，这样就可以知道文件下载完成了。on-download-complete在 aria2 下载完成后，执行 on-download-complete 脚本时会自动传递三个参数：GID GID is an ID of a download which aria2c uses to identify a particular download下载文件个数文件路径示例：$ cat hook.sh
+#!/bin/sh
+echo &quot;Called with [$1] [$2] [$3]&quot;
+$ aria2c --on-download-complete hook.sh http://example.org/file.iso
+Called with [1] [1] [/path/to/file.iso]osascript这里使用 AppleScript 来编写简单的系统通知，使用 osascript 可以在 terminal 终端执行 AppleScript 脚本。语法结构：osascript [-l language] [-i] [-s flags] [-e statement | programfile] [argument ...]
+这里主要使用 -e选项 来执行 AppleScript 脚本。显示通知显示一个简单的通知很简单：osascript -e 'display notification &quot;hello world!&quot;'
+引号内的就是纯 AppleScript 脚本，很简单。显示带标题的通知osascript -e 'display notification &quot;hello world!&quot; with title &quot;This is the title&quot;'
+显示带主副标题的通知osascript -e 'display notification &quot;hello world!&quot; with title &quot;Greeting&quot; subtitle &quot;More text&quot;'
+显示带声音提醒的通知系统内置的声音音频在：/System/Library/Sounds 目录：$ ls /System/Library/Sounds
+Basso.aiff    Frog.aiff    Hero.aiff    Pop.aiff    Submarine.aiff
+Blow.aiff    Funk.aiff    Morse.aiff    Purr.aiff    Tink.aiff
+Bottle.aiff    Glass.aiff    Ping.aiff    Sosumi.aifPop.aiff 这个声音就是默认的提示音。osascript -e 'display notification &quot;hello world!&quot; with title &quot;Greeting&quot; subtitle &quot;More text&quot; sound name &quot;Pop.aiff&quot;'
+显示需要点击确认的提示框osascript -e 'display alert &quot;Hello World!&quot; message &quot;longer text can be added in the message field.&quot;'
+音频提示除了显示系统通知外，也可以用音频提示，使用 say 命令来完成。osascript -e 'say &quot;Hello World!&quot;'
+提示信息将不显示而是语音播报出来。aria2 下载完成提示脚本download-complete.sh#!/bin/sh
+osascript -e 'display notification &quot;download complete&quot; sound name &quot;Pop.aiff&quot;'参考连接：https://code-maven.com/display-notification-from-the-mac-command-line</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1680.html">
 <title>xattr 命令清除 app 的隔离属性</title>
 <link>https://blog.niekun.net/archives/1680.html</link>

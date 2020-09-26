@@ -11,8 +11,37 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/2020/09/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Tue, 22 Sep 2020 16:27:00 +0800</lastBuildDate>
-<pubDate>Tue, 22 Sep 2020 16:27:00 +0800</pubDate>
+<lastBuildDate>Sat, 26 Sep 2020 21:42:00 +0800</lastBuildDate>
+<pubDate>Sat, 26 Sep 2020 21:42:00 +0800</pubDate>
+<item>
+<title>macOS 下命令行控制显示系统通知</title>
+<link>https://blog.niekun.net/archives/1773.html</link>
+<guid>https://blog.niekun.net/archives/1773.html</guid>
+<pubDate>Sat, 26 Sep 2020 21:42:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[在使用 aira2 的 rpc 下载功能时，默认没有下载完成提示，所以需要手动打开 webui 进行查看。关于 aria2 的使用参考我的教程：https://blog.niekun.net/a...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>在使用 aira2 的 rpc 下载功能时，默认没有下载完成提示，所以需要手动打开 webui 进行查看。</p><p>关于 aria2 的使用参考我的教程：<a href="https://blog.niekun.net/archives/1199.html">https://blog.niekun.net/archives/1199.html</a></p><p>注意到配置文件里有一个：<code>on-download-complete</code> 选项，可以在下载完成后执行脚本，具体解释参考<a href="https://aria2.github.io/manual/en/html/aria2c.html#cmdoption-on-download-complete">官方网页</a></p><p>可以利用这一点，编写一个脚本来触发系统通知，这样就可以知道文件下载完成了。</p><!--more--><h3>on-download-complete</h3><p>在 aria2 下载完成后，执行 <code>on-download-complete</code> 脚本时会自动传递三个参数：</p><ul><li>GID <em>GID is an ID of a download which aria2c uses to identify a particular download</em></li><li>下载文件个数</li><li>文件路径</li></ul><p>示例：</p><pre><code>$ cat hook.sh
+#!/bin/sh
+echo &quot;Called with [$1] [$2] [$3]&quot;
+$ aria2c --on-download-complete hook.sh http://example.org/file.iso
+Called with [1] [1] [/path/to/file.iso]</code></pre><h3>osascript</h3><p>这里使用 AppleScript 来编写简单的系统通知，使用 osascript 可以在 terminal 终端执行 AppleScript 脚本。</p><p>语法结构：</p><pre><code>osascript [-l language] [-i] [-s flags] [-e statement | programfile] [argument ...]
+</code></pre><p>这里主要使用 <code>-e</code>选项 来执行 AppleScript 脚本。</p><h4>显示通知</h4><p>显示一个简单的通知很简单：</p><pre><code>osascript -e 'display notification &quot;hello world!&quot;'
+</code></pre><p>引号内的就是纯 AppleScript 脚本，很简单。</p><h4>显示带标题的通知</h4><pre><code>osascript -e 'display notification &quot;hello world!&quot; with title &quot;This is the title&quot;'
+</code></pre><h4>显示带主副标题的通知</h4><pre><code>osascript -e 'display notification &quot;hello world!&quot; with title &quot;Greeting&quot; subtitle &quot;More text&quot;'
+</code></pre><h4>显示带声音提醒的通知</h4><p>系统内置的声音音频在：<code>/System/Library/Sounds</code> 目录：</p><pre><code>$ ls /System/Library/Sounds
+Basso.aiff    Frog.aiff    Hero.aiff    Pop.aiff    Submarine.aiff
+Blow.aiff    Funk.aiff    Morse.aiff    Purr.aiff    Tink.aiff
+Bottle.aiff    Glass.aiff    Ping.aiff    Sosumi.aif</code></pre><p><code>Pop.aiff</code> 这个声音就是默认的提示音。</p><pre><code>osascript -e 'display notification &quot;hello world!&quot; with title &quot;Greeting&quot; subtitle &quot;More text&quot; sound name &quot;Pop.aiff&quot;'
+</code></pre><h4>显示需要点击确认的提示框</h4><pre><code>osascript -e 'display alert &quot;Hello World!&quot; message &quot;longer text can be added in the message field.&quot;'
+</code></pre><h4>音频提示</h4><p>除了显示系统通知外，也可以用音频提示，使用 <code>say</code> 命令来完成。</p><pre><code>osascript -e 'say &quot;Hello World!&quot;'
+</code></pre><p>提示信息将不显示而是语音播报出来。</p><h4>aria2 下载完成提示脚本</h4><p><code>download-complete.sh</code></p><pre><code>#!/bin/sh
+osascript -e 'display notification &quot;download complete&quot; sound name &quot;Pop.aiff&quot;'</code></pre><p>参考连接：<br><a href="https://code-maven.com/display-notification-from-the-mac-command-line">https://code-maven.com/display-notification-from-the-mac-command-line</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1773.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1773.html</wfw:commentRss>
+</item>
 <item>
 <title>Failed to parse PID from file /opt/nginx/logs/nginx.pid 处理</title>
 <link>https://blog.niekun.net/archives/1763.html</link>
