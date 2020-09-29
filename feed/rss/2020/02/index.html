@@ -52,8 +52,8 @@ log=C:\Users\Marco Nie\Application\aria2\aria2.log
 # 日志级别 debug, info, notice, warn or error. Default: debug
 log-level=warn
 
-#下载完成后删除.aria2的同名文件
-# on-download-complete=执行 cmd 命令
+#下载完成后执行脚本
+# on-download-complete=执行脚本
 
 # Windows 下不关闭的话会出现 Timeout while contacting DNS servers
 async-dns=false
@@ -198,7 +198,29 @@ mshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;&quot;&quot;%~n
 REM
 cd %USERPROFILE%\Application\aria2
 aria2c --conf-path=aria2.conf
-exit建立脚本快捷方式，将快捷方式放到开机启动文件夹内即可，Windows 10 开机启动目录为：%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup</description>
+exit建立脚本快捷方式，将快捷方式放到开机启动文件夹内即可，Windows 10 开机启动目录为：%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup下载完成执行脚本使用配置文件里的 on-download-complete 选项，可以实现自定义的功能。在 aria2 下载完成后，执行 on-download-complete 脚本时会自动传递三个参数：GID GID is an ID of a download which aria2c uses to identify a particular download下载文件个数文件路径示例：$ cat hook.sh
+#!/bin/sh
+echo &quot;Called with [$1] [$2] [$3]&quot;
+$ aria2c --on-download-complete hook.sh http://example.org/file.iso
+Called with [1] [1] [/path/to/file.iso]Linux 下可以编写 bash 脚本。windows 下可以执行 bat 脚本，注意 bat 脚本必须和配置文件在一个路径，否则报错。我实现的功能是下载完成后触发一个系统通知。Linux 脚本我测试了 macos 下的脚本，使用了 AppleScript 实现，在 bash 中使用 as 可以使用 osascript 命令，脚本内容如下：#!/bin/sh
+osascript -e 'display notification &quot;download complete&quot; sound name &quot;Pop.aiff&quot;'具体参考我的 osascript 教程：https://blog.niekun.net/archives/1773.htmlWindows 脚本Windows 脚本使用 powershell 实现，由于 aria2 只能调用 bat 批处理脚本，且必须在和主程序同一个目录下，所以再编写一个 bat 脚本调用 ps 脚本，稍微复杂一些。bat 脚本：script.bat@ECHO OFF
+
+set arg1=%3
+
+PowerShell.exe -Command &quot;&amp;'path\to\download-complete.ps1' %arg1%&quot;
+PAUSEbat 脚本里传入参数使用 %0，%1，%2 等表示，%0 表示所有传入参数，%1 表示第一个参数。内部定义参数使用 set 命令，使用变量时前后加上百分号 %，如：%arg1%。以上脚本内容是：读取传入的下载文件地址参数，使用 powershell 执行 ps 脚本且传递读取的文件地址。powershell 脚本：download-complete.ps1$var1 = $args[0]
+
+# Write-Output $var1
+Add-Type -AssemblyName System.Windows.Forms
+$global:balmsg = New-Object System.Windows.Forms.NotifyIcon
+$path = (Get-Process -id $pid).Path
+$balmsg.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
+$balmsg.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Warning
+$balmsg.BalloonTipText = &quot;Path is $var1&quot;
+$balmsg.BalloonTipTitle = &quot;download complete&quot;
+$balmsg.Visible = $true
+$balmsg.ShowBalloonTip(20000)保存以上两个脚本到 aria2.conf 配置文件一个目录下，然后修改配置文件：on-download-complete=script.bat
+重新运行 aria2，下载文件测试效果。实现更多的脚本功能，可以参考开源项目：https://github.com/P3TERX/aria2.conf</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1195.html">
 <title>使用 tmux 建立多个 sessions</title>

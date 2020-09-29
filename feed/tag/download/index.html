@@ -47,8 +47,8 @@ log=C:\Users\Marco Nie\Application\aria2\aria2.log
 # 日志级别 debug, info, notice, warn or error. Default: debug
 log-level=warn
 
-#下载完成后删除.aria2的同名文件
-# on-download-complete=执行 cmd 命令
+#下载完成后执行脚本
+# on-download-complete=执行脚本
 
 # Windows 下不关闭的话会出现 Timeout while contacting DNS servers
 async-dns=false
@@ -193,7 +193,29 @@ mshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;&quot;&quot;%~n
 REM
 cd %USERPROFILE%\Application\aria2
 aria2c --conf-path=aria2.conf
-exit</code></pre><p>建立脚本快捷方式，将快捷方式放到开机启动文件夹内即可，Windows 10 开机启动目录为：<code>%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup</code></p>
+exit</code></pre><p>建立脚本快捷方式，将快捷方式放到开机启动文件夹内即可，Windows 10 开机启动目录为：<code>%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup</code></p><h3>下载完成执行脚本</h3><p>使用配置文件里的 <code>on-download-complete</code> 选项，可以实现自定义的功能。</p><p>在 aria2 下载完成后，执行 on-download-complete 脚本时会自动传递三个参数：</p><ul><li>GID GID is an ID of a download which aria2c uses to identify a particular download</li><li>下载文件个数</li><li>文件路径</li></ul><p>示例：</p><pre><code>$ cat hook.sh
+#!/bin/sh
+echo &quot;Called with [$1] [$2] [$3]&quot;
+$ aria2c --on-download-complete hook.sh http://example.org/file.iso
+Called with [1] [1] [/path/to/file.iso]</code></pre><p>Linux 下可以编写 bash 脚本。windows 下可以执行 bat 脚本，注意 bat 脚本必须和配置文件在一个路径，否则报错。</p><p><strong>我实现的功能是下载完成后触发一个系统通知。</strong></p><h4>Linux 脚本</h4><p>我测试了 macos 下的脚本，使用了 AppleScript 实现，在 bash 中使用 as 可以使用 osascript 命令，脚本内容如下：</p><pre><code>#!/bin/sh
+osascript -e 'display notification &quot;download complete&quot; sound name &quot;Pop.aiff&quot;'</code></pre><p>具体参考我的 osascript 教程：<a href="https://blog.niekun.net/archives/1773.html">https://blog.niekun.net/archives/1773.html</a></p><h4>Windows 脚本</h4><p>Windows 脚本使用 powershell 实现，由于 aria2 只能调用 bat 批处理脚本，且必须在和主程序同一个目录下，所以再编写一个 bat 脚本调用 ps 脚本，稍微复杂一些。</p><p><strong>bat 脚本：script.bat</strong></p><pre><code>@ECHO OFF
+
+set arg1=%3
+
+PowerShell.exe -Command &quot;&amp;'path\to\download-complete.ps1' %arg1%&quot;
+PAUSE</code></pre><p>bat 脚本里传入参数使用 <code>%0</code>，<code>%1</code>，<code>%2</code> 等表示，<code>%0</code> 表示所有传入参数，<code>%1</code> 表示第一个参数。</p><p>内部定义参数使用 <code>set</code> 命令，使用变量时前后加上百分号 <code>%</code>，如：<code>%arg1%</code>。</p><p>以上脚本内容是：读取传入的下载文件地址参数，使用 powershell 执行 ps 脚本且传递读取的文件地址。</p><p><strong>powershell 脚本：download-complete.ps1</strong></p><pre><code>$var1 = $args[0]
+
+# Write-Output $var1
+Add-Type -AssemblyName System.Windows.Forms
+$global:balmsg = New-Object System.Windows.Forms.NotifyIcon
+$path = (Get-Process -id $pid).Path
+$balmsg.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
+$balmsg.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Warning
+$balmsg.BalloonTipText = &quot;Path is $var1&quot;
+$balmsg.BalloonTipTitle = &quot;download complete&quot;
+$balmsg.Visible = $true
+$balmsg.ShowBalloonTip(20000)</code></pre><p>保存以上两个脚本到 aria2.conf 配置文件一个目录下，然后修改配置文件：</p><pre><code>on-download-complete=script.bat
+</code></pre><p>重新运行 aria2，下载文件测试效果。</p><p>实现更多的脚本功能，可以参考开源项目：<a href="https://github.com/P3TERX/aria2.conf">https://github.com/P3TERX/aria2.conf</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1199.html#comments</comments>
