@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/2020/10/">
+<title>Marco Nie - 2020年10月</title>
+<link>https://blog.niekun.net/2020/10/</link>
+<description>you are the company you keep...</description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1797.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1793.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1788.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1785.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/1797.html">
+<title>解决 proxifier 和 wsl 2 无法同时使用的问题</title>
+<link>https://blog.niekun.net/archives/1797.html</link>
+<dc:date>2020-10-12T15:18:00+08:00</dc:date>
+<description>今天将 Windows 10 升级到了 build 2004 版，顺便将 wsl 升级到了 wsl 2，升级教程参考：https://blog.niekun.net/archives/1785.html。运行 wsl 2 时，发现如下报错：PS C:\Users\Marco Nie&gt; wsl
+The attempted operation is not supported for the type of object referenced.无法正常使用 wsl，查询后得知是由于我正在使用的 proxifier 和 wsl 有了冲突，proxifier 是我一直使用的用来代理程序的应用。在 wsl 的 github 项目讨论中看到有人问了 proxifier 开发者，得到了解决方法，需要使用提供的程序来让 wsl 在运行时不要加载 LSP DLLs。下载 NoLsp.zip，解压得到 NoLsp.exe以管理员权限运行 terminal，执行 path\to\NoLsp.exe c:\windows\system32\wsl.exe看到终端显示 Succsess!，表示操作完成，然后 wsl 系统就可以正常打开使用同时不影响 proxifier。参考链接：https://github.com/microsoft/WSL/issues/4177</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1793.html">
+<title>Windows 重建图标缓存</title>
+<link>https://blog.niekun.net/archives/1793.html</link>
+<dc:date>2020-10-12T11:10:00+08:00</dc:date>
+<description>在使用 Windows 中有时候会发现某个程序或文件的图标显示不正常，一般是图标缓存的问题，重建一下即可。以 Windows 10 为例，图标缓存文件路径为：%LOCALAPPDATA%\Microsoft\Windows\Explorer文件夹内的 iconcache_*.db 就是图标缓存文件，删除这些文件然后重启 explorer 即可。下面介绍命令的方式处理，使用 power shell 终端：# 停止 explorer 进程
+taskkill /f /im explorer.exe
+
+# 删除缓存图标文件，ps 中使用 $Env:&lt;variable-name&gt; 表达环境变量
+del &quot;$env:LOCALAPPDATA\Microsoft\Windows\Explorer\iconcache*.db&quot;
+
+# 重启 explorer
+start explorer完成后查看图标是否已经正常显示。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1788.html">
+<title>Windows 常用终端命令</title>
+<link>https://blog.niekun.net/archives/1788.html</link>
+<dc:date>2020-10-12T09:30:00+08:00</dc:date>
+<description>系统版本：winver
+系统详细信息：systeminfo
+当前用户名：whoami
+
+本地网络：ipconfig
+刷新 DNS 缓存：ipconfig /flushdns
+路由信息：pathping
+cmd 命令换行符：echo abc
+等同于：
+echo ^
+abcpowershell 命令换行符：echo abc
+等同于：
+echo `
+abc信息过滤：类似 Linux 的 grepfindstr
+systeminfo | findstr &quot;System Type&quot;
+查看命令的帮助：pathping /?
+findstr /?
+systeminfo /?
+显示所有端口情况：netstat -ano
+显示某个端口的占用情况 返回的数据中最后的数字为 PID 号：netstat -aon|findstr &quot;7200&quot;
+根据 PID 号结束对应进程：taskkill /f /pid  7200
+结束某个进程：taskkill /f /im explorer.exe
+删除某个文件：del &quot;IconCache.db&quot;
+启动某个程序：start explorer
+
+
+
+
+
+</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1785.html">
+<title>Windows 10 Linux 子系统 WSL 升级到 WSL 2</title>
+<link>https://blog.niekun.net/archives/1785.html</link>
+<dc:date>2020-10-12T09:24:00+08:00</dc:date>
+<description>Windows 10 上的 wsl 可以方便的运行 Linux 环境，最近从 wsl 升级到了 wsl 2，看了下介绍主要区别是：increase file system performancesupport full system call compatibility增加了系统性能，更加完善的 Linux 系统环境。之前再 wsl 上无法使用的一些功能如 systemd 和网络 socket 提取的功能不知道是否可用了，下面就升级到 wsl 2 进行测试。关于 wsl 的介绍和安装可以参考我的教程：https://blog.niekun.net/archives/1148.html环境要求Requirements：For x64 systems: Version 1903 or higher, with Build 18362 or higher.For ARM64 systems: Version 2004 or higher, with Build 19041 or higher.Builds lower than 18362 do not support WSL 2. Use the Windows Update Assistant to update your version of Windows.可以使用命令查看当前系统版本，快捷键 win + R，输入 winver 弹出系统信息：命令行打开系统功能再我之前写的 wsl 安装教程里，介绍了从系统控制面板和命令行打开 Windows Subsystem for Linux 功能的方法，这里只介绍命令行方式。首先以管理员权限打开 powershell。如果之前没有安装 wsl 的话首先开启 Windows Subsystem for Linux：dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+然后开启 Virtual Machine feature：dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+完成以上两部后，重启系统。重启完成后安装 Linux 内核更新包：点击下载再次重启系统。设置 wsl 默认版本为 2：(管理员权限打开 powershell)wsl --set-default-version 2
+设置默认版本后，以后安装的 Linux 子系统默认为 wsl 2 版本。也可以将之前安装的 Linux 子系统升级到 wsl 2：# 查看当前已安装的子系统
+wsl -l -v
+
+# 升级某个子系统到 wsl 2
+wsl --set-version Ubuntu 2wsl 2 安装完成后就可以去 Windows 商店下载安装 Linux 发行版了：https://aka.ms/wslstore安装 Linux 发行版后的具体设置和之前 wsl 安装教程一样：https://blog.niekun.net/archives/1148.html参考链接https://docs.microsoft.com/en-us/windows/wsl/install-win10https://docs.microsoft.com/en-us/windows/wsl/compare-versions</description>
+</item>
+</rdf:RDF>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+xmlns:content="http://purl.org/rss/1.0/modules/content/"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+xmlns:atom="http://www.w3.org/2005/Atom"
+xmlns:wfw="http://wellformedweb.org/CommentAPI/">
+<channel>
+<title>Marco Nie - 2020年10月</title>
+<link>https://blog.niekun.net/2020/10/</link>
+<atom:link href="https://blog.niekun.net/feed/2020/10/" rel="self" type="application/rss+xml" />
+<language>zh-CN</language>
+<description>you are the company you keep...</description>
+<lastBuildDate>Mon, 12 Oct 2020 15:18:00 +0800</lastBuildDate>
+<pubDate>Mon, 12 Oct 2020 15:18:00 +0800</pubDate>
+<item>
+<title>解决 proxifier 和 wsl 2 无法同时使用的问题</title>
+<link>https://blog.niekun.net/archives/1797.html</link>
+<guid>https://blog.niekun.net/archives/1797.html</guid>
+<pubDate>Mon, 12 Oct 2020 15:18:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[今天将 Windows 10 升级到了 build 2004 版，顺便将 wsl 升级到了 wsl 2，升级教程参考：https://blog.niekun.net/archives/1785....]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>今天将 Windows 10 升级到了 build 2004 版，顺便将 wsl 升级到了 wsl 2，升级教程参考：<a href="https://blog.niekun.net/archives/1785.html">https://blog.niekun.net/archives/1785.html</a>。</p><p>运行 wsl 2 时，发现如下报错：</p><pre><code>PS C:\Users\Marco Nie&gt; wsl
+The attempted operation is not supported for the type of object referenced.</code></pre><p>无法正常使用 wsl，查询后得知是由于我正在使用的 proxifier 和 wsl 有了冲突，proxifier 是我一直使用的用来代理程序的应用。在 wsl 的 github 项目讨论中看到有人问了 proxifier 开发者，得到了解决方法，需要使用提供的程序来让 wsl 在运行时不要加载 LSP DLLs。</p><ul><li>下载 <a href="https://blog.niekun.net/usr/uploads/2020/10/3243699170.zip">NoLsp.zip</a>，解压得到 NoLsp.exe</li><li>以管理员权限运行 terminal，执行 <code>path\to\NoLsp.exe c:\windows\system32\wsl.exe</code></li></ul><p>看到终端显示 <code>Succsess!</code>，表示操作完成，然后 wsl 系统就可以正常打开使用同时不影响 proxifier。</p><p>参考链接：<a href="https://github.com/microsoft/WSL/issues/4177">https://github.com/microsoft/WSL/issues/4177</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1797.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1797.html</wfw:commentRss>
+</item>
+<item>
+<title>Windows 重建图标缓存</title>
+<link>https://blog.niekun.net/archives/1793.html</link>
+<guid>https://blog.niekun.net/archives/1793.html</guid>
+<pubDate>Mon, 12 Oct 2020 11:10:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[在使用 Windows 中有时候会发现某个程序或文件的图标显示不正常，一般是图标缓存的问题，重建一下即可。以 Windows 10 为例，图标缓存文件路径为：%LOCALAPPDATA%\Mic...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>在使用 Windows 中有时候会发现某个程序或文件的图标显示不正常，一般是图标缓存的问题，重建一下即可。</p><p>以 Windows 10 为例，图标缓存文件路径为：<code>%LOCALAPPDATA%\Microsoft\Windows\Explorer</code></p><p>文件夹内的 <code>iconcache_*.db</code> 就是图标缓存文件，删除这些文件然后重启 explorer 即可。</p><p>下面介绍命令的方式处理，使用 power shell 终端：</p><pre><code># 停止 explorer 进程
+taskkill /f /im explorer.exe
+
+# 删除缓存图标文件，ps 中使用 $Env:&lt;variable-name&gt; 表达环境变量
+del &quot;$env:LOCALAPPDATA\Microsoft\Windows\Explorer\iconcache*.db&quot;
+
+# 重启 explorer
+start explorer</code></pre><p>完成后查看图标是否已经正常显示。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1793.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1793.html</wfw:commentRss>
+</item>
+<item>
+<title>Windows 常用终端命令</title>
+<link>https://blog.niekun.net/archives/1788.html</link>
+<guid>https://blog.niekun.net/archives/1788.html</guid>
+<pubDate>Mon, 12 Oct 2020 09:30:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[系统版本：winver系统详细信息：systeminfo当前用户名：whoami]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>系统版本：</p><pre><code>winver
+</code></pre><p>系统详细信息：</p><pre><code>systeminfo
+</code></pre><p>当前用户名：</p><pre><code>whoami
+
+</code></pre><!--more--><p>本地网络：</p><pre><code>ipconfig
+</code></pre><p>刷新 DNS 缓存：</p><pre><code>ipconfig /flushdns
+</code></pre><p>路由信息：</p><pre><code>pathping
+</code></pre><p>cmd 命令换行符：</p><pre><code>echo abc
+等同于：
+echo ^
+abc</code></pre><p>powershell 命令换行符：</p><pre><code>echo abc
+等同于：
+echo `
+abc</code></pre><p>信息过滤：类似 Linux 的 grep</p><pre><code>findstr
+systeminfo | findstr &quot;System Type&quot;
+</code></pre><p>查看命令的帮助：</p><pre><code>pathping /?
+findstr /?
+systeminfo /?
+</code></pre><p>显示所有端口情况：</p><pre><code>netstat -ano
+</code></pre><p>显示某个端口的占用情况 返回的数据中最后的数字为 PID 号：</p><pre><code>netstat -aon|findstr &quot;7200&quot;
+</code></pre><p>根据 PID 号结束对应进程：</p><pre><code>taskkill /f /pid  7200
+</code></pre><p>结束某个进程：</p><pre><code>taskkill /f /im explorer.exe
+</code></pre><p>删除某个文件：</p><pre><code>del &quot;IconCache.db&quot;
+</code></pre><p>启动某个程序：</p><pre><code>start explorer
+
+
+
+
+
+</code></pre>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1788.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1788.html</wfw:commentRss>
+</item>
+<item>
+<title>Windows 10 Linux 子系统 WSL 升级到 WSL 2</title>
+<link>https://blog.niekun.net/archives/1785.html</link>
+<guid>https://blog.niekun.net/archives/1785.html</guid>
+<pubDate>Mon, 12 Oct 2020 09:24:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[Windows 10 上的 wsl 可以方便的运行 Linux 环境，最近从 wsl 升级到了 wsl 2，看了下介绍主要区别是：increase file system performance...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>Windows 10 上的 wsl 可以方便的运行 Linux 环境，最近从 wsl 升级到了 wsl 2，看了下介绍主要区别是：</p><ul><li>increase file system performance</li><li>support full system call compatibility</li></ul><p>增加了系统性能，更加完善的 Linux 系统环境。</p><p>之前再 wsl 上无法使用的一些功能如 systemd 和网络 socket 提取的功能不知道是否可用了，下面就升级到 wsl 2 进行测试。</p><p>关于 wsl 的介绍和安装可以参考我的教程：<a href="https://blog.niekun.net/archives/1148.html">https://blog.niekun.net/archives/1148.html</a></p><!--more--><h3>环境要求</h3><p>Requirements：</p><ul><li>For x64 systems: Version 1903 or higher, with Build 18362 or higher.</li><li>For ARM64 systems: Version 2004 or higher, with Build 19041 or higher.</li><li>Builds lower than 18362 do not support WSL 2. Use the Windows Update Assistant to update your version of Windows.</li></ul><p>可以使用命令查看当前系统版本，快捷键 <code>win + R</code>，输入 <code>winver</code> 弹出系统信息：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2650368745.jpg" alt="1.jpg" title="1.jpg"></p><h3>命令行打开系统功能</h3><p>再我之前写的 wsl 安装教程里，介绍了从系统控制面板和命令行打开 <code>Windows Subsystem for Linux</code> 功能的方法，这里只介绍命令行方式。</p><p>首先以<strong>管理员权限</strong>打开 powershell。</p><p>如果之前没有安装 wsl 的话首先开启 <code>Windows Subsystem for Linux</code>：</p><pre><code>dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+</code></pre><p>然后开启 <code>Virtual Machine feature</code>：</p><pre><code>dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+</code></pre><p>完成以上两部后，重启系统。</p><p>重启完成后安装 Linux 内核更新包：<a href="https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi">点击下载</a></p><p>再次重启系统。</p><p>设置 wsl 默认版本为 2：(管理员权限打开 powershell)</p><pre><code>wsl --set-default-version 2
+</code></pre><p>设置默认版本后，以后安装的 Linux 子系统默认为 wsl 2 版本。</p><p>也可以将之前安装的 Linux 子系统升级到 wsl 2：</p><pre><code># 查看当前已安装的子系统
+wsl -l -v
+
+# 升级某个子系统到 wsl 2
+wsl --set-version Ubuntu 2</code></pre><p>wsl 2 安装完成后就可以去 Windows 商店下载安装 Linux 发行版了：<a href="https://aka.ms/wslstore">https://aka.ms/wslstore</a></p><p>安装 Linux 发行版后的具体设置和之前 wsl 安装教程一样：<a href="https://blog.niekun.net/archives/1148.html">https://blog.niekun.net/archives/1148.html</a></p><h3>参考链接</h3><p><a href="https://docs.microsoft.com/en-us/windows/wsl/install-win10">https://docs.microsoft.com/en-us/windows/wsl/install-win10</a><br><a href="https://docs.microsoft.com/en-us/windows/wsl/compare-versions">https://docs.microsoft.com/en-us/windows/wsl/compare-versions</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1785.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1785.html</wfw:commentRss>
+</item>
+</channel>
+</rss>

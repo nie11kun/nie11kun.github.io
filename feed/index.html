@@ -11,8 +11,108 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Wed, 30 Sep 2020 11:52:07 +0800</lastBuildDate>
-<pubDate>Wed, 30 Sep 2020 11:52:07 +0800</pubDate>
+<lastBuildDate>Mon, 12 Oct 2020 15:18:00 +0800</lastBuildDate>
+<pubDate>Mon, 12 Oct 2020 15:18:00 +0800</pubDate>
+<item>
+<title>解决 proxifier 和 wsl 2 无法同时使用的问题</title>
+<link>https://blog.niekun.net/archives/1797.html</link>
+<guid>https://blog.niekun.net/archives/1797.html</guid>
+<pubDate>Mon, 12 Oct 2020 15:18:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[今天将 Windows 10 升级到了 build 2004 版，顺便将 wsl 升级到了 wsl 2，升级教程参考：https://blog.niekun.net/archives/1785....]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>今天将 Windows 10 升级到了 build 2004 版，顺便将 wsl 升级到了 wsl 2，升级教程参考：<a href="https://blog.niekun.net/archives/1785.html">https://blog.niekun.net/archives/1785.html</a>。</p><p>运行 wsl 2 时，发现如下报错：</p><pre><code>PS C:\Users\Marco Nie&gt; wsl
+The attempted operation is not supported for the type of object referenced.</code></pre><p>无法正常使用 wsl，查询后得知是由于我正在使用的 proxifier 和 wsl 有了冲突，proxifier 是我一直使用的用来代理程序的应用。在 wsl 的 github 项目讨论中看到有人问了 proxifier 开发者，得到了解决方法，需要使用提供的程序来让 wsl 在运行时不要加载 LSP DLLs。</p><ul><li>下载 <a href="https://blog.niekun.net/usr/uploads/2020/10/3243699170.zip">NoLsp.zip</a>，解压得到 NoLsp.exe</li><li>以管理员权限运行 terminal，执行 <code>path\to\NoLsp.exe c:\windows\system32\wsl.exe</code></li></ul><p>看到终端显示 <code>Succsess!</code>，表示操作完成，然后 wsl 系统就可以正常打开使用同时不影响 proxifier。</p><p>参考链接：<a href="https://github.com/microsoft/WSL/issues/4177">https://github.com/microsoft/WSL/issues/4177</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1797.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1797.html</wfw:commentRss>
+</item>
+<item>
+<title>Windows 重建图标缓存</title>
+<link>https://blog.niekun.net/archives/1793.html</link>
+<guid>https://blog.niekun.net/archives/1793.html</guid>
+<pubDate>Mon, 12 Oct 2020 11:10:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[在使用 Windows 中有时候会发现某个程序或文件的图标显示不正常，一般是图标缓存的问题，重建一下即可。以 Windows 10 为例，图标缓存文件路径为：%LOCALAPPDATA%\Mic...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>在使用 Windows 中有时候会发现某个程序或文件的图标显示不正常，一般是图标缓存的问题，重建一下即可。</p><p>以 Windows 10 为例，图标缓存文件路径为：<code>%LOCALAPPDATA%\Microsoft\Windows\Explorer</code></p><p>文件夹内的 <code>iconcache_*.db</code> 就是图标缓存文件，删除这些文件然后重启 explorer 即可。</p><p>下面介绍命令的方式处理，使用 power shell 终端：</p><pre><code># 停止 explorer 进程
+taskkill /f /im explorer.exe
+
+# 删除缓存图标文件，ps 中使用 $Env:&lt;variable-name&gt; 表达环境变量
+del &quot;$env:LOCALAPPDATA\Microsoft\Windows\Explorer\iconcache*.db&quot;
+
+# 重启 explorer
+start explorer</code></pre><p>完成后查看图标是否已经正常显示。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1793.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1793.html</wfw:commentRss>
+</item>
+<item>
+<title>Windows 常用终端命令</title>
+<link>https://blog.niekun.net/archives/1788.html</link>
+<guid>https://blog.niekun.net/archives/1788.html</guid>
+<pubDate>Mon, 12 Oct 2020 09:30:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[系统版本：winver系统详细信息：systeminfo当前用户名：whoami]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>系统版本：</p><pre><code>winver
+</code></pre><p>系统详细信息：</p><pre><code>systeminfo
+</code></pre><p>当前用户名：</p><pre><code>whoami
+
+</code></pre><!--more--><p>本地网络：</p><pre><code>ipconfig
+</code></pre><p>刷新 DNS 缓存：</p><pre><code>ipconfig /flushdns
+</code></pre><p>路由信息：</p><pre><code>pathping
+</code></pre><p>cmd 命令换行符：</p><pre><code>echo abc
+等同于：
+echo ^
+abc</code></pre><p>powershell 命令换行符：</p><pre><code>echo abc
+等同于：
+echo `
+abc</code></pre><p>信息过滤：类似 Linux 的 grep</p><pre><code>findstr
+systeminfo | findstr &quot;System Type&quot;
+</code></pre><p>查看命令的帮助：</p><pre><code>pathping /?
+findstr /?
+systeminfo /?
+</code></pre><p>显示所有端口情况：</p><pre><code>netstat -ano
+</code></pre><p>显示某个端口的占用情况 返回的数据中最后的数字为 PID 号：</p><pre><code>netstat -aon|findstr &quot;7200&quot;
+</code></pre><p>根据 PID 号结束对应进程：</p><pre><code>taskkill /f /pid  7200
+</code></pre><p>结束某个进程：</p><pre><code>taskkill /f /im explorer.exe
+</code></pre><p>删除某个文件：</p><pre><code>del &quot;IconCache.db&quot;
+</code></pre><p>启动某个程序：</p><pre><code>start explorer
+
+
+
+
+
+</code></pre>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1788.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1788.html</wfw:commentRss>
+</item>
+<item>
+<title>Windows 10 Linux 子系统 WSL 升级到 WSL 2</title>
+<link>https://blog.niekun.net/archives/1785.html</link>
+<guid>https://blog.niekun.net/archives/1785.html</guid>
+<pubDate>Mon, 12 Oct 2020 09:24:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[Windows 10 上的 wsl 可以方便的运行 Linux 环境，最近从 wsl 升级到了 wsl 2，看了下介绍主要区别是：increase file system performance...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>Windows 10 上的 wsl 可以方便的运行 Linux 环境，最近从 wsl 升级到了 wsl 2，看了下介绍主要区别是：</p><ul><li>increase file system performance</li><li>support full system call compatibility</li></ul><p>增加了系统性能，更加完善的 Linux 系统环境。</p><p>之前再 wsl 上无法使用的一些功能如 systemd 和网络 socket 提取的功能不知道是否可用了，下面就升级到 wsl 2 进行测试。</p><p>关于 wsl 的介绍和安装可以参考我的教程：<a href="https://blog.niekun.net/archives/1148.html">https://blog.niekun.net/archives/1148.html</a></p><!--more--><h3>环境要求</h3><p>Requirements：</p><ul><li>For x64 systems: Version 1903 or higher, with Build 18362 or higher.</li><li>For ARM64 systems: Version 2004 or higher, with Build 19041 or higher.</li><li>Builds lower than 18362 do not support WSL 2. Use the Windows Update Assistant to update your version of Windows.</li></ul><p>可以使用命令查看当前系统版本，快捷键 <code>win + R</code>，输入 <code>winver</code> 弹出系统信息：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2650368745.jpg" alt="1.jpg" title="1.jpg"></p><h3>命令行打开系统功能</h3><p>再我之前写的 wsl 安装教程里，介绍了从系统控制面板和命令行打开 <code>Windows Subsystem for Linux</code> 功能的方法，这里只介绍命令行方式。</p><p>首先以<strong>管理员权限</strong>打开 powershell。</p><p>如果之前没有安装 wsl 的话首先开启 <code>Windows Subsystem for Linux</code>：</p><pre><code>dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+</code></pre><p>然后开启 <code>Virtual Machine feature</code>：</p><pre><code>dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+</code></pre><p>完成以上两部后，重启系统。</p><p>重启完成后安装 Linux 内核更新包：<a href="https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi">点击下载</a></p><p>再次重启系统。</p><p>设置 wsl 默认版本为 2：(管理员权限打开 powershell)</p><pre><code>wsl --set-default-version 2
+</code></pre><p>设置默认版本后，以后安装的 Linux 子系统默认为 wsl 2 版本。</p><p>也可以将之前安装的 Linux 子系统升级到 wsl 2：</p><pre><code># 查看当前已安装的子系统
+wsl -l -v
+
+# 升级某个子系统到 wsl 2
+wsl --set-version Ubuntu 2</code></pre><p>wsl 2 安装完成后就可以去 Windows 商店下载安装 Linux 发行版了：<a href="https://aka.ms/wslstore">https://aka.ms/wslstore</a></p><p>安装 Linux 发行版后的具体设置和之前 wsl 安装教程一样：<a href="https://blog.niekun.net/archives/1148.html">https://blog.niekun.net/archives/1148.html</a></p><h3>参考链接</h3><p><a href="https://docs.microsoft.com/en-us/windows/wsl/install-win10">https://docs.microsoft.com/en-us/windows/wsl/install-win10</a><br><a href="https://docs.microsoft.com/en-us/windows/wsl/compare-versions">https://docs.microsoft.com/en-us/windows/wsl/compare-versions</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1785.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1785.html</wfw:commentRss>
+</item>
 <item>
 <title>powershell 脚本实现系统消息提醒</title>
 <link>https://blog.niekun.net/archives/1782.html</link>
@@ -156,433 +256,6 @@ make install
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1758.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1758.html</wfw:commentRss>
-</item>
-<item>
-<title>awk 命令的用法</title>
-<link>https://blog.niekun.net/archives/1757.html</link>
-<guid>https://blog.niekun.net/archives/1757.html</guid>
-<pubDate>Fri, 18 Sep 2020 16:20:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[awk 是常用的 Linux 文本操作命令和脚本语言。用来按行提取和处理文本内容，也可以执行简单的逻辑处理。比如我们有一个 txt 文件：ab.c 123 e.rt 456oh.g 324 b....]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>awk 是常用的 Linux 文本操作命令和脚本语言。用来按行提取和处理文本内容，也可以执行简单的逻辑处理。</p><p>比如我们有一个 txt 文件：</p><pre><code>ab.c 123 e.rt 456
-oh.g 324 b.na 756
-si.d 156 o.ui 452</code></pre><!--more--><p>执行命令：</p><pre><code>$ awk '{print $1}' test.txt
-ab.c
-oh.g
-si.d</code></pre><p>可以看到返回结果为每一行的第一个字符串。默认以<strong>空格</strong>作为分隔符。</p><p><code>$1</code> 为每行第一个字符串，<code>$2</code> 为每行第二个字符串，以此类推。<code>$0</code> 为整个文本。</p><p>可以同时输出多个内容：</p><pre><code>$ awk '{print $1, $2}' test.txt
-ab.c 123
-oh.g 324
-si.d 156</code></pre><h3>内部集成的参数</h3><h4>FS 区域分割符</h4><p>awk 默认使用空格来分割字符串，也可以自己定义分割符：</p><pre><code>$ awk 'FS = &quot;.&quot; {print $1, $2}' test.txt
-ab c 123 e
-oh g 324 b
-si d 156 o</code></pre><p>这时候，<code>ab</code> 和 <code>c 123 e</code> 分别是一个整体。</p><p>还有一种写法使用 <code>-F</code> 表示，要写在引号外部：</p><pre><code>$ awk -F. '{print $1, $2}' test.txt
-</code></pre><h4>NF 每行字符串个数</h4><p>用 <code>$NF</code> 来表示每行最后一个串：</p><pre><code>$ awk '{print $NF}' test.txt
-456
-756
-452</code></pre><p>用 NF 来判断每行字符串格个数：只输出有 4 个字符串的所在行的内容</p><pre><code>$ awk 'NF == 4 {print $1, $2}' test.txt
-ab.c 123
-oh.g 324
-si.d 156</code></pre><h4>NR 当前行号</h4><p><code>NR</code> 记录当前行的行号：</p><pre><code>$ awk '{print NR}' test.txt
-1
-2
-3</code></pre><pre><code>$ awk '{print NR, $0}' test.txt
-1 ab.c 123 e.rt 456
-2 oh.g 324 b.na 756
-3 si.d 156 o.ui 452</code></pre><h3>OFS 定义输出串分割符</h3><p>字符串输出是可以自定义分割符号：</p><pre><code>$ awk 'OFS=&quot;/&quot; {print $1, $2}' test.txt
-ab.c/123
-oh.g/324
-si.d/156</code></pre><h4>BEGIN 和 END 规则</h4><p>BEGIN 规则是在 awk 读取输入文本前执行的指令，END 规则是在 awk 输出完字符串后执行的指令。</p><pre><code>$ awk 'BEGIN {print &quot;begin process&quot;} {print $0} END {print &quot;end process&quot;}' test.txt
-begin process
-ab.c 123 e.rt 456
-oh.g 324 b.na 756
-si.d 156 o.ui 452
-end process</code></pre><h4>判断模块</h4><p>可以使用常用的判断来过滤输出结果：</p><p>设置第4个字符串数字需要大于等于500：</p><pre><code>$ awk '$4 &gt;=500 {print $0}' test.txt
-oh.g 324 b.na 756</code></pre><p>设置行内必须包含字符串 <code>ab</code>:</p><pre><code>$ awk '/ab/ {print $0}' test.txt
-ab.c 123 e.rt 456</code></pre><p>设置行开始必须包含字符串 <code>ab</code>:</p><pre><code>$ awk '/^ab/ {print $0}' test.txt
-ab.c 123 e.rt 456</code></pre><h3>awk script 脚本</h3><p>如果命令很复杂，可以建立一个脚本来单独执行。</p><p>建立文件：<code>test.awk</code></p><pre><code>#!/usr/bin/awk -f
-
-BEGIN {
-  # set the input and output field separators
-  FS=&quot;:&quot;
-  OFS=&quot;:&quot;
-  # zero the accounts counter
-  accounts=0
-}
-{
-  # set field 2 to nothing
-  $2=&quot;&quot;
-  # print the entire line
-  print $0
-  # count another account
-  accounts++
-}
-END {
-  # print the results
-  print accounts &quot; accounts.\n&quot;
-}</code></pre><p>可执行权限：</p><pre><code>chmod +x test.awk
-</code></pre><p>执行：</p><pre><code>./test.awk /etc/passwd
-</code></pre><h3>windows</h3><p>windows 下也可以使用 awk，下载安装 Gawk 即可。</p><p>官网：<a href="http://gnuwin32.sourceforge.net/packages/gawk.htm">http://gnuwin32.sourceforge.net/packages/gawk.htm</a></p><p>下载对应安装包，安装后将 awk 可执行文件的路径加入系统 PATH 即可使用，参考：<a href="https://blog.niekun.net/archives/413.html">https://blog.niekun.net/archives/413.html</a></p><h3>参考链接</h3><p><a href="https://www.howtogeek.com/562941/how-to-use-the-awk-command-on-linux/">https://www.howtogeek.com/562941/how-to-use-the-awk-command-on-linux/</a><br><a href="http://linuxcommand.org/lc3_adv_awk.php">http://linuxcommand.org/lc3_adv_awk.php</a></p>
-]]></content:encoded>
-<slash:comments>1</slash:comments>
-<comments>https://blog.niekun.net/archives/1757.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1757.html</wfw:commentRss>
-</item>
-<item>
-<title>${1%str} 在 shell 脚本的用法</title>
-<link>https://blog.niekun.net/archives/1754.html</link>
-<guid>https://blog.niekun.net/archives/1754.html</guid>
-<pubDate>Fri, 18 Sep 2020 15:25:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[执行 shell 脚本时经常会有传入参数，如：./test.sh abcdef abc.bbb以上的命令使用了两个传入参数，abcdef,abc.bbb。在脚本里使用时，$1 就表示第一个参数，...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>执行 shell 脚本时经常会有传入参数，如：</p><pre><code>./test.sh abcdef abc.bbb
-</code></pre><p>以上的命令使用了两个传入参数，<code>abcdef</code>,<code>abc.bbb</code>。</p><p>在脚本里使用时，<code>$1</code> 就表示第一个参数，<code>$2</code> 就表示第二个参数:</p><pre><code>var1 = $1
-var2 = $2</code></pre><p>在脚本中有一种用法，如：<code>${1%def}jjj</code>。<br>他的意思就是将 <code>$1</code> 最后的字符 <code>def</code> 替换为 <code>jjj</code>：</p><pre><code>newstr1 = ${1%def}jjj</code></pre><p><code>newstr1</code> 的值就是 <code>abcjjj</code>。</p><pre><code>newstr2 = ${2%.bbb}.ccc</code></pre><p><code>newstr2</code> 的值就是 <code>abc.ccc</code>。</p>
-]]></content:encoded>
-<slash:comments>1</slash:comments>
-<comments>https://blog.niekun.net/archives/1754.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1754.html</wfw:commentRss>
-</item>
-<item>
-<title>使用 subprocess.check_output 执行cmd命令并返回结果到字符串</title>
-<link>https://blog.niekun.net/archives/1753.html</link>
-<guid>https://blog.niekun.net/archives/1753.html</guid>
-<pubDate>Fri, 18 Sep 2020 15:13:51 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[语法：subprocess.check_output(args, *, stdin=None, stderr=None, shell=False, universal_newlines=Fals...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>语法：</p><pre><code>subprocess.check_output(args, *, stdin=None, stderr=None, shell=False, universal_newlines=False)
-</code></pre><p>执行cmd命令并返回结果到字符串。</p><p>用法：</p><pre><code>import subprocess
-
-output = check_output([&quot;cat&quot;, &quot;/etc/hostname&quot;]).strip()
-print(output)</code></pre><p>以上脚本会执行 <code>cat /etc/hostname</code> 命令然后将结果赋值给 <code>output</code> 变量。<br><code>strip()</code> 可以将 string 的前后空格去掉。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1753.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1753.html</wfw:commentRss>
-</item>
-<item>
-<title>FFmpeg 简单用法</title>
-<link>https://blog.niekun.net/archives/1752.html</link>
-<guid>https://blog.niekun.net/archives/1752.html</guid>
-<pubDate>Fri, 18 Sep 2020 15:03:12 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[FFmpeg 是视频处理最常用的开源软件。它功能强大，用途广泛，大量用于视频网站和商业软件（比如 Youtube 和 iTunes），也是许多音频和视频格式的标准编码/解码实现。官方网站：htt...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>FFmpeg 是视频处理最常用的开源软件。</p><p>它功能强大，用途广泛，大量用于视频网站和商业软件（比如 Youtube 和 iTunes），也是许多音频和视频格式的标准编码/解码实现。</p><p>官方网站：<a href="https://www.ffmpeg.org/">https://www.ffmpeg.org/</a></p><!--more--><h3>安装</h3><p>最简单的方法就是用包管理工具如：apt 安装：</p><pre><code>apt update
-apt install ffmpeg
-</code></pre><p>或者也可以从源码安装，可以参考我之前的教程：<a href="https://blog.niekun.net/archives/891.html">https://blog.niekun.net/archives/891.html</a></p><h3>常用指令</h3><p>查看 ffmpeg 版本：</p><pre><code>ffmpeg -version
-</code></pre><p>查看支持的编码格式：如 h.264, h.265</p><pre><code>ffmpeg -codecs
-</code></pre><p>查看支持的容器：如 mp4, mp3, mkv</p><pre><code>ffmpeg -formats
-</code></pre><p>查看已安装的编码器：如 libx264, libx265, libvpx, aac</p><pre><code>ffmpeg -encoders
-</code></pre><h3>使用格式</h3><p>FFmpeg 的命令行参数非常多，可以分成五个部分。</p><pre><code>ffmpeg {1} {2} -i {3} {4} {5}
-</code></pre><p>上面命令中，五个部分的参数依次如下：</p><pre><code>全局参数
-输入文件参数
-输入文件
-输出文件参数
-输出文件</code></pre><p>参数太多的时候，为了便于查看，ffmpeg 命令可以写成多行:</p><pre><code>$ ffmpeg \
-[全局参数] \
-[输入文件参数] \
--i [输入文件] \
-[输出文件参数] \
-[输出文件]</code></pre><p>下面是一个例子:</p><pre><code>ffmpeg \
--y \ # 全局参数
--c:a libfdk_aac -c:v libx264 \ # 输入文件参数
--i input.mp4 \ # 输入文件
--c:v libvpx-vp9 -c:a libvorbis \ # 输出文件参数
-output.webm # 输出文件</code></pre><p>上面的命令将 mp4 文件转成 webm 文件，这两个都是容器格式。输入的 mp4 文件的音频编码格式是 aac，视频编码格式是 H.264；输出的 webm 文件的视频编码格式是 VP9，音频格式是 Vorbis。</p><p>如果不指明编码格式，FFmpeg 会自己判断输入文件的编码。<strong>一般可以省略输入文件参数。</strong></p><h3>常用命令参数</h3><pre><code>-c：指定编码器
--c copy：直接复制，不经过重新编码（这样比较快）
--c:v：指定视频编码器
--c:a：指定音频编码器
--i：指定输入文件
--an：去除音频流
--vn： 去除视频流
--preset：指定输出的视频质量，会影响文件的生成速度，有以下几个可用的值 ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow。
--y：不经过确认，输出时直接覆盖同名文件。</code></pre><h3>常规使用方法</h3><p>查看元数据信息，如时长，比特率等：</p><pre><code>ffmpeg -i test.mp4
-</code></pre><p>输出的信息较多，可以通过 -hide_banner 只显示媒体文件信息：</p><pre><code>ffmpeg -i test.mp4 -hide_banner
-</code></pre><p>转码，如 avi to h.264:</p><pre><code>ffmpeg -i test.avi -c:v libx264 test.mp4
-</code></pre><p>转换容器：</p><pre><code>ffmpeg -i test.mp4 -c copy test.webm</code></pre><p>转换容器不需要转码，所以直接 copy 即可。</p><p>转换码率，转换成固定码率：</p><pre><code>ffmpeg -i test.mp4 -b:v 500k test_out.mp4
-</code></pre><p>转换码率，转换成一个码率范围：</p><pre><code>ffmpeg -i test.mp4 -minrate 964K -maxrate 3856K -bufsize 2000K test_out.mp4
-</code></pre><p>改变分辨率：转换成 480p</p><pre><code>ffmpeg \
--i input.mp4 \
--vf scale=480:-1 \
-output.mp4</code></pre><p>视频中提取音频：</p><pre><code>ffmpeg \
--i input.mp4 \
--vn -c:a copy \
-output.aac</code></pre><p>上面例子中，<code>-vn</code> 表示去掉视频，<code>-c:a copy</code> 表示不改变音频编码，直接拷贝。</p><p>视频截图：下面的例子是从指定时间开始，连续对1秒钟的视频进行截图</p><pre><code>ffmpeg \
--y \
--i input.mp4 \
--ss 00:01:24 -t 00:00:01 \
-output_%3d.jpg</code></pre><p><code>%3d</code> 在 shell 里表示至少输出3个字符空间的数字：</p><pre><code>% means &quot;Print a variable here&quot;
-3 means &quot;use at least 3 spaces to display, padding as needed&quot;
-d means &quot;The variable will be an integer&quot;</code></pre><p>如果只需要截一张图，可以指定只截取一帧。</p><pre><code>$ ffmpeg \
--ss 01:23:45 \
--i input \
--vframes 1 -q:v 2 \
-output.jpg</code></pre><p>上面例子中，<code>-vframes 1</code> 指定只截取一帧，<code>-q:v 2</code> 表示输出的图片质量，一般是1到5之间（1 为质量最高）。</p><p><strong>裁剪:</strong><br>裁剪（cutting）指的是，截取原始视频里面的一个片段，输出为一个新视频。可以指定开始时间（start）和持续时间（duration），也可以指定结束时间（end）。</p><pre><code>$ ffmpeg -ss [start] -i [input] -t [duration] -c copy [output]
-$ ffmpeg -ss [start] -i [input] -to [end] -c copy [output]</code></pre><p>下面是实际的例子。</p><pre><code># 从1分50秒开始截取10.5秒
-ffmpeg -ss 00:01:50 -i test.mp4 -t 10.5 -c copy out.mp4
-
-# 从25秒开始截取10秒
-ffmpeg -ss 25 -i test.mp4 -to 10 -c copy out.mp4
-ffmpeg -i test.mp4 -ss 25 -to 10 -c copy out.mp4</code></pre><p>上面例子中，<code>-c copy</code> 表示不改变音频和视频的编码格式，直接拷贝，这样会快很多。</p><h3>高级用法</h3><h4>压缩视频内容到指定容量大小</h4><p>使用的技术主要是 ffmpeg 的 2 pass 方法和 ffprobe 得到码率和时长信息。</p><p>bash脚本：</p><pre><code>#!/bin/bash
-
-target_video_size_MB=&quot;$2&quot;
-origin_duration_s=$(ffprobe -v error -show_streams -select_streams a &quot;$1&quot; | grep -Po &quot;(?&lt;=^duration\=)\d*\.\d*&quot;)
-origin_audio_bitrate_kbit_s=$(ffprobe -v error -pretty -show_streams -select_streams a &quot;$1&quot; | grep -Po &quot;(?&lt;=^bit_rate\=)\d*\.\d*&quot;)
-target_audio_bitrate_kbit_s=$origin_audio_bitrate_kbit_s # TODO for now, make audio bitrate the same
-target_video_bitrate_kbit_s=$(\
-    awk \
-    -v size=&quot;$target_video_size_MB&quot; \
-    -v duration=&quot;$origin_duration_s&quot; \
-    -v audio_rate=&quot;$target_audio_bitrate_kbit_s&quot; \
-    'BEGIN { print  ( ( size * 8192.0 ) / ( 1.048576 * duration ) - audio_rate ) }')
-
-ffmpeg \
-    -y \
-    -i &quot;$1&quot; \
-    -c:v libx264 \
-    -b:v &quot;$target_video_bitrate_kbit_s&quot;k \
-    -pass 1 \
-    -an \
-    -f mp4 \
-    /dev/null \
-&amp;&amp; \
-ffmpeg \
-    -i &quot;$1&quot; \
-    -c:v libx264 \
-    -b:v &quot;$target_video_bitrate_kbit_s&quot;k \
-    -pass 2 \
-    -c:a aac \
-    -b:a &quot;$target_audio_bitrate_kbit_s&quot;k \
-    &quot;${1%.*}-$2mB.mp4&quot;</code></pre><p><strong>使用方法：</strong>压缩视频到 50 MB 大小</p><pre><code>./script.sh test.mp4 50
-</code></pre><h4>切割视频到指定时长的多个视频</h4><p>使用的技术主要是 python，ffprobe 得到视频时长，然后计算需要切割为几个视频。<br>python 脚本：</p><pre><code>#!/usr/bin/env python
-
-import csv
-import subprocess
-import math
-import json
-import os
-import shlex
-from optparse import OptionParser
-
-
-def split_by_manifest(filename, manifest, vcodec=&quot;copy&quot;, acodec=&quot;copy&quot;,
-                      extra=&quot;&quot;, **kwargs):
-
-    if not os.path.exists(manifest):
-        print(&quot;File does not exist: %s&quot; % manifest)
-        raise SystemExit
-
-    with open(manifest) as manifest_file:
-        manifest_type = manifest.split(&quot;.&quot;)[-1]
-        if manifest_type == &quot;json&quot;:
-            config = json.load(manifest_file)
-        elif manifest_type == &quot;csv&quot;:
-            config = csv.DictReader(manifest_file)
-        else:
-            print(&quot;Format not supported. File must be a csv or json file&quot;)
-            raise SystemExit
-
-        split_cmd = [&quot;ffmpeg&quot;, &quot;-i&quot;, filename, &quot;-vcodec&quot;, vcodec,
-                     &quot;-acodec&quot;, acodec, &quot;-y&quot;] + shlex.split(extra)
-        try:
-            fileext = filename.split(&quot;.&quot;)[-1]
-        except IndexError as e:
-            raise IndexError(&quot;No . in filename. Error: &quot; + str(e))
-        for video_config in config:
-            split_str = &quot;&quot;
-            split_args = []
-            try:
-                split_start = video_config[&quot;start_time&quot;]
-                split_length = video_config.get(&quot;end_time&quot;, None)
-                if not split_length:
-                    split_length = video_config[&quot;length&quot;]
-                filebase = video_config[&quot;rename_to&quot;]
-                if fileext in filebase:
-                    filebase = &quot;.&quot;.join(filebase.split(&quot;.&quot;)[:-1])
-
-                split_args += [&quot;-ss&quot;, str(split_start), &quot;-t&quot;,
-                               str(split_length), filebase + &quot;.&quot; + fileext]
-                print(&quot;########################################################&quot;)
-                print(&quot;About to run: &quot;+&quot; &quot;.join(split_cmd+split_args))
-                print(&quot;########################################################&quot;)
-                subprocess.check_output(split_cmd+split_args)
-            except KeyError as e:
-                print(&quot;############# Incorrect format ##############&quot;)
-                if manifest_type == &quot;json&quot;:
-                    print(&quot;The format of each json array should be:&quot;)
-                    print(&quot;{start_time: &lt;int&gt;, length: &lt;int&gt;, rename_to: &lt;string&gt;}&quot;)
-                elif manifest_type == &quot;csv&quot;:
-                    print(&quot;start_time,length,rename_to should be the first line &quot;)
-                    print(&quot;in the csv file.&quot;)
-                print(&quot;#############################################&quot;)
-                print(e)
-                raise SystemExit
-
-
-def get_video_length(filename):
-
-    output = subprocess.check_output((&quot;ffprobe&quot;, &quot;-v&quot;, &quot;error&quot;, &quot;-show_entries&quot;,
-                                      &quot;format=duration&quot;, &quot;-of&quot;, &quot;default=noprint_wrappers=1:nokey=1&quot;, filename)).strip()
-    video_length = int(float(output))
-    print(&quot;Video length in seconds: &quot;+str(video_length))
-
-    return video_length
-
-
-def ceildiv(a, b):
-    return int(math.ceil(a / float(b)))
-
-
-def split_by_seconds(filename, split_length, vcodec=&quot;copy&quot;, acodec=&quot;copy&quot;,
-                     extra=&quot;&quot;, video_length=None, **kwargs):
-    if split_length and split_length &lt;= 0:
-        print(&quot;Split length can't be 0&quot;)
-        raise SystemExit
-
-    if not video_length:
-        video_length = get_video_length(filename)
-    split_count = ceildiv(video_length, split_length)
-    if(split_count == 1):
-        print(&quot;Video length is less then the target split length.&quot;)
-        raise SystemExit
-
-    split_cmd = [&quot;ffmpeg&quot;, &quot;-i&quot;, filename, &quot;-vcodec&quot;,
-                 vcodec, &quot;-acodec&quot;, acodec] + shlex.split(extra)
-    try:
-        filebase = &quot;.&quot;.join(filename.split(&quot;.&quot;)[:-1])
-        fileext = filename.split(&quot;.&quot;)[-1]
-    except IndexError as e:
-        raise IndexError(&quot;No . in filename. Error: &quot; + str(e))
-    for n in range(0, split_count):
-        split_args = []
-        if n == 0:
-            split_start = 0
-        else:
-            split_start = split_length * n
-
-        split_args += [&quot;-ss&quot;, str(split_start), &quot;-t&quot;, str(split_length),
-                       filebase + &quot;-&quot; + str(n+1) + &quot;-of-&quot; +
-                       str(split_count) + &quot;.&quot; + fileext]
-        print(&quot;About to run: &quot;+&quot; &quot;.join(split_cmd+split_args))
-        subprocess.check_output(split_cmd+split_args)
-
-
-def main():
-    parser = OptionParser()
-
-    parser.add_option(&quot;-f&quot;, &quot;--file&quot;,
-                      dest=&quot;filename&quot;,
-                      help=&quot;File to split, for example sample.avi&quot;,
-                      type=&quot;string&quot;,
-                      action=&quot;store&quot;
-                      )
-    parser.add_option(&quot;-s&quot;, &quot;--split-size&quot;,
-                      dest=&quot;split_length&quot;,
-                      help=&quot;Split or chunk size in seconds, for example 10&quot;,
-                      type=&quot;int&quot;,
-                      action=&quot;store&quot;
-                      )
-    parser.add_option(&quot;-c&quot;, &quot;--split-chunks&quot;,
-                      dest=&quot;split_chunks&quot;,
-                      help=&quot;Number of chunks to split to&quot;,
-                      type=&quot;int&quot;,
-                      action=&quot;store&quot;
-                      )
-    parser.add_option(&quot;-S&quot;, &quot;--split-filesize&quot;,
-                      dest=&quot;split_filesize&quot;,
-                      help=&quot;Split or chunk size in bytes (approximate)&quot;,
-                      type=&quot;int&quot;,
-                      action=&quot;store&quot;
-                      )
-    parser.add_option(&quot;--filesize-factor&quot;,
-                      dest=&quot;filesize_factor&quot;,
-                      help=&quot;with --split-filesize, use this factor in time to&quot;
-                      &quot; size heuristics [default: %default]&quot;,
-                      type=&quot;float&quot;,
-                      action=&quot;store&quot;,
-                      default=0.95
-                      )
-    parser.add_option(&quot;--chunk-strategy&quot;,
-                      dest=&quot;chunk_strategy&quot;,
-                      help=&quot;with --split-filesize, allocate chunks according to&quot;
-                      &quot; given strategy (eager or even)&quot;,
-                      type=&quot;choice&quot;,
-                      action=&quot;store&quot;,
-                      choices=['eager', 'even'],
-                      default='eager'
-                      )
-    parser.add_option(&quot;-m&quot;, &quot;--manifest&quot;,
-                      dest=&quot;manifest&quot;,
-                      help=&quot;Split video based on a json manifest file. &quot;,
-                      type=&quot;string&quot;,
-                      action=&quot;store&quot;
-                      )
-    parser.add_option(&quot;-v&quot;, &quot;--vcodec&quot;,
-                      dest=&quot;vcodec&quot;,
-                      help=&quot;Video codec to use. &quot;,
-                      type=&quot;string&quot;,
-                      default=&quot;copy&quot;,
-                      action=&quot;store&quot;
-                      )
-    parser.add_option(&quot;-a&quot;, &quot;--acodec&quot;,
-                      dest=&quot;acodec&quot;,
-                      help=&quot;Audio codec to use. &quot;,
-                      type=&quot;string&quot;,
-                      default=&quot;copy&quot;,
-                      action=&quot;store&quot;
-                      )
-    parser.add_option(&quot;-e&quot;, &quot;--extra&quot;,
-                      dest=&quot;extra&quot;,
-                      help=&quot;Extra options for ffmpeg, e.g. '-e -threads 8'. &quot;,
-                      type=&quot;string&quot;,
-                      default=&quot;&quot;,
-                      action=&quot;store&quot;
-                      )
-    (options, args) = parser.parse_args()
-
-    def bailout():
-        parser.print_help()
-        raise SystemExit
-
-    if not options.filename:
-        bailout()
-
-    if options.manifest:
-        split_by_manifest(**(options.__dict__))
-    else:
-        video_length = None
-        if not options.split_length:
-            video_length = get_video_length(options.filename)
-            file_size = os.stat(options.filename).st_size
-            split_filesize = None
-            if options.split_filesize:
-                split_filesize = int(
-                    options.split_filesize * options.filesize_factor)
-            if split_filesize and options.chunk_strategy == 'even':
-                options.split_chunks = ceildiv(file_size, split_filesize)
-            if options.split_chunks:
-                options.split_length = ceildiv(
-                    video_length, options.split_chunks)
-            if not options.split_length and split_filesize:
-                options.split_length = int(
-                    split_filesize / float(file_size) * video_length)
-        if not options.split_length:
-            bailout()
-        split_by_seconds(video_length=video_length, **(options.__dict__))
-
-
-if __name__ == '__main__':
-    main()</code></pre><p><strong>使用方法：</strong>将视频切割为单个视频100秒</p><pre><code>./split.py -f test.mp4 -s 100
-</code></pre><h3>ffprobe 使用</h3><p>ffprobe 可以用来得到视频信息。</p><p>视频时长：秒</p><pre><code>ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 input.mp4
-</code></pre><p>视频码率：bit</p><pre><code>ffprobe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nokey=1 input.mp4
-</code></pre><h3>参考链接</h3><p><a href="http://www.ruanyifeng.com/blog/2020/01/ffmpeg.html">http://www.ruanyifeng.com/blog/2020/01/ffmpeg.html</a><br><a href="https://stackoverflow.com/questions/29082422/ffmpeg-video-compression-specific-file-size">https://stackoverflow.com/questions/29082422/ffmpeg-video-compression-specific-file-size</a><br><a href="https://github.com/c0decracker/video-splitter">https://github.com/c0decracker/video-splitter</a><br><a href="https://trac.ffmpeg.org/wiki/FFprobeTips">https://trac.ffmpeg.org/wiki/FFprobeTips</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1752.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1752.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
