@@ -183,15 +183,17 @@ service nginx restart
 <dc:creator>admin</dc:creator>
 <description><![CDATA[OpenSSL is a robust, commercial-grade, and full-featured toolkit for the Transport Layer Security...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<blockquote>OpenSSL is a robust, commercial-grade, and full-featured toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols. It is also a general-purpose cryptography library.</blockquote><p>官网：<a href="https://www.openssl.org">https://www.openssl.org</a></p><!--more--><p>使用 http2 和 tls1.3 需要升级到最新版 1.1.1的 openssl，所以本文介绍如何下载及编译最新版。</p><p>下载最新版 1.1.1b：</p><pre><code>wget https://www.openssl.org/source/openssl-1.1.1b.tar.gz
+<blockquote>OpenSSL is a robust, commercial-grade, and full-featured toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols. It is also a general-purpose cryptography library.</blockquote><p>官网：<a href="https://www.openssl.org">https://www.openssl.org</a></p><!--more--><p>Linux 下从源码编译教程参考：<a href="https://blog.niekun.net/archives/883.html">https://blog.niekun.net/archives/883.html</a></p><p>使用 http2 和 tls1.3 需要升级到最新版 1.1.1的 openssl，所以本文介绍如何下载及编译最新版。</p><p>下载最新版 1.1.1b：</p><pre><code>wget https://www.openssl.org/source/openssl-1.1.1b.tar.gz
 </code></pre><p>解压及进入目录：</p><pre><code>tar -zxf openssl-1.1.1b.tar.gz &amp;&amp; cd openssl-1.1.1b
-</code></pre><p>解析config：</p><pre><code>./config
+</code></pre><p>建立安装文件夹及软链接：</p><pre><code>mkdir /opt/openssl-1.1.1b
+ln -s /opt/openssl-1.1.1b /opt/openssl
+</code></pre><p>解析config：</p><pre><code>./config --prefix=/opt/openssl-1.1.1b
 </code></pre><p>安装编译器及执行 make：</p><pre><code>apt-get install make gcc
 make
 </code></pre><p>测试是否有错误：</p><pre><code>make test
 </code></pre><p>备份当前的 openssl 文件：</p><pre><code>mv /usr/bin/openssl ~/tmp
 </code></pre><p>开始安装：</p><pre><code>make install
-</code></pre><p>link 新安装的文件到默认执行地址：</p><pre><code>ln -s /usr/local/bin/openssl /usr/bin/openssl
+</code></pre><p>link 新安装的文件到默认执行地址：</p><pre><code>ln -s /opt/openssl/bin/openssl /usr/bin/openssl
 </code></pre><p>刷新 link 及缓存：</p><pre><code>ldconfig
 </code></pre><p>查看当前 openssl 版本：</p><pre><code>openssl version
 </code></pre><p>如果显示：OpenSSL 1.1.1b 字样则表示安装成功。</p>

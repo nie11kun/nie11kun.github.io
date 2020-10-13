@@ -319,30 +319,45 @@ service nginx start
 </code></pre><p>从此处下载最新源码：<a href="http://nginx.org/en/download.html">http://nginx.org/en/download.html</a></p><p>下载源码并解压：</p><pre><code>wget http://nginx.org/download/nginx-1.17.6.tar.gz
 tar -zxvf nginx-1.17.6.tar.gz
 </code></pre><p>下载第三方模块，如：fancyindex：</p><pre><code>git clone https://github.com/aperezdc/ngx-fancyindex.git ngx-fancyindex
+</code></pre><p>建立安装目录：</p><pre><code>mkdir /opt/nginx-1.17.6
+ln -s /opt/nginx-1.17.6 /opt/nginx
 </code></pre><p>运行配置脚本：</p><pre><code>cd nginx-1.17.6
 ./configure --add-module=../ngx-fancyindex [其他参数项]
-</code></pre><p>如果要加入多个第三方模块，需要单独再用一个 --add-module=...</p><p>其他参数项:<br>如果不知道该加入那些附加编译参数，通过 nginx -V 可以查看当前官方预编译版本的配置变量。</p><p>nginx 官方编译版本默认的附加传递参数 extra desired options 如下：</p><pre><code>--prefix=/etc/nginx \
---sbin-path=/usr/sbin/nginx \
---modules-path=/usr/lib/nginx/modules \
---conf-path=/etc/nginx/nginx.conf \
---error-log-path=/var/log/nginx/error.log \
---http-log-path=/var/log/nginx/access.log \
---pid-path=/var/run/nginx.pid \
---lock-path=/var/run/nginx.lock \
---http-client-body-temp-path=/var/cache/nginx/client_temp \
---http-proxy-temp-path=/var/cache/nginx/proxy_temp \
---http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
---http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
---http-scgi-temp-path=/var/cache/nginx/scgi_temp \
---user=nginx \
---group=nginx \
---with-compat --with-file-aio --with-threads --with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-mail --with-mail_ssl_module --with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module \
---with-cc-opt='-g -O2 -fPIE -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIC' --with-ld-opt='-Wl,-Bsymbolic-functions -fPIE -pie -Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie'</code></pre><p>官方编译手册里面列出了所有可用的编译参数：<a href="http://nginx.org/en/docs/configure.html">http://nginx.org/en/docs/configure.html</a></p><p>执行后如果有报错，一般是设定参数里有需要的依赖环境未安装，如：openssl，PCRE Library 等。根据提示安装需要的库再次执行 configure。</p><p>编译和安装：</p><pre><code>make
+</code></pre><p>如果要加入多个第三方模块，需要单独再用一个 --add-module=...</p><p>其他参数项:<br>如果不知道该加入那些附加编译参数，通过 nginx -V 可以查看当前官方预编译版本的配置变量。</p><p>我使用的配置如下，使用了两个第三方 module：</p><pre><code>./configure --prefix=/opt/nginx-1.17.6 \
+--user=nginx --group=nginx \
+--with-compat --with-file-aio --with-threads \
+--with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module \
+--with-mail --with-mail_ssl_module \
+--with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module \
+--add-module=../echo-nginx-module \
+--add-module=../ngx-fancyindex</code></pre><p>需要安装的 library 库：</p><ul><li>PCRE dev library: <code>libpcre3-dev</code></li><li>openssl: <a href="https://blog.niekun.net/archives/183.html">https://blog.niekun.net/archives/183.html</a></li><li>zlib library：<code>zlib1g-dev</code></li></ul><p>官方编译手册里面列出了所有可用的编译参数：<a href="http://nginx.org/en/docs/configure.html">http://nginx.org/en/docs/configure.html</a></p><p>执行后如果有报错，一般是设定参数里有需要的依赖环境未安装，如：openssl，PCRE Library 等。根据提示安装需要的库再次执行 configure。</p><p>编译和安装：</p><pre><code>make
 make install
+</code></pre><p>可执行文件路径为：<code>/opt/nginx/sbin/nginx</code>，添加到系统 PATH 路径：</p><pre><code>Ln -s /opt/nginx/sbin/nginx /usr/local/bin/nginx
+</code></pre><p>刷新 link 及缓存：</p><pre><code>ldconfig
+</code></pre><p>测试是否可用：</p><pre><code>nginx -v
 </code></pre><p>如果安装失败，提示 error，尝试运行下面命令，然后再次执行上面的 make install：</p><pre><code>apt-get -f install
 apt-get remove nginx-common
 </code></pre><p>安装完成后的设置和上面 ppa 安装类似。</p><p>如果运行 <code>service nginx start</code> 后，nginx 无法运行，查看 80 端口是否被占用，选择卸载或 kill 相关进程：</p><pre><code>lsof -i:80
-</code></pre>
+
+</code></pre><p><strong>如果使用 systemd 管理进程，需要手动添加 service 服务文件。</strong></p><p>在 <code>/usr/lib/systemd/system/</code> 目录下新建文件 <code>nginx.service</code>，内容如下：</p><pre><code>[Unit]
+Description=The NGINX HTTP and reverse proxy server
+After=syslog.target network-online.target remote-fs.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+PIDFile=/opt/nginx/logs/nginx.pid
+ExecStartPre=/usr/local/bin/nginx -t
+ExecStart=/usr/local/bin/nginx
+ExecReload=/usr/local/bin/nginx -s reload
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target</code></pre><p>重新加载配置文件：</p><pre><code>systemctl daemon-reload
+</code></pre><p>启动服务：</p><pre><code>systemctl start nginx
+</code></pre><p>开机启动：</p><pre><code>systemctl enable nginx
+</code></pre><p>以上就是 nginx 的安装教程。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/30.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/30.html" thr:count="0"/>

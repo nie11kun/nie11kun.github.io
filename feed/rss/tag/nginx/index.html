@@ -234,30 +234,45 @@ service nginx start
 从此处下载最新源码：http://nginx.org/en/download.html下载源码并解压：wget http://nginx.org/download/nginx-1.17.6.tar.gz
 tar -zxvf nginx-1.17.6.tar.gz
 下载第三方模块，如：fancyindex：git clone https://github.com/aperezdc/ngx-fancyindex.git ngx-fancyindex
+建立安装目录：mkdir /opt/nginx-1.17.6
+ln -s /opt/nginx-1.17.6 /opt/nginx
 运行配置脚本：cd nginx-1.17.6
 ./configure --add-module=../ngx-fancyindex [其他参数项]
-如果要加入多个第三方模块，需要单独再用一个 --add-module=...其他参数项:如果不知道该加入那些附加编译参数，通过 nginx -V 可以查看当前官方预编译版本的配置变量。nginx 官方编译版本默认的附加传递参数 extra desired options 如下：--prefix=/etc/nginx \
---sbin-path=/usr/sbin/nginx \
---modules-path=/usr/lib/nginx/modules \
---conf-path=/etc/nginx/nginx.conf \
---error-log-path=/var/log/nginx/error.log \
---http-log-path=/var/log/nginx/access.log \
---pid-path=/var/run/nginx.pid \
---lock-path=/var/run/nginx.lock \
---http-client-body-temp-path=/var/cache/nginx/client_temp \
---http-proxy-temp-path=/var/cache/nginx/proxy_temp \
---http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
---http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
---http-scgi-temp-path=/var/cache/nginx/scgi_temp \
---user=nginx \
---group=nginx \
---with-compat --with-file-aio --with-threads --with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-mail --with-mail_ssl_module --with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module \
---with-cc-opt='-g -O2 -fPIE -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIC' --with-ld-opt='-Wl,-Bsymbolic-functions -fPIE -pie -Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie'官方编译手册里面列出了所有可用的编译参数：http://nginx.org/en/docs/configure.html执行后如果有报错，一般是设定参数里有需要的依赖环境未安装，如：openssl，PCRE Library 等。根据提示安装需要的库再次执行 configure。编译和安装：make
+如果要加入多个第三方模块，需要单独再用一个 --add-module=...其他参数项:如果不知道该加入那些附加编译参数，通过 nginx -V 可以查看当前官方预编译版本的配置变量。我使用的配置如下，使用了两个第三方 module：./configure --prefix=/opt/nginx-1.17.6 \
+--user=nginx --group=nginx \
+--with-compat --with-file-aio --with-threads \
+--with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module \
+--with-mail --with-mail_ssl_module \
+--with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module \
+--add-module=../echo-nginx-module \
+--add-module=../ngx-fancyindex需要安装的 library 库：PCRE dev library: libpcre3-devopenssl: https://blog.niekun.net/archives/183.htmlzlib library：zlib1g-dev官方编译手册里面列出了所有可用的编译参数：http://nginx.org/en/docs/configure.html执行后如果有报错，一般是设定参数里有需要的依赖环境未安装，如：openssl，PCRE Library 等。根据提示安装需要的库再次执行 configure。编译和安装：make
 make install
+可执行文件路径为：/opt/nginx/sbin/nginx，添加到系统 PATH 路径：Ln -s /opt/nginx/sbin/nginx /usr/local/bin/nginx
+刷新 link 及缓存：ldconfig
+测试是否可用：nginx -v
 如果安装失败，提示 error，尝试运行下面命令，然后再次执行上面的 make install：apt-get -f install
 apt-get remove nginx-common
 安装完成后的设置和上面 ppa 安装类似。如果运行 service nginx start 后，nginx 无法运行，查看 80 端口是否被占用，选择卸载或 kill 相关进程：lsof -i:80
-</description>
+
+如果使用 systemd 管理进程，需要手动添加 service 服务文件。在 /usr/lib/systemd/system/ 目录下新建文件 nginx.service，内容如下：[Unit]
+Description=The NGINX HTTP and reverse proxy server
+After=syslog.target network-online.target remote-fs.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+PIDFile=/opt/nginx/logs/nginx.pid
+ExecStartPre=/usr/local/bin/nginx -t
+ExecStart=/usr/local/bin/nginx
+ExecReload=/usr/local/bin/nginx -s reload
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target重新加载配置文件：systemctl daemon-reload
+启动服务：systemctl start nginx
+开机启动：systemctl enable nginx
+以上就是 nginx 的安装教程。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/26.html">
 <title>使用Nginx搭建HTTP共享文件夹</title>

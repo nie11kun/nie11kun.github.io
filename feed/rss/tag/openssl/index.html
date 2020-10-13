@@ -151,15 +151,17 @@ service nginx restart
 <title>安装最新版openssl</title>
 <link>https://blog.niekun.net/archives/183.html</link>
 <dc:date>2019-04-03T22:46:00+08:00</dc:date>
-<description>OpenSSL is a robust, commercial-grade, and full-featured toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols. It is also a general-purpose cryptography library.官网：https://www.openssl.org使用 http2 和 tls1.3 需要升级到最新版 1.1.1的 openssl，所以本文介绍如何下载及编译最新版。下载最新版 1.1.1b：wget https://www.openssl.org/source/openssl-1.1.1b.tar.gz
+<description>OpenSSL is a robust, commercial-grade, and full-featured toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols. It is also a general-purpose cryptography library.官网：https://www.openssl.orgLinux 下从源码编译教程参考：https://blog.niekun.net/archives/883.html使用 http2 和 tls1.3 需要升级到最新版 1.1.1的 openssl，所以本文介绍如何下载及编译最新版。下载最新版 1.1.1b：wget https://www.openssl.org/source/openssl-1.1.1b.tar.gz
 解压及进入目录：tar -zxf openssl-1.1.1b.tar.gz &amp;&amp; cd openssl-1.1.1b
-解析config：./config
+建立安装文件夹及软链接：mkdir /opt/openssl-1.1.1b
+ln -s /opt/openssl-1.1.1b /opt/openssl
+解析config：./config --prefix=/opt/openssl-1.1.1b
 安装编译器及执行 make：apt-get install make gcc
 make
 测试是否有错误：make test
 备份当前的 openssl 文件：mv /usr/bin/openssl ~/tmp
 开始安装：make install
-link 新安装的文件到默认执行地址：ln -s /usr/local/bin/openssl /usr/bin/openssl
+link 新安装的文件到默认执行地址：ln -s /opt/openssl/bin/openssl /usr/bin/openssl
 刷新 link 及缓存：ldconfig
 查看当前 openssl 版本：openssl version
 如果显示：OpenSSL 1.1.1b 字样则表示安装成功。</description>
