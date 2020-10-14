@@ -24,7 +24,7 @@
 <link rel="alternate" type="application/rss+xml" title="wls 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1801.html" />
 <link rel="alternate" type="application/rdf+xml" title="wls 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1801.html" />
 <link rel="alternate" type="application/atom+xml" title="wls 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1801.html" />
-<script type="38033ec73d46395d61062bc6-text/javascript">
+<script type="043352fa733c747f9e391455-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -96,7 +96,7 @@
     };
 })();
 </script>
-<script type="38033ec73d46395d61062bc6-text/javascript">
+<script type="043352fa733c747f9e391455-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -114,31 +114,35 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _4U0iL = '9c'//'z'
-+'75d'//'n'
-+//'58'
-'72b'+//'K'
-'5'+'58'//'tU'
-+'dd'//'ni'
-+/* 'X'//'X' */''+'e'//'jS'
-+//'E'
-'f96'+//'v'
-'e'+//'CYA'
-'3'+'bbf'//'Wf3'
-+//'tp'
-'c'+//'cn'
-'206'+//'eeq'
-'2'+'886'//'wjO'
-+//'J5'
-'6'+//'Y'
-'Y'+'8'//'z'
-, _p3Gy = [[31,32]];
+    var _FrEqNE3 = ''///*'edM'*/'edM'
++//'OM'
+'OM'+//'aW'
+'9'+'c'//'t'
++//'Gn'
+'75'+//'3H'
+'3H'+'d72'//'Y'
++'b'//'B'
++//'QV'
+'5'+''///*'I'*/'I'
++'5'//'A'
++'8'//'YjE'
++'dde'//'cP'
++'f'//'w'
++/* 'a'//'a' */''+//'D3G'
+'96e'+'3bb'//'K1g'
++'f'//'1'
++'c20'//'Z'
++//'bHB'
+'6'+'288'//'S'
++//'Y'
+'Y'+//'0k'
+'668', _qjimu = [[0,2],[4,6],[29,30]];
     
-    for (var i = 0; i < _p3Gy.length; i ++) {
-        _4U0iL = _4U0iL.substring(0, _p3Gy[i][0]) + _4U0iL.substring(_p3Gy[i][1]);
+    for (var i = 0; i < _qjimu.length; i ++) {
+        _FrEqNE3 = _FrEqNE3.substring(0, _qjimu[i][0]) + _FrEqNE3.substring(_qjimu[i][1]);
     }
 
-    return _4U0iL;
+    return _FrEqNE3;
 })();
 
         if (null != r) {
@@ -241,23 +245,31 @@ wsl
 </code></pre><p>查看 <code>/etc/resolv.conf</code> 文件是否是之前自定义的地址：</p><pre><code>cat /etc/resolv.conf
 </code></pre><p>测试网络服务：</p><pre><code>ping niekun.net
 </code></pre><p>参考链接：<a href="https://github.com/microsoft/WSL/issues/5256#issuecomment-666545999">https://github.com/microsoft/WSL/issues/5256#issuecomment-666545999</a></p><h3>网络访问配置</h3><p>以前使用 wsl 时 Linux 子系统和 Windows 主机的网络好像是直接互通的，比如我在 Windows 下建立了一个 http 网页 <code>http://127.0.0.1:6000</code>，可以在 Linux 子系统下直接访问地址 <code>http://127.0.0.1:6000</code>，同理对于 Windows 主机访问 Linux 子系统的服务也是可以使用 localhost 直接访问的。</p><p>在升级到 wsl 2 后发现这一特性没有了，无法直接通过 localhost 地址来互通，查询官方说明关于<a href="https://docs.microsoft.com/en-us/windows/wsl/compare-versions#accessing-network-applications">wsl 2 访问网络服务</a> 的方法可以实现访问，但是每次关机后 wsl 和 Windows 本地地址会发生变化不方便使用。</p><p><strong>可以设置静态 IP 来固定地址。Windows 终端下执行下面命令：</strong></p><p>在 wsl 下增加 IP 地址：<code>192.168.50.16</code>，名称为：<code>eth0:1</code>:(以 Ubuntu 系统为例)</p><pre><code>wsl -d Ubuntu -u root ip addr add 192.168.50.16/24 broadcast 192.168.50.255 dev eth0 label eth0:1
-</code></pre><p>在 Windows 10 下增加一个 IP 地址：</p><pre><code>netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255.255.0
-</code></pre><p>执行后，在 wsl 下通过 IP：<code>192.168.50.88</code> 访问 Windows 服务。在 Windows 下通过 IP：<code>192.168.50.16</code> 访问 wsl 服务。</p><p>以上两个命令可以写在一个 bat 批处理文件内，然后设置开机自动运行这个脚本即可实现固定 IP 地址，脚本内容如下：</p><pre><code>@echo off
-if &quot;%1&quot; == &quot;h&quot; goto begin
-mshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;&quot;&quot;%~nx0&quot;&quot; h&quot;,0)(window.close)&amp;&amp;exit
-:begin
-REM
+</code></pre><p>在 Windows 10 下增加一个 IP 地址：(此命令需要管理员权限执行)</p><pre><code>netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255.255.0
+</code></pre><p>执行后，在 wsl 下通过 IP：<code>192.168.50.88</code> 访问 Windows 服务。在 Windows 下通过 IP：<code>192.168.50.16</code> 访问 wsl 服务。</p><p>完成后再终端使用 ipconfig 查看设置：</p><pre><code>Ethernet adapter vEthernet (WSL):
+
+   Connection-specific DNS Suffix  . :
+   Link-local IPv6 Address . . . . . : fe60::b525:6b90:8fb0:f513%58
+   IPv4 Address. . . . . . . . . . . : 172.23.64.1
+   Subnet Mask . . . . . . . . . . . : 255.255.240.0
+   IPv4 Address. . . . . . . . . . . : 192.168.50.88
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . :</code></pre><p>以上两个命令可以写在一个 powershell 脚本文件内，脚本内设置管理员权限执行，由于需要管理员权限所以<strong>无法通过建立 shortcut 放到开机自启动文件夹来自动启动址</strong>。</p><p><code>wsl_ip.ps1</code> 脚本内容如下，会自动请求管理员权限：</p><pre><code>if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] &quot;Administrator&quot;))  
+{  
+  $arguments = &quot;&amp; '&quot; +$myinvocation.mycommand.definition + &quot;'&quot;
+  Start-Process powershell -Verb runAs -ArgumentList $arguments
+  Break
+}
 
 wsl -d Ubuntu -u root ip addr add 192.168.50.16/24 broadcast 192.168.50.255 dev eth0 label eth0:1
 netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255.255.0
-
-exit</code></pre><p>将脚本快捷方式放到开机启动文件夹可以实现开机自启动，Windows 10 自启文件夹地址是：<code>%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup</code></p><p>参考链接：<a href="https://github.com/MicrosoftDocs/WSL/issues/418#issuecomment-648570865">https://github.com/MicrosoftDocs/WSL/issues/418#issuecomment-648570865</a></p> </div>
+</code></pre><p>为了方便使用，可以将脚本路径加入系统 PATH 中，这样可以方便的在终端直接运行脚本，PATH 设置参考：<a href="413.html">https://blog.niekun.net/archives/413.html</a></p><p>完成后打开终端直接执行命令：<code>wsl_ip</code> 即可快速设置 IP。</p><p>参考链接：<a href="https://github.com/MicrosoftDocs/WSL/issues/418#issuecomment-648570865">https://github.com/MicrosoftDocs/WSL/issues/418#issuecomment-648570865</a></p> </div>
 <p itemprop="keywords" class="tags">标签: none</p>
 </article>
 <div id="comments">
 <div id="respond-post-1801" class="respond">
 <div class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1801.html#respond-post-1801" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-38033ec73d46395d61062bc6-="">取消回复</a> </div>
+<a id="cancel-comment-reply-link" href="1801.html#respond-post-1801" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-043352fa733c747f9e391455-="">取消回复</a> </div>
 <h3 id="response">添加新评论</h3>
 <form method="post" action="https://blog.niekun.net/archives/1801.html/comment" id="comment-form" role="form">
 <p>
@@ -316,6 +328,7 @@ exit</code></pre><p>将脚本快捷方式放到开机启动文件夹可以实现
 <ul class="widget-list">
 <li><a href="../2020/10/index.html">October 2020</a></li><li><a href="../2020/09/index.html">September 2020</a></li><li><a href="../2020/08/index.html">August 2020</a></li><li><a href="../2020/07/index.html">July 2020</a></li><li><a href="../2020/06/index.html">June 2020</a></li><li><a href="../2020/05/index.html">May 2020</a></li><li><a href="../2020/04/index.html">April 2020</a></li><li><a href="../2020/03/index.html">March 2020</a></li><li><a href="../2020/02/index.html">February 2020</a></li><li><a href="../2020/01/index.html">January 2020</a></li><li><a href="../2019/12/index.html">December 2019</a></li><li><a href="../2019/11/index.html">November 2019</a></li><li><a href="../2019/10/index.html">October 2019</a></li><li><a href="../2019/09/index.html">September 2019</a></li><li><a href="../2019/08/index.html">August 2019</a></li><li><a href="../2019/07/index.html">July 2019</a></li><li><a href="../2019/04/index.html">April 2019</a></li><li><a href="../2019/03/index.html">March 2019</a></li><li><a href="../2019/02/index.html">February 2019</a></li> </ul>
 </section>
+
 <section class="widget">
 <h4 class="Display 2">其它</h4>
 <ul class="widget-list">
@@ -330,12 +343,13 @@ exit</code></pre><p>将脚本快捷方式放到开机启动文件夹可以实现
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="38033ec73d46395d61062bc6-text/javascript">
+<script type="043352fa733c747f9e391455-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="38033ec73d46395d61062bc6-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="38033ec73d46395d61062bc6-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="38033ec73d46395d61062bc6-text/javascript"></script>
-<script src="../usr/themes/TypechoAwesome/navItem.js" type="38033ec73d46395d61062bc6-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="38033ec73d46395d61062bc6-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="043352fa733c747f9e391455-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="043352fa733c747f9e391455-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="043352fa733c747f9e391455-text/javascript"></script>
+<script src="../usr/themes/TypechoAwesome/navItem.js" type="043352fa733c747f9e391455-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="043352fa733c747f9e391455-|49" defer=""></script><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"rayId":"5e235eaffecaed5b","r":1,"version":"2020.9.1","si":10}'></script>
+</body>
 </html>

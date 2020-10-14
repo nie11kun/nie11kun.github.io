@@ -54,17 +54,25 @@ wsl
 查看 /etc/resolv.conf 文件是否是之前自定义的地址：cat /etc/resolv.conf
 测试网络服务：ping niekun.net
 参考链接：https://github.com/microsoft/WSL/issues/5256#issuecomment-666545999网络访问配置以前使用 wsl 时 Linux 子系统和 Windows 主机的网络好像是直接互通的，比如我在 Windows 下建立了一个 http 网页 http://127.0.0.1:6000，可以在 Linux 子系统下直接访问地址 http://127.0.0.1:6000，同理对于 Windows 主机访问 Linux 子系统的服务也是可以使用 localhost 直接访问的。在升级到 wsl 2 后发现这一特性没有了，无法直接通过 localhost 地址来互通，查询官方说明关于wsl 2 访问网络服务 的方法可以实现访问，但是每次关机后 wsl 和 Windows 本地地址会发生变化不方便使用。可以设置静态 IP 来固定地址。Windows 终端下执行下面命令：在 wsl 下增加 IP 地址：192.168.50.16，名称为：eth0:1:(以 Ubuntu 系统为例)wsl -d Ubuntu -u root ip addr add 192.168.50.16/24 broadcast 192.168.50.255 dev eth0 label eth0:1
-在 Windows 10 下增加一个 IP 地址：netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255.255.0
-执行后，在 wsl 下通过 IP：192.168.50.88 访问 Windows 服务。在 Windows 下通过 IP：192.168.50.16 访问 wsl 服务。以上两个命令可以写在一个 bat 批处理文件内，然后设置开机自动运行这个脚本即可实现固定 IP 地址，脚本内容如下：@echo off
-if &quot;%1&quot; == &quot;h&quot; goto begin
-mshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;&quot;&quot;%~nx0&quot;&quot; h&quot;,0)(window.close)&amp;&amp;exit
-:begin
-REM
+在 Windows 10 下增加一个 IP 地址：(此命令需要管理员权限执行)netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255.255.0
+执行后，在 wsl 下通过 IP：192.168.50.88 访问 Windows 服务。在 Windows 下通过 IP：192.168.50.16 访问 wsl 服务。完成后再终端使用 ipconfig 查看设置：Ethernet adapter vEthernet (WSL):
+
+   Connection-specific DNS Suffix  . :
+   Link-local IPv6 Address . . . . . : fe60::b525:6b90:8fb0:f513%58
+   IPv4 Address. . . . . . . . . . . : 172.23.64.1
+   Subnet Mask . . . . . . . . . . . : 255.255.240.0
+   IPv4 Address. . . . . . . . . . . : 192.168.50.88
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . :以上两个命令可以写在一个 powershell 脚本文件内，脚本内设置管理员权限执行，由于需要管理员权限所以无法通过建立 shortcut 放到开机自启动文件夹来自动启动址。wsl_ip.ps1 脚本内容如下，会自动请求管理员权限：if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] &quot;Administrator&quot;))  
+{  
+  $arguments = &quot;&amp; '&quot; +$myinvocation.mycommand.definition + &quot;'&quot;
+  Start-Process powershell -Verb runAs -ArgumentList $arguments
+  Break
+}
 
 wsl -d Ubuntu -u root ip addr add 192.168.50.16/24 broadcast 192.168.50.255 dev eth0 label eth0:1
 netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255.255.0
-
-exit将脚本快捷方式放到开机启动文件夹可以实现开机自启动，Windows 10 自启文件夹地址是：%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup参考链接：https://github.com/MicrosoftDocs/WSL/issues/418#issuecomment-648570865</description>
+为了方便使用，可以将脚本路径加入系统 PATH 中，这样可以方便的在终端直接运行脚本，PATH 设置参考：https://blog.niekun.net/archives/413.html完成后打开终端直接执行命令：wsl_ip 即可快速设置 IP。参考链接：https://github.com/MicrosoftDocs/WSL/issues/418#issuecomment-648570865</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1797.html">
 <title>解决 proxifier 和 wsl 2 无法同时使用的问题</title>
