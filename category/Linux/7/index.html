@@ -84,6 +84,30 @@
 <div class="col-md-9 col-12" id="main" role="main">
 <h3 class="archive-title">分类 Linux 下的文章</h3>
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/730.html">限制用户名密码访问页面 in nginx</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2019-12-09T16:21:00+08:00" itemprop="datePublished">2019-12-09</time></li>
+<li>分类: <a href="../index.html">Linux</a>,<a href="../../web/index.html">web</a></li>
+<li itemprop="interactionCount"><a href="../../../archives/730.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。</p><p>如果使用 <strong>nginx</strong> 作为反向代理服务器，可以使用 <strong>auth_basic</strong> 来实现页面加密。</p><p><strong>环境需求：</strong></p><p>Linux env<br>nginx<br><strong>apache2-utils</strong> (Debian, Ubuntu) or <strong>httpd-tools</strong> (RHEL/CentOS/Oracle Linux)</p><p><strong>安装环境：</strong></p><p>nginx 安装参考：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p>安装 apache2-utils：</p><pre><code>apt-get install apache2-utils
+</code></pre><p><strong>创建账户密码：</strong></p><p>使用了 htpasswd 命令创建用户。</p><p>关于 htpasswd 的详细使用：<a href="https://httpd.apache.org/docs/2.4/programs/htpasswd.html">https://httpd.apache.org/docs/2.4/programs/htpasswd.html</a></p><p>建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：</p><pre><code>htpasswd -c /etc/nginx/users/.adminpasswd user1
+</code></pre><p>.adminpasswd 为隐藏的存储所有账户信息的文件，user1 为用户名，回车后会提示输入密码，然后确认密码。</p><p>建立其他账户：</p><pre><code>htpasswd /etc/nginx/users/.adminpasswd user2
+</code></pre><p>不需要 <code>-c</code> 参数，因为文件已经建立了。</p><p>验证账户密码 <code>-v</code>：</p><pre><code>htpasswd -v /etc/nginx/users/.adminpasswd user1
+</code></pre><p>删除账户 <code>-D</code>：</p><pre><code>htpasswd -D /etc/nginx/users/.adminpasswd user1
+</code></pre><p><strong>使用账户：</strong></p><p>打开 nginx 配置文件，在需要账户登录的路径段修改如下：</p><pre><code>location /path {
+    ...
+    auth_basic           &quot;Administrator's Area&quot;;
+    auth_basic_user_file /etc/nginx/users/.adminpasswd;
+    ...
+    ...
+}</code></pre><p>重新加载配置文件：</p><pre><code>service nginx configtest
+service nginx reload
+</code></pre><p>打开对应页面测试是否提示输入账号密码。</p> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/725.html">fancyindex 插件模块美化 nginx 的默认 index 页面</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
@@ -136,23 +160,12 @@ ls test.sh || echo no file
 <div class="post-content" itemprop="articleBody">
 <p><strong>grep: global regular expression print</strong></p><p>常用来查找包含特定字符串的文件所在行并显示，也可以配合管道符：| 来有条件的过滤显示终端输出内容。</p><p class="more"><a href="../../../archives/546.html" title="grep 全局匹配打印命令 in Linux">- 阅读剩余部分 -</a></p> </div>
 </article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/544.html">tar 打包/压缩 in Linux</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-11-27T09:42:00+08:00" itemprop="datePublished">2019-11-27</time></li>
-<li>分类: <a href="../index.html">Linux</a></li>
-<li itemprop="interactionCount"><a href="../../../archives/544.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p><strong>tar</strong> 是 Linux 下常用的处理<strong>打包或压缩</strong>的常用命令，常用来处理后缀名为：tar, tar.gz tar.bz2 的文件。</p><p><strong>tar</strong>：存档格式，未经过压缩<br><strong>tar.gz</strong>：在tar基础上进行 <strong>gzip</strong> 压缩，tar.gz 和 tgz 类似<br><strong>tar.bz2</strong>：比 gzip 压缩比更高，但更耗时， tar.bz2，tbz 和 tb2 类似</p><p class="more"><a href="../../../archives/544.html" title="tar 打包/压缩 in Linux">- 阅读剩余部分 -</a></p> </div>
-</article>
-<ol class="page-navigator"><li class="prev"><a href="../6/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../4/index.html">4</a></li><li><a href="../5/index.html">5</a></li><li><a href="../6/index.html">6</a></li><li class="current"><a href="index.html">7</a></li><li><a href="../8/index.html">8</a></li><li><a href="../9/index.html">9</a></li><li><a href="../10/index.html">10</a></li><li><span>...</span></li><li><a href="../15/index.html">15</a></li><li class="next"><a href="../8/index.html">后一页 &raquo;</a></li></ol> </div>
+<ol class="page-navigator"><li class="prev"><a href="../6/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../4/index.html">4</a></li><li><a href="../5/index.html">5</a></li><li><a href="../6/index.html">6</a></li><li class="current"><a href="index.html">7</a></li><li><a href="../8/index.html">8</a></li><li><a href="../9/index.html">9</a></li><li><a href="../10/index.html">10</a></li><li><span>...</span></li><li><a href="../16/index.html">16</a></li><li class="next"><a href="../8/index.html">后一页 &raquo;</a></li></ol> </div>
 <div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../../archives/1805.html">wsl 2 激活 systemd</a></li><li><a href="../../../archives/1801.html">wls 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置</a></li><li><a href="../../../archives/1797.html">解决 proxifier 和 wsl 2 无法同时使用的问题</a></li><li><a href="../../../archives/1793.html">Windows 重建图标缓存</a></li><li><a href="../../../archives/1788.html">Windows 常用终端命令</a></li><li><a href="../../../archives/1785.html">Windows 10 Linux 子系统 WSL 升级到 WSL 2</a></li><li><a href="../../../archives/1782.html">powershell 脚本实现系统消息提醒</a></li><li><a href="../../../archives/1781.html">echo 命令的使用</a></li><li><a href="../../../archives/1777.html">powershell 脚本运行问题处理</a></li><li><a href="../../../archives/1773.html">macOS 下命令行控制显示系统通知</a></li> </ul>
+<li><a href="../../../archives/1818.html">vmware 虚拟机安装 openWRT 及路由配置</a></li><li><a href="../../../archives/1805.html">wsl 2 激活 systemd</a></li><li><a href="../../../archives/1801.html">wls 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置</a></li><li><a href="../../../archives/1797.html">解决 proxifier 和 wsl 2 无法同时使用的问题</a></li><li><a href="../../../archives/1793.html">Windows 重建图标缓存</a></li><li><a href="../../../archives/1788.html">Windows 常用终端命令</a></li><li><a href="../../../archives/1785.html">Windows 10 Linux 子系统 WSL 升级到 WSL 2</a></li><li><a href="../../../archives/1782.html">powershell 脚本实现系统消息提醒</a></li><li><a href="../../../archives/1781.html">echo 命令的使用</a></li><li><a href="../../../archives/1777.html">powershell 脚本运行问题处理</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -191,12 +204,13 @@ ls test.sh || echo no file
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="2d2c3b5222bfcaa01d3b647f-text/javascript">
+<script type="60006411cea2d5bef91fb815-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="2d2c3b5222bfcaa01d3b647f-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="2d2c3b5222bfcaa01d3b647f-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="2d2c3b5222bfcaa01d3b647f-text/javascript"></script>
-<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="2d2c3b5222bfcaa01d3b647f-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="2d2c3b5222bfcaa01d3b647f-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="60006411cea2d5bef91fb815-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="60006411cea2d5bef91fb815-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="60006411cea2d5bef91fb815-text/javascript"></script>
+<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="60006411cea2d5bef91fb815-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="60006411cea2d5bef91fb815-|49" defer=""></script><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"rayId":"5e2b9ca39c30e7d1","r":1,"version":"2020.9.1","si":10}'></script>
+</body>
 </html>

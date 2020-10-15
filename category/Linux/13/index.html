@@ -84,6 +84,22 @@
 <div class="col-md-9 col-12" id="main" role="main">
 <h3 class="archive-title">分类 Linux 下的文章</h3>
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/184.html">使网站支持http2</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2019-04-03T22:54:00+08:00" itemprop="datePublished">2019-04-03</time></li>
+<li>分类: <a href="../index.html">Linux</a>,<a href="../../web/index.html">web</a></li>
+<li itemprop="interactionCount"><a href="../../../archives/184.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>这里使用的是 Nginx 做代理。</p><p>使用 http2 需要 openssl 的版本至少是 1.0.2。使用命令<code>openssl version</code>查看当前版本，如果太低，需要先升级 openssl。</p><p>升级教程：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p>在 Nginx 配置文件的 server 段内修改如下：</p><pre><code>server {
+    listen               443 ssl http2;
+    listen               [::]:443 ssl http2;
+    ...
+}</code></pre><p>实际就是在原有配置基础上，在 listen 内加入 http2 即可。</p><p>修改后测试及重新加载配置文件：</p><pre><code>service nginx configtest
+service nginx reload</code></pre> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/183.html">安装最新版openssl</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
@@ -111,15 +127,15 @@
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
 <li>时间: <time datetime="2019-03-21T20:28:21+08:00" itemprop="datePublished">2019-03-21</time></li>
-<li>分类: <a href="../index.html">Linux</a></li>
+ <li>分类: <a href="../index.html">Linux</a></li>
 <li itemprop="interactionCount"><a href="../../../archives/135.html#comments">评论</a></li>
 </ul>
 <div class="post-content" itemprop="articleBody">
-<p>ssh 默认端口为 22， 有时候为了安全，需要修改默认端口到任意其他端口。</p><p>使用 root 用户登录服务器。</p><pre><code>ssh <a href="../../../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="60120f0f1420190f15120910">[email&#160;protected]</a>
+<p>ssh 默认端口为 22， 有时候为了安全，需要修改默认端口到任意其他端口。</p><p>使用 root 用户登录服务器。</p><pre><code>ssh <a href="../../../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="94e6fbfbe0d4edfbe1e6fde4">[email&#160;protected]</a>
 </code></pre><p>打开配置文件：</p><pre><code>vim /etc/ssh/sshd_config
 </code></pre><p>找到并修改以下行：</p><pre><code>Port 22
 </code></pre><p>修改 22 为任意可用端口，保存并退出。</p><p>重启服务：</p><pre><code>service ssh restart
-</code></pre><p>重新登录 ssh：</p><pre><code>ssh <a href="../../../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="493b26263d0930263c3b2039">[email&#160;protected]</a> -p Port
+</code></pre><p>重新登录 ssh：</p><pre><code>ssh <a href="../../../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bbc9d4d4cffbc2d4cec9d2cb">[email&#160;protected]</a> -p Port
 </code></pre><p>以上就是修改 ssh 端口的过程。</p> </div>
 </article>
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -131,30 +147,18 @@
 <li itemprop="interactionCount"><a href="../../../archives/130.html#comments">评论</a></li>
 </ul>
 <div class="post-content" itemprop="articleBody">
-<blockquote>SFTP, which stands for SSH File Transfer Protocol, or Secure File Transfer Protocol, is a separate protocol packaged with SSH that works in a similar way over a secure connection. The advantage is the ability to leverage a secure connection to transfer files and traverse the filesystem on both the local and remote system.</blockquote><p><a href="https://www.digitalocean.com/community/tutorials/how-to-use-sftp-to-securely-transfer-files-with-a-remote-server">https://www.digitalocean.com/community/tutorials/how-to-use-sftp-to-securely-transfer-files-with-a-remote-server</a></p><h2>Login</h2><p>SFTP直接可以使用SSH账户登录:</p><pre><code>sftp <a href="../../../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="542127312614263b393b20311d04">[email&#160;protected]</a>
-sftp -oPort=custom_port <a href="../../../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fe8d9b8cbe8c9193918a9bb7ae">[email&#160;protected]</a>
+<blockquote>SFTP, which stands for SSH File Transfer Protocol, or Secure File Transfer Protocol, is a separate protocol packaged with SSH that works in a similar way over a secure connection. The advantage is the ability to leverage a secure connection to transfer files and traverse the filesystem on both the local and remote system.</blockquote><p><a href="https://www.digitalocean.com/community/tutorials/how-to-use-sftp-to-securely-transfer-files-with-a-remote-server">https://www.digitalocean.com/community/tutorials/how-to-use-sftp-to-securely-transfer-files-with-a-remote-server</a></p><h2>Login</h2><p>SFTP直接可以使用SSH账户登录:</p><pre><code>sftp <a href="../../../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="720701170032001d1f1d06173b22">[email&#160;protected]</a>
+sftp -oPort=custom_port <a href="../../../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2350465163514c4e4c57466a73">[email&#160;protected]</a>
 </code></pre><p>查看帮助：</p><pre><code>help
 
 </code></pre><p class="more"><a href="../../../archives/130.html" title="使用SFTP管理远程服务器文件">- 阅读剩余部分 -</a></p> </div>
 </article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/126.html">Linux处理包含空格的路径</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-03-07T15:09:26+08:00" itemprop="datePublished">2019-03-07</time></li>
-<li>分类: <a href="../index.html">Linux</a></li>
-<li itemprop="interactionCount"><a href="../../../archives/126.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>当文件包含有空格的时候，需要在调用的时候进行一些处理：</p><pre><code>vim /path/&quot;i am a file.txt&quot;
-vim /path/i\am\a\file.txt&quot;</code></pre><p>以上两种方法都可以正常调用。</p> </div>
-</article>
-<ol class="page-navigator"><li class="prev"><a href="../12/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../10/index.html">10</a></li><li><a href="../11/index.html">11</a></li><li><a href="../12/index.html">12</a></li><li class="current"><a href="index.html">13</a></li><li><a href="../14/index.html">14</a></li><li><a href="../15/index.html">15</a></li><li class="next"><a href="../14/index.html">后一页 &raquo;</a></li></ol> </div>
+<ol class="page-navigator"><li class="prev"><a href="../12/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../10/index.html">10</a></li><li><a href="../11/index.html">11</a></li><li><a href="../12/index.html">12</a></li><li class="current"><a href="index.html">13</a></li><li><a href="../14/index.html">14</a></li><li><a href="../15/index.html">15</a></li><li><a href="../16/index.html">16</a></li><li class="next"><a href="../14/index.html">后一页 &raquo;</a></li></ol> </div>
 <div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../../archives/1805.html">wsl 2 激活 systemd</a></li><li><a href="../../../archives/1801.html">wls 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置</a></li><li><a href="../../../archives/1797.html">解决 proxifier 和 wsl 2 无法同时使用的问题</a></li><li><a href="../../../archives/1793.html">Windows 重建图标缓存</a></li><li><a href="../../../archives/1788.html">Windows 常用终端命令</a></li><li><a href="../../../archives/1785.html">Windows 10 Linux 子系统 WSL 升级到 WSL 2</a></li><li><a href="../../../archives/1782.html">powershell 脚本实现系统消息提醒</a></li><li><a href="../../../archives/1781.html">echo 命令的使用</a></li><li><a href="../../../archives/1777.html">powershell 脚本运行问题处理</a></li><li><a href="../../../archives/1773.html">macOS 下命令行控制显示系统通知</a></li> </ul>
+<li><a href="../../../archives/1818.html">vmware 虚拟机安装 openWRT 及路由配置</a></li><li><a href="../../../archives/1805.html">wsl 2 激活 systemd</a></li><li><a href="../../../archives/1801.html">wls 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置</a></li><li><a href="../../../archives/1797.html">解决 proxifier 和 wsl 2 无法同时使用的问题</a></li><li><a href="../../../archives/1793.html">Windows 重建图标缓存</a></li><li><a href="../../../archives/1788.html">Windows 常用终端命令</a></li><li><a href="../../../archives/1785.html">Windows 10 Linux 子系统 WSL 升级到 WSL 2</a></li><li><a href="../../../archives/1782.html">powershell 脚本实现系统消息提醒</a></li><li><a href="../../../archives/1781.html">echo 命令的使用</a></li><li><a href="../../../archives/1777.html">powershell 脚本运行问题处理</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -193,12 +197,12 @@ vim /path/i\am\a\file.txt&quot;</code></pre><p>以上两种方法都可以正常
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script data-cfasync="false" src="../../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="dfa6879cd705fb8c9b83c441-text/javascript">
+<script data-cfasync="false" src="../../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="60ac6ce66311f044211e6210-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="dfa6879cd705fb8c9b83c441-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="dfa6879cd705fb8c9b83c441-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="dfa6879cd705fb8c9b83c441-text/javascript"></script>
-<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="dfa6879cd705fb8c9b83c441-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="dfa6879cd705fb8c9b83c441-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="60ac6ce66311f044211e6210-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="60ac6ce66311f044211e6210-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="60ac6ce66311f044211e6210-text/javascript"></script>
+<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="60ac6ce66311f044211e6210-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="60ac6ce66311f044211e6210-|49" defer=""></script></body>
 </html>
