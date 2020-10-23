@@ -6,11 +6,151 @@ xml:base="https://blog.niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2020-10-15T16:51:00+08:00</updated>
+<updated>2020-10-23T09:59:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/" />
 <id>https://blog.niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[iptables 使用教程]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1863.html" />
+<id>https://blog.niekun.net/archives/1863.html</id>
+<updated>2020-10-23T09:59:00+08:00</updated>
+<published>2020-10-23T09:59:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[ipatbles 是 Linux 下的网络防火墙规则管理/修改工具，通过控制 Linux 内核 netfilter 模块，来管理网络数据包的处理和转发。用来识别路由表中特定的流量然后执行设定的规...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1863.html" xml:lang="zh-CN"><![CDATA[
+<p>ipatbles 是 Linux 下的网络防火墙规则管理/修改工具，通过控制 Linux 内核 netfilter 模块，来管理网络数据包的处理和转发。用来识别路由表中特定的流量然后执行设定的规则。只用于处理 IPv4 数据包；而对于 IPv6 数据包，则使用类似的 ip6tables 命令。</p><h3>基本概念</h3><p>结构：</p><ul><li>Tables 路由表：用来区分不同类型的数据包，如 filter，nat，mangle，每个表包含几个路由链</li><li>Chain 路由链：流量的类型，如 INPUT ，FORWARD ，OUTPUT ，每种类型流量可以设置不同规则</li><li>Rule 规则：用来匹配特定类型的流量，如匹配来自 192.168.1.230 的流量</li><li>Target 目标：用来处理匹配到的流量，如 ACCEPT, DROP, QUEUE.</li><li>Policy 策略：是默认的处理动作，用来处理没有匹配到的流量，如 ACCEPT or DROP.</li></ul><p>iptables、ip6tables等都使用Xtables框架。存在“表（tables）”、“链（chain）”和“规则（rules）”三个层面。</p><p>每个“表”指的是不同类型的数据包处理流程，如filter表表示进行数据包过滤，而nat表针对连接进行地址转换操作。每个表中又可以存在多个“链”，系统按照预订的规则将数据包通过某个内建链，例如将从本机发出的数据通过OUTPUT链。在“链”中可以存在若干“规则”，这些规则会被逐一进行匹配，如果匹配，可以执行相应的动作，如修改数据包，或者跳转。跳转可以直接接受该数据包或拒绝该数据包，也可以跳转到其他链继续进行匹配，或者从当前链返回调用者链。当链中所有规则都执行完仍然没有跳转时，将根据该链的默认策略（“policy”）执行对应动作；如果也没有默认动作，则是返回调用者链。</p><!--more--><pre><code>                                           netfilter hooks
+
+                                  +-----------&gt; local +-----------+
+                                  |             process           |
+                                  |                               |
+                                  |                               |
+                                  |                               |
+                                  |                               v
+  MANGLE            +-------------+--------+
+  FILTER            |                      |               +----------------------+    RAW
+  SECURITY          |        input         |               |                      |    conntrack
+  SNAT              |                      |               |     output           |    MANGLE
+                    +------+---------------+               |                      |    DNAT
+                           ^                               +-------+--------------+    routing
+                           |                                       |                   FILTER
+                           |                                       |                   SECURITY
+                           |            +---------------------+    |         +-------------+
+     +-----------+                      |                     |    +-------&gt; |             |
++--&gt; |pre routing+----  route    -----&gt; |      forward        |              |post routing +----&gt;
+     |           |      lookup          |                     +------------&gt; |             |
+     +-----------+                      +---------------------+              +-------------+
+     
+     RAW                                       MANGLE                         MANGLE
+     conntrack                                 FILTER                         SNAT
+     MANGLE                                    SECURITY
+     DNAT
+     routing
+     </code></pre><p><strong>内建的路由表：</strong></p><ul><li>filter: 是默认的表，如果不指明表则使用此表。其通常用于过滤数据包。It includes chains like INPUT, OUTPUT and FORWARD.</li><li>nat : 用于地址转换操作。It includes PREROUTING and POSTROUTING chains.</li><li>mangle : 用于修改或标记数据包。</li><li>raw : 用于处理异常。Built-in chains are PREROUTING and OUTPUT.</li><li>security : Used for Mandatory Access Control</li></ul><p><strong>内建的路由链：</strong></p><ul><li>INPUT :输入链。发往本机的数据包通过此链</li><li>FORWARD :转发链。本机转发的数据包通过此链</li><li>OUTPUT :输出链。从本机发出的数据包通过此链</li><li>PREROUTING :路由前链，在处理路由规则前通过此链，通常用于目的地址转换（DNAT）</li><li>POSTROUTING :路由后链，完成路由规则后通过此链，通常用于源地址转换（SNAT）</li></ul><p><strong>Note: 用户可以创建自定义路由链</strong></p><p><strong>目标：</strong></p><ul><li>RETURN 允许并结束在 chains 里继续匹配</li><li>ACCEPT 允许但依然要在其他 chains 里继续进行匹配</li><li>REJECT 拒绝</li><li>DROP 丢弃</li><li>REDIRECT 重定向。只适用于 NAT 路由表的 PREROUTING 和 OUTPUT 路由链</li><li>MARK 只适用于 mangle 路由表。用来给特定流量做标记。</li></ul><pre><code>root@OpenWrt:~# iptables -h
+iptables v1.8.3
+
+Usage: iptables -[ACD] chain rule-specification [options]
+       iptables -I chain [rulenum] rule-specification [options]
+       iptables -R chain rulenum rule-specification [options]
+       iptables -D chain rulenum [options]
+       iptables -[LS] [chain [rulenum]] [options]
+       iptables -[FZ] [chain] [options]
+       iptables -[NX] chain
+       iptables -E old-chain-name new-chain-name
+       iptables -P chain target [options]
+       iptables -h (print this help information)
+
+Commands:
+Either long or short options are allowed.
+  --append  -A chain        Append to chain
+  --check   -C chain        Check for the existence of a rule
+  --delete  -D chain        Delete matching rule from chain
+  --delete  -D chain rulenum
+                Delete rule rulenum (1 = first) from chain
+  --insert  -I chain [rulenum]
+                Insert in chain as rulenum (default 1=first)
+  --replace -R chain rulenum
+                Replace rule rulenum (1 = first) in chain
+  --list    -L [chain [rulenum]]
+                List the rules in a chain or all chains
+  --list-rules -S [chain [rulenum]]
+                Print the rules in a chain or all chains
+  --flush   -F [chain]        Delete all rules in  chain or all chains
+  --zero    -Z [chain [rulenum]]
+                Zero counters in chain or all chains
+  --new     -N chain        Create a new user-defined chain
+  --delete-chain
+            -X [chain]        Delete a user-defined chain
+  --policy  -P chain target
+                Change policy on chain to target
+  --rename-chain
+            -E old-chain new-chain
+                Change chain name, (moving any references)
+Options:
+    --ipv4    -4        Nothing (line is ignored by ip6tables-restore)
+    --ipv6    -6        Error (line is ignored by iptables-restore)
+[!] --protocol    -p proto    protocol: by number or name, eg. `tcp'
+[!] --source    -s address[/mask][...]
+                source specification
+[!] --destination -d address[/mask][...]
+                destination specification
+[!] --in-interface -i input name[+]
+                network interface name ([+] for wildcard)
+ --jump    -j target
+                target for rule (may load target extension)
+  --goto      -g chain
+                              jump to chain with no return
+  --match    -m match
+                extended match (may load extension)
+  --numeric    -n        numeric output of addresses and ports
+[!] --out-interface -o output name[+]
+                network interface name ([+] for wildcard)
+  --table    -t table    table to manipulate (default: `filter')
+  --verbose    -v        verbose mode
+  --wait    -w [seconds]    maximum wait to acquire xtables lock before give up
+  --wait-interval -W [usecs]    wait time to try to acquire xtables lock
+                default is 1 second
+  --line-numbers        print line numbers when listing
+  --exact    -x        expand numbers (display exact values)
+[!] --fragment    -f        match second or further fragments only
+  --modprobe=&lt;command&gt;        try to insert modules using this command
+  --set-counters PKTS BYTES    set the counter during insert/append
+[!] --version    -V        print package version.</code></pre><p><strong>语法结构：</strong></p><pre><code>iptables -t [TABLE] [-A/-C/-D...] [CHAIN] rule -j Target
+</code></pre><h3>路由链操作</h3><h4>-A 链添加规则</h4><p><code>-A</code> 用来给某个链添加规则和动作。</p><p>丢弃所有发往本机的流量：</p><pre><code>iptables -t filter -A INPUT -j DROP
+</code></pre><h4>-D 链删除规则</h4><p>删除设定的发往本机的编号为 2 的规则：</p><pre><code>iptables -t filter -D INPUT 2
+</code></pre><h4>-C 链检查规则是否存在</h4><p>检查是否有丢弃来自 192.168.1.123 的流量的规则：</p><pre><code>iptables -t filter -C INPUT -s 192.168.1.123 -j DROP
+</code></pre><h3>规则匹配</h3><h4>-p 匹配特定协议的流量</h4><p>可能的流量类型: tcp, udp, icmp, ssh etc.</p><p>屏蔽对本机的 ping 请求：</p><pre><code>iptables -t filter -A INPUT -p icmp -j DROP
+</code></pre><p>丢弃发往本机的 udp 流量：</p><pre><code>iptables -t filter -A INPUT -p udp -j DROP
+</code></pre><h4>--dport 匹配特定端口</h4><p>丢弃访问本机 1080 端口的 tcp 流量：(默认是 filter 路由表)</p><pre><code>iptables -A INPUT -p tcp --dport 1080 -j DROP
+</code></pre><h4>-s 匹配源地址流量</h4><p>接收来自 192.168.1.230 发往本机的流量：</p><pre><code>iptables -t filter -A INPUT -s 192.168.1.230 -j ACCEPT
+</code></pre><h4>-d 目标地址的流量</h4><p>丢弃发往 192.168.1.123 的流量：</p><pre><code>iptables -t filter -A OUTPUT -d 192.168.1.123 -j DROP
+</code></pre><h4>-i 匹配特定网络入口的流量：</h4><p>丢弃所有来自 wlan0 无线网口的流量：</p><pre><code>iptables -t filter -A INPUT -i wlan0 -j DROP
+</code></pre><h4>-o 匹配特定网络出口的流量：</h4><p>丢弃所有发往 eth0 网口的流量：</p><pre><code>iptables -t filter -A OUTPUT -i eth0 -j DROP
+</code></pre><h4>允许 loopback 本地访问</h4><p>允许来自本地的访问(127.0.0.1) 非常重要，应该保证为打开状态：</p><pre><code>iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+</code></pre><h3>规则动作</h3><h4>-j 规则匹配后的动作</h4><p>丢弃所有转发链流量：</p><pre><code>iptables -t filter -A FORWARD -j DROP
+</code></pre><h3>-m 匹配参数的使用</h3><h4>-m multiport 同时处理多端口</h4><p>允许访问本机的多个端口的 tcp 流量：(默认是 filter 路由表)</p><pre><code>iptables -A INPUT -p tcp -m multiport --dports 22,80,443 -j ACCEPT
+</code></pre><h4>-m mac 匹配特定 mac 地址</h4><p>丢弃某个 mac 地址对本地的访问：</p><pre><code>iptables -A INPUT -m mac --mac-source 00:00:00:00:00:00 -j DROP
+</code></pre><h3>路由转发</h3><p>将特定的流量转发到另一个地方，需要用到 PREROUTING 路由表来预处理流量。</p><p>将来自 eth0 网口的访问本机 25 端口的 tcp 流量转发到 2525 端口：</p><pre><code>iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 25 -j REDIRECT --to-port 2525
+</code></pre><h3>新建路由链</h3><p>通过新建自定义路由链，可以放入自定义的规则到里面。<strong>自定义规则并不能被直接使用</strong>，需要使用系统内置的 chains 然后 jump 到自定义 chain。</p><p>语法：</p><pre><code>iptables -t [TABLE] -N [CHAIN]
+</code></pre><p>在 NAT 路由表下新建路由链 custom-chain：</p><pre><code>iptables -t nat -N custom-chain
+</code></pre><p>查看新建的路由链：</p><pre><code>iptables -L
+</code></pre><p>将流量转到自定义路由链：</p><pre><code>iptables -A INPUT -p tcp -j custom-chain
+</code></pre><h3>标记流量</h3><p>MARK 目标用来给流量做标记，方便识别及处理。只适用于 mangle 路由表：</p><pre><code>iptables -t mangle -A PREROUTING -p udp --dport 53 -j MARK --set-mark 1
+</code></pre><h3>常用命令</h3><p>列出当前设定的所有规则并按数字排序：</p><pre><code>iptables -L -n
+</code></pre><p>列出特定路由表的规则：</p><pre><code>iptbales -t [TABLE] -L
+</code></pre><p>清除设置的规则，默认为 filter 路由表：</p><pre><code>iptables -t [TABLE] --flush
+</code></pre><p>保存规则：</p><pre><code>iptables-save &gt; /path/to/file
+</code></pre><p>恢复规则：</p><pre><code>iptables-restore &lt; /path/to/file
+</code></pre><h3>参考文章</h3><p><a href="https://www.geeksforgeeks.org/iptables-command-in-linux-with-examples/">iptables command in Linux with Examples</a><br><a href="https://www.tecmint.com/linux-iptables-firewall-rules-examples-commands/">25 Useful IPtable Firewall Rules Every Linux Administrator Should Know</a><br><a href="https://zh.wikipedia.org/wiki/Iptables">iptables wikipedia</a><br><a href="https://gist.github.com/mcastelino/c38e71eb0809d1427a6650d843c42ac2">https://gist.github.com/mcastelino/c38e71eb0809d1427a6650d843c42ac2</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1863.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1863.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[vmware 虚拟机安装 openWRT 及路由配置]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1818.html" />
@@ -273,23 +413,5 @@ aroot@localhost$</code></pre><p>以上就是 <code>echo</code> 命令的简单�
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1781.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1781.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[powershell 脚本运行问题处理]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1777.html" />
-<id>https://blog.niekun.net/archives/1777.html</id>
-<updated>2020-09-28T12:53:00+08:00</updated>
-<published>2020-09-28T12:53:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[最近在学习 powershell 脚本中发现如果当前目录不在 ps1 脚本所在目录的话脚本不能正常执行，研究了下如何解决。PS C:\Users\Marco Nie&amp;gt; &amp;quot;C:\U...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1777.html" xml:lang="zh-CN"><![CDATA[
-<p>最近在学习 powershell 脚本中发现如果当前目录不在 ps1 脚本所在目录的话脚本不能正常执行，研究了下如何解决。</p><pre><code>PS C:\Users\Marco Nie&gt; &quot;C:\Users\Marco Nie\Application\aria2\download-complete.ps1&quot;
-C:\Users\Marco Nie\Application\aria2\download-complete.ps1</code></pre><p>如以上，我想执行脚本，但是只是返回了路径。</p><p>解决方法是在脚本路径前加上<strong>程序调用符</strong> <code>&amp;</code> ，表示后面的是可执行文件。</p><pre><code> &amp;&quot;C:\Users\Marco Nie\Application\aria2\download-complete.ps1&quot;</code></pre><p>以上方式就可以正常执行脚本了。</p><p><strong>还有就是脚本路径上如果有空格的话，需要使用引号将路径包围起来，这样就可以了。</strong></p><p>参考链接：<br><a href="http://www.splaybow.com/post/powershell-run-command-with-space.html">http://www.splaybow.com/post/powershell-run-command-with-space.html</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1777.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1777.html" thr:count="0"/>
 </entry>
 </feed>
