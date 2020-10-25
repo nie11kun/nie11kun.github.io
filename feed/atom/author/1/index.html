@@ -6,11 +6,88 @@ xml:base="https://blog.niekun.net/author/1/"
 >
 <title type="text">Marco Nie - admin</title>
 <subtitle type="text">admin</subtitle>
-<updated>2020-10-23T09:59:00+08:00</updated>
+<updated>2020-10-25T07:51:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/author/1/" />
 <id>https://blog.niekun.net/feed/atom/author/1/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/author/1/" />
+<entry>
+<title type="html"><![CDATA[dnsmasq 使用教程]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1869.html" />
+<id>https://blog.niekun.net/archives/1869.html</id>
+<updated>2020-10-25T07:51:00+08:00</updated>
+<published>2020-10-25T07:51:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[dnsmasq 提供 DNS 缓存/查询服务和 DHCP(Dynamic Host Configuration Protocol) 服务等功能，用来管理本地局域网络系统。内置于常见的 Linux...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1869.html" xml:lang="zh-CN"><![CDATA[
+<p>dnsmasq 提供 DNS 缓存/查询服务和 DHCP(Dynamic Host Configuration Protocol) 服务等功能，用来管理本地局域网络系统。内置于常见的 Linux 分发版，openWrt，macOS 系统中。</p><h3>安装</h3><p>直接使用包管理器安装：</p><pre><code>apt install dnsmasq
+</code></pre><p>查询版本：</p><pre><code>dnsmasq -v
+</code></pre><p>信息里 <strong>Compile time options</strong> 可以看到当前安装版本支持的选项功能 ，如：<code>ipset</code></p><pre><code>root@OpenWrt:/etc# dnsmasq -v
+Dnsmasq version 2.80  Copyright (c) 2000-2018 Simon Kelley
+Compile time options: IPv6 GNU-getopt no-DBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack ipset auth DNSSEC no-ID loop-detect inotify dumpfile
+
+This software comes with ABSOLUTELY NO WARRANTY.
+Dnsmasq is free software, and you are welcome to redistribute it
+under the terms of the GNU General Public License, version 2 or 3.</code></pre><p>启动服务：</p><pre><code>systemctl start dnsmasq
+</code></pre><p>服务启动后，会监听本地或局域网内的 DNS 请求并根据配置规则进行处理。</p><!--more--><h3>DNS 服务</h3><h4>Linux DNS 请求处理流程</h4><p><code>test.com</code> -&gt; <code>/etc/hosts</code> -&gt; <code>/etc/resolv.conf</code> -&gt; <code>dnsmasq</code></p><p>以上每个过程中只要得到了解析的 IP 地址则直接结束剩下的处理过程。</p><p><code>/etc/hosts</code> 文件是 Linux 系统默认的 hosts 文件，一般发起的 DNS 请求会首先查询此 hosts 文件，如果没有匹配上则从 <code>/etc/resolv.conf</code> 文件找 DNS 服务器进行进一步查询。</p><p><code>/etc/resolv.conf</code> 文件是 linux 系统的默认 dns 配置文件，一般情况下里面定义的域名服务器地址为本地：127.0.0.1 地址，由于 dnsmasq 默认监听本地及局域网 53 端口，则 DNS 请求就会传入 dnsmasq 进行进一步解析。</p><p>下面介绍 hosts 文件和 resolv 文件的意义。</p><h4>hosts</h4><p>hosts 文件主要用来指定某个域名的解析 IP，通常用来处理局域网设备的域名解析到对应设备 IP。一般情况下局域网设备设置的域名不能在公共 DNS 服务器进行解析。系统默认的 hosts 文件地址：<code>/etc/hosts</code>。</p><p>文件格式：</p><pre><code>127.0.0.1 localhost
+192.168.1.123 test1.home.lan
+192.168.1.124 test2.home.lan</code></pre><p>使用 hosts 文件也可以用来进行域名欺骗，实现广告屏蔽等功能，比如我想要屏蔽 360 的所有访问：</p><pre><code>127.0.0.1 360.com</code></pre><p>dnsmasq 可以选择使用自定义的 hosts 文件。</p><h4>resolv.conf</h4><p>resolv.conf 文件定义了 DNS 服务器地址，dns 请求会转发到设置的地址上。可以指定多个服务器进行顺序查询直到解析到 IP 地址，指定为本地地址 127.0.0.1 会转发到本地 dnsmasq 进行处理。<code>/etc/resolv.conf</code> 是系统默认解析服务器配置文件。</p><p>文件格式：</p><pre><code>nameserver 127.0.0.1
+nameserver 192.168.1.1
+nameserver 114.114.114.114</code></pre><p>系统默认的 <code>/etc/resolv.conf</code> 文件在每次系统启动会根据 DHCP 分配情况自动生成，一般指向本地地址或局域网网关。dnsmasq 可以配置自定义的 resolv 文件可以设置公网的 DNS 解析服务器，也就是上游 DNS 服务器。</p><h4>dnsmasq 处理流程简介</h4><p><code>dnsmasq</code> -&gt; <code>hosts.dnsmasq</code> -&gt; <code>/etc/dnsmasq.conf</code> / <code>dnsmasq.conf</code> -&gt; <code>resolv.dnsmasq.conf</code></p><p>DNS 请求传入 dnsmasq 后通过其配置文件来进行 DNS 查询，首先查询 hosts 文件，如果设置了自定义 hosts 文件和系统默认 hosts 一起查询，没有匹配到的话就进入 conf 配置文件内部的 server 及 address 项进行匹配，如果依然没有结果则查询 relolv 自定义配置文件定义的上游 DNS 服务器。</p><p><code>/etc/dnsmasq.d</code> 文件夹和 <code>/etc/dnsmasq.conf</code> 文件是 dnsmasq 的配置路径，可以设置监听地址，自定义 hosts.dnsmasq 文件地址，自定义 resolv.dnsmasq.conf 文件地址，也可以在文件内直接指定某域名使用的 DNS 解析服务器等。</p><p><code>/etc/dnsmasq.d</code> 文件夹可以存放用户自定义的 dnsmasq 配置文件，效果等同于直接写入 dnsmasq.conf 文件内，方便整理自定义规则。</p><h4>dnsmasq 配置文件</h4><p>下面介绍 dnsmasq 配置常用的语句：</p><pre><code># 监听地址：
+# 如果只写 127.0.0.1 则只处理本机的 DNS 解析，不写这句默认监听所有网口
+listen-address=127.0.0.1,192.168.8.132
+
+# 指定自定义 hosts 文件：
+addn-hosts=/etc/hosts.dnsmasq
+
+# 指定上游 DNS 服务列表的配置文件
+resolv-file=/etc/resolv.dnsmasq.conf
+
+# 按照 DNS 列表一个个查询，否则将请求发送到所有 DNS 服务器
+strict-order
+
+# 表示对下面设置的所有 server 发起查询请求，选择响应最快的服务器的结果
+all-servers
+
+# 指定默认查询的上游服务器
+server=8.8.8.8
+server=114.114.114.114
+
+# 指定 .cn 的域名全部通过 114.114.114.114 这台国内DNS服务器来解析
+server=/cn/114.114.114.114
+
+# 给 *.apple.com 和 taobao.com 使用专用的 DNS
+server=/taobao.com/223.5.5.5
+server=/.apple.com/223.6.6.6
+
+# 增加一个域名，强制解析到所指定的地址上，dns 欺骗
+address=/360.com/127.0.0.1
+
+# 设置DNS缓存大小(单位：DNS解析条数)
+cache-size=500
+
+# 存储域名解析的 IP 地址结果存储到 saveresult 的 ipset 结果中，可以交给iptables识别和转发
+ipset=/test.com/saveresult</code></pre><h3>DHCP 服务</h3><p>待整理。。。</p><h3>升级 dnsmasq-full</h3><p>openWrt 默认安装的 dnsmasq 缺少一些选项功能，如：ipset，可以安装 dnsmasq-full 来实现更多功能，由于 dnsmasq 管理着域名解析工作，卸载 dnsmasq 后会导致无法正确解析域名从无法联网。有 2 种方法避免这种情况：</p><ul><li>修改 <code>resolv.conf</code> 文件手动指定 DNS 服务器</li><li>提前下载好 dnsmasq-full 安装文件。</li></ul><h4>手动指定 DNS 解析地址</h4><p>修改 <code>/etc/resolv.conf</code> 文件，指定上游 DNS 服务器：</p><pre><code>nameserver 114.114.114.114
+</code></pre><p>卸载及安装新程序：</p><pre><code>opkg remove dnsmasq &amp;&amp; opkg install dnsmasq-full
+</code></pre><h4>提前下载安装包</h4><pre><code># 下载安装包
+opkg download dnsmasq-full
+# 查看下载的安装包名称：
+ls
+# 尝试安装，会提示失败，但可以安装好需要的依赖包
+opkg install dnsmasq-full
+# 删除原 dnsmasq
+opkg remove dnsmasq
+# 安装下载好的包
+opkg install dnsmasq-full_2.80-15_x86_64.ipk
+# 安装完成后可以删除安装包文件
+rm dnsmasq-full_2.80-15_x86_64.ipk </code></pre><h3>参考链接</h3><p><a href="https://www.solarck.com/openwrt-v2ray.html">一文玩转V2ray 透明代理</a><br><a href="http://www.enkichen.com/2017/05/23/dnsmasq-introduce/">Dnsmasq 介绍与使用</a><br><a href="https://blog.csdn.net/lvshaorong/article/details/52981169">Dnsmasq+ipset+iptables基于域名的流量管理</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1869.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1869.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[iptables 使用教程]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1863.html" />
@@ -375,43 +452,5 @@ wsl --set-version Ubuntu 2</code></pre><p>wsl 2 安装完成后就可以去 Wind
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1782.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1782.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[echo 命令的使用]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1781.html" />
-<id>https://blog.niekun.net/archives/1781.html</id>
-<updated>2020-09-30T09:23:00+08:00</updated>
-<published>2020-09-30T09:23:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[echo 是常用的终端命令，常用来输出字符串。配合命令的 option 选项可以实现多种输出方式。语法结构：echo [option(s)] [string(s)]常规使用输出字符串：$ ech...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1781.html" xml:lang="zh-CN"><![CDATA[
-<p>echo 是常用的终端命令，常用来输出字符串。配合命令的 option 选项可以实现多种输出方式。</p><h3>语法结构：</h3><pre><code>echo [option(s)] [string(s)]
-</code></pre><h3>常规使用</h3><h4>输出字符串：</h4><pre><code>$ echo i have a dream
-i have a dream</code></pre><!--more--><h4>输出变量：</h4><pre><code>$ x=10
-$ echo $x
-10</code></pre><h4>输出目录下所有文件名：</h4><pre><code>$ echo *
-Business Card Template - PiXimperfect.psd Telegram Desktop Video desktop.ini echo.txt test1.txt test2.txt</code></pre><h4>输出特定名称的文件名：</h4><pre><code>$ echo *.txt
-echo.txt test1.txt test2.txt</code></pre><h4>将字符串输出到文件：</h4><pre><code>$ echo 'abc' &gt; test.txt
-$ cat test.txt
-abc</code></pre><h3>使用 <code>-e</code> 选项识别字符串内的转义符 <code>\</code></h3><h4><code>\b</code> 表示清除字符间空格</h4><pre><code>$ echo -e 'a \bb \bc'
-abc</code></pre><h4><code>\n</code> 表示换行</h4><pre><code>$ echo -e 'a\nb\nc'
-a
-b
-c</code></pre><h4><code>\t</code> 表示添加制表符</h4><pre><code>$ echo -e 'a\tb\tc'
-a       b       c</code></pre><p>可以结合 <code>\n</code> <code>\t</code> 使用：</p><pre><code>$ echo -e '\ta\n\tb\n\tc'
-        a
-        b
-        c</code></pre><h4><code>\v</code> 表示添加垂直方向制表符</h4><pre><code>$ echo -e 'a\vb\vc'
-a
- b
-  c</code></pre><h4><code>\r</code> 表示丢弃前面的字符串</h4><pre><code>$ echo -e 'a\rbc'
-bc</code></pre><h4><code>\c</code> 表示丢弃后面的字符串</h4><pre><code>$ echo -e 'a\cbc'
-aroot@localhost$</code></pre><p>以上就是 <code>echo</code> 命令的简单使用方法。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1781.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1781.html" thr:count="0"/>
 </entry>
 </feed>
