@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1872.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1869.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1863.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1818.html"/>
@@ -18,10 +19,56 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1793.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1788.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1785.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1782.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1872.html">
+<title>使用 dnsmasq 和 iptables 控制域名流量</title>
+<link>https://blog.niekun.net/archives/1872.html</link>
+<dc:date>2020-10-26T22:29:00+08:00</dc:date>
+<description>dnsmasq 是处理 dns 请求的工具，实现域名请求解析到目标 IP 地址的过程。可以方便的管理本机或局域网设备的域名解析服务，使用教程参考：https://blog.niekun.net/archives/1869.htmliptables 是网络防火墙规则管理/修改工具，管理网络数据包的处理和转发。使用教程参考：https://blog.niekun.net/archives/1863.htmliptables 管理某个源地址或目标地址的流量时，只能识别 IP 地址，比如：# -s 匹配源地址流量,接收来自 192.168.1.230 发往本机的流量：
+iptables -t filter -A INPUT -s 192.168.1.230 -j ACCEPT
+
+# -d 匹配目标地址的流量,丢弃发往 192.168.1.123 的流量：
+iptables -t filter -A OUTPUT -d 192.168.1.123 -j DROP如果要使用 iptables 管理某域名的流量，可以使用 dnsmasq-full 里的 ipset 工具标记并保存域名包含的 IP 地址池，然后在 iptables 中调取。使用命令查看当前安装版本的 dnsmasq 是否支持 ipset：查询版本：dnsmasq -v
+信息里 Compile time options 可以看到当前安装版本支持的选项功能 ，如：ipsetroot@OpenWrt:/etc# dnsmasq -v
+Dnsmasq version 2.80  Copyright (c) 2000-2018 Simon Kelley
+Compile time options: IPv6 GNU-getopt no-DBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack ipset auth DNSSEC no-ID loop-detect inotify dumpfile
+...如果没有 ipset 就需要手动安装 dnsmasq-full 版本了，升级方法参考：https://blog.niekun.net/archives/1869.html域名解析标记首先建立我们自定义的 ipset 表来存储解析的 IP 地址：ipset create block hash:ip
+可以查询当前这个列表是空的：root@OpenWrt:~# ipset list block
+Name: block
+Type: hash:ip
+Revision: 4
+Header: family inet hashsize 1024 maxelem 65536
+Size in memory: 88
+References: 0
+Number of entries: 0
+Members:使用 dnsmasq 的 ipset 命令做域名解析结果标记和存储，在 dnsmasq 的配置文件，如：/etc/dnsmasq.conf 中加入如下语句：ipset=/360.com/block
+重启 ndsmasq 服务：systemctl restart dnsmasq
+使用 nslookup 命令对 360.com 域名进行 dns 查询：root@OpenWrt:/etc# nslookup 360.com
+Server:        127.0.0.1
+Address:    127.0.0.1#53
+
+Name:      360.com
+Address 1: 180.163.251.93
+Address 2: 36.110.213.45这时候重新查看建立的 ipset 表内容：root@OpenWrt:/etc# ipset list block
+Name: block
+Type: hash:ip
+Revision: 4
+Header: family inet hashsize 1024 maxelem 65536
+Size in memory: 184
+References: 0
+Number of entries: 2
+Members:
+36.110.213.45
+180.163.251.93可以看到域名对应的 IP 地址已经记录到了 block 表内。流量处理iptables 可以调用 ipset 表来对流量进行处理，经过测试需使用 -I 命令指定规则序号形式才能正常工作，使用 -m set --match-set 列表名 dst 匹配目标地址，或 -m set --match-set 列表名 src 匹配原地址，下面举例说明：# 屏蔽 block 表地址的访问
+iptables -t filter -I INPUT 1 -m set --match-set block src -j DROP
+
+# 允许 allow 表地址的访问
+iptables -t filter -I INPUT 2 -m set --match-set allow src -j RETURN查询路由表加入的规则：iptables -t filter -L -n
+删除 INPUT 路由链第一条规则：iptables -t filter -D INPUT 1
+iptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1869.html">
 <title>dnsmasq 使用教程</title>
 <link>https://blog.niekun.net/archives/1869.html</link>
@@ -190,6 +237,7 @@ Options:
   --set-counters PKTS BYTES    set the counter during insert/append
 [!] --version    -V        print package version.语法结构：iptables -t [TABLE] [-A/-C/-D...] [CHAIN] rule -j Target
 路由链操作-A 链添加规则-A 用来给某个链添加规则和动作。丢弃所有发往本机的流量：iptables -t filter -A INPUT -j DROP
+-I 插入规则到指定排序位置使用 -I 指令新建规则并放置到指定排序中，不指定数字的话默认新建规则放置到路由链第一条。新建规则并作为 INPUT 路由链第二条规则：iptables -t filter -I INPUT 2 -j DROP
 -D 链删除规则删除设定的发往本机的编号为 2 的规则：iptables -t filter -D INPUT 2
 -C 链检查规则是否存在检查是否有丢弃来自 192.168.1.123 的流量的规则：iptables -t filter -C INPUT -s 192.168.1.123 -j DROP
 规则匹配-p 匹配特定协议的流量可能的流量类型: tcp, udp, icmp, ssh etc.屏蔽对本机的 ping 请求：iptables -t filter -A INPUT -p icmp -j DROP
@@ -347,11 +395,5 @@ wsl -l -v
 
 # 升级某个子系统到 wsl 2
 wsl --set-version Ubuntu 2wsl 2 安装完成后就可以去 Windows 商店下载安装 Linux 发行版了：https://aka.ms/wslstore安装 Linux 发行版后的具体设置和之前 wsl 安装教程一样：https://blog.niekun.net/archives/1148.html参考链接https://docs.microsoft.com/en-us/windows/wsl/install-win10https://docs.microsoft.com/en-us/windows/wsl/compare-versions</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1782.html">
-<title>powershell 脚本实现系统消息提醒</title>
-<link>https://blog.niekun.net/archives/1782.html</link>
-<dc:date>2020-09-30T11:52:07+08:00</dc:date>
-<description>https://mcpmag.com/articles/2017/09/07/creating-a-balloon-tip-notification-using-powershell.aspx</description>
 </item>
 </rdf:RDF>
