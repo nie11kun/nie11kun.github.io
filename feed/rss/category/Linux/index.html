@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1885.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1872.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1869.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1863.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1781.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1763.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1758.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1757.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1885.html">
+<title>Linux 的 ip 命令使用教程</title>
+<link>https://blog.niekun.net/archives/1885.html</link>
+<dc:date>2020-10-27T22:32:30+08:00</dc:date>
+<description></description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1872.html">
 <title>使用 dnsmasq 和 iptables 控制域名流量</title>
 <link>https://blog.niekun.net/archives/1872.html</link>
@@ -61,13 +67,13 @@ References: 0
 Number of entries: 2
 Members:
 36.110.213.45
-180.163.251.93可以看到域名对应的 IP 地址已经记录到了 block 表内。流量处理iptables 可以调用 ipset 表来对流量进行处理，经过测试需使用 -I 命令指定规则序号形式才能正常工作，使用 -m set --match-set 列表名 dst 匹配目标地址，或 -m set --match-set 列表名 src 匹配原地址，下面举例说明：# 屏蔽 block 表地址的访问
-iptables -t filter -I INPUT 1 -m set --match-set block src -j DROP
+180.163.251.93可以看到域名对应的 IP 地址已经记录到了 block 表内。流量处理iptables 可以调用 ipset 表来对流量进行处理，使用 -I 参数将规则添加到链表最上方以确保顺利匹配，使用 -m set --match-set 列表名 dst 匹配目标地址，或 -m set --match-set 列表名 src 匹配原地址，下面举例说明：# 屏蔽 block 表地址的访问
+iptables -t filter -I INPUT -m set --match-set block src -j DROP
 
 # 允许 allow 表地址的访问
-iptables -t filter -I INPUT 2 -m set --match-set allow src -j RETURN查询路由表加入的规则：iptables -t filter -L -n
-删除 INPUT 路由链第一条规则：iptables -t filter -D INPUT 1
-iptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。</description>
+iptables -t filter -I INPUT -m set --match-set allow src -j RETURNiptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。查询路由表加入的规则：iptables -t filter -L -n
+如果要删除 INPUT 路由链第一条规则，使用命令：iptables -t filter -D INPUT 1
+以上就是使用 dnsmasq 的 ipset 功能实现 iptables 对域名流量的控制。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1869.html">
 <title>dnsmasq 使用教程</title>
@@ -236,18 +242,41 @@ Options:
   --modprobe=&lt;command&gt;        try to insert modules using this command
   --set-counters PKTS BYTES    set the counter during insert/append
 [!] --version    -V        print package version.语法结构：iptables -t [TABLE] [-A/-C/-D...] [CHAIN] rule -j Target
-路由链操作-A 链添加规则-A 用来给某个链添加规则和动作。丢弃所有发往本机的流量：iptables -t filter -A INPUT -j DROP
--I 插入规则到指定排序位置使用 -I 指令新建规则并放置到指定排序中，不指定数字的话默认新建规则放置到路由链第一条。新建规则并作为 INPUT 路由链第二条规则：iptables -t filter -I INPUT 2 -j DROP
--D 链删除规则删除设定的发往本机的编号为 2 的规则：iptables -t filter -D INPUT 2
+路由链操作-A 链添加规则-A 在链表后添加规则和动作，新加的规则排在表的最后。允许所有发往本机的流量：iptables -t filter -A INPUT -j ACCEPT
+-I 插入规则-I 指令添加规则并可指定新规则在链表的位置，不指定排序数字的话默认插入的规则放置到路由链第一条。新建规则并作为 INPUT 路由链第一条规则：iptables -t filter -I INPUT -j ACCEPT
+新建规则并作为 INPUT 路由链第二条规则：iptables -t filter -I INPUT 2 -j ACCEPT
+由于链表的规则是顺序读取的，所以将规则放在前面有时候会确保规则的正确执行，使用 -I 参数比较合适。-D 链删除规则删除设定的发往本机的编号为 2 的规则：iptables -t filter -D INPUT 2
 -C 链检查规则是否存在检查是否有丢弃来自 192.168.1.123 的流量的规则：iptables -t filter -C INPUT -s 192.168.1.123 -j DROP
-规则匹配-p 匹配特定协议的流量可能的流量类型: tcp, udp, icmp, ssh etc.屏蔽对本机的 ping 请求：iptables -t filter -A INPUT -p icmp -j DROP
+-L 路由规则列表列出当前设定的所有规则并按顺序排序：iptables -L -n
+列出特定路由表的规则：iptbales -t [TABLE] -L
+列出特定路由表的某条链的规则：iptbales -t [TABLE] -L INPUT
+举例说明分别使用 -A -I 建立规则，然后 -L 查看规则，-D 删除规则：$ iptables -I INPUT -s 192.168.1.101 -j ACCEPT
+$ iptables -A INPUT -s 192.168.1.102 -j ACCEPT
+$ iptables -I INPUT -s 192.168.1.103 -j ACCEPT
+$ iptables -I INPUT 2 -s 192.168.1.104 -j ACCEPT
+
+$ iptables -L INPUT
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+ACCEPT     all  --  192.168.1.103        anywhere            
+ACCEPT     all  --  192.168.1.104        anywhere            
+ACCEPT     all  --  192.168.1.101        anywhere            
+ACCEPT     all  --  192.168.1.102        anywhere
+
+$ iptables -D INPUT 2
+$ iptables -L INPUT
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+ACCEPT     all  --  192.168.1.103        anywhere            
+ACCEPT     all  --  192.168.1.101        anywhere            
+ACCEPT     all  --  192.168.1.102        anywhere规则匹配-p 匹配特定协议的流量可能的流量类型: tcp, udp, icmp, ssh etc.屏蔽对本机的 ping 请求：iptables -t filter -A INPUT -p icmp -j DROP
 丢弃发往本机的 udp 流量：iptables -t filter -A INPUT -p udp -j DROP
 --dport 匹配特定端口丢弃访问本机 1080 端口的 tcp 流量：(默认是 filter 路由表)iptables -A INPUT -p tcp --dport 1080 -j DROP
 -s 匹配源地址流量接收来自 192.168.1.230 发往本机的流量：iptables -t filter -A INPUT -s 192.168.1.230 -j ACCEPT
 -d 目标地址的流量丢弃发往 192.168.1.123 的流量：iptables -t filter -A OUTPUT -d 192.168.1.123 -j DROP
 -i 匹配特定网络入口的流量：丢弃所有来自 wlan0 无线网口的流量：iptables -t filter -A INPUT -i wlan0 -j DROP
 -o 匹配特定网络出口的流量：丢弃所有发往 eth0 网口的流量：iptables -t filter -A OUTPUT -i eth0 -j DROP
-允许 loopback 本地访问允许来自本地的访问(127.0.0.1) 非常重要，应该保证为打开状态：(io 表示本地网卡)iptables -A INPUT -i lo -j ACCEPT
+允许 loopback 本地访问允许来自本地的访问(127.0.0.1) 非常重要，应该保证为打开状态：(lo 表示本机网口-interface)iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 规则动作-j 规则匹配后的动作丢弃所有转发链流量：iptables -t filter -A FORWARD -j DROP
 -m 匹配参数的使用-m multiport 同时处理多端口允许访问本机的多个端口的 tcp 流量：(默认是 filter 路由表)iptables -A INPUT -p tcp -m multiport --dports 22,80,443 -j ACCEPT
@@ -255,12 +284,10 @@ iptables -A OUTPUT -o lo -j ACCEPT
 路由转发将特定的流量转发到另一个地方，需要用到 PREROUTING 路由表来预处理流量。将来自 eth0 网口的访问本机 25 端口的 tcp 流量转发到 2525 端口：iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 25 -j REDIRECT --to-port 2525
 新建路由链通过新建自定义路由链，可以放入自定义的规则到里面。自定义规则并不能被直接使用，需要使用系统内置的 chains 然后 jump 到自定义 chain。语法：iptables -t [TABLE] -N [CHAIN]
 在 NAT 路由表下新建路由链 custom-chain：iptables -t nat -N custom-chain
-查看新建的路由链：iptables -L
+查看新建的路由链：iptables -L custom-chain
 将流量转到自定义路由链：iptables -A INPUT -p tcp -j custom-chain
 标记流量MARK 目标用来给流量做标记，方便识别及处理。只适用于 mangle 路由表：iptables -t mangle -A PREROUTING -p udp --dport 53 -j MARK --set-mark 1
-常用命令列出当前设定的所有规则并按数字排序：iptables -L -n
-列出特定路由表的规则：iptbales -t [TABLE] -L
-清除设置的规则，默认为 filter 路由表：iptables -t [TABLE] --flush
+常用命令清除设置的规则，默认为 filter 路由表：iptables -t [TABLE] -F
 保存规则：iptables-save &gt; /path/to/file
 恢复规则：iptables-restore &lt; /path/to/file
 参考文章iptables command in Linux with Examples25 Useful IPtable Firewall Rules Every Linux Administrator Should Knowiptables wikipediahttps://gist.github.com/mcastelino/c38e71eb0809d1427a6650d843c42ac2</description>
@@ -393,68 +420,5 @@ pip 的安装路径是 /opt/python3.8.5/bin/，测试命令：/opt/python3.8.5/b
 返回版本信息则安装完成。添加软连接到系统路径：ln -s /opt/python3.8.5/bin/pip3 /usr/bin/pip
 测试命令：pip --version
 参考链接https://docs.rstudio.com/resources/install-python-source/</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1757.html">
-<title>awk 命令的用法</title>
-<link>https://blog.niekun.net/archives/1757.html</link>
-<dc:date>2020-09-18T16:20:00+08:00</dc:date>
-<description>awk 是常用的 Linux 文本操作命令和脚本语言。用来按行提取和处理文本内容，也可以执行简单的逻辑处理。比如我们有一个 txt 文件：ab.c 123 e.rt 456
-oh.g 324 b.na 756
-si.d 156 o.ui 452执行命令：$ awk '{print $1}' test.txt
-ab.c
-oh.g
-si.d可以看到返回结果为每一行的第一个字符串。默认以空格作为分隔符。$1 为每行第一个字符串，$2 为每行第二个字符串，以此类推。$0 为整个文本。可以同时输出多个内容：$ awk '{print $1, $2}' test.txt
-ab.c 123
-oh.g 324
-si.d 156内部集成的参数FS 区域分割符awk 默认使用空格来分割字符串，也可以自己定义分割符：$ awk 'FS = &quot;.&quot; {print $1, $2}' test.txt
-ab c 123 e
-oh g 324 b
-si d 156 o这时候，ab 和 c 123 e 分别是一个整体。还有一种写法使用 -F 表示，要写在引号外部：$ awk -F. '{print $1, $2}' test.txt
-NF 每行字符串个数用 $NF 来表示每行最后一个串：$ awk '{print $NF}' test.txt
-456
-756
-452用 NF 来判断每行字符串格个数：只输出有 4 个字符串的所在行的内容$ awk 'NF == 4 {print $1, $2}' test.txt
-ab.c 123
-oh.g 324
-si.d 156NR 当前行号NR 记录当前行的行号：$ awk '{print NR}' test.txt
-1
-2
-3$ awk '{print NR, $0}' test.txt
-1 ab.c 123 e.rt 456
-2 oh.g 324 b.na 756
-3 si.d 156 o.ui 452OFS 定义输出串分割符字符串输出是可以自定义分割符号：$ awk 'OFS=&quot;/&quot; {print $1, $2}' test.txt
-ab.c/123
-oh.g/324
-si.d/156BEGIN 和 END 规则BEGIN 规则是在 awk 读取输入文本前执行的指令，END 规则是在 awk 输出完字符串后执行的指令。$ awk 'BEGIN {print &quot;begin process&quot;} {print $0} END {print &quot;end process&quot;}' test.txt
-begin process
-ab.c 123 e.rt 456
-oh.g 324 b.na 756
-si.d 156 o.ui 452
-end process判断模块可以使用常用的判断来过滤输出结果：设置第4个字符串数字需要大于等于500：$ awk '$4 &gt;=500 {print $0}' test.txt
-oh.g 324 b.na 756设置行内必须包含字符串 ab:$ awk '/ab/ {print $0}' test.txt
-ab.c 123 e.rt 456设置行开始必须包含字符串 ab:$ awk '/^ab/ {print $0}' test.txt
-ab.c 123 e.rt 456awk script 脚本如果命令很复杂，可以建立一个脚本来单独执行。建立文件：test.awk#!/usr/bin/awk -f
-
-BEGIN {
-  # set the input and output field separators
-  FS=&quot;:&quot;
-  OFS=&quot;:&quot;
-  # zero the accounts counter
-  accounts=0
-}
-{
-  # set field 2 to nothing
-  $2=&quot;&quot;
-  # print the entire line
-  print $0
-  # count another account
-  accounts++
-}
-END {
-  # print the results
-  print accounts &quot; accounts.\n&quot;
-}可执行权限：chmod +x test.awk
-执行：./test.awk /etc/passwd
-windowswindows 下也可以使用 awk，下载安装 Gawk 即可。官网：http://gnuwin32.sourceforge.net/packages/gawk.htm下载对应安装包，安装后将 awk 可执行文件的路径加入系统 PATH 即可使用，参考：https://blog.niekun.net/archives/413.html参考链接https://www.howtogeek.com/562941/how-to-use-the-awk-command-on-linux/http://linuxcommand.org/lc3_adv_awk.php</description>
 </item>
 </rdf:RDF>

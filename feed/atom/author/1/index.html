@@ -6,11 +6,25 @@ xml:base="https://blog.niekun.net/author/1/"
 >
 <title type="text">Marco Nie - admin</title>
 <subtitle type="text">admin</subtitle>
-<updated>2020-10-26T22:29:00+08:00</updated>
+<updated>2020-10-27T22:32:30+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/author/1/" />
 <id>https://blog.niekun.net/feed/atom/author/1/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/author/1/" />
+<entry>
+<title type="html"><![CDATA[Linux 的 ip 命令使用教程]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1885.html" />
+<id>https://blog.niekun.net/archives/1885.html</id>
+<updated>2020-10-27T22:32:30+08:00</updated>
+<published>2020-10-27T22:32:30+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[Linux 的 ip 命令使用教程]]></summary>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1885.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1885.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[使用 dnsmasq 和 iptables 控制域名流量]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1872.html" />
@@ -58,13 +72,13 @@ References: 0
 Number of entries: 2
 Members:
 36.110.213.45
-180.163.251.93</code></pre><p>可以看到域名对应的 IP 地址已经记录到了 block 表内。</p><h3>流量处理</h3><p>iptables 可以调用 ipset 表来对流量进行处理，经过测试需使用 <code>-I</code> 命令指定规则序号形式才能正常工作，使用 <code>-m set --match-set 列表名 dst</code> 匹配目标地址，或 <code>-m set --match-set 列表名 src</code> 匹配原地址，下面举例说明：</p><pre><code># 屏蔽 block 表地址的访问
-iptables -t filter -I INPUT 1 -m set --match-set block src -j DROP
+180.163.251.93</code></pre><p>可以看到域名对应的 IP 地址已经记录到了 block 表内。</p><h3>流量处理</h3><p>iptables 可以调用 ipset 表来对流量进行处理，使用 <code>-I</code> 参数将规则添加到链表最上方以确保顺利匹配，使用 <code>-m set --match-set 列表名 dst</code> 匹配目标地址，或 <code>-m set --match-set 列表名 src</code> 匹配原地址，下面举例说明：</p><pre><code># 屏蔽 block 表地址的访问
+iptables -t filter -I INPUT -m set --match-set block src -j DROP
 
 # 允许 allow 表地址的访问
-iptables -t filter -I INPUT 2 -m set --match-set allow src -j RETURN</code></pre><p>查询路由表加入的规则：</p><pre><code>iptables -t filter -L -n
-</code></pre><p>删除 INPUT 路由链第一条规则：</p><pre><code>iptables -t filter -D INPUT 1
-</code></pre><p>iptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。</p>
+iptables -t filter -I INPUT -m set --match-set allow src -j RETURN</code></pre><p>iptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。</p><p>查询路由表加入的规则：</p><pre><code>iptables -t filter -L -n
+</code></pre><p>如果要删除 INPUT 路由链第一条规则，使用命令：</p><pre><code>iptables -t filter -D INPUT 1
+</code></pre><p>以上就是使用 dnsmasq 的 ipset 功能实现 iptables 对域名流量的控制。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1872.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1872.html" thr:count="0"/>
@@ -255,18 +269,41 @@ Options:
   --modprobe=&lt;command&gt;        try to insert modules using this command
   --set-counters PKTS BYTES    set the counter during insert/append
 [!] --version    -V        print package version.</code></pre><p><strong>语法结构：</strong></p><pre><code>iptables -t [TABLE] [-A/-C/-D...] [CHAIN] rule -j Target
-</code></pre><h3>路由链操作</h3><h4>-A 链添加规则</h4><p><code>-A</code> 用来给某个链添加规则和动作。</p><p>丢弃所有发往本机的流量：</p><pre><code>iptables -t filter -A INPUT -j DROP
-</code></pre><h4>-I 插入规则到指定排序位置</h4><p>使用 -I 指令新建规则并放置到指定排序中，不指定数字的话默认新建规则放置到路由链第一条。</p><p>新建规则并作为 INPUT 路由链第二条规则：</p><pre><code>iptables -t filter -I INPUT 2 -j DROP
-</code></pre><h4>-D 链删除规则</h4><p>删除设定的发往本机的编号为 2 的规则：</p><pre><code>iptables -t filter -D INPUT 2
+</code></pre><h3>路由链操作</h3><h4>-A 链添加规则</h4><p><code>-A</code> 在链表后添加规则和动作，新加的规则排在表的最后。</p><p>允许所有发往本机的流量：</p><pre><code>iptables -t filter -A INPUT -j ACCEPT
+</code></pre><h4>-I 插入规则</h4><p><code>-I</code> 指令添加规则并可指定新规则在链表的位置，不指定排序数字的话默认插入的规则放置到路由链第一条。</p><p>新建规则并作为 INPUT 路由链第一条规则：</p><pre><code>iptables -t filter -I INPUT -j ACCEPT
+</code></pre><p>新建规则并作为 INPUT 路由链第二条规则：</p><pre><code>iptables -t filter -I INPUT 2 -j ACCEPT
+</code></pre><p>由于链表的规则是顺序读取的，所以将规则放在前面有时候会确保规则的正确执行，使用 <code>-I</code> 参数比较合适。</p><h4>-D 链删除规则</h4><p>删除设定的发往本机的编号为 2 的规则：</p><pre><code>iptables -t filter -D INPUT 2
 </code></pre><h4>-C 链检查规则是否存在</h4><p>检查是否有丢弃来自 192.168.1.123 的流量的规则：</p><pre><code>iptables -t filter -C INPUT -s 192.168.1.123 -j DROP
-</code></pre><h3>规则匹配</h3><h4>-p 匹配特定协议的流量</h4><p>可能的流量类型: tcp, udp, icmp, ssh etc.</p><p>屏蔽对本机的 ping 请求：</p><pre><code>iptables -t filter -A INPUT -p icmp -j DROP
+</code></pre><h4>-L 路由规则列表</h4><p>列出当前设定的所有规则并按顺序排序：</p><pre><code>iptables -L -n
+</code></pre><p>列出特定路由表的规则：</p><pre><code>iptbales -t [TABLE] -L
+</code></pre><p>列出特定路由表的某条链的规则：</p><pre><code>iptbales -t [TABLE] -L INPUT
+</code></pre><h4>举例说明</h4><p>分别使用 <code>-A</code> <code>-I</code> 建立规则，然后 <code>-L</code> 查看规则，<code>-D</code> 删除规则：</p><pre><code>$ iptables -I INPUT -s 192.168.1.101 -j ACCEPT
+$ iptables -A INPUT -s 192.168.1.102 -j ACCEPT
+$ iptables -I INPUT -s 192.168.1.103 -j ACCEPT
+$ iptables -I INPUT 2 -s 192.168.1.104 -j ACCEPT
+
+$ iptables -L INPUT
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+ACCEPT     all  --  192.168.1.103        anywhere            
+ACCEPT     all  --  192.168.1.104        anywhere            
+ACCEPT     all  --  192.168.1.101        anywhere            
+ACCEPT     all  --  192.168.1.102        anywhere
+
+$ iptables -D INPUT 2
+$ iptables -L INPUT
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+ACCEPT     all  --  192.168.1.103        anywhere            
+ACCEPT     all  --  192.168.1.101        anywhere            
+ACCEPT     all  --  192.168.1.102        anywhere</code></pre><h3>规则匹配</h3><h4>-p 匹配特定协议的流量</h4><p>可能的流量类型: tcp, udp, icmp, ssh etc.</p><p>屏蔽对本机的 ping 请求：</p><pre><code>iptables -t filter -A INPUT -p icmp -j DROP
 </code></pre><p>丢弃发往本机的 udp 流量：</p><pre><code>iptables -t filter -A INPUT -p udp -j DROP
 </code></pre><h4>--dport 匹配特定端口</h4><p>丢弃访问本机 1080 端口的 tcp 流量：(默认是 filter 路由表)</p><pre><code>iptables -A INPUT -p tcp --dport 1080 -j DROP
 </code></pre><h4>-s 匹配源地址流量</h4><p>接收来自 192.168.1.230 发往本机的流量：</p><pre><code>iptables -t filter -A INPUT -s 192.168.1.230 -j ACCEPT
 </code></pre><h4>-d 目标地址的流量</h4><p>丢弃发往 192.168.1.123 的流量：</p><pre><code>iptables -t filter -A OUTPUT -d 192.168.1.123 -j DROP
 </code></pre><h4>-i 匹配特定网络入口的流量：</h4><p>丢弃所有来自 wlan0 无线网口的流量：</p><pre><code>iptables -t filter -A INPUT -i wlan0 -j DROP
 </code></pre><h4>-o 匹配特定网络出口的流量：</h4><p>丢弃所有发往 eth0 网口的流量：</p><pre><code>iptables -t filter -A OUTPUT -i eth0 -j DROP
-</code></pre><h4>允许 loopback 本地访问</h4><p>允许来自本地的访问(127.0.0.1) 非常重要，应该保证为打开状态：(<code>io</code> 表示本地网卡)</p><pre><code>iptables -A INPUT -i lo -j ACCEPT
+</code></pre><h4>允许 loopback 本地访问</h4><p>允许来自本地的访问(127.0.0.1) 非常重要，应该保证为打开状态：(<code>lo</code> 表示本机网口-interface)</p><pre><code>iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 </code></pre><h3>规则动作</h3><h4>-j 规则匹配后的动作</h4><p>丢弃所有转发链流量：</p><pre><code>iptables -t filter -A FORWARD -j DROP
 </code></pre><h3>-m 匹配参数的使用</h3><h4>-m multiport 同时处理多端口</h4><p>允许访问本机的多个端口的 tcp 流量：(默认是 filter 路由表)</p><pre><code>iptables -A INPUT -p tcp -m multiport --dports 22,80,443 -j ACCEPT
@@ -274,12 +311,10 @@ iptables -A OUTPUT -o lo -j ACCEPT
 </code></pre><h3>路由转发</h3><p>将特定的流量转发到另一个地方，需要用到 PREROUTING 路由表来预处理流量。</p><p>将来自 eth0 网口的访问本机 25 端口的 tcp 流量转发到 2525 端口：</p><pre><code>iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 25 -j REDIRECT --to-port 2525
 </code></pre><h3>新建路由链</h3><p>通过新建自定义路由链，可以放入自定义的规则到里面。<strong>自定义规则并不能被直接使用</strong>，需要使用系统内置的 chains 然后 jump 到自定义 chain。</p><p>语法：</p><pre><code>iptables -t [TABLE] -N [CHAIN]
 </code></pre><p>在 NAT 路由表下新建路由链 custom-chain：</p><pre><code>iptables -t nat -N custom-chain
-</code></pre><p>查看新建的路由链：</p><pre><code>iptables -L
+</code></pre><p>查看新建的路由链：</p><pre><code>iptables -L custom-chain
 </code></pre><p>将流量转到自定义路由链：</p><pre><code>iptables -A INPUT -p tcp -j custom-chain
 </code></pre><h3>标记流量</h3><p>MARK 目标用来给流量做标记，方便识别及处理。只适用于 mangle 路由表：</p><pre><code>iptables -t mangle -A PREROUTING -p udp --dport 53 -j MARK --set-mark 1
-</code></pre><h3>常用命令</h3><p>列出当前设定的所有规则并按数字排序：</p><pre><code>iptables -L -n
-</code></pre><p>列出特定路由表的规则：</p><pre><code>iptbales -t [TABLE] -L
-</code></pre><p>清除设置的规则，默认为 filter 路由表：</p><pre><code>iptables -t [TABLE] --flush
+</code></pre><h3>常用命令</h3><p>清除设置的规则，默认为 filter 路由表：</p><pre><code>iptables -t [TABLE] -F
 </code></pre><p>保存规则：</p><pre><code>iptables-save &gt; /path/to/file
 </code></pre><p>恢复规则：</p><pre><code>iptables-restore &lt; /path/to/file
 </code></pre><h3>参考文章</h3><p><a href="https://www.geeksforgeeks.org/iptables-command-in-linux-with-examples/">iptables command in Linux with Examples</a><br><a href="https://www.tecmint.com/linux-iptables-firewall-rules-examples-commands/">25 Useful IPtable Firewall Rules Every Linux Administrator Should Know</a><br><a href="https://zh.wikipedia.org/wiki/Iptables">iptables wikipedia</a><br><a href="https://gist.github.com/mcastelino/c38e71eb0809d1427a6650d843c42ac2">https://gist.github.com/mcastelino/c38e71eb0809d1427a6650d843c42ac2</a></p>
@@ -470,29 +505,5 @@ systeminfo /?
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1788.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1788.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[Windows 10 Linux 子系统 WSL 升级到 WSL 2]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1785.html" />
-<id>https://blog.niekun.net/archives/1785.html</id>
-<updated>2020-10-12T09:24:00+08:00</updated>
-<published>2020-10-12T09:24:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[Windows 10 上的 wsl 可以方便的运行 Linux 环境，最近从 wsl 升级到了 wsl 2，看了下介绍主要区别是：increase file system performance...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1785.html" xml:lang="zh-CN"><![CDATA[
-<p>Windows 10 上的 wsl 可以方便的运行 Linux 环境，最近从 wsl 升级到了 wsl 2，看了下介绍主要区别是：</p><ul><li>increase file system performance</li><li>support full system call compatibility</li></ul><p>增加了系统性能，更加完善的 Linux 系统环境。</p><p>之前再 wsl 上无法使用的一些功能如 systemd 和网络 socket 提取的功能不知道是否可用了，下面就升级到 wsl 2 进行测试。</p><p>关于 wsl 的介绍和安装可以参考我的教程：<a href="https://blog.niekun.net/archives/1148.html">https://blog.niekun.net/archives/1148.html</a></p><!--more--><h3>环境要求</h3><p>Requirements：</p><ul><li>For x64 systems: Version 1903 or higher, with Build 18362 or higher.</li><li>For ARM64 systems: Version 2004 or higher, with Build 19041 or higher.</li><li>Builds lower than 18362 do not support WSL 2. Use the Windows Update Assistant to update your version of Windows.</li></ul><p>可以使用命令查看当前系统版本，快捷键 <code>win + R</code>，输入 <code>winver</code> 弹出系统信息：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2650368745.jpg" alt="1.jpg" title="1.jpg"></p><h3>命令行打开系统功能</h3><p>再我之前写的 wsl 安装教程里，介绍了从系统控制面板和命令行打开 <code>Windows Subsystem for Linux</code> 功能的方法，这里只介绍命令行方式。</p><p>首先以<strong>管理员权限</strong>打开 powershell。</p><p>如果之前没有安装 wsl 的话首先开启 <code>Windows Subsystem for Linux</code>：</p><pre><code>dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
-</code></pre><p>然后开启 <code>Virtual Machine feature</code>：</p><pre><code>dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
-</code></pre><p>完成以上两部后，重启系统。</p><p>重启完成后安装 Linux 内核更新包：<a href="https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi">点击下载</a></p><p>再次重启系统。</p><p>设置 wsl 默认版本为 2：(管理员权限打开 powershell)</p><pre><code>wsl --set-default-version 2
-</code></pre><p>设置默认版本后，以后安装的 Linux 子系统默认为 wsl 2 版本。</p><p>也可以将之前安装的 Linux 子系统升级到 wsl 2：</p><pre><code># 查看当前已安装的子系统
-wsl -l -v
-
-# 升级某个子系统到 wsl 2
-wsl --set-version Ubuntu 2</code></pre><p>wsl 2 安装完成后就可以去 Windows 商店下载安装 Linux 发行版了：<a href="https://aka.ms/wslstore">https://aka.ms/wslstore</a></p><p>安装 Linux 发行版后的具体设置和之前 wsl 安装教程一样：<a href="https://blog.niekun.net/archives/1148.html">https://blog.niekun.net/archives/1148.html</a></p><h3>参考链接</h3><p><a href="https://docs.microsoft.com/en-us/windows/wsl/install-win10">https://docs.microsoft.com/en-us/windows/wsl/install-win10</a><br><a href="https://docs.microsoft.com/en-us/windows/wsl/compare-versions">https://docs.microsoft.com/en-us/windows/wsl/compare-versions</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1785.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1785.html" thr:count="0"/>
 </entry>
 </feed>
