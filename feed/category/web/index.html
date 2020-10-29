@@ -14,12 +14,27 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <lastBuildDate>Tue, 27 Oct 2020 22:32:00 +0800</lastBuildDate>
 <pubDate>Tue, 27 Oct 2020 22:32:00 +0800</pubDate>
 <item>
-<title>主机地址-子网地址-子网掩码-广播地址的含义解析</title>
+<title>子网-子网掩码-子网地址的含义解析</title>
 <link>https://blog.niekun.net/archives/1885.html</link>
 <guid>https://blog.niekun.net/archives/1885.html</guid>
 <pubDate>Tue, 27 Oct 2020 22:32:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
-<description><![CDATA[主机地址-子网地址-子网掩码-广播地址的含义解析]]></description>
+<description><![CDATA[互联网设备之间是通过分配给每台主机的 IP 地址实现访问的，当前是以 32 位 IPv4 地址作为标准。为了便于使用，每 8 位用点.来隔开，习惯使用十进制形式表示，如：192.168.88.3...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>互联网设备之间是通过分配给每台主机的 IP 地址实现访问的，当前是以 32 位 IPv4 地址作为标准。为了便于使用，每 8 位用点<code>.</code>来隔开，习惯使用十进制形式表示，如：192.168.88.3</p><pre><code>Decimal  192         168         88           3
+Binary   11000000    10101000    01011000     00000011</code></pre><p>理论上可以分配 2 的 32 次方个 IP 地址。</p><!--more--><h3>子网</h3><p>IP 地址可以划分为多个子集，也就是子网。比如一个路由器上连接的设备就在一个子网系统下，每个设备分配的 IP 地址就是子网网段内的地址。</p><p>子网的优势是设备间的访问更加直接，内部设备不需要连接子网以外的网络就可以实现内部互通。管理员对子网内的维护也更加方便，不会影响子网外的网络。</p><p>子网的 IP 段是一个连续的区间，如：192.168.1.0～192.168.1.255，在这个子网内的主机分配的 IP 地址最后一段就在 0～255 之间，其中第一个 192.168.0.0 是子网地址，最后一个 192.168.1.255 是广播地址，这两个地址是默认占用的，不能分配给主机使用。</p><h3>子网掩码</h3><p>子网掩码是为了能更加方便清晰的表达子网网段范围而被使用的。</p><p>一个典型的子网掩码格式：<code>255.255.255.128</code>，写成二进制如下：<code>11111111.11111111.11111111.10000000</code></p><p>如果子网内的一个主机 IP 地址为：192.168.88.3，我们和子网掩码按位进行<code>与</code>操作：</p><pre><code>192.168.88.3     11000000    10101000    01011000    00000011
+255.255.255.128  11111111    11111111    11111111    10000000
+192.168.88.0     11000000    10101000    01011000    00000000</code></pre><p>最后一行是结果写成十进制为：192.168.88.0，这就是子网的第一个 IP 地址，也就是子网地址。</p><p>子网掩码内为<code>1</code>的位对应的 IP 位是子网的固定位，这些位在网段内是固定不变的，也就是以上示例中前 25 位 IP 地址都是子网固定位，后 7 位就是子网可分配的地址位，可分配的地址如下：</p><pre><code>192.168.88.0     1000000    10101000    01011000    00000000
+192.168.88.127   1000000    10101000    01011000    01111111</code></pre><p>此子网网段 IP 就是：192.168.88.0～192.168.88.127，可分配给主机的地址为：192.168.88.1～192.168.88.126</p><p>子网完整的表述形式为：子网地址：192.168.88.0；子网掩码：225.225.225.128</p><p>也可以使用 CIDR 的形式描述：192.168.88.0/25，此方式更加简洁。关于 CIDR 的形式参考我的文章：<a href="https://blog.niekun.net/archives/399.html">https://blog.niekun.net/archives/399.html</a></p><p>子网掩码可分配位必须是连续的位，比如：必须是连续的32/31/30位为0，而不能是32/30位0，31位为1。所以子网掩码的可用编码就大大缩小的范围，比如固定位为前24位：255.255.255，后8位可用的编码方式只能在一下几种中选择：</p><pre><code>00000000    0
+10000000    128
+11000000    192
+11100000    224
+11110000    240
+11111000    248
+11111100    252
+11111110    254
+11111111    255</code></pre><p>以上就是子网系统的简单介绍。</p><h3>参考连接</h3><p><a href="https://www.ionos.com/digitalguide/server/know-how/subnetting-how-do-subnets-work/">Use subnetting to get the most out of your network</a><br><a href="https://www.ionos.com/digitalguide/server/know-how/broadcast-address/">What is a broadcast address and how does it work?</a><br><a href="https://blog.csdn.net/lihchweb/article/details/81226452">IP地址，子网掩码计算子网地址，广播地址，子网划分</a></p>
+]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1885.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1885.html</wfw:commentRss>
