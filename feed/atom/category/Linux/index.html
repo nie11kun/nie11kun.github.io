@@ -6,11 +6,33 @@ xml:base="https://blog.niekun.net/category/Linux/"
 >
 <title type="text">Marco Nie - Linux</title>
 <subtitle type="text"></subtitle>
-<updated>2020-10-26T22:29:00+08:00</updated>
+<updated>2020-11-10T11:03:52+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/Linux/" />
 <id>https://blog.niekun.net/feed/atom/category/Linux/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" />
+<entry>
+<title type="html"><![CDATA[MySQL 5.7 升级 8.0]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1899.html" />
+<id>https://blog.niekun.net/archives/1899.html</id>
+<updated>2020-11-10T11:03:52+08:00</updated>
+<published>2020-11-10T11:03:52+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[首先备份本地数据库，以防升级错误：mysqldump -uUSER -pPASSWORD --all-databases &amp;gt; /path/to/backup.sql官网下载最新的 MySQ...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1899.html" xml:lang="zh-CN"><![CDATA[
+<p>首先备份本地数据库，以防升级错误：</p><pre><code>mysqldump -uUSER -pPASSWORD --all-databases &gt; /path/to/backup.sql
+</code></pre><p>官网下载最新的 MySQL apt 库：<a href="https://dev.mysql.com/downloads/repo/apt/">https://dev.mysql.com/downloads/repo/apt/</a></p><p>当前最新地址为：<a href="https://dev.mysql.com/get/mysql-apt-config_0.8.16-1_all.deb">https://dev.mysql.com/get/mysql-apt-config_0.8.16-1_all.deb</a></p><p>下载到本地后安装：</p><pre><code>dpkg -i mysql-apt-config_0.8.16-1_all.deb
+</code></pre><p>期间会提示选择安装的 MySQL 版本，第一步选择当前安装的 MySQL 5.7，然后下一步选择 MySQL server 8.0，然后再下一步切换到 ok 选项确认。</p><p>配置完成后更新 apt 库及安装新版 MySQL：</p><pre><code>apt update
+apt install mysql-server
+</code></pre><p>安装完成后验证当前安装版本：</p><pre><code>mysql -V
+</code></pre><p>以上就是简单的 MySQL 升级教程。</p><p>参考链接：<br><a href="https://dev.mysql.com/doc/mysql-apt-repo-quick-guide/en/#apt-repo-setup">https://dev.mysql.com/doc/mysql-apt-repo-quick-guide/en/#apt-repo-setup</a><br><a href="https://www.digitalocean.com/community/questions/upgrade-mysql-5-7-to-8-ubuntu-18-04">https://www.digitalocean.com/community/questions/upgrade-mysql-5-7-to-8-ubuntu-18-04</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1899.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1899.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[使用 dnsmasq 和 iptables 控制域名流量]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1872.html" />
@@ -502,79 +524,5 @@ make install
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1758.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1758.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[awk 命令的用法]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1757.html" />
-<id>https://blog.niekun.net/archives/1757.html</id>
-<updated>2020-09-18T16:20:00+08:00</updated>
-<published>2020-09-18T16:20:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[awk 是常用的 Linux 文本操作命令和脚本语言。用来按行提取和处理文本内容，也可以执行简单的逻辑处理。比如我们有一个 txt 文件：ab.c 123 e.rt 456oh.g 324 b....]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1757.html" xml:lang="zh-CN"><![CDATA[
-<p>awk 是常用的 Linux 文本操作命令和脚本语言。用来按行提取和处理文本内容，也可以执行简单的逻辑处理。</p><p>比如我们有一个 txt 文件：</p><pre><code>ab.c 123 e.rt 456
-oh.g 324 b.na 756
-si.d 156 o.ui 452</code></pre><!--more--><p>执行命令：</p><pre><code>$ awk '{print $1}' test.txt
-ab.c
-oh.g
-si.d</code></pre><p>可以看到返回结果为每一行的第一个字符串。默认以<strong>空格</strong>作为分隔符。</p><p><code>$1</code> 为每行第一个字符串，<code>$2</code> 为每行第二个字符串，以此类推。<code>$0</code> 为整个文本。</p><p>可以同时输出多个内容：</p><pre><code>$ awk '{print $1, $2}' test.txt
-ab.c 123
-oh.g 324
-si.d 156</code></pre><h3>内部集成的参数</h3><h4>FS 区域分割符</h4><p>awk 默认使用空格来分割字符串，也可以自己定义分割符：</p><pre><code>$ awk 'FS = &quot;.&quot; {print $1, $2}' test.txt
-ab c 123 e
-oh g 324 b
-si d 156 o</code></pre><p>这时候，<code>ab</code> 和 <code>c 123 e</code> 分别是一个整体。</p><p>还有一种写法使用 <code>-F</code> 表示，要写在引号外部：</p><pre><code>$ awk -F. '{print $1, $2}' test.txt
-</code></pre><h4>NF 每行字符串个数</h4><p>用 <code>$NF</code> 来表示每行最后一个串：</p><pre><code>$ awk '{print $NF}' test.txt
-456
-756
-452</code></pre><p>用 NF 来判断每行字符串格个数：只输出有 4 个字符串的所在行的内容</p><pre><code>$ awk 'NF == 4 {print $1, $2}' test.txt
-ab.c 123
-oh.g 324
-si.d 156</code></pre><h4>NR 当前行号</h4><p><code>NR</code> 记录当前行的行号：</p><pre><code>$ awk '{print NR}' test.txt
-1
-2
-3</code></pre><pre><code>$ awk '{print NR, $0}' test.txt
-1 ab.c 123 e.rt 456
-2 oh.g 324 b.na 756
-3 si.d 156 o.ui 452</code></pre><h3>OFS 定义输出串分割符</h3><p>字符串输出是可以自定义分割符号：</p><pre><code>$ awk 'OFS=&quot;/&quot; {print $1, $2}' test.txt
-ab.c/123
-oh.g/324
-si.d/156</code></pre><h4>BEGIN 和 END 规则</h4><p>BEGIN 规则是在 awk 读取输入文本前执行的指令，END 规则是在 awk 输出完字符串后执行的指令。</p><pre><code>$ awk 'BEGIN {print &quot;begin process&quot;} {print $0} END {print &quot;end process&quot;}' test.txt
-begin process
-ab.c 123 e.rt 456
-oh.g 324 b.na 756
-si.d 156 o.ui 452
-end process</code></pre><h4>判断模块</h4><p>可以使用常用的判断来过滤输出结果：</p><p>设置第4个字符串数字需要大于等于500：</p><pre><code>$ awk '$4 &gt;=500 {print $0}' test.txt
-oh.g 324 b.na 756</code></pre><p>设置行内必须包含字符串 <code>ab</code>:</p><pre><code>$ awk '/ab/ {print $0}' test.txt
-ab.c 123 e.rt 456</code></pre><p>设置行开始必须包含字符串 <code>ab</code>:</p><pre><code>$ awk '/^ab/ {print $0}' test.txt
-ab.c 123 e.rt 456</code></pre><h3>awk script 脚本</h3><p>如果命令很复杂，可以建立一个脚本来单独执行。</p><p>建立文件：<code>test.awk</code></p><pre><code>#!/usr/bin/awk -f
-
-BEGIN {
-  # set the input and output field separators
-  FS=&quot;:&quot;
-  OFS=&quot;:&quot;
-  # zero the accounts counter
-  accounts=0
-}
-{
-  # set field 2 to nothing
-  $2=&quot;&quot;
-  # print the entire line
-  print $0
-  # count another account
-  accounts++
-}
-END {
-  # print the results
-  print accounts &quot; accounts.\n&quot;
-}</code></pre><p>可执行权限：</p><pre><code>chmod +x test.awk
-</code></pre><p>执行：</p><pre><code>./test.awk /etc/passwd
-</code></pre><h3>windows</h3><p>windows 下也可以使用 awk，下载安装 Gawk 即可。</p><p>官网：<a href="http://gnuwin32.sourceforge.net/packages/gawk.htm">http://gnuwin32.sourceforge.net/packages/gawk.htm</a></p><p>下载对应安装包，安装后将 awk 可执行文件的路径加入系统 PATH 即可使用，参考：<a href="https://blog.niekun.net/archives/413.html">https://blog.niekun.net/archives/413.html</a></p><h3>参考链接</h3><p><a href="https://www.howtogeek.com/562941/how-to-use-the-awk-command-on-linux/">https://www.howtogeek.com/562941/how-to-use-the-awk-command-on-linux/</a><br><a href="http://linuxcommand.org/lc3_adv_awk.php">http://linuxcommand.org/lc3_adv_awk.php</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1757.html#comments" thr:count="1" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1757.html" thr:count="1"/>
 </entry>
 </feed>

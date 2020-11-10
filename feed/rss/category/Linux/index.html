@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1899.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1872.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1869.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1863.html"/>
@@ -18,10 +19,20 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1781.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1763.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1758.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1757.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1899.html">
+<title>MySQL 5.7 升级 8.0</title>
+<link>https://blog.niekun.net/archives/1899.html</link>
+<dc:date>2020-11-10T11:03:52+08:00</dc:date>
+<description>首先备份本地数据库，以防升级错误：mysqldump -uUSER -pPASSWORD --all-databases &gt; /path/to/backup.sql
+官网下载最新的 MySQL apt 库：https://dev.mysql.com/downloads/repo/apt/当前最新地址为：https://dev.mysql.com/get/mysql-apt-config_0.8.16-1_all.deb下载到本地后安装：dpkg -i mysql-apt-config_0.8.16-1_all.deb
+期间会提示选择安装的 MySQL 版本，第一步选择当前安装的 MySQL 5.7，然后下一步选择 MySQL server 8.0，然后再下一步切换到 ok 选项确认。配置完成后更新 apt 库及安装新版 MySQL：apt update
+apt install mysql-server
+安装完成后验证当前安装版本：mysql -V
+以上就是简单的 MySQL 升级教程。参考链接：https://dev.mysql.com/doc/mysql-apt-repo-quick-guide/en/#apt-repo-setuphttps://www.digitalocean.com/community/questions/upgrade-mysql-5-7-to-8-ubuntu-18-04</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1872.html">
 <title>使用 dnsmasq 和 iptables 控制域名流量</title>
 <link>https://blog.niekun.net/archives/1872.html</link>
@@ -414,68 +425,5 @@ pip 的安装路径是 /opt/python3.8.5/bin/，测试命令：/opt/python3.8.5/b
 返回版本信息则安装完成。添加软连接到系统路径：ln -s /opt/python3.8.5/bin/pip3 /usr/bin/pip
 测试命令：pip --version
 参考链接https://docs.rstudio.com/resources/install-python-source/</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1757.html">
-<title>awk 命令的用法</title>
-<link>https://blog.niekun.net/archives/1757.html</link>
-<dc:date>2020-09-18T16:20:00+08:00</dc:date>
-<description>awk 是常用的 Linux 文本操作命令和脚本语言。用来按行提取和处理文本内容，也可以执行简单的逻辑处理。比如我们有一个 txt 文件：ab.c 123 e.rt 456
-oh.g 324 b.na 756
-si.d 156 o.ui 452执行命令：$ awk '{print $1}' test.txt
-ab.c
-oh.g
-si.d可以看到返回结果为每一行的第一个字符串。默认以空格作为分隔符。$1 为每行第一个字符串，$2 为每行第二个字符串，以此类推。$0 为整个文本。可以同时输出多个内容：$ awk '{print $1, $2}' test.txt
-ab.c 123
-oh.g 324
-si.d 156内部集成的参数FS 区域分割符awk 默认使用空格来分割字符串，也可以自己定义分割符：$ awk 'FS = &quot;.&quot; {print $1, $2}' test.txt
-ab c 123 e
-oh g 324 b
-si d 156 o这时候，ab 和 c 123 e 分别是一个整体。还有一种写法使用 -F 表示，要写在引号外部：$ awk -F. '{print $1, $2}' test.txt
-NF 每行字符串个数用 $NF 来表示每行最后一个串：$ awk '{print $NF}' test.txt
-456
-756
-452用 NF 来判断每行字符串格个数：只输出有 4 个字符串的所在行的内容$ awk 'NF == 4 {print $1, $2}' test.txt
-ab.c 123
-oh.g 324
-si.d 156NR 当前行号NR 记录当前行的行号：$ awk '{print NR}' test.txt
-1
-2
-3$ awk '{print NR, $0}' test.txt
-1 ab.c 123 e.rt 456
-2 oh.g 324 b.na 756
-3 si.d 156 o.ui 452OFS 定义输出串分割符字符串输出是可以自定义分割符号：$ awk 'OFS=&quot;/&quot; {print $1, $2}' test.txt
-ab.c/123
-oh.g/324
-si.d/156BEGIN 和 END 规则BEGIN 规则是在 awk 读取输入文本前执行的指令，END 规则是在 awk 输出完字符串后执行的指令。$ awk 'BEGIN {print &quot;begin process&quot;} {print $0} END {print &quot;end process&quot;}' test.txt
-begin process
-ab.c 123 e.rt 456
-oh.g 324 b.na 756
-si.d 156 o.ui 452
-end process判断模块可以使用常用的判断来过滤输出结果：设置第4个字符串数字需要大于等于500：$ awk '$4 &gt;=500 {print $0}' test.txt
-oh.g 324 b.na 756设置行内必须包含字符串 ab:$ awk '/ab/ {print $0}' test.txt
-ab.c 123 e.rt 456设置行开始必须包含字符串 ab:$ awk '/^ab/ {print $0}' test.txt
-ab.c 123 e.rt 456awk script 脚本如果命令很复杂，可以建立一个脚本来单独执行。建立文件：test.awk#!/usr/bin/awk -f
-
-BEGIN {
-  # set the input and output field separators
-  FS=&quot;:&quot;
-  OFS=&quot;:&quot;
-  # zero the accounts counter
-  accounts=0
-}
-{
-  # set field 2 to nothing
-  $2=&quot;&quot;
-  # print the entire line
-  print $0
-  # count another account
-  accounts++
-}
-END {
-  # print the results
-  print accounts &quot; accounts.\n&quot;
-}可执行权限：chmod +x test.awk
-执行：./test.awk /etc/passwd
-windowswindows 下也可以使用 awk，下载安装 Gawk 即可。官网：http://gnuwin32.sourceforge.net/packages/gawk.htm下载对应安装包，安装后将 awk 可执行文件的路径加入系统 PATH 即可使用，参考：https://blog.niekun.net/archives/413.html参考链接https://www.howtogeek.com/562941/how-to-use-the-awk-command-on-linux/http://linuxcommand.org/lc3_adv_awk.php</description>
 </item>
 </rdf:RDF>
