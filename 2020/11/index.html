@@ -85,6 +85,63 @@
 <div class="col-md-9 col-12" id="main" role="main">
 <h3 class="archive-title">2020年11月</h3>
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1904.html">nextcloud 安装教程</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-11-11T10:42:14+08:00" itemprop="datePublished">2020-11-11</time></li>
+<li>分类: <a href="../../category/Linux/index.html">Linux</a>,<a href="../../category/web/index.html">web</a></li>
+<li itemprop="interactionCount"><a href="../../archives/1904.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>安装包：<a href="https://nextcloud.com/changelog/#latest20">https://nextcloud.com/changelog/#latest20</a><br>系统需求：<a href="https://docs.nextcloud.com/server/20/admin_manual/installation/system_requirements.html">https://docs.nextcloud.com/server/20/admin_manual/installation/system_requirements.html</a><br>nginx 配置：<a href="https://docs.nextcloud.com/server/18/admin_manual/installation/nginx.html">https://docs.nextcloud.com/server/18/admin_manual/installation/nginx.html</a><br>php 配置相关：<a href="https://docs.nextcloud.com/server/20/admin_manual/installation/source_installation.html#php-fpm-tips-label">https://docs.nextcloud.com/server/20/admin_manual/installation/source_installation.html#php-fpm-tips-label</a><br>修改 php 内存限制：<a href="https://www.chinaz.com/program/2011/1010/213048.shtml">https://www.chinaz.com/program/2011/1010/213048.shtml</a><br>安装 php 内存缓存：<a href="https://docs.nextcloud.com/server/15/admin_manual/configuration_server/caching_configuration.html">https://docs.nextcloud.com/server/15/admin_manual/configuration_server/caching_configuration.html</a><br>命令行安装：<a href="https://docs.nextcloud.com/server/stable/admin_manual/installation/command_line_installation.html">https://docs.nextcloud.com/server/stable/admin_manual/installation/command_line_installation.html</a></p> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1903.html">MySQL 用户密码规则配置</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-11-11T10:37:00+08:00" itemprop="datePublished">2020-11-11</time></li>
+<li>分类: <a href="../../category/Linux/index.html">Linux</a></li>
+<li itemprop="interactionCount"><a href="../../archives/1903.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>在创建 MySQL 用户时需要设置密码，有时候输入输入密码后会提示创建失败，密码设置 policy 错误。这是因为当前设置的密码和 MySQL 密码创建规则不符，可以查看当前规定的密码规则也可以进行修改。</p><p>进入 MySQL 执行下面命令：</p><pre><code>SHOW VARIABLES LIKE 'validate_password%';
+</code></pre><p>会列出密码创建相关参数：</p><pre><code>mysql&gt; SHOW VARIABLES LIKE 'validate_password%';
++--------------------------------------+--------+
+| Variable_name                        | Value  |
++--------------------------------------+--------+
+| validate_password_check_user_name    | ON     |
+| validate_password_dictionary_file    |        |
+| validate_password_length             | 8      |
+| validate_password_mixed_case_count   | 1      |
+| validate_password_number_count       | 1      |
+| validate_password_policy             | MEDIUM |
+| validate_password_special_char_count | 1      |
++--------------------------------------+--------+
+7 rows in set (0.03 sec)</code></pre><p>其中 <code>validate_password_length</code> 是密码位数，<code>validate_password_special_char_count</code> 是密码包含特殊字符。可以通过命令修改参数值来改变密码规则，例如：</p><p>取消特殊字符：</p><pre><code>SET GLOBAL validate_password_special_char_count= 0;
+</code></pre><p>修改后可以测试再次建立用户设置密码。</p> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1900.html">MySQL 8.0 修改用户密码加密方式</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-11-11T09:41:00+08:00" itemprop="datePublished">2020-11-11</time></li>
+<li>分类: <a href="../../category/Linux/index.html">Linux</a></li>
+<li itemprop="interactionCount"><a href="../../archives/1900.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>MySQL 8.0 默认创建的用户密码加密方式为：caching_sha2_password，有些应用在连接时由于不兼容会导致报错，可以修改为 MySQL 5 使用的加密方式：sha256_password。</p><p>创建用户：</p><pre><code>create user &quot;newuser&quot;@&quot;localhost&quot; identified by &quot;PASSWORD&quot;;
+</code></pre><p>授予全部数据库权限：</p><pre><code>grant all privileges on *.* to 'newuser'@'localhost';
+</code></pre><p>修改成原来的加密方式：</p><pre><code>alter user &quot;newuser&quot;@&quot;localhost&quot; identified with mysql_native_password by 'PASSWORD';
+</code></pre><p>刷新权限：</p><pre><code>    FLUSH PRIVILEGES;
+</code></pre><p>查看已建立的用户及加密方式：</p><pre><code>SELECT user,authentication_string,plugin,host FROM mysql.user;
+</code></pre><p>显示如下：</p><pre><code>+------------------+------------------------------------------------------------------------+---
+| user             | authentication_string                         | plugin                | host      |
++------------------+------------------------------------------------------------------------+-----
+| marco            | *D51541FCBC8DD8E                              | mysql_native_password | localhost |
+| root             |                                               | auth_socket           | localhost |
++------------------+------------------------------------------------------------------------+---------</code></pre><p>以上就是修改用户密码加密方式的方法。</p> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1899.html">MySQL 5.7 升级 8.0</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
@@ -204,101 +261,12 @@ if ( !(age &gt; 16) ) {
 
 // Outputs &quot;Your age is less than 16&quot;</code></pre><p>以上就是常用的判断及循环指令用法。</p> </div>
 </article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1894.html">C++ 入门教程 -- 基础概念</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2020-11-07T15:13:42+08:00" itemprop="datePublished">2020-11-07</time></li>
-<li>分类: <a href="../../category/cpp/index.html">c++</a></li>
-<li itemprop="interactionCount"><a href="../../archives/1894.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>C++ 是一种跨平台的编程语言，用来创建高性能的应用程序，如操作系统，聊天软件，浏览器，游戏等。c++ 源自于 c 语言，并且很大程度上使用了 c 语言的设计理念。</p><p>下面用几篇文章介绍 c++ 的基础用法。</p><h3>结构</h3><p>c++ 程序是一个集成很多命令和描述的集合，以下是一个模板程序：</p><pre><code>#include &lt;iostream&gt;
-using namespace std;
-
-// comment
-int main()
-{
-    cout &lt;&lt; &quot;Hello world!&quot; &lt;&lt; endl;
-    cout &lt;&lt; &quot;Hello world!&quot; &lt;&lt; &quot;WOW&quot; &lt;&lt; &quot;\n&quot;;
-    return 0;
-}
-/*
-comments
-*/</code></pre><p>所有 c++ 程序的入口都是 <code>main()</code> function，使用大括号 <code>{}</code> 将 function 的内容包围起来，括号内的指令在 fuction 运行时执行。每句指令结尾使用分号<code>;</code> 结束。</p><p><code>cout</code> 是 <code>iostream</code> 的一个 object，功能是输出信息到标准的输出设备，一般是显示屏上。<code>&lt;&lt;</code> 是 insertion operator 用来将后面的字符串传入 cout 指令最后输出到显示屏。可以使用多个 <code>&lt;&lt;</code> 将信息连起来。</p><p><code>iostream</code> 是头文件，里面包含各种程序执行需要的功能模块，使用 <code>#include</code> 调用头文件。iostream 包含输入输出数据块的 stream object。</p><p>每个 <code>namespace</code> 是一个申明区域，定义了程序调用 function 或 object 时的类型，<code>using namespace std</code> 告诉程序默认使用 <code>std</code> 类型的元素。在命令中可以直接写 std 中定义的元素：</p><pre><code>cout &lt;&lt; &quot;Hello world!&quot;;
-std::cout &lt;&lt; &quot;Hello world!&quot;;</code></pre><p>以上两种写法效果是一样的，表示使用 std 类型的 cout 指令。</p><p>也可以写自定义的申明如：</p><pre><code>namespace fs = boost::filesystem;
-fs:path testpath;
-</code></pre><p>以上申明意思是用 <code>fs</code> 表示 <code>boost::filesystem</code> 类型，然后定义一个 <code>boost::filesystem::path</code> 类型的变量。</p><p>cout 执行后默认不添加行结束符号，添加一个 <code>endl</code> object 来实现换行操作。也可以添加字符串 <code>\n</code> 表示换行。</p><p>反斜杠 <code>\</code> 是转义符用来输入特殊意义的符号，如：<code>\n</code> 表示换行。</p><p><code>//</code> 双斜杠用来添加单行注释信息，斜杠所在的行不会被编译。<br><code>/*....*/</code> 用来表示注释区域，这一段的内容都不被编译。</p><h3>变量</h3><p>定义一个变量会请求一个内存空间来存储变量值。编译器需要在定义变量时指定变量类型，类型可以是系统内置的也可以是自定义的。定义的个体可以是变量，function，class 等：</p><pre><code>int testVar = 10;
-</code></pre><p>以上定义了一个 int 整数型的变量 testVar 并赋值为 10，注意变量名是区分大小写的，也就是 testVar 和 testvar 代表两个不同的变量。</p><pre><code>double testDouble1, testDouble2;
-</code></pre><p>也可以同时定义两个变量。</p><p><strong>根据需求设置变量类型，可以优化内存占用空间。</strong></p><p>示例：</p><pre><code>#include &lt;iostream&gt;
-using namespace std;
-
-int main()
-{
-    int a = 30;
-    int b = 12;
-    int sum = a + b;
-    cout &lt;&lt; sum;
-    return 0;
-}
-//Outputs 42</code></pre><p>定义的变量可以在后续程序中赋值：</p><pre><code>int a;
-int b = 1;
-
-a = 2;
-b = 3;</code></pre><h3>输入参数</h3><p>使用 <code>cin</code> 来请求用户输入数据，用 extraction operator 来将输入数据提取到别处：</p><pre><code>int a;
-cin &gt;&gt; a;</code></pre><p>以上程序定义一个 int 型变量，然后提示用户输入一个数据存储到变量 a 中。</p><p>结合输入输出可以实现简单的交互操作：</p><pre><code>#include &lt;iostream&gt;
-using namespace std;
-
-int main() 
-{
-  int a, b;
-  int sum;
-  cout &lt;&lt; &quot;Enter a number \n&quot;;
-  cin &gt;&gt; a;
-  cout &lt;&lt; &quot;Enter another number \n&quot;;
-  cin &gt;&gt; b;
-  sum = a + b;
-  cout &lt;&lt; &quot;Sum is: &quot; &lt;&lt; sum &lt;&lt; endl;
-
-  return 0;
-}</code></pre><h3>运算符</h3><p>c++ 支持以下运算符：</p><ul><li><ul><li>加</li></ul></li><li><ul><li>减</li></ul></li><li><ul><li>乘</li></ul></li><li>/ 除</li><li>% 模(整除后的余数)</li></ul><pre><code>int a = 1 + 1;
-int b = 5 * 6;
-int c = 5 % 2;
-int d = 5 + 2 * 2;
-int e = (5 + 2) * 2;
-
-cout &lt;&lt; c &lt;&lt; endl;
-
-//output: 1</code></pre><p>如果对变量本身的加减乘除操作可以简写：</p><pre><code>x *= 3; // equivalent to x = x * 3
-x /= 2; // equivalent to x = x / 2
-x %= 4; // equivalent to x = x % 4</code></pre><p>对本身自加或自减操作，有两种方式：后缀和前缀：</p><pre><code>x++; //后缀，相当于 x = x + 1
-x--;
-++x;
---x;
-</code></pre><p>使用后缀方式是先执行表达式再自加，前缀方式是先自加再执行表达式：</p><pre><code>int a = 1;
-int b = a++;
-int c = ++a;
-
-//b = 1
-//c = 3</code></pre><p>以上是基础概念及指令。</p> </div>
-</article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1893.html">VMware 虚拟机磁盘文件合并</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2020-11-05T16:39:01+08:00" itemprop="datePublished">2020-11-05</time></li>
-<li>分类: <a href="../../category/Windows/index.html">Windows</a></li>
-<li itemprop="interactionCount"><a href="../../archives/1893.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>在创建 VMware workstation 虚拟机时，在磁盘选项上会提示选择创建单个虚拟磁盘文件或分割为多个文件。我喜欢使用单个文件，因为选择多个文件会在虚拟机目录下建立许多类似的 vmdk 文件，不太方便复制到其他地方。而且在导入 macOS 下的 VMware fusion 时会报错，所以推荐使用单个磁盘文件。</p><p>当现有的虚拟机已经是使用多个文件形式的话，可以使用 VMware workstation 附带的 vmware-vdiskmanager.exe 工具来进行合并。</p><p class="more"><a href="../../archives/1893.html" title="VMware 虚拟机磁盘文件合并">- 阅读剩余部分 -</a></p> </div>
-</article>
-</div>
+<ol class="page-navigator"><li class="current"><a href="page/1/index.html">1</a></li><li><a href="page/2/index.html">2</a></li><li class="next"><a href="page/2/index.html">后一页 &raquo;</a></li></ol> </div>
 <div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../archives/1899.html">MySQL 5.7 升级 8.0</a></li><li><a href="../../archives/1895.html">C++ 入门教程 -- 判断及循环</a></li><li><a href="../../archives/1894.html">C++ 入门教程 -- 基础概念</a></li><li><a href="../../archives/1893.html">VMware 虚拟机磁盘文件合并</a></li><li><a href="../../archives/1885.html">子网-子网掩码-子网地址的含义解析</a></li><li><a href="../../archives/1872.html">使用 dnsmasq 和 iptables 控制域名流量</a></li><li><a href="../../archives/1869.html">dnsmasq 使用教程</a></li><li><a href="../../archives/1863.html">iptables 使用教程</a></li><li><a href="../../archives/1818.html">vmware 虚拟机安装 openWrt 及路由配置</a></li><li><a href="../../archives/1805.html">wsl 2 激活 systemd</a></li> </ul>
+<li><a href="../../archives/1904.html">nextcloud 安装教程</a></li><li><a href="../../archives/1903.html">MySQL 用户密码规则配置</a></li><li><a href="../../archives/1900.html">MySQL 8.0 修改用户密码加密方式</a></li><li><a href="../../archives/1899.html">MySQL 5.7 升级 8.0</a></li><li><a href="../../archives/1895.html">C++ 入门教程 -- 判断及循环</a></li><li><a href="../../archives/1894.html">C++ 入门教程 -- 基础概念</a></li><li><a href="../../archives/1893.html">VMware 虚拟机磁盘文件合并</a></li><li><a href="../../archives/1885.html">子网-子网掩码-子网地址的含义解析</a></li><li><a href="../../archives/1872.html">使用 dnsmasq 和 iptables 控制域名流量</a></li><li><a href="../../archives/1869.html">dnsmasq 使用教程</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -337,12 +305,12 @@ int c = ++a;
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="7d15890e0830e27adb18c055-text/javascript">
+<script type="124e20ab3310595f12bab7c8-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="7d15890e0830e27adb18c055-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="7d15890e0830e27adb18c055-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="7d15890e0830e27adb18c055-text/javascript"></script>
-<script src="../../usr/themes/TypechoAwesome/navItem.js" type="7d15890e0830e27adb18c055-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="7d15890e0830e27adb18c055-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="124e20ab3310595f12bab7c8-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="124e20ab3310595f12bab7c8-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="124e20ab3310595f12bab7c8-text/javascript"></script>
+<script src="../../usr/themes/TypechoAwesome/navItem.js" type="124e20ab3310595f12bab7c8-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="124e20ab3310595f12bab7c8-|49" defer=""></script></body>
 </html>

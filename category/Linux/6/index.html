@@ -84,6 +84,47 @@
 <div class="col-md-9 col-12" id="main" role="main">
 <h3 class="archive-title">分类 Linux 下的文章</h3>
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/1280.html">Nginx upstream timed out 问题的处理</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-03-05T08:53:00+08:00" itemprop="datePublished">2020-03-05</time></li>
+<li>分类: <a href="../index.html">Linux</a>,<a href="../../software/index.html">software</a></li>
+<li itemprop="interactionCount"><a href="../../../archives/1280.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在转发到代理服务器 fastCGI 时超时了:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
+proxy_send_timeout 600;
+proxy_read_timeout 600;
+send_timeout 600;</code></pre><p>将上述内容加入 config 文件，reload nginx 测试页面加载是否正常：</p><pre><code>sudo service nginx configtest
+sudo service nginx reload
+
+
+</code></pre> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/1258.html">Windows 10 WSL 不支持 systemd</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-03-04T11:44:25+08:00" itemprop="datePublished">2020-03-04</time></li>
+<li>分类: <a href="../index.html">Linux</a>,<a href="../../Windows/index.html">Windows</a></li>
+<li itemprop="interactionCount"><a href="../../../archives/1258.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>在使用 WSL 中发现无法使用 systemd 指令，会有如下报错信息：System has not been booted with systemd as init system (PID 1). Can't operate</p><p>查询后发现 WSL 的确有这个问题：<a href="https://github.com/MicrosoftDocs/WSL/issues/457">https://github.com/MicrosoftDocs/WSL/issues/457</a></p><p>解决方法是用<strong>管理员权限打开 WSL</strong>，然后使用 <code>sudo service</code> 来控制进程，如：</p><pre><code>sudo service nginx start
+</code></pre> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/1257.html">Nginx 可用指令和变量索引</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-03-04T11:19:18+08:00" itemprop="datePublished">2020-03-04</time></li>
+<li>分类: <a href="../index.html">Linux</a>,<a href="../../software/index.html">software</a></li>
+<li itemprop="interactionCount"><a href="../../../archives/1257.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>手册：<a href="https://nginx.org/en/docs/">http://nginx.org/en/docs/</a></p><blockquote>涵盖了<strong>安装教程，开始使用教程，常用使用情景教程，指令索引，变量索引</strong> 等链接。</blockquote><p>变量：<a href="https://nginx.org/en/docs/varindex.html">http://nginx.org/en/docs/varindex.html</a></p><blockquote>变量在 nginx 配置中使用很多，使用变量可以根据需要处理特定部分。如：$rui, $scheme, $request_filename, $host, $request_uri</blockquote><p>指令：<a href="https://nginx.org/en/docs/dirindex.html">http://nginx.org/en/docs/dirindex.html</a></p><blockquote>如：listen, include, location, if, auth_basic</blockquote> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/1243.html">Typecho 配合 Nginx 设置伪静态链接</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
@@ -105,50 +146,12 @@
 <div class="post-content" itemprop="articleBody">
 <p>vim 是 Linux 下常用的编辑器，学会常用的操作如：光标移动 复制 粘贴 删除 撤销 等指令，对于日常使用很有必要，下面介绍常用指令。</p><p><strong>注意 vim 所有控制指令都区分大小写。</strong></p><p class="more"><a href="../../../archives/1212.html" title="vim 常用指令">- 阅读剩余部分 -</a></p> </div>
 </article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/1195.html">使用 tmux 建立多个 sessions</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2020-02-28T11:18:00+08:00" itemprop="datePublished">2020-02-28</time></li>
-<li>分类: <a href="../index.html">Linux</a></li>
-<li itemprop="interactionCount"><a href="../../../archives/1195.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>Linux 中，当前对话框就是一个 session，如果正在执行某个进程而不能中断，而又想操作一些其他事情，这是时候可以建立另一个 session 来处理。</p><p>单独建立的 session 只要没有 kill 掉，在返回主 session 并退出登录后，下次登录依然可以返回已经建立的 session。可以达到进程守护的目的。</p><p>可以使用的软件有 screen 和 tmux，这里介绍 tmux 的使用方法。</p><p>GitHub 主页：<a href="https://github.com/tmux/tmux">https://github.com/tmux/tmux</a><br>参考文章：<a href="https://helpful.knobs-dials.com/index.php/Screen_and_tmux">https://helpful.knobs-dials.com/index.php/Screen_and_tmux</a></p><p class="more"><a href="../../../archives/1195.html" title="使用 tmux 建立多个 sessions">- 阅读剩余部分 -</a></p> </div>
-</article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/1161.html">Ubuntu 修改 apt 国内源</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2020-02-26T13:25:00+08:00" itemprop="datePublished">2020-02-26</time></li>
-<li>分类: <a href="../../ubuntu/index.html">ubuntu</a></li>
-<li itemprop="interactionCount"><a href="../../../archives/1161.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p><img src="https://niekun.net/usr/uploads/2020/02/3080758679.png" alt="2020-02-26T04:59:18.png" title="2020-02-26T04:59:18.png"></p><p>国内使用 apt 安装软件如果感觉比较慢，可能是 deb 源是国外的，通过修改为国内源，可以很好的进行加速下载。</p><h4>系统代号</h4><p>每一个版本的 Ubuntu 都会有一个代号: codename，用来识别不同的版本，比如：</p><ul><li>14.04 LTS 代号是 <strong>trusty</strong></li><li>16.04 LTS 代号是 <strong>xenial</strong></li><li>18.04 LTS 代号是 <strong>bionic</strong></li></ul><p>在更换源的时候需要使用到代号codename，可以使用如下命令查看当前系统版本代号：</p><pre><code>lsb_release -a
-
-</code></pre><p class="more"><a href="../../../archives/1161.html" title="Ubuntu 修改 apt 国内源">- 阅读剩余部分 -</a></p> </div>
-</article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/1159.html">在 Windows 和 WSL 中共享 Git credentials 证书</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2020-02-26T12:34:00+08:00" itemprop="datePublished">2020-02-26</time></li>
-<li>分类: <a href="../index.html">Linux</a>,<a href="../../Windows/index.html">Windows</a></li>
-<li itemprop="interactionCount"><a href="../../../archives/1159.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>将 Git 的 credential 证书保留在系统，可以避免每次操作都需要输入账户密码。</p><p>各系统中设置缓存参考我的文章：<a href="https://niekun.net/index.php/archives/444.html">https://niekun.net/index.php/archives/444.html</a></p><p>对于 Windows 10 用户，系统内置了 Windows subsystem for Linux (WSL)，我们可以共享存储在本地的 Git credential 证书，这样两个系统使用 git 都很方便。</p><p>关于 WSL 的安装与使用参考：<a href="https://niekun.net/index.php/archives/1148.html">https://niekun.net/index.php/archives/1148.html</a></p><p>首先在 Windows 10 下设置 credentials，在 power shell 下输入如下命令：</p><pre><code>git config --global credential.helper wincred
-</code></pre><blockquote>可以在仓库内测试执行 git push 命令，如果提示输入账户密码，则输入一次，以后就不会再提示了。</blockquote><p>然后在 WSL 设置，打开系统内安装好的 WSL，首先安装好 git，然后敲入如下命令：</p><pre><code>git config --global credential.helper &quot;/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-wincred.exe&quot;
-
-</code></pre> </div>
-</article>
-<ol class="page-navigator"><li class="prev"><a href="../5/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../3/index.html">3</a></li><li><a href="../4/index.html">4</a></li><li><a href="../5/index.html">5</a></li><li class="current"><a href="index.html">6</a></li><li><a href="../7/index.html">7</a></li><li><a href="../8/index.html">8</a></li><li><a href="../9/index.html">9</a></li><li><span>...</span></li><li><a href="../16/index.html">16</a></li><li class="next"><a href="../7/index.html">后一页 &raquo;</a></li></ol> </div>
+<ol class="page-navigator"><li class="prev"><a href="../5/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../3/index.html">3</a></li><li><a href="../4/index.html">4</a></li><li><a href="../5/index.html">5</a></li><li class="current"><a href="index.html">6</a></li><li><a href="../7/index.html">7</a></li><li><a href="../8/index.html">8</a></li><li><a href="../9/index.html">9</a></li><li><span>...</span></li><li><a href="../17/index.html">17</a></li><li class="next"><a href="../7/index.html">后一页 &raquo;</a></li></ol> </div>
 <div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../../archives/1899.html">MySQL 5.7 升级 8.0</a></li><li><a href="../../../archives/1895.html">C++ 入门教程 -- 判断及循环</a></li><li><a href="../../../archives/1894.html">C++ 入门教程 -- 基础概念</a></li><li><a href="../../../archives/1893.html">VMware 虚拟机磁盘文件合并</a></li><li><a href="../../../archives/1885.html">子网-子网掩码-子网地址的含义解析</a></li><li><a href="../../../archives/1872.html">使用 dnsmasq 和 iptables 控制域名流量</a></li><li><a href="../../../archives/1869.html">dnsmasq 使用教程</a></li><li><a href="../../../archives/1863.html">iptables 使用教程</a></li><li><a href="../../../archives/1818.html">vmware 虚拟机安装 openWrt 及路由配置</a></li><li><a href="../../../archives/1805.html">wsl 2 激活 systemd</a></li> </ul>
+<li><a href="../../../archives/1904.html">nextcloud 安装教程</a></li><li><a href="../../../archives/1903.html">MySQL 用户密码规则配置</a></li><li><a href="../../../archives/1900.html">MySQL 8.0 修改用户密码加密方式</a></li><li><a href="../../../archives/1899.html">MySQL 5.7 升级 8.0</a></li><li><a href="../../../archives/1895.html">C++ 入门教程 -- 判断及循环</a></li><li><a href="../../../archives/1894.html">C++ 入门教程 -- 基础概念</a></li><li><a href="../../../archives/1893.html">VMware 虚拟机磁盘文件合并</a></li><li><a href="../../../archives/1885.html">子网-子网掩码-子网地址的含义解析</a></li><li><a href="../../../archives/1872.html">使用 dnsmasq 和 iptables 控制域名流量</a></li><li><a href="../../../archives/1869.html">dnsmasq 使用教程</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -187,12 +190,12 @@
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="856e24dac1ea7d28b1296ff2-text/javascript">
+<script type="f154ef9ec4a910de779d7838-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="856e24dac1ea7d28b1296ff2-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="856e24dac1ea7d28b1296ff2-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="856e24dac1ea7d28b1296ff2-text/javascript"></script>
-<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="856e24dac1ea7d28b1296ff2-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="856e24dac1ea7d28b1296ff2-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="f154ef9ec4a910de779d7838-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="f154ef9ec4a910de779d7838-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="f154ef9ec4a910de779d7838-text/javascript"></script>
+<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="f154ef9ec4a910de779d7838-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="f154ef9ec4a910de779d7838-|49" defer=""></script></body>
 </html>
