@@ -84,6 +84,40 @@
 <div class="col-md-9 col-12" id="main" role="main">
 <h3 class="archive-title">分类 Linux 下的文章</h3>
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/118.html">重定向 HTTP to HTTPS in Nginx</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2019-02-26T21:21:00+08:00" itemprop="datePublished">2019-02-26</time></li>
+<li>分类: <a href="../index.html">Linux</a>,<a href="../../web/index.html">web</a></li>
+<li itemprop="interactionCount"><a href="../../../archives/118.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>将http请求重定向为https，使所有连接都使用安全的ssl。</p><h2>重定向所有http请求</h2><p>以下配置为将所有收到的80端口的请求都重定向到443端口,这会把此ip下的所有域名都转换：</p><pre><code>server {
+    listen           80;
+    listen           [::]:80;
+    server_name      _;
+    return           301 https://$host$request_uri;
+}</code></pre><p>listen 80 default_server 表示这是唯一监听80端口的server块<br>server_name _ 表示监听所有使用的域名</p><h2>重定向特定域名</h2><p>以下配置为重定向特定域名的请求，此方式适用于此ip下绑定多个域名的情况：</p><pre><code>server {
+    listen           80;
+    listen           [::]:80;
+    server_name      your.domain;
+    return           301 https://your.domain$request_uri;
+}</code></pre><h2>443 server block</h2><p>设定我们的域名只接收443端口的访问：</p><pre><code>server {
+    listen                443 ssl default_server;
+    listen                [::]:443 ssl;
+    server_name           foo.com;
+}
+
+server {
+    listen                443 ssl;
+    listen                [::]:443 ssl;
+    server_name           bar.com;
+}
+
+...
+</code></pre><p>只能设置一个域名为default_server。</p> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/97.html">macOS/Linux/windows设置终端 proxy 代理</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
@@ -135,29 +169,12 @@ curl  https://get.acme.sh | sh
 <div class="post-content" itemprop="articleBody">
 <p>我的VPS上的<code>Nginx</code>记得还是一年前安装的，一直没有升级，最近发现版本都到了1.14了，我的还是1.4，就想做一次升级。</p><p>由于使用<code>Nginx</code>用到一些配置文件，所以我预计升级会导致配置文件恢复到默认，所以查询了一些资料后，安全的做了升级。</p><p class="more"><a href="../../../archives/30.html" title="Nginx 安装/编译教程">- 阅读剩余部分 -</a></p> </div>
 </article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/26.html">使用Nginx搭建HTTP共享文件夹</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-02-18T15:14:00+08:00" itemprop="datePublished">2019-02-18</time></li>
-<li>分类: <a href="../index.html">Linux</a>,<a href="../../web/index.html">web</a></li>
-<li itemprop="interactionCount"><a href="../../../archives/26.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>最近有需求做一个类似网盘的功能，方便共享文件给他人，实际上就是把服务器的一个目录设置为可见。发现Nginx支持这一功能。</p><p>官方相关文档：<a href="https://nginx.org/en/docs/http/ngx_http_autoindex_module.html">http://nginx.org/en/docs/http/ngx_http_autoindex_module.html</a></p><p>在service里的新建需要共享目录的location段修改如下：</p><pre><code>location /downloads {
-    root /home;
-    autoindex on;
-    autoindex_exact_size on;
-    autoindex_localtime on;
-}
-</code></pre><p>后三句为打开当前location段的目录索引功能，显示文件大小，显示文件创建日期，建议只对需要共享的目录打开目录功能。</p> </div>
-</article>
 <ol class="page-navigator"><li class="prev"><a href="../15/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../13/index.html">13</a></li><li><a href="../14/index.html">14</a></li><li><a href="../15/index.html">15</a></li><li class="current"><a href="index.html">16</a></li><li><a href="../17/index.html">17</a></li><li class="next"><a href="../17/index.html">后一页 &raquo;</a></li></ol> </div>
 <div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../../archives/1906.html">两个子网间网络互访的原理</a></li><li><a href="../../../archives/1904.html">nextcloud 安装教程</a></li><li><a href="../../../archives/1903.html">MySQL 用户密码规则配置</a></li><li><a href="../../../archives/1900.html">MySQL 8.0 修改用户密码加密方式</a></li><li><a href="../../../archives/1899.html">MySQL 5.7 升级 8.0</a></li><li><a href="../../../archives/1895.html">C++ 入门教程 -- 判断及循环</a></li><li><a href="../../../archives/1894.html">C++ 入门教程 -- 基础概念</a></li><li><a href="../../../archives/1893.html">VMware 虚拟机磁盘文件合并</a></li><li><a href="../../../archives/1885.html">子网-子网掩码-子网地址的含义解析</a></li><li><a href="../../../archives/1872.html">使用 dnsmasq 和 iptables 控制域名流量</a></li> </ul>
+<li><a href="../../../archives/1911.html">Speedtest CLI 命令行测速工具</a></li><li><a href="../../../archives/1906.html">两个子网间网络互访的原理</a></li><li><a href="../../../archives/1904.html">nextcloud 安装教程</a></li><li><a href="../../../archives/1903.html">MySQL 用户密码规则配置</a></li><li><a href="../../../archives/1900.html">MySQL 8.0 修改用户密码加密方式</a></li><li><a href="../../../archives/1899.html">MySQL 5.7 升级 8.0</a></li><li><a href="../../../archives/1895.html">C++ 入门教程 -- 判断及循环</a></li><li><a href="../../../archives/1894.html">C++ 入门教程 -- 基础概念</a></li><li><a href="../../../archives/1893.html">VMware 虚拟机磁盘文件合并</a></li><li><a href="../../../archives/1885.html">子网-子网掩码-子网地址的含义解析</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -196,12 +213,13 @@ curl  https://get.acme.sh | sh
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="88bc0822b2bf6f4c1e0d8129-text/javascript">
+<script type="935f6efc6bfa0944661ef06f-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="88bc0822b2bf6f4c1e0d8129-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="88bc0822b2bf6f4c1e0d8129-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="88bc0822b2bf6f4c1e0d8129-text/javascript"></script>
-<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="88bc0822b2bf6f4c1e0d8129-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="88bc0822b2bf6f4c1e0d8129-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="935f6efc6bfa0944661ef06f-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="935f6efc6bfa0944661ef06f-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="935f6efc6bfa0944661ef06f-text/javascript"></script>
+<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="935f6efc6bfa0944661ef06f-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="935f6efc6bfa0944661ef06f-|49" defer=""></script><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"rayId":"5f3348bdeed80570","r":1,"version":"2020.9.1","si":10}'></script>
+</body>
 </html>
