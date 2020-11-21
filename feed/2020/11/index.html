@@ -11,8 +11,434 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/2020/11/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Fri, 20 Nov 2020 11:32:44 +0800</lastBuildDate>
-<pubDate>Fri, 20 Nov 2020 11:32:44 +0800</pubDate>
+<lastBuildDate>Sat, 21 Nov 2020 22:31:11 +0800</lastBuildDate>
+<pubDate>Sat, 21 Nov 2020 22:31:11 +0800</pubDate>
+<item>
+<title>C++ 入门教程 -- 继承和多态</title>
+<link>https://blog.niekun.net/archives/1927.html</link>
+<guid>https://blog.niekun.net/archives/1927.html</guid>
+<pubDate>Sat, 21 Nov 2020 22:31:11 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[inheritance 继承inheritance 继承是面向对象编程最重要的概念之一。继承允许我们基于已有的 class 创建新的 class。这能够极大的方便我们创建应用程序。一个 clas...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<h3>inheritance 继承</h3><p><strong>inheritance 继承</strong>是面向对象编程最重要的概念之一。继承允许我们基于已有的 class 创建新的 class。这能够极大的方便我们创建应用程序。</p><p>一个 class 的属性被其他 class 继承，我们称这个 class 叫做 base class。一个从 base class 继承属性的 class 我们称其为 derived class。一个 derived class 获得所有 base class 的功能，且可以有自己独有的功能：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/1471544588.png" alt="1.png" title="1.png"></p><!--more--><p><strong>继承</strong>的概念是 <code>is a 属于是什么</code> 的关系，例如：猫 is a 动物，狗 is a 动物。两者都继承了动物的属性。</p><p>我们来建立两个 class：Mother 和 Daughter：</p><pre><code>class Mother
+{
+ public:
+  Mother() {};
+  void sayHi() {
+    cout &lt;&lt; &quot;Hi&quot;;
+  } 
+};
+
+class Daughter 
+{
+ public: 
+  Daughter() {};
+};</code></pre><p>Mother 有一个 <code>sayHi()</code> function。下面我们让 Daughter 继承 Mother 的属性，Daughter class 名称修改如下：</p><pre><code>class Daughter : public Mother
+{
+ public: 
+  Daughter() {};
+};</code></pre><p>使用一个冒号<code>:</code> 标记 base class。access specifier 访问标记符 <code>public</code> 表示所有 base class 里 public 段下的内容继承给 derived class 里的 public 段下。</p><p>以上示例中 Daughter 继承了所有 Mother 的 public 下的元素，所以我们可以实例化一个 Daughter 的 object 然后调用 <code>sayHi()</code> function 了：</p><pre><code>#include &lt;iostream&gt;
+
+using  namespace std;
+
+class Mother
+{
+ public:
+  Mother() {};
+  void sayHi() {
+    cout &lt;&lt; &quot;Hi&quot; &lt;&lt; endl;
+  }
+};
+
+class Daughter: public Mother
+{
+ public:
+  Daughter() {};
+};
+
+int main(int argc, const char * argv[]) {
+    Daughter d;
+    d.sayHi();
+    return 0;
+}</code></pre><p><strong>关于 access 访问标记符的使用，在下面会详细介绍使用方法。</strong></p><p>一个 derived class 可以继承所有 base class 的 function 出过一下几种特殊情况类型：</p><ul><li>constructor and destructor 构造器和销毁器</li><li>复用操作符 function</li><li>friend function</li></ul><p>一个 class 可以同时继承多个 base class，使用逗号<code>,</code> 分隔 base class，如：<code>class Daughter: public Mother, public Father</code>。</p><h3>protected 元素</h3><p>对于 class 中的元素的 access 访问表示符，我们前面使用了 public 和 private。public 里的元素可以被外界访问或修改，private 里的元素只能被 class 内部使用，或者通过 friend function 来读取。</p><p>除了以上两种识别符外，还有一种类型：<code>protected</code>。</p><p>在 protected 内的元素和 private 段内的很类似。唯一的区别是，protected 内的元素可以被 derived class 访问。</p><p>例如我们给 Mother 添加一个 protected 元素：</p><pre><code>class Mother {
+ public:
+  void sayHi() {
+   cout &lt;&lt; var;
+  }
+
+ private:
+  int var=0;
+
+ protected:
+  int someVar;
+};</code></pre><p>someVar 变量可以被 Daughter 访问。</p><h3>继承的类型</h3><p>access 访问标记符能够用来定义继承类型。</p><p>在上面的示例中我们使用 public 作为访问标记符：<code>class Daughter: public Mother</code>。private 和 protected 同样可以被使用。</p><p><strong>三者的区别：</strong></p><ul><li>Public Inheritance: base class 里 public 段内的元素继承到 derived class 里的 public 段内，base class 里 protected 段内的元素继承到 derived class 里 protected 段内，base class 里 private 段内的元素永远不能能够被 derived class 直接访问，但可以通过 public 或 protected 内的 function 来间接获取数据。</li><li>Protected Inheritance: base class 里 public 和 protected 段内的元素继承到 derived class 里的 protected 段内。</li><li>Private Inheritance: base class 里 public 和 protected 段内的元素继承到 derived class 里的 private 段内。</li></ul><p>public 继承类型在<strong>继承</strong>中是最常用的。如果在程序中没有指定某个继承类型，则默认为 <strong>private</strong>。</p><h3>构造器和销毁器</h3><p>上面提到了 derived class 不会继承 base class 的构造器和销毁器。但是 derived class 的实例 object 在被建立和销毁时，base class 的构造器和销毁器会被自动调用。</p><p>我们建立 Mother class：</p><pre><code>class Mother
+{
+ public:
+    Mother() {
+      cout &lt;&lt; &quot;mother's constructor&quot; &lt;&lt; endl;
+    }
+    ~Mother() {
+        cout &lt;&lt; &quot;mother's destructor&quot; &lt;&lt; endl;
+    }
+};
+
+int main(int argc, const char * argv[]) {
+    Mother m;
+    return 0;
+}</code></pre><p>实例化 Mother 后，输出如下：</p><pre><code>mother's constructor
+mother's destructor</code></pre><p>然后我们建立 Daughter class：</p><pre><code>class Daughter: public Mother
+{
+ public:
+    Daughter() {
+        cout &lt;&lt; &quot;daughter's constructor&quot; &lt;&lt; endl;
+    }
+    ~Daughter() {
+      cout &lt;&lt; &quot;daugther's destructor&quot; &lt;&lt; endl;
+    }
+};
+
+int main(int argc, const char * argv[]) {
+    Daughter d;
+    return 0;
+}</code></pre><p>实例化 Daughter 后，输出如下：</p><pre><code>mother's constructor
+daughter's constructor
+daugther's destructor
+mother's destructor</code></pre><p>可以看到当 Daughter 的 object 创建时，首先 base class 的构造器被调用，然后调用 derived class 的构造器。<br>当 object 销毁时，首先 derived class 的销毁器被调用，然后 base class 的销毁器被调用。</p><p>你可以理解为 derived class 依赖于 base class 才能工作，所以 base class 需要首先被执行。</p><h3>多态性</h3><p>polymorphism 多态化意思是：拥有多种样式。通常多态化出现在那些有着继承关系的 class 中。在 c++ 中多态性意思是在调用同一个 function 时随着 object 类型的不同而有着不同的执行效果。</p><p>下面举例说明：我们创建一个游戏，有两种人物：monster 怪物和 ninja 忍者。他们都有一个共同的 function：<code>attack</code>，但是两者攻击的模式是不同的。在这个场景下，多态性能够实现不同的 objects 调用同样的 attack function 而有不同的实现效果。</p><p>首先创建一个 Enemy class：</p><pre><code>class Enemy {
+ protected: 
+  int attackPower;
+ public:
+  void setAttackPower(int a){
+   attackPower = a;
+  }
+};</code></pre><p>Enemy class 有一个public function：setAttackPower 来设置 protected 里的参数：attackPower。</p><p>然后我们建立两个 derived class 以 Enemy 为 base class，各自有独立的 attack function：</p><pre><code>class Ninja: public Enemy {
+ public:
+  void attack() {
+   cout &lt;&lt; &quot;Ninja! - &quot;&lt;&lt;attackPower&lt;&lt;endl;
+  }
+};
+
+class Monster: public Enemy {
+ public:
+  void attack() {
+   cout &lt;&lt; &quot;Monster! - &quot;&lt;&lt;attackPower&lt;&lt;endl;
+  }
+};</code></pre><p>在 main 中实例化：</p><pre><code>int main() {   
+ Ninja n;
+ Monster m;  
+}</code></pre><p>由于 Monster 和 Ninja 都继承自 Enemy，所以他们的实例 object 也都是 Enemy 类型的 object。我们可以如下定义：</p><pre><code>Enemy *e1 = &amp;n;
+Enemy *e2 = &amp;m;</code></pre><p>我们定义两个 Enemy 类型的指针指向两个 object。</p><p>在 main 中调用对应的 function：</p><pre><code>int main(int argc, const char * argv[]) {
+    Ninja n;
+    Monster m;
+    Enemy *e1 = &amp;n;
+    Enemy *e2 = &amp;m;
+    
+    e1-&gt;setAttackPower(20);
+    e2-&gt;setAttackPower(80);
+    
+    n.attack();
+    m.attack();
+    return 0;
+}</code></pre><p>两个指针都是 Enemy 类型的，所以可以用来使用 Enemy 中的 function 设置参数，然后分别调用 derived class 的 object 的 attack function。注意这里没法用这两个指针直接调用 <code>attack()</code>，因为 Enemy 中并没有定义这个 function。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1927.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1927.html</wfw:commentRss>
+</item>
+<item>
+<title>C++ 入门教程 -- Classes 实践</title>
+<link>https://blog.niekun.net/archives/1920.html</link>
+<guid>https://blog.niekun.net/archives/1920.html</guid>
+<pubDate>Sat, 21 Nov 2020 16:42:31 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[下面我们通过实际应用来介绍如果在真实环境下应用。我们使用 Code::Blocks IDE 来进行调试。这是一个免费的 c++ 开发环境，能够应用于绝大多数使用场景。官网：http://www....]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>下面我们通过实际应用来介绍如果在真实环境下应用。</p><p>我们使用 Code::Blocks IDE 来进行调试。这是一个免费的 c++ 开发环境，能够应用于绝大多数使用场景。</p><p>官网：<a href="http://www.codeblocks.org/">http://www.codeblocks.org/</a></p><p>在下载界面下载对应系统版本的安装包：<a href="http://www.codeblocks.org/downloads/26">http://www.codeblocks.org/downloads/26</a></p><p>最好安装带编译器的版本，这样就可以直接使用。</p><!--more--><h3>新建项目</h3><p>安装好 codeblock 后新建一个项目：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/1876839618.jpg" alt="1.jpg" title="1.jpg"></p><p>选择 console application：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/2657179757.jpg" alt="2.jpg" title="2.jpg"></p><p>根据提示设置项目名称等，完成项目建立。</p><p>然后添加一个 class：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/1562291612.jpg" alt="3.jpg" title="3.jpg"></p><p>设置 class 名称，取消勾选 <strong>has destructor</strong>，勾选 <strong>headers and implementation file shall be in same folder</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/896044646.jpg" alt="4.jpg" title="4.jpg"></p><p>完成后项目结构如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/3323508351.jpg" alt="5.jpg" title="5.jpg"></p><ul><li><strong>main.cpp</strong> 项目主文件</li><li><strong>MyClass.cpp</strong> class source 源文件</li><li><strong>MyClass.h</strong> class header 头文件</li></ul><h3>头文件和源文件</h3><p>头文件 <code>.h</code> 申明了 class 的 function 和 variable 变量等元素，我们新建的 class 头文件内容如下：</p><pre><code>#ifndef MYCLASS_H
+#define MYCLASS_H
+
+
+class MyClass
+{
+    public:
+        MyClass();
+
+    protected:
+
+    private:
+};
+
+#endif // MYCLASS_H</code></pre><p>里面只默认包含了一个 constructor 构造器 <code>MyClass()</code>。</p><p>源文件 <code>.cpp</code> 包含了这个 class 具体 function 和 variable 等元素的实现过程。当前只有一个空的构造器 function：</p><pre><code>#include &quot;myclass.h&quot;
+
+MyClass::MyClass()
+{
+    //ctor
+}</code></pre><p><strong>范围解析符：</strong><br>我们注意到源文件内构造器前的两个冒号<code>::</code>，叫做 scope resolution operator 范围解析符。这个符号是用来表示那些已经在头文件内申明过的 function 要在这里做具体实现了。用来和头文件内定义的元素进行关联的作用。</p><p>要在 main 总使用我们创建的 class，只需要在其中引用头文件名即可:</p><pre><code>#include &lt;iostream&gt;
+#include &quot;myclass.h&quot;
+
+using namespace std;
+
+int main()
+{
+    MyClass obj;
+    return 0;
+}</code></pre><p><strong>总体来说，头文件用来定义 class 提供了哪些功能及元素，源文件用来具体实现这些功能。</strong></p><h3>destructor 销毁器</h3><p>和上一章我们讲到的 constructor 构造器类似，destructor 销毁器也是一个特殊的 function，他在 object 被销毁时自动执行。</p><p>销毁一个 object 一般是在跳出创建这个 object 的 scope 段或者使用 pointer 指针指向这个 object，使用 delete 指令清除此指针指向的数据。</p><p>销毁其的写法和构造器类似，使用 class 名作为 function 名字，前面加上一个波浪符<code>~</code>。当然也是没有返回值类型的。例如：</p><pre><code>class MyClass {
+  public: 
+    ~MyClass() {
+     // some code
+    }
+};</code></pre><p><strong>使用销毁器能够方便的实现在关闭程序时释放资源，关闭文件，释放内存等功能。</strong></p><p>在头文件中声明一个销毁器：</p><pre><code>class MyClass
+{
+  public:
+   MyClass();
+   ~MyClass();
+};</code></pre><p>然后再源文件内定义具体实现内容：</p><pre><code>#include &quot;MyClass.h&quot;
+#include &lt;iostream&gt;
+using namespace std;
+
+MyClass::MyClass()
+{
+  cout&lt;&lt;&quot;Constructor&quot;&lt;&lt;endl;
+}
+
+MyClass::~MyClass()
+{
+  cout&lt;&lt;&quot;Destructor&quot;&lt;&lt;endl;
+}</code></pre><p><strong>不同于构造器，销毁器不能使用参数，也不能被重写，也就是一个 class 只能有一个销毁器。销毁器不是必须有的，不需要的话可以不写</strong></p><p>返回我们的 main，我们已经定义了一个 object <code>MyClass obj</code>，编译运行程序，会在终端输出以下：</p><pre><code>Constructor
+Destructor</code></pre><h3>选择符</h3><p>使用选择符 <code>-&gt;</code> 可以访问一个指针指向的 object 的元素。例如：</p><pre><code>MyClass obj;
+MyClass *ptr = &amp;obj;
+ptr-&gt;myPrint();</code></pre><p>我们创建了 object <code>obj</code> 然后定义一个指针 <code>ptr</code> 指向这个 object 的地址，然后我们可以使用选择符来访问 object 的元素。</p><p><strong>object 元素访问基本原则：</strong></p><ul><li>如果直接面对 object，使用<strong>点</strong><code>.</code> 来访问 object 的元素，如：<code>obj.myPrint()</code></li><li>如果使用面对指针指向的 object，使用<strong>选择符</strong><code>-&gt;</code> 来访问 object 的元素，如：<code>ptr-&gt;myPrint()</code></li></ul><h3>constants 常数</h3><p>常数就是一个有固定值的表达式，它的只在程序运行期间不能够被改变，使用关键词<code>const</code> 定义一个有固定值的变量：</p><pre><code>const int a=2;
+</code></pre><p>注意所有 const 类型的变量必须在创建时给其赋值。</p><p>我们可以创建一个 const 类型的 object：</p><pre><code>const MyClass obj;
+</code></pre><p>object 内所有的 variable 变量必须在初始化时赋值，一般在 constructor 构造器内完成，实例化的时候直接给其传递数据。如果没有提供构造器完成参数初始化赋值，会引起编译器报错。</p><p>一旦一个 const 类型的 object 被创建，它内部的所有 variable 变量的值都不可以被改变了，包括直接修改 public 段的变量或者使用 function 修改 private 的变量都不可以。</p><p>只有非 const 的 object 才可以调用非 const 的 function。对于 const 的 object 不能只能调用 const 的 function，定义一个 const 的 function 只需要在后面加上关键词 const，头文件定义示例如下：</p><pre><code>class MyClass
+{
+  public:
+    void myPrint() const;
+};</code></pre><p>源文件同样的方式：</p><pre><code>#include &quot;MyClass.h&quot;
+#include &lt;iostream&gt;
+using namespace std;
+
+void MyClass::myPrint() const {
+  cout &lt;&lt;&quot;Hello&quot;&lt;&lt;endl;
+}</code></pre><p>然后我们就可以实例化一个 const 的 object 使用厘米俺的 const function：</p><pre><code>int main() {
+  const MyClass obj;
+  obj.myPrint();
+}
+// Outputs &quot;Hello&quot;</code></pre><p>在一个 const object 调用常规的 function 会引起报错。同时在 const function 内尝试修改 object 内某变量数据也会报错。</p><h3>元素初始化器</h3><p>const 类型的元素数据不能够被改变，且必须在创建时赋值。c++ 提供了一个语法结构来给 class 内元素进行初始化叫做：constructor initializer list 构造器初始化列表。</p><p>以下示例执行会引起报错，因为在 function 中操作的元素有 const 类型的元素：</p><pre><code>class MyClass {
+  public:
+   MyClass(int a, int b) {
+    regVar = a;
+    constVar = b;
+   }
+  private:
+    int regVar;
+    const int constVar;
+};</code></pre><p>const 类型元素在申明后不能再对其修改。</p><p>这时候就需要使用 构造器初始化列表来对其初始化赋值：</p><pre><code>class MyClass {
+ public:
+  MyClass(int a, int b)
+  : regVar(a), constVar(b)
+  {
+  }
+ private:
+  int regVar;
+  const int constVar;
+};</code></pre><p>需要初始化的元素列表下载构造器后，前面使用一个冒号<code>:</code>，每个元素间使用逗号<code>,</code> 分隔。使用语法 <code>variable(value)</code> 来对其赋值。<strong>结尾不需要加分号<code>;</code></strong>。</p><p>使用构造器初始化列表可以用来避免将需要初始化的 const 类型参数放在其 body 内处理而引起错误。</p><p><strong>修改我们的项目文件：</strong></p><p>MyClass.h:</p><pre><code>#ifndef MYCLASS_H
+#define MYCLASS_H
+
+
+class MyClass
+{
+    public:
+        MyClass(int a, int b);
+        ~MyClass();
+
+    protected:
+
+    private:
+        int regVar;
+        const int constVar;
+};
+
+#endif // MYCLASS_H</code></pre><p>MyClass.cpp:</p><pre><code>#include &quot;myclass.h&quot;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+MyClass::MyClass(int a, int b)
+: regVar(a), constVar(b)
+{
+    cout &lt;&lt; regVar &lt;&lt; endl;
+    cout &lt;&lt; constVar &lt;&lt; endl;
+}
+
+MyClass::~MyClass()
+{
+    cout &lt;&lt; &quot;destructor&quot; &lt;&lt; endl;
+}</code></pre><p>main.cpp：</p><pre><code>#include &lt;iostream&gt;
+#include &quot;myclass.h&quot;
+
+using namespace std;
+
+int main()
+{
+    MyClass obj(42, 33);
+
+    return 0;
+}</code></pre><p>输出结果为：</p><pre><code>42
+33
+destructor</code></pre><p>注意构造器初始化列表也可以应用于常规变量，但是必须应用于 const 变量。</p><h3>结构化</h3><p>在真实世界中一个 object 可能是很复杂的，由很多其他简单的 objects 构成。例如一辆汽车的组成部分有车身，发动机，轮胎等。这一组合过程叫做结构化。</p><p>在 c++ 中，一个 class 可能作为另一个 class 的元素。下面的例子中我们构建两个 class：Person 和 birthday，且 Person 中包含 Birthday 作为一个元素。</p><p>birthday.h:</p><pre><code>#ifndef BIRTHDAY_H
+#define BIRTHDAY_H
+
+class Birthday
+{
+    public:
+        Birthday(int m, int d, int y);
+        void printDate();
+
+    protected:
+
+    private:
+        int month;
+        int day;
+        int year;
+};
+
+#endif // BIRTHDAY_H</code></pre><p>birthday.cpp: 注意将 function 返回类型放在范围解析符前</p><pre><code>#include &quot;birthday.h&quot;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+Birthday::Birthday(int m, int d, int y)
+: month(m), day(d), year(y)
+{
+}
+
+void Birthday::printDate()
+{
+    cout &lt;&lt; month &lt;&lt; &quot;/&quot; &lt;&lt; day &lt;&lt; &quot;/&quot; &lt;&lt; year &lt;&lt; endl;
+}</code></pre><p>persion.h:</p><pre><code>#ifndef PERSON_H
+#define PERSON_H
+#include &quot;birthday.h&quot;
+#include &lt;string&gt;
+
+using namespace std;
+
+class Person
+{
+    public:
+        Person(string n, Birthday b);
+        void printInfo();
+
+    protected:
+
+    private:
+        string name;
+        Birthday bd;
+};
+
+#endif // PERSON_H</code></pre><p>persion.cpp:</p><pre><code>#include &quot;person.h&quot;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+Person::Person(string n, Birthday b)
+: name(n), bd(b)
+{
+}
+
+void Person::printInfo()
+{
+    cout &lt;&lt; name &lt;&lt; endl;
+    bd.printDate();
+}</code></pre><p>Person 包含 name 和 Birthday 两个元素，且在构造器内对其初始化。</p><p>结构化的意义是建立一种<code>包含</code>关系，即 Person 中包含一个 Birthday。在 Person 中有一个 <code>printInfo()</code> 来输出信息，bd 是 Birthday 的实例，所以可以直接使用其 function。</p><p>在 main 中实例化测试：</p><pre><code>#include &quot;person.h&quot;
+#include &quot;birthday.h&quot;
+
+using namespace std;
+
+int main()
+{
+    Birthday bd(11, 25, 1989);
+    Person p(&quot;Marco&quot;, bd);
+    p.printInfo();
+
+    return 0;
+}</code></pre><p>以上示例中，我们首先创建一个 Birthday 的 object 并初始化参数，然后创建一个 Person 的 object 并初始化参数，其中第二个参数使用第一步创建的 object 作为数据，最后调用 Person object 的 function 来输出信息。</p><p>结构化的优势是保持每个 class 相对简单，专注于一个任务。同时让每个各个 object 保持独立性，和可复用性。</p><h3>friend 关键词</h3><p>位于 private 段的 class 里的元素默认无法被外界直接访问，但可以通过在 class 内申明一个并非 class 内部的 friend function 来实现对 private 元素的读取。</p><p>使用关键词 <code>friend</code> 来定义，在 MyClass 头文件中修改如下：</p><pre><code>#ifndef MYCLASS_H
+#define MYCLASS_H
+
+class MyClass
+{
+    public:
+        MyClass(int a, int b);
+        ~MyClass();
+
+    protected:
+
+    private:
+        int regVar;
+        const int constVar;
+
+    friend void readPriv(MyClass *obj);
+};
+
+#endif // MYCLASS_H
+};</code></pre><p>我们在 class 中申明一个 function，传入参数为 class 本身，注意传入的模式是 by reference 也就是传入 object 的地址。详细说明参考：<a href="https://blog.niekun.net/archives/1915.html">C++ 入门教程 -- Functions</a></p><p>然后再外部定义 someFunc 的内容，我直接在 main 中定义，并测试读取 private 参数：</p><pre><code>#include &quot;myclass.h&quot;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+void readPriv(MyClass *obj)
+{
+    cout &lt;&lt; obj-&gt;constVar &lt;&lt; endl;
+}
+
+int main()
+{
+    MyClass a(42, 33);
+    MyClass *b = &amp;a;
+    readPriv(&amp;a);
+
+    return 0;
+}</code></pre><p>输出结果为：</p><pre><code>33
+</code></pre><p>再定义 friend function 时，传入 by reference 参数可以写成 <code>*obj</code> 也可以写成 <code>&amp;obj</code>。只是在后续 function 内容中使用 <code>.</code> 还是 <code>-&gt;</code> 调用内部功能。然后再调用 friend function 时是传入 object 地址还是直接传入 object 本身。</p><p><strong>friend function 不属于任何 class。</strong></p><h3>this 关键词</h3><p>每个 c++ object 都有一个指向本身的指针叫做：this。在 object 内部 function 中，可以通过使用 this 指针来引用 object 自身。</p><p>我们建立一个简单的 class：</p><pre><code>class MyClass {
+ public:
+  MyClass(int a)
+  : var(a)
+  { }
+  void printInfo() {
+   cout &lt;&lt; var &lt;&lt; endl;
+   cout &lt;&lt; this-&gt;var &lt;&lt; endl;
+   cout &lt;&lt; (*this).var &lt;&lt; endl; 
+  }
+ private:
+  int var;
+};</code></pre><p><code>printInfo()</code> 中的三条指令会得到相同的结果。this 是一个指针，所以使用 <code>-&gt;</code> 来读取对应地址的数据，也可以使用 <code>*this</code> 数据查询符来表示此地址下的数据。可以参考教程：<a href="https://blog.niekun.net/archives/1898.html">C++ 入门教程 -- 数据类型，数组及指针</a></p><h3>操作符复用</h3><p>大多数 c++ 中的操作符都可以被重新定义。因此让我们自定义的数据类型进行运算操作，比如将两个 object <code>+</code> 加起来。</p><p>以下列表中的操作符可以被复用：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/2807033593.png" alt="1.png" title="1.png"></p><p>不能被复用的符号有：<code>: | .* | . | ?:</code></p><p>我们定义一个简单的 class：</p><pre><code>class MyClass {
+ public:
+  int var;
+  MyClass(int a)
+  : var(a)
+  { }
+};</code></pre><p>下面示例我们将重新定义加号<code>+</code> 来让两个 object 可以加起来。</p><p>定义复用操作符其实是一个 function，通过关键词 operator 和操作符来定义，类似于普通 function，这里也有返回类型和传入数据项需要定义，以下示例中，我们复用加号<code>+</code>，然后返回值为一个此 class 本身的 object，传入数据为一个 object 地址：</p><pre><code>class MyClass {
+ public:
+  int var;
+  MyClass(int a)
+  : var(a) { }
+
+  MyClass operator+(MyClass &amp;obj) {
+   MyClass res;
+   res.var = this-&gt;var+obj.var;
+   return res; 
+  }
+};</code></pre><p>再复用操作符 function 中，我们定义了一个 新的 object，然后使用 <code>this</code> 调用此 object 本身的参数 <code>var</code> 和传入 object 的 <code>var</code> 相加，结果放入新建立的 object 的 <code>var</code> 内，最后返回这个新 object。</p><p>这样定义后，我们就可以直接使用操作符来做运算了：</p><pre><code>int main() {
+  MyClass obj1(12), obj2(55);
+  MyClass res = obj1 + obj2;
+
+  cout &lt;&lt; res.var;
+}
+
+//Outputs 67</code></pre><p>以上就是 class 的基本使用方法。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1920.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1920.html</wfw:commentRss>
+</item>
 <item>
 <title>C++ 入门教程 -- Classes and Objects</title>
 <link>https://blog.niekun.net/archives/1918.html</link>
@@ -579,132 +1005,6 @@ Packet Loss:     0.0%
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1900.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1900.html</wfw:commentRss>
-</item>
-<item>
-<title>MySQL 5.7 升级 8.0</title>
-<link>https://blog.niekun.net/archives/1899.html</link>
-<guid>https://blog.niekun.net/archives/1899.html</guid>
-<pubDate>Tue, 10 Nov 2020 11:03:52 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[首先备份本地数据库，以防升级错误：mysqldump -uUSER -pPASSWORD --all-databases &gt; /path/to/backup.sql官网下载最新的 MySQ...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>首先备份本地数据库，以防升级错误：</p><pre><code>mysqldump -uUSER -pPASSWORD --all-databases &gt; /path/to/backup.sql
-</code></pre><p>官网下载最新的 MySQL apt 库：<a href="https://dev.mysql.com/downloads/repo/apt/">https://dev.mysql.com/downloads/repo/apt/</a></p><p>当前最新地址为：<a href="https://dev.mysql.com/get/mysql-apt-config_0.8.16-1_all.deb">https://dev.mysql.com/get/mysql-apt-config_0.8.16-1_all.deb</a></p><p>下载到本地后安装：</p><pre><code>dpkg -i mysql-apt-config_0.8.16-1_all.deb
-</code></pre><p>期间会提示选择安装的 MySQL 版本，第一步选择当前安装的 MySQL 5.7，然后下一步选择 MySQL server 8.0，然后再下一步切换到 ok 选项确认。</p><p>配置完成后更新 apt 库及安装新版 MySQL：</p><pre><code>apt update
-apt install mysql-server
-</code></pre><p>安装完成后验证当前安装版本：</p><pre><code>mysql -V
-</code></pre><p>以上就是简单的 MySQL 升级教程。</p><p>参考链接：<br><a href="https://dev.mysql.com/doc/mysql-apt-repo-quick-guide/en/#apt-repo-setup">https://dev.mysql.com/doc/mysql-apt-repo-quick-guide/en/#apt-repo-setup</a><br><a href="https://www.digitalocean.com/community/questions/upgrade-mysql-5-7-to-8-ubuntu-18-04">https://www.digitalocean.com/community/questions/upgrade-mysql-5-7-to-8-ubuntu-18-04</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1899.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1899.html</wfw:commentRss>
-</item>
-<item>
-<title>C++ 入门教程 -- 判断及循环</title>
-<link>https://blog.niekun.net/archives/1895.html</link>
-<guid>https://blog.niekun.net/archives/1895.html</guid>
-<pubDate>Sat, 07 Nov 2020 15:53:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[if 判断if 申明的使用场景：当一个判断条件达到是执行指令。语法结构：if (condition) {    statements}]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<h3>if 判断</h3><p><code>if</code> 申明的使用场景：当一个判断条件达到是执行指令。</p><p>语法结构：</p><pre><code>if (condition) {
-    statements
-}</code></pre><!--more--><p>示例：</p><pre><code>if (7 &gt; 4) {
-  cout &lt;&lt;  &quot;Yes&quot;; 
-}
-
-// Outputs &quot;Yes&quot;</code></pre><p>可以使用的相关性判断器：</p><ul><li><code>&lt;</code></li><li><code>&gt;</code></li><li><code>&gt;=</code></li><li><code>&lt;=</code></li><li><code>==</code></li><li><code>!=</code></li></ul><p>当条件不满足是，也可以执行命令：</p><pre><code>if (condition) {
-  //statements
-}
-else {
- //statements
-}</code></pre><p>if else 指令可以多次嵌套使用：</p><pre><code>int age = 18;
-if (age &gt; 14) {
-  if(age &gt;= 18) {
-    cout &lt;&lt; &quot;Adult&quot;;
-  }
-  else {
-    cout &lt;&lt; &quot;Teenager&quot;;
-  }
-}
-else {
-  if (age &gt; 0) {
-    cout &lt;&lt; &quot;Child&quot;;
-  }
-  else {
-    cout &lt;&lt; &quot;Something's wrong&quot;;
-  }
-}</code></pre><p>当命令只有一句时可以省略大括号：</p><pre><code>int a = 10;
-if (a &gt; 4)
-  cout &lt;&lt; &quot;Yes&quot;;
-else
-  cout &lt;&lt; &quot;No&quot;;</code></pre><h3>while 循环</h3><p>一个 while 循环重复的执行设置的命令，直到设置的条件不满足为止。</p><p>语法：</p><pre><code>while (condition) {
-   statement(s);
-}</code></pre><p>示例：</p><pre><code>int num = 1;
-while (num &lt; 6) {
-  cout &lt;&lt; &quot;Number: &quot; &lt;&lt; num &lt;&lt; endl;
-  num = num + 1;
-}</code></pre><p>当 num 变量小于 6 满足时，循环执行大括号内的指令，直到 num 的值大于等于 6 则跳出循环继续执行下面的指令。以上示例中当 num 第五次自加后结果为 6，则下一次循环开始时判断条件就为 false 了，就会跳出循环。</p><h3>for 循环</h3><p>for 循环指令可以实现指定循环次数，语法结构如下：</p><pre><code>for ( init; condition; increment ) {
-  statement(s);
-}</code></pre><ul><li>init 用来设置变量初值，且只设置一次</li><li>condition 用来给定执行循环的条件，满足则执行循环内指令</li><li>increment 设置循环条件的变量值如何变化</li></ul><p>示例：</p><pre><code>for (int x = 1; x &lt; 10; x++) {
- // some code
- }</code></pre><p>定义并设置 x 变量初值 1，循环条件是 x 小于 10，每次循环后 x 自加 1。</p><p>变量变化量可以自定：</p><pre><code>for (int a = 0; a &lt; 50; a+=10) {
-  cout &lt;&lt; a &lt;&lt; endl;
-}
-/* Outputs
-0
-10
-20
-30
-40
-*/</code></pre><h3>do while 循环</h3><p>不同于 while 循环，do while 循环首先执行一次循环内的指令，再判断条件是否满足。</p><p>语法：</p><pre><code>do {
-   statement(s);
-} while (condition);</code></pre><p>示例：</p><pre><code>int a = 0;
-do {
-  cout &lt;&lt; a &lt;&lt; endl;
-  a++;
-} while(a &lt; 5);
-
-/* Outputs
-0
-1
-2
-3
-4
-*/</code></pre><p>do while 即使条件不满足也至少会执行一次循环内的命令。</p><h3>switch 指令</h3><p>当需要根据一个变量值为不同的结果时执行不同的指令时可以使用 switch 指令。</p><p>语法：</p><pre><code>switch (expression) {
-  case value1:
-    statement(s);
-    break;
-  case value2:
-    statement(s);
-    break;
-    ...
-  case valueN:
-    statement(s);
-    break;
-    default:
-    statement(s);
-}</code></pre><p>当变量的值匹配到 <strong>switch</strong> 里定义的一个 value 值后，会执行此 case 下的指令。<br>使用 <strong>break</strong> 来跳出 switch 指令，如果不写的话会顺序执行下面的case 指令，即使变量值并没有匹配到这个 case。<br><strong>default</strong> 用来定义当以上设置的 case 都没有匹配上时执行的指令。</p><h3>逻辑操作符</h3><p>有三个逻辑操作符：</p><ul><li>&& 与</li><li>|| 或</li><li>!  非</li></ul><p>与指令：当两个条件都满足时为 true：</p><pre><code>int age = 20;
-if (age &gt; 16 &amp;&amp; age &lt; 60) {
-  cout &lt;&lt; &quot;Accepted!&quot; &lt;&lt; endl;
-}
-
-// Outputs &quot;Accepted&quot;</code></pre><p>或指令：当任意一个条件满足时为 true：</p><pre><code>int age = 16;
-int score = 90;
-if (age &gt; 20 || score &gt; 50) {
-    cout &lt;&lt; &quot;Accepted!&quot; &lt;&lt; endl;
-}
-
-// Outputs &quot;Accepted!&quot;</code></pre><p>非指令：当条件不满足时为 true：</p><pre><code>int age = 10;
-if ( !(age &gt; 16) ) {
-  cout &lt;&lt; &quot;Your age is less than 16&quot; &lt;&lt; endl;
-}
-
-// Outputs &quot;Your age is less than 16&quot;</code></pre><p>以上就是常用的判断及循环指令用法。</p>
-]]></content:encoded>
-<slash:comments>1</slash:comments>
-<comments>https://blog.niekun.net/archives/1895.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1895.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
