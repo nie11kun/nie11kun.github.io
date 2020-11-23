@@ -84,6 +84,26 @@
 <div class="row">
 <div class="col-md-9 col-12" id="main" role="main">
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/547.html">Linux 管道命令的使用</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2019-11-27T14:36:24+08:00" itemprop="datePublished">2019-11-27</time></li>
+<li>分类: <a href="../../category/Linux/index.html">Linux</a></li>
+<li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/547.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>配合 Linux 管道符，可以根据情况执行多条命令，常用的符号有：'|' '&&' ';' '||' '&gt;' '&gt;&gt;'</p><h2>|</h2><p>管道符 "|" 主要用来将上一个命令的输出作为下一个命令的输入。</p><p>例如：</p><pre><code>ps aux | grep test.sh
+</code></pre><p>将当前所有进程信息作为输出信息，grep 将输出的内容作为输入，列出有 "test.sh" 的行。</p><p>可同时使用多条管道：</p><pre><code>cat /etc/passwd | grep /bin/bash | wc -l
+</code></pre><p>这条命令使用了两个管道，利用第一个管道将cat命令（显示passwd文件的内容）的输出送给grep命令，grep命令找出含有“/bin /bash”的所有行；第二个管道将grep的输出送给wc命令，wc命令统计出输入中的行数。这个命令的功能在于找出系统中有多少个用户使用bash。</p><h2>多命令顺序执行符</h2><pre><code>;     命令1;命令2    多个命令顺序执行，命令之间无任何逻辑关系
+&amp;&amp;    命令1&amp;&amp;命令2   逻辑与：当命令1正确执行后，命令2才会正确执行，否则命令2不会执行
+||    命令1||命令2   逻辑或：当命令1不正确执行后，命令2才会正确执行，否则命令2不会执行</code></pre><p>例如：</p><pre><code>pwd;ls;date
+ls test.sh &amp;&amp; echo found file
+ls test.sh || echo no file
+</code></pre><h2>重导向</h2><p>重导向就是使命令改变它所认定的标准输出。</p><p>'&gt;' 可将结果输出到文件中，该文件原有内容会被删除，'&gt;&gt;' 则将结果附加到文件中，原文件内容不会被删除。</p><p>将 file1.txt 的内容复制到 file2.txt，file2.txt 原内容会被清空。</p><pre><code>cat file1.txt &gt; file2.txt
+</code></pre><p>将 file1.txt 的内容附加到 file2.txt，file2.txt 原内容保留。</p><pre><code>cat file1.txt &gt;&gt; file2.txt
+</code></pre> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/546.html">grep 全局匹配打印命令 in Linux</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
@@ -133,27 +153,17 @@
 <p>首先判断自己网络 IP 地址是固定 IP/动态 IP/内网 IP，通过站长工具可以查询，或者终端执行如下指令查看外网看本地 IP 地址：</p><pre><code>curl https://info.niekun.net/ip
 </code></pre><p>然后从本地通过 ipconfig(win)/ifconfig(linux) 来查看网络路径，如果本地 IP 和上面检测出的一致，那就是有外网 IP，如果不一样则很可能自己分配到的是一个运营商内网。如下是我本地 Windows 电脑的结果，确认是内网：<br><img src="https://niekun.net/usr/uploads/2020/03/3819524027.png" alt="2020-03-05T02:58:24.png" title="2020-03-05T02:58:24.png"></p><p>对于有外网 IP 但是是动态的，每隔一段时间自动变化的情况，可以使用 DDNS 来处理。</p><p>对于大多数家庭网络用户，都没有固定的 IP 地址或者也没有动态的 IP 地址，在本地搭建网络服务无法直接在外网访问，使用 frp 可以实现这一需求。</p><p>使用场景：<strong>路由器远程访问</strong> <strong>远程访问/控制电脑</strong> <strong>网搭建网站公网访问</strong></p><p>项目地址：<a href="https://github.com/fatedier/frp">https://github.com/fatedier/frp</a><br>使用手册：<a href="https://gofrp.org/docs/">https://gofrp.org/docs/</a></p><p>Windows 脚本参考：<a href="https://sspai.com/post/52523">https://sspai.com/post/52523</a></p><p class="more"><a href="../../archives/539.html" title="使用 frp 实现内网穿透/远程管理/文件服务器">- 阅读剩余部分 -</a></p> </div>
 </article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/534.html">cat 命令 in Linux</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-11-18T21:48:00+08:00" itemprop="datePublished">2019-11-18</time></li>
-<li>分类: <a href="../../category/Linux/index.html">Linux</a></li>
-<li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/534.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>cat 是 Linux 下常用的一个命令。主要功能是：显示文件内容/新建文件/合并文件</p><p class="more"><a href="../../archives/534.html" title="cat 命令 in Linux">- 阅读剩余部分 -</a></p> </div>
-</article>
 <ol class="page-navigator"><li class="prev"><a href="../31/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../29/index.html">29</a></li><li><a href="../30/index.html">30</a></li><li><a href="../31/index.html">31</a></li><li class="current"><a href="index.html">32</a></li><li><a href="../33/index.html">33</a></li><li><a href="../34/index.html">34</a></li><li><a href="../35/index.html">35</a></li><li><span>...</span></li><li><a href="../48/index.html">48</a></li><li class="next"><a href="../33/index.html">后一页 &raquo;</a></li></ol></div>
 <div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../archives/1927.html">C++ 入门教程之七 -- 继承和多态</a></li><li><a href="../../archives/1920.html">C++ 入门教程之六 -- Classes 实践</a></li><li><a href="../../archives/1918.html">C++ 入门教程之五 -- Classes and Objects</a></li><li><a href="../../archives/1915.html">C++ 入门教程之四 -- Functions</a></li><li><a href="../../archives/1898.html">C++ 入门教程之三 -- 数据类型，数组及指针</a></li><li><a href="../../archives/1911.html">Speedtest CLI 命令行测速工具</a></li><li><a href="../../archives/1906.html">两个子网间网络互访的原理</a></li><li><a href="../../archives/1904.html">nextcloud 安装教程</a></li><li><a href="../../archives/1903.html">MySQL 用户密码规则配置</a></li><li><a href="../../archives/1900.html">MySQL 8.0 修改用户密码加密方式</a></li> </ul>
+<li><a href="../../archives/1940.html">C++ 入门教程之八 -- Templates - Exceptions - Files</a></li><li><a href="../../archives/1927.html">C++ 入门教程之七 -- 继承和多态</a></li><li><a href="../../archives/1920.html">C++ 入门教程之六 -- Classes 实践</a></li><li><a href="../../archives/1918.html">C++ 入门教程之五 -- Classes and Objects</a></li><li><a href="../../archives/1915.html">C++ 入门教程之四 -- Functions</a></li><li><a href="../../archives/1898.html">C++ 入门教程之三 -- 数据类型，数组及指针</a></li><li><a href="../../archives/1911.html">Speedtest CLI 命令行测速工具</a></li><li><a href="../../archives/1906.html">两个子网间网络互访的原理</a></li><li><a href="../../archives/1904.html">nextcloud 安装教程</a></li><li><a href="../../archives/1903.html">MySQL 用户密码规则配置</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
 <ul class="widget-list">
+<li><a href="../../archives/1918.html#comment-25">ahxinny</a>: 有点云里雾里的。</li>
 <li><a href="../../archives/1895.html#comment-24">ahxinny</a>: 前面的易懂，指针之后有点登天。</li>
 <li><a href="../../archives/1885.html#comment-23">ahxinny</a>: 学习了。哈哈哈！</li>
 <li><a href="../../archives/1906.html#comment-22">ahxinny</a>: 可以偷看你的手机内容了。</li>
@@ -163,7 +173,6 @@
 <li><a href="../../archives/1757.html#comment-18">ahxinny</a>: 这个好！对处理文件数据有用</li>
 <li><a href="../../archives/1754.html#comment-17">ahxinny</a>: 这个有点看不懂了。资料先收集着</li>
 <li><a href="../../archives/1690.html#comment-16">ahxinny</a>: 真亮的眼睛</li>
-<li><a href="../../archives/1443.html#comment-15">安卓</a>: 安卓怎么编译？</li>
 </ul>
 </section>
 <section class="widget">
@@ -188,12 +197,12 @@
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="c406337ec1e8501f037ac9c9-text/javascript">
+<script type="684307f0cbbdc4c9a5d78b4c-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="c406337ec1e8501f037ac9c9-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="c406337ec1e8501f037ac9c9-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="c406337ec1e8501f037ac9c9-text/javascript"></script>
-<script src="../../usr/themes/TypechoAwesome/navItem.js" type="c406337ec1e8501f037ac9c9-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="c406337ec1e8501f037ac9c9-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="684307f0cbbdc4c9a5d78b4c-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="684307f0cbbdc4c9a5d78b4c-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="684307f0cbbdc4c9a5d78b4c-text/javascript"></script>
+<script src="../../usr/themes/TypechoAwesome/navItem.js" type="684307f0cbbdc4c9a5d78b4c-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="684307f0cbbdc4c9a5d78b4c-|49" defer=""></script></body>
 </html>

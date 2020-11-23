@@ -11,8 +11,117 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/author/1/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>admin</description>
-<lastBuildDate>Sat, 21 Nov 2020 22:31:00 +0800</lastBuildDate>
-<pubDate>Sat, 21 Nov 2020 22:31:00 +0800</pubDate>
+<lastBuildDate>Mon, 23 Nov 2020 21:41:00 +0800</lastBuildDate>
+<pubDate>Mon, 23 Nov 2020 21:41:00 +0800</pubDate>
+<item>
+<title>C++ 入门教程之八 -- Templates - Exceptions - Files</title>
+<link>https://blog.niekun.net/archives/1940.html</link>
+<guid>https://blog.niekun.net/archives/1940.html</guid>
+<pubDate>Mon, 23 Nov 2020 21:41:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[function template使用 function 和 class 使我们编程更加简单及易操作。但是它们仍然受限于 c++ 编程规范，在定义它们的参数时必须指定参数的类型。例如：int s...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<h3>function template</h3><p>使用 function 和 class 使我们编程更加简单及易操作。但是它们仍然受限于 c++ 编程规范，在定义它们的参数时必须指定参数的类型。例如：</p><pre><code>int sum(int a, int b) {
+  return a+b;
+}
+
+int main () {
+  int x=7, y=15;
+  cout &lt;&lt; sum(x, y) &lt;&lt; endl;
+}</code></pre><!--more--><p>以上示例中，需要我们定义sum function 需要传入两个 int 型数据，返回其相加结果。在 main 中调用 sum function。</p><p><code>sum()</code> 可以正确的执行指令，但它的限制是必须传入 int 类型的数据。</p><p>如果需要实现两个 double 类型数据相加，需要再次定义新 funtion：</p><pre><code>double sum(double a, double b) {
+  return a+b;
+}</code></pre><p>使用 <strong>function template</strong> 能够让我们只定义一个 <code>sum()</code> 来适用于所有类型的数据。</p><p>使用关键词 <code>template</code> 来定义一个 function template，在尖括号<code>&lt;&gt;</code>内定义通用数据类型：</p><pre><code>template &lt;class T&gt; 
+</code></pre><p>关键词 <code>class</code> 表示一个申明要定义 generic 通用数据类型，注意不要和我之前学习的 <code>class</code> 混淆。</p><p>也可以使用关键词 <code>typename</code>：</p><pre><code>template &lt;typename T&gt; 
+</code></pre><p><code>T</code> 表示我们的 generic 通用数据类型名称，在后续中可以使用此名称代表数据类型，<strong>可以是任意自定义字符</strong>。</p><p>修改我们的示例：</p><pre><code>#include &lt;iostream&gt;
+using namespace std;
+
+template &lt;class T&gt;
+T sum(T a, T b)
+{
+    return a + b;
+}
+
+int main()
+{
+    int x=7, y=15;
+    cout &lt;&lt; sum(x, y) &lt;&lt; endl;
+
+    double a=7.15, b=15.54;
+    cout &lt;&lt; sum(a, b) &lt;&lt; endl;
+
+    return 0;
+}</code></pre><p>我们在 function 中建立了一个 generic data type 通用数据类型 T，返回值和传入参数类型都为 T。在 mian 中调用时，会根据实际传入数据类型来动态确定 T 的实际类型。</p><p>function template 可以节省编程中很多时间，因为只需要一次定义就可以兼容不同的数据类型。</p><p>我们也可以同时定义多个 generic data type，使用逗号<code>,</code> 分隔多个定义类型：</p><pre><code>template &lt;class T, class U&gt;
+T smaller(T a, U b) {
+  return (a &lt; b ? a : b);
+}
+
+int main () {
+  int x=72;
+  double y=15.34;
+  cout &lt;&lt; smaller(x, y) &lt;&lt; endl;
+}</code></pre><p>以上示例定义了两个通用数据类型，返回值类型为第一种数据类型。<code>(a &lt; b ? a : b)</code> 表达式的意思是：判断 a 是否小于 b，如果结果为 true 则返回 a 的值，如果结果为 flase 返回 b 的值，两个参数可以是不同数据类型，如：int 和 double。</p><p>在 mian 中调用 smaller function，返回结果为两个参数中较大的那个的值，由于返回值类型为第一个定义数据类型 T，而我们调用时传入的第一个参数类型为 int，所以返回结果也为 int 型。</p><p>需要注意的是在一旦定义了 function template，在 function 中就一定要使用定义的那些通用数据类型，否则编译器会报错。</p><h3>class template</h3><p>同样也可以定义 class template，允许 class 的元素类型为 generic data type。语法如下：</p><pre><code>template &lt;class T&gt;
+class MyClass {
+
+};</code></pre><p>类似于 function template，多个 generic data type 使用逗号<code>,</code> 分隔：</p><pre><code>template &lt;class T,class U&gt;
+</code></pre><p>下面举例说明使用方法：</p><pre><code>template &lt;class T&gt;
+class Pair {
+    public:
+    Pair (T a, T b):
+    first(a), second(b) {
+    }
+    
+    private:
+    T first, second;
+};</code></pre><p>以上建立了一个 class template，类型为 T，通过构造器对 private 里的两个 T 类型的参数初始化数据。</p><p>在 class template 外定义 function，如 class 大括号外或一个单独文件，需要在 class 后标记 class template 内定义过的 generic type。例如在以上示例的 class 外建立 bigger function：</p><pre><code>template &lt;class T&gt;
+class Pair {
+    public:
+    Pair (T a, T b):
+    first(a), second(b) {
+    }
+    T bigger();
+
+    private:
+    T first, second;
+};
+
+template &lt;class T&gt;
+T Pair&lt;T&gt;::bigger() {
+    return (first&gt;second ? first : second);
+}</code></pre><p>上面示例中使用了 scope resolution operator - 范围解析符<code>::</code> 来表示外部的 Pair() function 属于哪个 class，在头文件章节介绍过，具体参考：<a href="https://blog.niekun.net/archives/1920.html">C++ 入门教程之六 -- Classes 实践</a>。</p><p>bigger function 返回 class 两个属性变量中较大的值。</p><p>在 main 中实例化 Pair class 时需要使用尖括号定义当前实际要使用的数据类型，如 int 类型：</p><pre><code>void main() {
+    Pair&lt;int&gt; obj(11, 22);
+    cout &lt;&lt; obj.bigger() &lt;&lt; endl;
+}</code></pre><p>也可以定义 double 类型：</p><pre><code>void main() {
+    Pair&lt;double&gt; obj(11.23, 22.56);
+    cout &lt;&lt; obj.bigger() &lt;&lt; endl;
+}</code></pre><h3>template 特例</h3><p>在前面介绍的 class template 中，实例化 object 时定义不同的数据类型会执行同样的 function 指令内容。template specialization 特例允许当我们定义某些特定数据类型作为 template type 时执行和通用指令不同的内容。</p><p>下面举例说明，当定义数据类型为 char 时执行和其他数据类型不同的指令，先建立一个常规 class template：</p><pre><code>template &lt;class T&gt;
+class MyClass {
+public:
+    MyClass(T x) {
+        cout &lt;&lt; x &lt;&lt; &quot; - not a char&quot; &lt;&lt; endl;
+    }
+};</code></pre><p>以上 class 用来作为常规数据类型情况下的处理。</p><p>为了处理当数据类型为 char 时的情况，我们建立一个 class specialization 特例：</p><pre><code>template &lt;&gt;
+class MyClass&lt;char&gt; {
+public:
+    MyClass(char x) {
+        cout &lt;&lt; x &lt;&lt; &quot; - is a char&quot; &lt;&lt; endl;
+    }
+};</code></pre><p>以上代码中，首先在 class 前声明了一个没有参数的 <code>template &lt;&gt;</code>，这是为了区别于通用数据类型情况，表明此 class specialization 里的数据类型是已知的和特定的。而由于这个 class 依然是属于 class template 类型的，只是一个特例情况的处理，所以这句声明不能省略。</p><p>在 class template 名称后面的 <code>&lt;char&gt;</code> 定义了此 clas 属于对哪种 specialization 特例数据类型的处理。当我们实例化时，如果定义的数据类型是属于 template specialization 里定义的类型时，会将此 class 作为实例化对象。</p><p>需要注意得是对常规数据类型的 class template 和特定类型数据的 class template 两者的 body 内容是完全独立互不影响的，specialization template 并不从 generic template 里继承任何元素，如果需要的话可以编写完全不同的功能。</p><p>在 main 中使用不同数据类型进行实例化测试：</p><pre><code>int main() {
+    MyClass&lt;int&gt; obj1(22);
+    MyClass&lt;double&gt; obj2(11.34);
+    MyClass&lt;char&gt; obj3('a');
+    
+    return 0;
+}
+
+//output:
+//22 - not a char
+//11.34 - not a char
+//a - is a char</code></pre><p>可以看到 generic template 适用于数据类型：int 和 double，而 specialization template 适用于数据类型：char。</p><h3>exception 例外</h3>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1940.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1940.html</wfw:commentRss>
+</item>
 <item>
 <title>C++ 入门教程之七 -- 继承和多态</title>
 <link>https://blog.niekun.net/archives/1927.html</link>
@@ -228,7 +337,12 @@ class MyClass
 MyClass::MyClass()
 {
     //ctor
-}</code></pre><p><strong>范围解析符：</strong><br>我们注意到源文件内构造器前的两个冒号<code>::</code>，叫做 scope resolution operator 范围解析符。这个符号是用来表示那些已经在头文件内申明过的 function 要在这里做具体实现了。用来和头文件内定义的元素进行关联的作用。</p><p>要在 main 总使用我们创建的 class，只需要在其中引用头文件名即可:</p><pre><code>#include &lt;iostream&gt;
+}</code></pre><p><strong>范围解析符：</strong><br>我们注意到源文件内构造器前的两个冒号<code>::</code>，叫做 scope resolution operator 范围解析符。这个符号是用来表示那些已经在头文件内申明过的 function 要在这里做具体实现了。用来和头文件内定义的元素进行关联的作用。</p><p>关于<code>::</code>和<code>.</code>的使用场景我的理解是，当在定义一个元素或功能时用范围解析符<code>::</code>，当实例化object后使用其一个元素或功能时用点<code>.</code>，例如：</p><pre><code>//定义一个元素为class内的一个att1类型：
+MyClass1::att1 a;
+
+//使用class的function：
+MyClass2 obj;
+obj.func();</code></pre><p>要在 main 总使用我们创建的 class，只需要在其中引用头文件名即可:</p><pre><code>#include &lt;iostream&gt;
 #include &quot;myclass.h&quot;
 
 using namespace std;
@@ -601,7 +715,7 @@ int main() {
 }
 //Outputs &quot;David&quot;</code></pre><p>以上示例中，构造器的作用是使用一个参数给 private name 赋值。当实例化这个 class 时，需要传入构造器需要的参数。</p><p><strong>注意我们可以在一个 class 中建立多个 constructor 构造器，来使用不同的参数。</strong></p>
 ]]></content:encoded>
-<slash:comments>0</slash:comments>
+<slash:comments>1</slash:comments>
 <comments>https://blog.niekun.net/archives/1918.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1918.html</wfw:commentRss>
 </item>
@@ -1037,30 +1151,6 @@ Packet Loss:     0.0%
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1903.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1903.html</wfw:commentRss>
-</item>
-<item>
-<title>MySQL 8.0 修改用户密码加密方式</title>
-<link>https://blog.niekun.net/archives/1900.html</link>
-<guid>https://blog.niekun.net/archives/1900.html</guid>
-<pubDate>Wed, 11 Nov 2020 09:41:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[MySQL 8.0 默认创建的用户密码加密方式为：caching_sha2_password，有些应用在连接时由于不兼容会导致报错，可以修改为 MySQL 5 使用的加密方式：sha256_pa...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>MySQL 8.0 默认创建的用户密码加密方式为：caching_sha2_password，有些应用在连接时由于不兼容会导致报错，可以修改为 MySQL 5 使用的加密方式：sha256_password。</p><p>创建用户：</p><pre><code>create user &quot;newuser&quot;@&quot;localhost&quot; identified by &quot;PASSWORD&quot;;
-</code></pre><p>授予全部数据库权限：</p><pre><code>grant all privileges on *.* to 'newuser'@'localhost';
-</code></pre><p>修改成原来的加密方式：</p><pre><code>alter user &quot;newuser&quot;@&quot;localhost&quot; identified with mysql_native_password by 'PASSWORD';
-</code></pre><p>刷新权限：</p><pre><code>    FLUSH PRIVILEGES;
-</code></pre><p>查看已建立的用户及加密方式：</p><pre><code>SELECT user,authentication_string,plugin,host FROM mysql.user;
-</code></pre><p>显示如下：</p><pre><code>+------------------+------------------------------------------------------------------------+---
-| user             | authentication_string                         | plugin                | host      |
-+------------------+------------------------------------------------------------------------+-----
-| marco            | *D51541FCBC8DD8E                              | mysql_native_password | localhost |
-| root             |                                               | auth_socket           | localhost |
-+------------------+------------------------------------------------------------------------+---------</code></pre><p>以上就是修改用户密码加密方式的方法。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1900.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1900.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
