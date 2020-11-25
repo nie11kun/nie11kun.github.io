@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1953.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1946.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1940.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1927.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1920.html"/>
@@ -17,11 +19,133 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1898.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1895.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1894.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1758.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1753.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1953.html">
+<title>c++ 中 string 字符串的含义</title>
+<link>https://blog.niekun.net/archives/1953.html</link>
+<dc:date>2020-11-25T11:52:00+08:00</dc:date>
+<description>有如下代码：int main()
+{
+    char *s;
+    s = &quot;hello&quot;;
+
+    cout &lt;&lt; *s &lt;&lt; endl;
+    cout &lt;&lt; s &lt;&lt; endl;
+
+    return 0;
+}
+
+//OUTPUT:
+//h
+//hello首先定义了一个指针，然后给指针赋值为一个字符串。看起来以上写法有错误，s 指针是一个地址，为什么给它赋值一个字符串？因为在 c++ 中字符串类似于我们提到的数组，使用数组名就表示第一个数组元素的地址。例如：int main()
+{
+    int arr[] = {1, 3};
+    int *p = arr;
+
+    cout &lt;&lt; *p &lt;&lt; endl;
+    cout &lt;&lt; *(p+1) &lt;&lt; endl;
+
+    return 0;
+}
+
+//OUTPUT:
+//1
+//3同样在字符串中，s = &quot;hello&quot; 表示将首字母 h 的地址赋给指针。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1946.html">
+<title>c++ 中数组类型数据作为 function 参数时的注意事项</title>
+<link>https://blog.niekun.net/archives/1946.html</link>
+<dc:date>2020-11-25T11:16:00+08:00</dc:date>
+<description>关于 function 的基础教程参考：C++ 入门教程之四 -- Functions当 function 的传入参数为数组时，如果我们想要得到数组元素个数可能会这样写：void testFunc(int arr[]) {
+    int count = sizeof(arr)/sizeof(arr[0]);
+}
+
+int main()
+{
+    int arr[] = {1, 3, 6, 8};
+    cout &lt;&lt; testFunc(arr) &lt;&lt; endl;
+
+    return 0;
+}sizeof function 可以返回数据占用内存空间的大小。所以用整个 arr 大小除以第一个元素大小可以得到数组元素个数。但是测试会发现以上得到的 count 值并不是 arr 数组元素个数 4 而是 2。这是因为当 function 传入数组数据时，会自动将其转换为 pointer 指针类型。这时候使用 sizeof() 得到的不是 arr 数据所在地址的内存大小，而是这个指向 arr 数组的指针所占用内存大小。我们做个实验：int main()
+{
+    int *arrP = new int[4];
+    cout &lt;&lt; sizeof(arrP) &lt;&lt; endl;
+    cout &lt;&lt; sizeof(arrP[0]) &lt;&lt; endl;
+    return 0;
+}
+
+//output:
+//8
+//4以上建立了一个指针指向 4 个元素的数组，然后分别查看其整个指针和某个元素指针的内存大小，得到的结果是 8 和 4。所以他们两个相除结果为 2。因为指针指向的是数组第一个元素，如果我们要通过指针给数组元素赋值，可以使用 *(pointer + n) 的方式完成，例如：int *arrP = new int[4];
+*arrP = 1;
+*(arrP+1) = 2;*(arrP+1) 就是第 2 个数组元素。可以用指针查询数组中某个元素的内存大小，数组名 arr 表示数组所在地址(不需要加地址转换符&amp;)：int main()
+{
+    int arr[] = {1, 3, 6, 8};
+    int *arrP = arr;
+
+    cout &lt;&lt; sizeof(*arrP) &lt;&lt; endl;
+    cout &lt;&lt; sizeof(*(arrP+1)) &lt;&lt; endl;
+
+    return 0;
+}
+
+//output:
+//4
+//4由于 arr 数组名表示此数组第一个元素所在地址的指针，所以我们可以直接使用此名称来用指针的方式地区元素数据：int main()
+{
+    int arr[] = {1, 3, 6, 8};
+    cout &lt;&lt; *arr &lt;&lt; endl;
+    cout &lt;&lt; *(arr+1) &lt;&lt; endl;
+
+    return 0;
+}
+
+//output:
+//1
+//3那么如何在 function 使用数组作为传入数据时如何能够直接使用它的数据而不是指针类型呢？可以使用以下方法：template &lt;size_t N&gt;
+int testFunc(int (&amp;arr)[N]) {
+    int count = sizeof(arr) / sizeof(arr[0]);
+    return count;
+}
+
+int main()
+{
+    int arr[] = {1, 3, 6, 8};
+    int count = testFunc(arr);
+
+    cout &lt;&lt; count &lt;&lt; endl;
+    return 0;
+}
+
+//OUTPUT:
+//4创建一个 function template，size_t 类型表示任意数据类型的元素占用内存大小，此处将其作为 generic data type 用来定义实际传入的数组所占用内存容量的 template，然后以传入数据的实际地址的模式将数组的元素都顺序都传入 function。这样传入数据就是实际数据地址而不是指针。关于 function 的传入数据实际地址是使用指针形式 * 还是 &amp; 形式，在前面我介绍过，形式如下：void test1(int *a) {
+    *a = 3;
+}
+
+void test2(int &amp;a) {
+    a = 2;
+}
+
+int main()
+{
+    int a = 1;
+    int *p = &amp;a;
+
+    test1(p);
+    cout &lt;&lt; a &lt;&lt; endl;
+
+    test2(a);
+    cout &lt;&lt; a &lt;&lt; endl;
+
+    return 0;
+}
+
+//OUTPUT:
+//3
+//2function 中使用在指针类型的传入数据时需要传入一个指针，当定义为 &amp; 时可以直接传入数据名称。两种方法都是 by reference 会影响到对应内存地址的数据内容。可参考教程：C++ 入门教程之四 -- Functions参考链接：https://stackoverflow.com/questions/4839626/element-count-of-an-array-in-chttps://www.tutorialspoint.com/cplusplus/cpp_pointer_to_an_array.htm</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1940.html">
 <title>C++ 入门教程之八 -- Templates - Exceptions - Files</title>
 <link>https://blog.niekun.net/archives/1940.html</link>
@@ -160,7 +284,7 @@ if (sonAge = motherAge) {
     cout &lt;&lt; &quot;result: &quot; &lt;&lt; num1 / num2 &lt;&lt; endl;
 } catch (int x) {
     cout &lt;&lt; &quot;division by zero!&quot; &lt;&lt; endl;
-}cin 是终端数据输入接口，数据输入后会存在后面的变量中。当输入的第二个数字非零时不会触发 exception 响应，当为零时 throw 类型为 int，然后匹配到 exception 中类型也为 int 的块，然后执行其中指令。如果以上程序中不考虑输入数据是否为 0，则当除数为 0 时程序会崩溃。catch 块也可以管理在 try 块中任何类型的 throw exception，不同于catch 后定义某一种数据类型，使用省略号(...) 来表示响应任何类型的 throw，例如：try {
+}cin 是 istream class 类型的 object 用来输入数据流，数据输入后会存在后面的变量中。当输入的第二个数字非零时不会触发 exception 响应，当为零时 throw 类型为 int，然后匹配到 exception 中类型也为 int 的块，然后执行其中指令。如果以上程序中不考虑输入数据是否为 0，则当除数为 0 时程序会崩溃。catch 块也可以管理在 try 块中任何类型的 throw exception，不同于catch 后定义某一种数据类型，使用省略号(...) 来表示响应任何类型的 throw，例如：try {
 //...
 } catch (...) {
     cout &lt;&lt; &quot;division by zero!&quot; &lt;&lt; endl;
@@ -950,7 +1074,21 @@ int main() {
   myFunc(&amp;var);
   cout &lt;&lt; var;
 }
-// Outputs 100以上示例中定义一个 function 拥有指针类型的传递参数，在调用 myFunc() 时传入一个数据的地址，这样在 function 内对此地址数据的操作会直接改变外部对应地址的变量的数据。通常情况下，使用 by value 方式更加快速和高效，使用 by reference 方式会修改源相关联的数据会占用更多的内存。</description>
+// Outputs 100以上示例中定义一个 function 拥有指针类型的传递参数，在调用 myFunc() 时传入一个数据的地址，这样在 function 内对此地址数据的操作会直接改变外部对应地址的变量的数据。也可以用另一种形式将数据地址传入 function，使用 &amp; 转换数据地址：void test2(int &amp;a) {
+    a = 2;
+}
+
+int main()
+{
+    int a = 1;
+    test2(a);
+    cout &lt;&lt; a &lt;&lt; endl;
+
+    return 0;
+}
+
+//OUTPUT:
+//2使用这种方法可以将数据名称直接作为参数传入，function 会自动使用其地址。通常情况下，使用 by value 方式更加快速和高效，使用 by reference 方式会修改源相关联的数据会占用更多的内存。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1898.html">
 <title>C++ 入门教程之三 -- 数据类型，数组及指针</title>
@@ -1230,38 +1368,5 @@ int c = ++a;
 
 //b = 1
 //c = 3以上是基础概念及指令。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1758.html">
-<title>从源码编译安装 python</title>
-<link>https://blog.niekun.net/archives/1758.html</link>
-<dc:date>2020-09-21T16:35:00+08:00</dc:date>
-<description>从源码编译程序的好处是可以使用最新版本，下面介绍如何在 Linux 下编译安装 python 和 pip 环境。下载源码包python 官网：https://www.python.org/当前最新版是 3.8.5，在这个页面找到地址：https://www.python.org/downloads/release/python-385/下载 tgz 压缩包到本地并解压：cd /tmp
-wget https://www.python.org/ftp/python/3.8.5/Python-3.8.5.tgz
-tar xvf Python-3.8.5.tgz环境安装编译需要安装一些依赖：apt install libffi-dev libgdbm-dev libsqlite3-dev libssl-dev zlib1g-dev
-编译python 源码使用标准 GNU 编译系统，详细说明参考：https://blog.niekun.net/archives/883.html将 python 安装到 /opt 目录，先创建文件夹：mkdir /opt/python3.8.5
-然后配置 configure：cd /tmp/Python-3.8.5
-
-./configure \
---prefix=/opt/python3.8.5 \
---enable-optimizations \没有错误提示的话就开始编译和安装：make
-make install
-安装完成后测试执行：/opt/python3.8.5/bin/python3 --version
-返回版本信息则安装完成。下面将可执行文件加入系统路径，创建软连接：ln -s /opt/python3.8.5/bin/python3 /usr/bin/python
-测试运行：python --version
-安装 pip源码编译安装的 python 不自带 pip，需要自己安装，可以使用 get-pip.py 脚本来安装。官网：https://pip.pypa.io/en/stable/installing/下载脚本到本地：curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py使用刚才安装的 python 执行脚本：/opt/python3.8.5/bin/python3 get-pip.py
-pip 的安装路径是 /opt/python3.8.5/bin/，测试命令：/opt/python3.8.5/bin/pip3 --version
-返回版本信息则安装完成。添加软连接到系统路径：ln -s /opt/python3.8.5/bin/pip3 /usr/bin/pip
-测试命令：pip --version
-参考链接https://docs.rstudio.com/resources/install-python-source/</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1753.html">
-<title>使用 subprocess.check_output 执行cmd命令并返回结果到字符串</title>
-<link>https://blog.niekun.net/archives/1753.html</link>
-<dc:date>2020-09-18T15:13:51+08:00</dc:date>
-<description>语法：subprocess.check_output(args, *, stdin=None, stderr=None, shell=False, universal_newlines=False)
-执行cmd命令并返回结果到字符串。用法：import subprocess
-
-output = check_output([&quot;cat&quot;, &quot;/etc/hostname&quot;]).strip()
-print(output)以上脚本会执行 cat /etc/hostname 命令然后将结果赋值给 output 变量。strip() 可以将 string 的前后空格去掉。</description>
 </item>
 </rdf:RDF>

@@ -6,11 +6,157 @@ xml:base="https://blog.niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2020-11-23T21:41:00+08:00</updated>
+<updated>2020-11-25T11:52:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/" />
 <id>https://blog.niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[c++ 中 string 字符串的含义]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1953.html" />
+<id>https://blog.niekun.net/archives/1953.html</id>
+<updated>2020-11-25T11:52:00+08:00</updated>
+<published>2020-11-25T11:52:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[有如下代码：int main(){    char *s;    s = &amp;quot;hello&amp;quot;;    cout &amp;lt;&amp;lt; *s &amp;lt;&amp;lt; endl;    cou...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1953.html" xml:lang="zh-CN"><![CDATA[
+<p>有如下代码：</p><pre><code>int main()
+{
+    char *s;
+    s = &quot;hello&quot;;
+
+    cout &lt;&lt; *s &lt;&lt; endl;
+    cout &lt;&lt; s &lt;&lt; endl;
+
+    return 0;
+}
+
+//OUTPUT:
+//h
+//hello</code></pre><p>首先定义了一个指针，然后给指针赋值为一个字符串。看起来以上写法有错误，s 指针是一个地址，为什么给它赋值一个字符串？</p><p>因为在 c++ 中字符串类似于我们提到的数组，使用数组名就表示第一个数组元素的地址。例如：</p><pre><code>int main()
+{
+    int arr[] = {1, 3};
+    int *p = arr;
+
+    cout &lt;&lt; *p &lt;&lt; endl;
+    cout &lt;&lt; *(p+1) &lt;&lt; endl;
+
+    return 0;
+}
+
+//OUTPUT:
+//1
+//3</code></pre><p>同样在字符串中，<code>s = &quot;hello&quot;</code> 表示将首字母 <code>h</code> 的地址赋给指针。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1953.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1953.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[c++ 中数组类型数据作为 function 参数时的注意事项]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1946.html" />
+<id>https://blog.niekun.net/archives/1946.html</id>
+<updated>2020-11-25T11:16:00+08:00</updated>
+<published>2020-11-25T11:16:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[关于 function 的基础教程参考：C++ 入门教程之四 -- Functions当 function 的传入参数为数组时，如果我们想要得到数组元素个数可能会这样写：void testFun...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1946.html" xml:lang="zh-CN"><![CDATA[
+<p>关于 function 的基础教程参考：<a href="https://blog.niekun.net/archives/1915.html">C++ 入门教程之四 -- Functions</a></p><p>当 function 的传入参数为数组时，如果我们想要得到数组元素个数可能会这样写：</p><pre><code>void testFunc(int arr[]) {
+    int count = sizeof(arr)/sizeof(arr[0]);
+}
+
+int main()
+{
+    int arr[] = {1, 3, 6, 8};
+    cout &lt;&lt; testFunc(arr) &lt;&lt; endl;
+
+    return 0;
+}</code></pre><p>sizeof function 可以返回数据占用内存空间的大小。所以用整个 arr 大小除以第一个元素大小可以得到数组元素个数。</p><p>但是测试会发现以上得到的 count 值并不是 arr 数组元素个数 4 而是 2。这是因为当 function 传入数组数据时，会自动将其转换为 pointer 指针类型。这时候使用 <code>sizeof()</code> 得到的不是 arr 数据所在地址的内存大小，而是这个指向 arr 数组的指针所占用内存大小。</p><!--more--><p>我们做个实验：</p><pre><code>int main()
+{
+    int *arrP = new int[4];
+    cout &lt;&lt; sizeof(arrP) &lt;&lt; endl;
+    cout &lt;&lt; sizeof(arrP[0]) &lt;&lt; endl;
+    return 0;
+}
+
+//output:
+//8
+//4</code></pre><p>以上建立了一个指针指向 4 个元素的数组，然后分别查看其整个指针和某个元素指针的内存大小，得到的结果是 8 和 4。所以他们两个相除结果为 2。</p><p>因为指针指向的是数组第一个元素，如果我们要通过指针给数组元素赋值，可以使用 <code>*(pointer + n)</code> 的方式完成，例如：</p><pre><code>int *arrP = new int[4];
+*arrP = 1;
+*(arrP+1) = 2;</code></pre><p><code>*(arrP+1)</code> 就是第 2 个数组元素。</p><p>可以用指针查询数组中某个元素的内存大小，数组名 arr 表示数组所在地址(不需要加地址转换符<code>&amp;</code>)：</p><pre><code>int main()
+{
+    int arr[] = {1, 3, 6, 8};
+    int *arrP = arr;
+
+    cout &lt;&lt; sizeof(*arrP) &lt;&lt; endl;
+    cout &lt;&lt; sizeof(*(arrP+1)) &lt;&lt; endl;
+
+    return 0;
+}
+
+//output:
+//4
+//4</code></pre><p>由于 arr 数组名表示此数组第一个元素所在地址的指针，所以我们可以直接使用此名称来用指针的方式地区元素数据：</p><pre><code>int main()
+{
+    int arr[] = {1, 3, 6, 8};
+    cout &lt;&lt; *arr &lt;&lt; endl;
+    cout &lt;&lt; *(arr+1) &lt;&lt; endl;
+
+    return 0;
+}
+
+//output:
+//1
+//3</code></pre><p>那么如何在 function 使用数组作为传入数据时如何能够直接使用它的数据而不是指针类型呢？可以使用以下方法：</p><pre><code>template &lt;size_t N&gt;
+int testFunc(int (&amp;arr)[N]) {
+    int count = sizeof(arr) / sizeof(arr[0]);
+    return count;
+}
+
+int main()
+{
+    int arr[] = {1, 3, 6, 8};
+    int count = testFunc(arr);
+
+    cout &lt;&lt; count &lt;&lt; endl;
+    return 0;
+}
+
+//OUTPUT:
+//4</code></pre><p>创建一个 function template，<code>size_t</code> 类型表示任意数据类型的元素占用内存大小，此处将其作为 generic data type 用来定义实际传入的数组所占用内存容量的 template，然后以传入数据的实际地址的模式将数组的元素都顺序都传入 function。这样传入数据就是实际数据地址而不是指针。</p><p>关于 function 的传入数据实际地址是使用指针形式 <code>*</code> 还是 <code>&amp;</code> 形式，在前面我介绍过，形式如下：</p><pre><code>void test1(int *a) {
+    *a = 3;
+}
+
+void test2(int &amp;a) {
+    a = 2;
+}
+
+int main()
+{
+    int a = 1;
+    int *p = &amp;a;
+
+    test1(p);
+    cout &lt;&lt; a &lt;&lt; endl;
+
+    test2(a);
+    cout &lt;&lt; a &lt;&lt; endl;
+
+    return 0;
+}
+
+//OUTPUT:
+//3
+//2</code></pre><p>function 中使用在指针类型的传入数据时需要传入一个指针，当定义为 <code>&amp;</code> 时可以直接传入数据名称。两种方法都是 by reference 会影响到对应内存地址的数据内容。可参考教程：<a href="https://blog.niekun.net/archives/1915.html">C++ 入门教程之四 -- Functions</a></p><p><strong>参考链接：</strong><br><a href="https://stackoverflow.com/questions/4839626/element-count-of-an-array-in-c">https://stackoverflow.com/questions/4839626/element-count-of-an-array-in-c</a><br><a href="https://www.tutorialspoint.com/cplusplus/cpp_pointer_to_an_array.htm">https://www.tutorialspoint.com/cplusplus/cpp_pointer_to_an_array.htm</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1946.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1946.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[C++ 入门教程之八 -- Templates - Exceptions - Files]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1940.html" />
@@ -157,7 +303,7 @@ if (sonAge = motherAge) {
     cout &lt;&lt; &quot;result: &quot; &lt;&lt; num1 / num2 &lt;&lt; endl;
 } catch (int x) {
     cout &lt;&lt; &quot;division by zero!&quot; &lt;&lt; endl;
-}</code></pre><p><code>cin</code> 是终端数据输入接口，数据输入后会存在后面的变量中。当输入的第二个数字非零时不会触发 exception 响应，当为零时 throw 类型为 int，然后匹配到 exception 中类型也为 int 的块，然后执行其中指令。</p><p>如果以上程序中不考虑输入数据是否为 0，则当除数为 0 时程序会崩溃。</p><p>catch 块也可以管理在 try 块中任何类型的 throw exception，不同于catch 后定义某一种数据类型，使用省略号<code>(...)</code> 来表示响应任何类型的 throw，例如：</p><pre><code>try {
+}</code></pre><p><code>cin</code> 是 istream class 类型的 object 用来输入数据流，数据输入后会存在后面的变量中。当输入的第二个数字非零时不会触发 exception 响应，当为零时 throw 类型为 int，然后匹配到 exception 中类型也为 int 的块，然后执行其中指令。</p><p>如果以上程序中不考虑输入数据是否为 0，则当除数为 0 时程序会崩溃。</p><p>catch 块也可以管理在 try 块中任何类型的 throw exception，不同于catch 后定义某一种数据类型，使用省略号<code>(...)</code> 来表示响应任何类型的 throw，例如：</p><pre><code>try {
 //...
 } catch (...) {
     cout &lt;&lt; &quot;division by zero!&quot; &lt;&lt; endl;
@@ -991,7 +1137,21 @@ int main() {
   myFunc(&amp;var);
   cout &lt;&lt; var;
 }
-// Outputs 100</code></pre><p>以上示例中定义一个 function 拥有指针类型的传递参数，在调用 <code>myFunc()</code> 时传入一个数据的地址，这样在 function 内对此地址数据的操作会直接改变外部对应地址的变量的数据。</p><p>通常情况下，使用 by value 方式更加快速和高效，使用 by reference 方式会修改源相关联的数据会占用更多的内存。</p>
+// Outputs 100</code></pre><p>以上示例中定义一个 function 拥有指针类型的传递参数，在调用 <code>myFunc()</code> 时传入一个数据的地址，这样在 function 内对此地址数据的操作会直接改变外部对应地址的变量的数据。</p><p>也可以用另一种形式将数据地址传入 function，使用 <code>&amp;</code> 转换数据地址：</p><pre><code>void test2(int &amp;a) {
+    a = 2;
+}
+
+int main()
+{
+    int a = 1;
+    test2(a);
+    cout &lt;&lt; a &lt;&lt; endl;
+
+    return 0;
+}
+
+//OUTPUT:
+//2</code></pre><p>使用这种方法可以将数据名称直接作为参数传入，function 会自动使用其地址。</p><p>通常情况下，使用 by value 方式更加快速和高效，使用 by reference 方式会修改源相关联的数据会占用更多的内存。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1915.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1915.html" thr:count="0"/>
@@ -1213,53 +1373,5 @@ Packet Loss:     0.0%
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1906.html#comments" thr:count="1" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1906.html" thr:count="1"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[nextcloud 安装教程]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1904.html" />
-<id>https://blog.niekun.net/archives/1904.html</id>
-<updated>2020-11-11T10:42:14+08:00</updated>
-<published>2020-11-11T10:42:14+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[安装包：https://nextcloud.com/changelog/#latest20系统需求：https://docs.nextcloud.com/server/20/admin_manu...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1904.html" xml:lang="zh-CN"><![CDATA[
-<p>安装包：<a href="https://nextcloud.com/changelog/#latest20">https://nextcloud.com/changelog/#latest20</a><br>系统需求：<a href="https://docs.nextcloud.com/server/20/admin_manual/installation/system_requirements.html">https://docs.nextcloud.com/server/20/admin_manual/installation/system_requirements.html</a><br>nginx 配置：<a href="https://docs.nextcloud.com/server/18/admin_manual/installation/nginx.html">https://docs.nextcloud.com/server/18/admin_manual/installation/nginx.html</a><br>php 配置相关：<a href="https://docs.nextcloud.com/server/20/admin_manual/installation/source_installation.html#php-fpm-tips-label">https://docs.nextcloud.com/server/20/admin_manual/installation/source_installation.html#php-fpm-tips-label</a><br>修改 php 内存限制：<a href="https://www.chinaz.com/program/2011/1010/213048.shtml">https://www.chinaz.com/program/2011/1010/213048.shtml</a><br>安装 php 内存缓存：<a href="https://docs.nextcloud.com/server/15/admin_manual/configuration_server/caching_configuration.html">https://docs.nextcloud.com/server/15/admin_manual/configuration_server/caching_configuration.html</a><br>命令行安装：<a href="https://docs.nextcloud.com/server/stable/admin_manual/installation/command_line_installation.html">https://docs.nextcloud.com/server/stable/admin_manual/installation/command_line_installation.html</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1904.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1904.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[MySQL 用户密码规则配置]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1903.html" />
-<id>https://blog.niekun.net/archives/1903.html</id>
-<updated>2020-11-11T10:37:00+08:00</updated>
-<published>2020-11-11T10:37:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[在创建 MySQL 用户时需要设置密码，有时候输入输入密码后会提示创建失败，密码设置 policy 错误。这是因为当前设置的密码和 MySQL 密码创建规则不符，可以查看当前规定的密码规则也可以...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1903.html" xml:lang="zh-CN"><![CDATA[
-<p>在创建 MySQL 用户时需要设置密码，有时候输入输入密码后会提示创建失败，密码设置 policy 错误。这是因为当前设置的密码和 MySQL 密码创建规则不符，可以查看当前规定的密码规则也可以进行修改。</p><p>进入 MySQL 执行下面命令：</p><pre><code>SHOW VARIABLES LIKE 'validate_password%';
-</code></pre><p>会列出密码创建相关参数：</p><pre><code>mysql&gt; SHOW VARIABLES LIKE 'validate_password%';
-+--------------------------------------+--------+
-| Variable_name                        | Value  |
-+--------------------------------------+--------+
-| validate_password_check_user_name    | ON     |
-| validate_password_dictionary_file    |        |
-| validate_password_length             | 8      |
-| validate_password_mixed_case_count   | 1      |
-| validate_password_number_count       | 1      |
-| validate_password_policy             | MEDIUM |
-| validate_password_special_char_count | 1      |
-+--------------------------------------+--------+
-7 rows in set (0.03 sec)</code></pre><p>其中 <code>validate_password_length</code> 是密码位数，<code>validate_password_special_char_count</code> 是密码包含特殊字符。可以通过命令修改参数值来改变密码规则，例如：</p><p>取消特殊字符：</p><pre><code>SET GLOBAL validate_password_special_char_count= 0;
-</code></pre><p>修改后可以测试再次建立用户设置密码。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1903.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1903.html" thr:count="0"/>
 </entry>
 </feed>
