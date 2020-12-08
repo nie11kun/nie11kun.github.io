@@ -11,8 +11,90 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/cpp/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Tue, 01 Dec 2020 11:37:00 +0800</lastBuildDate>
-<pubDate>Tue, 01 Dec 2020 11:37:00 +0800</pubDate>
+<lastBuildDate>Tue, 08 Dec 2020 21:37:00 +0800</lastBuildDate>
+<pubDate>Tue, 08 Dec 2020 21:37:00 +0800</pubDate>
+<item>
+<title>c++ 字符串数组指针的研究</title>
+<link>https://blog.niekun.net/archives/1968.html</link>
+<guid>https://blog.niekun.net/archives/1968.html</guid>
+<pubDate>Tue, 08 Dec 2020 21:37:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[在实际使用中发现对字符串的运用是一个容易混乱的地方，尤其是使用指针指向一个字符串数组的时候。下面做一些简单分析。一个简单的测试：    const char* test1 = &quot;abc...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>在实际使用中发现对字符串的运用是一个容易混乱的地方，尤其是使用指针指向一个字符串数组的时候。下面做一些简单分析。</p><p>一个简单的测试：</p><pre><code>    const char* test1 = &quot;abc&quot;;
+    const string test2 = &quot;abc&quot;;
+
+    cout &lt;&lt; test1 &lt;&lt; endl;
+    cout &lt;&lt; *test1 &lt;&lt; endl;
+    cout &lt;&lt; test2 &lt;&lt; endl;
+    cout &lt;&lt; sizeof (test1) &lt;&lt; endl;
+    cout &lt;&lt; sizeof (test2) &lt;&lt; endl;</code></pre><p>输出如下：</p><pre><code>abc
+a
+abc
+8
+24</code></pre><!--more--><p>以前我的教程里提到过，字符串就相当于一个字符数组。指针会指向它的首个字符地址。<code>test1</code> 指针理论上存储着字符串的首地址。</p><p>但我们可以看到直接输出 <code>test1</code> 会得到实际字符串内容，而不是首个字符地址。输出 <code>*test</code> 会得到正常的首字符内容。</p><p>字符串指针使用 sizeof 得到这个指针所占用内存大小，而不是字符串内容的大小。</p><p>下面测试 int 型数组：</p><pre><code>    const int test3[] = {1, 3 ,5};
+    const int* test4 = test3;
+
+    cout &lt;&lt; test3 &lt;&lt; endl;
+    cout &lt;&lt; test4 &lt;&lt; endl;
+    cout &lt;&lt; test4[0] &lt;&lt; endl;
+    cout &lt;&lt; *test4 &lt;&lt; endl;
+    cout &lt;&lt; sizeof(test4) &lt;&lt; endl;
+    cout &lt;&lt; sizeof(test4[0]) &lt;&lt; endl;</code></pre><p>输出结果：</p><pre><code>0x7ffee8cbaa58
+0x7ffee8cbaa58
+1
+1
+8
+4</code></pre><p>可以看到直接输出数组名称或指针名称得到的是数组所在地址。<code>*test</code> 和 <code>test[0]</code> 会得到数组第一位内容。</p><p>test4 是一个指针，所以 sizeof 得到的是这个指针做占用的内存空间而不是数组本身占用空间。无法通过 sizeof 计算出数组个数。</p><p>下面做最后一个测试：</p><pre><code>const char* test5[] = {
+    &quot;abc&quot;,
+    &quot;def&quot;,
+    &quot;ohg&quot;,
+    &quot;asdf&quot;
+};
+
+const string test6[] = {
+    &quot;abc&quot;,
+    &quot;def&quot;,
+    &quot;ohg&quot;,
+    &quot;asdf&quot;
+};
+
+int x = sizeof (test5)/sizeof(test5[0]);
+cout &lt;&lt; sizeof(test5) &lt;&lt; endl;
+cout &lt;&lt; sizeof(test5[0]) &lt;&lt; endl;
+cout &lt;&lt; test5 &lt;&lt; endl;
+cout &lt;&lt; *test5 &lt;&lt; endl;
+cout &lt;&lt; test5[0] &lt;&lt; endl;
+cout &lt;&lt; *test5[0] &lt;&lt; endl;
+cout &lt;&lt; x &lt;&lt; endl;
+
+cout &lt;&lt; &quot;*************\n&quot;;
+
+x = sizeof (test6)/sizeof(test6[0]);
+cout &lt;&lt; sizeof(test6) &lt;&lt; endl;
+cout &lt;&lt; sizeof(test6[0]) &lt;&lt; endl;
+cout &lt;&lt; test6 &lt;&lt; endl;
+cout &lt;&lt; *test6 &lt;&lt; endl;
+cout &lt;&lt; test6[0] &lt;&lt; endl;
+cout &lt;&lt; x &lt;&lt; endl;</code></pre><p>输出结果如下：</p><pre><code>0x7ffee596ea40
+abc
+abc
+a
+4
+32
+8
+*************
+0x7ffee596e9e0
+abc
+abc
+4
+96
+24</code></pre><p><strong>由于字符串本身就是一个字符数组，所以一个字符串数组相当于一个二维的数组。定义字符串数组的指针，就是数组中每个字符串对应的指针的集合。</strong>所以这个数组指针本身不是字符串类型的，而它的每个指针元素都是字符串指针类型的。</p><p>可以看到类似于第一组测试，非字符串的指针直接输出指针名称，所以 <code>test5</code> 得到字符串数组的地址。</p><p><code>*test5</code> 和 <code>test5[0]</code> 都表示指针数组第一个元素，也就是字符串类型的指针，根据第一组实验可以知道使用字符串指针名称输出本身字符串而不是地址，所以输出此指针可以直接得到字符串内容。</p><p><code>*test5[0]</code> 就是字符串指针的首字符地址内容，也就是得到第一个字符串第一个字符的内容。</p><p>test5 指针数组使用 sizeof 得到的是这个指针数组总共占用的内存大小，也就是每个指针大小的总和。除以单个指针大小就可以得到这个数组指针的个数，也就是对应指向的数组的元素个数。</p><p>test6 字符串数组使用 sizeof 得到的是这个字符串数组所有元素的占用内存大小，除以单个字符串大小就可以得到这个数组的元素个数。</p><p>我们可以看到 test5 和 test6 使用 sizeof 都可以得到数组的元素个数，但他们的原理是完全不同的，一个是使用指针的内存大小，一个是使用数组本身的内存大小。</p><p><strong>总结：</strong><br>字符串的指针名称可以直接输出字符串内容而不是地址。其他指针类型指向的数据，如字符，数字，字符串数组，number 型数组等，指针名输出的都是数据地址。</p><p>指针使用 sizeof 得到的是指针所占用的内存大小。可以使用 <code>sizeof(*Pointer)</code> 得到数据本身大小。</p><p>字符串数组的指针使用 sizeof 得到指针数组的总大小，可以用来间接计算数组元素个数。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1968.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1968.html</wfw:commentRss>
+</item>
 <item>
 <title>Macros 聚集 in c++</title>
 <link>https://blog.niekun.net/archives/1956.html</link>
@@ -1285,113 +1367,6 @@ cout &lt;&lt; sizeof(numbers) / sizeof(numbers[0]);
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1898.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1898.html</wfw:commentRss>
-</item>
-<item>
-<title>C++ 入门教程之二 -- 判断及循环</title>
-<link>https://blog.niekun.net/archives/1895.html</link>
-<guid>https://blog.niekun.net/archives/1895.html</guid>
-<pubDate>Sat, 07 Nov 2020 15:53:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[if 判断if 申明的使用场景：当一个判断条件达到是执行指令。语法结构：if (condition) {    statements}]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<h3>if 判断</h3><p><code>if</code> 申明的使用场景：当一个判断条件达到是执行指令。</p><p>语法结构：</p><pre><code>if (condition) {
-    statements
-}</code></pre><!--more--><p>示例：</p><pre><code>if (7 &gt; 4) {
-  cout &lt;&lt;  &quot;Yes&quot;; 
-}
-
-// Outputs &quot;Yes&quot;</code></pre><p>可以使用的相关性判断器：</p><ul><li><code>&lt;</code></li><li><code>&gt;</code></li><li><code>&gt;=</code></li><li><code>&lt;=</code></li><li><code>==</code></li><li><code>!=</code></li></ul><p>当条件不满足是，也可以执行命令：</p><pre><code>if (condition) {
-  //statements
-}
-else {
- //statements
-}</code></pre><p>if else 指令可以多次嵌套使用：</p><pre><code>int age = 18;
-if (age &gt; 14) {
-  if(age &gt;= 18) {
-    cout &lt;&lt; &quot;Adult&quot;;
-  }
-  else {
-    cout &lt;&lt; &quot;Teenager&quot;;
-  }
-}
-else {
-  if (age &gt; 0) {
-    cout &lt;&lt; &quot;Child&quot;;
-  }
-  else {
-    cout &lt;&lt; &quot;Something's wrong&quot;;
-  }
-}</code></pre><p>当命令只有一句时可以省略大括号：</p><pre><code>int a = 10;
-if (a &gt; 4)
-  cout &lt;&lt; &quot;Yes&quot;;
-else
-  cout &lt;&lt; &quot;No&quot;;</code></pre><h3>while 循环</h3><p>一个 while 循环重复的执行设置的命令，直到设置的条件不满足为止。</p><p>语法：</p><pre><code>while (condition) {
-   statement(s);
-}</code></pre><p>示例：</p><pre><code>int num = 1;
-while (num &lt; 6) {
-  cout &lt;&lt; &quot;Number: &quot; &lt;&lt; num &lt;&lt; endl;
-  num = num + 1;
-}</code></pre><p>当 num 变量小于 6 满足时，循环执行大括号内的指令，直到 num 的值大于等于 6 则跳出循环继续执行下面的指令。以上示例中当 num 第五次自加后结果为 6，则下一次循环开始时判断条件就为 false 了，就会跳出循环。</p><h3>for 循环</h3><p>for 循环指令可以实现指定循环次数，语法结构如下：</p><pre><code>for ( init; condition; increment ) {
-  statement(s);
-}</code></pre><ul><li>init 用来设置变量初值，且只设置一次</li><li>condition 用来给定执行循环的条件，满足则执行循环内指令</li><li>increment 设置循环条件的变量值如何变化</li></ul><p>示例：</p><pre><code>for (int x = 1; x &lt; 10; x++) {
- // some code
- }</code></pre><p>定义并设置 x 变量初值 1，循环条件是 x 小于 10，每次循环后 x 自加 1。</p><p>变量变化量可以自定：</p><pre><code>for (int a = 0; a &lt; 50; a+=10) {
-  cout &lt;&lt; a &lt;&lt; endl;
-}
-/* Outputs
-0
-10
-20
-30
-40
-*/</code></pre><h3>do while 循环</h3><p>不同于 while 循环，do while 循环首先执行一次循环内的指令，再判断条件是否满足。</p><p>语法：</p><pre><code>do {
-   statement(s);
-} while (condition);</code></pre><p>示例：</p><pre><code>int a = 0;
-do {
-  cout &lt;&lt; a &lt;&lt; endl;
-  a++;
-} while(a &lt; 5);
-
-/* Outputs
-0
-1
-2
-3
-4
-*/</code></pre><p>do while 即使条件不满足也至少会执行一次循环内的命令。</p><h3>switch 指令</h3><p>当需要根据一个变量值为不同的结果时执行不同的指令时可以使用 switch 指令。</p><p>语法：</p><pre><code>switch (expression) {
-  case value1:
-    statement(s);
-    break;
-  case value2:
-    statement(s);
-    break;
-    ...
-  case valueN:
-    statement(s);
-    break;
-    default:
-    statement(s);
-}</code></pre><p>当变量的值匹配到 <strong>switch</strong> 里定义的一个 value 值后，会执行此 case 下的指令。<br>使用 <strong>break</strong> 来跳出 switch 指令，如果不写的话会顺序执行下面的case 指令，即使变量值并没有匹配到这个 case。<br><strong>default</strong> 用来定义当以上设置的 case 都没有匹配上时执行的指令。</p><h3>逻辑操作符</h3><p>有三个逻辑操作符：</p><ul><li>&& 与</li><li>|| 或</li><li>!  非</li></ul><p>与指令：当两个条件都满足时为 true：</p><pre><code>int age = 20;
-if (age &gt; 16 &amp;&amp; age &lt; 60) {
-  cout &lt;&lt; &quot;Accepted!&quot; &lt;&lt; endl;
-}
-
-// Outputs &quot;Accepted&quot;</code></pre><p>或指令：当任意一个条件满足时为 true：</p><pre><code>int age = 16;
-int score = 90;
-if (age &gt; 20 || score &gt; 50) {
-    cout &lt;&lt; &quot;Accepted!&quot; &lt;&lt; endl;
-}
-
-// Outputs &quot;Accepted!&quot;</code></pre><p>非指令：当条件不满足时为 true：</p><pre><code>int age = 10;
-if ( !(age &gt; 16) ) {
-  cout &lt;&lt; &quot;Your age is less than 16&quot; &lt;&lt; endl;
-}
-
-// Outputs &quot;Your age is less than 16&quot;</code></pre><p>以上就是常用的判断及循环指令用法。</p>
-]]></content:encoded>
-<slash:comments>1</slash:comments>
-<comments>https://blog.niekun.net/archives/1895.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1895.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

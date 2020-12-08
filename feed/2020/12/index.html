@@ -11,8 +11,90 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/2020/12/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Sat, 05 Dec 2020 23:53:15 +0800</lastBuildDate>
-<pubDate>Sat, 05 Dec 2020 23:53:15 +0800</pubDate>
+<lastBuildDate>Tue, 08 Dec 2020 21:37:00 +0800</lastBuildDate>
+<pubDate>Tue, 08 Dec 2020 21:37:00 +0800</pubDate>
+<item>
+<title>c++ 字符串数组指针的研究</title>
+<link>https://blog.niekun.net/archives/1968.html</link>
+<guid>https://blog.niekun.net/archives/1968.html</guid>
+<pubDate>Tue, 08 Dec 2020 21:37:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[在实际使用中发现对字符串的运用是一个容易混乱的地方，尤其是使用指针指向一个字符串数组的时候。下面做一些简单分析。一个简单的测试：    const char* test1 = &quot;abc...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>在实际使用中发现对字符串的运用是一个容易混乱的地方，尤其是使用指针指向一个字符串数组的时候。下面做一些简单分析。</p><p>一个简单的测试：</p><pre><code>    const char* test1 = &quot;abc&quot;;
+    const string test2 = &quot;abc&quot;;
+
+    cout &lt;&lt; test1 &lt;&lt; endl;
+    cout &lt;&lt; *test1 &lt;&lt; endl;
+    cout &lt;&lt; test2 &lt;&lt; endl;
+    cout &lt;&lt; sizeof (test1) &lt;&lt; endl;
+    cout &lt;&lt; sizeof (test2) &lt;&lt; endl;</code></pre><p>输出如下：</p><pre><code>abc
+a
+abc
+8
+24</code></pre><!--more--><p>以前我的教程里提到过，字符串就相当于一个字符数组。指针会指向它的首个字符地址。<code>test1</code> 指针理论上存储着字符串的首地址。</p><p>但我们可以看到直接输出 <code>test1</code> 会得到实际字符串内容，而不是首个字符地址。输出 <code>*test</code> 会得到正常的首字符内容。</p><p>字符串指针使用 sizeof 得到这个指针所占用内存大小，而不是字符串内容的大小。</p><p>下面测试 int 型数组：</p><pre><code>    const int test3[] = {1, 3 ,5};
+    const int* test4 = test3;
+
+    cout &lt;&lt; test3 &lt;&lt; endl;
+    cout &lt;&lt; test4 &lt;&lt; endl;
+    cout &lt;&lt; test4[0] &lt;&lt; endl;
+    cout &lt;&lt; *test4 &lt;&lt; endl;
+    cout &lt;&lt; sizeof(test4) &lt;&lt; endl;
+    cout &lt;&lt; sizeof(test4[0]) &lt;&lt; endl;</code></pre><p>输出结果：</p><pre><code>0x7ffee8cbaa58
+0x7ffee8cbaa58
+1
+1
+8
+4</code></pre><p>可以看到直接输出数组名称或指针名称得到的是数组所在地址。<code>*test</code> 和 <code>test[0]</code> 会得到数组第一位内容。</p><p>test4 是一个指针，所以 sizeof 得到的是这个指针做占用的内存空间而不是数组本身占用空间。无法通过 sizeof 计算出数组个数。</p><p>下面做最后一个测试：</p><pre><code>const char* test5[] = {
+    &quot;abc&quot;,
+    &quot;def&quot;,
+    &quot;ohg&quot;,
+    &quot;asdf&quot;
+};
+
+const string test6[] = {
+    &quot;abc&quot;,
+    &quot;def&quot;,
+    &quot;ohg&quot;,
+    &quot;asdf&quot;
+};
+
+int x = sizeof (test5)/sizeof(test5[0]);
+cout &lt;&lt; sizeof(test5) &lt;&lt; endl;
+cout &lt;&lt; sizeof(test5[0]) &lt;&lt; endl;
+cout &lt;&lt; test5 &lt;&lt; endl;
+cout &lt;&lt; *test5 &lt;&lt; endl;
+cout &lt;&lt; test5[0] &lt;&lt; endl;
+cout &lt;&lt; *test5[0] &lt;&lt; endl;
+cout &lt;&lt; x &lt;&lt; endl;
+
+cout &lt;&lt; &quot;*************\n&quot;;
+
+x = sizeof (test6)/sizeof(test6[0]);
+cout &lt;&lt; sizeof(test6) &lt;&lt; endl;
+cout &lt;&lt; sizeof(test6[0]) &lt;&lt; endl;
+cout &lt;&lt; test6 &lt;&lt; endl;
+cout &lt;&lt; *test6 &lt;&lt; endl;
+cout &lt;&lt; test6[0] &lt;&lt; endl;
+cout &lt;&lt; x &lt;&lt; endl;</code></pre><p>输出结果如下：</p><pre><code>0x7ffee596ea40
+abc
+abc
+a
+4
+32
+8
+*************
+0x7ffee596e9e0
+abc
+abc
+4
+96
+24</code></pre><p><strong>由于字符串本身就是一个字符数组，所以一个字符串数组相当于一个二维的数组。定义字符串数组的指针，就是数组中每个字符串对应的指针的集合。</strong>所以这个数组指针本身不是字符串类型的，而它的每个指针元素都是字符串指针类型的。</p><p>可以看到类似于第一组测试，非字符串的指针直接输出指针名称，所以 <code>test5</code> 得到字符串数组的地址。</p><p><code>*test5</code> 和 <code>test5[0]</code> 都表示指针数组第一个元素，也就是字符串类型的指针，根据第一组实验可以知道使用字符串指针名称输出本身字符串而不是地址，所以输出此指针可以直接得到字符串内容。</p><p><code>*test5[0]</code> 就是字符串指针的首字符地址内容，也就是得到第一个字符串第一个字符的内容。</p><p>test5 指针数组使用 sizeof 得到的是这个指针数组总共占用的内存大小，也就是每个指针大小的总和。除以单个指针大小就可以得到这个数组指针的个数，也就是对应指向的数组的元素个数。</p><p>test6 字符串数组使用 sizeof 得到的是这个字符串数组所有元素的占用内存大小，除以单个字符串大小就可以得到这个数组的元素个数。</p><p>我们可以看到 test5 和 test6 使用 sizeof 都可以得到数组的元素个数，但他们的原理是完全不同的，一个是使用指针的内存大小，一个是使用数组本身的内存大小。</p><p><strong>总结：</strong><br>字符串的指针名称可以直接输出字符串内容而不是地址。其他指针类型指向的数据，如字符，数字，字符串数组，number 型数组等，指针名输出的都是数据地址。</p><p>指针使用 sizeof 得到的是指针所占用的内存大小。可以使用 <code>sizeof(*Pointer)</code> 得到数据本身大小。</p><p>字符串数组的指针使用 sizeof 得到指针数组的总大小，可以用来间接计算数组元素个数。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1968.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/1968.html</wfw:commentRss>
+</item>
 <item>
 <title>macOS 下使用 QT 部署工具 macdeployqt</title>
 <link>https://blog.niekun.net/archives/1966.html</link>

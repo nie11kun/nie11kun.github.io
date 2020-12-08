@@ -6,11 +6,96 @@ xml:base="https://blog.niekun.net/category/dev/"
 >
 <title type="text">Marco Nie - Program</title>
 <subtitle type="text"></subtitle>
-<updated>2020-12-05T23:53:15+08:00</updated>
+<updated>2020-12-08T21:37:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/dev/" />
 <id>https://blog.niekun.net/feed/atom/category/dev/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/dev/" />
+<entry>
+<title type="html"><![CDATA[c++ 字符串数组指针的研究]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1968.html" />
+<id>https://blog.niekun.net/archives/1968.html</id>
+<updated>2020-12-08T21:37:00+08:00</updated>
+<published>2020-12-08T21:37:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[在实际使用中发现对字符串的运用是一个容易混乱的地方，尤其是使用指针指向一个字符串数组的时候。下面做一些简单分析。一个简单的测试：    const char* test1 = &amp;quot;abc...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1968.html" xml:lang="zh-CN"><![CDATA[
+<p>在实际使用中发现对字符串的运用是一个容易混乱的地方，尤其是使用指针指向一个字符串数组的时候。下面做一些简单分析。</p><p>一个简单的测试：</p><pre><code>    const char* test1 = &quot;abc&quot;;
+    const string test2 = &quot;abc&quot;;
+
+    cout &lt;&lt; test1 &lt;&lt; endl;
+    cout &lt;&lt; *test1 &lt;&lt; endl;
+    cout &lt;&lt; test2 &lt;&lt; endl;
+    cout &lt;&lt; sizeof (test1) &lt;&lt; endl;
+    cout &lt;&lt; sizeof (test2) &lt;&lt; endl;</code></pre><p>输出如下：</p><pre><code>abc
+a
+abc
+8
+24</code></pre><!--more--><p>以前我的教程里提到过，字符串就相当于一个字符数组。指针会指向它的首个字符地址。<code>test1</code> 指针理论上存储着字符串的首地址。</p><p>但我们可以看到直接输出 <code>test1</code> 会得到实际字符串内容，而不是首个字符地址。输出 <code>*test</code> 会得到正常的首字符内容。</p><p>字符串指针使用 sizeof 得到这个指针所占用内存大小，而不是字符串内容的大小。</p><p>下面测试 int 型数组：</p><pre><code>    const int test3[] = {1, 3 ,5};
+    const int* test4 = test3;
+
+    cout &lt;&lt; test3 &lt;&lt; endl;
+    cout &lt;&lt; test4 &lt;&lt; endl;
+    cout &lt;&lt; test4[0] &lt;&lt; endl;
+    cout &lt;&lt; *test4 &lt;&lt; endl;
+    cout &lt;&lt; sizeof(test4) &lt;&lt; endl;
+    cout &lt;&lt; sizeof(test4[0]) &lt;&lt; endl;</code></pre><p>输出结果：</p><pre><code>0x7ffee8cbaa58
+0x7ffee8cbaa58
+1
+1
+8
+4</code></pre><p>可以看到直接输出数组名称或指针名称得到的是数组所在地址。<code>*test</code> 和 <code>test[0]</code> 会得到数组第一位内容。</p><p>test4 是一个指针，所以 sizeof 得到的是这个指针做占用的内存空间而不是数组本身占用空间。无法通过 sizeof 计算出数组个数。</p><p>下面做最后一个测试：</p><pre><code>const char* test5[] = {
+    &quot;abc&quot;,
+    &quot;def&quot;,
+    &quot;ohg&quot;,
+    &quot;asdf&quot;
+};
+
+const string test6[] = {
+    &quot;abc&quot;,
+    &quot;def&quot;,
+    &quot;ohg&quot;,
+    &quot;asdf&quot;
+};
+
+int x = sizeof (test5)/sizeof(test5[0]);
+cout &lt;&lt; sizeof(test5) &lt;&lt; endl;
+cout &lt;&lt; sizeof(test5[0]) &lt;&lt; endl;
+cout &lt;&lt; test5 &lt;&lt; endl;
+cout &lt;&lt; *test5 &lt;&lt; endl;
+cout &lt;&lt; test5[0] &lt;&lt; endl;
+cout &lt;&lt; *test5[0] &lt;&lt; endl;
+cout &lt;&lt; x &lt;&lt; endl;
+
+cout &lt;&lt; &quot;*************\n&quot;;
+
+x = sizeof (test6)/sizeof(test6[0]);
+cout &lt;&lt; sizeof(test6) &lt;&lt; endl;
+cout &lt;&lt; sizeof(test6[0]) &lt;&lt; endl;
+cout &lt;&lt; test6 &lt;&lt; endl;
+cout &lt;&lt; *test6 &lt;&lt; endl;
+cout &lt;&lt; test6[0] &lt;&lt; endl;
+cout &lt;&lt; x &lt;&lt; endl;</code></pre><p>输出结果如下：</p><pre><code>0x7ffee596ea40
+abc
+abc
+a
+4
+32
+8
+*************
+0x7ffee596e9e0
+abc
+abc
+4
+96
+24</code></pre><p><strong>由于字符串本身就是一个字符数组，所以一个字符串数组相当于一个二维的数组。定义字符串数组的指针，就是数组中每个字符串对应的指针的集合。</strong>所以这个数组指针本身不是字符串类型的，而它的每个指针元素都是字符串指针类型的。</p><p>可以看到类似于第一组测试，非字符串的指针直接输出指针名称，所以 <code>test5</code> 得到字符串数组的地址。</p><p><code>*test5</code> 和 <code>test5[0]</code> 都表示指针数组第一个元素，也就是字符串类型的指针，根据第一组实验可以知道使用字符串指针名称输出本身字符串而不是地址，所以输出此指针可以直接得到字符串内容。</p><p><code>*test5[0]</code> 就是字符串指针的首字符地址内容，也就是得到第一个字符串第一个字符的内容。</p><p>test5 指针数组使用 sizeof 得到的是这个指针数组总共占用的内存大小，也就是每个指针大小的总和。除以单个指针大小就可以得到这个数组指针的个数，也就是对应指向的数组的元素个数。</p><p>test6 字符串数组使用 sizeof 得到的是这个字符串数组所有元素的占用内存大小，除以单个字符串大小就可以得到这个数组的元素个数。</p><p>我们可以看到 test5 和 test6 使用 sizeof 都可以得到数组的元素个数，但他们的原理是完全不同的，一个是使用指针的内存大小，一个是使用数组本身的内存大小。</p><p><strong>总结：</strong><br>字符串的指针名称可以直接输出字符串内容而不是地址。其他指针类型指向的数据，如字符，数字，字符串数组，number 型数组等，指针名输出的都是数据地址。</p><p>指针使用 sizeof 得到的是指针所占用的内存大小。可以使用 <code>sizeof(*Pointer)</code> 得到数据本身大小。</p><p>字符串数组的指针使用 sizeof 得到指针数组的总大小，可以用来间接计算数组元素个数。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1968.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1968.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[macOS 下使用 QT 部署工具 macdeployqt]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1966.html" />
@@ -1041,204 +1126,5 @@ int main() {
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1918.html#comments" thr:count="1" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1918.html" thr:count="1"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[C++ 入门教程之四 -- Functions]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1915.html" />
-<id>https://blog.niekun.net/archives/1915.html</id>
-<updated>2020-11-20T09:38:00+08:00</updated>
-<published>2020-11-20T09:38:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[一个 function 是为了完成某个任务的许多命令的一个集合。使用 function 的优势有：代码复用独立测试某功能修改一个 function 内部代码不影响程序整体结构同一个 functi...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1915.html" xml:lang="zh-CN"><![CDATA[
-<p>一个 function 是为了完成某个任务的许多命令的一个集合。使用 function 的优势有：</p><ul><li>代码复用</li><li>独立测试某功能</li><li>修改一个 function 内部代码不影响程序整体结构</li><li>同一个 function 可使用不同传入参数调用</li></ul><p>一个有效的 c++ 程序至少要有一个 function：<code>main()</code>。</p><!--more--><h3>返回类型</h3><p><code>mian()</code> function 通常结构如下：</p><pre><code>int main()
-{
-  // some code
-  return 0;
-}</code></pre><p>function 的返回值类型定义在它的名称前，以上示例中，返回类型为 int 型，表明此 function 会返回一个 int 型数据。有些 function 在执行后不需返回数据，则使用 <code>void</code> 来定义。</p><p><code>void</code> 是一个基本数据类型，用来定义无值 valueless 申明。</p><h3>结构</h3><p>function 定义结构如下：</p><pre><code>return_type function_name( parameter list )
-{
-   body of the function
-}</code></pre><ul><li>return-type: 返回值数据类型</li><li>function name: function 名称</li><li>parameters: 传递参数，当此function被调用时，传递数据给 function 内部使用。需要指定类型，名称及个数</li><li>body of the function: 指令集合</li></ul><p>parameters 参数是可选的，当不需要传递参数时可以留空。</p><h3>使用</h3><p>我们定义一个无返回值类型的 function：</p><pre><code>void printSomething() 
-{
-  cout &lt;&lt; &quot;Hi there!&quot;;
-}</code></pre><p>此 function 功能为输出一个字符串。</p><p>我们在 <code>main()</code> 中调用此 function：</p><pre><code>int main() 
-{
-   printSomething();
-   
-   return 0;
-}</code></pre><p>调用某个 function 只需要使用 function 名称及传入参数即可。</p><p>注意 function 的申明和调用顺序，需要先申明然后调用，不然会报错：</p><pre><code>#include &lt;iostream&gt;
-using namespace std;
-
-void printSomething() {
-  cout &lt;&lt; &quot;Hi there!&quot;;
-}
-
-int main() {
-  printSomething();
-
-  return 0;
-}</code></pre><p>一个 function 的申明告诉编译器这个 function 的名称及调用方法，其内容可以在后续代码中定义：</p><pre><code>#include &lt;iostream&gt;
-using namespace std;
-
-//Function declaration
-void printSomething();
-
-int main() {
-  printSomething();
-
-  return 0;
-}
-
-//Function definition
-void printSomething() {
-  cout &lt;&lt; &quot;Hi there!&quot;;
-}</code></pre><h3>传递参数</h3><p>如果一个 function 需要传递数据，需要在申明定义正式的参数用来接收传递数据值。例如：</p><pre><code>void printSomething(int x) 
-{
-   cout &lt;&lt; x;
-}</code></pre><p>以上定义一个 function 接收一个 int 整数然后输出这个整数。</p><p>function 内的变量在调用此 function 时创建，在结束时清除。</p><p>当一个带传递参数的 function 被定义后，在调用时需要传入对于数据类型的数据：</p><pre><code>#include &lt;iostream&gt;
-using namespace std;
-
-void printSomething(int x) {
-  cout &lt;&lt; x;
-}
-
-int main() {
-  printSomething(42);
-}
-
-// Outputs 42</code></pre><p>以上示例将 42 传入 <code>printSometing()</code> 然后输出数据。</p><p>在 function 内对传入参数数据的改变不会对影响到外部的数据。</p><p>可以在调用时使用不同的传入数据：</p><pre><code>int main() {
-  printSomething(42);
-  printSomething(22);
-  printSomething(36);
-}</code></pre><p>可以定义多个传递参数，使用逗号<code>,</code> 分隔，如：</p><pre><code>int addNumbers(int x, int y) {
-  int result = x + y;
-  return result;
-}
-
-int main() {
-  cout &lt;&lt; addNumbers(50, 25);
-  // Outputs 75
-}</code></pre><p>以上示例定义了两个传递参数，返回值为两个参数的和。</p><h3>rand() function</h3><p>创建一个随机整数是程序内常用的使用场景，可以调用 <code>rand()</code> function 获取随机整数。需要用到 <code>&lt;cstdlib&gt;</code> 库：</p><pre><code>#include &lt;iostream&gt;
-#include &lt;cstdlib&gt;
-using namespace std;
-
-int main() {
-  cout &lt;&lt; rand();
-}</code></pre><p>输出 10 个 1 - 6 之间的随机数：</p><pre><code>int main () {
-  for (int x = 1; x &lt;= 10; x++) {
-  cout &lt;&lt; 1 + (rand() % 6) &lt;&lt; endl;
-  }
-}
-
-/* Output: 
-6
-6
-5
-5
-6
-5
-1
-1
-5
-3
-*/</code></pre><p>但是 <code>rand()</code> 其实生成的是伪随机数，因为每次执行以上程序生成的数都是一样的。使用 <code>srand()</code> 可以获得真正的随机数，它支持设置一个 seed 种子值来作为 <code>rand()</code> 的运行算法：</p><pre><code>int main () {
-  srand(98);
-
-  for (int x = 1; x &lt;= 10; x++) {
-    cout &lt;&lt; 1 + (rand() % 6) &lt;&lt; endl;
-  }
-}</code></pre><p>改变 <code>srand()</code> 的 seed 传入值可以改变 <code>rand()</code> 算法来生成新的随机数。所以同一个 seed 值执行后生成的随机数是一样的。</p><p>那么如何使用不同的 seed 值呢，一个方法是读取当前时间来作为 seed，这样就可以得到真正的随机数，读取系统时间需要使用 <code>&lt;ctime&gt;</code> 库：</p><pre><code>#include &lt;iostream&gt;
-#include &lt;cstdlib&gt;
-#include &lt;ctime&gt;
-using namespace std;
-
-int main () {
-  srand(time(0));
-
-  for (int x = 1; x &lt;= 10; x++) {
-    cout &lt;&lt; 1 + (rand() % 6) &lt;&lt; endl;
-  }
-}</code></pre><p><code>time(0)</code> 返回当前时间的秒位。</p><h3>传递参数默认值</h3><p>当定义一个 function 时可以给参数项设置一个 default 默认值，这样在调用这个 function 时如果没有给参数赋值，就会使用默认值的数据，例如：</p><pre><code>int sum(int a, int b=42) {
-  int result = a + b;
-  return (result);
-}</code></pre><p>以上示例中给变量 b 设置默认值 42，当调用这个 function 时如果没有给 b 传入数据，就会使用默认值：</p><pre><code>int main() {
-  int x = 24;
-  int y = 36;
-
-  int result = sum(x, y);
-  cout &lt;&lt; result &lt;&lt; endl;
-  //Outputs 60
-
-  result = sum(x);
-  cout &lt;&lt;  result &lt;&lt; endl;
-   //Outputs 66
-
-  return 0;
-}</code></pre><h3>overload function 重写</h3><p>function overload 功能支持使用同样的名称建立多个 function，拥有不同的传递参数。</p><p>例如创建一个 function，有一个 int 型的参数：</p><pre><code>void printNumber(int a) { 
-  cout &lt;&lt; a;
-}</code></pre><p>我们可以再次创建一个有同样名称的 function 有一个 float 类型的参数：</p><pre><code>void printNumber(float a) { 
-  cout &lt;&lt; a;
-}</code></pre><p>这两个 function 可以同时存在且互不影响，调用时根据传递参数类型或个数的不同来自动判断调用的具体是那个 function。</p><p>注意不能仅仅建立有不同的返回值类型的同名 function 例如以下 function 不能同时建立：</p><pre><code>int printName(int a) { }
-float printName(int b) { }
-double printName(int c) { }</code></pre><h3>递归 recursion</h3><p>递归操作在程序中很常见，可以在 function 中调用其自身。</p><p>递归在数学中很常见，如计算阶乘：</p><pre><code>4! = 4 * 3 * 2 * 1 = 24
-</code></pre><p>建立一个 function 实现上面的阶乘计算：</p><pre><code>int factorial(int n) {
-  if (n==1) {
-    return 1;
-  }
-  else {
-    return n * factorial(n-1);
-  }
-}
-
-int main() {
-  cout &lt;&lt; factorial(4);
-}</code></pre><p><strong>如果我们调用此 function 传递参数为 4，则返回值计算过程为：</strong><br>返回 <code>4 * factorial(3)</code>, 然后返回 <code>4*3*factorial(2)</code>, 再次返回 <code>4*3*2*factorial(1)</code>, 然后为 <code>4*3*2*1</code>，最后 n 为 1 结束递归调用 function。</p><p>注意设计 recursion 时一定要有 base case 跳出递归的条件，要不然就会陷入死循环。</p><h3>数组类型传递参数</h3><p>数组也可以作为 function 的传递参数类型，例如：</p><pre><code>void printArray(int arr[], int size) {
-  for(int x=0; x&lt;size; x++) {
-    cout &lt;&lt; arr[x];
-  }
-}
-
-int main() {
-  int myArr[3]= {42, 33, 88};
-  printArray(myArr, 3);
-}</code></pre><p><code>printArray()</code> 的参数为 int 型一个数组和单变量，在 <code>main()</code> 中调用时传入一个 3 个元素的数组和数组个数数据。会输出这个数组所有元素。</p><p>当调用 function 时传入的数组只需要写数组名即可，不需要方括号<code>[]</code>。</p><h3>传入数据</h3><p>有两种方式给 function 传入数据：</p><ul><li>by value：复制传入参数的数据供 function 内部使用，内部对数据的修改操作不影响外部数据</li><li>by reference：复制传入参数的相关性到 function 内部，这时候对传入数据的操作会直接影响到外部关联的数据</li></ul><p>c++ 默认使用 by value 传入数据。如：</p><pre><code>void myFunc(int x) {
-  x = 100;
-}
-
-int main() {
-  int var = 20;
-  myFunc(var);
-  cout &lt;&lt; var;
-}
-// Outputs 20</code></pre><p>以上示例中，将 var 的数据传入 myFunc()，传入数据给 function 内部变量 x，内部 x 变量的值修改为 100 后不会影响到外部的 var 的数据。</p><p>by reference 方式会将传入数据的内存地址传入 function 中内部参数，这意味着 function 内对传入数据的修改会直接修改源传入数据内容。使用这种方式的 function，需要将传递数据定义为 pointer 指针类型。例如：</p><pre><code>void myFunc(int *x) {
-  *x = 100;
-}
-
-int main() {
-  int var = 20;
-  myFunc(&amp;var);
-  cout &lt;&lt; var;
-}
-// Outputs 100</code></pre><p>以上示例中定义一个 function 拥有指针类型的传递参数，在调用 <code>myFunc()</code> 时传入一个数据的地址，这样在 function 内对此地址数据的操作会直接改变外部对应地址的变量的数据。</p><p>也可以用另一种形式将数据地址传入 function，使用 <code>&amp;</code> 转换数据地址：</p><pre><code>void test2(int &amp;a) {
-    a = 2;
-}
-
-int main()
-{
-    int a = 1;
-    test2(a);
-    cout &lt;&lt; a &lt;&lt; endl;
-
-    return 0;
-}
-
-//OUTPUT:
-//2</code></pre><p>使用这种方法可以将数据名称直接作为参数传入，function 会自动使用其地址。</p><p>通常情况下，使用 by value 方式更加快速和高效，使用 by reference 方式会修改源相关联的数据会占用更多的内存。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1915.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1915.html" thr:count="0"/>
 </entry>
 </feed>
