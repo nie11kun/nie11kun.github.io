@@ -6,11 +6,91 @@ xml:base="https://blog.niekun.net/category/dev/"
 >
 <title type="text">Marco Nie - Program</title>
 <subtitle type="text"></subtitle>
-<updated>2020-12-08T21:37:00+08:00</updated>
+<updated>2020-12-16T16:59:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/dev/" />
 <id>https://blog.niekun.net/feed/atom/category/dev/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/dev/" />
+<entry>
+<title type="html"><![CDATA[QT 网络应用]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1973.html" />
+<id>https://blog.niekun.net/archives/1973.html</id>
+<updated>2020-12-16T16:59:00+08:00</updated>
+<published>2020-12-16T16:59:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[最近研究了下 QT 如何访问网络，做一些简单总结。首先在 pro 文件内定义网络属性：QT  += network如果需要连接 https 需要安装 openssl 工具，使用 QT 的 Mai...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1973.html" xml:lang="zh-CN"><![CDATA[
+<p>最近研究了下 QT 如何访问网络，做一些简单总结。</p><p>首先在 pro 文件内定义网络属性：</p><pre><code>QT  += network
+</code></pre><p>如果需要连接 https 需要安装 openssl 工具，使用 QT 的 MaintenanceTool 工具找到 openssl toolkit 并安装。否则执行程序时 ssl 会报错。</p><p>安装后需要将 openssl 路径加入系统 PATH，默认安装路径为：<code>Qt/Tools/OpenSSL</code>。根据需要将对应系统版本的 bin 路径加入 PATH 如：<code>C:\Qt\Tools\OpenSSL\Win_x86\bin</code>，里面包含相关 lib 库文件。添加方法参考：<a href="https://blog.niekun.net/archives/413.html">https://blog.niekun.net/archives/413.html</a>。</p><!--more--><p>需要用到的 QT class：<br><a href="https://doc.qt.io/qt-5/qnetworkaccessmanager.html">QNetworkAccessManager</a><br><a href="https://doc.qt.io/qt-5/qnetworkrequest.html">QNetworkRequest</a><br><a href="https://doc.qt.io/qt-5/qsslconfiguration.html">QSslConfiguration</a><br><a href="https://doc.qt.io/qt-5/qnetworkreply.html">QNetworkReply</a></p><p>我们做一个示例，新建项目，在头文件添加相关引用：</p><pre><code>#include &lt;QNetworkAccessManager&gt;
+#include &lt;QNetworkReply&gt;</code></pre><p>public 栏添加触发网络访问的 function：</p><pre><code>public:
+    void doRequest();</code></pre><p>private 栏定义指针：</p><pre><code>private:
+    QNetworkAccessManager *manager;</code></pre><p>添加 private slots 用来处理服务器的回应：</p><pre><code>private slots:
+    void replyFinished(QNetworkReply *reply);</code></pre><p>传入参数 reply 用来接收网络访问响应内容，对应于 signal: <code>void QNetworkAccessManager::finished(QNetworkReply *reply)</code>，signal 触发后的数据通过 connect 会自动传入 slot 中，下面在源文件中做详细定义。</p><p>下面修改源文件，先在构造器中调用触发网络 function: <code>doRequest()</code>：</p><pre><code>MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+{
+    ui-&gt;setupUi(this);
+    doRequest();
+}</code></pre><p>下面实现 <code>doRequest()</code> 的内容：</p><pre><code>void MainWindow::doRequest() {
+    manager = new QNetworkAccessManager(this);
+
+    QSslConfiguration sSlConfig;
+    sSlConfig.setDefaultConfiguration(QSslConfiguration::defaultConfiguration());
+    sSlConfig.setProtocol(QSsl::TlsV1_2);
+
+    QNetworkRequest request;
+    request.setSslConfiguration(sSlConfig);
+    request.setUrl(QUrl(&quot;https://info.niekun.net&quot;));
+    request.setRawHeader(&quot;User-Agent&quot;, &quot;MyOwnBrowser 1.0&quot;);
+
+    manager-&gt;get(request);
+
+    connect(manager, &amp;QNetworkAccessManager::finished, this, &amp;MainWindow::replyFinished);
+    connect(manager, &amp;QNetworkAccessManager::finished, manager, &amp;QNetworkAccessManager::deleteLater);
+}</code></pre><p>首先实例化一个 QNetworkAccessManager 用来访问网络。</p><p>然后构造我们的 request 和 ssl 的初始化内容，request 中设置了访问的网络地址，定义了一个 request 的 header。</p><p>QNetworkAccessManager  的 object 使用 <code>get</code> function 来启动网络请求。</p><p>然后我们使用 <code>connect</code> 根据网络请求发出后的响应来触发相关 slot function。signal 触发后的数据会传入 slot function 中。所以 signal：<code>void QNetworkAccessManager::finished(QNetworkReply *reply)</code> 触发后返回的数据 reply 自动作为传入数据给 <code>replyFinished</code>。</p><p>第二个 connect 的作用是网络请求结束后释放相关内存，避免造成内存溢出。</p><p>注意这里我使用了新版的 QT connect 语法，详细参考官方文档：<a href="https://wiki.qt.io/New_Signal_Slot_Syntax">https://wiki.qt.io/New_Signal_Slot_Syntax</a></p><p>下面实现 replyFinished：</p><pre><code>void MainWindow::replyFinished(QNetworkReply *reply) {
+    if(reply-&gt;error())
+    {
+        qDebug() &lt;&lt; &quot;ERROR!&quot;;
+        qDebug() &lt;&lt; reply-&gt;errorString();
+    }
+    else
+    {
+        qDebug() &lt;&lt; reply-&gt;header(QNetworkRequest::ContentTypeHeader).toString();
+        qDebug() &lt;&lt; reply-&gt;header(QNetworkRequest::LastModifiedHeader).toDateTime().toString();;
+        qDebug() &lt;&lt; reply-&gt;header(QNetworkRequest::ContentLengthHeader).toULongLong();
+        qDebug() &lt;&lt; reply-&gt;attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        qDebug() &lt;&lt; reply-&gt;attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
+        qDebug() &lt;&lt; &quot;-----------------------&quot;;
+        qDebug().noquote() &lt;&lt; reply-&gt;readAll();
+    }
+}</code></pre><p>reply 指向 <code>&amp;QNetworkAccessManager::finished</code> 的 QNetworkReply 数据。</p><p>在此 function 中，我们输出 reply 中的部分信息来检测网络是否通畅。其他的可用类型可以查询：<a href="https://doc.qt.io/qt-5/qnetworkrequest.html#public-types">https://doc.qt.io/qt-5/qnetworkrequest.html#public-types</a></p><p>注意使用 <code>qDebug().noquote()</code> 来自动将字符串中的 <code>\n</code> 作为换行处理。</p><p>正常输出信息如下：</p><pre><code>&quot;text/plain&quot;
+&quot;&quot;
+0
+200
+&quot;OK&quot;
+-----------------------
+request info:
+request: GET / HTTP/1.1
+scheme: https
+host: info.niekun.net
+http_host: info.niekun.net
+uri: /
+request_uri: /
+connection: 202130
+remote_addr: 172.68.189.53
+client_real_ip: 1.81.217.183
+server_port: 443
+
+other variates:
+http_x_forwarded_for: 1.81.217.183
+proxy_add_x_forwarded_for: 1.81.217.183, 172.68.189.53</code></pre><p>以上就是 QT 访问网络的简单教程。</p><p>参考链接：<br><a href="https://www.bogotobogo.com/Qt/Qt5_Downloading_Files_QNetworkAccessManager_QNetworkRequest.php">https://www.bogotobogo.com/Qt/Qt5_Downloading_Files_QNetworkAccessManager_QNetworkRequest.php</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1973.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1973.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[c++ 字符串数组指针的研究]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1968.html" />
@@ -713,7 +793,7 @@ Enemy! - 30</code></pre><p>这就是多态化 class 的优势，不同的 derive
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1927.html" thr:count="0"/>
 </entry>
 <entry>
-<title type="html"><![CDATA[C++ 入门教程之六 -- Classes 实践]]></title>
+<title type="html"><![CDATA[C++ 入门教程之六 -- Classes 实践/头文件/操作符复用]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1920.html" />
 <id>https://blog.niekun.net/archives/1920.html</id>
 <updated>2020-11-21T16:42:00+08:00</updated>
@@ -1013,118 +1093,5 @@ int main()
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1920.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1920.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[C++ 入门教程之五 -- Classes and Objects]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1918.html" />
-<id>https://blog.niekun.net/archives/1918.html</id>
-<updated>2020-11-20T11:32:00+08:00</updated>
-<published>2020-11-20T11:32:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[object 对象Object Oriented Programming 面向对象编程是为了让编程更加接近于真实世界的理解方式。在程序中，每个 object 是一个独立的 unite 单元，拥有...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1918.html" xml:lang="zh-CN"><![CDATA[
-<h3>object 对象</h3><p>Object Oriented Programming 面向对象编程是为了让编程更加接近于真实世界的理解方式。在程序中，每个 object 是一个独立的 unite 单元，拥有自己的 identify 标识，就像真实世界的某个独立物体一样。</p><p>例如一个苹果就是一个 object，它的 identify 就是名称 <code>苹果</code>，每个苹果都有自己独立的 attributes 属性，如颜色，大小。一个属性就是这个 object 当前状态的描述。不同 object 的 attributes 属性是不一样的，例如一个苹果是绿色的，另一个是红色的。</p><p>在正式世界中 object 都有其 behave 行为，例如汽车的 move 移动，手机的 ring 响铃。这种 object 的行为叫做 object 的 type 类型。</p><p><strong>描述一个 object需要的元素：identify 标识，attributes 属性，behavior 行为</strong></p><!--more--><p>在程序中每个 object 是独立的，拥有独立的 identify 用来区分其他的 object：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/786595094.png" alt="1.png" title="1.png"></p><h3>class</h3><p>我们通过创建 class 来表示 object，一个 class 描述了一个 object 的形象，但是它并不是一个真正的 object，他只是一个对某种 object 结构的定义。一个 class 可以用来建立多个 object。例如一套设计图纸可以用来作为蓝图修建多栋楼房。</p><p>一个 class 包含：identify，attributes，behavior</p><p>程序中，一个对象的 type 就是 class 的 name 名称；Attributes 属性可以是 properties 或 data 数据；behavior 行为通常是一个 function。</p><p>例如我们建立一个银行系统程序：</p><ul><li>name: BankAccount</li><li>attributes: accountNumber, balance, dateOpened</li><li>behavior: open(), close(), deposit()</li></ul><p>一个 class 定义了某种 object 需要的属性和行为。但是它并不直接定义具体的属性值是多少，她只是一个框架的描述。</p><p>当我们写好了一个 class，可以基于这个 class 来创建 objects，这个 object 就是 instance of class，就是 class 的实例。</p><h3>建立 class</h3><p>使用关键字 <code>class</code> 来建立 class，然后定义 class 名称，class 内容写在大括号<code>{}</code> 内。注意每个 class 结尾必须写分号<code>;</code>。例如：</p><pre><code>class BankAccount {
-
-};</code></pre><p>一个 class 的 attributes 和 behaviors 可以设置 access 访问级别。定义时使用关键词 <code>public</code> 不仅可以在 class 内部使用，也可以在 class 外部访问这个属性。也可以是使用关键词 <code>private</code> 或 <code>protected</code>，下面做详细介绍。</p><p>建立一个 class：</p><pre><code>class BankAccount {
-  public:
-    void sayHi() {
-      cout &lt;&lt; &quot;Hi&quot; &lt;&lt; endl;
-    }
-};</code></pre><p>然后 instance 实例化这个 class：</p><pre><code>int main() 
-{
-  BankAccount test;
-  test.sayHi();
-}</code></pre><p>实例化的 object test 拥有其 class 所有的属性和行为。使用点分割符<code>.</code> 来访问 object 的各种属性和 function。</p><h3>抽象化</h3><p>数据抽象化的理念是给外部环境提供最核心的信息，而不用提供具体的细节。比如我们抽象化一本书，我们不用知道他具体有多少也，多少个字，什么颜色。我们只需要知道它是一本书就行了。</p><p>抽象化的理念是面向对象编程最基础的模块。可以让我们建立一个 class 模型，然后基于这个模型创建具体的 objects 对象。</p><h3>封装</h3><p>encapsulation 封装意味着将一个整体包围起来，不仅仅是将其内容放在一起，也可以将其保护起来。它的设计原则就是让外部程序只能够访问其开放的元素，其他内容保持隐藏状态。</p><p>例如我们上面的 BankAccount class，我们不想要外部直接访问修改 balance 余额属性，我们需要其使用 <code>deposit()</code> 或 <code>withdraw()</code> 方法来对其进行操作。所以我们需要将 balance 属性对外隐藏掉，只能通过内部 function 来访问。</p><p>封装的优势有：</p><ul><li>控制内部数据的访问和修改</li><li>代码更加灵活，方便后续根据情况修改</li><li>修改一个地方，不影响其他地方</li></ul><p>下面举例说明如何使用封装来控制内部数据的可访问性，使用 public，private，protected 关键词。</p><p><strong>注意如果没有使用关键词，默认 class 内所有都是 private 类型的。</strong></p><p><strong>访问 public 的数据：</strong></p><pre><code>#include &lt;iostream&gt;
-#include &lt;string&gt;
-using namespace std;
-
-class myClass {
-  public:
-    string name;
-};
-
-int main() {
-  myClass myObj;
-  myObj.name = &quot;SoloLearn&quot;;
-  cout &lt;&lt; myObj.name;
-  return 0;
-}
-
-//Outputs &quot;SoloLearn&quot;</code></pre><p>使用 public 关键词定义可被外部访问的属性，注意关键词后的冒号<code>:</code>。</p><p><strong>使用 private 保护内部数据：</strong></p><pre><code>#include &lt;iostream&gt;
-#include &lt;string&gt;
-using namespace std;
-
-class myClass {
-  public:
-    void setName(string x) {
-      name = x;
-    }
-  private:
-    string name;
-};
-
-int main() {
-  myClass myObj;
-  myObj.setName(&quot;John&quot;);
-
-  return 0;
-}</code></pre><p>name 不可以被外部直接访问修改，但是通过 <code>setName()</code> 就可以间接修改 name 的值。</p><p><strong>也可以通过 function 间接读取 private 的某些属性：</strong></p><pre><code>class myClass {
-  public:
-    void setName(string x) {
-      name = x;
-    }
-    string getName() {
-      return name;
-    }
-  private:
-    string name;
-};</code></pre><p>以上示例，通过建立 public 里的 <code>getName()</code> 方法来读取 name 的值。</p><h3>constructor 构造器</h3><p>constructor 是 class 中特殊的 function，这个 function 的名称和 class 名称一样且没有返回类型，甚至没有 void，它会在 instance 实例化 object 时自动被执行，例如：</p><pre><code>class myClass {
-  public:
-    myClass() {
-      cout &lt;&lt;&quot;Hey&quot;;
-    }
-    void setName(string x) {
-      name = x;
-    }
-    string getName() {
-      return name;
-    }
-  private:
-    string name;
-};
-
-int main() {
-  myClass myObj;
-
-  return 0;
-}
-
-//Outputs &quot;Hey&quot;</code></pre><p>以上示例中，在实例化 myObj 时，会自动执行构造器 function。</p><p>构造器 function 可以方便的让我们在实例化 class 时设置 initial 初始化参数。默认构造器没有参数，如果需要的话我们可以加入参数。例如：</p><pre><code>class myClass {
-  public:
-    myClass(string nm) {
-      setName(nm);
-    }
-    void setName(string x) {
-      name = x;
-    }
-    string getName() {
-      return name;
-    }
-  private:
-    string name;
-};
-
-int main() {
-  myClass ob1(&quot;David&quot;);
-  myClass ob2(&quot;Amy&quot;);
-  cout &lt;&lt; ob1.getName();
-}
-//Outputs &quot;David&quot;</code></pre><p>以上示例中，构造器的作用是使用一个参数给 private name 赋值。当实例化这个 class 时，需要传入构造器需要的参数。</p><p><strong>注意我们可以在一个 class 中建立多个 constructor 构造器，来使用不同的参数。</strong></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1918.html#comments" thr:count="1" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1918.html" thr:count="1"/>
 </entry>
 </feed>

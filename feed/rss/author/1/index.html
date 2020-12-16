@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>admin</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/1977.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1973.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1968.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1966.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1958.html"/>
@@ -17,11 +19,89 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1946.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1940.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1927.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1920.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1918.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/1977.html">
+<title>brew 安装路径</title>
+<link>https://blog.niekun.net/archives/1977.html</link>
+<dc:date>2020-12-16T22:04:00+08:00</dc:date>
+<description>brew 是 macOS 下流行的包管理工具，可以方便的安装各种工具。brew 默认安装路径为：/usr/local/Cellar，然后会在 /usr/local/opt/ 建立所安装的包的软连接。包安装好后如果不能正常执行，可以建立包的可执行程序的软连接到：/usr/local/bin/ 目录。比如安装 openssl：brew install openssl
+安装后包的路径为：/usr/local/Cellar/openssl@1.1/1.1.1h。同时包的软连接在：/usr/local/Cellar/openssl。这时候执行命令：openssl version
+返回的并不是刚才安装的版本，而是系统自带的老版本的。这时候可以建立可执行程序的软连接到对应路径：ln -s /usr/local/opt/openssl/bin/openssl /usr/local/bin/openssl
+这时候执行命令就可以得到正确的返回：openssl version
+//OpenSSL 1.1.1h  22 Sep 2020
+其他包的模式和此类似。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1973.html">
+<title>QT 网络应用</title>
+<link>https://blog.niekun.net/archives/1973.html</link>
+<dc:date>2020-12-16T16:59:00+08:00</dc:date>
+<description>最近研究了下 QT 如何访问网络，做一些简单总结。首先在 pro 文件内定义网络属性：QT  += network
+如果需要连接 https 需要安装 openssl 工具，使用 QT 的 MaintenanceTool 工具找到 openssl toolkit 并安装。否则执行程序时 ssl 会报错。安装后需要将 openssl 路径加入系统 PATH，默认安装路径为：Qt/Tools/OpenSSL。根据需要将对应系统版本的 bin 路径加入 PATH 如：C:\Qt\Tools\OpenSSL\Win_x86\bin，里面包含相关 lib 库文件。添加方法参考：https://blog.niekun.net/archives/413.html。需要用到的 QT class：QNetworkAccessManagerQNetworkRequestQSslConfigurationQNetworkReply我们做一个示例，新建项目，在头文件添加相关引用：#include &lt;QNetworkAccessManager&gt;
+#include &lt;QNetworkReply&gt;public 栏添加触发网络访问的 function：public:
+    void doRequest();private 栏定义指针：private:
+    QNetworkAccessManager *manager;添加 private slots 用来处理服务器的回应：private slots:
+    void replyFinished(QNetworkReply *reply);传入参数 reply 用来接收网络访问响应内容，对应于 signal: void QNetworkAccessManager::finished(QNetworkReply *reply)，signal 触发后的数据通过 connect 会自动传入 slot 中，下面在源文件中做详细定义。下面修改源文件，先在构造器中调用触发网络 function: doRequest()：MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+{
+    ui-&gt;setupUi(this);
+    doRequest();
+}下面实现 doRequest() 的内容：void MainWindow::doRequest() {
+    manager = new QNetworkAccessManager(this);
+
+    QSslConfiguration sSlConfig;
+    sSlConfig.setDefaultConfiguration(QSslConfiguration::defaultConfiguration());
+    sSlConfig.setProtocol(QSsl::TlsV1_2);
+
+    QNetworkRequest request;
+    request.setSslConfiguration(sSlConfig);
+    request.setUrl(QUrl(&quot;https://info.niekun.net&quot;));
+    request.setRawHeader(&quot;User-Agent&quot;, &quot;MyOwnBrowser 1.0&quot;);
+
+    manager-&gt;get(request);
+
+    connect(manager, &amp;QNetworkAccessManager::finished, this, &amp;MainWindow::replyFinished);
+    connect(manager, &amp;QNetworkAccessManager::finished, manager, &amp;QNetworkAccessManager::deleteLater);
+}首先实例化一个 QNetworkAccessManager 用来访问网络。然后构造我们的 request 和 ssl 的初始化内容，request 中设置了访问的网络地址，定义了一个 request 的 header。QNetworkAccessManager  的 object 使用 get function 来启动网络请求。然后我们使用 connect 根据网络请求发出后的响应来触发相关 slot function。signal 触发后的数据会传入 slot function 中。所以 signal：void QNetworkAccessManager::finished(QNetworkReply *reply) 触发后返回的数据 reply 自动作为传入数据给 replyFinished。第二个 connect 的作用是网络请求结束后释放相关内存，避免造成内存溢出。注意这里我使用了新版的 QT connect 语法，详细参考官方文档：https://wiki.qt.io/New_Signal_Slot_Syntax下面实现 replyFinished：void MainWindow::replyFinished(QNetworkReply *reply) {
+    if(reply-&gt;error())
+    {
+        qDebug() &lt;&lt; &quot;ERROR!&quot;;
+        qDebug() &lt;&lt; reply-&gt;errorString();
+    }
+    else
+    {
+        qDebug() &lt;&lt; reply-&gt;header(QNetworkRequest::ContentTypeHeader).toString();
+        qDebug() &lt;&lt; reply-&gt;header(QNetworkRequest::LastModifiedHeader).toDateTime().toString();;
+        qDebug() &lt;&lt; reply-&gt;header(QNetworkRequest::ContentLengthHeader).toULongLong();
+        qDebug() &lt;&lt; reply-&gt;attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        qDebug() &lt;&lt; reply-&gt;attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
+        qDebug() &lt;&lt; &quot;-----------------------&quot;;
+        qDebug().noquote() &lt;&lt; reply-&gt;readAll();
+    }
+}reply 指向 &amp;QNetworkAccessManager::finished 的 QNetworkReply 数据。在此 function 中，我们输出 reply 中的部分信息来检测网络是否通畅。其他的可用类型可以查询：https://doc.qt.io/qt-5/qnetworkrequest.html#public-types注意使用 qDebug().noquote() 来自动将字符串中的 \n 作为换行处理。正常输出信息如下：&quot;text/plain&quot;
+&quot;&quot;
+0
+200
+&quot;OK&quot;
+-----------------------
+request info:
+request: GET / HTTP/1.1
+scheme: https
+host: info.niekun.net
+http_host: info.niekun.net
+uri: /
+request_uri: /
+connection: 202130
+remote_addr: 172.68.189.53
+client_real_ip: 1.81.217.183
+server_port: 443
+
+other variates:
+http_x_forwarded_for: 1.81.217.183
+proxy_add_x_forwarded_for: 1.81.217.183, 172.68.189.53以上就是 QT 访问网络的简单教程。参考链接：https://www.bogotobogo.com/Qt/Qt5_Downloading_Files_QNetworkAccessManager_QNetworkRequest.php</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1968.html">
 <title>c++ 字符串数组指针的研究</title>
 <link>https://blog.niekun.net/archives/1968.html</link>
@@ -634,398 +714,5 @@ Enemy! - 30这就是多态化 class 的优势，不同的 derive class 使用同
   virtual void attack() = 0;
 }; 如果 base class 中定义了 pure virtual functions，那么在 derived class 中必须重写此 function，否则在实例化 derived class 时编译器会报错。这种包含有 pure virtual functions 的 class 叫做 abstract class 抽象化的 class，这种 class 不能直接实例化 object，会产生报错。必须实例化其 derived class 且重写了 virtual function。现在实例化 Enemy 的 object 会报错：Enemy e; // Error
 这种 pure virtual functions 的好处是，我们可以直接定义 base class 类型的指针指向不同的 derived class object，然后使用同样的 function 名称来执行不同的指令。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1920.html">
-<title>C++ 入门教程之六 -- Classes 实践</title>
-<link>https://blog.niekun.net/archives/1920.html</link>
-<dc:date>2020-11-21T16:42:00+08:00</dc:date>
-<description>下面我们通过实际应用来介绍如果在真实环境下应用。我们使用 Code::Blocks IDE 来进行调试。这是一个免费的 c++ 开发环境，能够应用于绝大多数使用场景。官网：http://www.codeblocks.org/在下载界面下载对应系统版本的安装包：http://www.codeblocks.org/downloads/26最好安装带编译器的版本，这样就可以直接使用。新建项目安装好 codeblock 后新建一个项目：选择 console application：根据提示设置项目名称等，完成项目建立。然后添加一个 class：设置 class 名称，取消勾选 has destructor，勾选 headers and implementation file shall be in same folder：完成后项目结构如下：main.cpp 项目主文件MyClass.cpp class source 源文件MyClass.h class header 头文件头文件和源文件头文件 .h 申明了 class 的 function 和 variable 变量等元素，我们新建的 class 头文件内容如下：#ifndef MYCLASS_H
-#define MYCLASS_H
-
-
-class MyClass
-{
-    public:
-        MyClass();
-
-    protected:
-
-    private:
-};
-
-#endif // MYCLASS_H里面只默认包含了一个 constructor 构造器 MyClass()。源文件 .cpp 包含了这个 class 具体 function 和 variable 等元素的实现过程。当前只有一个空的构造器 function：#include &quot;myclass.h&quot;
-
-MyClass::MyClass()
-{
-    //ctor
-}范围解析符：我们注意到源文件内构造器前的两个冒号::，叫做 scope resolution operator 范围解析符。这个符号是用来表示那些已经在头文件内申明过的 function 要在这里做具体实现了。用来和头文件内定义的元素进行关联的作用。关于::和.的使用场景我的理解是，当在定义一个元素或功能时用范围解析符::，当实例化object后使用其一个元素或功能时用点.，例如：//定义一个元素为class内的一个att1类型：
-MyClass1::att1 a;
-
-//使用class的function：
-MyClass2 obj;
-obj.func();要在 main 总使用我们创建的 class，只需要在其中引用头文件名即可:#include &lt;iostream&gt;
-#include &quot;myclass.h&quot;
-
-using namespace std;
-
-int main()
-{
-    MyClass obj;
-    return 0;
-}总体来说，头文件用来定义 class 提供了哪些功能及元素，源文件用来具体实现这些功能。destructor 销毁器和上一章我们讲到的 constructor 构造器类似，destructor 销毁器也是一个特殊的 function，他在 object 被销毁时自动执行。销毁一个 object 一般是在跳出创建这个 object 的 scope 段或者使用 pointer 指针指向这个 object，使用 delete 指令清除此指针指向的数据。销毁其的写法和构造器类似，使用 class 名作为 function 名字，前面加上一个波浪符~。当然也是没有返回值类型的。例如：class MyClass {
-  public: 
-    ~MyClass() {
-     // some code
-    }
-};使用销毁器能够方便的实现在关闭程序时释放资源，关闭文件，释放内存等功能。在头文件中声明一个销毁器：class MyClass
-{
-  public:
-   MyClass();
-   ~MyClass();
-};然后再源文件内定义具体实现内容：#include &quot;MyClass.h&quot;
-#include &lt;iostream&gt;
-using namespace std;
-
-MyClass::MyClass()
-{
-  cout&lt;&lt;&quot;Constructor&quot;&lt;&lt;endl;
-}
-
-MyClass::~MyClass()
-{
-  cout&lt;&lt;&quot;Destructor&quot;&lt;&lt;endl;
-}不同于构造器，销毁器不能使用参数，也不能被重写，也就是一个 class 只能有一个销毁器。销毁器不是必须有的，不需要的话可以不写返回我们的 main，我们已经定义了一个 object MyClass obj，编译运行程序，会在终端输出以下：Constructor
-Destructor选择符使用选择符 -&gt; 可以访问一个指针指向的 object 的元素。例如：MyClass obj;
-MyClass *ptr = &amp;obj;
-ptr-&gt;myPrint();我们创建了 object obj 然后定义一个指针 ptr 指向这个 object 的地址，然后我们可以使用选择符来访问 object 的元素。object 元素访问基本原则：如果直接面对 object，使用点. 来访问 object 的元素，如：obj.myPrint()如果使用面对指针指向的 object，使用选择符-&gt; 来访问 object 的元素，如：ptr-&gt;myPrint()constants 常数常数就是一个有固定值的表达式，它的只在程序运行期间不能够被改变，使用关键词const 定义一个有固定值的变量：const int a=2;
-注意所有 const 类型的变量必须在创建时给其赋值。我们可以创建一个 const 类型的 object：const MyClass obj;
-object 内所有的 variable 变量必须在初始化时赋值，一般在 constructor 构造器内完成，实例化的时候直接给其传递数据。如果没有提供构造器完成参数初始化赋值，会引起编译器报错。一旦一个 const 类型的 object 被创建，它内部的所有 variable 变量的值都不可以被改变了，包括直接修改 public 段的变量或者使用 function 修改 private 的变量都不可以。只有非 const 的 object 才可以调用非 const 的 function。对于 const 的 object 不能只能调用 const 的 function，定义一个 const 的 function 只需要在后面加上关键词 const，头文件定义示例如下：class MyClass
-{
-  public:
-    void myPrint() const;
-};源文件同样的方式：#include &quot;MyClass.h&quot;
-#include &lt;iostream&gt;
-using namespace std;
-
-void MyClass::myPrint() const {
-  cout &lt;&lt;&quot;Hello&quot;&lt;&lt;endl;
-}然后我们就可以实例化一个 const 的 object 使用厘米俺的 const function：int main() {
-  const MyClass obj;
-  obj.myPrint();
-}
-// Outputs &quot;Hello&quot;在一个 const object 调用常规的 function 会引起报错。同时在 const function 内尝试修改 object 内某变量数据也会报错。元素初始化器const 类型的元素数据不能够被改变，且必须在创建时赋值。c++ 提供了一个语法结构来给 class 内元素进行初始化叫做：constructor initializer list 构造器初始化列表。以下示例执行会引起报错，因为在 function 中操作的元素有 const 类型的元素：class MyClass {
-  public:
-   MyClass(int a, int b) {
-    regVar = a;
-    constVar = b;
-   }
-  private:
-    int regVar;
-    const int constVar;
-};const 类型元素在申明后不能再对其修改。这时候就需要使用 构造器初始化列表来对其初始化赋值：class MyClass {
- public:
-  MyClass(int a, int b)
-  : regVar(a), constVar(b)
-  {
-  }
- private:
-  int regVar;
-  const int constVar;
-};需要初始化的元素列表下载构造器后，前面使用一个冒号:，每个元素间使用逗号, 分隔。使用语法 variable(value) 来对其赋值。结尾不需要加分号;。使用构造器初始化列表可以用来避免将需要初始化的 const 类型参数放在其 body 内处理而引起错误。修改我们的项目文件：MyClass.h:#ifndef MYCLASS_H
-#define MYCLASS_H
-
-
-class MyClass
-{
-    public:
-        MyClass(int a, int b);
-        ~MyClass();
-
-    protected:
-
-    private:
-        int regVar;
-        const int constVar;
-};
-
-#endif // MYCLASS_HMyClass.cpp:#include &quot;myclass.h&quot;
-#include &lt;iostream&gt;
-
-using namespace std;
-
-MyClass::MyClass(int a, int b)
-: regVar(a), constVar(b)
-{
-    cout &lt;&lt; regVar &lt;&lt; endl;
-    cout &lt;&lt; constVar &lt;&lt; endl;
-}
-
-MyClass::~MyClass()
-{
-    cout &lt;&lt; &quot;destructor&quot; &lt;&lt; endl;
-}main.cpp：#include &lt;iostream&gt;
-#include &quot;myclass.h&quot;
-
-using namespace std;
-
-int main()
-{
-    MyClass obj(42, 33);
-
-    return 0;
-}输出结果为：42
-33
-destructor注意构造器初始化列表也可以应用于常规变量，但是必须应用于 const 变量。结构化在真实世界中一个 object 可能是很复杂的，由很多其他简单的 objects 构成。例如一辆汽车的组成部分有车身，发动机，轮胎等。这一组合过程叫做结构化。在 c++ 中，一个 class 可能作为另一个 class 的元素。下面的例子中我们构建两个 class：Person 和 birthday，且 Person 中包含 Birthday 作为一个元素。birthday.h:#ifndef BIRTHDAY_H
-#define BIRTHDAY_H
-
-class Birthday
-{
-    public:
-        Birthday(int m, int d, int y);
-        void printDate();
-
-    protected:
-
-    private:
-        int month;
-        int day;
-        int year;
-};
-
-#endif // BIRTHDAY_Hbirthday.cpp: 注意将 function 返回类型放在范围解析符前#include &quot;birthday.h&quot;
-#include &lt;iostream&gt;
-
-using namespace std;
-
-Birthday::Birthday(int m, int d, int y)
-: month(m), day(d), year(y)
-{
-}
-
-void Birthday::printDate()
-{
-    cout &lt;&lt; month &lt;&lt; &quot;/&quot; &lt;&lt; day &lt;&lt; &quot;/&quot; &lt;&lt; year &lt;&lt; endl;
-}persion.h:#ifndef PERSON_H
-#define PERSON_H
-#include &quot;birthday.h&quot;
-#include &lt;string&gt;
-
-using namespace std;
-
-class Person
-{
-    public:
-        Person(string n, Birthday b);
-        void printInfo();
-
-    protected:
-
-    private:
-        string name;
-        Birthday bd;
-};
-
-#endif // PERSON_Hpersion.cpp:#include &quot;person.h&quot;
-#include &lt;iostream&gt;
-
-using namespace std;
-
-Person::Person(string n, Birthday b)
-: name(n), bd(b)
-{
-}
-
-void Person::printInfo()
-{
-    cout &lt;&lt; name &lt;&lt; endl;
-    bd.printDate();
-}Person 包含 name 和 Birthday 两个元素，且在构造器内对其初始化。结构化的意义是建立一种包含关系，即 Person 中包含一个 Birthday。在 Person 中有一个 printInfo() 来输出信息，bd 是 Birthday 的实例，所以可以直接使用其 function。在 main 中实例化测试：#include &quot;person.h&quot;
-#include &quot;birthday.h&quot;
-
-using namespace std;
-
-int main()
-{
-    Birthday bd(11, 25, 1989);
-    Person p(&quot;Marco&quot;, bd);
-    p.printInfo();
-
-    return 0;
-}以上示例中，我们首先创建一个 Birthday 的 object 并初始化参数，然后创建一个 Person 的 object 并初始化参数，其中第二个参数使用第一步创建的 object 作为数据，最后调用 Person object 的 function 来输出信息。结构化的优势是保持每个 class 相对简单，专注于一个任务。同时让每个各个 object 保持独立性，和可复用性。friend 关键词位于 private 段的 class 里的元素默认无法被外界直接访问，但可以通过在 class 内申明一个并非 class 内部的 friend function 来实现对 private 元素的读取。使用关键词 friend 来定义，在 MyClass 头文件中修改如下：#ifndef MYCLASS_H
-#define MYCLASS_H
-
-class MyClass
-{
-    public:
-        MyClass(int a, int b);
-        ~MyClass();
-
-    protected:
-
-    private:
-        int regVar;
-        const int constVar;
-
-    friend void readPriv(MyClass *obj);
-};
-
-#endif // MYCLASS_H
-};我们在 class 中申明一个 function，传入参数为 class 本身，注意传入的模式是 by reference 也就是传入 object 的地址。详细说明参考：C++ 入门教程 -- Functions然后再外部定义 someFunc 的内容，我直接在 main 中定义，并测试读取 private 参数：#include &quot;myclass.h&quot;
-#include &lt;iostream&gt;
-
-using namespace std;
-
-void readPriv(MyClass *obj)
-{
-    cout &lt;&lt; obj-&gt;constVar &lt;&lt; endl;
-}
-
-int main()
-{
-    MyClass a(42, 33);
-    MyClass *b = &amp;a;
-    readPriv(&amp;a);
-
-    return 0;
-}输出结果为：33
-再定义 friend function 时，传入 by reference 参数可以写成 *obj 也可以写成 &amp;obj。只是在后续 function 内容中使用 . 还是 -&gt; 调用内部功能。然后再调用 friend function 时是传入 object 地址还是直接传入 object 本身。friend function 不属于任何 class。this 关键词每个 c++ object 都有一个指向本身的指针叫做：this。在 object 内部 function 中，可以通过使用 this 指针来引用 object 自身。我们建立一个简单的 class：class MyClass {
- public:
-  MyClass(int a)
-  : var(a)
-  { }
-  void printInfo() {
-   cout &lt;&lt; var &lt;&lt; endl;
-   cout &lt;&lt; this-&gt;var &lt;&lt; endl;
-   cout &lt;&lt; (*this).var &lt;&lt; endl; 
-  }
- private:
-  int var;
-};printInfo() 中的三条指令会得到相同的结果。this 是一个指针，所以使用 -&gt; 来读取对应地址的数据，也可以使用 *this 数据查询符来表示此地址下的数据。可以参考教程：C++ 入门教程 -- 数据类型，数组及指针操作符复用大多数 c++ 中的操作符都可以被重新定义。因此让我们自定义的数据类型进行运算操作，比如将两个 object + 加起来。以下列表中的操作符可以被复用：不能被复用的符号有：: | .* | . | ?:我们定义一个简单的 class：class MyClass {
- public:
-  int var;
-  MyClass(int a)
-  : var(a)
-  { }
-};下面示例我们将重新定义加号+ 来让两个 object 可以加起来。定义复用操作符其实是一个 function，通过关键词 operator 和操作符来定义，类似于普通 function，这里也有返回类型和传入数据项需要定义，以下示例中，我们复用加号+，然后返回值为一个此 class 本身的 object，传入数据为一个 object 地址：class MyClass {
- public:
-  int var;
-  MyClass(int a)
-  : var(a) { }
-
-  MyClass operator+(MyClass &amp;obj) {
-   MyClass res;
-   res.var = this-&gt;var+obj.var;
-   return res; 
-  }
-};再复用操作符 function 中，我们定义了一个 新的 object，然后使用 this 调用此 object 本身的参数 var 和传入 object 的 var 相加，结果放入新建立的 object 的 var 内，最后返回这个新 object。这样定义后，我们就可以直接使用操作符来做运算了：int main() {
-  MyClass obj1(12), obj2(55);
-  MyClass res = obj1 + obj2;
-
-  cout &lt;&lt; res.var;
-}
-
-//Outputs 67以上就是 class 的基本使用方法。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1918.html">
-<title>C++ 入门教程之五 -- Classes and Objects</title>
-<link>https://blog.niekun.net/archives/1918.html</link>
-<dc:date>2020-11-20T11:32:00+08:00</dc:date>
-<description>object 对象Object Oriented Programming 面向对象编程是为了让编程更加接近于真实世界的理解方式。在程序中，每个 object 是一个独立的 unite 单元，拥有自己的 identify 标识，就像真实世界的某个独立物体一样。例如一个苹果就是一个 object，它的 identify 就是名称 苹果，每个苹果都有自己独立的 attributes 属性，如颜色，大小。一个属性就是这个 object 当前状态的描述。不同 object 的 attributes 属性是不一样的，例如一个苹果是绿色的，另一个是红色的。在正式世界中 object 都有其 behave 行为，例如汽车的 move 移动，手机的 ring 响铃。这种 object 的行为叫做 object 的 type 类型。描述一个 object需要的元素：identify 标识，attributes 属性，behavior 行为在程序中每个 object 是独立的，拥有独立的 identify 用来区分其他的 object：class我们通过创建 class 来表示 object，一个 class 描述了一个 object 的形象，但是它并不是一个真正的 object，他只是一个对某种 object 结构的定义。一个 class 可以用来建立多个 object。例如一套设计图纸可以用来作为蓝图修建多栋楼房。一个 class 包含：identify，attributes，behavior程序中，一个对象的 type 就是 class 的 name 名称；Attributes 属性可以是 properties 或 data 数据；behavior 行为通常是一个 function。例如我们建立一个银行系统程序：name: BankAccountattributes: accountNumber, balance, dateOpenedbehavior: open(), close(), deposit()一个 class 定义了某种 object 需要的属性和行为。但是它并不直接定义具体的属性值是多少，她只是一个框架的描述。当我们写好了一个 class，可以基于这个 class 来创建 objects，这个 object 就是 instance of class，就是 class 的实例。建立 class使用关键字 class 来建立 class，然后定义 class 名称，class 内容写在大括号{} 内。注意每个 class 结尾必须写分号;。例如：class BankAccount {
-
-};一个 class 的 attributes 和 behaviors 可以设置 access 访问级别。定义时使用关键词 public 不仅可以在 class 内部使用，也可以在 class 外部访问这个属性。也可以是使用关键词 private 或 protected，下面做详细介绍。建立一个 class：class BankAccount {
-  public:
-    void sayHi() {
-      cout &lt;&lt; &quot;Hi&quot; &lt;&lt; endl;
-    }
-};然后 instance 实例化这个 class：int main() 
-{
-  BankAccount test;
-  test.sayHi();
-}实例化的 object test 拥有其 class 所有的属性和行为。使用点分割符. 来访问 object 的各种属性和 function。抽象化数据抽象化的理念是给外部环境提供最核心的信息，而不用提供具体的细节。比如我们抽象化一本书，我们不用知道他具体有多少也，多少个字，什么颜色。我们只需要知道它是一本书就行了。抽象化的理念是面向对象编程最基础的模块。可以让我们建立一个 class 模型，然后基于这个模型创建具体的 objects 对象。封装encapsulation 封装意味着将一个整体包围起来，不仅仅是将其内容放在一起，也可以将其保护起来。它的设计原则就是让外部程序只能够访问其开放的元素，其他内容保持隐藏状态。例如我们上面的 BankAccount class，我们不想要外部直接访问修改 balance 余额属性，我们需要其使用 deposit() 或 withdraw() 方法来对其进行操作。所以我们需要将 balance 属性对外隐藏掉，只能通过内部 function 来访问。封装的优势有：控制内部数据的访问和修改代码更加灵活，方便后续根据情况修改修改一个地方，不影响其他地方下面举例说明如何使用封装来控制内部数据的可访问性，使用 public，private，protected 关键词。注意如果没有使用关键词，默认 class 内所有都是 private 类型的。访问 public 的数据：#include &lt;iostream&gt;
-#include &lt;string&gt;
-using namespace std;
-
-class myClass {
-  public:
-    string name;
-};
-
-int main() {
-  myClass myObj;
-  myObj.name = &quot;SoloLearn&quot;;
-  cout &lt;&lt; myObj.name;
-  return 0;
-}
-
-//Outputs &quot;SoloLearn&quot;使用 public 关键词定义可被外部访问的属性，注意关键词后的冒号:。使用 private 保护内部数据：#include &lt;iostream&gt;
-#include &lt;string&gt;
-using namespace std;
-
-class myClass {
-  public:
-    void setName(string x) {
-      name = x;
-    }
-  private:
-    string name;
-};
-
-int main() {
-  myClass myObj;
-  myObj.setName(&quot;John&quot;);
-
-  return 0;
-}name 不可以被外部直接访问修改，但是通过 setName() 就可以间接修改 name 的值。也可以通过 function 间接读取 private 的某些属性：class myClass {
-  public:
-    void setName(string x) {
-      name = x;
-    }
-    string getName() {
-      return name;
-    }
-  private:
-    string name;
-};以上示例，通过建立 public 里的 getName() 方法来读取 name 的值。constructor 构造器constructor 是 class 中特殊的 function，这个 function 的名称和 class 名称一样且没有返回类型，甚至没有 void，它会在 instance 实例化 object 时自动被执行，例如：class myClass {
-  public:
-    myClass() {
-      cout &lt;&lt;&quot;Hey&quot;;
-    }
-    void setName(string x) {
-      name = x;
-    }
-    string getName() {
-      return name;
-    }
-  private:
-    string name;
-};
-
-int main() {
-  myClass myObj;
-
-  return 0;
-}
-
-//Outputs &quot;Hey&quot;以上示例中，在实例化 myObj 时，会自动执行构造器 function。构造器 function 可以方便的让我们在实例化 class 时设置 initial 初始化参数。默认构造器没有参数，如果需要的话我们可以加入参数。例如：class myClass {
-  public:
-    myClass(string nm) {
-      setName(nm);
-    }
-    void setName(string x) {
-      name = x;
-    }
-    string getName() {
-      return name;
-    }
-  private:
-    string name;
-};
-
-int main() {
-  myClass ob1(&quot;David&quot;);
-  myClass ob2(&quot;Amy&quot;);
-  cout &lt;&lt; ob1.getName();
-}
-//Outputs &quot;David&quot;以上示例中，构造器的作用是使用一个参数给 private name 赋值。当实例化这个 class 时，需要传入构造器需要的参数。注意我们可以在一个 class 中建立多个 constructor 构造器，来使用不同的参数。</description>
 </item>
 </rdf:RDF>
