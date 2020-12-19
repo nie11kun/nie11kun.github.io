@@ -84,6 +84,30 @@
 <div class="col-md-9 col-12" id="main" role="main">
 <h3 class="archive-title">分类 web 下的文章</h3>
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/730.html">限制用户名密码访问页面 in nginx</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2019-12-09T16:21:00+08:00" itemprop="datePublished">2019-12-09</time></li>
+<li>分类: <a href="../../Linux/index.html">Linux</a>,<a href="../index.html">web</a></li>
+<li itemprop="interactionCount"><a href="../../../archives/730.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。</p><p>如果使用 <strong>nginx</strong> 作为反向代理服务器，可以使用 <strong>auth_basic</strong> 来实现页面加密。</p><p><strong>环境需求：</strong></p><p>Linux env<br>nginx<br><strong>apache2-utils</strong> (Debian, Ubuntu) or <strong>httpd-tools</strong> (RHEL/CentOS/Oracle Linux)</p><p><strong>安装环境：</strong></p><p>nginx 安装参考：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p>安装 apache2-utils：</p><pre><code>apt-get install apache2-utils
+</code></pre><p><strong>创建账户密码：</strong></p><p>使用了 htpasswd 命令创建用户。</p><p>关于 htpasswd 的详细使用：<a href="https://httpd.apache.org/docs/2.4/programs/htpasswd.html">https://httpd.apache.org/docs/2.4/programs/htpasswd.html</a></p><p>建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：</p><pre><code>htpasswd -c /etc/nginx/users/.adminpasswd user1
+</code></pre><p>.adminpasswd 为隐藏的存储所有账户信息的文件，user1 为用户名，回车后会提示输入密码，然后确认密码。</p><p>建立其他账户：</p><pre><code>htpasswd /etc/nginx/users/.adminpasswd user2
+</code></pre><p>不需要 <code>-c</code> 参数，因为文件已经建立了。</p><p>验证账户密码 <code>-v</code>：</p><pre><code>htpasswd -v /etc/nginx/users/.adminpasswd user1
+</code></pre><p>删除账户 <code>-D</code>：</p><pre><code>htpasswd -D /etc/nginx/users/.adminpasswd user1
+</code></pre><p><strong>使用账户：</strong></p><p>打开 nginx 配置文件，在需要账户登录的路径段修改如下：</p><pre><code>location /path {
+    ...
+    auth_basic           &quot;Administrator's Area&quot;;
+    auth_basic_user_file /etc/nginx/users/.adminpasswd;
+    ...
+    ...
+}</code></pre><p>重新加载配置文件：</p><pre><code>service nginx configtest
+service nginx reload
+</code></pre><p>打开对应页面测试是否提示输入账号密码。</p> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/725.html">fancyindex 插件模块美化 nginx 的默认 index 页面</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
@@ -128,29 +152,12 @@
 <div class="post-content" itemprop="articleBody">
 <p>DoH: DNS over HTTPS<br>DoT: DNS over TLS</p><p class="more"><a href="../../../archives/522.html" title="DoH &amp; DoT 解析">- 阅读剩余部分 -</a></p> </div>
 </article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/484.html">wget 使用教程</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2019-11-13T13:53:00+08:00" itemprop="datePublished">2019-11-13</time></li>
-<li>分类: <a href="../../Linux/index.html">Linux</a>,<a href="../index.html">web</a></li>
-<li itemprop="interactionCount"><a href="../../../archives/484.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>wget 是 Linux 下常用的下载工具。</p><p>基本语法：</p><pre><code>wget [options] [url]
-</code></pre><p>下载文件到当前目录：</p><pre><code>wget https://sample.com/test.txt
-</code></pre><p>下载文件到特定文件名：</p><pre><code>wget -O new.txt https://sample.com/test.txt
-</code></pre><p>下载文件到特定目录：</p><pre><code>wget -P /tmp https://sample.com/test.txt
-</code></pre><p>跳过 ssl 证书验证：</p><pre><code>wget --no-check-certificate https://sample.com/test.txt
-</code></pre><h3>wget 制作网站镜像</h3><p>wget 是一个强大的下载工具，可以用来下载网站：</p><pre><code>wget -m -p -k URL
-</code></pre><p>-m, –mirror 等价于 -r -N -l inf -nr<br>-p：下载所有html文件适合显示的元素<br>-k, –convert-links 转换非相对链接为相对链接,将文档链接都转换成本地的</p><p>-r, –recursive 递归下载－－慎用!<br>-N, –timestamping 不要重新下载文件除非比本地文件新<br>-l, –level=NUMBER 最大递归深度 (inf 或 0 代表无穷).<br>-nr, –dont-remove-listing 不移走 `.listing’文件</p> </div>
-</article>
 <ol class="page-navigator"><li class="prev"><a href="../5/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../3/index.html">3</a></li><li><a href="../4/index.html">4</a></li><li><a href="../5/index.html">5</a></li><li class="current"><a href="index.html">6</a></li><li><a href="../7/index.html">7</a></li><li><a href="../8/index.html">8</a></li><li><a href="../9/index.html">9</a></li><li><span>...</span></li><li><a href="../11/index.html">11</a></li><li class="next"><a href="../7/index.html">后一页 &raquo;</a></li></ol> </div>
 <div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../../archives/1997.html">JavaScript 入门教程之六 -- 核心 Objects</a></li><li><a href="../../../archives/1996.html">JavaScript 入门教程之五 -- Objects</a></li><li><a href="../../../archives/1992.html">JavaScript 入门教程之四 -- Functions</a></li><li><a href="../../../archives/1990.html">JavaScript 入门教程之三 -- Conditionals and Loops</a></li><li><a href="../../../archives/1985.html">JavaScript 入门教程之二 -- 基本概念</a></li><li><a href="../../../archives/1979.html">JavaScript 入门教程之一 -- 总览</a></li><li><a href="../../../archives/1977.html">brew 安装路径</a></li><li><a href="../../../archives/1973.html">QT 网络应用</a></li><li><a href="../../../archives/1968.html">c++ 字符串数组指针的研究</a></li><li><a href="../../../archives/1966.html">macOS 下使用 QT 部署工具 macdeployqt</a></li> </ul>
+<li><a href="../../../archives/2002.html">JavaScript 入门教程之七 -- DOM</a></li><li><a href="../../../archives/1997.html">JavaScript 入门教程之六 -- 核心 Objects</a></li><li><a href="../../../archives/1996.html">JavaScript 入门教程之五 -- Objects</a></li><li><a href="../../../archives/1992.html">JavaScript 入门教程之四 -- Functions</a></li><li><a href="../../../archives/1990.html">JavaScript 入门教程之三 -- Conditionals and Loops</a></li><li><a href="../../../archives/1985.html">JavaScript 入门教程之二 -- 基本概念</a></li><li><a href="../../../archives/1979.html">JavaScript 入门教程之一 -- 总览</a></li><li><a href="../../../archives/1977.html">brew 安装路径</a></li><li><a href="../../../archives/1973.html">QT 网络应用</a></li><li><a href="../../../archives/1968.html">c++ 字符串数组指针的研究</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -189,12 +196,12 @@
 <footer id="footer" role="contentinfo">
 &copy; 2020 <a href="../../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="8bf064fd1bf2ba4a4cf8e5b3-text/javascript">
+<script type="d3717f7219ce65a76b00ec2d-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="8bf064fd1bf2ba4a4cf8e5b3-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="8bf064fd1bf2ba4a4cf8e5b3-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="8bf064fd1bf2ba4a4cf8e5b3-text/javascript"></script>
-<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="8bf064fd1bf2ba4a4cf8e5b3-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="8bf064fd1bf2ba4a4cf8e5b3-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="d3717f7219ce65a76b00ec2d-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="d3717f7219ce65a76b00ec2d-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="d3717f7219ce65a76b00ec2d-text/javascript"></script>
+<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="d3717f7219ce65a76b00ec2d-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="d3717f7219ce65a76b00ec2d-|49" defer=""></script></body>
 </html>
