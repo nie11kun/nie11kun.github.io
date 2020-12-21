@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2011.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2002.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1997.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1996.html"/>
@@ -18,10 +19,254 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1979.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1904.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1885.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1666.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2011.html">
+<title>JavaScript 入门教程之八 -- ES6</title>
+<link>https://blog.niekun.net/archives/2011.html</link>
+<dc:date>2020-12-21T22:13:20+08:00</dc:date>
+<description>ECMAScript (ES) 就是标准 JavaScript 的脚本语言规范。它的第 6 个版本，开始被叫做 ECMAScript 6 (ES6) 然后改名为 ECMAScript 2015，为编写更加复杂的程序添加了很重要的新语法。包括了：classes and modules, iterators and for/of loops, generators, arrow functions, binary data, typed arrays, collections (maps, sets and weak maps), promises, number and math enhancements, reflection, and proxies。ES6 是 ES5 的超集，ES6 现在非常流行，原因就是它引入了新的约定和 OOP 的概念，如：classes。下面我们介绍一些 ES6 中最核心的一些特性。需要注意的是只有浏览器支持 ES6 的情况下才能够执行 ES6 指令，否则会报错。var & letES6 中有三种方式定义变量：var a = 10;
+const b = &quot;test&quot;;
+let c = true;使用那种类型来申明变量取决于变量需要使用的 scope 范围。scope 是所有编程语言的基本概念，它定义了变量的可见范围。var 关键词定义的变量是全局有效的，或者在整个 function 内有效，而与具体在那个代码块内定义它无关。let 可以定义一个变量在某个特定 scope 内有效，如一个代码块或一个表达式内。例如：if (true) {
+    let age = 5;
+}
+alert(age);以上代码会报错 ES6.html:21 Uncaught ReferenceError: age is not defined，可以打开浏览器调试窗口查看：这种情况下，name 变量只能在 if 表达式内被使用，因为它使用 let 申明。测试 var 和 let 的区别，我们做下面的示例：&lt;script&gt;
+    function varTest() {
+        var x = 1;
+        if (true) {
+            var x = 2;
+            console.log(x); // 2
+        }
+        console.log(x); // 2
+    }
+
+    function letTest() {
+        let x = 3;
+        if (true) {
+            let x = 4;
+            console.log(x); // 4
+        }
+        console.log(x); // 3
+    }
+    varTest();
+    letTest();
+&lt;/script&gt;输出结果为：2
+2
+4
+3varTest() 中定义的两个 x 实际上是同一个变量。letTest() 中 if 表达式中的 x 和外围的 x 不是一个变量。let 最常使用的地方就是 for 循环中：for (let index = 0; index &lt; 3; index++) {
+}index 只在 for 循环内可以被使用。const 变量和 let 变量一样都在 scope 内有效。不同点是 const 变量的值是不可变的，不能够被重新分配数据。以下指令会报错：const a = 1;
+a = 2;Template LiteralsTemplate literals 文字模板是将变量输出到字符串的一种方式，ES6 之前需要打断字符串：var name = &quot;marco&quot;;
+var msg = &quot;hello&quot; + name + &quot;!&quot;;
+console.log(msg);ES6 引入了一种新的方式来处理：var name = &quot;marco&quot;;
+var msg = `hello ${name}!`;
+console.log(msg);template literals 文字模板使用 ` 符号来代替引号 &quot; 或 '。${expression} 是一个占位符，可以包含任何表达式，将评估的结果返回后嵌入 template literals 文字模板中。例如：var a = 1;
+var b = 2;
+var msg = `sum is ${a + b}`;
+console.log(msg);Loops and Functions in ES6在 JavaScript 中常用 for 循环来 iterate list 中的元素：let array = [1, 2, 3];
+for (let index = 0; index &lt; array.length; index++) {
+    const element = array[index];
+}for...in 循环可以用来 iterating 一个含有一定数量的 properties 的 object：let obj = {
+    a: 1,
+    b: 2,
+    c: 3
+};
+for (let key in obj) {
+    console.log(obj[key]);
+}log 输出为：1
+2
+3注意 for...in loop 不能 iterate 一个 array 数组。虽然数组也是一个 object，但他的 index 索引是基于 number 数字的。基于 JavaScript engine，for...in 循环 iterate 某个 list 的元素的顺序是随机的，而且 iterating 索引是一个 string 字符串的，而不是 number 数字，所以当你测试对这个索引进行某些 math 数学加法运算，会发现执行的是对字符串的串联而不是数字运算。ES6 中引入了一个 for...of loop 能够创建一个对 iterable object 进行 iterating 的循环，数组就是一种 iterable object，而含有 name: value 结构属性的 object 不属于。例如：let array = [1, 2, 3];
+for (const iterator of array) {
+    console.log(iterator);
+}在每个循环中，iterator 变量都会赋值为 object 内的坐标元素。for...of loop 适用于其他 iterable objects 例如 string 字符串：for (const iterator of &quot;object&quot;) {
+    console.log(iterator);
+}输出结果为：o
+b
+j
+e
+c
+tfor...of 同样适用于 ES6 新引入的一些集合：Map, Set, WeakMap, and WeakSet，后面我们会做介绍。Functions in ECMAScript 6ES6 之前定一个 function 的方法如下：function add(a, b) {
+    let sum = a + b;
+    console.log(sum);
+}ES6 介绍了一种新的语法，效果和上面的示例完全一样：const add = (a, b) =&gt; {
+    let sum = a + b;
+    console.log(sum);
+}这种写法叫做 arrow function，对于只有一个参数的简单 function 非常好用，可以省略关键词 function 和 return 甚至是大括号{}和小括号()：const greet = x =&gt; &quot;welcome&quot; + x;以上代码定义了一个 greet function，有一个参数和一个 string 返回值。如果 function 没有参数，需要加一个小括号()：const x = () =&gt; alert(&quot;hi&quot;);这种语法对于 inline function 很有用。假如有一个数组，需要对其每一个元素都执行某个 function，使用 array 的 forEach method 来为每个元素调用 function，传统写法如下：var arr = [1, 2 ,3 ];
+arr.forEach(function(el) {
+    console.log(el * 2);
+});在 ES6 中，以上功能可以重写为：arr.forEach(el =&gt; {
+    console.log(el * 2);
+});代码是不是简化很多呢？Default Parameters in ES6之前的 function 中定义参数的默认值可以这样：function test(a, b = 2, c = 3) {
+    console.log(a + b + c);
+}使用 arrow function 可以这样定义：const test = (a, b = 2, c = 3) =&gt; {
+    console.log(a + b + c);
+}ES6 objectsJavaScript 中 object 内可以定义多个 variable 变量，叫做 properties。properties 定义了 function 的叫做 method，例如：var person = {
+    name: &quot;marco&quot;, age: 20,
+    like: &quot;basketball&quot;, height: 62,
+    test: function() {
+        alert(&quot;method&quot;);
+    }
+};test 就是一个 method，ES6 引入了一种简化的语法和 properties 名称来使定义更加方便和易懂。新的语法定义 method 不需要冒号: 和 functon 关键词：let person = {
+    test() {
+        alert(&quot;hi&quot;);
+    }
+};
+person.test();当使用已知变量定义 properties 且定义名称和变量名称一样时，可以简写语法如下：let height = 160;
+let weight = 60;
+
+let man = {
+    height,
+    weight
+};以上定义中 man object 就定义了两个 properties：height，weight，且赋值为外部调用变量的值。当在 object 中定义了相同名称的 properties，最后一个定义的 property 将会覆盖前面的：let x = {a: 2, a: 3, a: 4};
+console.log(x.a);输出结果为：4在 ES5 中如果使用了 restrict 限制模式，定义重复名称的 properties 将会报语法错误，ES6 中取消了这个限制。Computed Property Names 预定义属性名ES6 中，可以使用 computed property name 预定义属性名。通过方括号[] 我们可以在 properties name 中使用一个表达式，可以进行包括串联字符串或数学运算等指令。当需要创建一个基于实际用户数据(id, email等)的特定 object 时非常有用。示例 1：let name = &quot;marco&quot;;
+let id = &quot;123&quot;;
+let tel = &quot;1300000&quot;;
+
+let user = {
+    [name]: &quot;tom&quot;,
+    [`user_${id}`]: `${tel}`
+};
+console.log(user.user_123);
+
+//output:
+//1300000示例 2：let i = 0;
+
+let x = {
+    ['foo' + ++i]: i,
+    ['foo' + ++i]: i
+}
+console.log(x.foo1);
+console.log(x.foo2);
+
+//output:
+//1
+//2示例 3：var par = 'size';
+
+var config = {
+    [par]: 1,
+    ['mobile' + par.charAt(0).toUpperCase() + par.slice(1)]: 2
+}
+console.log(config.mobileSize);
+
+//output:
+//2当需要创建基于变量的自定义 object 时，这种方法很有效。ES6 object 新增了一个新的 method：assign() 可以用来将多个 source 源结合起来创建一个新 object。assign() 也可以用来创建一个已知 object 的副本。请看下面示例：let user1 = {
+    name: 'marco',
+    age: 20,
+    sex: 'male'
+}
+
+let user2 = {
+    name: 'jim',
+    age: 18,
+    tel: '12345'
+}
+
+let newUser = Object.assign({}, user1, user2);
+console.log(newUser.name);
+console.log(newUser.tel);
+
+//output:
+//jim
+//12345Object.assign() 的第一个参数表示需要添加新 properties 的目标 object，第一个参数后的所有参数都会被作为 source 源，源参数的数量没有限制，可以任意多个。但是源参数的顺序很重要，因为前面的源 properties 将会被后面的有着同样属性 name 的源 properties 覆盖。例如上面示例中，user1 的 name 和 age properties 会被 user2 的同样名称的 properties 覆盖。以上示例，我们使用{} 作为目标 object，使用两个 object 作为源。下面我们介绍如何使用 assign() 创建一个 object 复制，新 object 不和原 object 产生关联。在下面的示例中，我们使用简单的 assignment = 来创建新 object，但是这种方式会在 object 和原 object 间产生 reference 关联。对新 object 的修改会影响到原 object：let person = {
+    name: 'marco',
+    age: 20
+};
+
+let newPerson = person;
+newPerson.name = &quot;tom&quot;;
+console.log(newPerson.name);
+console.log(person.name);
+
+//output:
+//tom
+//tom可以看到 修改 newPerson 的 name 属性也会同时影响到 person 的 name 属性。为了避免这种情况，可以使用 Object.assign() 来新建 object：let person = {
+    name: 'marco',
+    age: 20
+};
+
+let newPerson = Object.assign({}, person);
+newPerson.name = 'tom';
+console.log(newPerson.name);
+console.log(person.name);
+
+//output:
+//tom
+//marco我们也可以在 assign() 中直接给 properties 赋值：let person = {
+    name: 'marco',
+    age: 20
+};
+
+let newPerson = Object.assign({}, person, {name: 'john'});
+console.log(newPerson.name);
+console.log(person.name);
+
+//output:
+//john
+//marco以上就是 ES6 中 object 的新语法介绍。Array Destructuring in ES6 数组拆解destructuring assignment 拆解赋值语法能够实现将一个 array 的 values 拆分，或者将一个 object 的 properties 拆解为独立的个体。Destructuring arrayES6中引入的快捷语法来拆解 array 数组，下面的示例介绍如何将数组元素拆解为独立个体：let arr = [1, 2, 3];
+let [a, b, c] = arr;
+
+console.log(a);
+console.log(b);
+console.log(c);也可以拆分一个 function 返回的数组：let a = () =&gt; {
+    return [1, 2, 3]
+};
+
+let [a, , c] = a();注意上面示例中，第二个参数留空了，表示 a 赋值数组第一个元素，c 赋值数组第三个元素。以上 function 使用了 ES6 的简写语法，参考上一节的介绍。destructuring 拆分语法同样能够简化赋值和交换数据：let a, b, c = 3, d = 4;
+
+[a, b = 2] = [1]; //a=1, b=2
+[c, d] = [d, c]; //c=d, d=c
+
+console.log(a);
+console.log(b);
+console.log(c);
+console.log(d);
+
+//output:
+//1
+//2
+//4
+//3以上的语法再一些使用场景中能够很大简化代码量，使程序更加简洁。Destructuring object类似于拆解数组，也可以拆解 object 的 properties 为单独个体：let obj = {h: 1, s: 2};
+let {h, s} = obj;
+
+console.log(h);
+console.log(s);注意定义的新变量名需要和 object property 名称一致，否则新变量的值为：undefined。也可以不声明新变量而直接赋值，但有语法要求。需要加小括号()：let obj = {h: 1, s: 2};
+let h, s;
+({h, s} = obj);拆解时可以给 object 的 properties 定义新的名称，使用: name: newname 形式：let obj = {h: 1, s: 2};
+let {h: a, s: b} = obj;
+
+console.log(a);
+console.log(b);这时候如果执行：console.log(h); 会报错。最后，我们可以给新变量设置初值，如果 object 中没有定义这个属性，新变量就会使用初值：let user = {name: &quot;marco&quot;, id: 123};
+let {name = &quot;tom&quot;, age = 20} = user;
+console.log(name);
+console.log(age);
+
+//output:
+//marco
+//20以上示例中，user object 含有 name 属性，则赋值为对应数据，没有 age 属性则会使用默认值作为新变量的数据。ES6 Rest Parameters在 ES6 之前，如果调用 function 时传入的参数数量是变化的，我们可以使用 arguments array object 来访问这些传入数据。下面示例中，我们创建一个 function 来检查传入参数值是否都在一个给定数组内：function containsAll(arr) {
+    for (let index = 1; index &lt; arguments.length; index++) {
+        let num = arguments[index];
+        if (arr.indexOf(num) == -1) {
+            return false;
+        }
+    }
+    return true;
+}
+
+let x = [2, 4, 6, 8];
+console.log(containsAll(x, 2, 4));
+console.log(containsAll(x, 3, 4, 6));
+
+//output:
+//true
+//false可以看到 function 预定义的参数只有一个，我们在调用时传入了大于 1 个的参数，这时候在 function 内就需要使用 arguments 数组来索引传入数据。arguments[0] 代表第一个参数，也就是预定义的 arr 参数，其他数据在 arguments 数组中往后依次排列。我们使用了 array 的 indexOf method 来获取某个数据在数组中的 position 位置，如果数组中不存在这个数据，则返回 -1，这里我们使用了 === identity operator 来确保数据类型和数值都要匹配上。我们可以给 function 传入任意数量的数据，然后使用 arguments 数组来访问它们。ES6 中通过使用 rest parameter 剩余参数创建了一种更加简洁的语法，来访问变化的传入参数数据：function containsAll(arr, ...nums) {
+    for (const iterator of nums) {
+        if (arr.indexOf(iterator) == -1) {
+            return false;
+        }
+    }
+    return true;
+}...nums 叫做 rest parameter 剩余参数，它包含了所有 extra 附加的传入参数，... 叫做 Spread operator 延伸符。只有后面的传入参数才可能被标记为 rest parameter，如果调用时没有 extra 附加的传入参数，则 rest parameter 的值将会是一个空数组[]，而不是 undefined。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2002.html">
 <title>JavaScript 入门教程之七 -- DOM</title>
 <link>https://blog.niekun.net/archives/2002.html</link>
@@ -252,7 +497,7 @@ elem2.addEventListener(&quot;click&quot;, myFunction, false);当同一个 event 
 &lt;/script&gt;只有当 onsubmit event 的返回值为 true 时，form 才会被提交。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1997.html">
-<title>JavaScript 入门教程之六 -- 核心 Objects</title>
+<title>JavaScript 入门教程之六 -- JS内置 Objects</title>
 <link>https://blog.niekun.net/archives/1997.html</link>
 <dc:date>2020-12-18T18:53:00+08:00</dc:date>
 <description>下面介绍一些 JavaScript 内部定义好的 obect，可以直接使用。JavaScript Arrays 数组当你需要定义三个课程名称时，需要分别定义：var course1 =&quot;HTML&quot;; 
@@ -381,7 +626,17 @@ myFunction(&quot;tom&quot;);使用逗号分隔多个参数：function myFunction
     alert(&quot;my name is &quot; + name + &quot;, age is &quot; + age);
 }
 
-myFunction(&quot;marco&quot;, 20);JavaScript 不会检查调用 function 时的传入参数个数和定义的参数个数是否一致，如果调用时缺少传递参数，则缺失的参数会被赋值为 undefined，表示没有被分配数据。function 可以有一个可选的 return 命令，用来从 function 返回一个数据。当 JavaScript 执行到 return 时，会停止执行后续指令。下面的示例中，我们计算两个参数的和并返回结果：function myFunction(a, b) {
+myFunction(&quot;marco&quot;, 20);JavaScript 不会检查调用 function 时的传入参数个数和定义的参数个数是否一致，如果调用时传入参数数量少于 function 定义参数个数，则缺失的参数会被赋值为 undefined，表示没有被赋值数据。如果传入参数数量大于 function 定义参数个数，可以使用数组：arguments 来访问这些传入数据，在 function 内可以被调用，形如：arguments[0], arguments[1]，arguments 数组是 function 内自动定义的，按顺序存储所有的传入参数数据。请看下面示例：function test(a, b) {
+    console.log(arguments[0]);
+    console.log(arguments[1]);
+    console.log(arguments[2]);
+}
+test(1, 2, 3);
+
+//output:
+//1
+//2
+//3以上示例中，function 本身只定义了 2 个参数，但是我们在调用时传入了 3 个数据，这时候为了访问到第 3 个数据，就需要使用 arguments 数组来处理了。可以看到 function 内除了使用定义的参数名外，也可以使用内部自动定义的 arguments 数组来访问传入数据。function 可以有一个可选的 return 命令，用来从 function 返回一个数据。当 JavaScript 执行到 return 时，会停止执行后续指令。下面的示例中，我们计算两个参数的和并返回结果：function myFunction(a, b) {
     return a + b;
 }
 
@@ -397,7 +652,14 @@ else {
 }弹出窗口不要过多的使用，因为弹出窗口会导致页面不可用。inline function有一种特殊的 function 可以在直接在调用中进行定义，不需要写 function 名称。例如想要对 array 数组的每个元素执行一个 function，通过 forEach method 来给每个元素调用 function：var arr = [1, 2, 3];
 arr.forEach(function(el) {
     console.log(el * 2);
-});function 直接在调用中定义，参数 el 的值通过 forEach method 来传入每个元素的数据。</description>
+});function 直接在调用中定义，参数 el 的值通过 forEach method 来传入每个元素的数据。下一章介绍的 object 中，要定义一个 method 就可以使用 inline function 来建立：    function person(name, age, color) {
+        this.name = name;
+        this.age = age;
+        this.favColor = color;
+        this.changeName = function(name) {
+            this.name = name;
+        }
+    }具体的介绍参考：JavaScript 入门教程之五 -- Objects</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1990.html">
 <title>JavaScript 入门教程之三 -- Conditionals and Loops</title>
@@ -602,42 +864,5 @@ Binary   11000000    10101000    01011000     00000011理论上可以分配 2 �
 11111100    252
 11111110    254
 11111111    255以上就是子网系统的简单介绍。参考连接Use subnetting to get the most out of your networkWhat is a broadcast address and how does it work?IP地址，子网掩码计算子网地址，广播地址，子网划分</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1666.html">
-<title>Linux 下使用 OptiPNG 压缩图片</title>
-<link>https://blog.niekun.net/archives/1666.html</link>
-<dc:date>2020-07-14T17:25:00+08:00</dc:date>
-<description>最近越来也发现自己的博客加载图片变慢了，由于我很多教程是教 PS 的，会使用到很多图片和截图，所以影响尤其明显。每张图片小则 400Kb 大则 2-3Mb，对于网络浏览不太友好。可以直接在服务器上进行图片压缩，用到的工具是 OptiPNG。OptiPNG home page：http://optipng.sourceforge.net/编译安装我选择从源码编译安装，这样可以直接使用最新版本。如何从源码编译程序可以参考我的文章：https://blog.niekun.net/archives/883.html首先从官网下载源码到 vps 并解压：cd /tmp
-wget http://prdownloads.sourceforge.net/optipng/optipng-0.7.7.tar.gz
-tar xvf optipng-0.7.7.tar.gz
-新建安装路径：mkdir /opt/optipng-0.7.7
-ln -s /opt/optipng-0.7.7 /opt/optipng
-configure & make：cd /tmp/optipng-0.7.7
-./configure --prefix=/opt/optipng-0.7.7
-make
-make install
-测试是否可以执行：/opt/optipng/bin/optipng
-创建系统链接：ln -s /opt/optipng/bin/optipng /usr/local/bin/optipng
-使用可以使用命令查看处理前处理后的图片体积：ls -lh a.png
-压缩一张 png 图片：optipng a.png
-压缩目录下的所有 png 图片：optipng *.png
-可以自定义压缩等级：Optimization levels:
-    -o0         &lt;=&gt;     -o1 -nx -nz                             (0 or 1 trials)
-    -o1         &lt;=&gt;     -zc9 -zm8 -zs0 -f0                      (1 trial)
-                (or...) -zc9 -zm8 -zs1 -f5                      (1 trial)
-    -o2         &lt;=&gt;     -zc9 -zm8 -zs0-3 -f0,5                  (8 trials)
-    -o3         &lt;=&gt;     -zc9 -zm8-9 -zs0-3 -f0,5                (16 trials)
-    -o4         &lt;=&gt;     -zc9 -zm8 -zs0-3 -f0-5                  (24 trials)
-    -o5         &lt;=&gt;     -zc9 -zm8-9 -zs0-3 -f0-5                (48 trials)
-    -o6         &lt;=&gt;     -zc1-9 -zm8 -zs0-3 -f0-5                (120 trials)
-    -o7         &lt;=&gt;     -zc1-9 -zm8-9 -zs0-3 -f0-5              (240 trials)
-    -o7 -zm1-9  &lt;=&gt;     -zc1-9 -zm1-9 -zs0-3 -f0-5              (1080 trials)
-Notes:
-    The combination for -o1 is chosen heuristically.
-    Exhaustive combinations such as &quot;-o7 -zm1-9&quot; are not generally recommended.
-Examples:
-    optipng file.png                                            (default speed)
-    optipng -o5 file.png                                        (slow)
-    optipng -o7 file.png                                        (very slow)</description>
 </item>
 </rdf:RDF>

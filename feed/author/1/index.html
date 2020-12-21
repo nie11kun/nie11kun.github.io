@@ -11,8 +11,261 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/author/1/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>admin</description>
-<lastBuildDate>Sat, 19 Dec 2020 14:10:00 +0800</lastBuildDate>
-<pubDate>Sat, 19 Dec 2020 14:10:00 +0800</pubDate>
+<lastBuildDate>Mon, 21 Dec 2020 22:13:20 +0800</lastBuildDate>
+<pubDate>Mon, 21 Dec 2020 22:13:20 +0800</pubDate>
+<item>
+<title>JavaScript 入门教程之八 -- ES6</title>
+<link>https://blog.niekun.net/archives/2011.html</link>
+<guid>https://blog.niekun.net/archives/2011.html</guid>
+<pubDate>Mon, 21 Dec 2020 22:13:20 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[ECMAScript (ES) 就是标准 JavaScript 的脚本语言规范。它的第 6 个版本，开始被叫做 ECMAScript 6 (ES6) 然后改名为 ECMAScript 2015，...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p><strong>ECMAScript</strong> (ES) 就是标准 JavaScript 的脚本语言规范。</p><p>它的第 6 个版本，开始被叫做 ECMAScript 6 (ES6) 然后改名为 ECMAScript 2015，为编写更加复杂的程序添加了很重要的新语法。包括了：classes and modules, iterators and for/of loops, generators, arrow functions, binary data, typed arrays, collections (maps, sets and weak maps), promises, number and math enhancements, reflection, and proxies。</p><p>ES6 是 ES5 的超集，ES6 现在非常流行，原因就是它引入了新的约定和 OOP 的概念，如：<strong>classes</strong>。下面我们介绍一些 ES6 中最核心的一些特性。</p><p>需要注意的是只有浏览器支持 ES6 的情况下才能够执行 ES6 指令，否则会报错。</p><!--more--><h3>var & let</h3><p>ES6 中有三种方式定义变量：</p><pre><code>var a = 10;
+const b = &quot;test&quot;;
+let c = true;</code></pre><p>使用那种类型来申明变量取决于变量需要使用的 <strong>scope</strong> 范围。<strong>scope</strong> 是所有编程语言的基本概念，它定义了变量的可见范围。</p><p><code>var</code> 关键词定义的变量是全局有效的，或者在整个 function 内有效，而与具体在那个代码块内定义它无关。</p><p><code>let</code> 可以定义一个变量在某个特定 scope 内有效，如一个代码块或一个表达式内。</p><p>例如：</p><pre><code>if (true) {
+    let age = 5;
+}
+alert(age);</code></pre><p>以上代码会报错 <code>ES6.html:21 Uncaught ReferenceError: age is not defined</code>，可以打开浏览器调试窗口查看：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/431690113.jpg" alt="1.jpg" title="1.jpg"></p><p>这种情况下，name 变量只能在 if 表达式内被使用，因为它使用 <code>let</code> 申明。</p><p>测试 <code>var</code> 和 <code>let</code> 的区别，我们做下面的示例：</p><pre><code>&lt;script&gt;
+    function varTest() {
+        var x = 1;
+        if (true) {
+            var x = 2;
+            console.log(x); // 2
+        }
+        console.log(x); // 2
+    }
+
+    function letTest() {
+        let x = 3;
+        if (true) {
+            let x = 4;
+            console.log(x); // 4
+        }
+        console.log(x); // 3
+    }
+    varTest();
+    letTest();
+&lt;/script&gt;</code></pre><p>输出结果为：</p><pre><code>2
+2
+4
+3</code></pre><p><code>varTest()</code> 中定义的两个 x 实际上是同一个变量。<code>letTest()</code> 中 if 表达式中的 x 和外围的 x 不是一个变量。</p><p><code>let</code> 最常使用的地方就是 for 循环中：</p><pre><code>for (let index = 0; index &lt; 3; index++) {
+}</code></pre><p>index 只在 for 循环内可以被使用。</p><p><code>const</code> 变量和 <code>let</code> 变量一样都在 scope 内有效。不同点是 <code>const</code> 变量的值是不可变的，不能够被重新分配数据。</p><p>以下指令会报错：</p><pre><code>const a = 1;
+a = 2;</code></pre><h3>Template Literals</h3><p><strong>Template literals</strong> 文字模板是将变量输出到字符串的一种方式，ES6 之前需要打断字符串：</p><pre><code>var name = &quot;marco&quot;;
+var msg = &quot;hello&quot; + name + &quot;!&quot;;
+console.log(msg);</code></pre><p>ES6 引入了一种新的方式来处理：</p><pre><code>var name = &quot;marco&quot;;
+var msg = `hello ${name}!`;
+console.log(msg);</code></pre><p><strong>template literals</strong> 文字模板使用 <code>`</code> 符号来代替引号 <code>&quot;</code> 或 <code>'</code>。</p><p><code>${expression}</code> 是一个占位符，可以包含任何表达式，将评估的结果返回后嵌入 <strong>template literals</strong> 文字模板中。</p><p>例如：</p><pre><code>var a = 1;
+var b = 2;
+var msg = `sum is ${a + b}`;
+console.log(msg);</code></pre><h3>Loops and Functions in ES6</h3><p>在 JavaScript 中常用 <strong>for</strong> 循环来 iterate list 中的元素：</p><pre><code>let array = [1, 2, 3];
+for (let index = 0; index &lt; array.length; index++) {
+    const element = array[index];
+}</code></pre><p><strong>for...in</strong> 循环可以用来 iterating 一个含有一定数量的 properties 的 object：</p><pre><code>let obj = {
+    a: 1,
+    b: 2,
+    c: 3
+};
+for (let key in obj) {
+    console.log(obj[key]);
+}</code></pre><p>log 输出为：</p><pre><code>1
+2
+3</code></pre><p>注意 <code>for...in</code> loop 不能 iterate 一个 <strong>array</strong> 数组。虽然数组也是一个 object，但他的 index 索引是基于 number 数字的。基于 JavaScript engine，<code>for...in</code> 循环 iterate 某个 list 的元素的顺序是随机的，而且 iterating 索引是一个 string 字符串的，而不是 number 数字，所以当你测试对这个索引进行某些 math 数学加法运算，会发现执行的是对字符串的串联而不是数字运算。</p><p>ES6 中引入了一个 <code>for...of</code> loop 能够创建一个对 <strong>iterable object</strong> 进行 iterating 的循环，数组就是一种 iterable object，而含有 <code>name: value</code> 结构属性的 object 不属于。</p><p>例如：</p><pre><code>let array = [1, 2, 3];
+for (const iterator of array) {
+    console.log(iterator);
+}</code></pre><p>在每个循环中，iterator 变量都会赋值为 object 内的坐标元素。</p><p><code>for...of</code> loop 适用于其他 <code>iterable objects</code> 例如 string 字符串：</p><pre><code>for (const iterator of &quot;object&quot;) {
+    console.log(iterator);
+}</code></pre><p>输出结果为：</p><pre><code>o
+b
+j
+e
+c
+t</code></pre><p><code>for...of</code> 同样适用于 ES6 新引入的一些集合：<strong>Map</strong>, <strong>Set</strong>, <strong>WeakMap</strong>, and <strong>WeakSet</strong>，后面我们会做介绍。</p><h3>Functions in ECMAScript 6</h3><p>ES6 之前定一个 function 的方法如下：</p><pre><code>function add(a, b) {
+    let sum = a + b;
+    console.log(sum);
+}</code></pre><p>ES6 介绍了一种新的语法，效果和上面的示例完全一样：</p><pre><code>const add = (a, b) =&gt; {
+    let sum = a + b;
+    console.log(sum);
+}</code></pre><p>这种写法叫做 <strong>arrow function</strong>，对于只有一个参数的简单 function 非常好用，可以省略关键词 <strong>function</strong> 和 <strong>return</strong> 甚至是大括号<code>{}</code>和小括号<code>()</code>：</p><pre><code>const greet = x =&gt; &quot;welcome&quot; + x;</code></pre><p>以上代码定义了一个 <strong>greet</strong> function，有一个参数和一个 string 返回值。</p><p>如果 function 没有参数，需要加一个小括号<code>()</code>：</p><pre><code>const x = () =&gt; alert(&quot;hi&quot;);</code></pre><p>这种语法对于 <strong>inline function</strong> 很有用。</p><p>假如有一个数组，需要对其每一个元素都执行某个 function，使用 array 的 <code>forEach</code> method 来为每个元素调用 function，传统写法如下：</p><pre><code>var arr = [1, 2 ,3 ];
+arr.forEach(function(el) {
+    console.log(el * 2);
+});</code></pre><p>在 ES6 中，以上功能可以重写为：</p><pre><code>arr.forEach(el =&gt; {
+    console.log(el * 2);
+});</code></pre><p>代码是不是简化很多呢？</p><h4>Default Parameters in ES6</h4><p>之前的 function 中定义参数的默认值可以这样：</p><pre><code>function test(a, b = 2, c = 3) {
+    console.log(a + b + c);
+}</code></pre><p>使用 <strong>arrow function</strong> 可以这样定义：</p><pre><code>const test = (a, b = 2, c = 3) =&gt; {
+    console.log(a + b + c);
+}</code></pre><h3>ES6 objects</h3><p>JavaScript 中 <strong>object</strong> 内可以定义多个 variable 变量，叫做 <strong>properties</strong>。properties 定义了 function 的叫做 <strong>method</strong>，例如：</p><pre><code>var person = {
+    name: &quot;marco&quot;, age: 20,
+    like: &quot;basketball&quot;, height: 62,
+    test: function() {
+        alert(&quot;method&quot;);
+    }
+};</code></pre><p><strong>test</strong> 就是一个 method，ES6 引入了一种简化的语法和 properties 名称来使定义更加方便和易懂。</p><p>新的语法定义 method 不需要冒号<code>:</code> 和 <code>functon</code> 关键词：</p><pre><code>let person = {
+    test() {
+        alert(&quot;hi&quot;);
+    }
+};
+person.test();</code></pre><p>当使用已知变量定义 properties 且定义名称和变量名称一样时，可以简写语法如下：</p><pre><code>let height = 160;
+let weight = 60;
+
+let man = {
+    height,
+    weight
+};</code></pre><p>以上定义中 <strong>man</strong> object 就定义了两个 properties：<strong>height</strong>，<strong>weight</strong>，且赋值为外部调用变量的值。</p><p>当在 object 中定义了相同名称的 properties，最后一个定义的 property 将会覆盖前面的：</p><pre><code>let x = {a: 2, a: 3, a: 4};
+console.log(x.a);</code></pre><p>输出结果为：4</p><p>在 ES5 中如果使用了 restrict 限制模式，定义重复名称的 properties 将会报语法错误，ES6 中<strong>取消了这个限制</strong>。</p><h4>Computed Property Names 预定义属性名</h4><p>ES6 中，可以使用 <strong>computed property name 预定义属性名</strong>。通过方括号<code>[]</code> 我们可以在 properties name 中使用一个表达式，可以进行包括串联字符串或数学运算等指令。当需要创建一个基于实际用户数据(id, email等)的特定 object 时非常有用。</p><p>示例 1：</p><pre><code>let name = &quot;marco&quot;;
+let id = &quot;123&quot;;
+let tel = &quot;1300000&quot;;
+
+let user = {
+    [name]: &quot;tom&quot;,
+    [`user_${id}`]: `${tel}`
+};
+console.log(user.user_123);
+
+//output:
+//1300000</code></pre><p>示例 2：</p><pre><code>let i = 0;
+
+let x = {
+    ['foo' + ++i]: i,
+    ['foo' + ++i]: i
+}
+console.log(x.foo1);
+console.log(x.foo2);
+
+//output:
+//1
+//2</code></pre><p>示例 3：</p><pre><code>var par = 'size';
+
+var config = {
+    [par]: 1,
+    ['mobile' + par.charAt(0).toUpperCase() + par.slice(1)]: 2
+}
+console.log(config.mobileSize);
+
+//output:
+//2</code></pre><p>当需要创建基于变量的自定义 object 时，这种方法很有效。</p><p>ES6 object 新增了一个新的 method：<code>assign()</code> 可以用来将多个 source 源结合起来创建一个新 object。<code>assign()</code> 也可以用来创建一个已知 object 的副本。</p><p>请看下面示例：</p><pre><code>let user1 = {
+    name: 'marco',
+    age: 20,
+    sex: 'male'
+}
+
+let user2 = {
+    name: 'jim',
+    age: 18,
+    tel: '12345'
+}
+
+let newUser = Object.assign({}, user1, user2);
+console.log(newUser.name);
+console.log(newUser.tel);
+
+//output:
+//jim
+//12345</code></pre><p><code>Object.assign()</code> 的第一个参数表示需要添加新 properties 的目标 object，第一个参数后的所有参数都会被作为 source 源，源参数的数量没有限制，可以任意多个。</p><p>但是源参数的顺序很重要，因为前面的源 properties 将会被后面的有着同样属性 name 的源 properties 覆盖。例如上面示例中，user1 的 name 和 age properties 会被 user2 的同样名称的 properties 覆盖。</p><p>以上示例，我们使用<code>{}</code> 作为目标 object，使用两个 object 作为源。</p><p>下面我们介绍如何使用 <code>assign()</code> 创建一个 object 复制，新 object 不和原 object 产生关联。</p><p>在下面的示例中，我们使用简单的 assignment <code>=</code> 来创建新 object，但是这种方式会在 object 和原 object 间产生 reference 关联。对新 object 的修改会影响到原 object：</p><pre><code>let person = {
+    name: 'marco',
+    age: 20
+};
+
+let newPerson = person;
+newPerson.name = &quot;tom&quot;;
+console.log(newPerson.name);
+console.log(person.name);
+
+//output:
+//tom
+//tom</code></pre><p>可以看到 修改 <strong>newPerson</strong> 的 <strong>name</strong> 属性也会同时影响到 <strong>person</strong> 的 <strong>name</strong> 属性。</p><p>为了避免这种情况，可以使用 <code>Object.assign()</code> 来新建 object：</p><pre><code>let person = {
+    name: 'marco',
+    age: 20
+};
+
+let newPerson = Object.assign({}, person);
+newPerson.name = 'tom';
+console.log(newPerson.name);
+console.log(person.name);
+
+//output:
+//tom
+//marco</code></pre><p>我们也可以在 <code>assign()</code> 中直接给 properties 赋值：</p><pre><code>let person = {
+    name: 'marco',
+    age: 20
+};
+
+let newPerson = Object.assign({}, person, {name: 'john'});
+console.log(newPerson.name);
+console.log(person.name);
+
+//output:
+//john
+//marco</code></pre><p>以上就是 ES6 中 object 的新语法介绍。</p><h3>Array Destructuring in ES6 数组拆解</h3><p><strong>destructuring assignment</strong> 拆解赋值语法能够实现将一个 array 的 values 拆分，或者将一个 object 的 properties 拆解为独立的个体。</p><h4>Destructuring array</h4><p>ES6中引入的快捷语法来拆解 <strong>array</strong> 数组，下面的示例介绍如何将数组元素拆解为独立个体：</p><pre><code>let arr = [1, 2, 3];
+let [a, b, c] = arr;
+
+console.log(a);
+console.log(b);
+console.log(c);</code></pre><p>也可以拆分一个 function 返回的数组：</p><pre><code>let a = () =&gt; {
+    return [1, 2, 3]
+};
+
+let [a, , c] = a();</code></pre><p>注意上面示例中，第二个参数留空了，表示 a 赋值数组第一个元素，c 赋值数组第三个元素。</p><p>以上 function 使用了 ES6 的简写语法，参考上一节的介绍。</p><p><strong>destructuring</strong> 拆分语法同样能够简化赋值和交换数据：</p><pre><code>let a, b, c = 3, d = 4;
+
+[a, b = 2] = [1]; //a=1, b=2
+[c, d] = [d, c]; //c=d, d=c
+
+console.log(a);
+console.log(b);
+console.log(c);
+console.log(d);
+
+//output:
+//1
+//2
+//4
+//3</code></pre><p>以上的语法再一些使用场景中能够很大简化代码量，使程序更加简洁。</p><h4>Destructuring object</h4><p>类似于拆解数组，也可以拆解 object 的 properties 为单独个体：</p><pre><code>let obj = {h: 1, s: 2};
+let {h, s} = obj;
+
+console.log(h);
+console.log(s);</code></pre><p>注意定义的新变量名需要和 object property 名称一致，否则新变量的值为：<strong>undefined</strong>。</p><p>也可以不声明新变量而直接赋值，但有语法要求。需要加小括号<code>()</code>：</p><pre><code>let obj = {h: 1, s: 2};
+let h, s;
+({h, s} = obj);</code></pre><p>拆解时可以给 <strong>object</strong> 的 properties 定义新的名称，使用: <strong>name: newname</strong> 形式：</p><pre><code>let obj = {h: 1, s: 2};
+let {h: a, s: b} = obj;
+
+console.log(a);
+console.log(b);</code></pre><p>这时候如果执行：<code>console.log(h);</code> 会报错。</p><p>最后，我们可以给新变量设置初值，如果 object 中没有定义这个属性，新变量就会使用初值：</p><pre><code>let user = {name: &quot;marco&quot;, id: 123};
+let {name = &quot;tom&quot;, age = 20} = user;
+console.log(name);
+console.log(age);
+
+//output:
+//marco
+//20</code></pre><p>以上示例中，<strong>user</strong> object 含有 name 属性，则赋值为对应数据，没有 age 属性则会使用默认值作为新变量的数据。</p><h3>ES6 Rest Parameters</h3><p>在 ES6 之前，如果调用 function 时传入的参数数量是变化的，我们可以使用 arguments array object 来访问这些传入数据。下面示例中，我们创建一个 function 来检查传入参数值是否都在一个给定数组内：</p><pre><code>function containsAll(arr) {
+    for (let index = 1; index &lt; arguments.length; index++) {
+        let num = arguments[index];
+        if (arr.indexOf(num) == -1) {
+            return false;
+        }
+    }
+    return true;
+}
+
+let x = [2, 4, 6, 8];
+console.log(containsAll(x, 2, 4));
+console.log(containsAll(x, 3, 4, 6));
+
+//output:
+//true
+//false</code></pre><p>可以看到 function 预定义的参数只有一个，我们在调用时传入了大于 1 个的参数，这时候在 function 内就需要使用 <strong>arguments</strong> 数组来索引传入数据。arguments[0] 代表第一个参数，也就是预定义的 arr 参数，其他数据在 <strong>arguments</strong> 数组中往后依次排列。</p><p>我们使用了 <strong>array</strong> 的 <strong>indexOf</strong> method 来获取某个数据在数组中的 position 位置，如果数组中不存在这个数据，则返回 <code>-1</code>，这里我们使用了 <code>===</code> identity operator 来确保数据类型和数值都要匹配上。</p><p>我们可以给 <strong>function</strong> 传入任意数量的数据，然后使用 <strong>arguments</strong> 数组来访问它们。</p><p>ES6 中通过使用 <strong>rest parameter</strong> <strong>剩余参数</strong>创建了一种更加简洁的语法，来访问变化的传入参数数据：</p><pre><code>function containsAll(arr, ...nums) {
+    for (const iterator of nums) {
+        if (arr.indexOf(iterator) == -1) {
+            return false;
+        }
+    }
+    return true;
+}</code></pre><p><strong>...nums</strong> 叫做 <strong>rest parameter</strong> <strong>剩余参数</strong>，它包含了所有 <strong>extra</strong> 附加的传入参数，<code>...</code> 叫做 <strong>Spread operator</strong> 延伸符。</p><p>只有后面的传入参数才可能被标记为 <strong>rest parameter</strong>，如果调用时没有 extra 附加的传入参数，则 <strong>rest parameter</strong> 的值将会是一个空数组<code>[]</code>，而不是 <strong>undefined</strong>。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2011.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2011.html</wfw:commentRss>
+</item>
 <item>
 <title>JavaScript 入门教程之七 -- DOM</title>
 <link>https://blog.niekun.net/archives/2002.html</link>
@@ -251,7 +504,7 @@ elem2.addEventListener(&quot;click&quot;, myFunction, false);</code></pre><p>当
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2002.html</wfw:commentRss>
 </item>
 <item>
-<title>JavaScript 入门教程之六 -- 核心 Objects</title>
+<title>JavaScript 入门教程之六 -- JS内置 Objects</title>
 <link>https://blog.niekun.net/archives/1997.html</link>
 <guid>https://blog.niekun.net/archives/1997.html</guid>
 <pubDate>Fri, 18 Dec 2020 18:53:00 +0800</pubDate>
@@ -400,7 +653,17 @@ myFunction(&quot;tom&quot;);</code></pre><p>使用逗号分隔多个参数：</p
     alert(&quot;my name is &quot; + name + &quot;, age is &quot; + age);
 }
 
-myFunction(&quot;marco&quot;, 20);</code></pre><p>JavaScript 不会检查调用 function 时的传入参数个数和定义的参数个数是否一致，如果调用时缺少传递参数，则缺失的参数会被赋值为 <code>undefined</code>，表示没有被分配数据。</p><p>function 可以有一个可选的 <code>return</code> 命令，用来从 function 返回一个数据。</p><p>当 JavaScript 执行到 <code>return</code> 时，会停止执行后续指令。</p><p>下面的示例中，我们计算两个参数的和并返回结果：</p><pre><code>function myFunction(a, b) {
+myFunction(&quot;marco&quot;, 20);</code></pre><p>JavaScript <strong>不会检查</strong>调用 function 时的传入参数个数和定义的参数个数是否一致，如果调用时传入参数数量少于 function 定义参数个数，则缺失的参数会被赋值为 <code>undefined</code>，表示没有被赋值数据。如果传入参数数量大于 function 定义参数个数，可以使用数组：<code>arguments</code> 来访问这些传入数据，在 function 内可以被调用，形如：arguments[0], arguments[1]，arguments 数组是 function 内自动定义的，按顺序存储所有的传入参数数据。</p><p>请看下面示例：</p><pre><code>function test(a, b) {
+    console.log(arguments[0]);
+    console.log(arguments[1]);
+    console.log(arguments[2]);
+}
+test(1, 2, 3);
+
+//output:
+//1
+//2
+//3</code></pre><p>以上示例中，function 本身只定义了 2 个参数，但是我们在调用时传入了 3 个数据，这时候为了访问到第 3 个数据，就需要使用 <strong>arguments</strong> 数组来处理了。可以看到 function 内除了使用定义的参数名外，也可以使用内部自动定义的 <strong>arguments</strong> 数组来访问传入数据。</p><p>function 可以有一个可选的 <code>return</code> 命令，用来从 function 返回一个数据。</p><p>当 JavaScript 执行到 <code>return</code> 时，会停止执行后续指令。</p><p>下面的示例中，我们计算两个参数的和并返回结果：</p><pre><code>function myFunction(a, b) {
     return a + b;
 }
 
@@ -416,7 +679,14 @@ else {
 }</code></pre><p>弹出窗口不要过多的使用，因为弹出窗口会导致页面不可用。</p><h3>inline function</h3><p>有一种特殊的 function 可以在直接在调用中进行定义，不需要写 function 名称。例如想要对 array 数组的每个元素执行一个 function，通过 <code>forEach</code> method 来给每个元素调用 function：</p><pre><code>var arr = [1, 2, 3];
 arr.forEach(function(el) {
     console.log(el * 2);
-});</code></pre><p>function 直接在调用中定义，参数 el 的值通过 <code>forEach</code> method 来传入每个元素的数据。</p>
+});</code></pre><p>function 直接在调用中定义，参数 el 的值通过 <code>forEach</code> method 来传入每个元素的数据。</p><p>下一章介绍的 object 中，要定义一个 method 就可以使用 inline function 来建立：</p><pre><code>    function person(name, age, color) {
+        this.name = name;
+        this.age = age;
+        this.favColor = color;
+        this.changeName = function(name) {
+            this.name = name;
+        }
+    }</code></pre><p>具体的介绍参考：<a href="https://blog.niekun.net/archives/1996.html">JavaScript 入门教程之五 -- Objects</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1992.html#comments</comments>
@@ -721,88 +991,6 @@ proxy_add_x_forwarded_for: 1.81.217.183, 172.68.189.53</code></pre><p>以上就�
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1973.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1973.html</wfw:commentRss>
-</item>
-<item>
-<title>c++ 字符串数组指针的研究</title>
-<link>https://blog.niekun.net/archives/1968.html</link>
-<guid>https://blog.niekun.net/archives/1968.html</guid>
-<pubDate>Tue, 08 Dec 2020 21:37:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[在实际使用中发现对字符串的运用是一个容易混乱的地方，尤其是使用指针指向一个字符串数组的时候。下面做一些简单分析。一个简单的测试：    const char* test1 = &quot;abc...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>在实际使用中发现对字符串的运用是一个容易混乱的地方，尤其是使用指针指向一个字符串数组的时候。下面做一些简单分析。</p><p><strong>一个简单的测试：</strong></p><pre><code>    const char* test1 = &quot;abc&quot;;
-    const string test2 = &quot;abc&quot;;
-
-    cout &lt;&lt; test1 &lt;&lt; endl;
-    cout &lt;&lt; *test1 &lt;&lt; endl;
-    cout &lt;&lt; test2 &lt;&lt; endl;
-    cout &lt;&lt; sizeof (test1) &lt;&lt; endl;
-    cout &lt;&lt; sizeof (test2) &lt;&lt; endl;</code></pre><p>输出如下：</p><pre><code>abc
-a
-abc
-8
-24</code></pre><!--more--><p>以前我的教程里提到过，字符串就相当于一个字符数组。指针会指向它的首个字符地址。<code>test1</code> 指针理论上存储着字符串的首地址。</p><p>但我们可以看到直接输出 <code>test1</code> 会得到实际字符串内容，而不是首个字符地址。输出 <code>*test</code> 会得到正常的首字符内容。</p><p>字符串指针使用 sizeof 得到这个指针所占用内存大小，而不是字符串内容的大小。</p><p>同时我们可以发现，一个字符指针可以直接指向一个字符串，而不需要先定义一个字符串变量然后建立指针指向这个变量。这是因为一个<strong>字符串可以看做一个字符数组，同时它也是一个整体</strong>，字符指针可以直接定义指向它。</p><p><strong>下面测试 int 型数组：</strong></p><pre><code>    const int test3[] = {1, 3 ,5};
-    const int* test4 = test3;
-
-    cout &lt;&lt; test3 &lt;&lt; endl;
-    cout &lt;&lt; test4 &lt;&lt; endl;
-    cout &lt;&lt; test4[0] &lt;&lt; endl;
-    cout &lt;&lt; *test4 &lt;&lt; endl;
-    cout &lt;&lt; sizeof(test4) &lt;&lt; endl;
-    cout &lt;&lt; sizeof(test4[0]) &lt;&lt; endl;</code></pre><p>输出结果：</p><pre><code>0x7ffee8cbaa58
-0x7ffee8cbaa58
-1
-1
-8
-4</code></pre><p>可以看到直接输出数组名称或指针名称得到的是数组所在地址。<code>*test</code> 和 <code>test[0]</code> 会得到数组第一位内容。</p><p>test4 是一个指针，所以 sizeof 得到的是这个指针做占用的内存空间而不是数组本身占用空间。无法通过 sizeof 计算出数组个数。</p><p>以上实验，我们先建立了一个 int 型数组变量，然后建立 int 型指针指向这个变量，如果直接在一行中建立一个指针指向一个数组会报错，这就和上面测试的字符指针不一样了。因为其他类型的数组不同于字符串，它的每个元素是独立的个体，所以无法使用一个指针直接指向他们全部。</p><p><strong>下面做最后一个测试：</strong></p><pre><code>const char* test5[] = {
-    &quot;abc&quot;,
-    &quot;def&quot;,
-    &quot;ohg&quot;,
-    &quot;asdf&quot;
-};
-
-const string test6[] = {
-    &quot;abc&quot;,
-    &quot;def&quot;,
-    &quot;ohg&quot;,
-    &quot;asdf&quot;
-};
-
-int x = sizeof (test5)/sizeof(test5[0]);
-cout &lt;&lt; test5 &lt;&lt; endl;
-cout &lt;&lt; *test5 &lt;&lt; endl;
-cout &lt;&lt; test5[0] &lt;&lt; endl;
-cout &lt;&lt; *test5[0] &lt;&lt; endl;
-cout &lt;&lt; x &lt;&lt; endl;
-cout &lt;&lt; sizeof(test5) &lt;&lt; endl;
-cout &lt;&lt; sizeof(test5[0]) &lt;&lt; endl;
-
-cout &lt;&lt; &quot;*************\n&quot;;
-
-x = sizeof (test6)/sizeof(test6[0]);
-cout &lt;&lt; test6 &lt;&lt; endl;
-cout &lt;&lt; *test6 &lt;&lt; endl;
-cout &lt;&lt; test6[0] &lt;&lt; endl;
-cout &lt;&lt; x &lt;&lt; endl;
-cout &lt;&lt; sizeof(test6) &lt;&lt; endl;
-cout &lt;&lt; sizeof(test6[0]) &lt;&lt; endl;</code></pre><p>输出结果如下：</p><pre><code>0x7ffee596ea40
-abc
-abc
-a
-4
-32
-8
-*************
-0x7ffee596e9e0
-abc
-abc
-4
-96
-24</code></pre><p><strong>由于字符串本身就是一个字符数组，所以一个字符串数组相当于一个二维的数组。定义字符串数组的指针，就是数组中每个字符串对应的指针的集合。</strong>所以这个数组指针本身不是字符串类型的，而它的每个指针元素都是字符串指针类型的。</p><p>可以看到类似于第一组测试，非字符串的指针直接输出指针名称，所以 <code>test5</code> 得到字符串数组的地址。</p><p><code>*test5</code> 和 <code>test5[0]</code> 都表示指针数组第一个元素，也就是字符串类型的指针，根据第一组实验可以知道使用字符串指针名称输出本身字符串而不是地址，所以输出此指针可以直接得到字符串内容。</p><p><code>*test5[0]</code> 就是字符串指针的首字符地址内容，也就是得到第一个字符串第一个字符的内容。</p><p>test5 指针数组使用 sizeof 得到的是这个指针数组总共占用的内存大小，也就是每个指针大小的总和。除以单个指针大小就可以得到这个数组指针的个数，也就是对应指向的数组的元素个数。</p><p>test6 字符串数组使用 sizeof 得到的是这个字符串数组所有元素的占用内存大小，除以单个字符串大小就可以得到这个数组的元素个数。</p><p>我们可以看到 test5 和 test6 使用 sizeof 都可以得到数组的元素个数，但他们的原理是完全不同的，一个是使用指针的内存大小，一个是使用数组本身的内存大小。</p><p><strong>总结：</strong><br>字符串的指针名称可以直接输出字符串内容而不是地址。其他指针类型指向的数据，如字符，数字，字符串数组，number 型数组等，指针名输出的都是数据地址。</p><p>指针使用 sizeof 得到的是指针所占用的内存大小。可以使用 <code>sizeof(*Pointer)</code> 得到数据本身大小。</p><p>字符串数组的指针使用 sizeof 得到指针数组的总大小，可以用来间接计算数组元素个数。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1968.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1968.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
