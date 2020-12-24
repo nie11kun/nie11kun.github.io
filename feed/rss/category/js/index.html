@@ -75,7 +75,7 @@ for (let key in obj) {
     console.log(obj[key]);
 }log 输出为：1
 2
-3注意 for...in loop 不能 iterate 一个 array 数组。虽然数组也是一个 object，但他的 index 索引是基于 number 数字的。基于 JavaScript engine，for...in 循环 iterate 某个 list 的元素的顺序是随机的，而且 iterating 索引是一个 string 字符串的，而不是 number 数字，所以当你测试对这个索引进行某些 math 数学加法运算，会发现执行的是对字符串的串联而不是数字运算。ES6 中引入了一个 for...of loop 能够创建一个对 iterable object 进行 iterating 的循环，数组就是一种 iterable object，而含有 name: value 结构属性的 object 不属于。例如：let array = [1, 2, 3];
+3注意 for...in loop 不能 iterate 一个 array 数组。虽然数组也是一个 object，但他的 index 索引是基于 number 数字的。基于 JavaScript engine，for...in 循环 iterate 某个 list 的元素的顺序是随机的，而且 iterating 索引是一个 string 字符串的，而不是 number 数字，所以当你测试对这个索引进行某些 math 数学加法运算，会发现执行的是对字符串的串联而不是数字运算。ES6 中引入了一个 for...of loop 能够创建一个对 iterable object 进行 iterating 的循环，数组就是一种 iterable object，而含有 name: value 结构属性的 object 不属于。后面我们会介绍实际上是通过 Symbol.iterator 来索引数组类型的 object 的。例如：let array = [1, 2, 3];
 for (const iterator of array) {
     console.log(iterator);
 }在每个循环中，iterator 变量都会赋值为 object 内的坐标元素。for...of loop 适用于其他 iterable objects 例如 string 字符串：for (const iterator of &quot;object&quot;) {
@@ -272,7 +272,7 @@ var arr = [1, 2, 3];
 test.apply(null, arr);
 
 //output:
-//6ES6 使用 Spread Operator 实现更加简单的语法来实现上面的功能：const test = (a, b, c, d) =&gt; {
+//6通过 function 的 apply() method，可以将 method 应用于其他外部 object 上，同时用一个数组传入 function 参数。具体参考：JavaScript 入门教程之四 -- FunctionsES6 使用 Spread Operator 实现更加简单的语法来实现上面的功能：const test = (a, b, c, d) =&gt; {
     console.log(a + b + c + d);
 }
 var arr = [1, 2, 3];
@@ -284,7 +284,10 @@ let x = new Date(...date);
 console.log(x.getFullYear());arrayES6 之前，我们使用下面方法给数组中插入元素：var arr = [&quot;one&quot;, &quot;two&quot;, &quot;five&quot;];
 arr.splice(2, 0, &quot;three&quot;, &quot;four&quot;);
 console.log(arr[3]);splice method 用来给数组中某个位置插入数据，第一个参数是行号，第二个参数是列号，后面的参数是要插入的元素，可以是任意多个。ES6 中，可以这样写：let newArr = [&quot;three&quot;, &quot;four&quot;];
-let arr = [&quot;one&quot;, &quot;two&quot;, ...newArr, &quot;five&quot;];object literals在 object 中使用 Spread Operator 可以复制所有的 properties 到新的 object：const obj1 = {
+let arr = [&quot;one&quot;, &quot;two&quot;, ...newArr, &quot;five&quot;];因为数组的标准创建方法是：let arr = new Array(a, b, c);
+所以为了将传递参数放在数组中，我们就可以使用 ...延伸符来处理：let arr = new Array(...newArr);
+//or
+let arr = [...newArr];object literals在 object 中使用 Spread Operator 可以复制所有的 properties 到新的 object：const obj1 = {
     a: 1,
     b: 2
 }
@@ -453,7 +456,136 @@ for (const iterator of set) {
 //true
 //1
 //3
-//9以上示例介绍了部分 method 的用法。Set 支持不同的数据类型，例如 1 和 '1' 是不同的数据。甚至是 NaN 和 undefined 也可以存储在 Set 中。</description>
+//9以上示例介绍了 Set 部分 method 的用法。Set 支持不同的数据类型，例如 1 和 '1' 是不同的数据。甚至是 NaN 和 undefined 也可以存储在 Set 中。ES6 PromisesPromise 相比较于 setTimeout() method 是一种更好的异步编程方法。通常想要延时执行某个 function，可以通过 setTimeout() 实现：setTimeout(() =&gt; {
+    console.log('second');
+    setTimeout(() =&gt; {
+        console.log('third');
+    }, 3000);
+}, 3000);
+console.log('first');
+
+//OUTPUT:
+//frist
+//second
+//third以上示例实现：先输出 first，延时 3 秒输出 second，然后再过 3 秒后输出 third。每个 function 只执行一次，如果要循环执行，可以使用  setInterval() 实现。setTimeout method 可以实现异步执行动作，但是如果需要处理的任务很多，使用这种方法就会导致嵌套很复杂。ES6 引入的 promise 可以解决这个问题，使用下面语法结构创建 promise：new Promise(function(resolve, reject) {
+    if (success)
+        resolve(result);
+    else
+        reject(Error('failure'));
+});创建 Promise 需要定义一个 function 包含有两个参数，这两个参数是 method 类型的。可以在 function 中根据需要使用这两个 method。示例中 resolve 在 success 为 true 时被调用，reject 在 else 情况被调用。那么 Promise 中需要的这两个 method 在哪里定义的呢？如果我们在程序中一个 method 返回类型为 Promise 类型，则可以调用 then method，有两个传入参数就是 2 个 method 的定义。下面的示例中，定义一个返回值为 Promise 类型的 function，然后调用这个 function：const asyncTest = (work) =&gt; {
+    return new Promise((resolve, reject) =&gt; {
+        if (work === &quot;&quot;)
+            reject(Error('nothing'));
+        setTimeout(() =&gt; {
+            resolve(work);
+        }, 3000);
+    });
+};
+
+asyncTest('second')
+.then((result) =&gt; {
+    console.log(result);
+    return asyncTest('third');
+},
+(error) =&gt; console.log(error))
+.then((result) =&gt; console.log(result),
+(error) =&gt; console.log(error));
+
+console.log('frist');
+
+//OUTPUT:
+//frist
+//second
+//third以上示例和第一个示例效果一样，首先输出 frist，3 秒后输出 second，在经过 3 秒输出 third。同样的都是三个输出都是异步进行的。以上语法相比之前的代码使逻辑关系更加清晰，Promise object 定义了调用两个 method 的原则，通过调用 then method 定义 2 个 method 的指令，只有 Promise 类型的 object 才有 then method。所以如果要继续扩充异步动作，只需要在某个 method 中返回 promise 类型的数据，就可以继续通过 then method 定义其他动作。以上示例中，我们通过第一个 then 定义 1 个延时触发指令，然后返回一个新的 Promise 类型 object，这样可以继续调用第二个 then 来实现其他异步动作。以此类推可以继续扩展下去。Iterators & GeneratorsSymbol.iterator 是 object 内置默认的 iterator，for...of loop 就是基于这种类型的 iterator 来处理数组 object 的。下面的示例介绍 Symbol.iterator 和 generator functions 如何使用：let myIterableObj = {
+    [Symbol.iterator]: function* () {
+        yield 1;
+        yield 2;
+        yield 3;
+    }
+};
+console.log([...myIterableObj])以上示例中，我们创建了一个 object 通过 Symbol.iterator 和 generator function 来定义一些 properties。使用关键词 function 后加一个星号* 叫做 generator function (or gen function)。通过下面示例介绍如何使用 generator function：function* id() {
+    let index = 0;
+    while (index &lt; 5) {
+        yield index++;
+    }
+}
+let x = id();
+console.log(x.next().value);
+console.log(x.next().value);
+console.log(x.next().value);
+
+//output:
+//0
+//1
+//2可以看到当 generator function 返回数据后，如果条件依然满足，它就不会直接跳出 function 而是会继续执行指令直到内部指令完全执行完毕，这一过程中可以使用关键词 yield 多次返回数据。这在实现异步程序中很有用，尤其是结合 Promise 来使用。generator function 可以进行多级嵌套使用，实现更加复杂的循环逻辑。下面的示例依然结合 Symbol.iterator 和 generator functions 使用：const arr = ['a', '1', '3', '5b', '9', 'f'];
+const myObj = {
+    [Symbol.iterator]: function*() {
+        for (const iterator of arr) {
+            yield `${iterator}`;
+        }
+    }
+};
+
+const all = [...myObj]
+.map(i =&gt; parseInt(i, 10))
+.map(Math.sqrt)
+.filter(i =&gt; i &lt; 5)
+.reduce((i, d) =&gt; i + d);
+
+console.log(all);
+
+//output:
+//7.9681187850686666以上示例的过程如下：首先我们创建一个数组 arr，数组元素都是字符或字符串类型。然后使用 Symbol.iterator 和 generator functions 的语法来创建一个 iterable object：myObj，数据使用前面定义的数组 arr。然后创建一个新的 all 数组，数据使用第二部创建的 myObj，由于 myObj 也是 iterable objet 所以这里通过 ... 延伸符来将 myObj 作为传入参数来创建数组 object。然后使用数组的 map method 来将字符元素转换成 int 数字，这里会过滤掉一些不能转换的元素。然后使用数组的 filter method 来进一步过滤元素最后使用数字的 reduce method 来将所有元素进行计算，返回为一个数字。parseInt() Function 可以将字符解析返回为一个数字。语法如下：parseInt(string, radix)
+string 是需要解析的字符，radix 定义所使用的进制系统，可定义范围为：2-36，这是一个可选项，默认为 10。如果字符的首字符不是数字，则会返回 NaN。map，filter 和 reduce method 的用法在 JavaScript 入门教程之六 -- JS内置 Objects 做过介绍。更多 array 的 method 用法参考：JavaScript Array ReferenceModules 模组将相关的代码放在一个模块里有利于代码整洁度和可操作性，ES6 之前使用一些第三方库可以实现这一功能如：RequireJS, CommonJS，ES6 现在原生支持这一特性。使用 modules 模组需要考虑的：可操作性，一个模组应该是完全独立的，不依赖于其他模组命名空间 namespacing，前面介绍了变量申明的 scope，使用 var 会在代码中全局申明，可能引起命名污染，使用模组可以创建一个私有空间来完美解决这个问题代码复用性，我们希望一个代码段能够被不同的项目引用，使用模组可以方便了在不同项目中调用下面介绍如何创建和使用 modules，我们在项目 lib 目录下创建 math.js 文件：export const sum = (x, y) =&gt; x + y;
+export let pi = 3.14;调用这个模块：&lt;script type=&quot;module&quot;&gt;
+    import * as math from './lib/math.js'
+    console.log(math.sum(math.pi, math.pi));
+&lt;/script&gt;
+
+//output:
+//6.28我们首先创建了一个 js 文件作为 module 模组，使用 export 关键词定义的 function 和 variable 变量可以被调用这个模组的文件访问到。然后在我们的 script 中使用 import 关键词来调用模组。注意如果 script 中调用了其他模组，需要设置是script type 类型为 module，否则浏览器会报错。import 时我们设置了这个 module 的名称为 math，module 中的 function 或 variable 时就可以通过 math 来调用，就像 object 一样。需要注意的是，如果你是在本地开发，直接打开包含调用了 module 的 html 文件或 js 文件会报错，提示：Access to Script at ' from origin 'null' has been blocked by CORS policy，需要通过真实的搭建一个 web 服务器来访问这个 html 文件才能正常执行。如果使用 chrome 可以通过插件来建立一个简单的本地 web 服务器：Web Server for ChromeBuilt-in Methods 内建 methodsES6 引入了一些新的内建 method 使有些任务可以更轻松地执行，下面介绍最常用的几种。Array Element Finding 数组元素查询ES6 之前我们想要得到一个数组经过某个规则过滤后的第一个元素，可以通过 filter method 实现：var x = [1, 4, 6, 3, 8].filter(function(i) {
+    return i &gt; 5;
+})[0];
+
+console.log(x);
+
+//output:
+//6现在我们可以使用 find method 更加简洁的语法实现相同的功能：var x = [1, 4, 6, 3, 8].find(i =&gt; i &gt; 5);
+console.log(x);
+
+//output:
+//6也可以使用 findIndex method 来得到符合条件的第一个元素的索引地址：var index = [1, 4, 6, 3, 8].findIndex(i =&gt; i &gt; 5);
+console.log(index);
+
+//output:
+//2Repeating Strings 重复字符串ES6 之前，想要将一个字符串重复多次可以使用一下方法：console.log(Array(4).join('foo'));
+
+//output:
+//foofoofoo以上示例中，首先声明一个有 4 个元素 array 数组但没有赋初值，当前元素为 empty，然后通过 join method 给将所有元素合并为字符串，分隔符为 foo，这样我们就变相返回了一个将源字符串重复三次的新字符串。使用 ES6 的新语法实现这个功能更加简单：console.log('foo'.repeat(3));
+
+//output:
+//foofoofoo字符串的 repeat method 的参数定义重复次数并返回新字符串。Searching Strings 查询字符串ES6 之前我们只能通过 indexOf method 来查询一个 string 中 text 的位置，如：var x = 'helloworld'.indexOf('llo') === 2;
+var y = 'helloworld'.indexOf('llo', 3) === -1;
+console.log(x);
+console.log(y);
+
+//output:
+//true
+//true关于 indexOf 的用法参考：JavaScript 入门教程之六 -- JS内置 ObjectsES6 使用更加简洁明了的语法代替以上语法：var x = 'helloworld'.startsWith('hel', 0);
+var y = 'helloworld'.endsWith('hello', 5);
+var z = 'helloworld'.includes('llo');
+var i = 'helloworld'.includes('llo', 3);
+
+console.log(x);
+console.log(y);
+console.log(z);
+console.log(i);
+
+//output:
+//true
+//true
+//true
+//falsestartsWith method 返回所查询的 text 的起始字符所在位置。endsWith method 返回所查询的 text 结束后紧跟的元素的所在位置。includes mehod 返回所查询的 text 的所在位置，默认从第 0 位开始，可自定义起始查询位置。如果不存在所查询的元素，将返回 -1。以上就是 ES6 中较常用的新语法，这里我推荐在实现同一功能的情况下，优先使用 ES6 新引入的语法来处理。这样可以使我们的代码更加简洁易读。经过 8 个章节的教程，我们基本涵盖了 JavaScript 的基本编程方法。后续的学习中需要继续补充完善，在实际应用中才能对 JavaScript 有进一步的认识。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2002.html">
 <title>JavaScript 入门教程之七 -- DOM</title>
@@ -695,14 +827,79 @@ var course = courses[0];
 courses[1] = &quot;c++&quot;;以上示例表示：给变量 course 赋值数组第一个元素，给第二个元素赋值 c++。如果尝试访问超出数组元素的索引，会返回 undefined。在定义数组时也可以只申明数组元素个数，后续再给元素赋值：var courses = new Array(3);
 courses[0] = &quot;HTML&quot;;
 courses[1] = &quot;CSS&quot;;
-courses[2] = &quot;JS&quot;;array 数组是一种特殊的 object，它使用 index number 来访问元素，而标准 object 使用 property name 来访问元素。JavaScript array 是动态的，也就是你可以在创建时不传入任何参数给构造器：var courses = new Array();
+courses[2] = &quot;JS&quot;;array 数组是一种特殊的 object，它使用 index number 来访问元素，而标准 object 使用 property name 来访问元素，name 是字符形式。如下是 array 和 object 的元素定义区别：var arr = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 3
+}
+
+var obj = {
+    '0': 0,
+    '1': 1,
+    '2': 2,
+    '3': 3
+}在 array 的 index 数字索引永远是按顺序排列的。所以我们访问以上示例中 arr 和 obj 元素的方式为：arr[0], obj['0']。JavaScript array 是动态的，也就是你可以在创建时不传入任何参数给构造器：var courses = new Array();
 courses[0] = &quot;HTML&quot;;
 courses[1] = &quot;CSS&quot;;
 courses[2] = &quot;JS&quot;;
-courses[3] = &quot;C++&quot;;你可以添加任意多个元素给数组。为了定义更加方便，可以使用 array literal 语法来创建数组：var courses = [&quot;HTML&quot;, &quot;CSS&quot;, &quot;JS&quot;];以上语法和使用 new 关键词创建的数组是一样的。推荐使用这种语法。JavaScript array 内建了很多实用的 properties 和 method。array 的 length property 返回数组的元素个数：var courses = [&quot;HTML&quot;, &quot;CSS&quot;, &quot;JS&quot;];
-document.write(courses.length);length 的返回值比最后一个元素的索引号大 1，如果数组为空，则返回值为 0。使用 concat() method 可以叠加两个数组并返回为一个新的数组：var c1 = [&quot;HTML&quot;, &quot;CSS&quot;, &quot;JS&quot;];
+courses[3] = &quot;C++&quot;;你可以添加任意多个元素给数组。为了定义更加方便，可以使用 array literal 语法来创建数组：var courses = [&quot;HTML&quot;, &quot;CSS&quot;, &quot;JS&quot;];以上语法和使用 new 关键词创建的数组是一样的。推荐使用这种语法。JavaScript array 内建了很多实用的 properties 和 method。length property 返回数组的元素个数：var courses = [&quot;HTML&quot;, &quot;CSS&quot;, &quot;JS&quot;];
+document.write(courses.length);length 的返回值比最后一个元素的索引号大 1，如果数组为空，则返回值为 0。concat method 可以叠加两个数组并返回为一个新的数组：var c1 = [&quot;HTML&quot;, &quot;CSS&quot;, &quot;JS&quot;];
 var c2 = [&quot;C++&quot;];
-var newC = c1.concat(c2);newC 数组拥有四个元素："HTML", "CSS", "JS", "C++"。注意使用 concat() method 并不会影响 c1 和 c2。Associative Arrays 关联型数组很多编程语言支持给数组添加命名化的 index 索引，也就是给每个元素定义一个名称，但是 JavaScript 不支持这种操作。但是我们依然可以定义命名化的 index 索引数组，JavaScript 会将其作为一个 object 处理：var a = [];
+var newC = c1.concat(c2);newC 数组拥有四个元素："HTML", "CSS", "JS", "C++"。注意使用 concat() method 并不会影响 c1 和 c2。map method 可以给数组每个元素调用一个 function 然后返回修改后的数据为一个新数组：var arr = [1, 2, 3, 4];
+var newArr = arr.map(function(i) {
+    return i * 2;
+})
+console.log(newArr);
+
+//output:
+//0: 2
+//1: 4
+//2: 6
+//3: 8
+//length: 4reduce Method 可以将数组元素合并为一个 value。语法为：array.reduce(function(total, currentValue))
+total 为元素合并的累积值，currentValue 为当前循环处理到的元素。调用 reduce 时，第一次传入 total 为 第一个元素数据，currentValue 为数组第二个元素，function 会返回一个结果作为第二次循环 total 的数据，currentValue 指向第三个元素，然后进行循环调用 function 累积 total 的值，最后返回 total。下面举例说明：var arr = [1, 3 ,5];
+var sum = arr.reduce(function(total, curr) {
+    return total + curr;
+});
+console.log(sum);
+
+//output:
+//9filter method 可以逐个过滤数组的元素，返回符合条件元素创建一个新数组。语法如下：array.filter(function(currentValue))
+filter 将数组元素逐个作为传入参数调用 function，function 返回值为 Boolean 类型，如果为 true 则返回当前数组元素，反之则丢弃当前数组元素。示例如下：var arr = [1, 4, 6, 3, 8];
+var newArr = arr.filter(function(i) {
+    return i &lt; 5;
+});
+
+console.log(newArr);
+
+//OUTPUT:
+//0: 1
+//1: 4
+//2: 3
+//length: 3join method 将数组所有元素转换为一个字符串并返回这个字符串。下面是一个示例：var arr = ['a', 'b', 'c'];
+var x = arr.join();
+console.log(x);
+
+//output:
+//a,b,c元素间会通过一个分隔符隔开，默认是一个逗号,，可以通过 join 的参数自定义分隔符：var arr = ['a', 'b', 'c'];
+var x = arr.join('/');
+console.log(x);
+
+//output:
+//a/b/cindexOf method 搜索一个数组中特定的元素，并返回这个元素所在 index 索引。语法如下：array.indexOf(item, start)
+item 是搜索的元素，start 定义开始搜索的位置，默认为 0。示例如下：var arr = ['a', 'b', 'c', 'a', 'e', 'b'];
+var x = arr.indexOf('b');
+var y = arr.indexOf('b', 2);
+var z = arr.indexOf('f');
+console.log(x);
+console.log(y);
+console.log(z);
+
+//output:
+//1
+//5
+//-1当搜索的元素不存在时，返回值为 -1。Associative Arrays 关联型数组很多编程语言支持给数组添加命名化的 index 索引，也就是给每个元素定义一个名称，但是 JavaScript 不支持这种操作，因为它只能使用内部默认的 index 数字型索引。但是我们依然可以定义命名化的 index 索引数组，JavaScript 会将其作为一个 object 处理：var a = [];
 a[&quot;name&quot;] = &quot;marco&quot;;
 a[&quot;age&quot;] = 20;
 document.write(a[&quot;age&quot;]);JavaScript 会将 a 作为 object 处理，这样 name 和 age 就是其 properties。可以使用以上写法来读取 property 数据。由于 a 数组被作为 object 处理，所以标准 array 的一些 method 和 properties 将无法正确执行，例如：a.length 返回值将是 0 而不是 2。JavaScript 原生并不支持命名化的元素索引，所以推荐当你想要使用 number 数字型 index 时使用 array，当你想要使用命名化的索引时使用 object。the Math Object 数学对象the Math Object 可以用来处理数学运算任务，它包含多个 properties：Math 没有 constructor 构造器，所以使用时并不需要单独创建 object。例如：document.write(Math.PI);
