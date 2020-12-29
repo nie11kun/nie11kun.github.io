@@ -6,11 +6,57 @@ xml:base="https://blog.niekun.net/2020/12/"
 >
 <title type="text">Marco Nie - 2020年12月</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2020-12-22T10:54:50+08:00</updated>
+<updated>2020-12-29T13:58:49+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/2020/12/" />
 <id>https://blog.niekun.net/feed/atom/2020/12/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2020/12/" />
+<entry>
+<title type="html"><![CDATA[CentOS 6 可用源]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2035.html" />
+<id>https://blog.niekun.net/archives/2035.html</id>
+<updated>2020-12-29T13:58:49+08:00</updated>
+<published>2020-12-29T13:58:49+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[最近在调试软件的时候需要用到 CentOS 6 系统，yum 命令无法更新包返回都是 404，查了下发现大多数主流的源地址都取消对 CentOS 6 的支持，找了半天才找到一个可用的地址，记录下...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2035.html" xml:lang="zh-CN"><![CDATA[
+<p>最近在调试软件的时候需要用到 CentOS 6 系统，yum 命令无法更新包返回都是 404，查了下发现大多数主流的源地址都取消对 CentOS 6 的支持，找了半天才找到一个可用的地址，记录下来备用。</p><p>CentOS 6 的包列表在：<code>/etc/yum.repos.d/CentOS-Base.repo</code> 文件中定义。</p><p>参考链接：<a href="https://blog.csdn.net/h952520296/article/details/110541018">https://blog.csdn.net/h952520296/article/details/110541018</a></p><pre><code>[base]
+name=CentOS-6
+failovermethod=priority
+baseurl=https://vault.centos.org/6.9/os/x86_64/
+gpgcheck=0
+
+[epel]
+name=Extra Packages for Enterprise Linux 6 - $basearch
+baseurl=https://archives.fedoraproject.org/pub/archive/epel/6/$basearch
+failovermethod=priority
+enabled=1
+gpgcheck=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
+ 
+[epel-debuginfo]
+name=Extra Packages for Enterprise Linux 6 - $basearch - Debug
+baseurl=https://archives.fedoraproject.org/pub/archive/epel/6/$basearch/debug
+failovermethod=priority
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
+gpgcheck=0
+ 
+[epel-source]
+name=Extra Packages for Enterprise Linux 6 - $basearch - Source
+baseurl=https://archives.fedoraproject.org/pub/archive/epel/6/SRPMS
+failovermethod=priority
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
+gpgcheck=0</code></pre><p>将以上内容替换到 <code>CentOS-Base.repo</code> 文件内，然后执行：</p><pre><code>yum clean &amp;&amp; yum makecache
+</code></pre><p>更新缓存即可。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2035.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2035.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Windows 补丁下载]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2021.html" />
@@ -1349,27 +1395,5 @@ var b = &quot;john&quot;;</code></pre><p>如果要在 string 内部使用也引�
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1979.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1979.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[brew 安装路径]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1977.html" />
-<id>https://blog.niekun.net/archives/1977.html</id>
-<updated>2020-12-16T22:04:00+08:00</updated>
-<published>2020-12-16T22:04:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[brew 是 macOS 下流行的包管理工具，可以方便的安装各种工具。brew 默认安装路径为：/usr/local/Cellar，然后会在 /usr/local/opt/ 建立所安装的包的软连...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1977.html" xml:lang="zh-CN"><![CDATA[
-<p>brew 是 macOS 下流行的包管理工具，可以方便的安装各种工具。</p><p>brew 默认安装路径为：<code>/usr/local/Cellar</code>，然后会在 <code>/usr/local/opt/</code> 建立所安装的包的软连接。</p><p>包安装好后如果不能正常执行，可以建立包的可执行程序的软连接到：<code>/usr/local/bin/</code> 目录。</p><p>比如安装 openssl：</p><pre><code>brew install openssl
-</code></pre><p>安装后包的路径为：<code>/usr/local/Cellar/openssl@1.1/1.1.1h</code>。同时包的软连接在：<code>/usr/local/Cellar/openssl</code>。</p><p>这时候执行命令：</p><pre><code>openssl version
-</code></pre><p>返回的并不是刚才安装的版本，而是系统自带的老版本的。这时候可以建立可执行程序的软连接到对应路径：</p><pre><code>ln -s /usr/local/opt/openssl/bin/openssl /usr/local/bin/openssl
-</code></pre><p>这时候执行命令就可以得到正确的返回：</p><pre><code>openssl version
-//OpenSSL 1.1.1h  22 Sep 2020
-</code></pre><p>其他包的模式和此类似。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1977.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1977.html" thr:count="0"/>
 </entry>
 </feed>
