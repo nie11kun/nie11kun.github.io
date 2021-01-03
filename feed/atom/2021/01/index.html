@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+xmlns:thr="http://purl.org/syndication/thread/1.0"
+xml:lang="zh-CN"
+xml:base="https://blog.niekun.net/2021/01/"
+>
+<title type="text">Marco Nie - 2021年1月</title>
+<subtitle type="text">you are the company you keep...</subtitle>
+<updated>2021-01-03T22:40:00+08:00</updated>
+<generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/2021/01/" />
+<id>https://blog.niekun.net/feed/atom/2021/01/</id>
+<link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/01/" />
+<entry>
+<title type="html"><![CDATA[修复 parallels desktop 16 网络无法连接问题]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2040.html" />
+<id>https://blog.niekun.net/archives/2040.html</id>
+<updated>2021-01-03T22:40:00+08:00</updated>
+<published>2021-01-03T22:40:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[随着升级到 macOS Big Sur 后，虚拟机 parallels desktop 也更新到了 16 版本。我当然是继续安装破解版啦。但是安装好后，启动虚拟机会有一个报错：Network I...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2040.html" xml:lang="zh-CN"><![CDATA[
+<p>随着升级到 macOS Big Sur 后，虚拟机 parallels desktop 也更新到了 16 版本。我当然是继续安装破解版啦。</p><p>但是安装好后，启动虚拟机会有一个报错：<strong>Network Initialization Failed</strong>，启动后会发现虚拟机无法联网，网络设置中无法正常在各种模式中切换。</p><p>在寻找解决方案期间，了解到了这可能是由于破解的原因，正版用户没有这个问题。网上有人提供了一个方法，执行一条命令就启动虚拟机就可以正常联网了。但是会导致虚拟机无法访问主机的共享目录及无法访问 USB 设备。而且一旦重启 parallels desktop 后又回恢复之前的状态，我也就没有去做。</p><p>这两天看到网上终于有人找到的解决方法，测试后的确可用，所以介绍给大家参考。</p><!--more--><p>解决的方法都是通过修改相关配置文件实现的。首先需要彻底退出 parallels desktop。</p><h3>网络问题</h3><p>修改 <code>/Library/Preferences/Parallels/network.desktop.xml</code> 文件。</p><p>在终端或者 vs code 中打开这个文件，找到 <code>&lt;UseKextless&gt;</code> 标签，将其中的内容改为 0：</p><pre><code>&lt;UseKextless&gt;0&lt;/UseKextless&gt;
+</code></pre><p>注意如果你的这个文件内没有这个标签，则需要在 <code>&lt;ParallelsNetworkConfig&gt;</code> 根标签内手动创建它即可。</p><p>修改完成后保存文件，需要输入账户密码。</p><h3>USB 问题</h3><p>修改 <code>/Library/Preferences/Parallels/dispatcher.desktop.xml</code> 文件。</p><p>在终端或者 vs code 中打开这个文件，找到 <code>&lt;Usb&gt;</code> 标签，将其中的内容改为 1：</p><pre><code>&lt;Usb&gt;1&lt;/Usb&gt;
+</code></pre><p>修改完成后保存文件，需要输入账户密码。</p><p>修改完以上两个文件后，重启 parallels desktop 就会发现一切都正常了。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2040.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2040.html" thr:count="0"/>
+</entry>
+</feed>
