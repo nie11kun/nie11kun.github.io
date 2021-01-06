@@ -372,7 +372,7 @@ dpkg -i packages-microsoft-prod.deb</code></pre><p>安装其他依赖：</p><pre
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1805.html</wfw:commentRss>
 </item>
 <item>
-<title>wls 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置</title>
+<title>wsl 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置</title>
 <link>https://blog.niekun.net/archives/1801.html</link>
 <guid>https://blog.niekun.net/archives/1801.html</guid>
 <pubDate>Tue, 13 Oct 2020 10:01:00 +0800</pubDate>
@@ -412,7 +412,12 @@ wsl
 
 wsl -d Ubuntu -u root ip addr add 192.168.50.16/24 broadcast 192.168.50.255 dev eth0 label eth0:1
 netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255.255.0
-</code></pre><p>为了方便使用，可以将脚本路径加入系统 PATH 中，这样可以方便的在终端直接运行脚本，PATH 设置参考：<a href="https://blog.niekun.net/archives/413.html">https://blog.niekun.net/archives/413.html</a></p><p>完成后打开终端直接执行命令：<code>wsl_ip</code> 即可快速设置 IP。</p><p>参考链接：<a href="https://github.com/MicrosoftDocs/WSL/issues/418#issuecomment-648570865">https://github.com/MicrosoftDocs/WSL/issues/418#issuecomment-648570865</a></p>
+</code></pre><p>为了方便使用，可以将脚本路径加入系统 PATH 中，这样可以方便的在终端直接运行脚本，PATH 设置参考：<a href="https://blog.niekun.net/archives/413.html">https://blog.niekun.net/archives/413.html</a></p><p>完成后打开终端直接执行命令：<code>wsl_ip</code> 即可快速设置 IP。</p><p>如果在 powershell 中执行脚本时报错，可能是由于当前系统设置的脚本执行策略有问题，管理员权限打开 ps 后执行以下指令：</p><pre><code>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+</code></pre><p>更多关于系统执行策略设置参考官方文档：<a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.1">About Execution Policies</a></p><h3>wsl 使用主机代理</h3><p>wsl 可以直接使用 Windows 主机搭建的代理服务，ip 地址就使用上面我们创建的 Windows 端的地址即可。</p><p>wsl 中编辑 <code>.bashrc</code> 文件:</p><pre><code>vim ~/.bashrc
+</code></pre><p>将下面代码加入文件：</p><pre><code>alias proxy='export all_proxy=socks5://192.168.50.88:1080 &amp;&amp; export http_proxy=http://192.168.50.88:1082 &amp;&amp; export https_proxy=http://192.168.50.88:1082'
+alias unproxy='unset all_proxy &amp;&amp; export http_proxy= &amp;&amp; export https_proxy='</code></pre><p>保存文件后，重新载入配置：</p><pre><code>source ~/.bashrc
+</code></pre><p>运行命令测试alias是否生效：</p><pre><code>proxy
+</code></pre><p>如果无法使用代理，可能是 Windows 防火墙限制代理软件的访问权限，Windows 下打开<strong>允许应用通过 Windows 防火墙</strong>设置：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/231829215.jpg" alt="1.jpg" title="1.jpg"></p><p>将对应代理软件打开 private 和 public 访问权限：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/4268618643.png" alt="2021-01-06T05:30:16.png" title="2021-01-06T05:30:16.png"></p><p>再次在 wsl 中测试 proxy 是否生效。</p><h3>参考链接</h3><p><a href="https://github.com/MicrosoftDocs/WSL/issues/418#issuecomment-648570865">Static IP on WSL 2</a><br><a href="https://jiayaoo3o.github.io/2020/06/23/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1WSL2%E7%9A%84%E7%BD%91%E7%BB%9C%E4%BB%A3%E7%90%86%E9%85%8D%E7%BD%AE/">记录一次WSL2的网络代理配置</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1801.html#comments</comments>
