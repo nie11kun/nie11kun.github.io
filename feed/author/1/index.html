@@ -11,8 +11,39 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/author/1/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>admin</description>
-<lastBuildDate>Sun, 03 Jan 2021 22:40:00 +0800</lastBuildDate>
-<pubDate>Sun, 03 Jan 2021 22:40:00 +0800</pubDate>
+<lastBuildDate>Fri, 08 Jan 2021 09:28:00 +0800</lastBuildDate>
+<pubDate>Fri, 08 Jan 2021 09:28:00 +0800</pubDate>
+<item>
+<title>node.js 入门教程之一 -- 介绍</title>
+<link>https://blog.niekun.net/archives/2043.html</link>
+<guid>https://blog.niekun.net/archives/2043.html</guid>
+<pubDate>Fri, 08 Jan 2021 09:28:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[Node.js 是一个开源跨平台的 JavaScript 运行环境，它是时下最流行的工具，能够应用于几乎所有的项目。Node.js 运行 V8 JavaScript engine。它是 chro...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>Node.js 是一个开源跨平台的 JavaScript 运行环境，它是时下最流行的工具，能够应用于几乎所有的项目。Node.js 运行 V8 JavaScript engine。它是 chrome 的核心，这让 Node.js 可以脱离浏览器运行 JavaScript 代码。</p><p>一个 Node.js app 运行在一个线程中，不会给每个 request 建立一个进程。Node.js 在其标准库中提供了一个 asynchronous I/O primitives 异步 IO 原生语法库来防止阻塞，同时 Node.js 中的库使用一种 non-blocking paradigms 无阻塞范式，将阻塞作为一种 exception 来处理。</p><p>当 Node.js 执行 IO 动作，例如读取文件，访问数据库等，不同于等待进程，占用 CPU 资源，Node.js 会在收到 request 响应后再去处理后续操作。这将使 Node.js 可以在一个 server 上同时处理上千条链接而不会引入大量的进程而导致 bug 出现。</p><p>Node.js 的另一大优势是使用 JavaScript 的前端开发者可以同时编写 server 端的代码而不用学习新的语言。</p><p>最新的 ECMAScript 标准可以在 Node.js 中使用，你不需要等待用户去更新浏览器。通过使用不同版本的 Node.js 来切换不同的 ECMAScript 标准。</p><!--more--><p>Node.js 使用 JavaScript 语言，如果你还不太了解 js 可以参考我之前的 8 篇 JavaScript 教程：<a href="https://blog.niekun.net/archives/1979.html">JavaScript 入门教程之一 -- 总览</a></p><h3>海量的第三方库</h3><p>通过 <strong>npm</strong> 简单的结构帮助 Node.js 生态系统快速的增长。目前 <strong>npm</strong> 注册超过 1,000,000 个开源库可供免费使用。</p><h3>hello world</h3><p>web server 是最常见的 hello world 示例。</p><p>新建一个 js 文件，内容如下：</p><pre><code>const http = require('http')
+
+const hostname = '127.0.0.1'
+const port = 8080
+
+const server = http.createServer((req, res) =&gt; {
+  res.statusCode = 200
+  res.setHeader('Content-Type', 'text/plain')
+  res.end('Hello World!\n')
+})
+
+server.listen(port, hostname, () =&gt; {
+  console.log(`Server running at http://${hostname}:${port}/`)
+})</code></pre><p>以上代码首先引入 <strong>http</strong> 模块。Node.js 使用 CommonJS module 系统，使用内建的 <strong>require</strong> 关键词来引入其他文件写好的 module 模块。</p><p>Node.js 有一个很好的标准库：<a href="https://nodejs.org/api/">https://nodejs.org/api/</a>，包含有对 network 的直接支持。</p><p><strong>createServer</strong> method 创建一个新的 http server 并返回它。定义了一个 <strong>requestListener</strong> function，会被自动添加到 <strong>request</strong> event。</p><p><strong>listen</strong> method 定义特定的监听地址和端口。当 server 运行起来后， <strong>listen</strong> method 调用的 function 会被执行，这里我们显示 server 已启动的信息。</p><p>当收到一个 request，会自动调用 <strong>request</strong> event，并传入两个 object：一个 <strong>request</strong> (an http.IncomingMessage object) 和一个 <strong>response</strong> (an http.ServerResponse object)。</p><p>这两个 object 是处理 http 访问的核心。</p><p><strong>request</strong> object 提供了 request 请求的信息，在以上示例中没有使用到这个，但是我们可读取 request header 和 data 数据。</p><p><strong>response</strong> object 用来返回数据给发起请求者，在这里通过：</p><pre><code>res.statusCode = 200
+</code></pre><p>返回一个 200 状态码，表示一次成功的响应。</p><p>然后我们设置一个 header：</p><pre><code>res.setHeader('Content-Type', 'text/plain')
+</code></pre><p>最后我们关闭 response 响应，并将响应内容作为 <strong>end</strong> method 的参数传入：</p><pre><code>res.end('Hello World\n')
+</code></pre><h3>Node.js Frameworks and Tools</h3><p>Node.js 是一个底层平台，为了让开发更加容易，海量的基于 Node.js 的第三方库通过社区建立。它们中的很多已经非常流行，以下是一些常见的第三方库：</p><ul><li><strong>AdonisJs</strong>: A full-stack framework highly focused on developer ergonomics, stability, and confidence. Adonis is one of the fastest Node.js web frameworks.</li><li><strong>Express</strong>: It provides one of the most simple yet powerful ways to create a web server. Its minimalist approach, unopinionated, focused on the core features of a server, is key to its success.</li><li><strong>Fastify</strong>: A web framework highly focused on providing the best developer experience with the least overhead and a powerful plugin architecture. Fastify is one of the fastest Node.js web frameworks.</li><li><strong>Gatsby</strong>: A React-based, GraphQL powered, static site generator with a very rich ecosystem of plugins and starters.</li><li><strong>hapi</strong>: A rich framework for building applications and services that enables developers to focus on writing reusable application logic instead of spending time building infrastructure.</li><li><strong>koa</strong>: It is built by the same team behind Express, aims to be even simpler and smaller, building on top of years of knowledge. The new project born out of the need to create incompatible changes without disrupting the existing community.</li><li><strong>Loopback.io</strong>: Makes it easy to build modern applications that require complex integrations.</li><li><strong>Meteor</strong>: An incredibly powerful full-stack framework, powering you with an isomorphic approach to building apps with JavaScript, sharing code on the client and the server. Once an off-the-shelf tool that provided everything, now integrates with frontend libs React, Vue, and Angular. Can be used to create mobile apps as well.</li><li><strong>Micro</strong>: It provides a very lightweight server to create asynchronous HTTP microservices.</li><li><strong>NestJS</strong>: A TypeScript based progressive Node.js framework for building enterprise-grade efficient, reliable and scalable server-side applications.</li><li><strong>Next.js</strong>: React framework that gives you the best developer experience with all the features you need for production: hybrid static & server rendering, TypeScript support, smart bundling, route pre-fetching, and more.</li><li><strong>Nx</strong>: A toolkit for full-stack monorepo development using NestJS, Express, React, Angular, and more! Nx helps scale your development from one team building one application to many teams collaborating on multiple applications!</li><li><strong>Sapper</strong>: Sapper is a framework for building web applications of all sizes, with a beautiful development experience and flexible filesystem-based routing. Offers SSR and more!</li><li><strong>Socket.io</strong>: A real-time communication engine to build network applications.</li><li><strong>Strapi</strong>: Strapi is a flexible, open-source Headless CMS that gives developers the freedom to choose their favorite tools and frameworks while also allowing editors to easily manage and distribute their content. By making the admin panel and API extensible through a plugin system, Strapi enables the world's largest companies to accelerate content delivery while building beautiful digital experiences.</li></ul><h3>安装</h3><p>在官方下载页面下载对应系统的安装包：<a href="https://nodejs.org/en/download/">https://nodejs.org/en/download/</a></p><p>macOS 可以通过 brew 来安装：</p><pre><code>brew install node
+</code></pre><h3>node.js 和浏览器端的区别</h3><p>浏览器端和 node.js 都是使用 JavaScript 作为编程语言，但他们是完全不同的。</p><p>node.js 可以同时开发前端和后端 application，这样使用一种语言就可以完成所有的开发。</p><p>浏览器中使用 DOM 结构，或者其他 web 平台的 API 如：cookies，这些在 node.js 中都是没有的，<strong>document</strong> 或 <strong>window</strong> 等这些 object 是没有的。</p><p>使用 node.js 由你来控制 environment，你知道 application 所使用的 node.js 是哪个版本的，相比较于浏览器，你并不知道用户使用了什么浏览器。所以你可以使用更加现代的 ES 标准来编写程序。</p><p>另一个区别是 node.js 使用 <strong>CommonJS</strong> 模块系统，浏览器端我们已经可以使用 ES 的标准命令来导入模块了。也就是说 node.js 中使用 <strong>require()</strong> 而浏览器端使用 <strong>import</strong>。</p><h3>参考链接</h3><p><a href="https://nodejs.dev/learn/introduction-to-nodejs">https://nodejs.dev/learn/introduction-to-nodejs</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2043.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2043.html</wfw:commentRss>
+</item>
 <item>
 <title>修复 parallels desktop 16 网络无法连接问题</title>
 <link>https://blog.niekun.net/archives/2040.html</link>
@@ -1281,61 +1312,6 @@ do {
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1990.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1990.html</wfw:commentRss>
-</item>
-<item>
-<title>JavaScript 入门教程之二 -- 基本概念</title>
-<link>https://blog.niekun.net/archives/1985.html</link>
-<guid>https://blog.niekun.net/archives/1985.html</guid>
-<pubDate>Thu, 17 Dec 2020 16:33:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[数学运算符有以下运算符可以使用：加减运算使用方法很简单：var b = 10 + 2;var c = b - 3;document.write(c);]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<h3>数学运算符</h3><p>有以下运算符可以使用：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/2072140588.png" alt="1.png" title="1.png"></p><p><strong>加减运算</strong>使用方法很简单：</p><pre><code>var b = 10 + 2;
-var c = b - 3;
-document.write(c);</code></pre><!--more--><p>可以使用 <code>eval()</code> 来将计算结果转换为字符串形式：</p><pre><code>var d = eval(&quot;10 + 2 + 1&quot;)
-document.write(d);</code></pre><p>d 的结果就是 <code>&quot;13&quot;</code>。</p><p><strong>乘法使用星号<code>*</code> 来表示</strong>，以下三种写法都是正确的：</p><pre><code>var e = 2 * 3;
-var f = 2 * '3';
-var g = '2' * '3';
-document.write(g);</code></pre><p>注意如果尝试对一个字符串进行乘法计算会返回：NaN (Not a Number)：</p><pre><code>var h = 'hello' * 2;
-document.write(h);
-
-//output：
-//NaN</code></pre><p><strong>除法使用斜线<code>/</code> 表示</strong>：</p><pre><code>var i = 1 / 2;</code></pre><p>注意被除数不能为 0。</p><p>取模运算使用<code>%</code> 表示：</p><pre><code>var j = 10 % 3;
-document.write(j);
-
-//output:
-//1</code></pre><p>可以对整数和浮点型数字进行取模运算。</p><p><strong>递增和递减</strong>：</p><p><img src="https://blog.niekun.net/usr/uploads/2020/12/1935080336.png" alt="2.png" title="2.png"></p><p>使用<code>++</code> 表示给对应变量进行加 1 运算，操作符写在变量前则返回加 1 后的值。写在后边返回加 1 前的值。<br>使用<code>--</code> 表示给对应变量进行减 1 运算，操作符写在变量前则返回减 1 后的值。写在后边返回减 1 前的值</p><pre><code>var k = 10;
-var l = k++;
-var m = ++l;
-document.write(m);
-
-//output:
-//11</code></pre><h3>分配符 Assignment Operators</h3><p>可用的分配符有：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/3717535399.png" alt="3.png" title="3.png"></p><p>除了常规用法外，也可以在一行命令中使用多个分配符，例如：</p><pre><code>var n = 4;
-var o = 5;
-o += n += 3;
-document.write(o);
-
-//output:
-//12</code></pre><h3>比较符 Comparison Operators</h3><p>在逻辑判断中使用比较符来比较数据是否有区别。结果为 true 或 false。</p><p>例如可以使用 equal to (==) operator 来比较两个数据是否一样：</p><pre><code>var p = 2;
-document.write(p == 1);
-
-//output:
-//false</code></pre><p>所有的数据类型都可以进行比较，返回值只有 true 和 false。但需要注意比较的两个数据需要是同一类型的。</p><p>以下是可用的比较符：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/218772581.png" alt="4.png" title="4.png"></p><h3>逻辑判断符 Logical Operators</h3><p>逻辑判断符用来评估一个表达式，返回结果为 true 和 false。可用的逻辑判断符为：<strong>AND, OR, NOT</strong>：</p><ul><li><code>&amp;&amp;</code> - AND 如果判断块都为 true，则返回 true</li><li><code>||</code> - OR  如果任何一个判断块为 true，则返回 true</li><li><code>!</code> - NOT  如果判断块为 false，则返回 true</li></ul><p>下面的示例是对两个判断块进行 与<code>AND</code> 操作：</p><pre><code>(4 &gt; 2) &amp;&amp; (1 &lt; 3);</code></pre><p>以上两个判断块都为 true 则整个逻辑判断结果为 true。</p><h3>状况判断符 Conditional (Ternary) Operator</h3><p>状况判断符用来根据一些实际状态给某个变量赋值。语法如下：</p><pre><code>variable = (condition) ? value1: value2 
-</code></pre><p>下面举例说明：</p><pre><code>var age = 20;
-var isAdult = (age &lt; 18) ? &quot;too young&quot; : &quot;old enough&quot;;
-document.write(isAdult);
-
-//OUTPUT:
-//old enough</code></pre><p>以上示例中，如果 age 小于 18 则 isAdult 赋值为 "too young"，如果 age 大于等于 18 则 isAdult 赋值为 "old enough"。</p><h3>字符串操作符 String Operators</h3><p>我们可以使用级联符<code>+</code> 来将多个字符串组合成一个新的字符串。例如：</p><pre><code>var str1 = &quot;this is a &quot;;
-var str2 = &quot;test string&quot;;
-document.write(str1 + str2);
-
-//output:
-// this is a test string</code></pre><p>注意一个数字使用引号括起来后就成了一个字符串，如：<code>&quot;42&quot;</code> 表示一个字符串。。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1985.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1985.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

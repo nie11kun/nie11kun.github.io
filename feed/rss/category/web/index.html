@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2043.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2011.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2002.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1997.html"/>
@@ -18,10 +19,32 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1985.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1979.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1904.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1885.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2043.html">
+<title>node.js 入门教程之一 -- 介绍</title>
+<link>https://blog.niekun.net/archives/2043.html</link>
+<dc:date>2021-01-08T09:28:00+08:00</dc:date>
+<description>Node.js 是一个开源跨平台的 JavaScript 运行环境，它是时下最流行的工具，能够应用于几乎所有的项目。Node.js 运行 V8 JavaScript engine。它是 chrome 的核心，这让 Node.js 可以脱离浏览器运行 JavaScript 代码。一个 Node.js app 运行在一个线程中，不会给每个 request 建立一个进程。Node.js 在其标准库中提供了一个 asynchronous I/O primitives 异步 IO 原生语法库来防止阻塞，同时 Node.js 中的库使用一种 non-blocking paradigms 无阻塞范式，将阻塞作为一种 exception 来处理。当 Node.js 执行 IO 动作，例如读取文件，访问数据库等，不同于等待进程，占用 CPU 资源，Node.js 会在收到 request 响应后再去处理后续操作。这将使 Node.js 可以在一个 server 上同时处理上千条链接而不会引入大量的进程而导致 bug 出现。Node.js 的另一大优势是使用 JavaScript 的前端开发者可以同时编写 server 端的代码而不用学习新的语言。最新的 ECMAScript 标准可以在 Node.js 中使用，你不需要等待用户去更新浏览器。通过使用不同版本的 Node.js 来切换不同的 ECMAScript 标准。Node.js 使用 JavaScript 语言，如果你还不太了解 js 可以参考我之前的 8 篇 JavaScript 教程：JavaScript 入门教程之一 -- 总览海量的第三方库通过 npm 简单的结构帮助 Node.js 生态系统快速的增长。目前 npm 注册超过 1,000,000 个开源库可供免费使用。hello worldweb server 是最常见的 hello world 示例。新建一个 js 文件，内容如下：const http = require('http')
+
+const hostname = '127.0.0.1'
+const port = 8080
+
+const server = http.createServer((req, res) =&gt; {
+  res.statusCode = 200
+  res.setHeader('Content-Type', 'text/plain')
+  res.end('Hello World!\n')
+})
+
+server.listen(port, hostname, () =&gt; {
+  console.log(`Server running at http://${hostname}:${port}/`)
+})以上代码首先引入 http 模块。Node.js 使用 CommonJS module 系统，使用内建的 require 关键词来引入其他文件写好的 module 模块。Node.js 有一个很好的标准库：https://nodejs.org/api/，包含有对 network 的直接支持。createServer method 创建一个新的 http server 并返回它。定义了一个 requestListener function，会被自动添加到 request event。listen method 定义特定的监听地址和端口。当 server 运行起来后， listen method 调用的 function 会被执行，这里我们显示 server 已启动的信息。当收到一个 request，会自动调用 request event，并传入两个 object：一个 request (an http.IncomingMessage object) 和一个 response (an http.ServerResponse object)。这两个 object 是处理 http 访问的核心。request object 提供了 request 请求的信息，在以上示例中没有使用到这个，但是我们可读取 request header 和 data 数据。response object 用来返回数据给发起请求者，在这里通过：res.statusCode = 200
+返回一个 200 状态码，表示一次成功的响应。然后我们设置一个 header：res.setHeader('Content-Type', 'text/plain')
+最后我们关闭 response 响应，并将响应内容作为 end method 的参数传入：res.end('Hello World\n')
+Node.js Frameworks and ToolsNode.js 是一个底层平台，为了让开发更加容易，海量的基于 Node.js 的第三方库通过社区建立。它们中的很多已经非常流行，以下是一些常见的第三方库：AdonisJs: A full-stack framework highly focused on developer ergonomics, stability, and confidence. Adonis is one of the fastest Node.js web frameworks.Express: It provides one of the most simple yet powerful ways to create a web server. Its minimalist approach, unopinionated, focused on the core features of a server, is key to its success.Fastify: A web framework highly focused on providing the best developer experience with the least overhead and a powerful plugin architecture. Fastify is one of the fastest Node.js web frameworks.Gatsby: A React-based, GraphQL powered, static site generator with a very rich ecosystem of plugins and starters.hapi: A rich framework for building applications and services that enables developers to focus on writing reusable application logic instead of spending time building infrastructure.koa: It is built by the same team behind Express, aims to be even simpler and smaller, building on top of years of knowledge. The new project born out of the need to create incompatible changes without disrupting the existing community.Loopback.io: Makes it easy to build modern applications that require complex integrations.Meteor: An incredibly powerful full-stack framework, powering you with an isomorphic approach to building apps with JavaScript, sharing code on the client and the server. Once an off-the-shelf tool that provided everything, now integrates with frontend libs React, Vue, and Angular. Can be used to create mobile apps as well.Micro: It provides a very lightweight server to create asynchronous HTTP microservices.NestJS: A TypeScript based progressive Node.js framework for building enterprise-grade efficient, reliable and scalable server-side applications.Next.js: React framework that gives you the best developer experience with all the features you need for production: hybrid static & server rendering, TypeScript support, smart bundling, route pre-fetching, and more.Nx: A toolkit for full-stack monorepo development using NestJS, Express, React, Angular, and more! Nx helps scale your development from one team building one application to many teams collaborating on multiple applications!Sapper: Sapper is a framework for building web applications of all sizes, with a beautiful development experience and flexible filesystem-based routing. Offers SSR and more!Socket.io: A real-time communication engine to build network applications.Strapi: Strapi is a flexible, open-source Headless CMS that gives developers the freedom to choose their favorite tools and frameworks while also allowing editors to easily manage and distribute their content. By making the admin panel and API extensible through a plugin system, Strapi enables the world's largest companies to accelerate content delivery while building beautiful digital experiences.安装在官方下载页面下载对应系统的安装包：https://nodejs.org/en/download/macOS 可以通过 brew 来安装：brew install node
+node.js 和浏览器端的区别浏览器端和 node.js 都是使用 JavaScript 作为编程语言，但他们是完全不同的。node.js 可以同时开发前端和后端 application，这样使用一种语言就可以完成所有的开发。浏览器中使用 DOM 结构，或者其他 web 平台的 API 如：cookies，这些在 node.js 中都是没有的，document 或 window 等这些 object 是没有的。使用 node.js 由你来控制 environment，你知道 application 所使用的 node.js 是哪个版本的，相比较于浏览器，你并不知道用户使用了什么浏览器。所以你可以使用更加现代的 ES 标准来编写程序。另一个区别是 node.js 使用 CommonJS 模块系统，浏览器端我们已经可以使用 ES 的标准命令来导入模块了。也就是说 node.js 中使用 require() 而浏览器端使用 import。参考链接https://nodejs.dev/learn/introduction-to-nodejs</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2011.html">
 <title>JavaScript 入门教程之八 -- ES6</title>
 <link>https://blog.niekun.net/archives/2011.html</link>
@@ -1261,23 +1284,5 @@ var b = &quot;john&quot;;如果要在 string 内部使用也引号，可以通�
 <link>https://blog.niekun.net/archives/1904.html</link>
 <dc:date>2020-11-11T10:42:14+08:00</dc:date>
 <description>安装包：https://nextcloud.com/changelog/#latest20系统需求：https://docs.nextcloud.com/server/20/admin_manual/installation/system_requirements.htmlnginx 配置：https://docs.nextcloud.com/server/18/admin_manual/installation/nginx.htmlphp 配置相关：https://docs.nextcloud.com/server/20/admin_manual/installation/source_installation.html#php-fpm-tips-label修改 php 内存限制：https://www.chinaz.com/program/2011/1010/213048.shtml安装 php 内存缓存：https://docs.nextcloud.com/server/15/admin_manual/configuration_server/caching_configuration.html命令行安装：https://docs.nextcloud.com/server/stable/admin_manual/installation/command_line_installation.html</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1885.html">
-<title>子网-子网掩码-子网地址的含义解析</title>
-<link>https://blog.niekun.net/archives/1885.html</link>
-<dc:date>2020-10-27T22:32:00+08:00</dc:date>
-<description>互联网设备之间是通过分配给每台主机的 IP 地址实现访问的，当前是以 32 位 IPv4 地址作为标准。为了便于使用，每 8 位用点.来隔开，习惯使用十进制形式表示，如：192.168.88.3Decimal  192         168         88           3
-Binary   11000000    10101000    01011000     00000011理论上可以分配 2 的 32 次方个 IP 地址。子网IP 地址可以划分为多个子集，也就是子网。比如一个路由器上连接的设备就在一个子网系统下，每个设备分配的 IP 地址就是子网网段内的地址。子网的优势是设备间的访问更加直接，内部设备不需要连接子网以外的网络就可以实现内部互通。管理员对子网内的维护也更加方便，不会影响子网外的网络。子网的 IP 段是一个连续的区间，如：192.168.1.0～192.168.1.255，在这个子网内的主机分配的 IP 地址最后一段就在 0～255 之间，其中第一个 192.168.0.0 是子网地址，最后一个 192.168.1.255 是广播地址，这两个地址是默认占用的，不能分配给主机使用。子网掩码子网掩码是为了能更加方便清晰的表达子网网段范围而被使用的。一个典型的子网掩码格式：255.255.255.128，写成二进制如下：11111111.11111111.11111111.10000000如果子网内的一个主机 IP 地址为：192.168.88.3，我们和子网掩码按位进行与操作：192.168.88.3     11000000    10101000    01011000    00000011
-255.255.255.128  11111111    11111111    11111111    10000000
-192.168.88.0     11000000    10101000    01011000    00000000最后一行是结果写成十进制为：192.168.88.0，这就是子网的第一个 IP 地址，也就是子网地址。子网掩码内为1的位对应的 IP 位是子网的固定位，这些位在网段内是固定不变的，也就是以上示例中前 25 位 IP 地址都是子网固定位，后 7 位就是子网可分配的地址位，可分配的地址如下：192.168.88.0     1000000    10101000    01011000    00000000
-192.168.88.127   1000000    10101000    01011000    01111111此子网网段 IP 就是：192.168.88.0～192.168.88.127，可分配给主机的地址为：192.168.88.1～192.168.88.126子网完整的表述形式为：子网地址：192.168.88.0；子网掩码：225.225.225.128也可以使用 CIDR 的形式描述：192.168.88.0/25，此方式更加简洁。关于 CIDR 的形式参考我的文章：https://blog.niekun.net/archives/399.html子网掩码可分配位必须是连续的位，比如：必须是连续的32/31/30位为0，而不能是32/30位0，31位为1。所以子网掩码的可用编码就大大缩小的范围，比如固定位为前24位：255.255.255，后8位可用的编码方式只能在一下几种中选择：00000000    0
-10000000    128
-11000000    192
-11100000    224
-11110000    240
-11111000    248
-11111100    252
-11111110    254
-11111111    255以上就是子网系统的简单介绍。参考连接Use subnetting to get the most out of your networkWhat is a broadcast address and how does it work?IP地址，子网掩码计算子网地址，广播地址，子网划分</description>
 </item>
 </rdf:RDF>
