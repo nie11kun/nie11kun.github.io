@@ -6,11 +6,105 @@ xml:base="https://blog.niekun.net/category/dev/"
 >
 <title type="text">Marco Nie - Program</title>
 <subtitle type="text"></subtitle>
-<updated>2020-12-16T16:59:00+08:00</updated>
+<updated>2021-01-14T11:58:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/dev/" />
 <id>https://blog.niekun.net/feed/atom/category/dev/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/dev/" />
+<entry>
+<title type="html"><![CDATA[c++ 类型转换]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2066.html" />
+<id>https://blog.niekun.net/archives/2066.html</id>
+<updated>2021-01-14T11:58:00+08:00</updated>
+<published>2021-01-14T11:58:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[Implicit conversion 隐式转换当一个数据复制为兼容格式的类型时，隐式转换可以自动完成。请看下面示例：double a = 100.1;int b;b = a;cout &amp;lt;...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2066.html" xml:lang="zh-CN"><![CDATA[
+<h3>Implicit conversion 隐式转换</h3><p>当一个数据复制为兼容格式的类型时，隐式转换可以自动完成。</p><p>请看下面示例：</p><pre><code>double a = 100.1;
+int b;
+b = a;
+cout &lt;&lt; b &lt;&lt; endl;
+
+//output:
+//100</code></pre><!--more--><p>以上示例中，我们将 <strong>double</strong> 类型的数据复制给 <strong>int</strong> 类型的变量，不会引起语法报错，这就是 <strong>Implicit</strong> 隐式类型转换，也叫 <strong>standard conversion</strong> 标准转换。标准转换对一些基本的数据类型有效，能够对一些 <strong>numerical</strong> 数值类型的数据间进行转换，如：double to int，int to float，short to double，int to bool 等，也可以在 pointer 指针类型间转换。</p><p>从小一些的整型如 short 转换到 int 类型，或者从 float 类型转换到 double 类型，这种转换过程叫做 <strong>promotion</strong> 晋升操作。这种转换可以确保原始数据完整的复制到目标数据类型中。</p><p>其他数学运算类型间的转换可能不一定会完整的保留原始数据，下面是几种情况举例：</p><ul><li>一个负整数转换为 unsigned 类型，结果为 unsigned 类型数据所能表达的最大值数据</li><li>转换为 bool 类型的数据时，对于数值类型原始数据为 0 时，对于指针类型指针数据为 null pointer 时，对应转换为 false。原始数据为所有其他情况时，转换结果为 true。</li><li>浮点型数据转换为整型数据，数据会被截取整数部分，如果数据结果超出目标数据类型所能表达的最大值，会得到 undefined</li></ul><p>我们可以看到，隐式转换可能会带来数据精度的丢失，编译器此时会提示一条 warning 警告。可以通过使用 <strong>explicit conversion</strong> 显式转换来避免警告信息。</p><h3>class 的隐式转换</h3><p>class 中的隐式转换通过以下三个 function 控制：</p><ul><li>单参数的 constructors 允许从一个特定类型的数据隐式转换构造为一个 object</li><li>通过等号操作符 Assignment operator 复用来隐式转换</li><li>类型传播符 Type-cast 来隐式转换为特定的类型</li></ul><p>下面示例解释各种方式的含义：</p><pre><code>class A {};
+
+class B {
+public:
+    B(A a) {} //constructor: conversion from A
+    B operator=(A a) {return *this;} // assignment operator: conversion from A
+    operator A() {return A();} // type-cast: conversion to A
+};
+
+int main()
+{
+    A a; // instance a
+    B b = a; // constructor b from a
+    B c(a); // constructor c from a
+    b = a; // assignment a to b
+    a = b; // convert b to A type and assignment to a
+
+    return 0;
+}</code></pre><p>以上实例分别介绍了三种隐式转换的方式。</p><ul><li>构造器的一个传入参数为 A 类型数据，也就是等同于可以将 A 类型因素转换为 B 类型</li><li>通过操作符复用将等号<code>=</code> 重新定义，等号右边的为 A 类型数据时，以A类型数据作为构造器参数返回 B 类型 object 指针</li><li>当执行 B 类型数据赋值给 A 类型时，会通过类型传播符定义的 function 返回 A 类型 object</li></ul><p>构造器初始化 object时，当只有一个参数时，就相当于把传入数据转换为对应 object 类型了。上面示例中可以看到，有两种方法来构造 object：</p><pre><code>B b = a; // constructor b from a
+B c(a); // constructor c from a</code></pre><p>以上两种方式都是将 a 作为初始化参数构造 B 类型的 object。</p><p>编写了等号操作符复用后，对某个指定类型的外部 object 进行等号操作时就会将其转换为当前 object 类型，而不会报错。</p><p>通过类型传播符可以将 object 转换为其他指定类型的 object。</p><p>关于操作符复用的语法参考我之前的教程：<a href="https://blog.niekun.net/archives/1920.html">https://blog.niekun.net/archives/1920.html</a></p><h3>explicit 关键词</h3><p>当调用一个 function 时，对于其传递参数 c++ 允许进行隐式转换，这在一些情况下会引起一些问题，因为我们并不是所有情况下都希望自动进行转换的。</p><p>在以上示例中加入 function：</p><pre><code>void function(B b) {}
+</code></pre><p>此 function 有一个 B 类型的参数，但是在实际调用中，由于 B 中定义了 A 的隐式转换相关模块，所以我们在这里可以将 A 类型数据作为传入数据：</p><pre><code>fun(a);
+</code></pre><p>实际中我们可能并不需要这种转换，我们希望的是这里只能将 B 类型数据作为传入参数。通过关键词 <strong>explicit</strong> 来定义 constructor 可以实现这个需求，修改 B 的 constructor：</p><pre><code>explicit B(A a) {}
+</code></pre><p>再次执行程序，会发现以下几个指令会报错：</p><pre><code>B b = a;
+fun(a);</code></pre><p>通过 关键词 <strong>explicit</strong> 定义 constructor 的 class 不能通过 assignment 赋值符来初始化 object，也不能对 function 的传入参数进行隐式转换。</p><h3>explicit conversion 显式转换</h3><p>c++ 是一种严格区分数据类型的语言，对于那些会影响数据本身的转换，需要进行 explicit conversion 显式转换也叫做 <strong>type-casting</strong>。</p><p>在过去的语法中有两种常规的 type-casting 方式：</p><pre><code>double e = 10.11;
+int f = int(e);
+int g = (int)e;</code></pre><p>第一种叫做 function 样式，第二种叫做 c-like C语言模式。</p><p>对于那些基础数据类型的数据，这种转换模式没有什么问题，但这种语法对于 class 和 pointer 类型数据也会不加判断的进行转换，从而导致运行时的 runtime error。</p><p>为了控制这些在 class 间进行转换的过程，新版 c++ 提供了 4 种 <strong>casting operators</strong> 传播符来供不同场景下使用：</p><ul><li>dynamic_cast &lt;new_type&gt; (expression)</li><li>reinterpret_cast &lt;new_type&gt; (expression)</li><li>static_cast &lt;new_type&gt; (expression)</li><li>const_cast &lt;new_type&gt; (expression)</li></ul><h4>dynamic_cast</h4><p><strong>dynamic_cast</strong> 只能用于某个 class 或(void*) 的指针。他的作用是确保转换后的目标类型指针指向的是一个完整有效的 object，而不是空 object。例如，从 derived class 指针转换为 base class 指针。但是对于多态化的 polymorphic class(包含 virtual 元素的 class)，当且仅当指向的 object 是一个完整有效的目标 object 类型，使用 <strong>dynamic_cast</strong> 就可以从 base class 指针转换为 derived class 指针，请看如下示例：</p><pre><code>class Base { virtual void dummy() {} };
+class Derived: public Base {int a;};
+
+int main()
+{
+    try {
+        Base *b1 = new Base;
+        Base *b2 = new Derived;
+        Derived *d;
+
+        d = dynamic_cast&lt;Derived*&gt;(b1);
+        if (d == 0)
+            cout &lt;&lt; &quot;null pointer on first type cast&quot; &lt;&lt; endl;
+
+        d = dynamic_cast&lt;Derived*&gt;(b2);
+        if (d == 0)
+            cout &lt;&lt; &quot;null pointer on second type cast&quot; &lt;&lt; endl;
+    } catch(exception e) {
+        cout &lt;&lt; e.what() &lt;&lt; endl;
+    }
+    return 0;
+}
+
+//output:
+//null pointer on first type cast</code></pre><p>以上示例中，我们建立了 <strong>Base</strong> class 和 <strong>Derived</strong> class，其中 <strong>Base</strong> 含有一个 <strong>virtual</strong> function。然后我们创建两个 <strong>Base</strong> 类型指针，两个指针分别预分配类型为 <strong>Base</strong> 和 <strong>Derived</strong>。在之前的 c++ 教程中提到过可以新建 <strong>base</strong> 类型的变量然后使用 <strong>derived</strong> 类型数据，需要了解的可以查看：<a href="https://blog.niekun.net/archives/1927.html">https://blog.niekun.net/archives/1927.html</a>。然后我们创建一个 <strong>Derived</strong> 类型指针，使用 <strong>dynamic_cast</strong> 分别将上面建立的两个 <strong>Base</strong> 类型指针转换为 <strong>Derived</strong> 类型。</p><p>由于 <strong>b2</strong> 虽然是 <strong>Base</strong> 类型指针，但是我们预分配内存类型为 <strong>Derived</strong> 类型，所以它其实包含了 <strong>Derived</strong> object 所有属性。这样转换后的类型为完整的 <strong>Derived</strong> 类型指针。所以 <strong>d</strong> 指针不为空。而 <strong>b1</strong> 完全是 <strong>Base</strong> 类型指针，所以转换后的类型是不完整的 <strong>Derived</strong> 类型指针，所以赋值后结果为空。</p><p><strong>dynamic_cast</strong> 可以将任意指针转换为 <strong>void</strong>* 类型指针。</p><h4>static_cast</h4><p><strong>static_cast</strong> 可以转换任意相关联 class 类型的指针。不仅仅从 derived 到 base，也可以从 base 到 derived。不会判断是否转换到目标指针是完整的数据类型，所以完全由编程人员判断转换操作是否是安全的。相比于 <strong>dynamic_cast</strong> 有更大适用范围。</p><p>以下示例语法不会报错：</p><pre><code>class Base {};
+class Derived: public Base {};
+
+Base * a = new Base;
+Derived * b = static_cast&lt;Derived*&gt;(a);</code></pre><p>b 指针会得到一个不完整的 Derived 类型数据，运行时可能报错。因此，使用 <strong>static_cast</strong> 不仅可以转换那些直接支持隐式转换的 class 指针，也可以在那些不支持转换的 class 间进行转换。</p><p>我们测试在其他数据将进行转换：</p><pre><code>double a = 12.23;
+int b = static_cast&lt;int&gt;(a);
+cout &lt;&lt; b &lt;&lt; endl;
+
+//OUTPUT:
+//12</code></pre><p>以上，我们将 double 类型的数据转换为 int 类型，这种转换可以直接通过隐式转换完成，但是使用显式转换语法实现更加明确清晰。但前提是原类型和目标类型必须是 related 有关联的 object 类型。</p><h4>reinterpret_cast</h4><p><strong>reinterpret_cast</strong> 可以将任意类型指针转换为其他任意类型指针，甚至是完全没有关联的两个类型。转换的过程就是将源数据的二进制数据复制到新指针地址。相比于 <strong>static_cast</strong> 有更大适用范围。</p><p>以下代码可以正常执行：</p><pre><code>class A { /* ... */ };
+class B { /* ... */ };
+A * a = new A;
+B * b = reinterpret_cast&lt;B*&gt;(a);</code></pre><p>此时 b 指针指向的是一个和 B 类型完全不相干的数据，此时访问 b 指向的数据是不安全的。</p><h3>const_cast</h3><p><strong>const_cast</strong> 可以操作 const 类型的指针数据，例如当一个 function 需要非 const 类型传入数据时，可以通过 <strong>const_cast</strong> 进行转换。</p><p>请看下面示例：</p><pre><code>void test(int a) {
+    cout &lt;&lt; a &lt;&lt; endl;
+}
+
+const int a = 10;
+test(a);</code></pre><p>以上示例中，调用 test function 会报错，因为传入参数需要是非 const 类型的数据。</p><p>修改以上代码：</p><pre><code>const int a = 10;
+int *b = const_cast&lt;int*&gt;(&amp;a);
+test(*b);
+
+//output:
+//10</code></pre><p>通过 <strong>const_cast</strong> 将 <strong>const int\<strong><em> 转换为 </strong>int\</em></strong>，这样就可以在 function 中使用了。</p><h3>参考链接</h3><p><a href="http://www.cplusplus.com/doc/tutorial/typecasting/">Type conversions</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2066.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2066.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[QT 网络应用]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1973.html" />
@@ -791,307 +885,5 @@ Enemy! - 30</code></pre><p>这就是多态化 class 的优势，不同的 derive
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1927.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1927.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[C++ 入门教程之六 -- Classes 实践/头文件/操作符复用]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1920.html" />
-<id>https://blog.niekun.net/archives/1920.html</id>
-<updated>2020-11-21T16:42:00+08:00</updated>
-<published>2020-11-21T16:42:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[下面我们通过实际应用来介绍如果在真实环境下应用。我们使用 Code::Blocks IDE 来进行调试。这是一个免费的 c++ 开发环境，能够应用于绝大多数使用场景。官网：http://www....]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1920.html" xml:lang="zh-CN"><![CDATA[
-<p>下面我们通过实际应用来介绍如果在真实环境下应用。</p><p>我们使用 Code::Blocks IDE 来进行调试。这是一个免费的 c++ 开发环境，能够应用于绝大多数使用场景。</p><p>官网：<a href="http://www.codeblocks.org/">http://www.codeblocks.org/</a></p><p>在下载界面下载对应系统版本的安装包：<a href="http://www.codeblocks.org/downloads/26">http://www.codeblocks.org/downloads/26</a></p><p>最好安装带编译器的版本，这样就可以直接使用。</p><!--more--><h3>新建项目</h3><p>安装好 codeblock 后新建一个项目：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/1876839618.jpg" alt="1.jpg" title="1.jpg"></p><p>选择 console application：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/2657179757.jpg" alt="2.jpg" title="2.jpg"></p><p>根据提示设置项目名称等，完成项目建立。</p><p>然后添加一个 class：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/1562291612.jpg" alt="3.jpg" title="3.jpg"></p><p>设置 class 名称，取消勾选 <strong>has destructor</strong>，勾选 <strong>headers and implementation file shall be in same folder</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/896044646.jpg" alt="4.jpg" title="4.jpg"></p><p>完成后项目结构如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/3323508351.jpg" alt="5.jpg" title="5.jpg"></p><ul><li><strong>main.cpp</strong> 项目主文件</li><li><strong>MyClass.cpp</strong> class source 源文件</li><li><strong>MyClass.h</strong> class header 头文件</li></ul><h3>头文件和源文件</h3><p>头文件 <code>.h</code> 申明了 class 的 function 和 variable 变量等元素，我们新建的 class 头文件内容如下：</p><pre><code>#ifndef MYCLASS_H
-#define MYCLASS_H
-
-
-class MyClass
-{
-    public:
-        MyClass();
-
-    protected:
-
-    private:
-};
-
-#endif // MYCLASS_H</code></pre><p>里面只默认包含了一个 constructor 构造器 <code>MyClass()</code>。</p><p>源文件 <code>.cpp</code> 包含了这个 class 具体 function 和 variable 等元素的实现过程。当前只有一个空的构造器 function：</p><pre><code>#include &quot;myclass.h&quot;
-
-MyClass::MyClass()
-{
-    //ctor
-}</code></pre><p><strong>范围解析符：</strong><br>我们注意到源文件内构造器前的两个冒号<code>::</code>，叫做 scope resolution operator 范围解析符。这个符号是用来表示那些已经在头文件内申明过的 function 要在这里做具体实现了。用来和头文件内定义的元素进行关联的作用。</p><p>关于<code>::</code>和<code>.</code>的使用场景我的理解是，当在定义一个元素或功能时用范围解析符<code>::</code>，当实例化object后使用其一个元素或功能时用点<code>.</code>，例如：</p><pre><code>//定义一个元素为class内的一个att1类型：
-MyClass1::att1 a;
-
-//使用class的function：
-MyClass2 obj;
-obj.func();</code></pre><p>要在 main 总使用我们创建的 class，只需要在其中引用头文件名即可:</p><pre><code>#include &lt;iostream&gt;
-#include &quot;myclass.h&quot;
-
-using namespace std;
-
-int main()
-{
-    MyClass obj;
-    return 0;
-}</code></pre><p><strong>总体来说，头文件用来定义 class 提供了哪些功能及元素，源文件用来具体实现这些功能。</strong></p><h3>destructor 销毁器</h3><p>和上一章我们讲到的 constructor 构造器类似，destructor 销毁器也是一个特殊的 function，他在 object 被销毁时自动执行。</p><p>销毁一个 object 一般是在跳出创建这个 object 的 scope 段或者使用 pointer 指针指向这个 object，使用 delete 指令清除此指针指向的数据。</p><p>销毁其的写法和构造器类似，使用 class 名作为 function 名字，前面加上一个波浪符<code>~</code>。当然也是没有返回值类型的。例如：</p><pre><code>class MyClass {
-  public: 
-    ~MyClass() {
-     // some code
-    }
-};</code></pre><p><strong>使用销毁器能够方便的实现在关闭程序时释放资源，关闭文件，释放内存等功能。</strong></p><p>在头文件中声明一个销毁器：</p><pre><code>class MyClass
-{
-  public:
-   MyClass();
-   ~MyClass();
-};</code></pre><p>然后再源文件内定义具体实现内容：</p><pre><code>#include &quot;MyClass.h&quot;
-#include &lt;iostream&gt;
-using namespace std;
-
-MyClass::MyClass()
-{
-  cout&lt;&lt;&quot;Constructor&quot;&lt;&lt;endl;
-}
-
-MyClass::~MyClass()
-{
-  cout&lt;&lt;&quot;Destructor&quot;&lt;&lt;endl;
-}</code></pre><p><strong>不同于构造器，销毁器不能使用参数，也不能被重写，也就是一个 class 只能有一个销毁器。销毁器不是必须有的，不需要的话可以不写</strong></p><p>返回我们的 main，我们已经定义了一个 object <code>MyClass obj</code>，编译运行程序，会在终端输出以下：</p><pre><code>Constructor
-Destructor</code></pre><h3>选择符</h3><p>使用选择符 <code>-&gt;</code> 可以访问一个指针指向的 object 的元素。例如：</p><pre><code>MyClass obj;
-MyClass *ptr = &amp;obj;
-ptr-&gt;myPrint();</code></pre><p>我们创建了 object <code>obj</code> 然后定义一个指针 <code>ptr</code> 指向这个 object 的地址，然后我们可以使用选择符来访问 object 的元素。</p><p><strong>object 元素访问基本原则：</strong></p><ul><li>如果直接面对 object，使用<strong>点</strong><code>.</code> 来访问 object 的元素，如：<code>obj.myPrint()</code></li><li>如果使用面对指针指向的 object，使用<strong>选择符</strong><code>-&gt;</code> 来访问 object 的元素，如：<code>ptr-&gt;myPrint()</code></li></ul><h3>constants 常数</h3><p>常数就是一个有固定值的表达式，它的只在程序运行期间不能够被改变，使用关键词<code>const</code> 定义一个有固定值的变量：</p><pre><code>const int a=2;
-</code></pre><p>注意所有 const 类型的变量必须在创建时给其赋值。</p><p>我们可以创建一个 const 类型的 object：</p><pre><code>const MyClass obj;
-</code></pre><p>object 内所有的 variable 变量必须在初始化时赋值，一般在 constructor 构造器内完成，实例化的时候直接给其传递数据。如果没有提供构造器完成参数初始化赋值，会引起编译器报错。</p><p>一旦一个 const 类型的 object 被创建，它内部的所有 variable 变量的值都不可以被改变了，包括直接修改 public 段的变量或者使用 function 修改 private 的变量都不可以。</p><p>只有非 const 的 object 才可以调用非 const 的 function。对于 const 的 object 不能只能调用 const 的 function，定义一个 const 的 function 只需要在后面加上关键词 const，头文件定义示例如下：</p><pre><code>class MyClass
-{
-  public:
-    void myPrint() const;
-};</code></pre><p>源文件同样的方式：</p><pre><code>#include &quot;MyClass.h&quot;
-#include &lt;iostream&gt;
-using namespace std;
-
-void MyClass::myPrint() const {
-  cout &lt;&lt;&quot;Hello&quot;&lt;&lt;endl;
-}</code></pre><p>然后我们就可以实例化一个 const 的 object 使用厘米俺的 const function：</p><pre><code>int main() {
-  const MyClass obj;
-  obj.myPrint();
-}
-// Outputs &quot;Hello&quot;</code></pre><p>在一个 const object 调用常规的 function 会引起报错。同时在 const function 内尝试修改 object 内某变量数据也会报错。</p><h3>元素初始化器</h3><p>const 类型的元素数据不能够被改变，且必须在创建时赋值。c++ 提供了一个语法结构来给 class 内元素进行初始化叫做：constructor initializer list 构造器初始化列表。</p><p>以下示例执行会引起报错，因为在 function 中操作的元素有 const 类型的元素：</p><pre><code>class MyClass {
-  public:
-   MyClass(int a, int b) {
-    regVar = a;
-    constVar = b;
-   }
-  private:
-    int regVar;
-    const int constVar;
-};</code></pre><p>const 类型元素在申明后不能再对其修改。</p><p>这时候就需要使用 构造器初始化列表来对其初始化赋值：</p><pre><code>class MyClass {
- public:
-  MyClass(int a, int b)
-  : regVar(a), constVar(b)
-  {
-  }
- private:
-  int regVar;
-  const int constVar;
-};</code></pre><p>需要初始化的元素列表下载构造器后，前面使用一个冒号<code>:</code>，每个元素间使用逗号<code>,</code> 分隔。使用语法 <code>variable(value)</code> 来对其赋值。<strong>结尾不需要加分号<code>;</code></strong>。</p><p>使用构造器初始化列表可以用来避免将需要初始化的 const 类型参数放在其 body 内处理而引起错误。</p><p><strong>修改我们的项目文件：</strong></p><p>MyClass.h:</p><pre><code>#ifndef MYCLASS_H
-#define MYCLASS_H
-
-
-class MyClass
-{
-    public:
-        MyClass(int a, int b);
-        ~MyClass();
-
-    protected:
-
-    private:
-        int regVar;
-        const int constVar;
-};
-
-#endif // MYCLASS_H</code></pre><p>MyClass.cpp:</p><pre><code>#include &quot;myclass.h&quot;
-#include &lt;iostream&gt;
-
-using namespace std;
-
-MyClass::MyClass(int a, int b)
-: regVar(a), constVar(b)
-{
-    cout &lt;&lt; regVar &lt;&lt; endl;
-    cout &lt;&lt; constVar &lt;&lt; endl;
-}
-
-MyClass::~MyClass()
-{
-    cout &lt;&lt; &quot;destructor&quot; &lt;&lt; endl;
-}</code></pre><p>main.cpp：</p><pre><code>#include &lt;iostream&gt;
-#include &quot;myclass.h&quot;
-
-using namespace std;
-
-int main()
-{
-    MyClass obj(42, 33);
-
-    return 0;
-}</code></pre><p>输出结果为：</p><pre><code>42
-33
-destructor</code></pre><p>注意构造器初始化列表也可以应用于常规变量，但是必须应用于 const 变量。</p><h3>结构化</h3><p>在真实世界中一个 object 可能是很复杂的，由很多其他简单的 objects 构成。例如一辆汽车的组成部分有车身，发动机，轮胎等。这一组合过程叫做结构化。</p><p>在 c++ 中，一个 class 可能作为另一个 class 的元素。下面的例子中我们构建两个 class：Person 和 birthday，且 Person 中包含 Birthday 作为一个元素。</p><p>birthday.h:</p><pre><code>#ifndef BIRTHDAY_H
-#define BIRTHDAY_H
-
-class Birthday
-{
-    public:
-        Birthday(int m, int d, int y);
-        void printDate();
-
-    protected:
-
-    private:
-        int month;
-        int day;
-        int year;
-};
-
-#endif // BIRTHDAY_H</code></pre><p>birthday.cpp: 注意将 function 返回类型放在范围解析符前</p><pre><code>#include &quot;birthday.h&quot;
-#include &lt;iostream&gt;
-
-using namespace std;
-
-Birthday::Birthday(int m, int d, int y)
-: month(m), day(d), year(y)
-{
-}
-
-void Birthday::printDate()
-{
-    cout &lt;&lt; month &lt;&lt; &quot;/&quot; &lt;&lt; day &lt;&lt; &quot;/&quot; &lt;&lt; year &lt;&lt; endl;
-}</code></pre><p>persion.h:</p><pre><code>#ifndef PERSON_H
-#define PERSON_H
-#include &quot;birthday.h&quot;
-#include &lt;string&gt;
-
-using namespace std;
-
-class Person
-{
-    public:
-        Person(string n, Birthday b);
-        void printInfo();
-
-    protected:
-
-    private:
-        string name;
-        Birthday bd;
-};
-
-#endif // PERSON_H</code></pre><p>persion.cpp:</p><pre><code>#include &quot;person.h&quot;
-#include &lt;iostream&gt;
-
-using namespace std;
-
-Person::Person(string n, Birthday b)
-: name(n), bd(b)
-{
-}
-
-void Person::printInfo()
-{
-    cout &lt;&lt; name &lt;&lt; endl;
-    bd.printDate();
-}</code></pre><p>Person 包含 name 和 Birthday 两个元素，且在构造器内对其初始化。</p><p>结构化的意义是建立一种<code>包含</code>关系，即 Person 中包含一个 Birthday。在 Person 中有一个 <code>printInfo()</code> 来输出信息，bd 是 Birthday 的实例，所以可以直接使用其 function。</p><p>在 main 中实例化测试：</p><pre><code>#include &quot;person.h&quot;
-#include &quot;birthday.h&quot;
-
-using namespace std;
-
-int main()
-{
-    Birthday bd(11, 25, 1989);
-    Person p(&quot;Marco&quot;, bd);
-    p.printInfo();
-
-    return 0;
-}</code></pre><p>以上示例中，我们首先创建一个 Birthday 的 object 并初始化参数，然后创建一个 Person 的 object 并初始化参数，其中第二个参数使用第一步创建的 object 作为数据，最后调用 Person object 的 function 来输出信息。</p><p>结构化的优势是保持每个 class 相对简单，专注于一个任务。同时让每个各个 object 保持独立性，和可复用性。</p><h3>friend 关键词</h3><p>位于 private 段的 class 里的元素默认无法被外界直接访问，但可以通过在 class 内申明一个并非 class 内部的 friend function 来实现对 private 元素的读取。</p><p>使用关键词 <code>friend</code> 来定义，在 MyClass 头文件中修改如下：</p><pre><code>#ifndef MYCLASS_H
-#define MYCLASS_H
-
-class MyClass
-{
-    public:
-        MyClass(int a, int b);
-        ~MyClass();
-
-    protected:
-
-    private:
-        int regVar;
-        const int constVar;
-
-    friend void readPriv(MyClass *obj);
-};
-
-#endif // MYCLASS_H
-};</code></pre><p>我们在 class 中申明一个 function，传入参数为 class 本身，注意传入的模式是 by reference 也就是传入 object 的地址。详细说明参考：<a href="https://blog.niekun.net/archives/1915.html">C++ 入门教程 -- Functions</a></p><p>然后再外部定义 someFunc 的内容，我直接在 main 中定义，并测试读取 private 参数：</p><pre><code>#include &quot;myclass.h&quot;
-#include &lt;iostream&gt;
-
-using namespace std;
-
-void readPriv(MyClass *obj)
-{
-    cout &lt;&lt; obj-&gt;constVar &lt;&lt; endl;
-}
-
-int main()
-{
-    MyClass a(42, 33);
-    MyClass *b = &amp;a;
-    readPriv(&amp;a);
-
-    return 0;
-}</code></pre><p>输出结果为：</p><pre><code>33
-</code></pre><p>再定义 friend function 时，传入 by reference 参数可以写成 <code>*obj</code> 也可以写成 <code>&amp;obj</code>。只是在后续 function 内容中使用 <code>.</code> 还是 <code>-&gt;</code> 调用内部功能。然后再调用 friend function 时是传入 object 地址还是直接传入 object 本身。</p><p><strong>friend function 不属于任何 class。</strong></p><h3>this 关键词</h3><p>每个 c++ object 都有一个指向本身的指针叫做：this。在 object 内部 function 中，可以通过使用 this 指针来引用 object 自身。</p><p>我们建立一个简单的 class：</p><pre><code>class MyClass {
- public:
-  MyClass(int a)
-  : var(a)
-  { }
-  void printInfo() {
-   cout &lt;&lt; var &lt;&lt; endl;
-   cout &lt;&lt; this-&gt;var &lt;&lt; endl;
-   cout &lt;&lt; (*this).var &lt;&lt; endl; 
-  }
- private:
-  int var;
-};</code></pre><p><code>printInfo()</code> 中的三条指令会得到相同的结果。this 是一个指针，所以使用 <code>-&gt;</code> 来读取对应地址的数据，也可以使用 <code>*this</code> 数据查询符来表示此地址下的数据。可以参考教程：<a href="https://blog.niekun.net/archives/1898.html">C++ 入门教程 -- 数据类型，数组及指针</a></p><h3>操作符复用</h3><p>大多数 c++ 中的操作符都可以被重新定义。因此让我们自定义的数据类型进行运算操作，比如将两个 object <code>+</code> 加起来。</p><p>以下列表中的操作符可以被复用：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/2807033593.png" alt="1.png" title="1.png"></p><p>不能被复用的符号有：<code>: | .* | . | ?:</code></p><p>我们定义一个简单的 class：</p><pre><code>class MyClass {
- public:
-  int var;
-  MyClass(int a)
-  : var(a)
-  { }
-};</code></pre><p>下面示例我们将重新定义加号<code>+</code> 来让两个 object 可以加起来。</p><p>定义复用操作符其实是一个 function，通过关键词 operator 和操作符来定义，类似于普通 function，这里也有返回类型和传入数据项需要定义，以下示例中，我们复用加号<code>+</code>，然后返回值为一个此 class 本身的 object，传入数据为一个 object 地址：</p><pre><code>class MyClass {
- public:
-  int var;
-  MyClass(int a)
-  : var(a) { }
-
-  MyClass operator+(MyClass &amp;obj) {
-   MyClass res;
-   res.var = this-&gt;var+obj.var;
-   return res; 
-  }
-};</code></pre><p>再复用操作符 function 中，我们定义了一个 新的 object，然后使用 <code>this</code> 调用此 object 本身的参数 <code>var</code> 和传入 object 的 <code>var</code> 相加，结果放入新建立的 object 的 <code>var</code> 内，最后返回这个新 object。</p><p>这样定义后，我们就可以直接使用操作符来做运算了：</p><pre><code>int main() {
-  MyClass obj1(12), obj2(55);
-  MyClass res = obj1 + obj2;
-
-  cout &lt;&lt; res.var;
-}
-
-//Outputs 67</code></pre><p>以上就是 class 的基本使用方法。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1920.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1920.html" thr:count="0"/>
 </entry>
 </feed>

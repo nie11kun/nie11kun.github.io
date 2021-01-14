@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2066.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1968.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1956.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1953.html"/>
@@ -18,10 +19,92 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1920.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1918.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1915.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1898.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2066.html">
+<title>c++ 类型转换</title>
+<link>https://blog.niekun.net/archives/2066.html</link>
+<dc:date>2021-01-14T11:58:00+08:00</dc:date>
+<description>Implicit conversion 隐式转换当一个数据复制为兼容格式的类型时，隐式转换可以自动完成。请看下面示例：double a = 100.1;
+int b;
+b = a;
+cout &lt;&lt; b &lt;&lt; endl;
+
+//output:
+//100以上示例中，我们将 double 类型的数据复制给 int 类型的变量，不会引起语法报错，这就是 Implicit 隐式类型转换，也叫 standard conversion 标准转换。标准转换对一些基本的数据类型有效，能够对一些 numerical 数值类型的数据间进行转换，如：double to int，int to float，short to double，int to bool 等，也可以在 pointer 指针类型间转换。从小一些的整型如 short 转换到 int 类型，或者从 float 类型转换到 double 类型，这种转换过程叫做 promotion 晋升操作。这种转换可以确保原始数据完整的复制到目标数据类型中。其他数学运算类型间的转换可能不一定会完整的保留原始数据，下面是几种情况举例：一个负整数转换为 unsigned 类型，结果为 unsigned 类型数据所能表达的最大值数据转换为 bool 类型的数据时，对于数值类型原始数据为 0 时，对于指针类型指针数据为 null pointer 时，对应转换为 false。原始数据为所有其他情况时，转换结果为 true。浮点型数据转换为整型数据，数据会被截取整数部分，如果数据结果超出目标数据类型所能表达的最大值，会得到 undefined我们可以看到，隐式转换可能会带来数据精度的丢失，编译器此时会提示一条 warning 警告。可以通过使用 explicit conversion 显式转换来避免警告信息。class 的隐式转换class 中的隐式转换通过以下三个 function 控制：单参数的 constructors 允许从一个特定类型的数据隐式转换构造为一个 object通过等号操作符 Assignment operator 复用来隐式转换类型传播符 Type-cast 来隐式转换为特定的类型下面示例解释各种方式的含义：class A {};
+
+class B {
+public:
+    B(A a) {} //constructor: conversion from A
+    B operator=(A a) {return *this;} // assignment operator: conversion from A
+    operator A() {return A();} // type-cast: conversion to A
+};
+
+int main()
+{
+    A a; // instance a
+    B b = a; // constructor b from a
+    B c(a); // constructor c from a
+    b = a; // assignment a to b
+    a = b; // convert b to A type and assignment to a
+
+    return 0;
+}以上实例分别介绍了三种隐式转换的方式。构造器的一个传入参数为 A 类型数据，也就是等同于可以将 A 类型因素转换为 B 类型通过操作符复用将等号= 重新定义，等号右边的为 A 类型数据时，以A类型数据作为构造器参数返回 B 类型 object 指针当执行 B 类型数据赋值给 A 类型时，会通过类型传播符定义的 function 返回 A 类型 object构造器初始化 object时，当只有一个参数时，就相当于把传入数据转换为对应 object 类型了。上面示例中可以看到，有两种方法来构造 object：B b = a; // constructor b from a
+B c(a); // constructor c from a以上两种方式都是将 a 作为初始化参数构造 B 类型的 object。编写了等号操作符复用后，对某个指定类型的外部 object 进行等号操作时就会将其转换为当前 object 类型，而不会报错。通过类型传播符可以将 object 转换为其他指定类型的 object。关于操作符复用的语法参考我之前的教程：https://blog.niekun.net/archives/1920.htmlexplicit 关键词当调用一个 function 时，对于其传递参数 c++ 允许进行隐式转换，这在一些情况下会引起一些问题，因为我们并不是所有情况下都希望自动进行转换的。在以上示例中加入 function：void function(B b) {}
+此 function 有一个 B 类型的参数，但是在实际调用中，由于 B 中定义了 A 的隐式转换相关模块，所以我们在这里可以将 A 类型数据作为传入数据：fun(a);
+实际中我们可能并不需要这种转换，我们希望的是这里只能将 B 类型数据作为传入参数。通过关键词 explicit 来定义 constructor 可以实现这个需求，修改 B 的 constructor：explicit B(A a) {}
+再次执行程序，会发现以下几个指令会报错：B b = a;
+fun(a);通过 关键词 explicit 定义 constructor 的 class 不能通过 assignment 赋值符来初始化 object，也不能对 function 的传入参数进行隐式转换。explicit conversion 显式转换c++ 是一种严格区分数据类型的语言，对于那些会影响数据本身的转换，需要进行 explicit conversion 显式转换也叫做 type-casting。在过去的语法中有两种常规的 type-casting 方式：double e = 10.11;
+int f = int(e);
+int g = (int)e;第一种叫做 function 样式，第二种叫做 c-like C语言模式。对于那些基础数据类型的数据，这种转换模式没有什么问题，但这种语法对于 class 和 pointer 类型数据也会不加判断的进行转换，从而导致运行时的 runtime error。为了控制这些在 class 间进行转换的过程，新版 c++ 提供了 4 种 casting operators 传播符来供不同场景下使用：dynamic_cast &lt;new_type&gt; (expression)reinterpret_cast &lt;new_type&gt; (expression)static_cast &lt;new_type&gt; (expression)const_cast &lt;new_type&gt; (expression)dynamic_castdynamic_cast 只能用于某个 class 或(void*) 的指针。他的作用是确保转换后的目标类型指针指向的是一个完整有效的 object，而不是空 object。例如，从 derived class 指针转换为 base class 指针。但是对于多态化的 polymorphic class(包含 virtual 元素的 class)，当且仅当指向的 object 是一个完整有效的目标 object 类型，使用 dynamic_cast 就可以从 base class 指针转换为 derived class 指针，请看如下示例：class Base { virtual void dummy() {} };
+class Derived: public Base {int a;};
+
+int main()
+{
+    try {
+        Base *b1 = new Base;
+        Base *b2 = new Derived;
+        Derived *d;
+
+        d = dynamic_cast&lt;Derived*&gt;(b1);
+        if (d == 0)
+            cout &lt;&lt; &quot;null pointer on first type cast&quot; &lt;&lt; endl;
+
+        d = dynamic_cast&lt;Derived*&gt;(b2);
+        if (d == 0)
+            cout &lt;&lt; &quot;null pointer on second type cast&quot; &lt;&lt; endl;
+    } catch(exception e) {
+        cout &lt;&lt; e.what() &lt;&lt; endl;
+    }
+    return 0;
+}
+
+//output:
+//null pointer on first type cast以上示例中，我们建立了 Base class 和 Derived class，其中 Base 含有一个 virtual function。然后我们创建两个 Base 类型指针，两个指针分别预分配类型为 Base 和 Derived。在之前的 c++ 教程中提到过可以新建 base 类型的变量然后使用 derived 类型数据，需要了解的可以查看：https://blog.niekun.net/archives/1927.html。然后我们创建一个 Derived 类型指针，使用 dynamic_cast 分别将上面建立的两个 Base 类型指针转换为 Derived 类型。由于 b2 虽然是 Base 类型指针，但是我们预分配内存类型为 Derived 类型，所以它其实包含了 Derived object 所有属性。这样转换后的类型为完整的 Derived 类型指针。所以 d 指针不为空。而 b1 完全是 Base 类型指针，所以转换后的类型是不完整的 Derived 类型指针，所以赋值后结果为空。dynamic_cast 可以将任意指针转换为 void* 类型指针。static_caststatic_cast 可以转换任意相关联 class 类型的指针。不仅仅从 derived 到 base，也可以从 base 到 derived。不会判断是否转换到目标指针是完整的数据类型，所以完全由编程人员判断转换操作是否是安全的。相比于 dynamic_cast 有更大适用范围。以下示例语法不会报错：class Base {};
+class Derived: public Base {};
+
+Base * a = new Base;
+Derived * b = static_cast&lt;Derived*&gt;(a);b 指针会得到一个不完整的 Derived 类型数据，运行时可能报错。因此，使用 static_cast 不仅可以转换那些直接支持隐式转换的 class 指针，也可以在那些不支持转换的 class 间进行转换。我们测试在其他数据将进行转换：double a = 12.23;
+int b = static_cast&lt;int&gt;(a);
+cout &lt;&lt; b &lt;&lt; endl;
+
+//OUTPUT:
+//12以上，我们将 double 类型的数据转换为 int 类型，这种转换可以直接通过隐式转换完成，但是使用显式转换语法实现更加明确清晰。但前提是原类型和目标类型必须是 related 有关联的 object 类型。reinterpret_castreinterpret_cast 可以将任意类型指针转换为其他任意类型指针，甚至是完全没有关联的两个类型。转换的过程就是将源数据的二进制数据复制到新指针地址。相比于 static_cast 有更大适用范围。以下代码可以正常执行：class A { /* ... */ };
+class B { /* ... */ };
+A * a = new A;
+B * b = reinterpret_cast&lt;B*&gt;(a);此时 b 指针指向的是一个和 B 类型完全不相干的数据，此时访问 b 指向的数据是不安全的。const_castconst_cast 可以操作 const 类型的指针数据，例如当一个 function 需要非 const 类型传入数据时，可以通过 const_cast 进行转换。请看下面示例：void test(int a) {
+    cout &lt;&lt; a &lt;&lt; endl;
+}
+
+const int a = 10;
+test(a);以上示例中，调用 test function 会报错，因为传入参数需要是非 const 类型的数据。修改以上代码：const int a = 10;
+int *b = const_cast&lt;int*&gt;(&amp;a);
+test(*b);
+
+//output:
+//10通过 const_cast 将 const int\ 转换为 int\，这样就可以在 function 中使用了。参考链接Type conversions</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/1968.html">
 <title>c++ 字符串数组指针的研究</title>
 <link>https://blog.niekun.net/archives/1968.html</link>
@@ -1189,112 +1272,5 @@ int main()
 
 //OUTPUT:
 //2使用这种方法可以将数据名称直接作为参数传入，function 会自动使用其地址。通常情况下，使用 by value 方式更加快速和高效，使用 by reference 方式会修改源相关联的数据会占用更多的内存。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1898.html">
-<title>C++ 入门教程之三 -- 数据类型，数组及指针</title>
-<link>https://blog.niekun.net/archives/1898.html</link>
-<dc:date>2020-11-19T15:54:00+08:00</dc:date>
-<description>介绍数据类型操作系统根据数据类型分配内存空间，同一种数据类型才可以进行计算，如：合法的运算：55+15 //  legal C++ expression
-非法的运算：55 + &quot;John&quot; // illegal
-
-数字类型的有两种类型：整型，如：7，10。浮点型，如：3.14，5.67。字符串是一个数字、字符、符号的集合。使用双引号来标记，如：&quot;hello&quot;。字符使用单引号来标记，如：'A'。Boolean 类型只有两个可能的值：true 和 false。整型整型一般默认 4 个字节的存储空间。使用 int 来定义：int a = 42;
-带符号型，可以定义正数和负数，一般不写默认 int 就是带符号型：signed int a;
-无符号型，只能定义正数型：unsigned int a;
-short 型，一般默认空间占用大小，就是 2 个字节：short int a;
-long 型，2倍默认空间大小：long int a;
-浮点型有三种浮点类型：float, double, 和 long double。浮点型都是 signed 带符号型的。一般情况下，float 型 4 个字节，double 型 8 个字节，long double 型 16 个字节。使用 float 来定义：float a = 3.14;
-字符串string 字符串类型是一个字符、数字和符号的集合，使用双引号来标记。使用 string 定义变量，需要使用 &lt;string&gt; 库：#include &lt;string&gt;
-using namespace std;
-
-int main() {
-    string test = &quot;hello&quot;;
-    return 0;
-}注意：&lt;string&gt; 库包含在 &lt;iostream&gt; 库中，所以如果已经引用来 &lt;iostream&gt; 就不需要再引用 &lt;string&gt; 了。char 类型char 类型包含了 1 个字节的整数，但是解释器会将这个整数解释为 ASCII 码对应字符。使用单引号来标记，如：char a = 'a';
-变量定义规则所有变量的定义需要遵守以下规则：变量名首位必须是一个字母或下划线 _首字符之后的可以使用字母或数字，不能使用特殊字符或空格一般有两种常用的定义方法首字母及每个单词的首字符大写，如: BlankWord首字母小写后续的每个单词首字符大写，如：blankWord所有的变量名都是区分大小写的，如：helloword 和 HelloWord 是两个变量。数组数组是一个同一种数据类型变量的集合体，只需要一次就可以定义多个同一种变量类型的变量。如：int a[5] = {1, 2, 5, 7, 8};
-变量名后方括号[]定义数组内变量个数，大括号{}内包含数组内元素实际值，使用逗号,分隔各个元素。注意大括号内的元素个数不能超过数组变量定义的个数。也可以在定义时不说明元素个数：int a[] = {1, 3, 7, 9};
-会自动创建足够存储内部元素的数组。数组内每个元素都有一个 index 索引，从 0 开始，所以数组内第一个元素索引为 0，第二个为 1。使用索引号可以访问对应元素：int b[] = {11, 45, 62, 70, 88};
-
-cout &lt;&lt; b[0] &lt;&lt; endl;
-// Outputs 11
-
-cout&lt;&lt; b[3] &lt;&lt; endl;
-// Outputs 70如果需要逐个访问数组内元素，可以使用 loop 循环来实现：int myArr[5];
-
-for(int x=0; x&lt;5; x++) {
-  myArr[x] = 42;
-}多维数组以上是单维数组的定义，也可以定义多维数组，如定义一个二位数组：int a[3][4];
-想象这个数组为一个矩阵，有三行，每行 4 个元素：定义多维数组定义元素需要每行在一个大括号下单独定义：int x[2][3] = {
-  {2, 3, 4}, // 1st row
-  {8, 9, 10} // 2nd row
-};也可以在一行内定义：int x[2][3] = {{2, 3, 4}, {8, 9, 10}};
-使用行号和列号来定位一个元素：int x[2][3] = {{2, 3, 4}, {8, 9, 10}};
-cout &lt;&lt; x[0][2] &lt;&lt; endl;
-
-//Outputs 4指针每个变量都存储在内存单元内，每个内存空间都有地址。这个内存地址可以使用地址查询符&amp;来查询，如：int score = 5;
-cout &lt;&lt; &amp;score &lt;&lt; endl;
-
-//Outputs &quot;0x29fee8&quot;返回的地址就是存储变量 score 的值的地址空间。一个 pointer 指针就是一个存储某个变量所在内存地址的变量。指针类型可以使某些任务实现更加方便，某些任务，如动态内存分配则必须使用指针来实现。不同类型的指针变量的唯一区别就是其所在内存地址的数据类型的不同。和其他变量类型一样，定义指针变量需要申明类型。使用星号* 来表示是指针类型的变量。int *ip;  // pointer to an integer
-double *dp;   // pointer to a double
-float *fp;  // pointer to a float
-char *ch;  // pointer to a character星号* 可以放在数据类型旁边或者变量旁边或者单独写在中间。我们可以将一个地址赋给指针变量：int score = 5;
-int *scorePtr;
-scorePtr = &amp;score;
-
-cout &lt;&lt; scorePtr &lt;&lt; endl;
-
-//Outputs &quot;0x29fee8&quot;scorePtr 的值就是 score 变量的内存地址。有两种指针的运算器：地址查询符&amp;，返回操作数所在内存地址 referencing数据查询符*，返回操作数的内存地址下的数据 dereferencing例如：int var = 50;
-int  *p;
-p = &amp;var;
-
-cout &lt;&lt; var &lt;&lt; endl;
-// Outputs 50 (the value of var)
-
-cout &lt;&lt; p &lt;&lt; endl;
-// Outputs 0x29fee8 (var's memory location)
-
-cout &lt;&lt; *p &lt;&lt; endl;
-/* Outputs 50 (the value of the variable
- stored in the pointer p) */定义指针类型变量时候的星号* 只是用来表明此变量为指针类型变量，不要和内存查询符混淆。数据查询符* 指针指向的变量的 alias，例如：int x = 5;
-int *p = &amp;x;
-
-x = x + 4;
-x = *p + 4;
-*p = *p + 4;P 是 x 的指针，以上示例的三种运算结果都是一样的，都是将变量 x 的值进行计算。我们可以通过定义变量的指针来操作变量值。静态内存和动态内存理解动态内存的工作机制对于开发有很大帮助。再 c++ 中内存被分为两种类型：the stack 静态内存空间：所有的本地变量占用静态内存空间the heap 动态内存空间：再程序运行时动态进行分配的空间，默认不占用很多情况下，提前并不知道一个定义的变量需要多少空间来存储信息需要在运行时动态请求内存空间。可以使用 new 操作符来定义一个变量使用 heap 方式再运行时动态分配内存空间，并返回分配的地址，例如：new int;
-以上定义一个使用 heap 方式分配一个足够存储 int 类型的内存空间，并返回这个地址。分配的地址可以存储在一个指针中，可以在后续中使用：int *p = new int;
-*p = 5;以上请求了一个动态内存来存储一个 int 类型数据，然后在这个地址存储值为 5。注意指针 p 变量存储在 stack 静态内存中，且其值为 heap 动态内存分配的 int 型数据的地址，结果 5 是存储在 heap 动态内存中的。本地静态内存 stack 下的变量，内存管理是自动进行的不需要手动干预，使用 heap 方式动态分配的内存空间需要手动干预操作，当不再需要动态内存空间的数据时使用 delete 操作符来释放空间。示例：int *p = new int; // request memory
-*p = 5; // store value
-
-cout &lt;&lt; *p &lt;&lt; endl; // use value
-
-delete p; // free up the memory忘记释放使用 new 请求的动态内存空间会导致内存泄漏问题，因为在程序关闭时才会释放空间。注意 delete 操作的是指针类型。并且释放的只是 heap 动态内存，指针本身是存储在 stack 中的。当内存释放后，指针不指向某个内存地址，次时这个指针叫做：dangling pointers 悬浮指针。可以重新让这个指针指向内存地址：int *p = new int; // request memory
-*p = 5; // store value
-
-delete p; // free up the memory
-// now p is a dangling pointer
-
-p = new int; // reuse for a new address也可以定义一个 NULL 的空指针：int *ptr = NULL;
-也可以指向一个数组：int *p = NULL; // Pointer initialized with null
-p = new int[20]; // Request memory
-delete [] p; // Delete array pointed to by p注意释放内存时要加上方括号[]。动态内存分配很有用，如当程序需要读取一张图片时，你提前并不知道图片的大小，需要多大的内存空间来存储。这时候使用动态内存来定义就很方便了。数据大小虽然不同类型数据的内存占用大小和不同架构的设备有关或使用的编译器，但 c++ 有一个最小的数据大小定义：可以使用 sizeof 指令来获取特定数据类型当前占用内存空间，如：sizeof(int)
-返回值为此类型数据的内存大小，单位为字节：cout &lt;&lt; &quot;char: &quot; &lt;&lt; sizeof(char) &lt;&lt; endl;
-cout &lt;&lt; &quot;int: &quot; &lt;&lt; sizeof(int) &lt;&lt; endl;
-cout &lt;&lt; &quot;float: &quot; &lt;&lt; sizeof(float) &lt;&lt; endl;
-cout &lt;&lt; &quot;double: &quot; &lt;&lt; sizeof(double) &lt;&lt; endl;
-int var = 50;
-cout &lt;&lt; &quot;var: &quot; &lt;&lt; sizeof(var) &lt;&lt; endl;
-
-/* Outputs
-char: 1
-int: 4
-float: 4
-double: 8
-var: 4
-*/ 也可以获取数组的内存占用大小：double myArr[10];
-cout &lt;&lt; sizeof(myArr) &lt;&lt; endl; 
-
-//Outputs 80一个 double 占用 8 个字节，所以此数组共使用 80 个字节。可以使用 sizeof 分别读取整个数组和单个元素的内存空间来计算数组元素个数：int numbers[100];
-cout &lt;&lt; sizeof(numbers) / sizeof(numbers[0]);
-
-// Outputs 100以上就是 c++ 数据类型及指针的介绍。</description>
 </item>
 </rdf:RDF>

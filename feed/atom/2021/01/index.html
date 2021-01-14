@@ -6,11 +6,105 @@ xml:base="https://blog.niekun.net/2021/01/"
 >
 <title type="text">Marco Nie - 2021年1月</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2021-01-12T11:06:00+08:00</updated>
+<updated>2021-01-14T11:58:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/2021/01/" />
 <id>https://blog.niekun.net/feed/atom/2021/01/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/01/" />
+<entry>
+<title type="html"><![CDATA[c++ 类型转换]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2066.html" />
+<id>https://blog.niekun.net/archives/2066.html</id>
+<updated>2021-01-14T11:58:00+08:00</updated>
+<published>2021-01-14T11:58:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[Implicit conversion 隐式转换当一个数据复制为兼容格式的类型时，隐式转换可以自动完成。请看下面示例：double a = 100.1;int b;b = a;cout &amp;lt;...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2066.html" xml:lang="zh-CN"><![CDATA[
+<h3>Implicit conversion 隐式转换</h3><p>当一个数据复制为兼容格式的类型时，隐式转换可以自动完成。</p><p>请看下面示例：</p><pre><code>double a = 100.1;
+int b;
+b = a;
+cout &lt;&lt; b &lt;&lt; endl;
+
+//output:
+//100</code></pre><!--more--><p>以上示例中，我们将 <strong>double</strong> 类型的数据复制给 <strong>int</strong> 类型的变量，不会引起语法报错，这就是 <strong>Implicit</strong> 隐式类型转换，也叫 <strong>standard conversion</strong> 标准转换。标准转换对一些基本的数据类型有效，能够对一些 <strong>numerical</strong> 数值类型的数据间进行转换，如：double to int，int to float，short to double，int to bool 等，也可以在 pointer 指针类型间转换。</p><p>从小一些的整型如 short 转换到 int 类型，或者从 float 类型转换到 double 类型，这种转换过程叫做 <strong>promotion</strong> 晋升操作。这种转换可以确保原始数据完整的复制到目标数据类型中。</p><p>其他数学运算类型间的转换可能不一定会完整的保留原始数据，下面是几种情况举例：</p><ul><li>一个负整数转换为 unsigned 类型，结果为 unsigned 类型数据所能表达的最大值数据</li><li>转换为 bool 类型的数据时，对于数值类型原始数据为 0 时，对于指针类型指针数据为 null pointer 时，对应转换为 false。原始数据为所有其他情况时，转换结果为 true。</li><li>浮点型数据转换为整型数据，数据会被截取整数部分，如果数据结果超出目标数据类型所能表达的最大值，会得到 undefined</li></ul><p>我们可以看到，隐式转换可能会带来数据精度的丢失，编译器此时会提示一条 warning 警告。可以通过使用 <strong>explicit conversion</strong> 显式转换来避免警告信息。</p><h3>class 的隐式转换</h3><p>class 中的隐式转换通过以下三个 function 控制：</p><ul><li>单参数的 constructors 允许从一个特定类型的数据隐式转换构造为一个 object</li><li>通过等号操作符 Assignment operator 复用来隐式转换</li><li>类型传播符 Type-cast 来隐式转换为特定的类型</li></ul><p>下面示例解释各种方式的含义：</p><pre><code>class A {};
+
+class B {
+public:
+    B(A a) {} //constructor: conversion from A
+    B operator=(A a) {return *this;} // assignment operator: conversion from A
+    operator A() {return A();} // type-cast: conversion to A
+};
+
+int main()
+{
+    A a; // instance a
+    B b = a; // constructor b from a
+    B c(a); // constructor c from a
+    b = a; // assignment a to b
+    a = b; // convert b to A type and assignment to a
+
+    return 0;
+}</code></pre><p>以上实例分别介绍了三种隐式转换的方式。</p><ul><li>构造器的一个传入参数为 A 类型数据，也就是等同于可以将 A 类型因素转换为 B 类型</li><li>通过操作符复用将等号<code>=</code> 重新定义，等号右边的为 A 类型数据时，以A类型数据作为构造器参数返回 B 类型 object 指针</li><li>当执行 B 类型数据赋值给 A 类型时，会通过类型传播符定义的 function 返回 A 类型 object</li></ul><p>构造器初始化 object时，当只有一个参数时，就相当于把传入数据转换为对应 object 类型了。上面示例中可以看到，有两种方法来构造 object：</p><pre><code>B b = a; // constructor b from a
+B c(a); // constructor c from a</code></pre><p>以上两种方式都是将 a 作为初始化参数构造 B 类型的 object。</p><p>编写了等号操作符复用后，对某个指定类型的外部 object 进行等号操作时就会将其转换为当前 object 类型，而不会报错。</p><p>通过类型传播符可以将 object 转换为其他指定类型的 object。</p><p>关于操作符复用的语法参考我之前的教程：<a href="https://blog.niekun.net/archives/1920.html">https://blog.niekun.net/archives/1920.html</a></p><h3>explicit 关键词</h3><p>当调用一个 function 时，对于其传递参数 c++ 允许进行隐式转换，这在一些情况下会引起一些问题，因为我们并不是所有情况下都希望自动进行转换的。</p><p>在以上示例中加入 function：</p><pre><code>void function(B b) {}
+</code></pre><p>此 function 有一个 B 类型的参数，但是在实际调用中，由于 B 中定义了 A 的隐式转换相关模块，所以我们在这里可以将 A 类型数据作为传入数据：</p><pre><code>fun(a);
+</code></pre><p>实际中我们可能并不需要这种转换，我们希望的是这里只能将 B 类型数据作为传入参数。通过关键词 <strong>explicit</strong> 来定义 constructor 可以实现这个需求，修改 B 的 constructor：</p><pre><code>explicit B(A a) {}
+</code></pre><p>再次执行程序，会发现以下几个指令会报错：</p><pre><code>B b = a;
+fun(a);</code></pre><p>通过 关键词 <strong>explicit</strong> 定义 constructor 的 class 不能通过 assignment 赋值符来初始化 object，也不能对 function 的传入参数进行隐式转换。</p><h3>explicit conversion 显式转换</h3><p>c++ 是一种严格区分数据类型的语言，对于那些会影响数据本身的转换，需要进行 explicit conversion 显式转换也叫做 <strong>type-casting</strong>。</p><p>在过去的语法中有两种常规的 type-casting 方式：</p><pre><code>double e = 10.11;
+int f = int(e);
+int g = (int)e;</code></pre><p>第一种叫做 function 样式，第二种叫做 c-like C语言模式。</p><p>对于那些基础数据类型的数据，这种转换模式没有什么问题，但这种语法对于 class 和 pointer 类型数据也会不加判断的进行转换，从而导致运行时的 runtime error。</p><p>为了控制这些在 class 间进行转换的过程，新版 c++ 提供了 4 种 <strong>casting operators</strong> 传播符来供不同场景下使用：</p><ul><li>dynamic_cast &lt;new_type&gt; (expression)</li><li>reinterpret_cast &lt;new_type&gt; (expression)</li><li>static_cast &lt;new_type&gt; (expression)</li><li>const_cast &lt;new_type&gt; (expression)</li></ul><h4>dynamic_cast</h4><p><strong>dynamic_cast</strong> 只能用于某个 class 或(void*) 的指针。他的作用是确保转换后的目标类型指针指向的是一个完整有效的 object，而不是空 object。例如，从 derived class 指针转换为 base class 指针。但是对于多态化的 polymorphic class(包含 virtual 元素的 class)，当且仅当指向的 object 是一个完整有效的目标 object 类型，使用 <strong>dynamic_cast</strong> 就可以从 base class 指针转换为 derived class 指针，请看如下示例：</p><pre><code>class Base { virtual void dummy() {} };
+class Derived: public Base {int a;};
+
+int main()
+{
+    try {
+        Base *b1 = new Base;
+        Base *b2 = new Derived;
+        Derived *d;
+
+        d = dynamic_cast&lt;Derived*&gt;(b1);
+        if (d == 0)
+            cout &lt;&lt; &quot;null pointer on first type cast&quot; &lt;&lt; endl;
+
+        d = dynamic_cast&lt;Derived*&gt;(b2);
+        if (d == 0)
+            cout &lt;&lt; &quot;null pointer on second type cast&quot; &lt;&lt; endl;
+    } catch(exception e) {
+        cout &lt;&lt; e.what() &lt;&lt; endl;
+    }
+    return 0;
+}
+
+//output:
+//null pointer on first type cast</code></pre><p>以上示例中，我们建立了 <strong>Base</strong> class 和 <strong>Derived</strong> class，其中 <strong>Base</strong> 含有一个 <strong>virtual</strong> function。然后我们创建两个 <strong>Base</strong> 类型指针，两个指针分别预分配类型为 <strong>Base</strong> 和 <strong>Derived</strong>。在之前的 c++ 教程中提到过可以新建 <strong>base</strong> 类型的变量然后使用 <strong>derived</strong> 类型数据，需要了解的可以查看：<a href="https://blog.niekun.net/archives/1927.html">https://blog.niekun.net/archives/1927.html</a>。然后我们创建一个 <strong>Derived</strong> 类型指针，使用 <strong>dynamic_cast</strong> 分别将上面建立的两个 <strong>Base</strong> 类型指针转换为 <strong>Derived</strong> 类型。</p><p>由于 <strong>b2</strong> 虽然是 <strong>Base</strong> 类型指针，但是我们预分配内存类型为 <strong>Derived</strong> 类型，所以它其实包含了 <strong>Derived</strong> object 所有属性。这样转换后的类型为完整的 <strong>Derived</strong> 类型指针。所以 <strong>d</strong> 指针不为空。而 <strong>b1</strong> 完全是 <strong>Base</strong> 类型指针，所以转换后的类型是不完整的 <strong>Derived</strong> 类型指针，所以赋值后结果为空。</p><p><strong>dynamic_cast</strong> 可以将任意指针转换为 <strong>void</strong>* 类型指针。</p><h4>static_cast</h4><p><strong>static_cast</strong> 可以转换任意相关联 class 类型的指针。不仅仅从 derived 到 base，也可以从 base 到 derived。不会判断是否转换到目标指针是完整的数据类型，所以完全由编程人员判断转换操作是否是安全的。相比于 <strong>dynamic_cast</strong> 有更大适用范围。</p><p>以下示例语法不会报错：</p><pre><code>class Base {};
+class Derived: public Base {};
+
+Base * a = new Base;
+Derived * b = static_cast&lt;Derived*&gt;(a);</code></pre><p>b 指针会得到一个不完整的 Derived 类型数据，运行时可能报错。因此，使用 <strong>static_cast</strong> 不仅可以转换那些直接支持隐式转换的 class 指针，也可以在那些不支持转换的 class 间进行转换。</p><p>我们测试在其他数据将进行转换：</p><pre><code>double a = 12.23;
+int b = static_cast&lt;int&gt;(a);
+cout &lt;&lt; b &lt;&lt; endl;
+
+//OUTPUT:
+//12</code></pre><p>以上，我们将 double 类型的数据转换为 int 类型，这种转换可以直接通过隐式转换完成，但是使用显式转换语法实现更加明确清晰。但前提是原类型和目标类型必须是 related 有关联的 object 类型。</p><h4>reinterpret_cast</h4><p><strong>reinterpret_cast</strong> 可以将任意类型指针转换为其他任意类型指针，甚至是完全没有关联的两个类型。转换的过程就是将源数据的二进制数据复制到新指针地址。相比于 <strong>static_cast</strong> 有更大适用范围。</p><p>以下代码可以正常执行：</p><pre><code>class A { /* ... */ };
+class B { /* ... */ };
+A * a = new A;
+B * b = reinterpret_cast&lt;B*&gt;(a);</code></pre><p>此时 b 指针指向的是一个和 B 类型完全不相干的数据，此时访问 b 指向的数据是不安全的。</p><h3>const_cast</h3><p><strong>const_cast</strong> 可以操作 const 类型的指针数据，例如当一个 function 需要非 const 类型传入数据时，可以通过 <strong>const_cast</strong> 进行转换。</p><p>请看下面示例：</p><pre><code>void test(int a) {
+    cout &lt;&lt; a &lt;&lt; endl;
+}
+
+const int a = 10;
+test(a);</code></pre><p>以上示例中，调用 test function 会报错，因为传入参数需要是非 const 类型的数据。</p><p>修改以上代码：</p><pre><code>const int a = 10;
+int *b = const_cast&lt;int*&gt;(&amp;a);
+test(*b);
+
+//output:
+//10</code></pre><p>通过 <strong>const_cast</strong> 将 <strong>const int\<strong><em> 转换为 </strong>int\</em></strong>，这样就可以在 function 中使用了。</p><h3>参考链接</h3><p><a href="http://www.cplusplus.com/doc/tutorial/typecasting/">Type conversions</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2066.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2066.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[VMware 虚拟机 NAT 网络下配置端口转发到主机]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2061.html" />
