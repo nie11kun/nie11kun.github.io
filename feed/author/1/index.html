@@ -11,8 +11,27 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/author/1/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>admin</description>
-<lastBuildDate>Thu, 14 Jan 2021 11:58:00 +0800</lastBuildDate>
-<pubDate>Thu, 14 Jan 2021 11:58:00 +0800</pubDate>
+<lastBuildDate>Fri, 15 Jan 2021 16:32:09 +0800</lastBuildDate>
+<pubDate>Fri, 15 Jan 2021 16:32:09 +0800</pubDate>
+<item>
+<title>修复 ubuntu vmware 虚拟机无法访问主机共享目录</title>
+<link>https://blog.niekun.net/archives/2070.html</link>
+<guid>https://blog.niekun.net/archives/2070.html</guid>
+<pubDate>Fri, 15 Jan 2021 16:32:09 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[今天发现在 Ubuntu 20.04 虚拟机内无法访问设置的共享文件夹，在 /mnt/hgfs 目录下是空的，检查虚拟机设置并没有什么问题。最后发现是虚拟机没有自动挂载共享目录，命令行下进行挂载...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>今天发现在 Ubuntu 20.04 虚拟机内无法访问设置的共享文件夹，在 <code>/mnt/hgfs</code> 目录下是空的，检查虚拟机设置并没有什么问题。最后发现是虚拟机没有自动挂载共享目录，命令行下进行挂载即可。</p><p>首先查看当前设置的共享目录有哪些：</p><pre><code>$ vmware-hgfsclient 
+Development
+Downloads
+InstallationPackage</code></pre><p>挂载主机共享路径到虚拟机对应路径下，设置所有用户可访问：</p><pre><code>$ sudo vmhgfs-fuse .host:/ /mnt/hgfs -o allow_other
+</code></pre><p>执行以上命令后，发现共享文件夹出现了：</p><pre><code>$ ls /mnt/hgfs/
+Development  Downloads  InstallationPackage</code></pre><p>以上就是解决 VMware Linux 虚拟机没有自动挂载共享目录的方法。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2070.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2070.html</wfw:commentRss>
+</item>
 <item>
 <title>c++ 类型转换</title>
 <link>https://blog.niekun.net/archives/2066.html</link>
@@ -965,243 +984,6 @@ console.log(i);
 <slash:comments>1</slash:comments>
 <comments>https://blog.niekun.net/archives/2011.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2011.html</wfw:commentRss>
-</item>
-<item>
-<title>JavaScript 入门教程之七 -- DOM</title>
-<link>https://blog.niekun.net/archives/2002.html</link>
-<guid>https://blog.niekun.net/archives/2002.html</guid>
-<pubDate>Sat, 19 Dec 2020 14:10:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[当你打开一个网页，html 页面会被加载和渲染到屏幕上。为了完成这个过程，浏览器会建立这个页面的 Document Object Model 模型。也就是一个指向页面逻辑架构的 object。一...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>当你打开一个网页，html 页面会被加载和渲染到屏幕上。为了完成这个过程，浏览器会建立这个页面的 <strong>Document Object Model</strong> 模型。也就是一个指向页面逻辑架构的 object。</p><p>一个页面的 <strong>DOM</strong> 可以被表示为一些嵌套的 boxes：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/4242689357.png" alt="1.png" title="1.png"></p><p>JavaScript 能够用来操作 <strong>DOM</strong>，动态的添加、删除、修改其中的元素。</p><!--more--><h3>DOM tree</h3><p>DOM 将一个 document 表达为一个 tree structure 树形结构， html 元素称为这个 tree 上的相关联的 nodes 节点。</p><p>整个 tree 上的 nodes 之间都是互相有关联的。nodes 可以有 child node 子节点。在同一个 tree level 层级的 nodes 叫做 siblings 兄弟关系。想象下面的一个 document structure：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/4196340561.png" alt="2.png" title="2.png"></p><p><strong>以上示例中的关系结构是：</strong></p><ul><li><code>&lt;html&gt;</code> 有两个 children：<code>&lt;head&gt;</code>, <code>&lt;body&gt;</code>;</li><li><code>&lt;head&gt;</code> 有一个 child：<code>&lt;title&gt;</code>，有一个 parent：<code>&lt;html&gt;</code>;</li><li><code>&lt;title&gt;</code> 有一个 parent：<code>&lt;head&gt;</code>， 没有 children;</li><li><code>&lt;body&gt;</code> 有两个 children：<code>&lt;h1&gt;</code> and <code>&lt;a&gt;</code>，有一个 parent：<code>&lt;html&gt;</code>;</li></ul><p>理解 HTML document 的元素间的关系很重要，这样我们就可以使用 JavaScript 来操纵这些元素了。</p><p><code>document</code> object 在 JavaScript 中被预定义，可以用来访问 DOM 中的所有元素。换句话说，<code>document</code> object 是页面中所有元素的拥有者。所以想要访问 html 页面中的元素，首先需要访问 <code>document</code> object。</p><p>看下面的示例：</p><pre><code>document.body.innerHTML = &quot;Some text&quot;;
-</code></pre><p><code>body</code> 是 DOM 中的元素，通过 <code>document</code> 来访问到它，然后通过其 <code>innerHTML</code> property 修改其内容。</p><h3>Selecting Elements</h3><p>所有的元素都是 object，都有 properties 和 method。<code>document</code> 有能够让我们选择其内部元素的 method，常用的有三种方法：</p><pre><code>//finds element by id
-document.getElementById(id) 
-
-//finds elements by class name
-document.getElementsByClassName(name) 
-
-//finds elements by tag name
-document.getElementsByTagName(name)</code></pre><p>下面的示例，我们使用 <code>getElementById</code> method 来选中一个元素，并修改其内容：</p><pre><code>var elem = document.getElementById(&quot;demo&quot;);
-elem.innerHTML = &quot;hello world&quot;;</code></pre><p>注意以上示例中我们需要 html 有一个元素设置 <code>id=&quot;demo&quot;</code>，如：</p><pre><code>&lt;body&gt;
-    &lt;div id=&quot;demo&quot;&gt;&lt;/div&gt;
-&lt;/body&gt;</code></pre><p><code>getElementsByClassName()</code> method 会返回一个特定 calss name 的集合。例如，我们有三个含有 <code>class=&quot;demo&quot;</code> 的元素：</p><pre><code>&lt;body&gt;
-    &lt;div class=&quot;demo&quot;&gt;test1&lt;/div&gt;
-    &lt;div class=&quot;demo&quot;&gt;test2&lt;/div&gt;
-    &lt;div class=&quot;demo&quot;&gt;test3&lt;/div&gt;
-&lt;/body&gt;</code></pre><p>首先选中全部 3 个元素为一个数组，然后修改第一个元素内容：</p><pre><code>&lt;script&gt;
-    var arr = document.getElementsByClassName(&quot;demo&quot;);
-    arr[0].innerHTML = &quot;hi&quot;;
-&lt;/script&gt;</code></pre><p>类似的方式， <code>getElementsByTagName</code> method 返回一个特定 tag 的集合。下面的示例中，将选中所有 paragraph 元素然后修改他们的内容：</p><pre><code>&lt;body&gt;
-    &lt;p&gt;1&lt;/p&gt;
-    &lt;p&gt;2&lt;/p&gt;
-    &lt;p&gt;3&lt;/p&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var arr = document.getElementsByTagName(&quot;p&quot;);
-    for (var i = 0; i &lt; arr.length; i++) {
-        arr[i].innerHTML = &quot;hi there&quot;;
-    }
-&lt;/script&gt;</code></pre><p>每个 DOM 中的元素都有 properties 和 method 来提供给我们关于其在 DOM 中的相互关系的信息：</p><ul><li><code>element.childNodes</code> 返回其子元素的数组</li><li><code>element.firstChild</code> 返回其第一个子元素</li><li><code>element.lastChild</code> 返回其最后一个子元素</li><li><code>element.hasChildNodes</code> 当其有子元素时返回 true，否则返回 false</li><li><code>element.nextSibling</code> 返回下一个处于同一 tree level 节点的元素</li><li><code>element.previousSibling</code> 返回上一个处于同一 tree level 节点的元素</li><li><code>element.parentNode</code> 返回其 parent 节点的元素</li></ul><h3>Changing Attributes</h3><p>当选中了想要的元素后，就可以修改其相关属性了。</p><p>我们前面使用过通过 <code>innerHTML</code> property 修改了元素的 text 内容。同样的方法，我们可以修改它的属性值，例如修改一个 image 的 <code>src</code> 属性：</p><pre><code>&lt;/body&gt;
-    &lt;img id=&quot;img1&quot; src=&quot;1.jpg&quot; alt=&quot;&quot; srcset=&quot;&quot;&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var el = document.getElementById(&quot;img1&quot;);
-    el.src = &quot;2.jpg&quot;;
-&lt;/script&gt;</code></pre><p>通常情况下，元素中所有的属性都可以通过 JavaScript 修改。</p><p>html 元素的 style 也可以通过 JavaScript 修改，所有的 style 属性可以通过 <code>style</code> object 来访问，例如：</p><pre><code>&lt;body&gt;
-    &lt;div id=&quot;demo2&quot; style=&quot;width: 200px;&quot;&gt;some text&lt;/div&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var x = document.getElementById(&quot;demo2&quot;);
-    x.style.color = '#6600FF';
-    x.style.width = '100px';
-&lt;/script&gt;</code></pre><p>所有的 css properties 都可以通过 JavaScript 修改。但是要注意，JavaScript 中相关 property 时，<strong>名称中不能够使用 dash<code>-</code> 横杠</strong>，如果 css 属性名称有横杠，需要转换成 camelCase versions，也就是相关首字母转换成大写。例如：js 在调用 <code>background-color</code> property 时需要写成 <code>backgroundColor</code>。</p><h3>Adding & Removing Elements 创建和删除元素</h3><p><strong>Adding Elements</strong></p><p>使用下面的 method 来创建节点 node：</p><ul><li><code>element.cloneNode()</code> clone 一个节点并将其返回</li><li><code>document.createElement(element)</code> 创建一个新元素的节点</li><li><code>document.createTextNode(text)</code> 创建一个新的 text 节点</li></ul><p>下面简单说下元素和节点：</p><pre><code>&lt;div&gt;
-    test1
-    &lt;p&gt;&lt;/p&gt;
-&lt;/div&gt;</code></pre><p>以上示例中，<code>div</code> 就是一个 element 元素，<code>test1</code> 就是这个元素下的 text node 节点，<code>p</code> 就是 <code>div</code> 元素下的另一个子元素节点。</p><p>例如：</p><pre><code>var node = document.createTextNode(&quot;Some new text&quot;);
-</code></pre><p>将会创建一个 text 节点，但是当前它并不会出现在页面上，因为还没有定义它属于那个元素。</p><p><code>element.appendChild(newNode)</code> method 来给元素添加一个新的子节点，并放在最后。</p><p><code>element.insertBefore(node1, node2)</code> method 将添加的新直接点 node1 放在已有的子节点 node2 之前。</p><p>下面做一个示例：</p><pre><code>&lt;body&gt;
-    &lt;div id=&quot;demo3&quot;&gt;test&lt;/div&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var p = document.createElement(&quot;p&quot;);
-    var node = document.createTextNode(&quot;some text&quot;);
-    p.appendChild(node);
-
-    var el = document.getElementById(&quot;demo3&quot;);
-    el.appendChild(p);
-&lt;/script&gt;</code></pre><p>以上出现的执行过程为：创建一个元素 <code>p</code> 和 text node <code>node</code>，然后将 node 作为 p 的子元素，最后将 p 添加到 el 中。</p><p><strong>Removing Elements</strong></p><p>想要<strong>删除一个元素</strong>，首先需要选中其 parent 元素，然后使用 <code>removeChild(node)</code> method 来删除相关子元素，例如：</p><pre><code>&lt;body&gt;
-    &lt;div id=&quot;div1&quot;&gt;
-        &lt;p id=&quot;p1&quot;&gt;some text one&lt;/p&gt;
-        &lt;p id=&quot;p2&quot;&gt;some text two&lt;/p&gt;
-    &lt;/div&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var parent = document.getElementById(&quot;div1&quot;);
-    var child = document.getElementById(&quot;p1&quot;);
-    parent.removeChild(child);
-&lt;/script&gt;</code></pre><p>也可以使用 <code>parentNode</code> property 来获取某个子元素的 parent 元素，然后执行相关操作：</p><pre><code>child.parentElement.removeChild(child);</code></pre><p><strong>Replacing Elements</strong></p><p>使用 <code>element.replaceChild(newNode, oldNode)</code> method 来替换一个元素。例如：</p><pre><code>&lt;script&gt;
-    var newEl = document.createElement(&quot;p&quot;);
-    var node = document.createTextNode(&quot;this is a new node&quot;);
-    newEl.appendChild(node);
-
-    var parent = document.getElementById(&quot;div1&quot;);
-    var child = document.getElementById(&quot;p1&quot;);
-    parent.replaceChild(newEl, child);
-&lt;/script&gt;</code></pre><h3>Animations 动态效果</h3><p>现在我们已经知道如何选择和修改元素，下面我们可以创建一个简单的动画效果。</p><p>首先建立一个 html 页面，包含一个 box 元素，后期通过 js 来让它动起来：</p><pre><code>&lt;style&gt;
-    #container {
-        width: 200px;
-        height: 200px;
-        background: green;
-        position: relative;
-    }
-    #box {
-        width: 50px;
-        height: 50px;
-        background: red;
-        position: absolute;
-    }
-&lt;/style&gt;
-&lt;body&gt;
-    &lt;div id=&quot;container&quot;&gt;
-        &lt;div id=&quot;box&quot;&gt;&lt;/div&gt;
-    &lt;/div&gt;
-&lt;/body&gt;</code></pre><p><strong>box</strong> 元素是 <strong>container</strong> 的子元素，注意两个的 <code>position</code> attribute，container 是 <strong>relative</strong>，box 是 <strong>absolute</strong>，我们将创建一个让 box 从左移动到右的动画。</p><p>为了实现动态效果，我们需要在一个很小的时间间隔下修改元素的相关 properties，可以使用 <code>setInterval()</code> method：</p><pre><code>&lt;script&gt;
-    var pos = 0;
-    var box = document.getElementById(&quot;box&quot;);
-
-    function move() {
-        pos++;
-        box.style.left = pos + &quot;px&quot;;
-    }
-
-    setInterval(move, 10);
-&lt;/script&gt;</code></pre><p>以上指令控制 <strong>box</strong> 的 <strong>left</strong> property 每 10 毫秒移动 1 位。</p><p>但是以上的代码会让 box 元素一直向右移动，我们可以加一个简单的判断来检测 box 到达 container 边沿，然后使用  <code>clearInterval()</code> method 停止定时器：</p><pre><code>function move() {
-    if (pos &gt;= 150) {
-        clearInterval();
-    } else {
-        pos++;
-        box.style.left = pos + &quot;px&quot;;
-    }
-}</code></pre><p>当 <strong>left</strong> 属性达到 150 时，由于 <strong>box</strong> 宽度为 50，<strong>container</strong> 宽度为 200，这时候 <strong>box</strong> 已经达到边沿。</p><h3>Handling Events 事件处理</h3><p>我们可以实现当一个 event 事件发生时执行特定 JavaScript 代码，如点击某个元素，移动鼠标，提交一个表格等。</p><p>当一个 event 发生在目标元素上时，一个 handling function 会被执行。常用的 html events 包括：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/171918129.png" alt="3.png" title="3.png"></p><p>event 事件可以作为一个属性添加在元素内，如：</p><pre><code> &lt;p onclick=&quot;someFunc()&quot;&gt;some text&lt;/p&gt;
-</code></pre><p>下面我们创建一个事件，当用户点击元素时弹出一个窗口：</p><pre><code>&lt;body&gt;
-    &lt;button onclick=&quot;show()&quot;&gt;click me&lt;/button&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    function show() {
-        alert(&quot;hello&quot;);
-    }
-&lt;/script&gt;</code></pre><p>event handling 事件响应也可以在 js 中直接分配给 elements：</p><pre><code>&lt;body&gt;
-    &lt;div id=&quot;demo&quot;&gt;demo&lt;/div&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var el = document.getElementById(&quot;demo&quot;);
-    el.onclick = function () {
-        el.innerHTML = &quot;clicked&quot;;
-    }
-&lt;/script&gt;</code></pre><p><strong>onload</strong> 和 <strong>onunload</strong> events 会在用户进入和离开页面时被触发。可以用来实现当页面加载完成后执行的动作：</p><pre><code>&lt;body onload=&quot;doSomething()&quot;&gt;
-</code></pre><p>类似的 <code>window.onload</code> event 可以在整个页面加载后执行动作：</p><pre><code>window.onload = function () {
-    //do someting
-}</code></pre><p><code>onchange</code> event 在文本框中很有用，当文本框的 text 内容被修改同时元素不在 focus 状态时 <code>onchange</code> event 响应。</p><p>例如：</p><pre><code>&lt;body&gt;
-    &lt;input type=&quot;text&quot; id=&quot;name&quot; onchange=&quot;changed()&quot;&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    function changed() {
-        var el = document.getElementById(&quot;name&quot;);
-        el.value = el.value.toUpperCase();
-    }
-&lt;/script&gt;</code></pre><p>以上示例中，当我们在文本框输入字符，然后将光标移动到其他地方或者敲回车键后，文本框字符会自动转换为大写。</p><p>理解 events 很重要，因为它是实现动态页面的核心。</p><p><strong>Event Listeners</strong></p><p><code>addEventListener()</code> method 可以给一个元素添加 event handler 而不会覆盖其已有的 event handlers。可以给一个元素添加多个 event handler 甚至是统一类型的 handler，比如可以添加两个 <code>click</code> handler。</p><p>语法如下：</p><pre><code>element.addEventListener(event, function, useCapture);
-</code></pre><ul><li>第一个参数是 event 类型，如："click" 或 "mousedown"，需要用引号包围</li><li>第二个参数是事件发生时调用的 function 名称，不需要写小括号<code>()</code></li><li>第三个参数时一个 Boolean 数值，定义是使用 event bubbling 还是 event capturing，这个参数是可选项，后续会介绍</li></ul><p><strong>注意这里 event 名称不需要 <code>on</code> 前缀</strong>，使用 <code>click</code> 代替 <code>onclick</code>。</p><pre><code>element.addEventListener(&quot;click&quot;, myFunction);
-element.addEventListener(&quot;mouseover&quot;, myFunction);
-
-function myFunction() {
-  alert(&quot;Hello World!&quot;);
-}</code></pre><p>以上代码给元素添加了两个 event handler，我们可以删除其中一个：</p><pre><code>element.removeEventListener(&quot;mouseover&quot;, myFunction);
-</code></pre><p>下面的示例中，我们给 button 创建一个 event handler，然后再触发事件后删除这个 event handler：</p><pre><code>&lt;body&gt;
-    &lt;button id=&quot;btn&quot;&gt;click me&lt;/button&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var btn = document.getElementById(&quot;btn&quot;);
-    btn.addEventListener(&quot;click&quot;, myFunction);
-
-    function myFunction() {
-        alert(Math.random());
-        btn.removeEventListener(&quot;click&quot;, myFunction);
-    }
-&lt;/script&gt;</code></pre><p>当第一次点击 button 后会弹出窗口，然后删除 <code>click</code> event，后面点击会没有反应。</p><p>IE8 及以下版本的浏览器不支持 <code>addEventListener()</code> 和 <code>removeEventListener()</code> methods，可以使用 <code>document.attachEvent()</code> 来添加 event handler。</p><p><strong>Event Propagation 事件传播</strong></p><p>在 DOM 中有两种方式进行 event propagation 事件传播：<strong>bubbling</strong> 和 <strong>capturing</strong>。</p><p>当事件触发时，可以定义元素顺序。例如有一个 <code>&lt;p&gt;</code> 元素在 <code>&lt;div&gt;</code> 元素内部，当用户点击 <code>&lt;p&gt;</code> 元素时，哪个元素的 <code>click</code> event handler 首先被触发？</p><ul><li>在 <strong>bubbling</strong> 模式下，最内部元素的 event 最先响应，逐级触发外层元素；</li><li>在 <strong>capturing</strong> 模式下，最外部元素的 event 最先响应，逐级触发内层元素。</li></ul><p><code>addEventListener()</code> method 支持设置事件传播类型，定义下面的 <strong>useCapture</strong> 参数：</p><pre><code>addEventListener(event, function, useCapture)
-</code></pre><p><strong>useCapture</strong> 默认值为 <strong>false</strong>，也就是 <strong>bubbling</strong> 模式，当设置为 <strong>true</strong> 时 event 使用 <strong>capturing</strong> 模式。例如：</p><pre><code>//Capturing propagation
-elem1.addEventListener(&quot;click&quot;, myFunction, true); 
-
-//Bubbling propagation
-elem2.addEventListener(&quot;click&quot;, myFunction, false);</code></pre><p>当同一个 event 存在于多个 DOM 层级中的元素时，设置 event propagation 事件传播模式很有用。</p><h3>Image Slider 幻灯片</h3><p>下面我们制作一个幻灯片程序，通过 <strong>Next</strong> 和 <strong>Prev</strong> button 来切换图片。</p><p>首先创建 html，包含两个 button 和一个 image：</p><pre><code>&lt;html&gt;
-&lt;body&gt;
-    &lt;button&gt; Prev &lt;/button&gt;
-    &lt;img id=&quot;slider&quot; src=&quot;https://blog.niekun.net/usr/uploads/2020/12/2749019084.jpg&quot;&gt;
-    &lt;button&gt; Next &lt;/button&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre><p>然后再 JavaScript 中定义我们的图片数组：</p><pre><code>&lt;script&gt;
-    var images = [
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/2749019084.jpg&quot;,
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/1648461111.jpg&quot;,
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/3914156262.jpg&quot;];
-&lt;/script&gt;</code></pre><p>下面需要添加响应 <strong>Next</strong> 和 <strong>Prev</strong> button 的 event handler 来切换不同图片：</p><pre><code>&lt;body&gt;
-    &lt;button onclick=&quot;prev()&quot;&gt; Prev &lt;/button&gt;
-    &lt;img id=&quot;slider&quot; src=&quot;https://blog.niekun.net/usr/uploads/2020/12/2749019084.jpg&quot;&gt;
-    &lt;button onclick=&quot;next()&quot;&gt; Next &lt;/button&gt;
-&lt;/body&gt;
-&lt;script&gt;
-    var images = [
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/2749019084.jpg&quot;,
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/1648461111.jpg&quot;,
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/3914156262.jpg&quot;];
-
-    var num = 0;
-    function next() {
-        var slider = document.getElementById(&quot;slider&quot;);
-        num++;
-        if (num &gt;= images.length)
-            num = 0;
-        slider.src = images[num];
-    }
-
-    function prev() {
-        var slider = document.getElementById(&quot;slider&quot;);
-        num--;
-        if (num &lt; 0)
-            num = images.length - 1;
-        slider.src = images[num];
-    }
-&lt;/script&gt;</code></pre><p>效果如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/3936392311.jpg" alt="4.jpg" title="4.jpg"></p><p><strong>num</strong> 变量存储当前图片的 index 索引。</p><h3>Form Validation 表格验证</h3><p>html5 添加了一些用来验证的属性，例如 <strong>required</strong> attribute 能够添加给 <strong>input</strong> 元素来强制必须输入内容。</p><p>更加复杂的验证机制可以通过 JavaScript 完成。</p><p><strong>form</strong> 元素有一个 <strong>onsubmit</strong> event 能够用来进行验证。我们创建一个 form 表格，有两个 input 和一个 button，需要两个 input 输入一样的内容且不为空才通过验证：</p><pre><code>&lt;form onsubmit=&quot;return validate()&quot; method=&quot;post&quot;&gt;
-    number: &lt;input type=&quot;text&quot; name=&quot;num1&quot; id=&quot;num1&quot;&gt;
-    &lt;br&gt;
-    repeat: &lt;input type=&quot;text&quot; name=&quot;num2&quot; id=&quot;num2&quot;&gt;
-    &lt;br&gt;
-    &lt;input type=&quot;submit&quot; value=&quot;submit&quot;&gt;
-&lt;/form&gt;</code></pre><p>然后定义 <code>validate()</code> function：</p><pre><code>&lt;script&gt;
-    function validate() {
-        var n1 = document.getElementById(&quot;num1&quot;);
-        var n2 = document.getElementById(&quot;num2&quot;);
-
-        if (n1.value != &quot;&quot; &amp;&amp; n2.value != &quot;&quot;) {
-            if (n1.value == n2.value)
-                return true;
-        }
-        alert(&quot;the values shoud be equal and not blank&quot;);
-        return false;
-    }
-&lt;/script&gt;</code></pre><p>只有当 <strong>onsubmit</strong> event 的返回值为 <strong>true</strong> 时，form 才会被提交。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2002.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2002.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
