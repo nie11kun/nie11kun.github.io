@@ -11,8 +11,95 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Fri, 15 Jan 2021 16:32:00 +0800</lastBuildDate>
-<pubDate>Fri, 15 Jan 2021 16:32:00 +0800</pubDate>
+<lastBuildDate>Fri, 22 Jan 2021 11:16:00 +0800</lastBuildDate>
+<pubDate>Fri, 22 Jan 2021 11:16:00 +0800</pubDate>
+<item>
+<title>服务器部署 WebDAV 服务</title>
+<link>https://blog.niekun.net/archives/2074.html</link>
+<guid>https://blog.niekun.net/archives/2074.html</guid>
+<pubDate>Fri, 22 Jan 2021 11:16:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[WebDAV(Web-based Distributed Authoring and Versioning) 一种基于 HTTP 1.1协议的通信协议。它扩展了HTTP 1.1在 GET、POS...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>WebDAV(Web-based Distributed Authoring and Versioning) 一种基于 HTTP 1.1协议的通信协议。它扩展了HTTP 1.1在 <strong>GET</strong>、<strong>POST</strong>、<strong>HEAD</strong>等几个HTTP标准方法以外添加了一些新的方法，使应用程序可对Web Server直接读写，并支持写文件锁定(Locking)及解锁(Unlock)，还可以支持文件的版本控制。</p><p>简单说 webdav 就像一个网盘，可以远程访问他的目录名对其文件进行读写操作。</p><p><strong>WebDAV 允许客户端进行下列操作：</strong></p><ul><li>处理服务器上 WebDAV 发布目录中的资源</li><li>具有正确权限的用户可以在 WebDAV目录中复制和移动文件</li><li>修改与某些资源相关联的属性。例如，用户可写入并检索文件的属性信息</li><li>锁定并解锁资源以便多个用户可同时读取一个文件。但每次只能有一个人修改文件</li><li>搜索 WebDAV 目录中的文件的内容和属性</li></ul><!--more--><p>下面介绍如何在服务器上部署 WebDAV 服务。这里通过 nginx 来代理。</p><h3>编译 nginx</h3><p>我们通过 nginx 来代理 webdav 服务，nginx 自带有 ngx_http_dav_module 模块，但是其不支持一些 webdav 的 method 如：PROPFIND, OPTIONS, LOCK, UNLOCK。可以通过第三方模块来完整支持 webdav 的特性。</p><p>下载以下两个第三方模块：<br><strong>nginx-dav-ext-module</strong>：<a href="https://github.com/arut/nginx-dav-ext-module">https://github.com/arut/nginx-dav-ext-module</a><br><strong>headers-more-nginx-module</strong>：<a href="https://github.com/openresty/headers-more-nginx-module">https://github.com/openresty/headers-more-nginx-module</a></p><p>以上两个模块需要在编译时通过 <strong>--add-module</strong> 参数来引入模块，同时需要包含 <strong>--with-http_dav_module</strong> 模块，否则编译会报错。</p><p>从源码编译 nginx 参考我之前的教程：<a href="https://blog.niekun.net/archives/30.html">https://blog.niekun.net/archives/30.html</a></p><p>我使用的完整的编译参数如下：</p><pre><code>./configure --prefix=/opt/nginx-1.19.6 \
+--user=nginx --group=nginx \
+--with-compat --with-file-aio --with-threads \
+--with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module \
+--with-mail --with-mail_ssl_module \
+--with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module \
+--add-module=../echo-nginx-module \
+--add-module=../ngx-fancyindex \
+--add-module=../headers-more-nginx-module \
+--add-module=../nginx-dav-ext-module</code></pre><h3>配置文件</h3><p>nginx 编译安装完成后，需要配置 conf 文件来使 webdav 生效。我提前已经设置了一个单独的子域名来访问 webdav 服务，且使用 ssl 加密。</p><p>首先建立 webdav 文件夹并设置正确的权限，否则在读写时会提示权限不足：</p><pre><code>mkdir /home/www/webdav
+chown -R www-data:www-data /home/www/webdav</code></pre><p>如果想要限制用户访问，可以使用 <strong>ngx_http_auth_basic_module</strong> 模块来建立账号访问，具体参考：<a href="https://blog.niekun.net/archives/730.html">https://blog.niekun.net/archives/730.html</a></p><p>完整配置文件如下：</p><pre><code>dav_ext_lock_zone zone=foo:10m;
+server {
+    listen        443 ssl http2;
+    listen        [::]:443 ssl http2;
+    server_name   webdav.xxx.xxx;
+    include       my-server/ssl;
+
+    # 限制访问
+    auth_basic           &quot;Restricted Access&quot;;
+    auth_basic_user_file ../users/.adminpasswd;
+
+    # webdav 目录
+    root /home/www/webdav;
+    client_body_temp_path /opt/nginx/client_body_temp;
+
+    # webdav 设置
+    dav_access      user:rw  group:rw  all:r;
+    dav_methods PUT DELETE MKCOL COPY MOVE;
+    dav_ext_methods PROPFIND OPTIONS LOCK UNLOCK;
+    dav_ext_lock zone=foo;
+    create_full_put_path on;
+
+    # 优化大文件上传
+    send_timeout 3600;
+    client_body_timeout 3600;
+    keepalive_timeout 3600;
+    lingering_timeout 3600;
+    client_max_body_size 2G;
+
+    location / {
+        # 创建文件夹操作时结尾添加斜杠
+        if ($request_method = MKCOL) {
+            rewrite ^(.*[^/])$ $1/ break;
+        }
+
+        # 移动文件夹操作时结尾添加斜杠
+        if (-d $request_filename) {
+            rewrite ^(.*[^/])$ $1/;
+            set $md /;
+        }
+
+        set $x $http_destination$request_method;
+        if ($x ~ [^/]MOVE) {
+            more_set_input_headers -r &quot;Destination: ${http_destination}${md}&quot;;
+        }
+    }
+
+    # 拒绝 Windows 或 macos 多余文件上传到 webdav 路径
+    location ~ \.(_.*|DS_Store|Spotlight-V100|TemporaryItems|Trashes|hidden|localized)$ {
+        access_log  off;
+        error_log   off;
+
+        if ($request_method = PUT) {
+            return 403;
+        }
+        return 404;
+    }
+
+    location ~ \.metadata_never_index$ {
+        return 200 &quot;Don't index this drive, Finder!&quot;;
+    }
+}</code></pre><p>注意第一句 <strong>dav_ext_lock_zone</strong> 要放在 http 块内。否则会报错。</p><p>配置文件修改好后，使用下面指令测试配置是否正确：</p><pre><code>nginx -t
+</code></pre><p>如果返回 ok 重启服务即可：</p><pre><code>systemctl restart nginx
+</code></pre><h3>客户端连接</h3><p>nginx 配置好 webdav 模块并启动后，可以尝试在客户端访问。</p><p>Windows 的 file explorer 和 macos 的 finder 都可以直接连接 webdav。</p><h3>Windows 端</h3><p>在 file explorer 中点击 home - easy access - map as drive：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/797689005.jpg" alt="1.jpg" title="1.jpg"></p><p>在弹出窗口中点击 connect to a web site：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/1204074620.jpg" alt="2.jpg" title="2.jpg"></p><p>点击 next 在地址栏输入服务器 nginx 定义的 webdav 访问地址：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/3507948553.jpg" alt="3.jpg" title="3.jpg"></p><p>点击 next 后如果设置了 <strong>auth_basic</strong> 会提示要求输入账户和密码，输入账户密码后就进入了 webdav 目录了，下面就可以测试新建文件，修改文件等操作。</p><p><strong>注意 Windows 中默认只有 https 方式访问的地址才可以设置 auth，否则不会弹出输入账户和密码的提示框，而是直接提示无法访问此地址。</strong>如果想要开放 http 方式的 auth 验证，需要修改注册表 <code>HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WebClient\Parameters\BasicAuthLevel</code> 的值为 2，然后重启系统即可，此键值定义为：</p><ul><li>0 - Basic authentication disabled</li><li>1 - Basic authentication enabled for SSL shares only</li><li>2 or greater - Basic authentication enabled for SSL shares and for non-SSL shares</li></ul><h3>macos 端</h3><h3>参考链接：</h3><p><a href="https://www.robpeck.com/2020/06/making-webdav-actually-work-on-nginx/">Making Native WebDAV Actually Work on nginx with Finder and Explorer</a><br><a href="https://www.codetd.com/en/article/9724623">Nginx repair of WebDAV functionality</a><br><a href="http://nginx.org/en/docs/http/ngx_http_dav_module.html">Module ngx_http_dav_module</a><br><a href="https://www.webdavsystem.com/server/prev/v2/documentation/authentication/basic_auth_vista/">Using Basic Authentication with Windows 7 and Windows Vista WebDAV Client</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2074.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2074.html</wfw:commentRss>
+</item>
 <item>
 <title>修复 ubuntu vmware 虚拟机无法访问主机共享目录</title>
 <link>https://blog.niekun.net/archives/2071.html</link>
@@ -411,579 +498,6 @@ gpgcheck=0</code></pre><p>将以上内容替换到 <code>CentOS-Base.repo</code>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2021.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2021.html</wfw:commentRss>
-</item>
-<item>
-<title>JavaScript 入门教程之八 -- ES6</title>
-<link>https://blog.niekun.net/archives/2011.html</link>
-<guid>https://blog.niekun.net/archives/2011.html</guid>
-<pubDate>Mon, 21 Dec 2020 22:13:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[ECMAScript (ES) 就是标准 JavaScript 的脚本语言规范。它的第 6 个版本，开始被叫做 ECMAScript 6 (ES6) 然后改名为 ECMAScript 2015，...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p><strong>ECMAScript</strong> (ES) 就是标准 JavaScript 的脚本语言规范。</p><p>它的第 6 个版本，开始被叫做 ECMAScript 6 (ES6) 然后改名为 ECMAScript 2015，为编写更加复杂的程序添加了很重要的新语法。包括了：classes and modules, iterators and for/of loops, generators, arrow functions, binary data, typed arrays, collections (maps, sets and weak maps), promises, number and math enhancements, reflection, and proxies。</p><p>ES6 是 ES5 的超集，ES6 现在非常流行，原因就是它引入了新的约定和 OOP 的概念，如：<strong>classes</strong>。下面我们介绍一些 ES6 中最核心的一些特性。</p><p>需要注意的是只有浏览器支持 ES6 的情况下才能够执行 ES6 指令，否则会报错。</p><!--more--><h3>var & let</h3><p>ES6 中有三种方式定义变量：</p><pre><code>var a = 10;
-const b = &quot;test&quot;;
-let c = true;</code></pre><p>使用那种类型来申明变量取决于变量需要使用的 <strong>scope</strong> 范围。<strong>scope</strong> 是所有编程语言的基本概念，它定义了变量的可见范围。</p><p><code>var</code> 关键词定义的变量是全局有效的，或者在整个 function 内有效，而与具体在那个代码块内定义它无关。</p><p><code>let</code> 可以定义一个变量在某个特定 scope 内有效，如一个代码块或一个表达式内。</p><p>例如：</p><pre><code>if (true) {
-    let age = 5;
-}
-alert(age);</code></pre><p>以上代码会报错 <code>ES6.html:21 Uncaught ReferenceError: age is not defined</code>，可以打开浏览器调试窗口查看：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/431690113.jpg" alt="1.jpg" title="1.jpg"></p><p>这种情况下，name 变量只能在 if 表达式内被使用，因为它使用 <code>let</code> 申明。</p><p>测试 <code>var</code> 和 <code>let</code> 的区别，我们做下面的示例：</p><pre><code>&lt;script&gt;
-    function varTest() {
-        var x = 1;
-        if (true) {
-            var x = 2;
-            console.log(x); // 2
-        }
-        console.log(x); // 2
-    }
-
-    function letTest() {
-        let x = 3;
-        if (true) {
-            let x = 4;
-            console.log(x); // 4
-        }
-        console.log(x); // 3
-    }
-    varTest();
-    letTest();
-&lt;/script&gt;</code></pre><p>输出结果为：</p><pre><code>2
-2
-4
-3</code></pre><p><code>varTest()</code> 中定义的两个 x 实际上是同一个变量。<code>letTest()</code> 中 if 表达式中的 x 和外围的 x 不是一个变量。</p><p><code>let</code> 最常使用的地方就是 for 循环中：</p><pre><code>for (let index = 0; index &lt; 3; index++) {
-}</code></pre><p>index 只在 for 循环内可以被使用。</p><p><code>const</code> 变量和 <code>let</code> 变量一样都在 scope 内有效。不同点是 <code>const</code> 变量的值是不可变的，不能够被重新分配数据。</p><p>以下指令会报错：</p><pre><code>const a = 1;
-a = 2;</code></pre><h3>Template Literals</h3><p><strong>Template literals</strong> 文字模板是将变量输出到字符串的一种方式，ES6 之前需要打断字符串：</p><pre><code>var name = &quot;marco&quot;;
-var msg = &quot;hello&quot; + name + &quot;!&quot;;
-console.log(msg);</code></pre><p>ES6 引入了一种新的方式来处理：</p><pre><code>var name = &quot;marco&quot;;
-var msg = `hello ${name}!`;
-console.log(msg);</code></pre><p><strong>template literals</strong> 文字模板使用 <code>`</code> 符号来代替引号 <code>&quot;</code> 或 <code>'</code>。</p><p><code>${expression}</code> 是一个占位符，可以包含任何表达式，将评估的结果返回后嵌入 <strong>template literals</strong> 文字模板中。</p><p>例如：</p><pre><code>var a = 1;
-var b = 2;
-var msg = `sum is ${a + b}`;
-console.log(msg);</code></pre><h3>Loops and Functions in ES6</h3><p>在 JavaScript 中常用 <strong>for</strong> 循环来 iterate list 中的元素：</p><pre><code>let array = [1, 2, 3];
-for (let index = 0; index &lt; array.length; index++) {
-    const element = array[index];
-}</code></pre><p><strong>for...in</strong> 循环可以用来 iterating 一个含有一定数量的 properties 的 object：</p><pre><code>let obj = {
-    a: 1,
-    b: 2,
-    c: 3
-};
-for (let key in obj) {
-    console.log(obj[key]);
-}</code></pre><p>log 输出为：</p><pre><code>1
-2
-3</code></pre><p>注意 <code>for...in</code> loop 不能 iterate 一个 <strong>array</strong> 数组。虽然数组也是一个 object，但他的 index 索引是基于 number 数字的。基于 JavaScript engine，<code>for...in</code> 循环 iterate 某个 list 的元素的顺序是随机的，而且 iterating 索引是一个 string 字符串的，而不是 number 数字，所以当你测试对这个索引进行某些 math 数学加法运算，会发现执行的是对字符串的串联而不是数字运算。</p><p>ES6 中引入了一个 <code>for...of</code> loop 能够创建一个对 <strong>iterable object</strong> 进行 iterating 的循环，数组就是一种 iterable object，而含有 <code>name: value</code> 结构属性的 object 不属于。后面我们会介绍实际上是通过 <strong>Symbol.iterator</strong> 来索引数组类型的 object 的。</p><p>例如：</p><pre><code>let array = [1, 2, 3];
-for (const iterator of array) {
-    console.log(iterator);
-}</code></pre><p>在每个循环中，iterator 变量都会赋值为 object 内的坐标元素。</p><p><code>for...of</code> loop 适用于其他 <code>iterable objects</code> 例如 string 字符串：</p><pre><code>for (const iterator of &quot;object&quot;) {
-    console.log(iterator);
-}</code></pre><p>输出结果为：</p><pre><code>o
-b
-j
-e
-c
-t</code></pre><p><code>for...of</code> 同样适用于 ES6 新引入的一些集合：<strong>Map</strong>, <strong>Set</strong>, <strong>WeakMap</strong>, and <strong>WeakSet</strong>，后面我们会做介绍。</p><h3>Functions in ECMAScript 6</h3><p>ES6 之前定一个 function 的方法如下：</p><pre><code>function add(a, b) {
-    let sum = a + b;
-    console.log(sum);
-}</code></pre><p>ES6 介绍了一种新的语法，效果和上面的示例完全一样：</p><pre><code>const add = (a, b) =&gt; {
-    let sum = a + b;
-    console.log(sum);
-}</code></pre><p>这种写法叫做 <strong>arrow function</strong>，对于只有一个参数的简单 function 非常好用，可以省略关键词 <strong>function</strong> 和 <strong>return</strong> 甚至是大括号<code>{}</code>和小括号<code>()</code>：</p><pre><code>const greet = x =&gt; &quot;welcome&quot; + x;</code></pre><p>以上代码定义了一个 <strong>greet</strong> function，有一个参数和一个 string 返回值。</p><p>如果 function 没有参数，需要加一个小括号<code>()</code>：</p><pre><code>const x = () =&gt; alert(&quot;hi&quot;);</code></pre><p>这种语法对于 <strong>inline function</strong> 很有用。</p><p>假如有一个数组，需要对其每一个元素都执行某个 function，使用 array 的 <code>forEach</code> method 来为每个元素调用 function，传统写法如下：</p><pre><code>var arr = [1, 2 ,3 ];
-arr.forEach(function(el) {
-    console.log(el * 2);
-});</code></pre><p>在 ES6 中，以上功能可以重写为：</p><pre><code>arr.forEach(el =&gt; {
-    console.log(el * 2);
-});</code></pre><p>代码是不是简化很多呢？</p><h4>Default Parameters in ES6</h4><p>之前的 function 中定义参数的默认值可以这样：</p><pre><code>function test(a, b = 2, c = 3) {
-    console.log(a + b + c);
-}</code></pre><p>使用 <strong>arrow function</strong> 可以这样定义：</p><pre><code>const test = (a, b = 2, c = 3) =&gt; {
-    console.log(a + b + c);
-}</code></pre><h3>ES6 objects</h3><p>JavaScript 中 <strong>object</strong> 内可以定义多个 variable 变量，叫做 <strong>properties</strong>。properties 定义了 function 的叫做 <strong>method</strong>，例如：</p><pre><code>var person = {
-    name: &quot;marco&quot;, age: 20,
-    like: &quot;basketball&quot;, height: 62,
-    test: function() {
-        alert(&quot;method&quot;);
-    }
-};</code></pre><p><strong>test</strong> 就是一个 method，ES6 引入了一种简化的语法和 properties 名称来使定义更加方便和易懂。</p><p>新的语法定义 method 不需要冒号<code>:</code> 和 <code>functon</code> 关键词：</p><pre><code>let person = {
-    test() {
-        alert(&quot;hi&quot;);
-    }
-};
-person.test();</code></pre><p>当使用已知变量定义 properties 且定义名称和变量名称一样时，可以简写语法如下：</p><pre><code>let height = 160;
-let weight = 60;
-
-let man = {
-    height,
-    weight
-};</code></pre><p>以上定义中 <strong>man</strong> object 就定义了两个 properties：<strong>height</strong>，<strong>weight</strong>，且赋值为外部调用变量的值。</p><p>当在 object 中定义了相同名称的 properties，最后一个定义的 property 将会覆盖前面的：</p><pre><code>let x = {a: 2, a: 3, a: 4};
-console.log(x.a);</code></pre><p>输出结果为：4</p><p>在 ES5 中如果使用了 restrict 限制模式，定义重复名称的 properties 将会报语法错误，ES6 中<strong>取消了这个限制</strong>。</p><h4>Computed Property Names 预定义属性名</h4><p>ES6 中，可以使用 <strong>computed property name 预定义属性名</strong>。通过方括号<code>[]</code> 我们可以在 properties name 中使用一个表达式，可以进行包括串联字符串或数学运算等指令。当需要创建一个基于实际用户数据(id, email等)的特定 object 时非常有用。</p><p>示例 1：</p><pre><code>let name = &quot;marco&quot;;
-let id = &quot;123&quot;;
-let tel = &quot;1300000&quot;;
-
-let user = {
-    [name]: &quot;tom&quot;,
-    [`user_${id}`]: `${tel}`
-};
-console.log(user.user_123);
-
-//output:
-//1300000</code></pre><p>示例 2：</p><pre><code>let i = 0;
-
-let x = {
-    ['foo' + ++i]: i,
-    ['foo' + ++i]: i
-}
-console.log(x.foo1);
-console.log(x.foo2);
-
-//output:
-//1
-//2</code></pre><p>示例 3：</p><pre><code>var par = 'size';
-
-var config = {
-    [par]: 1,
-    ['mobile' + par.charAt(0).toUpperCase() + par.slice(1)]: 2
-}
-console.log(config.mobileSize);
-
-//output:
-//2</code></pre><p>当需要创建基于变量的自定义 object 时，这种方法很有效。</p><p>ES6 object 新增了一个新的 method：<code>assign()</code> 可以用来将多个 source 源结合起来创建一个新 object。<code>assign()</code> 也可以用来创建一个已知 object 的副本。</p><p>请看下面示例：</p><pre><code>let user1 = {
-    name: 'marco',
-    age: 20,
-    sex: 'male'
-}
-
-let user2 = {
-    name: 'jim',
-    age: 18,
-    tel: '12345'
-}
-
-let newUser = Object.assign({}, user1, user2);
-console.log(newUser.name);
-console.log(newUser.tel);
-
-//output:
-//jim
-//12345</code></pre><p><code>Object.assign()</code> 的第一个参数表示需要添加新 properties 的目标 object，第一个参数后的所有参数都会被作为 source 源，源参数的数量没有限制，可以任意多个。</p><p>但是源参数的顺序很重要，因为前面的源 properties 将会被后面的有着同样属性 name 的源 properties 覆盖。例如上面示例中，user1 的 name 和 age properties 会被 user2 的同样名称的 properties 覆盖。</p><p>以上示例，我们使用<code>{}</code> 作为目标 object，使用两个 object 作为源。</p><p>下面我们介绍如何使用 <code>assign()</code> 创建一个 object 复制，新 object 不和原 object 产生关联。</p><p>在下面的示例中，我们使用简单的 assignment <code>=</code> 来创建新 object，但是这种方式会在 object 和原 object 间产生 reference 关联。对新 object 的修改会影响到原 object：</p><pre><code>let person = {
-    name: 'marco',
-    age: 20
-};
-
-let newPerson = person;
-newPerson.name = &quot;tom&quot;;
-console.log(newPerson.name);
-console.log(person.name);
-
-//output:
-//tom
-//tom</code></pre><p>可以看到 修改 <strong>newPerson</strong> 的 <strong>name</strong> 属性也会同时影响到 <strong>person</strong> 的 <strong>name</strong> 属性。</p><p>为了避免这种情况，可以使用 <code>Object.assign()</code> 来新建 object：</p><pre><code>let person = {
-    name: 'marco',
-    age: 20
-};
-
-let newPerson = Object.assign({}, person);
-newPerson.name = 'tom';
-console.log(newPerson.name);
-console.log(person.name);
-
-//output:
-//tom
-//marco</code></pre><p>我们也可以在 <code>assign()</code> 中直接给 properties 赋值：</p><pre><code>let person = {
-    name: 'marco',
-    age: 20
-};
-
-let newPerson = Object.assign({}, person, {name: 'john'});
-console.log(newPerson.name);
-console.log(person.name);
-
-//output:
-//john
-//marco</code></pre><p>以上就是 ES6 中 object 的新语法介绍。</p><h3>Array Destructuring in ES6 数组拆解</h3><p><strong>destructuring assignment</strong> 拆解赋值语法能够实现将一个 array 的 values 拆分，或者将一个 object 的 properties 拆解为独立的个体。</p><h4>Destructuring array</h4><p>ES6中引入的快捷语法来拆解 <strong>array</strong> 数组，下面的示例介绍如何将数组元素拆解为独立个体：</p><pre><code>let arr = [1, 2, 3];
-let [a, b, c] = arr;
-
-console.log(a);
-console.log(b);
-console.log(c);</code></pre><p>也可以拆分一个 function 返回的数组：</p><pre><code>let a = () =&gt; {
-    return [1, 2, 3]
-};
-
-let [a, , c] = a();</code></pre><p>注意上面示例中，第二个参数留空了，表示 a 赋值数组第一个元素，c 赋值数组第三个元素。</p><p>以上 function 使用了 ES6 的简写语法，参考上一节的介绍。</p><p><strong>destructuring</strong> 拆分语法同样能够简化赋值和交换数据：</p><pre><code>let a, b, c = 3, d = 4;
-
-[a, b = 2] = [1]; //a=1, b=2
-[c, d] = [d, c]; //c=d, d=c
-
-console.log(a);
-console.log(b);
-console.log(c);
-console.log(d);
-
-//output:
-//1
-//2
-//4
-//3</code></pre><p>以上的语法再一些使用场景中能够很大简化代码量，使程序更加简洁。</p><h4>Destructuring object</h4><p>类似于拆解数组，也可以拆解 object 的 properties 为单独个体：</p><pre><code>let obj = {h: 1, s: 2};
-let {h, s} = obj;
-
-console.log(h);
-console.log(s);</code></pre><p>注意定义的新变量名需要和 object property 名称一致，否则新变量的值为：<strong>undefined</strong>。</p><p>也可以不声明新变量而直接赋值，但有语法要求。需要加小括号<code>()</code>：</p><pre><code>let obj = {h: 1, s: 2};
-let h, s;
-({h, s} = obj);</code></pre><p>拆解时可以给 <strong>object</strong> 的 properties 定义新的名称，使用: <strong>name: newname</strong> 形式：</p><pre><code>let obj = {h: 1, s: 2};
-let {h: a, s: b} = obj;
-
-console.log(a);
-console.log(b);</code></pre><p>这时候如果执行：<code>console.log(h);</code> 会报错。</p><p>最后，我们可以给新变量设置初值，如果 object 中没有定义这个属性，新变量就会使用初值：</p><pre><code>let user = {name: &quot;marco&quot;, id: 123};
-let {name = &quot;tom&quot;, age = 20} = user;
-console.log(name);
-console.log(age);
-
-//output:
-//marco
-//20</code></pre><p>以上示例中，<strong>user</strong> object 含有 name 属性，则赋值为对应数据，没有 age 属性则会使用默认值作为新变量的数据。</p><h3>ES6 Rest Parameters</h3><p>在 ES6 之前，如果调用 function 时传入的参数数量是变化的，我们可以使用 arguments array object 来访问这些传入数据。下面示例中，我们创建一个 function 来检查传入参数值是否都在一个给定数组内：</p><pre><code>function containsAll(arr) {
-    for (let index = 1; index &lt; arguments.length; index++) {
-        let num = arguments[index];
-        if (arr.indexOf(num) == -1) {
-            return false;
-        }
-    }
-    return true;
-}
-
-let x = [2, 4, 6, 8];
-console.log(containsAll(x, 2, 4));
-console.log(containsAll(x, 3, 4, 6));
-
-//output:
-//true
-//false</code></pre><p>可以看到 function 预定义的参数只有一个，我们在调用时传入了大于 1 个的参数，这时候在 function 内就需要使用 <strong>arguments</strong> 数组来索引传入数据。arguments[0] 代表第一个参数，也就是预定义的 arr 参数，其他数据在 <strong>arguments</strong> 数组中往后依次排列。</p><p>我们使用了 <strong>array</strong> 的 <strong>indexOf</strong> method 来获取某个数据在数组中的 position 位置，如果数组中不存在这个数据，则返回 <code>-1</code>，这里我们使用了 <code>===</code> identity operator 来确保数据类型和数值都要匹配上。</p><p>我们可以给 <strong>function</strong> 传入任意数量的数据，然后使用 <strong>arguments</strong> 数组来访问它们。</p><p>ES6 中通过使用 <strong>rest parameter</strong> <strong>剩余参数</strong>创建了一种更加简洁的语法，来访问变化的传入参数数据：</p><pre><code>function containsAll(arr, ...nums) {
-    for (const iterator of nums) {
-        if (arr.indexOf(iterator) == -1) {
-            return false;
-        }
-    }
-    return true;
-}</code></pre><p><strong>...nums</strong> 叫做 <strong>rest parameter</strong> <strong>剩余参数</strong>，它包含了所有 <strong>extra</strong> 附加的传入参数，<code>...</code> 叫做 <strong>Spread operator</strong> 延伸符。</p><p>只有后面的传入参数才可能被标记为 <strong>rest parameter</strong>，如果调用时没有 extra 附加的传入参数，则 <strong>rest parameter</strong> 的值将会是一个空数组<code>[]</code>，而不是 <strong>undefined</strong>。</p><h3>Spread Operator 延伸符</h3><p><strong>Spread Operator</strong> 延伸符类似于 <strong>Rest Parameter</strong>，但它在应用于 <strong>object</strong>，<strong>array</strong> 或 <strong>function</strong> 时有其他功能。</p><p><strong>function</strong></p><p>在 ES6之前，我们可以通过 <code>apply()</code> method 来实现调用 function 时使用数组作为传入参数：</p><pre><code>function test(a, b, c) {
-    console.log(a + b + c);
-}
-var arr = [1, 2, 3];
-test.apply(null, arr);
-
-//output:
-//6</code></pre><p>通过 function 的 <code>apply()</code> method，可以将 <strong>method</strong> 应用于其他外部 object 上，同时用一个数组传入 function 参数。具体参考：<a href="https://blog.niekun.net/archives/1992.html">JavaScript 入门教程之四 -- Functions</a></p><p>ES6 使用 <strong>Spread Operator</strong> 实现更加简单的语法来实现上面的功能：</p><pre><code>const test = (a, b, c, d) =&gt; {
-    console.log(a + b + c + d);
-}
-var arr = [1, 2, 3];
-test(...arr, 4);
-
-//output:
-//10</code></pre><p>以上示例中，我们使用了 <code>...</code> 延伸符来将数组数据作为传入参数。因为数组只有 3 个数据，所以我们后面又附加了一个传入参数。</p><p>也可以应用于 constructor function：</p><pre><code>let date = [2020, 11, 1];
-let x = new Date(...date);
-console.log(x.getFullYear());</code></pre><p><strong>array</strong></p><p>ES6 之前，我们使用下面方法给数组中插入元素：</p><pre><code>var arr = [&quot;one&quot;, &quot;two&quot;, &quot;five&quot;];
-arr.splice(2, 0, &quot;three&quot;, &quot;four&quot;);
-console.log(arr[3]);</code></pre><p><code>splice</code> method 用来给数组中某个位置插入数据，第一个参数是行号，第二个参数是列号，后面的参数是要插入的元素，可以是任意多个。</p><p>ES6 中，可以这样写：</p><pre><code>let newArr = [&quot;three&quot;, &quot;four&quot;];
-let arr = [&quot;one&quot;, &quot;two&quot;, ...newArr, &quot;five&quot;];</code></pre><p>因为数组的标准创建方法是：</p><pre><code>let arr = new Array(a, b, c);
-</code></pre><p>所以为了将传递参数放在数组中，我们就可以使用 <code>...</code><strong>延伸符</strong>来处理：</p><pre><code>let arr = new Array(...newArr);
-//or
-let arr = [...newArr];</code></pre><p><strong>object literals</strong></p><p>在 object 中使用 <strong>Spread Operator</strong> 可以复制所有的 properties 到新的 object：</p><pre><code>const obj1 = {
-    a: 1,
-    b: 2
-}
-const obj2 = {
-    c: 3,
-    d: 4
-}
-
-const obj3 = {...obj1, ...obj2};
-console.log(obj3.a);
-console.log(obj3.d);
-
-//output:
-//1
-//4</code></pre><p>使用前面提到的 <code>Object.assign()</code> method 也可以实现复制 object。</p><p><strong>注意</strong>，如果通过下面的方法想要合并两个 object 会得到不一样的结果：</p><pre><code>const merge = (...objs) =&gt; ({...objs});
-
-let newObj = merge(obj1, obj2);
-console.log(newOb);
-
-//output:
-//{0: {a: 1, b: 2}
-   1: {c: 3, d: 4}}</code></pre><p>它会将每个 object 作为一个 property 的值。</p><h3>Classes in ES6</h3><p>这一节我们将介绍如何创建 <strong>class</strong> 来创建同样结构的不同 object。</p><p>使用关键词 <strong>class</strong> 来创建 class，包含一个 <strong>constructor</strong> method 来初始化参数。这个结构和 c++ 的 class 定义方法很类似。</p><p>下面是一个示例：</p><pre><code>class Test {
-    constructor(a, b) {
-        this.a = a;
-        this.b = b;
-    }
-}</code></pre><p><strong>class</strong> 名称的首字母习惯用大写字符。声明好的 <strong>class</strong> 可以使用 <strong>new</strong> 关键词来创建 <strong>object</strong>：</p><pre><code>const x = new Test(1, 2);
-const y = new Test(3, 4);
-console.log(x.a);
-
-//output:
-//1</code></pre><p>在使用 class 前<strong>必须先定义它</strong>，如果把定义放在调用后面，则会报错：ReferenceError。</p><p>也可以在表达式中直接定义 class，可以有 class 名称，也可以不写：</p><pre><code>const x = class Test {
-    constructor(a, b) {
-        this.a = a;
-        this.b = b;
-    }
-};
-
-const y = class {
-    constructor(a, b) {
-        this.a = a;
-        this.b = b;
-    }
-};</code></pre><p><strong>constructor</strong> 是 class 来初始化 object 时的特殊 method，每个 class 只能够一个 <strong>constructor</strong>。</p><p>ES6 引入了一种简写语法，可以在定义 method 时省略 <strong>function</strong> 关键词。class 中定义的 method 叫做 <strong>prototype method</strong>，object 中可以调用对应 class 中的 method。</p><p>请看下面示例：</p><pre><code>class Test {
-    constructor(a, b) {
-        this.a = a;
-        this.b = b;
-    }
-    get sum() {
-        return this.calcSum();
-    }
-    calcSum() {
-        return this.a + this.b;
-    }
-}
-
-const x = new Test(1, 2);
-console.log(x.sum);
-console.log(x.calcSum());
-
-//output:
-//3
-//3</code></pre><p>以上代码中，<code>sum</code> 叫做 getter 获取器，<code>calcSum</code> 是 method。getter function 使用关键词 <strong>get</strong> 定义，必须有 return 返回值，调用时不需要写小括号<code>()</code>，类似于 property 的调用。</p><p><strong>static method</strong> 是另一种特殊 method，这种 method 不能在实例化的 object 中调用，只能被 class 本身调用，使用关键词 <strong>static</strong> 定义：</p><pre><code>class Test {
-    constructor(a, b) {
-        this.a = a;
-        this.b = b;
-    }
-    static distance(x, y) {
-        const dx = x.a - y.a;
-        const dy = x.b - y.b;
-        return Math.hypot(dx, dy);
-    }
-}
-
-const x = new Test(1, 2);
-const y = new Test(3, 4);
-let z = Test.distance(y, x);
-console.log(z);</code></pre><p>以上示例中可以看到，<strong>distance</strong> method 直接使用 <strong>Test</strong> class 调用，而不是 object。<strong>Static methods</strong> 常用于在一个 application 中创建功能性 function。</p><p><strong>extends</strong> 关键词用来创建一个 class 的 child class。child class 继承了 parent class 的所有 properties 和 methods。</p><p>示例：</p><pre><code>class Animal {
-    constructor(name) {
-        this.name = name;
-    }
-    speak() {
-        console.log(`${this.name} makes a noise.`);
-    }
-}
-
-class Dog extends Animal {
-    speak() {
-        console.log(`${this.name} barks.`)
-    }
-}
-
-let dog = new Dog('tom');
-dog.speak();
-
-//output:
-//tom barks.</code></pre><p>上面示例中，<strong>Dog</strong> class 是 <strong>Animal</strong> class 的 child class，继承了 Animal 的所有 properties 和 method。child class 也可以 overwrite 重写 parent class 的 method。</p><p>当 child class 也有 constructor 时，需要首先调用 <code>super()</code> 来初始化 parent class，然后才能使用 <strong>this</strong> 关键词。初始化参数要考虑 parent class 需要的参数：</p><pre><code>class Dog extends Animal {
-    constructor(name, age) {
-        super(name);
-        this.age = age;
-    }
-    speak() {
-        console.log(`${this.name} barks.`)
-    }
-}</code></pre><p>同样的，使用 <strong>super</strong> 关键词可以调用 <strong>parent</strong> 的 method，这在 <strong>child</strong> class 重写了某个 method 时可以使用这个方法调用 <strong>parent</strong> 原始的 method，下面是修改后的完整示例：</p><pre><code>class Animal {
-    constructor(name) {
-        this.name = name;
-    }
-    speak() {
-        console.log(`${this.name} makes a noise.`);
-    }
-}
-
-class Dog extends Animal {
-    constructor(name, age) {
-        super(name);
-        this.age = age;
-    }
-    speak() {
-        super.speak();
-        console.log(`${this.name} barks.`)
-    }
-}
-
-let dog = new Dog('tom', 10);
-dog.speak();
-console.log(dog.age);
-
-//output:
-//tom makes a noise.
-//tom barks.
-//10</code></pre><p><code>super.speak()</code> 调用了 <strong>parent</strong> class 的 method。</p><h3>ES6 Map</h3><p><strong>Map</strong> object 可以存储 <strong>key/value</strong> pairs 配对数据组。一个 key 或 value 可以是任何数据类型，例如 string，number，object，源数据等任何数据。</p><p>使用 <code>new Map([iterable])</code> 来创建 Map object，<strong>iterable</strong> 可以是任何可以 iterable 的数据，但每个元素都需要是由 key/value 两个构成的 pairs 数组。可以看到 Map 和 object 和相似，Map 的单个元素和 object 的 property 结构类似。但使用 Map 由如下优点：</p><ul><li>key 可以是任何数据类型，包括：function，object或其他</li><li>可以获取 Map 的 size，也就是包含的元素个数</li><li>可以直接在 Map 中 iterate</li><li>添加和删除 key/value 组合时性能更强</li></ul><pre><code>let map = new Map([
-    ['a', 1],
-    ['b', 2]
-]);
-console.log(map.size);
-
-//output:
-//2</code></pre><p>以上示例定义了一个 Map object。包含两个 pairs 配对，每个配对都是一个含有 2 个元素的数组。<strong>Map</strong> 的 <strong>size</strong> property 返回包含的配对个数。</p><p><strong>Map</strong> object 可用的 method：</p><ul><li><code>set(key, value)</code> 添加一个 pairs 配对，如果指定的 key 已经存在，则会替换对应的 value。</li><li><code>get(key)</code> 获取包含指定 key 的配对的 value，如果不存在指定 key 的 pairs 配对，则返回 undefined</li><li><code>has(key)</code> 查询是否存在包含指定 key 的配对，如果存在返回 true</li><li><code>delete(key)</code> 删除包含指定 key 的配对，然后返回 true，如果不存在这个配对，则返回 false</li><li><code>clear()</code> 删除所有 Map 中的 pairs 配对</li><li><code>keys()</code> 返回一个 iterator 包含所有 pairs 配对中的 key</li><li><code>values()</code> 返回一个 iterator 包含所有 pairs 配对中的 value</li><li><code>entries()</code> 返回一个 iterator 包含所有 pairs 配对数组：[key, value]</li></ul><p>示例：</p><pre><code>let map = new Map();
-map.set('a', 1).set('b', 2);
-
-console.log(map.get('a'));
-console.log(map.has('b'));
-
-for (const iterator of map.entries()) {
-    console.log(iterator[0] + &quot; : &quot; + iterator[1]);
-}
-
-//output:
-//1
-//true
-//a : 1
-//b : 2</code></pre><p>以上示例演示了部分 Map method。</p><h3>ES6 Set</h3><p><strong>Set</strong> object 可以用来存储 unique 唯一的 values，不允许有重复数据。</p><p>使用 <code>new Set([iterable])</code> 语法来创建一个 Set object，iterable 是一个数组或任何其他可以 iterate 的数据：</p><pre><code>let set = new Set([1, 3, 5, 1, 7, 5]);
-console.log(set.size);
-
-//output:
-//4</code></pre><p><strong>size</strong> property 返回这个 <strong>Set</strong> object 包含数据个数。可以看到返回值为 4，这是因为重复的数据会被忽略。</p><p>可供使用的 method 如下：</p><ul><li><code>add(value)</code> 添加一个新数据到 Set</li><li><code>delete(value)</code> 删除某个数据</li><li><code>has(value)</code> 检查是否存在某个数据，如果存在则返回 true</li><li><code>clear()</code> 清空 Set</li><li><code>values()</code> 返回一个 iterator 包含所有 Set object 中的数据。</li></ul><p>示例：</p><pre><code>let set = new Set();
-set.add(1).add(3).add(9).add(1);
-
-console.log(set.has(3));
-for (const iterator of set) {
-    console.log(iterator);
-}
-
-//output:
-//true
-//1
-//3
-//9</code></pre><p>以上示例介绍了 Set 部分 method 的用法。</p><p><strong>Set</strong> 支持不同的数据类型，例如 <code>1</code> 和 <code>'1'</code> 是不同的数据。甚至是 <strong>NaN</strong> 和 <strong>undefined</strong> 也可以存储在 <strong>Set</strong> 中。</p><h3>ES6 Promises</h3><p><code>Promise</code> 相比较于 <code>setTimeout()</code> method 是一种更好的<strong>异步编程</strong>方法。</p><p>通常想要延时执行某个 function，可以通过 <code>setTimeout()</code> 实现：</p><pre><code>setTimeout(() =&gt; {
-    console.log('second');
-    setTimeout(() =&gt; {
-        console.log('third');
-    }, 3000);
-}, 3000);
-console.log('first');
-
-//OUTPUT:
-//frist
-//second
-//third</code></pre><p>以上示例实现：先输出 first，延时 3 秒输出 second，然后再过 3 秒后输出 third。每个 function 只执行一次，如果要循环执行，可以使用  <code>setInterval()</code> 实现。</p><p><strong>setTimeout</strong> method 可以实现异步执行动作，但是如果需要处理的任务很多，使用这种方法就会导致嵌套很复杂。</p><p>ES6 引入的 <strong>promise</strong> 可以解决这个问题，使用下面语法结构创建 <strong>promise</strong>：</p><pre><code>new Promise(function(resolve, reject) {
-    if (success)
-        resolve(result);
-    else
-        reject(Error('failure'));
-});</code></pre><p>创建 <strong>Promise</strong> 需要定义一个 function 包含有两个参数，这两个参数是 method 类型的。可以在 function 中根据需要使用这两个 method。示例中 <strong>resolve</strong> 在 <strong>success</strong> 为 true 时被调用，<strong>reject</strong> 在 else 情况被调用。</p><p>那么 <strong>Promise</strong> 中需要的这两个 method 在哪里定义的呢？如果我们在程序中一个 method 返回类型为 <strong>Promise</strong> 类型，则可以调用 <code>then</code> method，有两个传入参数就是 2 个 method 的定义。</p><p>下面的示例中，定义一个返回值为 <strong>Promise</strong> 类型的 function，然后调用这个 function：</p><pre><code>const asyncTest = (work) =&gt; {
-    return new Promise((resolve, reject) =&gt; {
-        if (work === &quot;&quot;)
-            reject(Error('nothing'));
-        setTimeout(() =&gt; {
-            resolve(work);
-        }, 3000);
-    });
-};
-
-asyncTest('second')
-.then((result) =&gt; {
-    console.log(result);
-    return asyncTest('third');
-},
-(error) =&gt; console.log(error))
-.then((result) =&gt; console.log(result),
-(error) =&gt; console.log(error));
-
-console.log('frist');
-
-//OUTPUT:
-//frist
-//second
-//third</code></pre><p>以上示例和第一个示例效果一样，首先输出 frist，3 秒后输出 second，在经过 3 秒输出 third。同样的都是三个输出都是异步进行的。</p><p>以上语法相比之前的代码使逻辑关系更加清晰，<strong>Promise</strong> object 定义了调用两个 <strong>method</strong> 的原则，通过调用 <strong>then</strong> method 定义 2 个 method 的指令，只有 <strong>Promise</strong> 类型的 object 才有 <strong>then</strong> method。所以如果要继续扩充异步动作，只需要在某个 method 中返回 <strong>promise</strong> 类型的数据，就可以继续通过 <strong>then</strong> method 定义其他动作。</p><p>以上示例中，我们通过第一个 <strong>then</strong> 定义 1 个延时触发指令，然后返回一个新的 <strong>Promise</strong> 类型 object，这样可以继续调用第二个 <strong>then</strong> 来实现其他异步动作。以此类推可以继续扩展下去。</p><h3>Iterators & Generators</h3><p><strong>Symbol.iterator</strong> 是 object 内置默认的 iterator，for...of loop 就是基于这种类型的 iterator 来处理数组 object 的。</p><p>下面的示例介绍 <strong>Symbol.iterator</strong> 和 <strong>generator functions</strong> 如何使用：</p><pre><code>let myIterableObj = {
-    [Symbol.iterator]: function* () {
-        yield 1;
-        yield 2;
-        yield 3;
-    }
-};
-console.log([...myIterableObj])</code></pre><p>以上示例中，我们创建了一个 object 通过 <strong>Symbol.iterator</strong> 和 <strong>generator function</strong> 来定义一些 properties。</p><p>使用关键词 <strong>function</strong> 后加一个星号<code>*</code> 叫做 <strong>generator function</strong> (or gen function)。</p><p>通过下面示例介绍如何使用 <strong>generator function</strong>：</p><pre><code>function* id() {
-    let index = 0;
-    while (index &lt; 5) {
-        yield index++;
-    }
-}
-let x = id();
-console.log(x.next().value);
-console.log(x.next().value);
-console.log(x.next().value);
-
-//output:
-//0
-//1
-//2</code></pre><p>可以看到当 <strong>generator function</strong> 返回数据后，如果条件依然满足，它就不会直接跳出 function 而是会继续执行指令直到内部指令完全执行完毕，这一过程中可以使用关键词 <strong>yield</strong> 多次返回数据。这在实现异步程序中很有用，尤其是结合 <strong>Promise</strong> 来使用。</p><p><strong>generator function</strong> 可以进行多级嵌套使用，实现更加复杂的循环逻辑。</p><p>下面的示例依然结合 <strong>Symbol.iterator</strong> 和 <strong>generator functions</strong> 使用：</p><pre><code>const arr = ['a', '1', '3', '5b', '9', 'f'];
-const myObj = {
-    [Symbol.iterator]: function*() {
-        for (const iterator of arr) {
-            yield `${iterator}`;
-        }
-    }
-};
-
-const all = [...myObj]
-.map(i =&gt; parseInt(i, 10))
-.map(Math.sqrt)
-.filter(i =&gt; i &lt; 5)
-.reduce((i, d) =&gt; i + d);
-
-console.log(all);
-
-//output:
-//7.9681187850686666</code></pre><p>以上示例的过程如下：</p><ul><li>首先我们创建一个数组 arr，数组元素都是字符或字符串类型。</li><li>然后使用 <strong>Symbol.iterator</strong> 和 <strong>generator functions</strong> 的语法来创建一个 <strong>iterable object</strong>：myObj，数据使用前面定义的数组 arr。</li><li>然后创建一个新的 all 数组，数据使用第二部创建的 myObj，由于 myObj 也是 <strong>iterable objet</strong> 所以这里通过 <code>...</code> 延伸符来将 myObj 作为传入参数来创建数组 object。</li><li>然后使用数组的 <strong>map</strong> method 来将字符元素转换成 int 数字，这里会过滤掉一些不能转换的元素。</li><li>然后使用数组的 <strong>filter</strong> method 来进一步过滤元素</li><li>最后使用数字的 <strong>reduce</strong> method 来将所有元素进行计算，返回为一个数字。</li></ul><p><code>parseInt()</code> Function 可以将字符解析返回为一个数字。语法如下：</p><pre><code>parseInt(string, radix)
-</code></pre><p><strong>string</strong> 是需要解析的字符，<strong>radix</strong> 定义所使用的进制系统，可定义范围为：2-36，这是一个可选项，默认为 10。如果字符的首字符不是数字，则会返回 <strong>NaN</strong>。</p><p>map，filter 和 reduce method 的用法在 <a href="https://blog.niekun.net/archives/1997.html">JavaScript 入门教程之六 -- JS内置 Objects</a> 做过介绍。</p><p>更多 array 的 method 用法参考：<a href="https://www.w3schools.com/jsref/jsref_obj_array.asp">JavaScript Array Reference</a></p><h3>Modules 模组</h3><p>将相关的代码放在一个模块里有利于代码整洁度和可操作性，ES6 之前使用一些第三方库可以实现这一功能如：RequireJS, CommonJS，ES6 现在原生支持这一特性。</p><p><strong>使用 modules 模组需要考虑的：</strong></p><ul><li>可操作性，一个模组应该是完全独立的，不依赖于其他模组</li><li>命名空间 namespacing，前面介绍了变量申明的 scope，使用 var 会在代码中全局申明，可能引起命名污染，使用模组可以创建一个私有空间来完美解决这个问题</li><li>代码复用性，我们希望一个代码段能够被不同的项目引用，使用模组可以方便了在不同项目中调用</li></ul><p>下面介绍如何创建和使用 modules，我们在项目 lib 目录下创建 math.js 文件：</p><pre><code>export const sum = (x, y) =&gt; x + y;
-export let pi = 3.14;</code></pre><p>调用这个模块：</p><pre><code>&lt;script type=&quot;module&quot;&gt;
-    import * as math from './lib/math.js'
-    console.log(math.sum(math.pi, math.pi));
-&lt;/script&gt;
-
-//output:
-//6.28</code></pre><p>我们首先创建了一个 js 文件作为 module 模组，使用 <strong>export</strong> 关键词定义的 function 和 variable 变量可以被调用这个模组的文件访问到。</p><p>然后在我们的 script 中使用 import 关键词来调用模组。注意如果 script 中调用了其他模组，需要设置是script <strong>type</strong> 类型为 <strong>module</strong>，否则浏览器会报错。</p><p>import 时我们设置了这个 module 的名称为 <strong>math</strong>，module 中的 function 或 variable 时就可以通过 math 来调用，就像 object 一样。</p><p><strong>需要注意的是</strong>，如果你是在本地开发，直接打开包含调用了 module 的 html 文件或 js 文件会报错，提示：<em>Access to Script at ' from origin 'null' has been blocked by CORS policy</em>，需要通过真实的搭建一个 web 服务器来访问这个 html 文件才能正常执行。</p><p>如果使用 chrome 可以通过插件来建立一个简单的本地 web 服务器：<a href="https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb/related?hl=en">Web Server for Chrome</a></p><h3>Built-in Methods 内建 methods</h3><p>ES6 引入了一些新的内建 method 使有些任务可以更轻松地执行，下面介绍最常用的几种。</p><h4>Array Element Finding 数组元素查询</h4><p>ES6 之前我们想要得到一个数组经过某个规则过滤后的第一个元素，可以通过 <strong>filter</strong> method 实现：</p><pre><code>var x = [1, 4, 6, 3, 8].filter(function(i) {
-    return i &gt; 5;
-})[0];
-
-console.log(x);
-
-//output:
-//6</code></pre><p>现在我们可以使用 <strong>find</strong> method 更加简洁的语法实现相同的功能：</p><pre><code>var x = [1, 4, 6, 3, 8].find(i =&gt; i &gt; 5);
-console.log(x);
-
-//output:
-//6</code></pre><p>也可以使用 <strong>findIndex</strong> method 来得到符合条件的第一个元素的索引地址：</p><pre><code>var index = [1, 4, 6, 3, 8].findIndex(i =&gt; i &gt; 5);
-console.log(index);
-
-//output:
-//2</code></pre><h4>Repeating Strings 重复字符串</h4><p>ES6 之前，想要将一个字符串重复多次可以使用一下方法：</p><pre><code>console.log(Array(4).join('foo'));
-
-//output:
-//foofoofoo</code></pre><p>以上示例中，首先声明一个有 4 个元素 array 数组但没有赋初值，当前元素为 empty，然后通过 <strong>join</strong> method 给将所有元素合并为字符串，分隔符为 <strong>foo</strong>，这样我们就变相返回了一个将源字符串重复三次的新字符串。</p><p>使用 ES6 的新语法实现这个功能更加简单：</p><pre><code>console.log('foo'.repeat(3));
-
-//output:
-//foofoofoo</code></pre><p>字符串的 <strong>repeat</strong> method 的参数定义重复次数并返回新字符串。</p><h3>Searching Strings 查询字符串</h3><p>ES6 之前我们只能通过 <strong>indexOf</strong> method 来查询一个 string 中 text 的位置，如：</p><pre><code>var x = 'helloworld'.indexOf('llo') === 2;
-var y = 'helloworld'.indexOf('llo', 3) === -1;
-console.log(x);
-console.log(y);
-
-//output:
-//true
-//true</code></pre><p>关于 indexOf 的用法参考：<a href="https://blog.niekun.net/archives/1997.html">JavaScript 入门教程之六 -- JS内置 Objects</a></p><p>ES6 使用更加简洁明了的语法代替以上语法：</p><pre><code>var x = 'helloworld'.startsWith('hel', 0);
-var y = 'helloworld'.endsWith('hello', 5);
-var z = 'helloworld'.includes('llo');
-var i = 'helloworld'.includes('llo', 3);
-
-console.log(x);
-console.log(y);
-console.log(z);
-console.log(i);
-
-//output:
-//true
-//true
-//true
-//false</code></pre><p><strong>startsWith</strong> method 返回所查询的 text 的起始字符所在位置。<br><strong>endsWith</strong> method 返回所查询的 text 结束后紧跟的元素的所在位置。<br><strong>includes</strong> mehod 返回所查询的 text 的所在位置，默认从第 0 位开始，可自定义起始查询位置。</p><p>如果不存在所查询的元素，将返回 <code>-1</code>。</p><p>以上就是 ES6 中较常用的新语法，这里我推荐在实现同一功能的情况下，优先使用 ES6 新引入的语法来处理。这样可以使我们的代码更加简洁易读。</p><p><strong>经过 8 个章节的教程，我们基本涵盖了 JavaScript 的基本编程方法。后续的学习中需要继续补充完善，在实际应用中才能对 JavaScript 有进一步的认识。</strong></p>
-]]></content:encoded>
-<slash:comments>1</slash:comments>
-<comments>https://blog.niekun.net/archives/2011.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2011.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

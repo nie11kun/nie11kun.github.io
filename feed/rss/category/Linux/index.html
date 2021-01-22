@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2074.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2071.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2035.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1911.html"/>
@@ -18,10 +19,88 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1900.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1899.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1872.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1869.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2074.html">
+<title>服务器部署 WebDAV 服务</title>
+<link>https://blog.niekun.net/archives/2074.html</link>
+<dc:date>2021-01-22T11:16:00+08:00</dc:date>
+<description>WebDAV(Web-based Distributed Authoring and Versioning) 一种基于 HTTP 1.1协议的通信协议。它扩展了HTTP 1.1在 GET、POST、HEAD等几个HTTP标准方法以外添加了一些新的方法，使应用程序可对Web Server直接读写，并支持写文件锁定(Locking)及解锁(Unlock)，还可以支持文件的版本控制。简单说 webdav 就像一个网盘，可以远程访问他的目录名对其文件进行读写操作。WebDAV 允许客户端进行下列操作：处理服务器上 WebDAV 发布目录中的资源具有正确权限的用户可以在 WebDAV目录中复制和移动文件修改与某些资源相关联的属性。例如，用户可写入并检索文件的属性信息锁定并解锁资源以便多个用户可同时读取一个文件。但每次只能有一个人修改文件搜索 WebDAV 目录中的文件的内容和属性下面介绍如何在服务器上部署 WebDAV 服务。这里通过 nginx 来代理。编译 nginx我们通过 nginx 来代理 webdav 服务，nginx 自带有 ngx_http_dav_module 模块，但是其不支持一些 webdav 的 method 如：PROPFIND, OPTIONS, LOCK, UNLOCK。可以通过第三方模块来完整支持 webdav 的特性。下载以下两个第三方模块：nginx-dav-ext-module：https://github.com/arut/nginx-dav-ext-moduleheaders-more-nginx-module：https://github.com/openresty/headers-more-nginx-module以上两个模块需要在编译时通过 --add-module 参数来引入模块，同时需要包含 --with-http_dav_module 模块，否则编译会报错。从源码编译 nginx 参考我之前的教程：https://blog.niekun.net/archives/30.html我使用的完整的编译参数如下：./configure --prefix=/opt/nginx-1.19.6 \
+--user=nginx --group=nginx \
+--with-compat --with-file-aio --with-threads \
+--with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module \
+--with-mail --with-mail_ssl_module \
+--with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module \
+--add-module=../echo-nginx-module \
+--add-module=../ngx-fancyindex \
+--add-module=../headers-more-nginx-module \
+--add-module=../nginx-dav-ext-module配置文件nginx 编译安装完成后，需要配置 conf 文件来使 webdav 生效。我提前已经设置了一个单独的子域名来访问 webdav 服务，且使用 ssl 加密。首先建立 webdav 文件夹并设置正确的权限，否则在读写时会提示权限不足：mkdir /home/www/webdav
+chown -R www-data:www-data /home/www/webdav如果想要限制用户访问，可以使用 ngx_http_auth_basic_module 模块来建立账号访问，具体参考：https://blog.niekun.net/archives/730.html完整配置文件如下：dav_ext_lock_zone zone=foo:10m;
+server {
+    listen        443 ssl http2;
+    listen        [::]:443 ssl http2;
+    server_name   webdav.xxx.xxx;
+    include       my-server/ssl;
+
+    # 限制访问
+    auth_basic           &quot;Restricted Access&quot;;
+    auth_basic_user_file ../users/.adminpasswd;
+
+    # webdav 目录
+    root /home/www/webdav;
+    client_body_temp_path /opt/nginx/client_body_temp;
+
+    # webdav 设置
+    dav_access      user:rw  group:rw  all:r;
+    dav_methods PUT DELETE MKCOL COPY MOVE;
+    dav_ext_methods PROPFIND OPTIONS LOCK UNLOCK;
+    dav_ext_lock zone=foo;
+    create_full_put_path on;
+
+    # 优化大文件上传
+    send_timeout 3600;
+    client_body_timeout 3600;
+    keepalive_timeout 3600;
+    lingering_timeout 3600;
+    client_max_body_size 2G;
+
+    location / {
+        # 创建文件夹操作时结尾添加斜杠
+        if ($request_method = MKCOL) {
+            rewrite ^(.*[^/])$ $1/ break;
+        }
+
+        # 移动文件夹操作时结尾添加斜杠
+        if (-d $request_filename) {
+            rewrite ^(.*[^/])$ $1/;
+            set $md /;
+        }
+
+        set $x $http_destination$request_method;
+        if ($x ~ [^/]MOVE) {
+            more_set_input_headers -r &quot;Destination: ${http_destination}${md}&quot;;
+        }
+    }
+
+    # 拒绝 Windows 或 macos 多余文件上传到 webdav 路径
+    location ~ \.(_.*|DS_Store|Spotlight-V100|TemporaryItems|Trashes|hidden|localized)$ {
+        access_log  off;
+        error_log   off;
+
+        if ($request_method = PUT) {
+            return 403;
+        }
+        return 404;
+    }
+
+    location ~ \.metadata_never_index$ {
+        return 200 &quot;Don't index this drive, Finder!&quot;;
+    }
+}注意第一句 dav_ext_lock_zone 要放在 http 块内。否则会报错。配置文件修改好后，使用下面指令测试配置是否正确：nginx -t
+如果返回 ok 重启服务即可：systemctl restart nginx
+客户端连接nginx 配置好 webdav 模块并启动后，可以尝试在客户端访问。Windows 的 file explorer 和 macos 的 finder 都可以直接连接 webdav。Windows 端在 file explorer 中点击 home - easy access - map as drive：在弹出窗口中点击 connect to a web site：点击 next 在地址栏输入服务器 nginx 定义的 webdav 访问地址：点击 next 后如果设置了 auth_basic 会提示要求输入账户和密码，输入账户密码后就进入了 webdav 目录了，下面就可以测试新建文件，修改文件等操作。注意 Windows 中默认只有 https 方式访问的地址才可以设置 auth，否则不会弹出输入账户和密码的提示框，而是直接提示无法访问此地址。如果想要开放 http 方式的 auth 验证，需要修改注册表 HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WebClient\Parameters\BasicAuthLevel 的值为 2，然后重启系统即可，此键值定义为：0 - Basic authentication disabled1 - Basic authentication enabled for SSL shares only2 or greater - Basic authentication enabled for SSL shares and for non-SSL sharesmacos 端参考链接：Making Native WebDAV Actually Work on nginx with Finder and ExplorerNginx repair of WebDAV functionalityModule ngx_http_dav_moduleUsing Basic Authentication with Windows 7 and Windows Vista WebDAV Client</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2071.html">
 <title>修复 ubuntu vmware 虚拟机无法访问主机共享目录</title>
 <link>https://blog.niekun.net/archives/2071.html</link>
@@ -245,71 +324,5 @@ iptables -t filter -I INPUT -m set --match-set block src -j DROP
 iptables -t filter -I INPUT -m set --match-set allow src -j RETURNiptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。查询路由表加入的规则：iptables -t filter -L -n
 如果要删除 INPUT 路由链第一条规则，使用命令：iptables -t filter -D INPUT 1
 以上就是使用 dnsmasq 的 ipset 功能实现 iptables 对域名流量的控制。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1869.html">
-<title>dnsmasq 使用教程</title>
-<link>https://blog.niekun.net/archives/1869.html</link>
-<dc:date>2020-10-25T07:51:00+08:00</dc:date>
-<description>dnsmasq 提供 DNS 缓存/查询服务和 DHCP(Dynamic Host Configuration Protocol) 服务等功能，用来管理本地局域网络系统。内置于常见的 Linux 分发版，openWrt，macOS 系统中。安装直接使用包管理器安装：apt install dnsmasq
-查询版本：dnsmasq -v
-信息里 Compile time options 可以看到当前安装版本支持的选项功能 ，如：ipsetroot@OpenWrt:/etc# dnsmasq -v
-Dnsmasq version 2.80  Copyright (c) 2000-2018 Simon Kelley
-Compile time options: IPv6 GNU-getopt no-DBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack ipset auth DNSSEC no-ID loop-detect inotify dumpfile
-
-This software comes with ABSOLUTELY NO WARRANTY.
-Dnsmasq is free software, and you are welcome to redistribute it
-under the terms of the GNU General Public License, version 2 or 3.启动服务：systemctl start dnsmasq
-服务启动后，会监听本地或局域网内的 DNS 请求并根据配置规则进行处理。DNS 服务Linux DNS 请求处理流程test.com -&gt; /etc/hosts -&gt; /etc/resolv.conf -&gt; dnsmasq以上每个过程中只要得到了解析的 IP 地址则直接结束剩下的处理过程。/etc/hosts 文件是 Linux 系统默认的 hosts 文件，一般发起的 DNS 请求会首先查询此 hosts 文件，如果没有匹配上则从 /etc/resolv.conf 文件找 DNS 服务器进行进一步查询。/etc/resolv.conf 文件是 linux 系统的默认 dns 配置文件，一般情况下里面定义的域名服务器地址为本地：127.0.0.1 地址，由于 dnsmasq 默认监听本地及局域网 53 端口，则 DNS 请求就会传入 dnsmasq 进行进一步解析。下面介绍 hosts 文件和 resolv 文件的意义。hostshosts 文件主要用来指定某个域名的解析 IP，通常用来处理局域网设备的域名解析到对应设备 IP。一般情况下局域网设备设置的域名不能在公共 DNS 服务器进行解析。系统默认的 hosts 文件地址：/etc/hosts。文件格式：127.0.0.1 localhost
-192.168.1.123 test1.home.lan
-192.168.1.124 test2.home.lan使用 hosts 文件也可以用来进行域名欺骗，实现广告屏蔽等功能，比如我想要屏蔽 360 的所有访问：127.0.0.1 360.comdnsmasq 可以选择使用自定义的 hosts 文件。resolv.confresolv.conf 文件定义了 DNS 服务器地址，dns 请求会转发到设置的地址上。可以指定多个服务器进行顺序查询直到解析到 IP 地址，指定为本地地址 127.0.0.1 会转发到本地 dnsmasq 进行处理。/etc/resolv.conf 是系统默认解析服务器配置文件。文件格式：nameserver 127.0.0.1
-nameserver 192.168.1.1
-nameserver 114.114.114.114系统默认的 /etc/resolv.conf 文件在每次系统启动会根据 DHCP 分配情况自动生成，一般指向本地地址或局域网网关。dnsmasq 可以配置自定义的 resolv 文件可以设置公网的 DNS 解析服务器，也就是上游 DNS 服务器。dnsmasq 处理流程简介dnsmasq -&gt; hosts.dnsmasq -&gt; /etc/dnsmasq.conf / dnsmasq.conf -&gt; resolv.dnsmasq.confDNS 请求传入 dnsmasq 后通过其配置文件来进行 DNS 查询，首先查询 hosts 文件，如果设置了自定义 hosts 文件和系统默认 hosts 一起查询，没有匹配到的话就进入 conf 配置文件内部的 server 及 address 项进行匹配，如果依然没有结果则查询 relolv 自定义配置文件定义的上游 DNS 服务器。/etc/dnsmasq.d 文件夹和 /etc/dnsmasq.conf 文件是 dnsmasq 的配置路径，可以设置监听地址，自定义 hosts.dnsmasq 文件地址，自定义 resolv.dnsmasq.conf 文件地址，也可以在文件内直接指定某域名使用的 DNS 解析服务器等。/etc/dnsmasq.d 文件夹可以存放用户自定义的 dnsmasq 配置文件，效果等同于直接写入 dnsmasq.conf 文件内，方便整理自定义规则。dnsmasq 配置文件下面介绍 dnsmasq 配置常用的语句：# 监听地址：
-# 如果只写 127.0.0.1 则只处理本机的 DNS 解析，不写这句默认监听所有网口
-listen-address=127.0.0.1,192.168.8.132
-
-# 指定自定义 hosts 文件：
-addn-hosts=/etc/hosts.dnsmasq
-
-# 指定上游 DNS 服务列表的配置文件
-resolv-file=/etc/resolv.dnsmasq.conf
-
-# 按照 DNS 列表一个个查询，否则将请求发送到所有 DNS 服务器
-strict-order
-
-# 表示对下面设置的所有 server 发起查询请求，选择响应最快的服务器的结果
-all-servers
-
-# 指定默认查询的上游服务器
-server=8.8.8.8
-server=114.114.114.114
-
-# 指定 .cn 的域名全部通过 114.114.114.114 这台国内DNS服务器来解析
-server=/cn/114.114.114.114
-
-# 给 *.apple.com 和 taobao.com 使用专用的 DNS
-server=/taobao.com/223.5.5.5
-server=/.apple.com/223.6.6.6
-
-# 增加一个域名，强制解析到所指定的地址上，dns 欺骗
-address=/360.com/127.0.0.1
-
-# 设置DNS缓存大小(单位：DNS解析条数)
-cache-size=500
-
-# 存储域名解析的 IP 地址结果存储到 saveresult 的 ipset 结果中，可以交给iptables识别和转发
-ipset=/test.com/saveresultDHCP 服务待整理。。。升级 dnsmasq-fullopenWrt 默认安装的 dnsmasq 缺少一些选项功能，如：ipset，可以安装 dnsmasq-full 来实现更多功能，由于 dnsmasq 管理着域名解析工作，卸载 dnsmasq 后会导致无法正确解析域名从无法联网。有 2 种方法避免这种情况：修改 resolv.conf 文件手动指定 DNS 服务器提前下载好 dnsmasq-full 安装文件。手动指定 DNS 解析地址修改 /etc/resolv.conf 文件，指定上游 DNS 服务器：nameserver 114.114.114.114
-卸载及安装新程序：opkg remove dnsmasq &amp;&amp; opkg install dnsmasq-full
-提前下载安装包# 下载安装包
-opkg download dnsmasq-full
-# 查看下载的安装包名称：
-ls
-# 尝试安装，会提示失败，但可以安装好需要的依赖包
-opkg install dnsmasq-full
-# 删除原 dnsmasq
-opkg remove dnsmasq
-# 安装下载好的包
-opkg install dnsmasq-full_2.80-15_x86_64.ipk
-# 安装完成后可以删除安装包文件
-rm dnsmasq-full_2.80-15_x86_64.ipk 参考链接一文玩转V2ray 透明代理Dnsmasq 介绍与使用Dnsmasq+ipset+iptables基于域名的流量管理</description>
 </item>
 </rdf:RDF>
