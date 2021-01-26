@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>admin</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2085.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2074.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2071.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2066.html"/>
@@ -18,10 +19,76 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2043.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2040.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2035.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2021.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2085.html">
+<title>node.js 入门教程之三 -- npm</title>
+<link>https://blog.niekun.net/archives/2085.html</link>
+<dc:date>2021-01-26T15:45:59+08:00</dc:date>
+<description>调用 node.js 文件node.js 有内建的 module system 模块系统，一个node.js 文件可以导入其他 node.js 文件内定义的功能。语法如下：const library = require('./libs')和导入其他第三方模块类似使用 require 指令，需要指定 node.js 文件路径。以上示例表示导入当前目录下的 libs.js 文件。js 文件中默认定义的 objects 等元素是私有的，不能够被外部使用。在被导入的文件中，需要在引用前 expose 暴漏出需要被外部使用的功能。需要使用到 module system 的 module.exports API 来实现。当给一个 object 或 function 赋予 exports 属性时，就表明这些元素可以暴漏给外部。有两种方法来实现。第一种方法是将某个 object 直接赋值给 module.exports，module.exports 是 module system 的一个 object 用来将某个 object 暴漏出来，且只能在一个文件中赋值给某一个元素，下面是一个示例：libs.js 文件：const person = {
+    name: 'marco',
+    age: 20
+}
+
+module.exports = person;main.js 文件：const libs = require('./libs');
+
+console.log(libs.age);
+
+//OUTPUT:
+//20上面示例中，我们将 libs.js 文件的 person object 赋值给了 module.exports，在 main.js 中调用 libs.js 文件后，main.js 中的 libs object 就相当于 person object。我们可以发现，这种定义方法可以将某个 node.js 文件中的一个 object 暴漏给外部使用。第二种方法是将需要暴漏的元素定义为 exports 的 properties，这种方式可以将多个 objects 或 function 暴漏给外部。libs.js 文件：const person = {
+    name: 'marco',
+    age: 20
+}
+exports.person = person;
+
+exports.car = {
+    brand: 'bmw',
+    color: 'red'
+}main.js 文件：const libs = require('./libs');
+
+console.log(libs.person.age);
+console.log(libs.car.brand);
+
+//OUTPUT:
+//20
+//bmw以上示例中，我们先在 libs.js 中定义了两个 object，并都作为 exports 的一个 property，可以看到有两种方式定义。在 main.js 中调用后，通过调用 libs object 对应的 properties 名称即可调用对应暴露的元素。npm 包管理器npm 是 node.js 的标准包管理器。一开始，npm 作为下载和管理 node.js 包的依赖的工具，现在也成为了 JavaScript 前端开发工具。下载包如果项目中有 package.json 文件，可以通过下面指令自动安装所有在文件中定义的模块，安装路径为 node_modules 文件夹内：npm install
+安装某一个模块包：npm install &lt;package-name&gt;
+在项目中安装的包会自动添加条目到 package.json 文件中。也可以在安装时使用 --save 选项来添加到文件。更新包更新项目中所有包：npm update
+更新某一个包：npm update &lt;package-name&gt;
+执行任务package.json 文件内支持定义指定的命令行指令，通过下面的语法来执行：npm run &lt;task-name&gt;
+指令定义在 scripts 块内，例如：{
+  &quot;scripts&quot;: {
+    &quot;start&quot;: &quot;uname -r&quot;
+  }
+}此时我们在终端执行下面命令：$ npm run start
+Debugger attached.
+
+&gt; start
+&gt; uname -r
+
+5.8.0-38-generic
+Waiting for the debugger to disconnect...可以看到通过 run 定义命令的名称就可以执行对应的命令。包安装路径当使用 npm 安装包时，可以定义两种安装模式：local install 逻辑安装global install 全局安装默认情况下当我们使用下面指令安装包：npm install chalk
+包会安装到当前项目路径下的 node_modules 文件夹内。此时 npm 会将对应包的信息写入 package.json 文件内的 dependencies 块内，如：{
+  &quot;dependencies&quot;: {
+    &quot;chalk&quot;: &quot;^4.1.0&quot;,
+    &quot;inquirer&quot;: &quot;^7.3.3&quot;,
+    &quot;minimist&quot;: &quot;^1.2.5&quot;,
+    &quot;progress&quot;: &quot;^2.0.3&quot;
+  }
+}全局安装通过 -g 标记实现：npm install -g chalk
+使用全局安装模式时，npm 不会将包安装到项目路径下，而是 global location 路径下。通过 npm root -g 命令可以返回 golbal 路径的地址，Linux 默认地址为：/usr/local/lib/node_modules，Windows 默认地址为：C:\Users\YOU\AppData\Roaming\npm\node_modules。可执行程序当安装一个包后，我们通过 require 关键词来调用模块：const inquirer = require('inquirer')
+当安装的包是可执行程序的时候呢？当安装的包含有可执行程序时，程序会放在 node_modules/.bin/ 文件夹内，关于如何运行这些可执行程序，我们通过 cowsay 包来演示。首先安装 cowsay，这里安装到 global 路径下：npm install -g cowsay
+我的 global 路径地址为：/opt/node-v15.5.1-linux-x64/lib/node_modules，可执行文件被安装在 /opt/node-v15.5.1-linux-x64/bin/ 目录下：cowsay -&gt; ../lib/node_modules/cowsay/cli.js查看属性可以看到此可执行文件是指向 cli.js 的一个链接。通过 npx 命令可以方便的执行此程序，不需要提供程序所在路径：$ npx cowsay wow
+ _____
+&lt; wow &gt;
+ -----
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2074.html">
 <title>服务器部署 WebDAV 服务</title>
 <link>https://blog.niekun.net/archives/2074.html</link>
@@ -208,7 +275,7 @@ test(*b);
 <description>安装扩展插件： Remote - SSH可以实现远程文件访问终端调试远程端口转发到本地https://code.visualstudio.com/docs/remote/ssh-tutorial</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2051.html">
-<title>node.js 入门教程之二 -- getting started</title>
+<title>node.js 入门教程之二 -- Getting Started</title>
 <link>https://blog.niekun.net/archives/2051.html</link>
 <dc:date>2021-01-09T15:48:00+08:00</dc:date>
 <description>V8 JavaScript EngineV8 是 chrome 浏览器的 JavaScript Engine 名称，它是用来在 chrome 中获取和执行 JavaScript 代码的工具。V8 提供了一个 JavaScript 的运行环境，DOM 及其他 web API 是由 browser 提供的。JavaScript Engine 是独立于其所寄生的浏览器的，这一特性才使 node.js 得以诞生。node.js 选择了 V8 Engine 且随着 node.js 的不断成长，大量服务端通过 JavaScript 编写的程序使用 v8 Engine。基于 V8 同样可以创造桌面应用，例如 Electron 项目。不同的浏览器有着各自的 Engine：Firefox has SpiderMonkeySafari has JavaScriptCore (also called Nitro)Edge was originally based on Chakra but has more recently been rebuilt using Chromium and the V8 engine.所有的 Engine 都遵守 ECMAScript 标准。在最初时候 JavaScript 被作为一种  interpreted language 解释型语言。但是现代 JavaScript Engine 不在单单 interpret 解释代码，而是要 compile 编译代码。从 2009 年起，Firefox 将 SpiderMonkey 编译器集成到浏览器中，从此大家都开始引入这一方案。JavaScript 代码被 V8 通过内部的 just-in-time (JIT) 编译器编译来提高执行效率。命令行运行 node.js 代码一般情况下在安装好 node.js 后，可以通过 node 命令执行 node.js 代码，需要传递被执行文件的路径：node app.js
@@ -248,7 +315,7 @@ console.log(process.env.TEST);
 
 // output:
 // undefined
-// devnode.js REPL通常情况下我们将代码卸载 js 文件中，然后通过 node 命令执行：node app.js
+// devnode.js REPL通常情况下我们将代码写在 js 文件中，然后通过 node 命令执行：node app.js
 如果不指定需要执行的 js 文件，则会进入 REPL (Read Evaluate Print Loop) 编程环境，可以通过直接输入指令，逐行执行代码。进入 REPL：$ node
 Welcome to Node.js v15.5.1.
 Type &quot;.help&quot; for more information.
@@ -307,13 +374,14 @@ global.util                  global.v8                    global.vm             
 global.worker_threads        global.zlib
 
 &gt; global.REPL 有一些特殊指令，以 . 开始：.help: shows the dot commands help.editor: enables editor mode, to write multiline JavaScript code with ease. Once you are in this mode, enter ctrl-D to run the code you wrote..break: when inputting a multi-line expression, entering the .break command will abort further input. Same as pressing ctrl-C..clear: resets the REPL context to an empty object and clears any multi-line expression currently being input..load: loads a JavaScript file, relative to the current working directory.save: saves all you entered in the REPL session to a file (specify the filename).exit: exits the repl (same as pressing ctrl-C two times)来自命令行的传递参数在执行某个 js 文件时，你可以传入任意个数的数据作为传入参数供程序内使用。参数可以是独立的，也可以是以 key/value 形式：node app.js jon
-node appljs name=jon如果使用第二种方式，则需要对其进行解析，后面会介绍。通过访问 process 模块的 argv property 可以 retrieve 这些传入参数，argv 是一个数组，它的首个元素是 node 可执行文件路径，第二个元素是当前执行的 js 文件路径，其他元素就是传入参数数据。我们新建 argv.js 文件内容如下：process.argv.forEach((val, index) =&gt; {
+node appljs name=jon age=20如果使用第二种方式，则需要对其进行解析，后面会介绍。通过访问 process 模块的 argv property 可以 retrieve 这些传入参数，argv 是一个数组，它的首个元素是 node 可执行文件路径，第二个元素是当前执行的 js 文件路径，其他元素就是传入参数数据。我们新建 argv.js 文件内容如下：process.argv.forEach((val, index) =&gt; {
     console.log(`${index}: ${val}`);
 });执行以下指令：$ node argv.js ABC
 0: /opt/node-v15.5.1-linux-x64/bin/node
 1: /mnt/hgfs/Development/node.js/argv.js
-2: ABC可以看到第三个元素是我们传入的数据。可以将所有传入参数单独提取出来：const val = process.argv.slice(2);
-如果传入参数没有定义索引 key：node app.js jon
+2: ABC可以看到第三个元素是我们传入的数据。可以通过 array 的 slice method 将所有传入参数单独提取出来：const val = process.argv.slice(2);
+slice 语法如下：array.slice(start, end)
+将指定的数组范围内的元素生成一个新数组并返回，start 参数为起始元素索引，end 为终止元素索引，end 默认值为原数组最后一个元素。如果传入参数没有定义索引 key：node app.js jon
 使用以下方法调用：const val = process.argv.slice(2);
 console.log(val[0]);如果传入参数定义了索引 key：node app.js name=jon
 此时 args[0] 的值为 name=joe，需要对其进行解析操作，最简单的是使用 minimist 库实现(先通过 npm 安装)：const args = require('minimist')(process.argv.slice(2));
@@ -354,7 +422,81 @@ const timer = setInterval(() =&gt; {
     if (bar.complete) {
         clearInterval(timer);
     }
-}, 100);每调用一次 bar.tick() 就会前进一格，可以在程序中添加进度条来提示进度。</description>
+}, 100);每调用一次 bar.tick() 就会前进一格，可以在程序中添加进度条来提示进度。命令行输入下面介绍如何在命令行下进行输入输出交互。node.js 从 version 7 开始提供了 readline module 可以在程序运行期间获取一个可读取的 stream 流的数据，如 process.stdin stream，一次读取一行数据。请看下面示例：const readline = require('readline').createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+readline.question(&quot;what is your name\n&quot;, name =&gt; {
+    console.log(`Hi, ${name}`);
+    readline.close();
+});
+
+//output:
+//what is your name
+//marco
+//Hi, marcoquestion() method 显示第一个参数数据到命令行，然后等待用户输入数据，当用户输入数据并敲回车后会自动调用定义的 function，并将输入数据作为传入数据。readline 的更多用法参考：https://nodejs.org/api/readline.html但需要输入一个密码时，我们希望在输入时可以隐藏输入的信息，我们可以通过 Inquirer.js 模块来实现需求。Inquirer.js 项目地址：https://github.com/SBoudrias/Inquirer.js通过 npm 安装：npm install inquirer
+inquirer 可以实现很多输入交互方式，如：常规输入，密码，列表，选项框等，下面举例说明：const inquirer = require('inquirer')
+
+var questions = [
+    {
+        type: 'input',
+        name: 'name',
+        message: 'what is your name\n',
+        default: function () {
+            return 'Doe';
+        }
+    },
+    {
+        type: 'input',
+        name: 'age',
+        message: 'how old are you?\n'
+    },
+    {
+        type: 'input',
+        name: 'phone number',
+        message: 'please input your phone number\n',
+        validate: function (value) {
+            var pass = value.match(
+              /^1[3|4|5|6|7|8|9][0-9]{9}$/
+            );
+            if (pass)
+              return true;
+            else
+                return 'Please enter a valid phone number';
+        }
+    },
+    {
+        type: 'password',
+        name: 'password',
+        message: 'your password\n'
+    }
+];
+
+inquirer.prompt(questions)
+.then(answers =&gt; {
+    console.log(`Hi, ${answers['name']}, you age is ${answers['age']}, your phone number is ${answers['phone number']}`);
+});questions 数组定义了需要输入的内容，可以定义多项输入信息，每个输入内容都是一个独立的 question object 用来定义这个 question 具体的模式，下面介绍最常用的几个 properties：type 提示框的类型，默认为 input，可选项有: input, number, confirm, list, rawlist, expand, checkbox, password, editorname 定义了此 question 的名称，用来在 answers 中读取数据时使用message 定义一个打印输出的字符串提示信息default 如果没有输入内容，则使用此处定义的默认值，可以是变量或 functionvalidate 用来判断输入信息是否满足一定条件，如果满足则返回 true，不满足返回预定一个提示信息并停留在当前 question 等待用户修改输入内容更多使用 question object 的属性参考：https://github.com/SBoudrias/Inquirer.js#question在上面的示例中，通过 validate function 判断电话号码是否有效，通过 string 的 match method 使用正则表达式来匹配信息。match method 语法如下：string.match(regexp)
+注意 regexp 是一个字符串，需要使用斜杠/来包围，如：var str = &quot;abcdefab&quot;;
+if (str.match(/ab/))
+    console.log(true);
+else
+    console.log(false);
+
+//output:
+//true还可以使用修饰符来设置正则匹配限制，可用的修饰符有 g 和 i，放在正则表达式结尾斜杠/后面。g 修饰符表示 global 全局查找，当使用 g 时，所有匹配结果将会返回，当不使用 g 时，只有第一个匹配的结果会返回，且包含其 groups，index 等信息：var str = &quot;abcdefab&quot;;
+console.log(str.match(/ab/));
+console.log(str.match(/ab/g));
+
+//OUTPUT:
+//[ 'ab', index: 0, input: 'abcdefab', groups: undefined ]
+//[ 'ab', 'ab' ]i 修饰符用来设置忽略大小写：var str = &quot;abcdefabAB&quot;;
+console.log(str.match(/ab/g));
+console.log(str.match(/ab/gi));
+
+//OUTPUT:
+//[ 'ab', 'ab' ]
+//[ 'ab', 'ab', 'AB' ]当 question object 的 type 定义为 password 类型时，输入时信息会被隐藏。prompt method 用来显示提示框，传入参数就是预定义的 question 数组，其返回值为 promise 类型，所以可以通过 then method 来实现异步响应。promise 的用法参考：https://blog.niekun.net/archives/2011.html这里通过 then method 定义了 success 的 function，传入参数就是用户输入的数据构成的 object，通过 question object 中 name property 定义的名称来索引到具体的某个输入数据。更多 inquirer 示例：https://github.com/SBoudrias/Inquirer.js/tree/master/packages/inquirer/examples</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2043.html">
 <title>node.js 入门教程之一 -- 介绍</title>
@@ -421,11 +563,5 @@ enabled=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
 gpgcheck=0将以上内容替换到 CentOS-Base.repo 文件内，然后执行：yum clean &amp;&amp; yum makecache
 更新缓存即可。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2021.html">
-<title>Windows 补丁下载</title>
-<link>https://blog.niekun.net/archives/2021.html</link>
-<dc:date>2020-12-22T10:54:50+08:00</dc:date>
-<description>如果需要单独下载某个 Windows 补丁，可以在其官网下载：https://www.catalog.update.microsoft.com/搜索补丁编号即可。</description>
 </item>
 </rdf:RDF>
