@@ -11,8 +11,28 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/Linux/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Fri, 22 Jan 2021 11:16:00 +0800</lastBuildDate>
-<pubDate>Fri, 22 Jan 2021 11:16:00 +0800</pubDate>
+<lastBuildDate>Thu, 28 Jan 2021 08:17:25 +0800</lastBuildDate>
+<pubDate>Thu, 28 Jan 2021 08:17:25 +0800</pubDate>
+<item>
+<title>创建新文件 in Linux</title>
+<link>https://blog.niekun.net/archives/2086.html</link>
+<guid>https://blog.niekun.net/archives/2086.html</guid>
+<pubDate>Thu, 28 Jan 2021 08:17:25 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[下面介绍几种常用的命令行创建新文件的方法。touch：touch test1.txt&gt;:&gt; test2.txtcat:cat /dev/null &gt; test3.txtecho...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>下面介绍几种常用的命令行创建新文件的方法。</p><p><strong>touch</strong>：</p><pre><code>touch test1.txt
+</code></pre><p><strong>&gt;</strong>:</p><pre><code>&gt; test2.txt
+</code></pre><p><strong>cat</strong>:</p><pre><code>cat /dev/null &gt; test3.txt
+</code></pre><p><strong>echo</strong>:</p><pre><code>echo &gt; test4.txt
+</code></pre><p><strong>vim</strong>:</p><pre><code>vim test5.txt
+:wq
+</code></pre><p>使用中选择最简单的方式即可。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2086.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2086.html</wfw:commentRss>
+</item>
 <item>
 <title>服务器部署 WebDAV 服务</title>
 <link>https://blog.niekun.net/archives/2074.html</link>
@@ -363,61 +383,6 @@ apt install mysql-server
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1899.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1899.html</wfw:commentRss>
-</item>
-<item>
-<title>使用 dnsmasq 和 iptables 控制域名流量</title>
-<link>https://blog.niekun.net/archives/1872.html</link>
-<guid>https://blog.niekun.net/archives/1872.html</guid>
-<pubDate>Mon, 26 Oct 2020 22:29:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[dnsmasq 是处理 dns 请求的工具，实现域名请求解析到目标 IP 地址的过程。可以方便的管理本机或局域网设备的域名解析服务，使用教程参考：https://blog.niekun.net/...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>dnsmasq 是处理 dns 请求的工具，实现域名请求解析到目标 IP 地址的过程。可以方便的管理本机或局域网设备的域名解析服务，使用教程参考：<a href="https://blog.niekun.net/archives/1869.html">https://blog.niekun.net/archives/1869.html</a></p><p>iptables 是网络防火墙规则管理/修改工具，管理网络数据包的处理和转发。使用教程参考：<a href="https://blog.niekun.net/archives/1863.html">https://blog.niekun.net/archives/1863.html</a></p><p>iptables 管理某个源地址或目标地址的流量时，只能识别 IP 地址，比如：</p><pre><code># -s 匹配源地址流量,接收来自 192.168.1.230 发往本机的流量：
-iptables -t filter -A INPUT -s 192.168.1.230 -j ACCEPT
-
-# -d 匹配目标地址的流量,丢弃发往 192.168.1.123 的流量：
-iptables -t filter -A OUTPUT -d 192.168.1.123 -j DROP</code></pre><!--more--><p><strong>如果要使用 iptables 管理某域名的流量，可以使用 dnsmasq-full 里的 ipset 工具标记并保存域名包含的 IP 地址池，然后在 iptables 中调取。</strong></p><p>使用命令查看当前安装版本的 dnsmasq 是否支持 ipset：</p><p>查询版本：</p><pre><code>dnsmasq -v
-</code></pre><p>信息里 Compile time options 可以看到当前安装版本支持的选项功能 ，如：ipset</p><pre><code>root@OpenWrt:/etc# dnsmasq -v
-Dnsmasq version 2.80  Copyright (c) 2000-2018 Simon Kelley
-Compile time options: IPv6 GNU-getopt no-DBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack ipset auth DNSSEC no-ID loop-detect inotify dumpfile
-...</code></pre><p>如果没有 ipset 就需要手动安装 dnsmasq-full 版本了，升级方法参考：<a href="https://blog.niekun.net/archives/1869.html">https://blog.niekun.net/archives/1869.html</a></p><h3>域名解析标记</h3><p>首先建立我们自定义的 ipset 表来存储解析的 IP 地址：</p><pre><code>ipset create block hash:ip
-</code></pre><p>可以查询当前这个列表是空的：</p><pre><code>root@OpenWrt:~# ipset list block
-Name: block
-Type: hash:ip
-Revision: 4
-Header: family inet hashsize 1024 maxelem 65536
-Size in memory: 88
-References: 0
-Number of entries: 0
-Members:</code></pre><p>使用 dnsmasq 的 ipset 命令做域名解析结果标记和存储，在 dnsmasq 的配置文件，如：<code>/etc/dnsmasq.conf</code> 中加入如下语句：</p><pre><code>ipset=/360.com/block
-</code></pre><p>重启 ndsmasq 服务：</p><pre><code>systemctl restart dnsmasq
-</code></pre><p>使用 nslookup 命令对 360.com 域名进行 dns 查询：</p><pre><code>root@OpenWrt:/etc# nslookup 360.com
-Server:        127.0.0.1
-Address:    127.0.0.1#53
-
-Name:      360.com
-Address 1: 180.163.251.93
-Address 2: 36.110.213.45</code></pre><p>这时候重新查看建立的 ipset 表内容：</p><pre><code>root@OpenWrt:/etc# ipset list block
-Name: block
-Type: hash:ip
-Revision: 4
-Header: family inet hashsize 1024 maxelem 65536
-Size in memory: 184
-References: 0
-Number of entries: 2
-Members:
-36.110.213.45
-180.163.251.93</code></pre><p>可以看到域名对应的 IP 地址已经记录到了 block 表内。</p><h3>流量处理</h3><p>iptables 可以调用 ipset 表来对流量进行处理，使用 <code>-I</code> 参数将规则添加到链表最上方以确保顺利匹配，使用 <code>-m set --match-set 列表名 dst</code> 匹配目标地址，或 <code>-m set --match-set 列表名 src</code> 匹配原地址，下面举例说明：</p><pre><code># 屏蔽 block 表地址的访问
-iptables -t filter -I INPUT -m set --match-set block src -j DROP
-
-# 允许 allow 表地址的访问
-iptables -t filter -I INPUT -m set --match-set allow src -j RETURN</code></pre><p>iptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。</p><p>查询路由表加入的规则：</p><pre><code>iptables -t filter -L -n
-</code></pre><p>如果要删除 INPUT 路由链第一条规则，使用命令：</p><pre><code>iptables -t filter -D INPUT 1
-</code></pre><p>以上就是使用 dnsmasq 的 ipset 功能实现 iptables 对域名流量的控制。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1872.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1872.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

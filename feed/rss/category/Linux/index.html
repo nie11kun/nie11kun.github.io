@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2086.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2074.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2071.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2035.html"/>
@@ -18,10 +19,21 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1903.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1900.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1899.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1872.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2086.html">
+<title>创建新文件 in Linux</title>
+<link>https://blog.niekun.net/archives/2086.html</link>
+<dc:date>2021-01-28T08:17:25+08:00</dc:date>
+<description>下面介绍几种常用的命令行创建新文件的方法。touch：touch test1.txt
+&gt;:&gt; test2.txt
+cat:cat /dev/null &gt; test3.txt
+echo:echo &gt; test4.txt
+vim:vim test5.txt
+:wq
+使用中选择最简单的方式即可。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2074.html">
 <title>服务器部署 WebDAV 服务</title>
 <link>https://blog.niekun.net/archives/2074.html</link>
@@ -300,52 +312,5 @@ Packet Loss:     0.0%
 apt install mysql-server
 安装完成后验证当前安装版本：mysql -V
 以上就是简单的 MySQL 升级教程。参考链接：https://dev.mysql.com/doc/mysql-apt-repo-quick-guide/en/#apt-repo-setuphttps://www.digitalocean.com/community/questions/upgrade-mysql-5-7-to-8-ubuntu-18-04</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1872.html">
-<title>使用 dnsmasq 和 iptables 控制域名流量</title>
-<link>https://blog.niekun.net/archives/1872.html</link>
-<dc:date>2020-10-26T22:29:00+08:00</dc:date>
-<description>dnsmasq 是处理 dns 请求的工具，实现域名请求解析到目标 IP 地址的过程。可以方便的管理本机或局域网设备的域名解析服务，使用教程参考：https://blog.niekun.net/archives/1869.htmliptables 是网络防火墙规则管理/修改工具，管理网络数据包的处理和转发。使用教程参考：https://blog.niekun.net/archives/1863.htmliptables 管理某个源地址或目标地址的流量时，只能识别 IP 地址，比如：# -s 匹配源地址流量,接收来自 192.168.1.230 发往本机的流量：
-iptables -t filter -A INPUT -s 192.168.1.230 -j ACCEPT
-
-# -d 匹配目标地址的流量,丢弃发往 192.168.1.123 的流量：
-iptables -t filter -A OUTPUT -d 192.168.1.123 -j DROP如果要使用 iptables 管理某域名的流量，可以使用 dnsmasq-full 里的 ipset 工具标记并保存域名包含的 IP 地址池，然后在 iptables 中调取。使用命令查看当前安装版本的 dnsmasq 是否支持 ipset：查询版本：dnsmasq -v
-信息里 Compile time options 可以看到当前安装版本支持的选项功能 ，如：ipsetroot@OpenWrt:/etc# dnsmasq -v
-Dnsmasq version 2.80  Copyright (c) 2000-2018 Simon Kelley
-Compile time options: IPv6 GNU-getopt no-DBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack ipset auth DNSSEC no-ID loop-detect inotify dumpfile
-...如果没有 ipset 就需要手动安装 dnsmasq-full 版本了，升级方法参考：https://blog.niekun.net/archives/1869.html域名解析标记首先建立我们自定义的 ipset 表来存储解析的 IP 地址：ipset create block hash:ip
-可以查询当前这个列表是空的：root@OpenWrt:~# ipset list block
-Name: block
-Type: hash:ip
-Revision: 4
-Header: family inet hashsize 1024 maxelem 65536
-Size in memory: 88
-References: 0
-Number of entries: 0
-Members:使用 dnsmasq 的 ipset 命令做域名解析结果标记和存储，在 dnsmasq 的配置文件，如：/etc/dnsmasq.conf 中加入如下语句：ipset=/360.com/block
-重启 ndsmasq 服务：systemctl restart dnsmasq
-使用 nslookup 命令对 360.com 域名进行 dns 查询：root@OpenWrt:/etc# nslookup 360.com
-Server:        127.0.0.1
-Address:    127.0.0.1#53
-
-Name:      360.com
-Address 1: 180.163.251.93
-Address 2: 36.110.213.45这时候重新查看建立的 ipset 表内容：root@OpenWrt:/etc# ipset list block
-Name: block
-Type: hash:ip
-Revision: 4
-Header: family inet hashsize 1024 maxelem 65536
-Size in memory: 184
-References: 0
-Number of entries: 2
-Members:
-36.110.213.45
-180.163.251.93可以看到域名对应的 IP 地址已经记录到了 block 表内。流量处理iptables 可以调用 ipset 表来对流量进行处理，使用 -I 参数将规则添加到链表最上方以确保顺利匹配，使用 -m set --match-set 列表名 dst 匹配目标地址，或 -m set --match-set 列表名 src 匹配原地址，下面举例说明：# 屏蔽 block 表地址的访问
-iptables -t filter -I INPUT -m set --match-set block src -j DROP
-
-# 允许 allow 表地址的访问
-iptables -t filter -I INPUT -m set --match-set allow src -j RETURNiptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。查询路由表加入的规则：iptables -t filter -L -n
-如果要删除 INPUT 路由链第一条规则，使用命令：iptables -t filter -D INPUT 1
-以上就是使用 dnsmasq 的 ipset 功能实现 iptables 对域名流量的控制。</description>
 </item>
 </rdf:RDF>

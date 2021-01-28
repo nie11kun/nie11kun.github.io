@@ -84,6 +84,36 @@
 <div class="col-md-9 col-12" id="main" role="main">
 <h3 class="archive-title">分类 Linux 下的文章</h3>
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/1296.html">获取用户真实 IP in Nginx</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-03-06T15:00:00+08:00" itemprop="datePublished">2020-03-06</time></li>
+<li>分类: <a href="../index.html">Linux</a></li>
+<li itemprop="interactionCount"><a href="../../../archives/1296.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>对于没有连代理访问网站的用户或者没有加 CDN 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，<strong>$remote_addr</strong> 存储了当前链接用户的 IP:<a href="https://nginx.org/en/docs/http/ngx_http_access_module.html#deny">https://nginx.org/en/docs/http/ngx_http_access_module.html#deny</a></p><pre><code>location / {
+    deny  192.168.1.1;
+    allow 192.168.1.0/24;
+    allow 10.1.1.0/16;
+    allow 2001:0db8::/32;
+    deny  all;
+}</code></pre><p>如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。</p><p>$remote_addr 变量默认读取 $proxy_add_x_forwarded_for 变量最后一个 IP 地址，一般情况下这个就是客户端原始 IP，但当网站加了 CDN，最后一个 IP 就成了 CDN 分配的 IP，如用户本地 IP为：<code>1.81.218.204</code>，访问没有加 CDN 的网站：</p><pre><code>$remote_addr：1.81.218.204
+$http_x_forwarded_for: 1.81.218.204
+$proxy_add_x_forwarded_for: 1.81.218.204
+</code></pre><p>如果网站加了 CDN 返回信息如下：</p><pre><code>$remote_addr：172.69.34.194
+$http_x_forwarded_for: 1.81.218.204
+$proxy_add_x_forwarded_for: 1.81.218.204, 172.69.34.194
+</code></pre><p>可以看到 $remote_addr 发生了变化。$http_x_forwarded_for 的值没有包含 CDN 代理 IP。</p><p>客户端也可以伪造 X-Forwarded-For 信息，如下使用 curl -H 参数设置头信息：</p><pre><code>curl https://info.niekun.net -H 'X-Forwarded-For: 2.2.2.2' -H 'X-Forwarded-For: 3.3.3.3'
+</code></pre><p>这时候 nginx 的变量就发生了变化：</p><pre><code>$remote_addr：172.69.34.194
+$http_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204
+$proxy_add_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204, 172.69.34.194
+</code></pre><p>可以看到 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 变量值都附加上了伪造的信息。</p><p>根据观察 $http_x_forwarded_for 的最后一个 IP，永远是真实的用户 IP，可以进行提取。</p><p>使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：</p><pre><code>map $http_x_forwarded_for  $client_real_ip {
+    default                         $remote_addr;
+    ~^(([0-9\.]+),\s?)*([0-9\.]+)$  $3;
+}</code></pre><p>如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。</p> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/1280.html">Nginx upstream timed out 问题的处理</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
@@ -135,23 +165,12 @@ sudo service nginx reload
 <div class="post-content" itemprop="articleBody">
 <p>由于 typecho 是一个动态网页，每篇文章都 URL 都是形如：<a href="https://niekun.net/index.php/archives/192.html">https://niekun.net/index.php/archives/192.html</a></p><p>这种包含 php 的动态网站首先不太美观链接比较长，而且在搜索引擎索引时也对动态链接不太友好。所以需要将以上链接形式进行处理，使网页看起来更像静态链接，形如：<a href="https://niekun.net/archives/192.html">https://niekun.net/archives/192.html</a>。</p><p class="more"><a href="../../../archives/1243.html" title="Typecho 配合 Nginx 设置伪静态链接">- 阅读剩余部分 -</a></p> </div>
 </article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../../archives/1212.html">vim 常用指令</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2020-03-02T11:16:00+08:00" itemprop="datePublished">2020-03-02</time></li>
-<li>分类: <a href="../index.html">Linux</a></li>
-<li itemprop="interactionCount"><a href="../../../archives/1212.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>vim 是 Linux 下常用的编辑器，学会常用的操作如：光标移动 复制 粘贴 删除 撤销 等指令，对于日常使用很有必要，下面介绍常用指令。</p><p><strong>注意 vim 所有控制指令都区分大小写。</strong></p><p class="more"><a href="../../../archives/1212.html" title="vim 常用指令">- 阅读剩余部分 -</a></p> </div>
-</article>
 <ol class="page-navigator"><li class="prev"><a href="../6/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../4/index.html">4</a></li><li><a href="../5/index.html">5</a></li><li><a href="../6/index.html">6</a></li><li class="current"><a href="index.html">7</a></li><li><a href="../8/index.html">8</a></li><li><a href="../9/index.html">9</a></li><li><a href="../10/index.html">10</a></li><li><span>...</span></li><li><a href="../18/index.html">18</a></li><li class="next"><a href="../8/index.html">后一页 &raquo;</a></li></ol> </div>
 <div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../../archives/2085.html">node.js 入门教程之三 -- npm</a></li><li><a href="../../../archives/2074.html">服务器部署 WebDAV 服务</a></li><li><a href="../../../archives/2071.html">修复 ubuntu vmware 虚拟机无法访问主机共享目录</a></li><li><a href="../../../archives/2066.html">c++ 类型转换</a></li><li><a href="../../../archives/2061.html">VMware 虚拟机 NAT 网络下配置端口转发到主机</a></li><li><a href="../../../archives/2053.html">vs code 通过 ssh 远程连接服务器调试</a></li><li><a href="../../../archives/2051.html">node.js 入门教程之二 -- Getting Started</a></li><li><a href="../../../archives/2043.html">node.js 入门教程之一 -- 介绍</a></li><li><a href="../../../archives/2040.html">修复 parallels desktop 16 网络无法连接问题</a></li><li><a href="../../../archives/2035.html">CentOS 6 可用源</a></li> </ul>
+<li><a href="../../../archives/2086.html">创建新文件 in Linux</a></li><li><a href="../../../archives/2085.html">node.js 入门教程之三 -- npm</a></li><li><a href="../../../archives/2074.html">服务器部署 WebDAV 服务</a></li><li><a href="../../../archives/2071.html">修复 ubuntu vmware 虚拟机无法访问主机共享目录</a></li><li><a href="../../../archives/2066.html">c++ 类型转换</a></li><li><a href="../../../archives/2061.html">VMware 虚拟机 NAT 网络下配置端口转发到主机</a></li><li><a href="../../../archives/2053.html">vs code 通过 ssh 远程连接服务器调试</a></li><li><a href="../../../archives/2051.html">node.js 入门教程之二 -- Getting Started</a></li><li><a href="../../../archives/2043.html">node.js 入门教程之一 -- 介绍</a></li><li><a href="../../../archives/2040.html">修复 parallels desktop 16 网络无法连接问题</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -190,12 +209,12 @@ sudo service nginx reload
 <footer id="footer" role="contentinfo">
 &copy; 2021 <a href="../../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="f4401b2dc8e9b4b9f4601073-text/javascript">
+<script type="5151fcc511e507cb05353dbd-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="f4401b2dc8e9b4b9f4601073-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="f4401b2dc8e9b4b9f4601073-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="f4401b2dc8e9b4b9f4601073-text/javascript"></script>
-<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="f4401b2dc8e9b4b9f4601073-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="f4401b2dc8e9b4b9f4601073-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="5151fcc511e507cb05353dbd-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="5151fcc511e507cb05353dbd-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="5151fcc511e507cb05353dbd-text/javascript"></script>
+<script src="../../../usr/themes/TypechoAwesome/navItem.js" type="5151fcc511e507cb05353dbd-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="5151fcc511e507cb05353dbd-|49" defer=""></script></body>
 </html>
