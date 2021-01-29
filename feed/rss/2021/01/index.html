@@ -222,7 +222,124 @@ engines 设置此包运行的 node 版本和其他命令版本：  &quot;engines
   &quot;&gt; 1%&quot;,
   &quot;last 2 versions&quot;,
   &quot;not ie &lt;= 8&quot;
-]以上定义的意义是：支持所有类型浏览器的最近两个版本且需要至少有 1% 的占有率，不包括小于等于 IE8 版本的浏览器。浏览器占有率信息来自于 https://caniuse.com/ 统计。依赖包版本信息在 dependencies 和 devDependencies 中定义了依赖包列表，每个包都定义了版本信息，如：^0.13.0 或 ~3.0.0，通过版本号前的符号可以们定义接受那些版本的升级，下面介绍版本标记的用法：无标记，如 1.0.0 定义只安装此版本的包latest 定义安装最新版本的包^ 只能升级到不改变最左边第一个非零数字的版本，如定义 ^0.13.0，通过 npm update 可以升级到 0.13.1 或 0.13.2，但不能升级到 0.14.0，定义 ^1.13.0，能够升级到 1.13.1 或 1.14.0，不能升级到 2.0.0~ 只能升级最后一位数字变化的版本，如 定义 ~1.13.0，能够升级到 1.13.1，但不能升级到 1.14.0&gt; 接受大于定义的版本号的更新&gt;= 接受大于等于定义的版本号的更新&lt; 接受小于定义的版本号的更新&lt;= 接受小于等于定义的版本号的更新- 设置一个版本范围，如：1.0.0 - 2.0.0|| 组合设置，如：&lt; 2.0.0 || &gt; 3.0.0更加详细的定义方法参考：https://nodejs.dev/learn/semantic-versioning-using-npm</description>
+]以上定义的意义是：支持所有类型浏览器的最近两个版本且需要至少有 1% 的占有率，不包括小于等于 IE8 版本的浏览器。浏览器占有率信息来自于 https://caniuse.com/ 统计。依赖包版本信息在 dependencies 和 devDependencies 中定义了依赖包列表，每个包都定义了版本信息，如：^0.13.0 或 ~3.0.0，通过版本号前的符号可以们定义接受那些版本的升级，下面介绍版本标记的用法：无标记，如 1.0.0 定义只安装此版本的包latest 定义安装最新版本的包^ 只能升级到不改变最左边第一个非零数字的版本，如定义 ^0.13.0，通过 npm update 可以升级到 0.13.1 或 0.13.2，但不能升级到 0.14.0，定义 ^1.13.0，能够升级到 1.13.1 或 1.14.0，不能升级到 2.0.0~ 只能升级最后一位数字变化的版本，如 定义 ~1.13.0，能够升级到 1.13.1，但不能升级到 1.14.0&gt; 接受大于定义的版本号的更新&gt;= 接受大于等于定义的版本号的更新&lt; 接受小于定义的版本号的更新&lt;= 接受小于等于定义的版本号的更新- 设置一个版本范围，如：1.0.0 - 2.0.0|| 组合设置，如：&lt; 2.0.0 || &gt; 3.0.0更加详细的定义方法参考：https://nodejs.dev/learn/semantic-versioning-using-npmpackage-lock.json 文件在 npm 5 版本中 npm 引入了 package-lock.json 文件。前面介绍了 package.json 文件，它是一个通用的被广泛使用的配置文件。package-lock.json 文件的目的是更加确切的追踪安装的依赖包的版本，以用来 100% 复制开发者的安装环境到其他安装者设备上，即使某些包已经够了更新版本。这解决了一个 package.json 遗留的问题，在 package.json 中你可以定义某个包可接受的版本升级范围，版本格式遵守 semantic versioning (semver) notation 语义版本标记语法，例如：~1.13.1 可以升级到 1.13.2，但不可以升级到 1.14.0^1.13.1 可以升级到 1.14.0，但不能升级到 2.0.01.13.1 只能安装 1.13.1 版本，不能升级到其他任何版本你发布的包中并不包含开发环境中的  node_modules 文件夹因为它占用空间很大。当在其他设备中通过 npm install  命令安装依赖包时，竟会遵循上面定义的版本范围安装支持的最新版本到设备中，这就会导致用户安装的版本和你开发环境的版本不一致，可能导致 bug 的出现。package-lock.json 中定义了你当前开发环境安装的各种依赖包的准确版本，这样通过 npm install 命令安装的就是其中定义的准确版本。这一概念并不是 npm 独创的，其他编程语言也在使用类似的模式，如 php 的 Composer。package-lock.json 文件需要打包在仓库中，以供其他人使用。当使用 npm update 更新包时，package-lock.json 中的定义也会同步更新。下面是一个 package-lock.json 文件的示例，当我们执行 npm install cowsay 时，会创建以下内容：{
+  &quot;requires&quot;: true,
+  &quot;lockfileVersion&quot;: 1,
+  &quot;dependencies&quot;: {
+    &quot;ansi-regex&quot;: {
+      &quot;version&quot;: &quot;3.0.0&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/ansi-regex/-/ansi-regex-3.
+0.0.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-7QMXwyIGT3lGbAKWa922Bas32Zg=&quot;
+    },
+    &quot;cowsay&quot;: {
+      &quot;version&quot;: &quot;1.3.1&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/cowsay/-/cowsay-1.3.1.tgz&quot;
+,
+      &quot;integrity&quot;: &quot;sha512-3PVFe6FePVtPj1HTeLin9v8WyLl+VmM1l1H/5P+BTTDkM
+Ajufp+0F9eLjzRnOHzVAYeIYFF5po5NjRrgefnRMQ==&quot;,
+      &quot;requires&quot;: {
+        &quot;get-stdin&quot;: &quot;^5.0.1&quot;,
+        &quot;optimist&quot;: &quot;~0.6.1&quot;,
+        &quot;string-width&quot;: &quot;~2.1.1&quot;,
+        &quot;strip-eof&quot;: &quot;^1.0.0&quot;
+      }
+    },
+    &quot;get-stdin&quot;: {
+      &quot;version&quot;: &quot;5.0.1&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/get-stdin/-/get-stdin-5.0.
+1.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-Ei4WFZHiH/TFJTAwVpPyDmOTo5g=&quot;
+    },
+    &quot;is-fullwidth-code-point&quot;: {
+      &quot;version&quot;: &quot;2.0.0&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/is-fullwidth-code-point/-/
+is-fullwidth-code-point-2.0.0.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-o7MKXE8ZkYMWeqq5O+764937ZU8=&quot;
+    },
+    &quot;minimist&quot;: {
+      &quot;version&quot;: &quot;0.0.10&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/minimist/-/minimist-0.0.10
+.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-3j+YVD2/lggr5IrRoMfNqDYwHc8=&quot;
+    },
+    &quot;optimist&quot;: {
+      &quot;version&quot;: &quot;0.6.1&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/optimist/-/optimist-0.6.1.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-2j6nRob6IaGaERwybpDrFaAZZoY=&quot;,
+
+      &quot;requires&quot;: {
+        &quot;minimist&quot;: &quot;~0.0.1&quot;,
+        &quot;wordwrap&quot;: &quot;~0.0.2&quot;
+      }
+    },
+    &quot;string-width&quot;: {
+      &quot;version&quot;: &quot;2.1.1&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/string-width/-/string-width-2.1.1.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha512-nOqH59deCq9SRHlxq1Aw85Jnt4w6KvLKqWVik6oA9ZklXLNIOlqg4F2yrT1MVaTjAqvVwdfeZ7w7aCvJD7ugkw==&quot;,
+      &quot;requires&quot;: {
+        &quot;is-fullwidth-code-point&quot;: &quot;^2.0.0&quot;,
+        &quot;strip-ansi&quot;: &quot;^4.0.0&quot;
+      }
+    },
+    &quot;strip-ansi&quot;: {
+      &quot;version&quot;: &quot;4.0.0&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/strip-ansi/-/strip-ansi-4.0.0.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-qEeQIusaw2iocTibY1JixQXuNo8=&quot;,
+      &quot;requires&quot;: {
+        &quot;ansi-regex&quot;: &quot;^3.0.0&quot;
+      }
+    },
+    &quot;strip-eof&quot;: {
+      &quot;version&quot;: &quot;1.0.0&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/strip-eof/-/strip-eof-1.0.0.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-u0P/VZim6wXYm1n80SnJgzE2Br8=&quot;
+    },
+    &quot;wordwrap&quot;: {
+      &quot;version&quot;: &quot;0.0.3&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/wordwrap/-/wordwrap-0.0.3.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-o9XabNXAvAAI03I0u68b7WMFkQc=&quot;
+    }
+  }
+}我们安装的 cowsay 有如下依赖，它们会被自动安装：get-stdinoptimiststring-widthstrip-eof以上的依赖包可能也会有它们各自的其他依赖包，会自动安装相关其他包，每个包的依赖包在 requires 属性中定义。所有的包以字母排序顺序在文件中。每个包都有 version 属性定义了各自当前安装的版本，resolved 定义了包地址，integrity 字符串用来验证包。包版本管理及安装下面的指令查询当前安装的所有包及其依赖包：npm list
+输出信息示例：❯ npm list
+/Users/joe/dev/node/cowsay
+└─┬ cowsay@1.3.1
+  ├── get-stdin@5.0.1
+  ├─┬ optimist@0.6.1
+  │ ├── minimist@0.0.10
+  │ └── wordwrap@0.0.3
+  ├─┬ string-width@2.1.1
+  │ ├── is-fullwidth-code-point@2.0.0
+  │ └─┬ strip-ansi@4.0.0
+  │   └── ansi-regex@3.0.0
+  └── strip-eof@1.0.0当然也可以直接打开 package-lock.json 文件查看，但这样不太方便观察结构。npm list -g 用来查看 global 安装的包。如果只想查询顶层的包，也就是你主动通过 npm install 安装的那些包，可通过 npm list --depth=0 查询：❯ npm list --depth=0
+/Users/joe/dev/node/cowsay
+└── cowsay@1.3.1也可以单独查询某个包：❯ npm list cowsay
+/Users/joe/dev/node/cowsay
+└── cowsay@1.3.1使用下面命令查询某个包当前发布的最新版本：❯ npm view cowsay version
+1.4.0要安装某个包的特定版本需要加上 @ 标记：npm install cowsay@1.2.0
+查看某个包的所有历史版本列表：$ npm view cowsay versions
+[
+  '1.0.0', '1.0.1', '1.0.2',
+  '1.0.3', '1.1.0', '1.1.1',
+  '1.1.2', '1.1.3', '1.1.4',
+  '1.1.5', '1.1.6', '1.1.7',
+  '1.1.8', '1.1.9', '1.2.0',
+  '1.2.1', '1.3.0', '1.3.1',
+  '1.4.0'
+]通过 npm update 可以更新所有已安装的包，更新版本规则遵循 package.json 定义的版本升级范围，同时会更新 package-lock.json 文件内的当前包版本信息。想要查询当前有哪些包有更新版本时，可以执行 npm outdated 命令：其中有些更新是大版本更新， npm update 并不会更新到这些大版本，因为这些更新可能包含有重大的变化。如果要强制更新到最新的版本包括大版本更新，可以按顺序执行下面的命令：npm install -g npm-check-updates
+ncu -u
+npm update使用下面命令卸载某个包：npm uninstall &lt;package-name&gt;
+添加 -S 或 --save 标记删除 package.json 中的相关信息。如果要删除的包是一个开发包，在 devDependencies 中定义过，则需要添加 -D 或 --save-dev 标记来删除相关信息：npm uninstall -S &lt;package-name&gt;
+npm uninstall -D &lt;package-name&gt;如果包是 global 安装的，则卸载需要添加 -g 标记：npm uninstall -g &lt;package-name&gt;
+npm local 和 global 安装本地包和全局包的区别是本地包通过 npm install 安装到当前项目下的 node_modules 文件夹内，全局包通过 npm install -g 安装到系统路径下，路径地址可通过 npm root -g 查询。在程序中，只能 require 本地包：require('package-name')
+通常情况下推荐所有的包都以本地模式安装。这可以让不同的程序使用各自不同版本的包。更新一个全局包会同时影响所有使用这个包的 app。当一个包含有可执行程序时，应该安装为 global 全局包。这样所有的项目都可以调用执行。npm dependencies 和 devDependencies当通过 npm intall 安装包时，表示将包作为 dependency。包信息会自动写入 package.json 文件的 dependencies 块内。当安装时添加 -D 标记，表示将包作为 devdependency 安装。包信息会自动写入 devDependencies 块内。开发包的目的是用来开发程序时使用，作为产品运行时是不需要的。执行 npm install 会默认安装这些开发包。如果不需要安装开发包需要加上 --production 标记：npm install --production xxx
+npx 包运行器npx 可以用来运行 node.js 程序。node.js 开发者通常将大部分含有可执行程序的包作为 global 包发布，这样就使得可执行程序在系统 PATH 路径下可以被直接执行。但这样的弊端就是不能安装不同版本的包。使用 npx 命令可以自动寻找 node_modules 文件夹内的对应的名称的可执行程序，而不需要知道程序具体的路径，也不需要以 global 方式安装包。npx 另一个很好的功能是可以直接运行某些命令而不需要提前安装它们，还可以通过 @ 标记来执行不同版本的同一命令。cowsay 是一个很好的示例来说明 npx 的使用，如果我们以 global 模式安装 cowsay，可以通过下面方式执行：cowsay &quot;wow&quot;
+以上命令只有通过 global 方式安装才能够正常执行，否则会报错提示命令不存在。如果以 local 方式安装 cowsay，可以通过 npx 执行：npx cowsay &quot;Hello&quot;
+通过 @ 标记来执行不同版本的命令：npx node@10 -v #v10.18.1
+npx node@12 -v #v12.14.1npm 也可以直接执行来自 url 的任意代码片段，而不仅限于 npm 官方渠道发布的包。下面示例是执行部署在 glist 的包：npx https://gist.github.com/zkat/4bc19503fe9e9309e2bfaa2c58074d32
+可执行程序路径定义在 package.json 文件的 bin 属性内。glist 包含内容如下：当然执行不受控制网络的代码需要多加注意。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2074.html">
 <title>服务器部署 WebDAV 服务</title>
