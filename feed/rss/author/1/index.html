@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>admin</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2098.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2086.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2085.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2074.html"/>
@@ -18,10 +19,19 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2053.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2051.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2043.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2040.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2098.html">
+<title>解除 UWP 应用的网络隔离</title>
+<link>https://blog.niekun.net/archives/2098.html</link>
+<dc:date>2021-02-02T09:33:00+08:00</dc:date>
+<description>Microsoft store 里都是 UWP 应用，运行在被称为 App Container 的虚拟沙箱环境中，其安全性及纯净度远胜于传统的 EXE 应用。但 App Container 机制同时也阻止了网络流量发送到本机（即 loopback）， 使大部分网络抓包调试工具无法对 UWP 应用进行流量分析。该机制也阻止了 UWP 应用访问 localhost，如果你的代理地址在本地地址，UWP 就无法访问。有两种方法来解除某个 UWP 应用的沙盒隔离，一种是使用系统自带的工具 CheckNetIsolation，一种是使用第三方工具 fiddler。CheckNetIsolationWindows 10 自带了一个 CheckNetIsolation 工具，可以解除 UWP 应用的网络隔离，使之可以正常访问本地地址在终端执行以下指令即可：CheckNetIsolation.exe loopbackexempt -a -p=SID
+SID(security identifier) 是每个 UWP 应用独有的识别码，可以从注册表中获得应用的 SID 码。快捷键 win + R 打开运行窗口，输入 regedit 进入注册表。访问如下路径：\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppContainer\Mappings\：此路径下的左侧文件夹名称就是当前安装的每个 UWP 应用的 SID 码，右侧的 DisplayName 就是应用的名称，可以用来帮助找到需要的应用 SID。复制需要解除隔离的应用的 SID 码执行上面的命令即可。然后应用就可以正常访问本地地址了，也可以使用抓包工具获取到流量。fiddler也可以使用第三方软件来实现以上任务，这里介绍 fiddler。fiddler 是一款免费的网络调试代理工具。官网地址：https://www.telerik.com/fiddler下载安装后打开应用，点击左上角的 WinConfig：会弹出所有 UWP 应用列表，找到需要解除隔离的应用，点击左侧的选择框，然后点击 save change 即可：此时再次运行对应的应用，就可以在 fiddler 看到应用的流量信息了。注意 fiddler 需要一直保持开启状态解除隔离才会生效。使用 fiddler 还可以方便的设置代理服务，使选中的应用通过代理访问网络，点击 tools - options：在弹出栏中，点击 gateway，选择 manual proxy configuration：第一行设置代理地址，模式为：proxyserver:8080
+也可以根据网络协议设置：http=httpproxy:8080;https=httpsproxy:8080
+第二行设置 bypass 忽略列表，可以设置忽略代理本地地址或其他需要排除的地址：&lt;local&gt;;*.extranet.example.com;
+点击 ok 保存后即可，此时在 WinConfig 中选中的 UWP 应用就会通过代理地址访问网络。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2086.html">
 <title>创建新文件 in Linux</title>
 <link>https://blog.niekun.net/archives/2086.html</link>
@@ -512,7 +522,7 @@ int *b = const_cast&lt;int*&gt;(&amp;a);
 test(*b);
 
 //output:
-//10通过 const_cast 将 const int\ 转换为 int\，这样就可以在 function 中使用了。参考链接Type conversions</description>
+//10通过 const_cast 将 const int 转换为 int，这样就可以在 function 中使用了。参考链接Type conversions</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2061.html">
 <title>VMware 虚拟机 NAT 网络下配置端口转发到主机</title>
@@ -772,13 +782,5 @@ server.listen(port, hostname, () =&gt; {
 最后我们关闭 response 响应，并将响应内容作为 end method 的参数传入：res.end('Hello World\n')
 Node.js Frameworks and ToolsNode.js 是一个底层平台，为了让开发更加容易，海量的基于 Node.js 的第三方库通过社区建立。它们中的很多已经非常流行，以下是一些常见的第三方库：AdonisJs: A full-stack framework highly focused on developer ergonomics, stability, and confidence. Adonis is one of the fastest Node.js web frameworks.Express: It provides one of the most simple yet powerful ways to create a web server. Its minimalist approach, unopinionated, focused on the core features of a server, is key to its success.Fastify: A web framework highly focused on providing the best developer experience with the least overhead and a powerful plugin architecture. Fastify is one of the fastest Node.js web frameworks.Gatsby: A React-based, GraphQL powered, static site generator with a very rich ecosystem of plugins and starters.hapi: A rich framework for building applications and services that enables developers to focus on writing reusable application logic instead of spending time building infrastructure.koa: It is built by the same team behind Express, aims to be even simpler and smaller, building on top of years of knowledge. The new project born out of the need to create incompatible changes without disrupting the existing community.Loopback.io: Makes it easy to build modern applications that require complex integrations.Meteor: An incredibly powerful full-stack framework, powering you with an isomorphic approach to building apps with JavaScript, sharing code on the client and the server. Once an off-the-shelf tool that provided everything, now integrates with frontend libs React, Vue, and Angular. Can be used to create mobile apps as well.Micro: It provides a very lightweight server to create asynchronous HTTP microservices.NestJS: A TypeScript based progressive Node.js framework for building enterprise-grade efficient, reliable and scalable server-side applications.Next.js: React framework that gives you the best developer experience with all the features you need for production: hybrid static & server rendering, TypeScript support, smart bundling, route pre-fetching, and more.Nx: A toolkit for full-stack monorepo development using NestJS, Express, React, Angular, and more! Nx helps scale your development from one team building one application to many teams collaborating on multiple applications!Sapper: Sapper is a framework for building web applications of all sizes, with a beautiful development experience and flexible filesystem-based routing. Offers SSR and more!Socket.io: A real-time communication engine to build network applications.Strapi: Strapi is a flexible, open-source Headless CMS that gives developers the freedom to choose their favorite tools and frameworks while also allowing editors to easily manage and distribute their content. By making the admin panel and API extensible through a plugin system, Strapi enables the world's largest companies to accelerate content delivery while building beautiful digital experiences.安装在官方下载页面下载对应系统的安装包：https://nodejs.org/en/download/macOS 可以通过 brew 来安装：brew install node
 node.js 和浏览器端的区别浏览器端和 node.js 都是使用 JavaScript 作为编程语言，但他们是完全不同的。node.js 可以同时开发前端和后端 application，这样使用一种语言就可以完成所有的开发。浏览器中使用 DOM 结构，或者其他 web 平台的 API 如：cookies，这些在 node.js 中都是没有的，document 或 window 等这些 object 是没有的。使用 node.js 由你来控制 environment，你知道 application 所使用的 node.js 是哪个版本的，相比较于浏览器，你并不知道用户使用了什么浏览器。所以你可以使用更加现代的 ES 标准来编写程序。另一个区别是 node.js 使用 CommonJS 模块系统，浏览器端我们已经可以使用 ES 的标准命令来导入模块了。也就是说 node.js 中使用 require() 而浏览器端使用 import。参考链接https://nodejs.dev/learn/introduction-to-nodejs</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2040.html">
-<title>修复 parallels desktop 16 网络无法连接问题</title>
-<link>https://blog.niekun.net/archives/2040.html</link>
-<dc:date>2021-01-03T22:40:00+08:00</dc:date>
-<description>随着升级到 macOS Big Sur 后，虚拟机 parallels desktop 也更新到了 16 版本。我当然是继续安装破解版啦。但是安装好后，启动虚拟机会有一个报错：Network Initialization Failed，启动后会发现虚拟机无法联网，网络设置中无法正常在各种模式中切换。在寻找解决方案期间，了解到了这可能是由于破解的原因，正版用户没有这个问题。网上有人提供了一个方法，执行一条命令就启动虚拟机就可以正常联网了。但是会导致虚拟机无法访问主机的共享目录及无法访问 USB 设备。而且一旦重启 parallels desktop 后又回恢复之前的状态，我也就没有去做。这两天看到网上终于有人找到的解决方法，测试后的确可用，所以介绍给大家参考。解决的方法都是通过修改相关配置文件实现的。首先需要彻底退出 parallels desktop。网络问题修改 /Library/Preferences/Parallels/network.desktop.xml 文件。在终端或者 vs code 中打开这个文件，找到 &lt;UseKextless&gt; 标签，将其中的内容改为 0：&lt;UseKextless&gt;0&lt;/UseKextless&gt;
-注意如果你的这个文件内没有这个标签，则需要在 &lt;ParallelsNetworkConfig&gt; 根标签内手动创建它即可。修改完成后保存文件，需要输入账户密码。USB 问题修改 /Library/Preferences/Parallels/dispatcher.desktop.xml 文件。在终端或者 vs code 中打开这个文件，找到 &lt;Usb&gt; 标签，将其中的内容改为 1：&lt;Usb&gt;1&lt;/Usb&gt;
-修改完成后保存文件，需要输入账户密码。修改完以上两个文件后，重启 parallels desktop 就会发现一切都正常了。</description>
 </item>
 </rdf:RDF>

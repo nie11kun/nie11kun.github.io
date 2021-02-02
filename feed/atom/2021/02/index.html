@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+xmlns:thr="http://purl.org/syndication/thread/1.0"
+xml:lang="zh-CN"
+xml:base="https://blog.niekun.net/2021/02/"
+>
+<title type="text">Marco Nie - 2021年2月</title>
+<subtitle type="text">you are the company you keep...</subtitle>
+<updated>2021-02-02T09:33:00+08:00</updated>
+<generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/2021/02/" />
+<id>https://blog.niekun.net/feed/atom/2021/02/</id>
+<link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/02/" />
+<entry>
+<title type="html"><![CDATA[解除 UWP 应用的网络隔离]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2098.html" />
+<id>https://blog.niekun.net/archives/2098.html</id>
+<updated>2021-02-02T09:33:00+08:00</updated>
+<published>2021-02-02T09:33:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[Microsoft store 里都是 UWP 应用，运行在被称为 App Container 的虚拟沙箱环境中，其安全性及纯净度远胜于传统的 EXE 应用。但 App Container 机制...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2098.html" xml:lang="zh-CN"><![CDATA[
+<p>Microsoft store 里都是 UWP 应用，运行在被称为 App Container 的虚拟沙箱环境中，其安全性及纯净度远胜于传统的 EXE 应用。但 App Container 机制同时也阻止了网络流量发送到本机（即 loopback）， 使大部分网络抓包调试工具无法对 UWP 应用进行流量分析。该机制也阻止了 UWP 应用访问 localhost，如果你的代理地址在本地地址，UWP 就无法访问。</p><p>有两种方法来解除某个 UWP 应用的沙盒隔离，一种是使用系统自带的工具 <strong>CheckNetIsolation</strong>，一种是使用第三方工具 <strong>fiddler</strong>。</p><h3>CheckNetIsolation</h3><p>Windows 10 自带了一个 CheckNetIsolation 工具，可以解除 UWP 应用的网络隔离，使之可以正常访问本地地址在终端执行以下指令即可：</p><pre><code>CheckNetIsolation.exe loopbackexempt -a -p=SID
+</code></pre><p>SID(security identifier) 是每个 UWP 应用独有的识别码，可以从注册表中获得应用的 SID 码。</p><!--more--><p>快捷键 win + R 打开运行窗口，输入 regedit 进入注册表。访问如下路径：<code>\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppContainer\Mappings\</code>：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3861334125.jpg" alt="1.jpg" title="1.jpg"></p><p>此路径下的左侧文件夹名称就是当前安装的每个 UWP 应用的 SID 码，右侧的 DisplayName 就是应用的名称，可以用来帮助找到需要的应用 SID。</p><p>复制需要解除隔离的应用的 SID 码执行上面的命令即可。然后应用就可以正常访问本地地址了，也可以使用抓包工具获取到流量。</p><h3>fiddler</h3><p>也可以使用第三方软件来实现以上任务，这里介绍 fiddler。</p><p>fiddler 是一款免费的网络调试代理工具。官网地址：<a href="https://www.telerik.com/fiddler">https://www.telerik.com/fiddler</a></p><p>下载安装后打开应用，点击左上角的 WinConfig：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/186160648.jpg" alt="2.jpg" title="2.jpg"></p><p>会弹出所有 UWP 应用列表，找到需要解除隔离的应用，点击左侧的选择框，然后点击 save change 即可：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2421167178.jpg" alt="3.jpg" title="3.jpg"></p><p>此时再次运行对应的应用，就可以在 fiddler 看到应用的流量信息了。<strong>注意 fiddler 需要一直保持开启状态解除隔离才会生效。</strong></p><p>使用 fiddler 还可以方便的设置代理服务，使选中的应用通过代理访问网络，点击 tools - options：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3134568243.jpg" alt="4.jpg" title="4.jpg"></p><p>在弹出栏中，点击 gateway，选择 manual proxy configuration：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3205051089.jpg" alt="5.jpg" title="5.jpg"></p><p>第一行设置代理地址，模式为：</p><pre><code>proxyserver:8080
+</code></pre><p>也可以根据网络协议设置：</p><pre><code>http=httpproxy:8080;https=httpsproxy:8080
+</code></pre><p>第二行设置 bypass 忽略列表，可以设置忽略代理本地地址或其他需要排除的地址：</p><pre><code>&lt;local&gt;;*.extranet.example.com;
+</code></pre><p>点击 ok 保存后即可，此时在 WinConfig 中选中的 UWP 应用就会通过代理地址访问网络。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2098.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2098.html" thr:count="0"/>
+</entry>
+</feed>
