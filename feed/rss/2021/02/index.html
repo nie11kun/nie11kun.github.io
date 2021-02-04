@@ -9,11 +9,65 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2100.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2103.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2098.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2100.html">
+<title>node.js 入门教程之四 -- Event Loop</title>
+<link>https://blog.niekun.net/archives/2100.html</link>
+<dc:date>2021-02-04T21:36:00+08:00</dc:date>
+<description>Event Loop 事件循环event loop 是我们学习 node.js 中最重要的方面之一。因为它解释了 node.js 如何进行异步动作，同时不会出现 IO 阻塞问题。这也是 node.js 能够变得如此流行的原因之一。node.js 代码运行在单进程中，也就是说它在一刻只能执行一个任务。这一限制特性使得我们不用担心任务间冲突问题。我们在变开发中只需要专注于代码本身，同时应避免进程阻塞，例如同步方式等待网络请求，死循环等。通常情况下，浏览器中的每个 tab 页面都是都有各自独立的 event loop，防止某个页面的死循环或过高的资源消耗影响到整个浏览器的体验。我们只需要关注于我们的代码运行在一个单一的 event loop 中，编程中要注意到这一点，防止进程阻塞。JavaScript 代码中如果有长时间等待 return 返回给 event loop 控制时，任何其他代码将会被阻塞，也会阻塞页面 UI 单元，用户在此期间无法进行点击，滚动等操作。几乎所有的 JavaScript 原生 IO 指令都是 non-blocking 非阻塞式的，例如：网络请求，文件读写等，阻塞是一种 exception 例外情况，这也是 JavaScript 大量的使用 callback 方式，以及最近引入的 promise 和 async/await。call stack 调用结构JavaScript 的 call 调用过程的结构遵循 LIFO (Last In, First Out)，也就是总是先响应最近的任务。event loop 总是连续的检查 call stack 看是否有任务需要执行。在这个过程中，它会将发现的任务添加到 call stack 中并按顺序执行。下面是一个简单的示例：const bar = () =&gt; console.log('bar');
+const baz = () =&gt; console.log('baz');
+
+const foo = () =&gt; {
+    console.log('foo');
+    bar();
+    baz();
+}
+
+foo();
+
+//output:
+//foo
+//bar
+//baz在以上示例中，首先会调用 foo()，在 foo 中首先会调用 bar()，然后调用 baz()。call stack 执行过程如下：在 event loop 的每次 iteration 递归执行中会查询 call stack 中是否有需要执行的任务，如果有则执行它，直到 loop 结束为止，如下是循环中的全过程：以上示例说明了 JavaScript 在一般情况下按顺序执行代码的过程。下面介绍如何将一个 function 推迟到 call stack 递归到最后时再被调用。需要使用以下的代码指令：setTimeout(() =&gt; {}, 0)
+以上代码调用了 setTimeout 延时 function，但是将延时设置为 0，这样的意义就是要求它在可以执行的时候立刻执行其中定义的 function。那么如何才能让其在层级的最后再执行 function 呢？下面是一个完整的片段：const bar = () =&gt; console.log('bar');
+const baz = () =&gt; console.log('baz');
+
+const foo = () =&gt; {
+    console.log('foo');
+    setTimeout(bar, 0);
+    baz();
+}
+
+foo();
+
+//output:
+//foo
+//baz
+//bar以上示例中，我们在 foo 中先调用 setTimeout function，并将时间设置为 0，要求其在可以执行时立刻执行内部定义的指令，以上示例循环的 call stack 过程如下：下面时循环的顺序执行全过程：为什么会是这样的执行顺序呢？为什么 setTimeout 时间设置为 0 反而最后才执行其 function？下面做介绍。Message Queue 消息队列当 setTimeout() 被调用时，浏览器或 node.js 会开启一个定时器，当定时时间到达时，这里我们设置为 0 也就是立刻到达了时间，callback 响应的 function 会被放到 Message Queue 消息队列中。Message Queue 消息队列也管理着用户主动触发的一些事件如鼠标点击键盘输入等，或者 fetch 获取响应信息，这些消息按顺序排列着等待被代码执行。call stack 和 Message Queue 是互相独立的，event loop 循环时 call stack 中的任务是优先的，它会首先查找 call stack 中需要执行的代码并按顺序执行，当 satck 执行完成后再去查看 Message Queue 中需要处理的任务。我们并不需要等待一些 functions 如 setTimeout 或 fetch 这些任务的执行过程，因为这些工作由浏览器提供且这些任务运行在它们单独的线程中。例如当我们设置了 setTimeout 2 秒的定时，我们并不需要停下来等待这 2 秒钟，而是会执行层级中接下来的指令。Job Queue 任务队列ES6 中引入了一种新的 Job Queue 任务队列概念，也就是 Promise。提供了在条件到达后立刻执行被调用 function 的方法，而不是等待到 call stack 结束。当 Promise 定义的 resolve 条件满足时，会在当前 function 执行结束后立刻执行 resolve function。简单的区分 Message Queue 和 Job Queue：Message Queue 会将出现的每个任务按顺序排列到队列最后，等待排队执行。而 Job Queue 就像拿到了快捷车票，会在前一个指令结束后立刻跳转到这个任务上来。下面是一个示例：const bar = () =&gt; console.log('bar');
+const baz = () =&gt; console.log('baz');
+
+const foo = () =&gt; {
+    console.log('foo');
+    setTimeout(bar, 0);
+    new Promise((resolve, reject) =&gt;
+            resolve(&quot;should be right after baz, before bar&quot;))
+        .then(resolve =&gt; console.log(resolve));
+    baz();
+}
+
+foo();
+
+//output:
+//foo
+//baz
+//should be right after baz, before bar
+//bar以上示例可以看到，promise 定义之后会运行 baz function，然后 promise 的 resolve 条件会立刻得到满足，此时异步任务会在 baz 执行结束后立刻被响应而不是排列到队列最后。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2103.html">
 <title>Windows 10 配置共享文件夹</title>
 <link>https://blog.niekun.net/archives/2103.html</link>

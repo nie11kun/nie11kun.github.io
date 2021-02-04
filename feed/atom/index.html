@@ -6,11 +6,75 @@ xml:base="https://blog.niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2021-02-03T10:28:00+08:00</updated>
+<updated>2021-02-04T21:36:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/" />
 <id>https://blog.niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之四 -- Event Loop]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2100.html" />
+<id>https://blog.niekun.net/archives/2100.html</id>
+<updated>2021-02-04T21:36:00+08:00</updated>
+<published>2021-02-04T21:36:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[Event Loop 事件循环event loop 是我们学习 node.js 中最重要的方面之一。因为它解释了 node.js 如何进行异步动作，同时不会出现 IO 阻塞问题。这也是 node...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2100.html" xml:lang="zh-CN"><![CDATA[
+<h3>Event Loop 事件循环</h3><p><strong>event loop</strong> 是我们学习 node.js 中最重要的方面之一。因为它解释了 node.js 如何进行异步动作，同时不会出现 IO 阻塞问题。这也是 node.js 能够变得如此流行的原因之一。</p><p>node.js 代码运行在单进程中，也就是说它在一刻只能执行一个任务。这一限制特性使得我们不用担心任务间冲突问题。我们在变开发中只需要专注于代码本身，同时应避免进程阻塞，例如同步方式等待网络请求，死循环等。</p><p>通常情况下，浏览器中的每个 tab 页面都是都有各自独立的 event loop，防止某个页面的死循环或过高的资源消耗影响到整个浏览器的体验。我们只需要关注于我们的代码运行在一个单一的 event loop 中，编程中要注意到这一点，防止进程阻塞。</p><!--more--><p>JavaScript 代码中如果有长时间等待 return 返回给 event loop 控制时，任何其他代码将会被阻塞，也会阻塞页面 UI 单元，用户在此期间无法进行点击，滚动等操作。</p><p>几乎所有的 JavaScript 原生 IO 指令都是 non-blocking 非阻塞式的，例如：网络请求，文件读写等，阻塞是一种 exception 例外情况，这也是 JavaScript 大量的使用 callback 方式，以及最近引入的 promise 和 async/await。</p><h4>call stack 调用结构</h4><p>JavaScript 的 call 调用过程的结构遵循 LIFO (Last In, First Out)，也就是总是先响应最近的任务。</p><p>event loop 总是连续的检查 call stack 看是否有任务需要执行。在这个过程中，它会将发现的任务添加到 call stack 中并按顺序执行。</p><p>下面是一个简单的示例：</p><pre><code>const bar = () =&gt; console.log('bar');
+const baz = () =&gt; console.log('baz');
+
+const foo = () =&gt; {
+    console.log('foo');
+    bar();
+    baz();
+}
+
+foo();
+
+//output:
+//foo
+//bar
+//baz</code></pre><p>在以上示例中，首先会调用 foo()，在 foo 中首先会调用 bar()，然后调用 baz()。call stack 执行过程如下：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2945905311.png" alt="2021-02-02T13:21:33.png" title="2021-02-02T13:21:33.png"></p><p>在 event loop 的每次 iteration 递归执行中会查询 call stack 中是否有需要执行的任务，如果有则执行它，直到 loop 结束为止，如下是循环中的全过程：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/627372670.png" alt="2021-02-02T13:23:25.png" title="2021-02-02T13:23:25.png"></p><p>以上示例说明了 JavaScript 在一般情况下按顺序执行代码的过程。下面介绍如何将一个 function 推迟到 call stack 递归到最后时再被调用。</p><p>需要使用以下的代码指令：</p><pre><code>setTimeout(() =&gt; {}, 0)
+</code></pre><p>以上代码调用了 setTimeout 延时 function，但是将延时设置为 <code>0</code>，这样的意义就是要求它在可以执行的时候立刻执行其中定义的 function。那么如何才能让其在层级的最后再执行 function 呢？下面是一个完整的片段：</p><pre><code>const bar = () =&gt; console.log('bar');
+const baz = () =&gt; console.log('baz');
+
+const foo = () =&gt; {
+    console.log('foo');
+    setTimeout(bar, 0);
+    baz();
+}
+
+foo();
+
+//output:
+//foo
+//baz
+//bar</code></pre><p>以上示例中，我们在 foo 中先调用 setTimeout function，并将时间设置为 0，要求其在可以执行时立刻执行内部定义的指令，以上示例循环的 call stack 过程如下：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/281898740.png" alt="2021-02-04T12:49:01.png" title="2021-02-04T12:49:01.png"></p><p>下面时循环的顺序执行全过程：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2606253446.png" alt="2021-02-04T12:50:30.png" title="2021-02-04T12:50:30.png"></p><p>为什么会是这样的执行顺序呢？为什么 setTimeout 时间设置为 0 反而最后才执行其 function？下面做介绍。</p><h4>Message Queue 消息队列</h4><p>当 <code>setTimeout()</code> 被调用时，浏览器或 node.js 会开启一个定时器，当定时时间到达时，这里我们设置为 0 也就是立刻到达了时间，callback 响应的 function 会被放到 Message Queue 消息队列中。</p><p>Message Queue 消息队列也管理着用户主动触发的一些事件如鼠标点击键盘输入等，或者 fetch 获取响应信息，这些消息按顺序排列着等待被代码执行。</p><p><strong>call stack</strong> 和 <strong>Message Queue</strong> 是互相独立的，event loop 循环时 call stack 中的任务是优先的，它会首先查找 call stack 中需要执行的代码并按顺序执行，当 satck 执行完成后再去查看 Message Queue 中需要处理的任务。</p><p>我们并不需要等待一些 functions 如 setTimeout 或 fetch 这些任务的执行过程，因为这些工作由浏览器提供且这些任务运行在它们单独的线程中。例如当我们设置了 setTimeout 2 秒的定时，我们并不需要停下来等待这 2 秒钟，而是会执行层级中接下来的指令。</p><h4>Job Queue 任务队列</h4><p>ES6 中引入了一种新的 <strong>Job Queue</strong> 任务队列概念，也就是 <strong>Promise</strong>。提供了在条件到达后立刻执行被调用 function 的方法，而不是等待到 call stack 结束。</p><p>当 <strong>Promise</strong> 定义的 <strong>resolve</strong> 条件满足时，会在当前 function 执行结束后立刻执行 <strong>resolve</strong> function。</p><p>简单的区分 <strong>Message Queue</strong> 和 <strong>Job Queue</strong>：<strong>Message Queue</strong> 会将出现的每个任务按顺序排列到队列最后，等待排队执行。而 <strong>Job Queue</strong> 就像拿到了快捷车票，会在前一个指令结束后立刻跳转到这个任务上来。</p><p>下面是一个示例：</p><pre><code>const bar = () =&gt; console.log('bar');
+const baz = () =&gt; console.log('baz');
+
+const foo = () =&gt; {
+    console.log('foo');
+    setTimeout(bar, 0);
+    new Promise((resolve, reject) =&gt;
+            resolve(&quot;should be right after baz, before bar&quot;))
+        .then(resolve =&gt; console.log(resolve));
+    baz();
+}
+
+foo();
+
+//output:
+//foo
+//baz
+//should be right after baz, before bar
+//bar</code></pre><p>以上示例可以看到，<strong>promise</strong> 定义之后会运行 <strong>baz</strong> function，然后 <strong>promise</strong> 的 <strong>resolve</strong> 条件会立刻得到满足，此时异步任务会在 <strong>baz</strong> 执行结束后立刻被响应而不是排列到队列最后。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2100.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2100.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Windows 10 配置共享文件夹]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2103.html" />
@@ -629,240 +693,5 @@ test(*b);
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2053.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2053.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[node.js 入门教程之二 -- Getting Started]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2051.html" />
-<id>https://blog.niekun.net/archives/2051.html</id>
-<updated>2021-01-09T15:48:00+08:00</updated>
-<published>2021-01-09T15:48:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[V8 JavaScript EngineV8 是 chrome 浏览器的 JavaScript Engine 名称，它是用来在 chrome 中获取和执行 JavaScript 代码的工具。V8...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2051.html" xml:lang="zh-CN"><![CDATA[
-<h3>V8 JavaScript Engine</h3><p>V8 是 chrome 浏览器的 JavaScript Engine 名称，它是用来在 chrome 中获取和执行 JavaScript 代码的工具。V8 提供了一个 JavaScript 的运行环境，DOM 及其他 web API 是由 browser 提供的。</p><p>JavaScript Engine 是独立于其所寄生的浏览器的，这一特性才使 node.js 得以诞生。node.js 选择了 V8 Engine 且随着 node.js 的不断成长，大量服务端通过 JavaScript 编写的程序使用 v8 Engine。</p><p>基于 V8 同样可以创造桌面应用，例如 Electron 项目。</p><p>不同的浏览器有着各自的 Engine：</p><ul><li><strong>Firefox</strong> has SpiderMonkey</li><li><strong>Safari</strong> has JavaScriptCore (also called Nitro)</li><li><strong>Edge</strong> was originally based on Chakra but has more recently been rebuilt using Chromium and the V8 engine.</li></ul><p>所有的 Engine 都遵守 ECMAScript 标准。</p><!--more--><p>在最初时候 JavaScript 被作为一种  interpreted language 解释型语言。但是现代 JavaScript Engine 不在单单 interpret 解释代码，而是要 compile 编译代码。</p><p>从 2009 年起，Firefox 将 SpiderMonkey 编译器集成到浏览器中，从此大家都开始引入这一方案。</p><p>JavaScript 代码被 V8 通过内部的 just-in-time (JIT) 编译器编译来提高执行效率。</p><h3>命令行运行 node.js 代码</h3><p>一般情况下在安装好 node.js 后，可以通过 node 命令执行 node.js 代码，需要传递被执行文件的路径：</p><pre><code>node app.js
-</code></pre><h3>触发信号的使用</h3><p>当在终端中执行 node.js 程序时，可以通过快捷键 <code>ctrl C</code> 退出程序。当我们下面介绍如果通过更加<strong>程序化的方式</strong>实现退出动作。</p><p><strong>首先介绍第一种比较直接粗暴的方式</strong>：</p><pre><code>process.exit()
-</code></pre><p>通过调用 <strong>precess</strong> 模块的 <strong>exit</strong> function ，进程会立即被强行终止。这意味着任何它当前挂起的任务，正在传输的数据，对文件的访问和读写等都会被以一种不友好的方式终止掉。</p><p><strong>process</strong> 不需要通过 <strong>require</strong> 的方式引入，他是默认被包含的。</p><p>你可以传递一个整型数字作为 exit code 退出码，不写的话默认为 <code>0</code>：</p><pre><code>process.exit(1)
-</code></pre><p>不同的退出码有不同的意义，你可以使用不同的退出码来和其他程序响应。各种退出码的意义：<a href="https://nodejs.org/api/process.html#process_exit_codes">https://nodejs.org/api/process.html#process_exit_codes</a></p><p>你也可以提前设置退出码：</p><pre><code>process.exitCode = 1
-</code></pre><p>在后续执行到 <code>process.exit</code> 时会返回此处设置的值。</p><p><strong>下面介绍更加友好的退出方式</strong>。</p><p>在上一节中，我们介绍了通过 http 模块搭建一个简单的 web 服务器，使用 express 模块也可以搭建 web 服务器，默认没有安装此模块，首先需要通过 npm 进行安装，模块会安装到当前路径下：</p><pre><code>npm install express
-</code></pre><p>新建 js 文件，内容如下：</p><pre><code>const express = require('express')
-const app = express()
-
-app.get('/', (req, res) =&gt; {
-  res.send('Hi!')
-})
-
-const server = app.listen(3000, () =&gt; console.log('Server ready'))</code></pre><p>打开浏览器访问本地 3000 端口即可看到输出。</p><p>这个 web 服务会一直进行下去，如果调用了 <code>process.exit()</code>，当前的响应会立刻被终止，这是显然不太好的。</p><p>我们可以通过发送一个 <strong>SIGTERM</strong> 信号，然后处理对这个信号的响应。响应的动作可以是关闭这个 web 服务，上面的示例增加如下代码：</p><pre><code>process.on('SIGTERM', () =&gt; {
-    server.close(() =&gt; console.log('process termimated'));
-});</code></pre><p>这里我们监控一个 <strong>SIGTERM</strong> signal 作为一个 event 事件，然后响应关闭服务器的动作。</p><p><code>process.on</code> 叫做 <strong>signal handler</strong> 信号响应器，用来定义接受的信号及对应的响应动作。这里定义当 <strong>SIGTERM</strong> 信号被触发后，执行关闭 server 动作及输出 log。</p><p><strong>SIGTERM</strong> 是告诉系统将进程友好终止的信号。此信号被触发后，首先会执行 <strong>signal handler</strong> 信号响应器所定义的响应动作，也就是关闭 web 服务器，最后再终止对应进程。</p><p><strong>SIGTERM</strong> 信号一般是由进程管理器，如：<strong>upstart</strong>，<strong>supervisord</strong> 发出。这里我们在程序内部触发此信号：</p><pre><code>setTimeout(() =&gt; {
-    process.kill(process.pid, 'SIGTERM')
-}, 3000);</code></pre><p><code>process.kill()</code> method 用来将 <strong>signal</strong> 信号发送给对应 <strong>pid</strong> 进程。语法如下：</p><pre><code>process.kill(pid, signal)
-</code></pre><ul><li><strong>pid</strong> <number> 进程 ID</li><li><strong>signal</strong> <string> | <number> 要发送的信号, 大写字母的字符串或数字. 默认为: 'SIGTERM'</li></ul><p>当 pid 对应进程不存在时将会 throw 一个 error。<code>process.pid</code> 返回值为当前程序的进程 ID。</p><p>虽然 <code>process.kill</code> 名称看起来是要终止一个进程，但是他的确仅仅是一个 <strong>signal sender</strong> 信号发送器。具体会有什么样的结果完全取决于发送的是什么信号，以及对应信号的响应。<strong>kill</strong> method 的文档：<a href="https://nodejs.org/api/process.html#process_process_kill_pid_signal">https://nodejs.org/api/process.html#process_process_kill_pid_signal</a></p><p>以上示例中，加入对 <strong>SIGTERM</strong> 信号的触发和响应后，效果为：首先开启一个 web 服务器，3 秒后会尝试关闭此服务器并输出 log，此处会等待服务器完全结束当前 request 才会结束，最后终止进程：</p><pre><code>$ node express.js 
-Server ready
-process termimated</code></pre><p>注意 Windows 下 <strong>signal handler</strong> 信号响应器会无效，以上示例如果在 Windows 下执行不会输出最后一行 log 信息。</p><p><strong>常见的信号：</strong></p><ul><li><strong>SIGTERM</strong> 告诉系统需要友好的终止某个进程</li><li><strong>SIGKILL</strong> 立即结束对应进程，类似于 <code>process.exit()</code> 的效果</li><li><strong>beforeExit</strong> 进程退出前会触发此信号</li><li><strong>exit</strong> 进程退出时会触发此信号</li></ul><p>下面是一个对部分信号触发时间的测试：</p><pre><code>process.on(&quot;beforeExit&quot;, () =&gt;
-    console.log(&quot;before exit&quot;));
-
-process.on(&quot;exit&quot;, () =&gt;
-    console.log(&quot;exit&quot;));
-
-console.log(&quot;running&quot;);</code></pre><p>以上程序执行后输出信息如下：</p><pre><code>$ node process.js 
-running
-before exit
-exit</code></pre><p>更多信号的意义参考：<a href="https://man7.org/linux/man-pages/man7/signal.7.html">signal(7) — Linux manual page</a><br>更多使用方法参考：<a href="https://nodejs.org/api/process.html#process_signal_events">Signal events</a></p><h3>环境变量的读取</h3><p>node.js 的核心模块 <strong>process</strong> 提供了 <strong>env</strong> properties 寄存了当前程序开始时的所有 environment variables 环境变量。执行以下命令可以输出所有变量：</p><pre><code>console.log(process.env);
-</code></pre><p>查看某一个变量：</p><pre><code>console.log(process.env.HOME);
-
-//-&gt; /home/marco</code></pre><p>也可以设置自定义的环境变量并给其赋值：</p><pre><code>console.log(process.env.TEST);
-process.env.TEST = &quot;dev&quot;;
-console.log(process.env.TEST);
-
-// output:
-// undefined
-// dev</code></pre><h3>node.js REPL</h3><p>通常情况下我们将代码写在 js 文件中，然后通过 node 命令执行：</p><pre><code>node app.js
-</code></pre><p>如果不指定需要执行的 js 文件，则会进入 REPL (Read Evaluate Print Loop) 编程环境，可以通过直接输入指令，逐行执行代码。</p><p>进入 REPL：</p><pre><code>$ node
-Welcome to Node.js v15.5.1.
-Type &quot;.help&quot; for more information.
-&gt; </code></pre><p>尝试输出 log 信息：</p><pre><code>&gt; console.log('test')
-test
-undefined
-&gt; </code></pre><p>可以发现首先会输出指定的字符串内容，然后输出 <strong>undefined</strong>，它是 <code>console.log</code> function 的返回值。</p><p>同样在 REPL 中也可以使用 tab 键来自动补全指令名称。</p><p>输入 JavaScript object 名称和符号点<code>.</code>，然后点击 tab 键会输出指定 object 的所有 properties。例如 Array：</p><pre><code>&gt; Array.
-Array.__defineGetter__      Array.__defineSetter__      Array.__lookupGetter__      Array.__lookupSetter__
-Array.__proto__             Array.hasOwnProperty        Array.isPrototypeOf         Array.propertyIsEnumerable
-Array.toLocaleString        Array.valueOf
-
-Array.apply                 Array.arguments             Array.bind                  Array.call
-Array.caller                Array.constructor           Array.toString
-
-Array.from                  Array.isArray               Array.length                Array.name
-Array.of                    Array.prototype
-
-&gt; Array.</code></pre><p>使用这种方式输出  global objects 全局可用的所有 objects：</p><pre><code>&gt; global.
-global.__defineGetter__      global.__defineSetter__      global.__lookupGetter__      global.__lookupSetter__
-global.__proto__             global.hasOwnProperty        global.isPrototypeOf         global.propertyIsEnumerable
-global.toLocaleString        global.toString              global.valueOf
-
-global.constructor
-
-global.AbortController       global.AbortSignal           global.AggregateError        global.Array
-global.ArrayBuffer           global.Atomics               global.BigInt                global.BigInt64Array
-global.BigUint64Array        global.Boolean               global.Buffer                global.DataView
-global.Date                  global.Error                 global.EvalError             global.Event
-global.EventTarget           global.FinalizationRegistry  global.Float32Array          global.Float64Array
-global.Function              global.Infinity              global.Int16Array            global.Int32Array
-global.Int8Array             global.Intl                  global.JSON                  global.Map
-global.Math                  global.MessageChannel        global.MessageEvent          global.MessagePort
-global.NaN                   global.Number                global.Object                global.Promise
-global.Proxy                 global.RangeError            global.ReferenceError        global.Reflect
-global.RegExp                global.Set                   global.SharedArrayBuffer     global.String
-global.Symbol                global.SyntaxError           global.TextDecoder           global.TextEncoder
-global.TypeError             global.URIError              global.URL                   global.URLSearchParams
-global.Uint16Array           global.Uint32Array           global.Uint8Array            global.Uint8ClampedArray
-global.WeakMap               global.WeakRef               global.WeakSet               global.WebAssembly
-global._                     global._error                global.assert                global.async_hooks
-global.buffer                global.child_process         global.clearImmediate        global.clearInterval
-global.clearTimeout          global.cluster               global.console               global.constants
-global.crypto                global.decodeURI             global.decodeURIComponent    global.dgram
-global.diagnostics_channel   global.dns                   global.domain                global.encodeURI
-global.encodeURIComponent    global.escape                global.eval                  global.events
-global.fs                    global.global                global.globalThis            global.http
-global.http2                 global.https                 global.inspector             global.isFinite
-global.isNaN                 global.module                global.net                   global.os
-global.parseFloat            global.parseInt              global.path                  global.perf_hooks
-global.process               global.punycode              global.querystring           global.queueMicrotask
-global.readline              global.repl                  global.require               global.setImmediate
-global.setInterval           global.setTimeout            global.stream                global.string_decoder
-global.sys                   global.timers                global.tls                   global.trace_events
-global.tty                   global.undefined             global.unescape              global.url
-global.util                  global.v8                    global.vm                    global.wasi
-global.worker_threads        global.zlib
-
-&gt; global.</code></pre><p>REPL 有一些特殊指令，以 <code>.</code> 开始：</p><ul><li><code>.help</code>: shows the dot commands help</li><li><code>.editor</code>: enables editor mode, to write multiline JavaScript code with ease. Once you are in this mode, enter ctrl-D to run the code you wrote.</li><li><code>.break</code>: when inputting a multi-line expression, entering the .break command will abort further input. Same as pressing ctrl-C.</li><li><code>.clear</code>: resets the REPL context to an empty object and clears any multi-line expression currently being input.</li><li><code>.load</code>: loads a JavaScript file, relative to the current working directory</li><li><code>.save</code>: saves all you entered in the REPL session to a file (specify the filename)</li><li><code>.exit</code>: exits the repl (same as pressing ctrl-C two times)</li></ul><h3>来自命令行的传递参数</h3><p>在执行某个 js 文件时，你可以传入任意个数的数据作为传入参数供程序内使用。参数可以是独立的，也可以是以 key/value 形式：</p><pre><code>node app.js jon
-node appljs name=jon age=20</code></pre><p>如果使用第二种方式，则需要对其进行解析，后面会介绍。</p><p>通过访问 <strong>process</strong> 模块的 <strong>argv</strong> property 可以 retrieve 这些传入参数，<strong>argv</strong> 是一个数组，它的首个元素是 node 可执行文件路径，第二个元素是当前执行的 js 文件路径，其他元素就是传入参数数据。</p><p>我们新建 argv.js 文件内容如下：</p><pre><code>process.argv.forEach((val, index) =&gt; {
-    console.log(`${index}: ${val}`);
-});</code></pre><p>执行以下指令：</p><pre><code>$ node argv.js ABC
-0: /opt/node-v15.5.1-linux-x64/bin/node
-1: /mnt/hgfs/Development/node.js/argv.js
-2: ABC</code></pre><p>可以看到第三个元素是我们传入的数据。</p><p>可以通过 array 的 <strong>slice</strong> method 将所有传入参数单独提取出来：</p><pre><code>const val = process.argv.slice(2);
-</code></pre><p><strong>slice</strong> 语法如下：</p><pre><code>array.slice(start, end)
-</code></pre><p>将指定的数组范围内的元素生成一个新数组并返回，<strong>start</strong> 参数为起始元素索引，<strong>end</strong> 为终止元素索引，<strong>end</strong> 默认值为原数组最后一个元素。</p><p><strong>如果传入参数没有定义索引 key：</strong></p><pre><code>node app.js jon
-</code></pre><p>使用以下方法调用：</p><pre><code>const val = process.argv.slice(2);
-console.log(val[0]);</code></pre><p><strong>如果传入参数定义了索引 key：</strong></p><pre><code>node app.js name=jon
-</code></pre><p>此时 <strong>args[0]</strong> 的值为 <strong>name=joe</strong>，需要对其进行解析操作，最简单的是使用 minimist 库实现(先通过 <strong>npm</strong> 安装)：</p><pre><code>const args = require('minimist')(process.argv.slice(2));
-console.log(args['name']);
-console.log(args['age']);</code></pre><p>此时我们需要在传入参数的索引 key 前加双横杠<code>--</code>:</p><pre><code>$ node argv.js --name=jon --age=20
-jon
-20</code></pre><h3>命令行输出</h3><p>node.js 提供了一个 <strong>console</strong> 模块提供了很多有用的方法来在命令行下交互信息。它同浏览器下的 <strong>console</strong> object 类似。</p><p>最基础的就是 <code>console.log</code> method，可以将传入数据输出为字符串到终端。如果传入一个 object，会将其渲染为 string。</p><p>你可以输出多个数据，例如：</p><pre><code>let a = 1;
-let b = 2;
-console.log(a, b);
-
-//output:
-//1 2</code></pre><p>可以使用连接符来组合字符串和变量：</p><pre><code>console.log('num1 is ' + a + ', num2 is ' + b)
-</code></pre><p>通过传入变量和一个对应的 format specifier 格式占位符来使格式解析更加明晰：</p><pre><code>console.log('num1 is %s, num2 is %s', a, b)
-</code></pre><ul><li><strong>%s</strong> 格式化一个变量成字符串</li><li><strong>%d</strong> 格式化一个变量成数字</li><li><strong>%i</strong> 格式化一个变量成整数</li><li><strong>%o</strong> 格式化一个变量为 object</li></ul><p>调用 <strong>clear</strong> method 可以清空当前终端的信息:</p><pre><code>console.clear();
-</code></pre><p><strong>count</strong> method 可以实现对一个输出字符串的累计计数，输出字符串的同时会显示此字符串已经输出的次数，执行以下代码：</p><pre><code>console.count('count1')
-console.count('count2')
-console.count('count1')
-console.count('count1')</code></pre><p>输出结果为：</p><pre><code>count1: 1
-count2: 1
-count1: 2
-count1: 3</code></pre><p>结合 <strong>time</strong> 和 <strong>timeEnd</strong> method 可以计算执行一段代码花费的时间：</p><pre><code>const doSomeThing = () =&gt; console.log('test');
-const measureTime = () =&gt; {
-    console.time();
-    doSomeThing();
-    console.timeEnd();
-}
-measureTime()
-
-//output:
-//test
-//default: 5.937ms</code></pre><p>以上示例中，调用 <code>console.time()</code> 开始计时，调用 <code>console.timeEnd()</code> 终止计时并返回总时间。</p><p>通过 <code>console.log</code> 等输出到终端的信息称之为 standard 标准输出：<strong>stdout</strong>，通过 <code>console.error</code> 会输出到 <strong>stderr</strong> stream 流，不会显示到终端而是输出到了 error log。</p><p>可以通过  <code>escape sequences</code> 转义序列来给输出信息添加颜色，执行下面示例：</p><pre><code>console.log('\x1b[31m%s, \x1b[33m%s', 'hello', 'world')
-</code></pre><p>输出如下：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/4134573984.png" alt="2021-01-12T07:41:15.png" title="2021-01-12T07:41:15.png"></p><p><code>\x1b[</code> 后跟对应颜色的数字编号即可：</p><ul><li>30m    Black</li><li>31m    Red</li><li>32m    Green</li><li>33m    Yellow</li><li>34m    Blue</li><li>35m    Purple</li><li>36m    Cyan</li><li>37m    White</li></ul><p>但这种方法比较麻烦，输入也不太友好。</p><p>最好的方式是通过 Chalk 库来实现这个功能，它不仅可以修改颜色，还可以设置粗体，下划线，斜体等效果。需要通过 <code>npm install chalk</code> 安装库。</p><p>使用方法如下：</p><pre><code>const chalk = require('chalk')
-console.log(chalk.yellow('hello world'))</code></pre><p>这种方法使代码更加清晰可读。更多 chalk 使用方法参考：<a href="https://github.com/chalk/chalk">https://github.com/chalk/chalk</a></p><p><strong>创建进度条</strong></p><p>Progress 模块可以用来在终端创建进度条效果，通过 <code>npm install progress</code> 安装。</p><p>下面示例创建一个 10 级的进度条，每 100 ms 进一格，完成后取消定时器：</p><pre><code>const ProgressBar = require('progress')
-
-const bar = new ProgressBar(':bar', { total: 10 })
-const timer = setInterval(() =&gt; {
-    bar.tick();
-    if (bar.complete) {
-        clearInterval(timer);
-    }
-}, 100);</code></pre><p>每调用一次 <code>bar.tick()</code> 就会前进一格，可以在程序中添加进度条来提示进度。</p><h3>命令行输入</h3><p>下面介绍如何在命令行下进行输入输出交互。</p><p>node.js 从 version 7 开始提供了 <strong>readline</strong> module 可以在程序运行期间获取一个可读取的 stream 流的数据，如 <strong>process.stdin</strong> stream，一次读取一行数据。</p><p>请看下面示例：</p><pre><code>const readline = require('readline').createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-
-readline.question(&quot;what is your name\n&quot;, name =&gt; {
-    console.log(`Hi, ${name}`);
-    readline.close();
-});
-
-//output:
-//what is your name
-//marco
-//Hi, marco</code></pre><p><strong>question()</strong> method 显示第一个参数数据到命令行，然后等待用户输入数据，当用户输入数据并敲回车后会自动调用定义的 function，并将输入数据作为传入数据。</p><p>readline 的更多用法参考：<a href="https://nodejs.org/api/readline.html">https://nodejs.org/api/readline.html</a></p><p>但需要输入一个密码时，我们希望在输入时可以隐藏输入的信息，我们可以通过 <strong>Inquirer.js</strong> 模块来实现需求。</p><p><strong>Inquirer.js</strong> 项目地址：<a href="https://github.com/SBoudrias/Inquirer.js">https://github.com/SBoudrias/Inquirer.js</a></p><p>通过 npm 安装：</p><pre><code>npm install inquirer
-</code></pre><p><strong>inquirer</strong> 可以实现很多输入交互方式，如：常规输入，密码，列表，选项框等，下面举例说明：</p><pre><code>const inquirer = require('inquirer')
-
-var questions = [
-    {
-        type: 'input',
-        name: 'name',
-        message: 'what is your name\n',
-        default: function () {
-            return 'Doe';
-        }
-    },
-    {
-        type: 'input',
-        name: 'age',
-        message: 'how old are you?\n'
-    },
-    {
-        type: 'input',
-        name: 'phone number',
-        message: 'please input your phone number\n',
-        validate: function (value) {
-            var pass = value.match(
-              /^1[3|4|5|6|7|8|9][0-9]{9}$/
-            );
-            if (pass)
-              return true;
-            else
-                return 'Please enter a valid phone number';
-        }
-    },
-    {
-        type: 'password',
-        name: 'password',
-        message: 'your password\n'
-    }
-];
-
-inquirer.prompt(questions)
-.then(answers =&gt; {
-    console.log(`Hi, ${answers['name']}, you age is ${answers['age']}, your phone number is ${answers['phone number']}`);
-});</code></pre><p><strong>questions</strong> 数组定义了需要输入的内容，可以定义多项输入信息，每个输入内容都是一个独立的 question object 用来定义这个 question 具体的模式，下面介绍最常用的几个 properties：</p><ul><li>type 提示框的类型，默认为 input，可选项有: input, number, confirm, list, rawlist, expand, checkbox, password, editor</li><li>name 定义了此 question 的名称，用来在 answers 中读取数据时使用</li><li>message 定义一个打印输出的字符串提示信息</li><li>default 如果没有输入内容，则使用此处定义的默认值，可以是变量或 function</li><li>validate 用来判断输入信息是否满足一定条件，如果满足则返回 true，不满足返回预定一个提示信息并停留在当前 question 等待用户修改输入内容</li></ul><p>更多使用 question object 的属性参考：<a href="https://github.com/SBoudrias/Inquirer.js#question">https://github.com/SBoudrias/Inquirer.js#question</a></p><p>在上面的示例中，通过 <strong>validate</strong> function 判断电话号码是否有效，通过 <strong>string</strong> 的 <strong>match</strong> method 使用正则表达式来匹配信息。<strong>match</strong> method 语法如下：</p><pre><code>string.match(regexp)
-</code></pre><p>注意 regexp 是一个字符串，需要使用斜杠<code>/</code>来包围，如：</p><pre><code>var str = &quot;abcdefab&quot;;
-if (str.match(/ab/))
-    console.log(true);
-else
-    console.log(false);
-
-//output:
-//true</code></pre><p>还可以使用修饰符来设置正则匹配限制，可用的修饰符有 <code>g</code> 和 <code>i</code>，放在正则表达式结尾斜杠<code>/</code>后面。</p><p><code>g</code> 修饰符表示 global 全局查找，当使用 g 时，所有匹配结果将会返回，当不使用 g 时，只有第一个匹配的结果会返回，且包含其 groups，index 等信息：</p><pre><code>var str = &quot;abcdefab&quot;;
-console.log(str.match(/ab/));
-console.log(str.match(/ab/g));
-
-//OUTPUT:
-//[ 'ab', index: 0, input: 'abcdefab', groups: undefined ]
-//[ 'ab', 'ab' ]</code></pre><p><code>i</code> 修饰符用来设置忽略大小写：</p><pre><code>var str = &quot;abcdefabAB&quot;;
-console.log(str.match(/ab/g));
-console.log(str.match(/ab/gi));
-
-//OUTPUT:
-//[ 'ab', 'ab' ]
-//[ 'ab', 'ab', 'AB' ]</code></pre><p>当 <strong>question</strong> object 的 <strong>type</strong> 定义为 <strong>password</strong> 类型时，输入时信息会被隐藏。</p><p><strong>prompt</strong> method 用来显示提示框，传入参数就是预定义的 question 数组，其返回值为 <strong>promise</strong> 类型，所以可以通过 <strong>then</strong> method 来实现异步响应。promise 的用法参考：<a href="https://blog.niekun.net/archives/2011.html">https://blog.niekun.net/archives/2011.html</a></p><p>这里通过 <strong>then</strong> method 定义了 success 的 function，传入参数就是用户输入的数据构成的 object，通过 <strong>question</strong> object 中 <strong>name</strong> property 定义的名称来索引到具体的某个输入数据。</p><p>更多 inquirer 示例：<a href="https://github.com/SBoudrias/Inquirer.js/tree/master/packages/inquirer/examples">https://github.com/SBoudrias/Inquirer.js/tree/master/packages/inquirer/examples</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2051.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2051.html" thr:count="0"/>
 </entry>
 </feed>
