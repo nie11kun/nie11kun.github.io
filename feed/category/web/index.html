@@ -11,10 +11,136 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/web/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Thu, 04 Feb 2021 21:36:00 +0800</lastBuildDate>
-<pubDate>Thu, 04 Feb 2021 21:36:00 +0800</pubDate>
+<lastBuildDate>Sat, 06 Feb 2021 16:50:00 +0800</lastBuildDate>
+<pubDate>Sat, 06 Feb 2021 16:50:00 +0800</pubDate>
 <item>
-<title>node.js 入门教程之四 -- Event Loop</title>
+<title>node.js 入门教程之五 -- HTTP request and response</title>
+<link>https://blog.niekun.net/archives/2137.html</link>
+<guid>https://blog.niekun.net/archives/2137.html</guid>
+<pubDate>Sat, 06 Feb 2021 16:50:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[搭建 http server下面是一个 http server 的示例：const http = require('http')process.env.PORT = 3000const port...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<h3>搭建 http server</h3><p>下面是一个 http server 的示例：</p><pre><code>const http = require('http')
+process.env.PORT = 3000
+const port = process.env.PORT
+
+const server = http.createServer((req, res) =&gt; {
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'text/html')
+    res.end('&lt;h1&gt;hello world&lt;/h1&gt;')
+})
+server.listen(port, () =&gt; console.log(`server running at port ${port}`))</code></pre><p>访问 <a href="http://localhost">http://localhost</a>:3000 就会看到页面显示 <strong>hello world</strong>。</p><!--more--><p>下面我们简单解释下以上示例的执行过程：</p><ul><li>首先引入 <strong>http</strong> module</li><li>设置环境变量 PORT 为 3000，然后赋值给 port 变量</li><li>创建一个 server，其中含有一个 callback function，用户访问 server 时会被调用</li><li>设置监听端口并启动 server，当 server 启动成功后，会执行 server.listen 内定义的 callback function</li></ul><p>当 server 收到用户的请求时，会触发 <strong>request event</strong> 并提供了两个数据：一个 <strong>request</strong>(http.IncomingMessage object) 和一个 <strong>response</strong>(http.ServerResponse object)。</p><ul><li><strong>request</strong> 提供了 request 的详细信息，可以用来获取请求 hreaders 和请求数据。</li><li><strong>response</strong> 用来操作将要发送给客户端的数据。</li></ul><p><strong>在上面的示例中，我们修改了 response 相关信息：</strong></p><ul><li>设置 statusCode 为 200</li><li>设置一个 header</li><li>结束 response 并将响应内容作为数据传入 <code>end()</code></li></ul><h3>发起 GET 请求</h3><p>下面示例发起一个 GET 请求：</p><pre><code>const https = require('https')
+const options = {
+    hostname: 'niekun.net',
+    port: 443,
+    path: '/',
+    method: 'GET'
+}
+
+const req = https.request(options, res =&gt; {
+    console.log(`statusCode is：${res.statusCode}`);
+    res.on('data', d =&gt; {
+        process.stdout.write(d)
+    })
+})
+
+req.on('error', err =&gt; console.log(err))
+req.end()</code></pre><p><strong>以上示例执行过程为：</strong></p><ul><li>首先引入 https 模块。</li><li>创建一个 <strong>options</strong> object 存储请求的信息。</li><li>创建一个 <strong>https</strong> request，使用 options 作为请求信息，当请求成功后会执行后面定义的 callback function。</li><li>定义一个 event handler 事件管理器来处理当 error 被触发时的响应。</li><li>最后结束这个 request</li></ul><p>下面是一个 POST 请求示例：</p><pre><code>const https = require('https')
+
+const data = JSON.stringify({
+    todo: 'go to sleep'
+})
+
+const options = {
+    hostname: 'niekun.net',
+    port: 443,
+    path: '/',
+    method: 'POST',
+    Headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': data.length
+    }
+}
+
+const req = https.request(options, res =&gt; {
+    console.log(`statusCode is：${res.statusCode}`);
+    res.on('data', d =&gt; {
+        process.stdout.write(d)
+    })
+})
+req.on('error', err =&gt; console.log(err))
+
+req.write(data)
+req.end()</code></pre><p>POST 请求相比 GET 请求多了 <code>request.write(data)</code> 部分，因为 POST 是把数据消息放在 body 中的。</p><p>PUT 和 DELETE 请求和 POST 格式相同，只需要修改 request.method 即可。</p><h3>使用 Axios 库发起 POST 请求</h3><p>上面介绍了是应用 https 模块来发起 POST 请求，我们也可以使用第三方库使代码更加简洁，这里介绍 axios 库实现(需要通过 npm 安装)：</p><pre><code>const axios = require('axios')
+
+axios
+.post('http://localhost:3000', {
+    todo: 'go to sleep'
+})
+.then(res =&gt; {
+    console.log(`statusCode is: ${res.status}`)
+    process.stdout.write(res.data)
+})
+.catch(err =&gt; console.log(err))</code></pre><h3>获取 http request body 数据</h3><p>下面介绍 server 端如何提取在 http request body 中的 json 数据。</p><p>如果你使用 <strong>Express</strong> 模块创建 http server，那么只需要使用它的 body-parser 内容拆分模块即可实现提取 json 数据，<strong>Express</strong> 模块在第一章做过示例，如果客户端使用上面的 axios 示例发起请求，服务端代码如下：</p><pre><code>const express = require('express');
+const app = express();
+
+process.env.PORT = 3000
+const port = process.env.PORT
+
+app.use(
+    express.urlencoded({
+        extended: true
+    })
+)
+app.use(express.json())
+
+app.get('/', (req, res) =&gt; {
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'text/html')
+    res.end('&lt;h1&gt;hello world&lt;/h1&gt;')
+})
+
+app.post('/', (req, res) =&gt; {
+  console.log(req.body.todo)
+  res.statusCode = 200
+  res.setHeader('Content-Type', 'text/html')
+  res.end('hello world\n')
+});
+
+const server = app.listen(port, () =&gt; console.log('Server ready'));</code></pre><p>我们使用 express 模块创建了一个 server，并同时监听 GET 和 POST 请求并定义了 callback 响应，通过 <code>app.use</code> 设置了对请求 body 数据的 json 支持。</p><p>当启动上面实例中使用 axios 开启的服务端的程序后，server 端收到 POST 请求后就会提取请求 body 中的 todo 对应内容并输出到终端。客户端成功收到 response 后会输出 200 状态码和响应内容。</p><p>我们通过浏览器直接访问 <code>localhost:3000</code> 会发起一个 GET 请求，浏览器会显示 hello world。</p><p>如果你不想使用 express 模块创建 server，那么 server 端要提取 POST request body 中的 json 数据就稍微麻烦一些。</p><p>首先需要理解的是当我们通过 <code>http.createServer()</code> 创建了一个 http 服务后，callback function 会在所有的 request headers 内容都接收到后被调用，而不是 request body。</p><p><strong>connection callback</strong> 中传递的完整的 <strong>request</strong> object 数据是在 stream 流中。所以我们必须监听传输的 request body 的内容，它们是在一些 chunks 数据块中的。</p><p>首先我们通过监听 <strong>data</strong> event 获取 body 数据，<strong>data</strong> event 在传输过程中会被多次触发，当 request 数据传输完毕后 end event 会被触发。</p><p>通过下面的代码可以获取到完整的 body 数据：</p><pre><code>const server = http.createServer((req, res) =&gt; {
+    let data = '';
+    req.on('data', chunk =&gt; {
+        data += chunk;
+    })
+    req.on('end', () =&gt; {
+        console.log(JSON.parse(data).todo)
+    })
+})</code></pre><p>以上代码中，data 最终存储了 request body 的数据，然后通过 <code>JSON.parse</code> method 可以解析 json 内容。</p><p>server 端完整的代码如下：</p><pre><code>const http = require('http')
+process.env.PORT = 3000
+const port = process.env.PORT
+
+const server = http.createServer((req, res) =&gt; {
+    let data = '';
+    req.on('data', chunk =&gt; {
+        data += chunk;
+    })
+    req.on('end', () =&gt; {
+        console.log(JSON.parse(data).todo)
+    })
+
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'text/html')
+    res.end('&lt;h1&gt;hello world&lt;/h1&gt;')
+})
+server.listen(port, () =&gt; console.log(`server running at port ${port}`))</code></pre><p>以上就是 <strong>http</strong> request 和 response 部分的简单介绍。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2137.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2137.html</wfw:commentRss>
+</item>
+<item>
+<title>node.js 入门教程之四 -- Event Loop 和 asynchronous</title>
 <link>https://blog.niekun.net/archives/2100.html</link>
 <guid>https://blog.niekun.net/archives/2100.html</guid>
 <pubDate>Thu, 04 Feb 2021 21:36:00 +0800</pubDate>
@@ -233,13 +359,134 @@ fetch('https://api.github.com/users/github') // return a promise, resolve is a r
     .then(status) // use response as data and reture a promise
     .then(json) // use response as data convert to json and reture a promise
     .then(data =&gt; console.log('Request succeeded with JSON response', data)) // resolve call
-    .catch(err =&gt; console.log('Request failed', err)) // if status promise call reject function, would call here</code></pre><p><strong>以上程序的执行过程如下：</strong></p><ul><li>使用 fetch 获取一个 url 的数据，然后返回一个 promise，resolve 时返回数据为一个 <strong>response</strong>，其中包含很多 properties，这里需要用到 status 和 statusText</li><li>当 fetch 数据完成后我们调用 resolve 也就是 <strong>status</strong> function，status 使用 response 数据来判断并返回一个 promise，resolve 数据为 response 本身</li><li>下一步当 <strong>status</strong> promise 调用 resolve 时会调用 <strong>json</strong> function，将 response 数据转换为 json 格式并返回一个 promise resolve 数据为 json 数据，如果 <strong>status</strong> 进入 reject 也就是 response 不正常，则会直接执行最后的 <strong>catch</strong> function 跳过前面的环节</li><li>然后是数据的输出，当 <strong>json</strong> promise 调用 resolve 时会执行输出 data 数据</li></ul><p>在上面的示例中，我们在 promise 链的最后定义了一个 catch，当 promise 链中的任何一个 promise 失败然后 raise 一个 error 或者 reject，控制器会执行链中定义的最近的一个 catch。</p><p>下面两种定义的 promise 语法都进入 catch：</p><pre><code>new Promise((resolve, reject) =&gt; {
+    .catch(err =&gt; console.log('Request failed', err)) // if status promise call reject function, would call here</code></pre><p><strong>以上程序的执行过程如下：</strong></p><ul><li>使用 fetch 获取一个 url 的数据，然后返回一个 promise，resolve 时返回数据为一个 <strong>response</strong>，其中包含很多 properties，这里需要用到 status 和 statusText</li><li>当 fetch 数据完成后我们调用 resolve 也就是 <strong>status</strong> function，status 使用 response 数据来判断并返回一个 promise，resolve 数据为 response 本身</li><li>下一步当 <strong>status</strong> promise 调用 resolve 时会调用 <strong>json</strong> function，将 response 数据转换为 json 格式并返回一个 promise resolve 数据为 json 数据，如果 <strong>status</strong> 进入 reject 也就是 response 不正常，则会直接执行最后的 <strong>catch</strong> function 跳过前面的环节</li><li>然后是数据的输出，当 <strong>json</strong> promise 调用 resolve 时会执行输出 data 数据</li></ul><p>在上面的示例中，我们在 promise 链的最后定义了一个 catch，当 promise 链中的任何一个 promise 失败然后 raise 一个 error 或者 reject，控制器会执行链中定义的最近的一个 catch。</p><p><strong>reject</strong> 或 raise <strong>error</strong> 都会触发 catch 部分，下面两种定义的 promise 语法都会进入 catch：</p><pre><code>new Promise((resolve, reject) =&gt; {
     throw new Error('error')
 }).catch(err =&gt; console.log(err))
 
 new Promise((resolve, reject) =&gt; {
     reject('error')
-}).catch(err =&gt; console.log(err))</code></pre>
+}).catch(err =&gt; console.log(err))</code></pre><p>也可以将 errors 级联，如果在 catch 中再次 throw 一个 error，可以再次附加一个 catch 来处理它：</p><pre><code>new Promise((resolve, reject) =&gt; {
+    throw new Error('error')
+})
+.catch(err =&gt; {throw new Error('error')})
+.catch(err =&gt; console.log(err))</code></pre><h4>promises 顺序</h4><p>多个 promises 可以控制他们的响应顺序，使用 <code>Promise.all()</code> 可以定义一个 promise list 表，当 promises 都 resolve 时设置执行动作。</p><p>请看下面的测试：</p><pre><code>const fetch = require('node-fetch');
+
+const f1 = fetch('http://localhost/fs.json');
+const f2 = fetch('http://localhost/fs2.json');
+
+Promise.all([f1, f2])
+.then(response =&gt; console.log(&quot;array of results&quot;, response))
+.catch(err =&gt; console.log(err))</code></pre><p>返回的结果：</p><pre><code>array of results [
+  Response {
+    size: 0,
+    timeout: 0,
+    [Symbol(Body internals)]: { body: [PassThrough], disturbed: false, error: null },
+    [Symbol(Response internals)]: {
+      url: 'http://localhost/fs.json',
+      status: 404,
+      statusText: 'Not Found',
+      headers: [Headers],
+      counter: 0
+    }
+  },
+  Response {
+    size: 0,
+    timeout: 0,
+    [Symbol(Body internals)]: { body: [PassThrough], disturbed: false, error: null },
+    [Symbol(Response internals)]: {
+      url: 'http://localhost/fs2.json',
+      status: 404,
+      statusText: 'Not Found',
+      headers: [Headers],
+      counter: 0
+    }
+  }
+]</code></pre><p>可以看到 response 是一个数组，包含了两个 promise 返回的数据且按数组定义的顺序排列。</p><p>使用 ES6 的 object 拆解语法，上面示例也可以这样写：</p><pre><code>Promise.all([f1, f2])
+.then(([response1, response2]) =&gt; console.log(&quot;array of results&quot;, response1, response2))
+.catch(err =&gt; console.log(err))</code></pre><h4>Promise.race()</h4><p>当 <code>Promise.race()</code> 中定义的 promises 数组中有第一个 resolve 的 promise 时，这个 promise 会运行 then 且只运行这一次，最终的状态就是那个 promise resolved 状态。</p><p>下面是一个示例：</p><pre><code>const first = new Promise((resolve, reject) =&gt; {
+    setTimeout(resolve, 500, 'first');
+})
+const second = new Promise((resolve, reject) =&gt; {
+    setTimeout(resolve, 100, 'second');
+})
+Promise.race([first, second]).then(res =&gt; console.log(res))
+
+//output:
+//second</code></pre><p>上面的示例中，首先定义了两个 promise，当 resolve 时都是执行了一个定时器。先到达定时时间的 promise 将会执行 resolve 动作。</p><h3>async 和 await</h3><p>JavaScript 从 ES2015 才引入 promise 代替 callback，从 ES2017 开始 JavaScript 处理异步有了更加简化的语法：<strong>async/await</strong>。</p><p><strong>async</strong> functions 是 promise 和 generator 的结合。也即是说 async/await 是基于 promise 的。关于 promise 和 generator 的 JavaScript 语法可以参考：<a href="https://blog.niekun.net/archives/2011.html">https://blog.niekun.net/archives/2011.html</a></p><p>promise 是为了处理异步而创造的，但随着使用场景的复杂化，它的劣势被凸显出来：语法臃肿，promise 链不能打断需要联系书写。于是便诞生了 <strong>async</strong> function。它可以让代码看起来像是同步代码，但在底层它是异步的且无 IO 阻塞问题。</p><p>首先我们定义一个异步 promise：</p><pre><code>const doSomethingAsync = () =&gt; {
+    return new Promise(resolve =&gt; {
+        setTimeout(resolve, 2000, 'i did something')
+    })
+}</code></pre><p><strong>setTimeout</strong> 第三个参数是 resolve 的传入数据。</p><p>当我们要调用这个 <strong>promise</strong> function 时使用关键词 <strong>await</strong>，然后 call 动作将会 pending 挂起状态直到 promise 被 resolved 或 rejected，注意在客户端代码中，需要使用 <strong>async</strong> 定义相关 function：</p><pre><code>const doSomething = async () =&gt; {
+    console.log(await doSomethingAsync());
+}
+console.log('before')
+doSomething()
+console.log('after')
+
+//output:
+//before
+//after
+//i did something</code></pre><p>以上是一个简单的示例说明 async 的用法，await 后的 promise function 返回值是 resolve 或 reject 的数据。</p><p>在 function 定义中使用 async 关键词意味着这个 function 返回值为 promise 类型，即使定义中没有明确定义返回类型，它依然会返回 promise。所以以下代码是有效的：</p><pre><code>const test = async () =&gt; {
+    return 'test';
+}
+test().then(res =&gt; console.log(res))
+
+//output:
+//test</code></pre><p>以上的代码和下面的写法是一样的效果：</p><pre><code>const test = async () =&gt; {
+    return Promise.resolve('test');
+}
+test().then(res =&gt; console.log(res))</code></pre><p>可以看到使用 async 后语法得到了简化易读，当代码很复杂时这一优势会更加明显，下面是使用 promise 语法读取 json 数据并拆解它的示例：</p><pre><code>const getFirstUserData = () =&gt; {
+    return fetch('/js.json') // return a promise, resolve response data
+        .then(response =&gt; response.json()) // reture a promise, resolve translate response data to json type
+        .then(users =&gt; users[0]) // return a promise, resolve is first element in response array data
+        .then(user =&gt; fetch(`/users/${user.name}`)) // use first element data to fetch new data and return response data when resolve
+        .then(userResponse =&gt; userResponse.json()) // translate to json type and return it if resolve
+}
+getFirstUserData()</code></pre><p>下面使用 <strong>async/await</strong> 来实现上面的功能：</p><pre><code>const { default: fetch } = require(&quot;node-fetch&quot;)
+
+const getFirstUserData = async () =&gt; {
+    const response = await fetch('/js.json')
+    const users = await response.json()
+    const user = users[0]
+    const userResponse = await fetch(`/users/${user.name}`)
+    const userData = await userResponse.json()
+
+    return userData;
+}
+getFirstUserData()</code></pre><h4>多个 async function 组合使用</h4><p><strong>async</strong> function 可以很方便的组成 chain 链，且语法相比较 promise 更加易读。</p><p>下面是一个多个 async function 组合使用的示例：</p><pre><code>const promiseToDoSomething = () =&gt; {
+    return new Promise(resolve =&gt; {
+        setTimeout(resolve, 2000, 'i did something')
+    })
+}
+
+const watchSomeoneDoingSomething = async () =&gt; {
+    const something = await promiseToDoSomething()
+    return something + '\nand i watched'
+}
+
+const watchSomeoneWatchingSomeoneDoingSomething = async () =&gt; {
+    const something = await watchSomeoneDoingSomething()
+    return something + '\nand i watched as well'
+}
+
+watchSomeoneWatchingSomeoneDoingSomething().then(res =&gt; console.log(res))
+
+//output:
+//i did something
+//and i watched
+//and i watched as well</code></pre><p><strong>async/await</strong> function 看起来就像是同步代码，这样调试起来非常方便。</p><h3>Event emitter 事件触发器</h3><p>如果在浏览器端开发过 JavaScript，你肯定了解用户通过 events 事件来实现交互，如：鼠标点击，键盘按键，鼠标移动等。</p><p>在后端，node.js 通过 <strong>events</strong> module 可以建立一个小型系统来处理 events 事件。通常使用 <strong>EventEmitter</strong> class，下面是初始化 <strong>events</strong> 的方法：</p><pre><code>const EventEmitter = require('events')
+const eventEmitter = new EventEmitter()</code></pre><p>此时 <strong>eventEmitter</strong> object 有很多 properties，其中最常用的就是 <strong>on</strong> 和 <strong>emit</strong> method：</p><ul><li><strong>on</strong> 用来定义一个 event 事件，同时定义一个 callback function，当 event 触发后被执行</li><li><strong>emit</strong> 用来触发某个 event 事件</li></ul><p>下面我们创建一个 <strong>start</strong> event：</p><pre><code>eventEmitter.on('start', () =&gt; console.log('started'))</code></pre><p>然后触发 <strong>start</strong>：</p><pre><code>eventEmitter.emit('start')
+
+//output:
+//start</code></pre><p>可以给 event 传递参数，在 callback 时使用：</p><pre><code>eventEmitter.on('test1', par =&gt; console.log('started', par))
+eventEmitter.emit('test1', 'wow')
+
+//output:
+//started wow</code></pre><p>当然也可以给 event 传递多个数据：</p><pre><code>eventEmitter.on('test2', (a, b) =&gt; console.log(`started from ${a} to ${b}`))
+eventEmitter.emit('test2', 1, 200)
+
+//output:
+//started from 1 to 200</code></pre><p><strong>EventEmitter</strong> object 同样有很多其他实用 method 来实现交互，例如：</p><ul><li><strong>once()</strong>: 添加一个一次性的 event 事件监听器，只会被触发一次</li><li><strong>removeListener() / off()</strong>: 删除某个已定义的 event 监听器</li><li><strong>removeAllListeners()</strong>: 删除所有的 event 监听器</li></ul><p>更多关于 events module 的用法参考：<a href="https://nodejs.org/api/events.html">https://nodejs.org/api/events.html</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2100.html#comments</comments>
@@ -1916,108 +2163,6 @@ test.apply(null, arr);</code></pre><p><strong>function</strong> 的常规使用�
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1992.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1992.html</wfw:commentRss>
-</item>
-<item>
-<title>JavaScript 入门教程之三 -- Conditionals and Loops</title>
-<link>https://blog.niekun.net/archives/1990.html</link>
-<guid>https://blog.niekun.net/archives/1990.html</guid>
-<pubDate>Fri, 18 Dec 2020 11:10:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[The if Statement在编程中，如果想要根据不同的情况执行不同的代码，可以使用 if conditional statements 状况指令来处理，语法如下：if (condition...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<h3>The if Statement</h3><p>在编程中，如果想要根据不同的情况执行不同的代码，可以使用 <code>if conditional statements</code> 状况指令来处理，语法如下：</p><pre><code>if (condition) {
-   statements
-}</code></pre><p>使用 if 语法来根据 condition 是否为 true 来确定是否执行 statements。下面举例说明，修改 html 文件 script 部分：</p><pre><code>var a = 1;
-if (a == 1) {
-    alert(&quot;a is 1&quot;);
-}</code></pre><!--more--><p>效果如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/185715999.jpg" alt="1.jpg" title="1.jpg"></p><p>如果修改 condition 不为 true 则不会执行内部指令：</p><pre><code>var a = 2;
-if (a == 1) {
-    alert(&quot;a is 1&quot;);
-}</code></pre><p>以上示例不会执行 alert function。</p><p>注意如果 statement 指令只有一句时，<strong>可以省略大括号</strong>，如下写法也是正确的：</p><pre><code>var a = 1;
-if (a == 1)
-    alert(&quot;a is 1&quot;);</code></pre><p>使用 <code>else</code> 申明来 condition 为 false 时执行的指令：</p><pre><code>if (expression) {
-   // executed if condition is true
-}
-else {
-   // executed if condition is false
-}</code></pre><p>下面举例说明：</p><pre><code>var a = 1;
-var b = 2;
-if (a &lt; b)
-    alert(&quot;a smaller than b&quot;);
-else
-    alert(&quot;a is bigger than b&quot;);</code></pre><p>以上示例实现的动作也可以使用我们上一章提到的状况判断符来实现：</p><pre><code>a &lt; b ? alert(&quot;a smaller than b&quot;) : alert(&quot;a is bigger than b&quot;);
-</code></pre><p>如果 condition 不止有两种情况要处理，可以使用 <code>else if</code> 申明多个情况下的指令，修改上面的示例：</p><pre><code>var a = 2;
-var b = 2;
-if (a &lt; b)
-    alert(&quot;a smaller than b&quot;);
-else if (a == b)
-    alert(&quot;a equal to b&quot;);
-else
-    alert(&quot;a is bigger than b&quot;);</code></pre><p>则会执行 <code>alert(&quot;a equal to b&quot;);</code> 指令。</p><p>注意 <code>else</code> 在整个块中必须作为最后一个申明写在 <code>if</code> 和 <code>else if</code> 之后，如果所有 condition 的条件都不满足则会执行 <code>else</code> 中的申明指令。</p><p>可以根据情况使用任意多个 <code>else if</code> 申明。</p><h3>switch</h3><p>当 condition 有多个情况需要处理时，使用 <code>else if</code> 就会很麻烦。这时候可以使用 <code>switch statement</code> 来处理，语法如下：</p><pre><code>switch (expression) {
-  case n1: 
-     statements
-     break;
-  case n2: 
-     statements
-     break;
-  default: 
-     statements
-}</code></pre><p><code>switch expression</code> 会被评估一次，然后在 <code>case</code> 中寻找匹配的结果并执行对应块的指令。</p><p>以下是一个简单示例：</p><pre><code>var day = 2;
-switch (day) {
-    case 1:
-        document.write(&quot;today is monday&quot;);
-        break;
-    case 2:
-        document.write(&quot;today is tuesday&quot;);
-        break;
-    default:
-        document.write(&quot;today is another day&quot;);
-        break;
-}</code></pre><p>当 day 的值为 2，则会匹配到 case 2 并执行其内的指令。</p><p>当 JavaScript 执行到 <code>break</code> 后会跳出 switch 块，如果不写 <code>break</code> 则会顺序执行下面的指令，即使不满足其他的 case 条件。<strong>通常情况下每个 case 块结尾都应该有</strong> <code>break</code>。</p><p><code>default</code> 关键词用来处理没有匹配到任何 <code>case</code> 情况，如果没有匹配到则执行 default 中的指令。如果不需要处理没有指定的 case 匹配到的情况时 default 可以被省略。</p><h3>for 循环</h3><p>使用 loop 循环可以多次执行一段代码，通过一些条件来控制循环次数及参数值。</p><p>JavaScript 提供三种类型的循环：for, while, 和 do while。</p><p>for 循环语法如下：</p><pre><code>for (statement 1; statement 2; statement 3) {
-   code block to be executed
-}</code></pre><ul><li>Statement 1 在循环前被执行</li><li>Statement 2 定义执行循环的状态</li><li>Statement 3 在每次循环后被执行</li></ul><p>下面的示例将输出 0 - 4：</p><pre><code>for (var i=0; i&lt;5; i++) {
-    document.write(i + &quot;&lt;br&gt;&quot;);
-    
-}</code></pre><p>过程为：首先给变量 i 赋值为 1，执行循环的条件是 i&lt;5，每次循环后给 i 加 1。当 i==4 时，执行完本次循环后 i 加 1 后值为 5，不满足第二项条件就会跳出循环。</p><p><strong>statement 1</strong> 是可选项可以不写，如：</p><pre><code>var i = 0;
-for (; i&lt;5; i++) {
-    document.write(i + &quot;&lt;br&gt;&quot;);
-    
-}</code></pre><p>和第一个示例效果是一样的。</p><p><strong>statement 1</strong> 也可以同时定义多个参数，使用逗号<code>,</code> 来隔离，如：</p><pre><code>for (var i=0, j=2; i&lt;5; i++) {
-    document.write(i + &quot;&lt;br&gt;&quot;);
-    
-}</code></pre><p>如果 <strong>statement 2</strong> 返回 true 则会执行循环块内容，如果返回 false 则会结束循环。</p><p>同样的 <strong>statement 2</strong> 也是可选项，也可以不定义，但是必须在循环块内定义 <code>break</code> 不然就会无线循环下去：</p><pre><code>for (var i=0; ; i++) {
-    if (i &gt;= 5)
-        break;
-    document.write(i + &quot;&lt;br&gt;&quot;);
-}</code></pre><p>statement 3 用来修改初始变量的值，同样也是可选项，可以在循环块内部直接修改初值：</p><pre><code>for (var i=0; i&lt;5 ;) {
-    document.write(i + &quot;&lt;br&gt;&quot;);
-    i++;
-}</code></pre><h3>while 循环</h3><p>while 循环也是用来实现当某个 condition 为 true 时循环一个代码块。语法如下：</p><pre><code>while (condition) {    
-   code block
-}</code></pre><p>下面的示例将输出 0 - 10 的数字：</p><pre><code>var i = 0;
-while (i&lt;=10) {
-    document.write(i + &quot;&lt;br&gt;&quot;);
-    i++;
-}</code></pre><p>当 condition 一直为 true 时，循环就会继续下去。我们应该避免无限循环情况出现。</p><h3>do while 循环</h3><p>do while 循环是 while 循环的一种变形，它会首先执行一次循环块然后判断 condition 条件。语法如下：</p><pre><code>do {
-   code block
-}
-while (condition);</code></pre><p>注意 while 结尾的分号<code>;</code> 不能省略。</p><p>下面的示例会输出 0 - 4：</p><pre><code>var i = 0;
-do {
-    document.write(i + &quot;&lt;br&gt;&quot;);
-    i++;
-} while (i&lt;5);</code></pre><p><strong>循环块至少会执行一次，即使 condition 为 false。</strong></p><h3>break</h3><p><code>break</code> 指令用来跳出循环继续执行后续程序。</p><p>下面示例中，将只会输出 0 - 4 的数字：</p><pre><code>for (var i=0; i&lt;10 ; i++) {
-    if (i == 5)
-        break;
-    document.write(i + &quot;&lt;br&gt;&quot;);
-}</code></pre><p>在 function 中可以使用 return 来跳出当前代码块，下一章节将会介绍。</p><h3>continue</h3><p><code>continue</code> 指令用来仅跳出当次循环，然后继续进行下一次循环。</p><p>下面示例将会输出 0- 10，但不包括 5：</p><pre><code>for (var i=0; i&lt;10 ; i++) {
-    if (i == 5)
-        continue;
-    document.write(i + &quot;&lt;br&gt;&quot;);
-}</code></pre><p>当 i 等于 5 时会跳出本次循环所以不会输出 5，但是会继续进行下面的循环。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1990.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1990.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

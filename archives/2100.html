@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="renderer" content="webkit">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>node.js 入门教程之四 -- Event Loop - Marco Nie</title>
+<title>node.js 入门教程之四 -- Event Loop 和 asynchronous - Marco Nie</title>
 
 <link rel="stylesheet" href="https://niekun.net/webcdn/bootstrap-4.4.1-dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="../usr/themes/TypechoAwesome/normalize.css">
@@ -21,10 +21,10 @@
 <link rel="pingback" href="../action/xmlrpc" />
 <link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
 <link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
-<link rel="alternate" type="application/rss+xml" title="node.js 入门教程之四 -- Event Loop &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2100.html" />
-<link rel="alternate" type="application/rdf+xml" title="node.js 入门教程之四 -- Event Loop &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2100.html" />
-<link rel="alternate" type="application/atom+xml" title="node.js 入门教程之四 -- Event Loop &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2100.html" />
-<script type="0d22918eafcf400cac51c098-text/javascript">
+<link rel="alternate" type="application/rss+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2100.html" />
+<link rel="alternate" type="application/rdf+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2100.html" />
+<link rel="alternate" type="application/atom+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2100.html" />
+<script type="2dd95998b5ae808a9406fdb7-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -96,7 +96,7 @@
     };
 })();
 </script>
-<script type="0d22918eafcf400cac51c098-text/javascript">
+<script type="2dd95998b5ae808a9406fdb7-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -114,29 +114,33 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _m2oW = //'wO'
-'wO'+//'vM'
-'67b'+'9c'//'URK'
-+'c26'//'N'
-+//'xtU'
-'a'+'51d'//'Tgq'
-+'8'//'h5e'
-+//'hc'
-'3c4'+'e'//'K2'
-+'07c'//'BmP'
-+'489'//'F'
-+//'F'
-'545'+//'nT'
-'341'+'5d'//'f'
-+'P'//'P'
-+'1'//'Tkl'
-, _TmFtmiZ = [[0,2],[31,32]];
+    var _ibzUWo7 = //'JvP'
+'6'+'7b9'//'jk6'
++''///*'TFa'*/'TFa'
++'cc2'//'7Y'
++//'lrC'
+'6'+//'fly'
+'a'+'wRt'//'wRt'
++'51'//'1d'
++'y5n'//'y5n'
++//'3VC'
+'d83'+//'c'
+'c4e'+//'N'
+'07'+//'W'
+'c4'+'895'//'q'
++'4'//'d9A'
++/* 'kh'//'kh' */''+//'x'
+'x'+'534'//'a'
++//'j'
+'j'+//'H7t'
+'15d'+//'Zi'
+'1', _bnNQs = [[9,12],[11,14],[25,26],[28,29]];
     
-    for (var i = 0; i < _TmFtmiZ.length; i ++) {
-        _m2oW = _m2oW.substring(0, _TmFtmiZ[i][0]) + _m2oW.substring(_TmFtmiZ[i][1]);
+    for (var i = 0; i < _bnNQs.length; i ++) {
+        _ibzUWo7 = _ibzUWo7.substring(0, _bnNQs[i][0]) + _ibzUWo7.substring(_bnNQs[i][1]);
     }
 
-    return _m2oW;
+    return _ibzUWo7;
 })();
 
         if (null != r) {
@@ -217,7 +221,7 @@
 <div class="row">
 <div class="col-md-9 col-12" id="main" role="main">
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h1 class="post-title" itemprop="name headline"><a itemprop="url" href="2100.html">node.js 入门教程之四 -- Event Loop</a></h1>
+<h1 class="post-title" itemprop="name headline"><a itemprop="url" href="2100.html">node.js 入门教程之四 -- Event Loop 和 asynchronous</a></h1>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../author/1/index.html" rel="author">admin</a></li>
 <li>时间: <time datetime="2021-02-04T21:36:00+08:00" itemprop="datePublished">2021-02-04</time></li>
@@ -436,19 +440,140 @@ fetch('https://api.github.com/users/github') // return a promise, resolve is a r
     .then(status) // use response as data and reture a promise
     .then(json) // use response as data convert to json and reture a promise
     .then(data =&gt; console.log('Request succeeded with JSON response', data)) // resolve call
-    .catch(err =&gt; console.log('Request failed', err)) // if status promise call reject function, would call here</code></pre><p><strong>以上程序的执行过程如下：</strong></p><ul><li>使用 fetch 获取一个 url 的数据，然后返回一个 promise，resolve 时返回数据为一个 <strong>response</strong>，其中包含很多 properties，这里需要用到 status 和 statusText</li><li>当 fetch 数据完成后我们调用 resolve 也就是 <strong>status</strong> function，status 使用 response 数据来判断并返回一个 promise，resolve 数据为 response 本身</li><li>下一步当 <strong>status</strong> promise 调用 resolve 时会调用 <strong>json</strong> function，将 response 数据转换为 json 格式并返回一个 promise resolve 数据为 json 数据，如果 <strong>status</strong> 进入 reject 也就是 response 不正常，则会直接执行最后的 <strong>catch</strong> function 跳过前面的环节</li><li>然后是数据的输出，当 <strong>json</strong> promise 调用 resolve 时会执行输出 data 数据</li></ul><p>在上面的示例中，我们在 promise 链的最后定义了一个 catch，当 promise 链中的任何一个 promise 失败然后 raise 一个 error 或者 reject，控制器会执行链中定义的最近的一个 catch。</p><p>下面两种定义的 promise 语法都进入 catch：</p><pre><code>new Promise((resolve, reject) =&gt; {
+    .catch(err =&gt; console.log('Request failed', err)) // if status promise call reject function, would call here</code></pre><p><strong>以上程序的执行过程如下：</strong></p><ul><li>使用 fetch 获取一个 url 的数据，然后返回一个 promise，resolve 时返回数据为一个 <strong>response</strong>，其中包含很多 properties，这里需要用到 status 和 statusText</li><li>当 fetch 数据完成后我们调用 resolve 也就是 <strong>status</strong> function，status 使用 response 数据来判断并返回一个 promise，resolve 数据为 response 本身</li><li>下一步当 <strong>status</strong> promise 调用 resolve 时会调用 <strong>json</strong> function，将 response 数据转换为 json 格式并返回一个 promise resolve 数据为 json 数据，如果 <strong>status</strong> 进入 reject 也就是 response 不正常，则会直接执行最后的 <strong>catch</strong> function 跳过前面的环节</li><li>然后是数据的输出，当 <strong>json</strong> promise 调用 resolve 时会执行输出 data 数据</li></ul><p>在上面的示例中，我们在 promise 链的最后定义了一个 catch，当 promise 链中的任何一个 promise 失败然后 raise 一个 error 或者 reject，控制器会执行链中定义的最近的一个 catch。</p><p><strong>reject</strong> 或 raise <strong>error</strong> 都会触发 catch 部分，下面两种定义的 promise 语法都会进入 catch：</p><pre><code>new Promise((resolve, reject) =&gt; {
     throw new Error('error')
 }).catch(err =&gt; console.log(err))
 
 new Promise((resolve, reject) =&gt; {
     reject('error')
-}).catch(err =&gt; console.log(err))</code></pre> </div>
+}).catch(err =&gt; console.log(err))</code></pre><p>也可以将 errors 级联，如果在 catch 中再次 throw 一个 error，可以再次附加一个 catch 来处理它：</p><pre><code>new Promise((resolve, reject) =&gt; {
+    throw new Error('error')
+})
+.catch(err =&gt; {throw new Error('error')})
+.catch(err =&gt; console.log(err))</code></pre><h4>promises 顺序</h4><p>多个 promises 可以控制他们的响应顺序，使用 <code>Promise.all()</code> 可以定义一个 promise list 表，当 promises 都 resolve 时设置执行动作。</p><p>请看下面的测试：</p><pre><code>const fetch = require('node-fetch');
+
+const f1 = fetch('http://localhost/fs.json');
+const f2 = fetch('http://localhost/fs2.json');
+
+Promise.all([f1, f2])
+.then(response =&gt; console.log(&quot;array of results&quot;, response))
+.catch(err =&gt; console.log(err))</code></pre><p>返回的结果：</p><pre><code>array of results [
+  Response {
+    size: 0,
+    timeout: 0,
+    [Symbol(Body internals)]: { body: [PassThrough], disturbed: false, error: null },
+    [Symbol(Response internals)]: {
+      url: 'http://localhost/fs.json',
+      status: 404,
+      statusText: 'Not Found',
+      headers: [Headers],
+      counter: 0
+    }
+  },
+  Response {
+    size: 0,
+    timeout: 0,
+    [Symbol(Body internals)]: { body: [PassThrough], disturbed: false, error: null },
+    [Symbol(Response internals)]: {
+      url: 'http://localhost/fs2.json',
+      status: 404,
+      statusText: 'Not Found',
+      headers: [Headers],
+      counter: 0
+    }
+  }
+]</code></pre><p>可以看到 response 是一个数组，包含了两个 promise 返回的数据且按数组定义的顺序排列。</p><p>使用 ES6 的 object 拆解语法，上面示例也可以这样写：</p><pre><code>Promise.all([f1, f2])
+.then(([response1, response2]) =&gt; console.log(&quot;array of results&quot;, response1, response2))
+.catch(err =&gt; console.log(err))</code></pre><h4>Promise.race()</h4><p>当 <code>Promise.race()</code> 中定义的 promises 数组中有第一个 resolve 的 promise 时，这个 promise 会运行 then 且只运行这一次，最终的状态就是那个 promise resolved 状态。</p><p>下面是一个示例：</p><pre><code>const first = new Promise((resolve, reject) =&gt; {
+    setTimeout(resolve, 500, 'first');
+})
+const second = new Promise((resolve, reject) =&gt; {
+    setTimeout(resolve, 100, 'second');
+})
+Promise.race([first, second]).then(res =&gt; console.log(res))
+
+//output:
+//second</code></pre><p>上面的示例中，首先定义了两个 promise，当 resolve 时都是执行了一个定时器。先到达定时时间的 promise 将会执行 resolve 动作。</p><h3>async 和 await</h3><p>JavaScript 从 ES2015 才引入 promise 代替 callback，从 ES2017 开始 JavaScript 处理异步有了更加简化的语法：<strong>async/await</strong>。</p><p><strong>async</strong> functions 是 promise 和 generator 的结合。也即是说 async/await 是基于 promise 的。关于 promise 和 generator 的 JavaScript 语法可以参考：<a href="2011.html">https://blog.niekun.net/archives/2011.html</a></p><p>promise 是为了处理异步而创造的，但随着使用场景的复杂化，它的劣势被凸显出来：语法臃肿，promise 链不能打断需要联系书写。于是便诞生了 <strong>async</strong> function。它可以让代码看起来像是同步代码，但在底层它是异步的且无 IO 阻塞问题。</p><p>首先我们定义一个异步 promise：</p><pre><code>const doSomethingAsync = () =&gt; {
+    return new Promise(resolve =&gt; {
+        setTimeout(resolve, 2000, 'i did something')
+    })
+}</code></pre><p><strong>setTimeout</strong> 第三个参数是 resolve 的传入数据。</p><p>当我们要调用这个 <strong>promise</strong> function 时使用关键词 <strong>await</strong>，然后 call 动作将会 pending 挂起状态直到 promise 被 resolved 或 rejected，注意在客户端代码中，需要使用 <strong>async</strong> 定义相关 function：</p><pre><code>const doSomething = async () =&gt; {
+    console.log(await doSomethingAsync());
+}
+console.log('before')
+doSomething()
+console.log('after')
+
+//output:
+//before
+//after
+//i did something</code></pre><p>以上是一个简单的示例说明 async 的用法，await 后的 promise function 返回值是 resolve 或 reject 的数据。</p><p>在 function 定义中使用 async 关键词意味着这个 function 返回值为 promise 类型，即使定义中没有明确定义返回类型，它依然会返回 promise。所以以下代码是有效的：</p><pre><code>const test = async () =&gt; {
+    return 'test';
+}
+test().then(res =&gt; console.log(res))
+
+//output:
+//test</code></pre><p>以上的代码和下面的写法是一样的效果：</p><pre><code>const test = async () =&gt; {
+    return Promise.resolve('test');
+}
+test().then(res =&gt; console.log(res))</code></pre><p>可以看到使用 async 后语法得到了简化易读，当代码很复杂时这一优势会更加明显，下面是使用 promise 语法读取 json 数据并拆解它的示例：</p><pre><code>const getFirstUserData = () =&gt; {
+    return fetch('/js.json') // return a promise, resolve response data
+        .then(response =&gt; response.json()) // reture a promise, resolve translate response data to json type
+        .then(users =&gt; users[0]) // return a promise, resolve is first element in response array data
+        .then(user =&gt; fetch(`/users/${user.name}`)) // use first element data to fetch new data and return response data when resolve
+        .then(userResponse =&gt; userResponse.json()) // translate to json type and return it if resolve
+}
+getFirstUserData()</code></pre><p>下面使用 <strong>async/await</strong> 来实现上面的功能：</p><pre><code>const { default: fetch } = require(&quot;node-fetch&quot;)
+
+const getFirstUserData = async () =&gt; {
+    const response = await fetch('/js.json')
+    const users = await response.json()
+    const user = users[0]
+    const userResponse = await fetch(`/users/${user.name}`)
+    const userData = await userResponse.json()
+
+    return userData;
+}
+getFirstUserData()</code></pre><h4>多个 async function 组合使用</h4><p><strong>async</strong> function 可以很方便的组成 chain 链，且语法相比较 promise 更加易读。</p><p>下面是一个多个 async function 组合使用的示例：</p><pre><code>const promiseToDoSomething = () =&gt; {
+    return new Promise(resolve =&gt; {
+        setTimeout(resolve, 2000, 'i did something')
+    })
+}
+
+const watchSomeoneDoingSomething = async () =&gt; {
+    const something = await promiseToDoSomething()
+    return something + '\nand i watched'
+}
+
+const watchSomeoneWatchingSomeoneDoingSomething = async () =&gt; {
+    const something = await watchSomeoneDoingSomething()
+    return something + '\nand i watched as well'
+}
+
+watchSomeoneWatchingSomeoneDoingSomething().then(res =&gt; console.log(res))
+
+//output:
+//i did something
+//and i watched
+//and i watched as well</code></pre><p><strong>async/await</strong> function 看起来就像是同步代码，这样调试起来非常方便。</p><h3>Event emitter 事件触发器</h3><p>如果在浏览器端开发过 JavaScript，你肯定了解用户通过 events 事件来实现交互，如：鼠标点击，键盘按键，鼠标移动等。</p><p>在后端，node.js 通过 <strong>events</strong> module 可以建立一个小型系统来处理 events 事件。通常使用 <strong>EventEmitter</strong> class，下面是初始化 <strong>events</strong> 的方法：</p><pre><code>const EventEmitter = require('events')
+const eventEmitter = new EventEmitter()</code></pre><p>此时 <strong>eventEmitter</strong> object 有很多 properties，其中最常用的就是 <strong>on</strong> 和 <strong>emit</strong> method：</p><ul><li><strong>on</strong> 用来定义一个 event 事件，同时定义一个 callback function，当 event 触发后被执行</li><li><strong>emit</strong> 用来触发某个 event 事件</li></ul><p>下面我们创建一个 <strong>start</strong> event：</p><pre><code>eventEmitter.on('start', () =&gt; console.log('started'))</code></pre><p>然后触发 <strong>start</strong>：</p><pre><code>eventEmitter.emit('start')
+
+//output:
+//start</code></pre><p>可以给 event 传递参数，在 callback 时使用：</p><pre><code>eventEmitter.on('test1', par =&gt; console.log('started', par))
+eventEmitter.emit('test1', 'wow')
+
+//output:
+//started wow</code></pre><p>当然也可以给 event 传递多个数据：</p><pre><code>eventEmitter.on('test2', (a, b) =&gt; console.log(`started from ${a} to ${b}`))
+eventEmitter.emit('test2', 1, 200)
+
+//output:
+//started from 1 to 200</code></pre><p><strong>EventEmitter</strong> object 同样有很多其他实用 method 来实现交互，例如：</p><ul><li><strong>once()</strong>: 添加一个一次性的 event 事件监听器，只会被触发一次</li><li><strong>removeListener() / off()</strong>: 删除某个已定义的 event 监听器</li><li><strong>removeAllListeners()</strong>: 删除所有的 event 监听器</li></ul><p>更多关于 events module 的用法参考：<a href="https://nodejs.org/api/events.html">https://nodejs.org/api/events.html</a></p> </div>
 <p itemprop="keywords" class="tags">标签: none</p>
 </article>
 <div id="comments">
 <div id="respond-post-2100" class="respond">
 <div class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2100.html#respond-post-2100" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-0d22918eafcf400cac51c098-="">取消回复</a> </div>
+<a id="cancel-comment-reply-link" href="2100.html#respond-post-2100" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-2dd95998b5ae808a9406fdb7-="">取消回复</a> </div>
 <h3 id="response">添加新评论</h3>
 <form method="post" action="https://blog.niekun.net/archives/2100.html/comment" id="comment-form" role="form">
 <p>
@@ -475,14 +600,14 @@ new Promise((resolve, reject) =&gt; {
 </div>
 <ul class="post-near">
 <li>上一篇: <a href="2103.html" title="Windows 10 配置共享文件夹">Windows 10 配置共享文件夹</a></li>
-<li>下一篇: 没有了</li>
+<li>下一篇: <a href="2137.html" title="node.js 入门教程之五 -- HTTP request and response">node.js 入门教程之五 -- HTTP request and response</a></li>
 </ul>
 </div>
 <div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="2100.html">node.js 入门教程之四 -- Event Loop</a></li><li><a href="2103.html">Windows 10 配置共享文件夹</a></li><li><a href="2098.html">解除 UWP 应用的网络隔离</a></li><li><a href="2086.html">创建新文件 in Linux</a></li><li><a href="2085.html">node.js 入门教程之三 -- npm</a></li><li><a href="2074.html">服务器部署 WebDAV 服务</a></li><li><a href="2071.html">修复 ubuntu vmware 虚拟机无法访问主机共享目录</a></li><li><a href="2066.html">c++ 类型转换</a></li><li><a href="2061.html">VMware 虚拟机 NAT 网络下配置端口转发到主机</a></li><li><a href="2053.html">vs code 通过 ssh 远程连接服务器调试</a></li> </ul>
+<li><a href="2137.html">node.js 入门教程之五 -- HTTP request and response</a></li><li><a href="2100.html">node.js 入门教程之四 -- Event Loop 和 asynchronous</a></li><li><a href="2103.html">Windows 10 配置共享文件夹</a></li><li><a href="2098.html">解除 UWP 应用的网络隔离</a></li><li><a href="2086.html">创建新文件 in Linux</a></li><li><a href="2085.html">node.js 入门教程之三 -- npm</a></li><li><a href="2074.html">服务器部署 WebDAV 服务</a></li><li><a href="2071.html">修复 ubuntu vmware 虚拟机无法访问主机共享目录</a></li><li><a href="2066.html">c++ 类型转换</a></li><li><a href="2061.html">VMware 虚拟机 NAT 网络下配置端口转发到主机</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -521,12 +646,12 @@ new Promise((resolve, reject) =&gt; {
 <footer id="footer" role="contentinfo">
 &copy; 2021 <a href="../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="0d22918eafcf400cac51c098-text/javascript">
+<script type="2dd95998b5ae808a9406fdb7-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="0d22918eafcf400cac51c098-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="0d22918eafcf400cac51c098-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="0d22918eafcf400cac51c098-text/javascript"></script>
-<script src="../usr/themes/TypechoAwesome/navItem.js" type="0d22918eafcf400cac51c098-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="0d22918eafcf400cac51c098-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="2dd95998b5ae808a9406fdb7-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="2dd95998b5ae808a9406fdb7-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="2dd95998b5ae808a9406fdb7-text/javascript"></script>
+<script src="../usr/themes/TypechoAwesome/navItem.js" type="2dd95998b5ae808a9406fdb7-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="2dd95998b5ae808a9406fdb7-|49" defer=""></script></body>
 </html>
