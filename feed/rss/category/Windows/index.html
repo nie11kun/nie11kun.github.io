@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2139.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2103.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2098.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2061.html"/>
@@ -18,10 +19,17 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1818.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1805.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1801.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1797.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2139.html">
+<title>Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理</title>
+<link>https://blog.niekun.net/archives/2139.html</link>
+<dc:date>2021-02-07T11:07:10+08:00</dc:date>
+<description>由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。我的流程是：VMware 安装 Ubuntu共享 Windows 下的文件夹给 Ubuntu 作为开发目录Windows 下使用 vs code 通过 ssh 方式远程连接 Ubuntu通过远程连接的方式在 Windows 下做 node.js 开发实际体验很好。但是在通过 npm 安装某些包时常常会有报错出现，错误日志大概意思就是说无法给 node_modules 文件夹内安装的库文件添加软连接到系统路径。网上查询后发现了问题原因，我的开发目录实际是在 Windows 下的，Windows 和 Linux 有着不一样的文件系统和路径格式，所以 npm 在安装某些包含 bin 可执行文件的第三方库时，会默认自动创建相关文件的软链接到 Linux 系统路径，这样就就报错了。如果要坚持使用共享目录的形式做开发，那么需要设置在 npm 安装新库时使用参数 --no-bin-links 告诉系统不要自动创建软连接，语法如下：npm install cowsay --no-bin-links
+这样就会跳过相关步骤。也可以设置到 npm 配置中，这样以后安装的包都会默认不创建 bin 的软连接了：npm config set bin-links false
+当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。参考链接：https://github.com/npm/npm/issues/2221</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2103.html">
 <title>Windows 10 配置共享文件夹</title>
 <link>https://blog.niekun.net/archives/2103.html</link>
@@ -261,12 +269,5 @@ netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255
 alias unproxy='unset all_proxy &amp;&amp; export http_proxy= &amp;&amp; export https_proxy='保存文件后，重新载入配置：source ~/.bashrc
 运行命令测试alias是否生效：proxy
 如果无法使用代理，可能是 Windows 防火墙限制代理软件的访问权限，Windows 下打开允许应用通过 Windows 防火墙设置：将对应代理软件打开 private 和 public 访问权限：再次在 wsl 中测试 proxy 是否生效。参考链接Static IP on WSL 2记录一次WSL2的网络代理配置</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1797.html">
-<title>解决 proxifier 和 wsl 2 无法同时使用的问题</title>
-<link>https://blog.niekun.net/archives/1797.html</link>
-<dc:date>2020-10-12T15:18:00+08:00</dc:date>
-<description>今天将 Windows 10 升级到了 build 2004 版，顺便将 wsl 升级到了 wsl 2，升级教程参考：https://blog.niekun.net/archives/1785.html。运行 wsl 2 时，发现如下报错：PS C:\Users\Marco Nie&gt; wsl
-The attempted operation is not supported for the type of object referenced.无法正常使用 wsl，查询后得知是由于我正在使用的 proxifier 和 wsl 有了冲突，proxifier 是我一直使用的用来代理程序的应用。在 wsl 的 github 项目讨论中看到有人问了 proxifier 开发者，得到了解决方法，需要使用提供的程序来让 wsl 在运行时不要加载 LSP DLLs。下载 NoLsp.zip，解压得到 NoLsp.exe以管理员权限运行 terminal，执行 &amp;&quot;path\to\NoLsp.exe&quot; &quot;c:\windows\system32\wsl.exe&quot;看到终端显示 Succsess!，表示操作完成，然后 wsl 系统就可以正常打开使用同时不影响 proxifier。参考链接：https://github.com/microsoft/WSL/issues/4177</description>
 </item>
 </rdf:RDF>

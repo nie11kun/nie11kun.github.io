@@ -84,6 +84,67 @@
 <div class="row">
 <div class="col-md-9 col-12" id="main" role="main">
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1687.html">hex &lt;-&gt; str in python </a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-08-12T14:07:00+08:00" itemprop="datePublished">2020-08-12</time></li>
+<li>分类: <a href="../../category/py/index.html">python</a></li>
+<li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/1687.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p><strong>str to hex:</strong></p><pre><code>import codecs
+hexlify = codecs.getencoder('hex')
+hexlify(b'Blaah')[0]</code></pre><p>out:</p><pre><code>b'426c616168'
+</code></pre><p><strong>hex to str:</strong></p><pre><code>import codecs
+decode_hex = codecs.getdecoder(&quot;hex_codec&quot;)
+s = decode_hex(b'426c616168')[0]</code></pre><p>out:</p><pre><code>b'Blaah'
+</code></pre> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1685.html">winreg 操作 Windows 注册表 in python</a></h2>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2020-08-12T13:56:00+08:00" itemprop="datePublished">2020-08-12</time></li>
+<li>分类: <a href="../../category/py/index.html">python</a></li>
+<li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/1685.html#comments">评论</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p><a href="https://docs.python.org/3/library/winreg.html#">https://docs.python.org/3/library/winreg.html#</a><br><a href="https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registry">https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registry</a></p><pre><code>import winreg
+
+REG_PATH = r&quot;Control Panel\Mouse&quot;
+
+def set_reg(name, value):
+    try:
+        winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, 
+                                       winreg.KEY_WRITE)
+        winreg.SetValueEx(registry_key, name, 0, winreg.REG_SZ, value)
+        winreg.CloseKey(registry_key)
+        return True
+    except WindowsError:
+        return False
+
+def get_reg(name):
+    try:
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
+                                       winreg.KEY_READ)
+        value, regtype = winreg.QueryValueEx(registry_key, name)
+        winreg.CloseKey(registry_key)
+        return value
+    except WindowsError:
+        return None
+
+#Example MouseSensitivity
+#Read value 
+print (get_reg('MouseSensitivity'))
+
+#Set Value 1/20 (will just write the value to reg, the changed mouse val requires a win re-log to apply*)
+set_reg('MouseSensitivity', str(10))
+
+#*For instant apply of SystemParameters like the mouse speed on-write, you can use win32gui/SPI
+#http://docs.activestate.com/activepython/3.4/pywin32/win32gui__SystemParametersInfo_meth.html</code></pre> </div>
+</article>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1684.html">使用 opencv 处理图像</a></h2>
 <ul class="post-meta">
 <li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
@@ -116,34 +177,12 @@
 <div class="post-content" itemprop="articleBody">
 <table><tbody><tr><td align="center">1</td><td align="center">视角移动</td></tr><tr><td align="center">2</td><td align="center">视野放大/缩小</td></tr><tr><td align="center">3</td><td align="center">视角旋转</td></tr><tr><td align="center"> </td><td align="center"> </td></tr><tr><td align="center">E</td><td align="center">object 移动</td></tr><tr><td align="center">R</td><td align="center">object 旋转</td></tr><tr><td align="center">T</td><td align="center">object 放大/缩小</td></tr><tr><td align="center"> </td><td align="center"> </td></tr><tr><td align="center"><strong>object 编辑</strong></td><td align="center"> </td></tr><tr><td align="center">U</td><td align="center">线段功能菜单</td></tr><tr><td align="center">U + L</td><td align="center">选择闭合曲线</td></tr><tr><td align="center">U + U</td><td align="center">取消区域曲线选择</td></tr><tr><td align="center">M</td><td align="center">块功能菜单</td></tr><tr><td align="center">M + T</td><td align="center">块生成工具</td></tr><tr><td align="center"> </td><td align="center"> </td></tr><tr><td align="center">Q</td><td align="center">隐藏 subdivision surface</td></tr><tr><td align="center"> </td><td align="center"> </td></tr><tr><td align="center">alt + R</td><td align="center">区域渲染</td></tr><tr><td align="center"> </td><td align="center"> </td></tr></tbody></table> </div>
 </article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1666.html">Linux 下使用 OptiPNG 压缩图片</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2020-07-14T17:25:00+08:00" itemprop="datePublished">2020-07-14</time></li>
-<li>分类: <a href="../../category/Linux/index.html">Linux</a>,<a href="../../category/web/index.html">web</a></li>
-<li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/1666.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p>最近越来也发现自己的博客加载图片变慢了，由于我很多教程是教 PS 的，会使用到很多图片和截图，所以影响尤其明显。每张图片小则 400Kb 大则 2-3Mb，对于网络浏览不太友好。</p><p>可以直接在服务器上进行图片压缩，用到的工具是 OptiPNG。</p><p>OptiPNG home page：<a href="http://optipng.sourceforge.net/">http://optipng.sourceforge.net/</a></p><p class="more"><a href="../../archives/1666.html" title="Linux 下使用 OptiPNG 压缩图片">- 阅读剩余部分 -</a></p> </div>
-</article>
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<h2 class="post-title" itemprop="name headline"><a itemprop="url" href="../../archives/1653.html">快速给黑白照上色 in Photoshop</a></h2>
-<ul class="post-meta">
-<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../../author/1/index.html" rel="author">admin</a></li>
-<li>时间: <time datetime="2020-07-14T14:37:09+08:00" itemprop="datePublished">2020-07-14</time></li>
-<li>分类: <a href="../../category/ps/index.html">photoshop</a></li>
-<li itemprop="interactionCount"><a itemprop="discussionUrl" href="../../archives/1653.html#comments">评论</a></li>
-</ul>
-<div class="post-content" itemprop="articleBody">
-<p><img src="../../usr/uploads/2020/07/44560624.png" alt="2020-07-14T06:37:35.png" title="2020-07-14T06:37:35.png"><br>如果你需要给黑白照片添加颜色，这个教程可以帮助你快速完成。它通过把照片上传到一个免费的网站来自动给照片上色，然后再 Photoshop 中对自动处理不完美的地方进行精细调整最终得到满意的效果。</p><p>免费上色网站地址为：<a href="https://imagecolorizer.com/">https://imagecolorizer.com/</a></p><p class="more"><a href="../../archives/1653.html" title="快速给黑白照上色 in Photoshop">- 阅读剩余部分 -</a></p> </div>
-</article>
 <ol class="page-navigator"><li class="prev"><a href="../15/index.html">&laquo; 前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../13/index.html">13</a></li><li><a href="../14/index.html">14</a></li><li><a href="../15/index.html">15</a></li><li class="current"><a href="index.html">16</a></li><li><a href="../17/index.html">17</a></li><li><a href="../18/index.html">18</a></li><li><a href="../19/index.html">19</a></li><li><span>...</span></li><li><a href="../55/index.html">55</a></li><li class="next"><a href="../17/index.html">后一页 &raquo;</a></li></ol></div>
 <div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="../../archives/2137.html">node.js 入门教程之五 -- HTTP request and response</a></li><li><a href="../../archives/2100.html">node.js 入门教程之四 -- Event Loop 和 asynchronous</a></li><li><a href="../../archives/2103.html">Windows 10 配置共享文件夹</a></li><li><a href="../../archives/2098.html">解除 UWP 应用的网络隔离</a></li><li><a href="../../archives/2086.html">创建新文件 in Linux</a></li><li><a href="../../archives/2085.html">node.js 入门教程之三 -- npm</a></li><li><a href="../../archives/2074.html">服务器部署 WebDAV 服务</a></li><li><a href="../../archives/2071.html">修复 ubuntu vmware 虚拟机无法访问主机共享目录</a></li><li><a href="../../archives/2066.html">c++ 类型转换</a></li><li><a href="../../archives/2061.html">VMware 虚拟机 NAT 网络下配置端口转发到主机</a></li> </ul>
+<li><a href="../../archives/2140.html">node.js 入门教程之六 -- FileSystem</a></li><li><a href="../../archives/2139.html">Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理</a></li><li><a href="../../archives/2137.html">node.js 入门教程之五 -- HTTP request and response</a></li><li><a href="../../archives/2100.html">node.js 入门教程之四 -- Event Loop 和 asynchronous</a></li><li><a href="../../archives/2103.html">Windows 10 配置共享文件夹</a></li><li><a href="../../archives/2098.html">解除 UWP 应用的网络隔离</a></li><li><a href="../../archives/2086.html">创建新文件 in Linux</a></li><li><a href="../../archives/2085.html">node.js 入门教程之三 -- npm</a></li><li><a href="../../archives/2074.html">服务器部署 WebDAV 服务</a></li><li><a href="../../archives/2071.html">修复 ubuntu vmware 虚拟机无法访问主机共享目录</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -182,12 +221,12 @@
 <footer id="footer" role="contentinfo">
 &copy; 2021 <a href="../../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="d4127971e5058d0a98410b76-text/javascript">
+<script type="880b159ef9e442acea4841bd-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="d4127971e5058d0a98410b76-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="d4127971e5058d0a98410b76-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="d4127971e5058d0a98410b76-text/javascript"></script>
-<script src="../../usr/themes/TypechoAwesome/navItem.js" type="d4127971e5058d0a98410b76-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="d4127971e5058d0a98410b76-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="880b159ef9e442acea4841bd-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="880b159ef9e442acea4841bd-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="880b159ef9e442acea4841bd-text/javascript"></script>
+<script src="../../usr/themes/TypechoAwesome/navItem.js" type="880b159ef9e442acea4841bd-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="880b159ef9e442acea4841bd-|49" defer=""></script></body>
 </html>

@@ -6,11 +6,232 @@ xml:base="https://blog.niekun.net/2021/02/"
 >
 <title type="text">Marco Nie - 2021年2月</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2021-02-06T16:50:00+08:00</updated>
+<updated>2021-02-07T17:17:30+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/2021/02/" />
 <id>https://blog.niekun.net/feed/atom/2021/02/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/02/" />
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之六 -- FileSystem]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2140.html" />
+<id>https://blog.niekun.net/archives/2140.html</id>
+<updated>2021-02-07T17:17:30+08:00</updated>
+<published>2021-02-07T17:17:30+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[File descriptor 文件描述器当需要访问文件系统里的某个文件时，需要首先得到这个文件的 file descriptor 文件描述器。一个 file descriptor 就是通过 f...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2140.html" xml:lang="zh-CN"><![CDATA[
+<h3>File descriptor 文件描述器</h3><p>当需要访问文件系统里的某个文件时，需要首先得到这个文件的 file descriptor 文件描述器。</p><p>一个 file descriptor 就是通过 <strong>fs</strong> 模块的 <code>open()</code> method 打开对应文件的返回数据。它的结构如下：</p><pre><code>const fs = require('fs')
+
+fs.open('./test.txt', 'r', (err, data) =&gt; {
+    if (err) {
+        console.log('open fail')
+        return
+    }
+    console.log('open success')
+})</code></pre><p>如果文件打开成功，callback 中的 <strong>data</strong> 数据就是一个 file descriptor。这种方式是异步处理的，文件打开过程中系统会执行其他任务。</p><!--more--><p>在上面的示例中，<code>fs.open()</code> 的第三个参数使用了 <code>'f'</code> 标记，它的意思就是以<strong>只读模式</strong>打开文件。我们可以通过使用不同的标记来以不同的方式打开文件：</p><ul><li><strong>r</strong> 只读模式，文件不存在会报错</li><li><strong>a</strong> 只写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li><li><strong>r+</strong> 读写模式，文件不存在会报错</li><li><strong>w+</strong> 读写模式，streaming 流定位到文件起始位置，如果文件不存在则创建文件</li><li><strong>a+</strong> 读写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li></ul><p>更多 flag 的使用参考：<a href="https://nodejs.org/api/fs.html#fs_file_system_flags">https://nodejs.org/api/fs.html#fs_file_system_flags</a></p><p>也可以使用 <code>fs.openSync()</code> method 打开文件，其返回值为 file descriptor 而不是通过 callback 的方式：</p><pre><code>try {
+    const data = fs.openSync('./test.txt', 'r')
+    console.log('open success')
+} catch (error) {
+    console.log('open fail')
+}</code></pre><p>这种方式是同步模式的，程序会等待接收到 file descriptor 或者 error 后才执行后面的指令。</p><h3>File stats 文件信息</h3><p>每个文件都包含独自的属性信息，可以通过 node.js 查看。通常我们使用 fs 模块的 <code>stat()</code> method。</p><p>以下是一个简单示例：</p><pre><code>const fs = require('fs')
+
+fs.stat('./test.txt', (err, stats) =&gt; {
+    if (err) {
+        console.log('read fail')
+        return
+    }
+    console.log(stats)
+})</code></pre><p>同样的，node.js 也提供了同步模式 method，在读取 stats 过程中会阻塞进程知道读取结束：</p><pre><code>try {
+    const stats = fs.statSync('./test.txt')
+    console.log(stats)
+} catch (error) {
+    console.log(error)
+}</code></pre><p>文件信息存储在 stats 变量中，可以读取其中的需要的信息，常用的有以下：</p><ul><li>是否是文件或文件夹：<code>stats.isFile()</code>，<code>stats.isDirectory()</code></li><li>是否是一个链接文件：<code>stats.isSymbolicLink()</code></li><li>文件大小(单位为字节)：<code>stats.size</code></li></ul><h3>File Path 文件路径</h3><p>每个文件在系统中都有一个路径。在 Linux 中路径格式如：<code>/users/joe/file.txt</code>，在 Windows 中路径格式如：<code>C:\users\joe\file.txt</code>。在程序中引用路径时需要特别注意路径的格式。</p><p>node.js 中可以使用 <strong>path</strong> 模块来处理文件路径相关数据。</p><p>如果给定一个路径，可以提取其相关数据，如：</p><ul><li><strong>path.dirname</strong>: 获取文件的上级文件夹路径</li><li><strong>path.basename</strong>: 获取文件名部分</li><li><strong>path.extname</strong>: 获取文件扩展名</li></ul><pre><code>const path = require('path')
+
+const file = '/home/marco/file.txt'
+console.log(path.dirname(file))
+console.log(path.basename(file))
+console.log(path.extname(file))
+
+//output:
+/home/marco
+file.txt
+.txt</code></pre><p>可以获取文件名不包含扩展名部分，通过给 <code>path.basename()</code> 设置第二个参数：</p><pre><code>console.log(path.basename(file, path.extname(file)))
+
+//output:
+file</code></pre><p>可以组合多个部分为一个 path：</p><pre><code>const dir = 'home/marco/'
+p = path.join('/' + dir + 'test.txt')
+console.log(p)
+
+//output:
+/home/marco/test.txt</code></pre><p>使用 <code>path.resolve()</code> 可以从一个相对路径获取到绝对路径：</p><pre><code>p = path.resolve('file.txt')
+console.log(p)
+p = path.resolve('./test/file.txt')
+console.log(p)
+
+//OUTPUT:
+/mnt/hgfs/Development/node.js/filesystem/file.txt
+/mnt/hgfs/Development/node.js/filesystem/test/file.txt</code></pre><p>以上示例中，会将程序当前执行路径作为绝对路径添加给后面定义的文件相对路径。</p><p>也可以将文件的相对目录单独定义，会自动组合它们：</p><pre><code>p = path.resolve('tmp', 'file.txt')
+console.log(p)
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/tmp/file.txt</code></pre><p>如果在路径前加斜杠<code>/</code> 表明这就是一个绝对路径：</p><pre><code>p = path.resolve('/tmp', 'file.txt')
+console.log(p)
+
+//output:
+/tmp/file.txt</code></pre><p>如果路径中包含相对关系标记符如: <code>..</code>, <code>//</code>等，可以使用 <code>path.normalize()</code> 得到常规形式的路径：</p><pre><code>p = path.normalize('/home/../test/file.txt')
+console.log(p)
+
+//output:
+/test/file.txt</code></pre><p>path.resolve 和 path.normalize <strong>都不会检查路径是否真实存在</strong>，它们仅仅是根据提供的数据计算路径结果。</p><h3>reading file 读取文件</h3><p>最简单的方式读取文件内容就是通过 <code>fs.readFile()</code> method，需要给它传入文件路径，编码格式，callback function:</p><pre><code>const fs = require('fs')
+
+fs.readFile('./test.txt', 'utf-8', (err, data) =&gt; {
+    if (err) {
+        console.log('read fail')
+        return
+    }
+    console.log(data)
+})</code></pre><p>或者也可以使用同步模式的 <code>fs.readFileSync()</code>：</p><pre><code>try {
+    data = fs.readFileSync('./test.txt', 'utf-8')
+    console.log(data)
+} catch (error) {
+    console.log('read error')
+}</code></pre><p><code>fs.readFile()</code> 和 <code>fs.readFileSync()</code> 都会先将文件内容读取到内存中，然后返回数据。这就意味着读取大文件会影响系统内存的占用量，所以一个比较好的选择是使用 stream 流读取文件内容。后续章节会介绍 stream 模块。</p><h3>writing file 文件写入</h3><p>最简单的写入文件的方法就是使用 <code>fs.writeFile()</code> method。</p><p>示例如下：</p><pre><code>const fs = require('fs')
+
+const content = 'some new words'
+fs.writeFile('./test.txt', content, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})</code></pre><p>或者使用同步模式的版本 <code>fs.writeFileSync()</code>：</p><pre><code>try {
+    fs.writeFileSync('./test.txt', content)
+    console.log('write success')
+} catch (error) {
+    console.log('write error')
+}</code></pre><p>默认情况下，如果这个文件已经存在，API 会替换掉这个文件中已有的内容。我们可以通过定义 <strong>flag</strong> 来修改这个设置：</p><pre><code>fs.writeFile('./test.txt', content, {flag: 'a+'}, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})</code></pre><p>flag 的定义和上面的 <code>fs.open</code> 中定义的 flag 一样，可以参考设置。</p><h3>append to a file 给文件添加内容</h3><p>给已有文件附加内容更加方便的方法是使用 <code>fs.appendFile()</code>和 <code>fs.appendFileSync()</code>，例如：</p><pre><code>const fs = require('fs')
+
+content = '\nnew line\n'
+fs.appendFile('./test.txt', content, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})</code></pre><p>上面了方法都会在将数据完全写入文件后在执行 callback，这种情况下使用 stream 是一个更好的方法。</p><h3>working with folder 文件夹操作</h3><p>node.js 的 fs 模块提供了很多实用的 method 来对文件夹进行操作。</p><h4>检查文件夹是否存在</h4><p>使用 <code>fs.access()</code> 可以检查文件夹是否存在，以及 node.js 是否有访问它的权限：</p><pre><code>const fs = require('fs')
+
+fs.access('./tmp', err =&gt; {
+    console.log(err ? 'not exist' : 'exist')
+})
+
+//output:
+//not exist</code></pre><h4>创建新文件夹</h4><p>使用 <code>fs.mkdir()</code> 或 <code>fs.mkdirSync()</code> 创建新文件夹：</p><pre><code>const fs = require('fs')
+
+const fd = 'tmp'
+try {
+    if (!fs.existsSync(fd)) {
+        fs.mkdirSync(fd)
+        console.log('create success')
+    }
+} catch (error) {
+    console.log('create fail')
+}</code></pre><p>上面使用了同步模式 method 创建文件夹，看起来更加直观。</p><h3>read content of a directory 读取目录内容</h3><p>使用 <code>fs.readdir()</code> 或 <code>fs.readdirSync()</code> 可以读取某个目录中的内容，包括其中的文件和文件夹。返回值为一个数组：</p><pre><code>const fs = require('fs')
+
+const p = '/usr'
+const d = fs.readdirSync(p)
+console.log(d)</code></pre><p>输出为：</p><pre><code>[
+  'bin',     'games',
+  'include', 'lib',
+  'lib32',   'lib64',
+  'libexec', 'libx32',
+  'local',   'sbin',
+  'share',   'src'
+]</code></pre><p>通过 <strong>path</strong> 模块的 <strong>join</strong> 或 <strong>resolve</strong> method 可以输出每个元素的绝对路径，修改以上示例：</p><pre><code>const fs = require('fs')
+const path = require('path')
+
+const p = '/usr'
+const d = fs.readdirSync(p).map(f =&gt; {
+    return path.resolve(p, f)
+})
+console.log(d)</code></pre><p>输出如下：</p><pre><code>[
+  '/usr/bin',     '/usr/games',
+  '/usr/include', '/usr/lib',
+  '/usr/lib32',   '/usr/lib64',
+  '/usr/libexec', '/usr/libx32',
+  '/usr/local',   '/usr/sbin',
+  '/usr/share',   '/usr/src'
+]</code></pre><p>如果只想获取目录下的文件而不包含文件夹，可以定义一个 filter 过滤元素：</p><pre><code>const fs = require('fs')
+const path = require('path')
+
+const isFile = fileName =&gt; {
+    return fs.statSync(fileName).isFile()
+}
+const p = '/usr'
+const d = fs.readdirSync(p).map(f =&gt; {
+    return path.resolve(p, f)
+}).filter(isFile)
+
+console.log(d)</code></pre><h3>rename folder 重命名文件夹</h3><p>使用 <code>fs.rename()</code> 或 <code>fs.renameSync()</code> 重命名文件夹。第一个参数定义当前路径，第二个参数定义新路径：</p><pre><code>const fs = require('fs')
+
+fs.rename('./tmp', './new', err =&gt; {
+    if (err) {
+        console.log('rename error')
+        return
+    }
+    console.log('rename success')
+})</code></pre><h3>remove folder 删除文件夹</h3><p>使用 <code>fs.rmdir()</code> 或 <code>fs.rmdirSync()</code> 可以删除文件夹。</p><p>但删除文件夹相比其他操作稍微复杂，用到的工具可能超出你需要的部分。所以最简单的方法就是使用第三方模块：<strong>fs-extra</strong> 来处理。它是 fs 的替代品，在 fs 模块的基础上提供了很多新功能。</p><p>使用 <strong>fs-extra</strong> 的 <code>remove()</code> method 可以实现删除文件夹的功能：</p><pre><code>const fs = require('fs-extra')
+
+const p = './new'
+fs.remove(p, err =&gt; {
+    if (err) {
+        console.log('remove error')
+        return
+    }
+    console.log('remove success')
+})</code></pre><p>也可以使用 promise 模式：</p><pre><code>fs.remove(p)
+.then(() =&gt; console.log('remove success'))
+.catch((err) =&gt; console.log(err))</code></pre><p>还可以使用 async/await 模式：</p><pre><code>const rm = async (p) =&gt; {
+    try {
+        await fs.remove(p)
+        console.log('remove success')
+    } catch (error) {
+        console.log('remove error')
+    }
+}
+rm(p)</code></pre>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2140.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2140.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2139.html" />
+<id>https://blog.niekun.net/archives/2139.html</id>
+<updated>2021-02-07T11:07:10+08:00</updated>
+<published>2021-02-07T11:07:10+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。我的流程是：VMwar...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2139.html" xml:lang="zh-CN"><![CDATA[
+<p>由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。</p><p>我的流程是：</p><ul><li>VMware 安装 Ubuntu</li><li>共享 Windows 下的文件夹给 Ubuntu 作为开发目录</li><li>Windows 下使用 vs code 通过 ssh 方式远程连接 Ubuntu</li></ul><p>通过远程连接的方式在 Windows 下做 node.js 开发实际体验很好。但是在通过 npm 安装某些包时常常会有报错出现，错误日志大概意思就是说无法给 node_modules 文件夹内安装的库文件添加软连接到系统路径。</p><p>网上查询后发现了问题原因，我的开发目录实际是在 Windows 下的，Windows 和 Linux 有着不一样的文件系统和路径格式，所以 npm 在安装某些包含 bin 可执行文件的第三方库时，会默认自动创建相关文件的软链接到 Linux 系统路径，这样就就报错了。</p><p>如果要坚持使用共享目录的形式做开发，那么需要设置在 npm 安装新库时使用参数 <code>--no-bin-links</code> 告诉系统不要自动创建软连接，语法如下：</p><pre><code>npm install cowsay --no-bin-links
+</code></pre><p>这样就会跳过相关步骤。</p><p>也可以设置到 npm 配置中，这样以后安装的包都会默认不创建 bin 的软连接了：</p><pre><code>npm config set bin-links false
+</code></pre><p>当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。</p><p>参考链接：<a href="https://github.com/npm/npm/issues/2221">https://github.com/npm/npm/issues/2221</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2139.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2139.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[node.js 入门教程之五 -- HTTP request and response]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2137.html" />

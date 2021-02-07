@@ -11,8 +11,24 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/Windows/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Wed, 03 Feb 2021 10:28:00 +0800</lastBuildDate>
-<pubDate>Wed, 03 Feb 2021 10:28:00 +0800</pubDate>
+<lastBuildDate>Sun, 07 Feb 2021 11:07:10 +0800</lastBuildDate>
+<pubDate>Sun, 07 Feb 2021 11:07:10 +0800</pubDate>
+<item>
+<title>Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理</title>
+<link>https://blog.niekun.net/archives/2139.html</link>
+<guid>https://blog.niekun.net/archives/2139.html</guid>
+<pubDate>Sun, 07 Feb 2021 11:07:10 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。我的流程是：VMwar...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。</p><p>我的流程是：</p><ul><li>VMware 安装 Ubuntu</li><li>共享 Windows 下的文件夹给 Ubuntu 作为开发目录</li><li>Windows 下使用 vs code 通过 ssh 方式远程连接 Ubuntu</li></ul><p>通过远程连接的方式在 Windows 下做 node.js 开发实际体验很好。但是在通过 npm 安装某些包时常常会有报错出现，错误日志大概意思就是说无法给 node_modules 文件夹内安装的库文件添加软连接到系统路径。</p><p>网上查询后发现了问题原因，我的开发目录实际是在 Windows 下的，Windows 和 Linux 有着不一样的文件系统和路径格式，所以 npm 在安装某些包含 bin 可执行文件的第三方库时，会默认自动创建相关文件的软链接到 Linux 系统路径，这样就就报错了。</p><p>如果要坚持使用共享目录的形式做开发，那么需要设置在 npm 安装新库时使用参数 <code>--no-bin-links</code> 告诉系统不要自动创建软连接，语法如下：</p><pre><code>npm install cowsay --no-bin-links
+</code></pre><p>这样就会跳过相关步骤。</p><p>也可以设置到 npm 配置中，这样以后安装的包都会默认不创建 bin 的软连接了：</p><pre><code>npm config set bin-links false
+</code></pre><p>当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。</p><p>参考链接：<a href="https://github.com/npm/npm/issues/2221">https://github.com/npm/npm/issues/2221</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2139.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2139.html</wfw:commentRss>
+</item>
 <item>
 <title>Windows 10 配置共享文件夹</title>
 <link>https://blog.niekun.net/archives/2103.html</link>
@@ -324,21 +340,6 @@ alias unproxy='unset all_proxy &amp;&amp; export http_proxy= &amp;&amp; export h
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1801.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1801.html</wfw:commentRss>
-</item>
-<item>
-<title>解决 proxifier 和 wsl 2 无法同时使用的问题</title>
-<link>https://blog.niekun.net/archives/1797.html</link>
-<guid>https://blog.niekun.net/archives/1797.html</guid>
-<pubDate>Mon, 12 Oct 2020 15:18:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[今天将 Windows 10 升级到了 build 2004 版，顺便将 wsl 升级到了 wsl 2，升级教程参考：https://blog.niekun.net/archives/1785....]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>今天将 Windows 10 升级到了 build 2004 版，顺便将 wsl 升级到了 wsl 2，升级教程参考：<a href="https://blog.niekun.net/archives/1785.html">https://blog.niekun.net/archives/1785.html</a>。</p><p>运行 wsl 2 时，发现如下报错：</p><pre><code>PS C:\Users\Marco Nie&gt; wsl
-The attempted operation is not supported for the type of object referenced.</code></pre><p>无法正常使用 wsl，查询后得知是由于我正在使用的 proxifier 和 wsl 有了冲突，proxifier 是我一直使用的用来代理程序的应用。在 wsl 的 github 项目讨论中看到有人问了 proxifier 开发者，得到了解决方法，需要使用提供的程序来让 wsl 在运行时不要加载 LSP DLLs。</p><ul><li>下载 <a href="https://blog.niekun.net/usr/uploads/2020/10/3243699170.zip">NoLsp.zip</a>，解压得到 NoLsp.exe</li><li>以管理员权限运行 terminal，执行 <code>&amp;&quot;path\to\NoLsp.exe&quot; &quot;c:\windows\system32\wsl.exe&quot;</code></li></ul><p>看到终端显示 <code>Succsess!</code>，表示操作完成，然后 wsl 系统就可以正常打开使用同时不影响 proxifier。</p><p>参考链接：<a href="https://github.com/microsoft/WSL/issues/4177">https://github.com/microsoft/WSL/issues/4177</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1797.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1797.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

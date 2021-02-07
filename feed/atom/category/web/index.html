@@ -6,11 +6,232 @@ xml:base="https://blog.niekun.net/category/web/"
 >
 <title type="text">Marco Nie - web</title>
 <subtitle type="text"></subtitle>
-<updated>2021-02-06T16:50:00+08:00</updated>
+<updated>2021-02-07T17:17:30+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/web/" />
 <id>https://blog.niekun.net/feed/atom/category/web/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/web/" />
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之六 -- FileSystem]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2140.html" />
+<id>https://blog.niekun.net/archives/2140.html</id>
+<updated>2021-02-07T17:17:30+08:00</updated>
+<published>2021-02-07T17:17:30+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[File descriptor 文件描述器当需要访问文件系统里的某个文件时，需要首先得到这个文件的 file descriptor 文件描述器。一个 file descriptor 就是通过 f...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2140.html" xml:lang="zh-CN"><![CDATA[
+<h3>File descriptor 文件描述器</h3><p>当需要访问文件系统里的某个文件时，需要首先得到这个文件的 file descriptor 文件描述器。</p><p>一个 file descriptor 就是通过 <strong>fs</strong> 模块的 <code>open()</code> method 打开对应文件的返回数据。它的结构如下：</p><pre><code>const fs = require('fs')
+
+fs.open('./test.txt', 'r', (err, data) =&gt; {
+    if (err) {
+        console.log('open fail')
+        return
+    }
+    console.log('open success')
+})</code></pre><p>如果文件打开成功，callback 中的 <strong>data</strong> 数据就是一个 file descriptor。这种方式是异步处理的，文件打开过程中系统会执行其他任务。</p><!--more--><p>在上面的示例中，<code>fs.open()</code> 的第三个参数使用了 <code>'f'</code> 标记，它的意思就是以<strong>只读模式</strong>打开文件。我们可以通过使用不同的标记来以不同的方式打开文件：</p><ul><li><strong>r</strong> 只读模式，文件不存在会报错</li><li><strong>a</strong> 只写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li><li><strong>r+</strong> 读写模式，文件不存在会报错</li><li><strong>w+</strong> 读写模式，streaming 流定位到文件起始位置，如果文件不存在则创建文件</li><li><strong>a+</strong> 读写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li></ul><p>更多 flag 的使用参考：<a href="https://nodejs.org/api/fs.html#fs_file_system_flags">https://nodejs.org/api/fs.html#fs_file_system_flags</a></p><p>也可以使用 <code>fs.openSync()</code> method 打开文件，其返回值为 file descriptor 而不是通过 callback 的方式：</p><pre><code>try {
+    const data = fs.openSync('./test.txt', 'r')
+    console.log('open success')
+} catch (error) {
+    console.log('open fail')
+}</code></pre><p>这种方式是同步模式的，程序会等待接收到 file descriptor 或者 error 后才执行后面的指令。</p><h3>File stats 文件信息</h3><p>每个文件都包含独自的属性信息，可以通过 node.js 查看。通常我们使用 fs 模块的 <code>stat()</code> method。</p><p>以下是一个简单示例：</p><pre><code>const fs = require('fs')
+
+fs.stat('./test.txt', (err, stats) =&gt; {
+    if (err) {
+        console.log('read fail')
+        return
+    }
+    console.log(stats)
+})</code></pre><p>同样的，node.js 也提供了同步模式 method，在读取 stats 过程中会阻塞进程知道读取结束：</p><pre><code>try {
+    const stats = fs.statSync('./test.txt')
+    console.log(stats)
+} catch (error) {
+    console.log(error)
+}</code></pre><p>文件信息存储在 stats 变量中，可以读取其中的需要的信息，常用的有以下：</p><ul><li>是否是文件或文件夹：<code>stats.isFile()</code>，<code>stats.isDirectory()</code></li><li>是否是一个链接文件：<code>stats.isSymbolicLink()</code></li><li>文件大小(单位为字节)：<code>stats.size</code></li></ul><h3>File Path 文件路径</h3><p>每个文件在系统中都有一个路径。在 Linux 中路径格式如：<code>/users/joe/file.txt</code>，在 Windows 中路径格式如：<code>C:\users\joe\file.txt</code>。在程序中引用路径时需要特别注意路径的格式。</p><p>node.js 中可以使用 <strong>path</strong> 模块来处理文件路径相关数据。</p><p>如果给定一个路径，可以提取其相关数据，如：</p><ul><li><strong>path.dirname</strong>: 获取文件的上级文件夹路径</li><li><strong>path.basename</strong>: 获取文件名部分</li><li><strong>path.extname</strong>: 获取文件扩展名</li></ul><pre><code>const path = require('path')
+
+const file = '/home/marco/file.txt'
+console.log(path.dirname(file))
+console.log(path.basename(file))
+console.log(path.extname(file))
+
+//output:
+/home/marco
+file.txt
+.txt</code></pre><p>可以获取文件名不包含扩展名部分，通过给 <code>path.basename()</code> 设置第二个参数：</p><pre><code>console.log(path.basename(file, path.extname(file)))
+
+//output:
+file</code></pre><p>可以组合多个部分为一个 path：</p><pre><code>const dir = 'home/marco/'
+p = path.join('/' + dir + 'test.txt')
+console.log(p)
+
+//output:
+/home/marco/test.txt</code></pre><p>使用 <code>path.resolve()</code> 可以从一个相对路径获取到绝对路径：</p><pre><code>p = path.resolve('file.txt')
+console.log(p)
+p = path.resolve('./test/file.txt')
+console.log(p)
+
+//OUTPUT:
+/mnt/hgfs/Development/node.js/filesystem/file.txt
+/mnt/hgfs/Development/node.js/filesystem/test/file.txt</code></pre><p>以上示例中，会将程序当前执行路径作为绝对路径添加给后面定义的文件相对路径。</p><p>也可以将文件的相对目录单独定义，会自动组合它们：</p><pre><code>p = path.resolve('tmp', 'file.txt')
+console.log(p)
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/tmp/file.txt</code></pre><p>如果在路径前加斜杠<code>/</code> 表明这就是一个绝对路径：</p><pre><code>p = path.resolve('/tmp', 'file.txt')
+console.log(p)
+
+//output:
+/tmp/file.txt</code></pre><p>如果路径中包含相对关系标记符如: <code>..</code>, <code>//</code>等，可以使用 <code>path.normalize()</code> 得到常规形式的路径：</p><pre><code>p = path.normalize('/home/../test/file.txt')
+console.log(p)
+
+//output:
+/test/file.txt</code></pre><p>path.resolve 和 path.normalize <strong>都不会检查路径是否真实存在</strong>，它们仅仅是根据提供的数据计算路径结果。</p><h3>reading file 读取文件</h3><p>最简单的方式读取文件内容就是通过 <code>fs.readFile()</code> method，需要给它传入文件路径，编码格式，callback function:</p><pre><code>const fs = require('fs')
+
+fs.readFile('./test.txt', 'utf-8', (err, data) =&gt; {
+    if (err) {
+        console.log('read fail')
+        return
+    }
+    console.log(data)
+})</code></pre><p>或者也可以使用同步模式的 <code>fs.readFileSync()</code>：</p><pre><code>try {
+    data = fs.readFileSync('./test.txt', 'utf-8')
+    console.log(data)
+} catch (error) {
+    console.log('read error')
+}</code></pre><p><code>fs.readFile()</code> 和 <code>fs.readFileSync()</code> 都会先将文件内容读取到内存中，然后返回数据。这就意味着读取大文件会影响系统内存的占用量，所以一个比较好的选择是使用 stream 流读取文件内容。后续章节会介绍 stream 模块。</p><h3>writing file 文件写入</h3><p>最简单的写入文件的方法就是使用 <code>fs.writeFile()</code> method。</p><p>示例如下：</p><pre><code>const fs = require('fs')
+
+const content = 'some new words'
+fs.writeFile('./test.txt', content, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})</code></pre><p>或者使用同步模式的版本 <code>fs.writeFileSync()</code>：</p><pre><code>try {
+    fs.writeFileSync('./test.txt', content)
+    console.log('write success')
+} catch (error) {
+    console.log('write error')
+}</code></pre><p>默认情况下，如果这个文件已经存在，API 会替换掉这个文件中已有的内容。我们可以通过定义 <strong>flag</strong> 来修改这个设置：</p><pre><code>fs.writeFile('./test.txt', content, {flag: 'a+'}, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})</code></pre><p>flag 的定义和上面的 <code>fs.open</code> 中定义的 flag 一样，可以参考设置。</p><h3>append to a file 给文件添加内容</h3><p>给已有文件附加内容更加方便的方法是使用 <code>fs.appendFile()</code>和 <code>fs.appendFileSync()</code>，例如：</p><pre><code>const fs = require('fs')
+
+content = '\nnew line\n'
+fs.appendFile('./test.txt', content, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})</code></pre><p>上面了方法都会在将数据完全写入文件后在执行 callback，这种情况下使用 stream 是一个更好的方法。</p><h3>working with folder 文件夹操作</h3><p>node.js 的 fs 模块提供了很多实用的 method 来对文件夹进行操作。</p><h4>检查文件夹是否存在</h4><p>使用 <code>fs.access()</code> 可以检查文件夹是否存在，以及 node.js 是否有访问它的权限：</p><pre><code>const fs = require('fs')
+
+fs.access('./tmp', err =&gt; {
+    console.log(err ? 'not exist' : 'exist')
+})
+
+//output:
+//not exist</code></pre><h4>创建新文件夹</h4><p>使用 <code>fs.mkdir()</code> 或 <code>fs.mkdirSync()</code> 创建新文件夹：</p><pre><code>const fs = require('fs')
+
+const fd = 'tmp'
+try {
+    if (!fs.existsSync(fd)) {
+        fs.mkdirSync(fd)
+        console.log('create success')
+    }
+} catch (error) {
+    console.log('create fail')
+}</code></pre><p>上面使用了同步模式 method 创建文件夹，看起来更加直观。</p><h3>read content of a directory 读取目录内容</h3><p>使用 <code>fs.readdir()</code> 或 <code>fs.readdirSync()</code> 可以读取某个目录中的内容，包括其中的文件和文件夹。返回值为一个数组：</p><pre><code>const fs = require('fs')
+
+const p = '/usr'
+const d = fs.readdirSync(p)
+console.log(d)</code></pre><p>输出为：</p><pre><code>[
+  'bin',     'games',
+  'include', 'lib',
+  'lib32',   'lib64',
+  'libexec', 'libx32',
+  'local',   'sbin',
+  'share',   'src'
+]</code></pre><p>通过 <strong>path</strong> 模块的 <strong>join</strong> 或 <strong>resolve</strong> method 可以输出每个元素的绝对路径，修改以上示例：</p><pre><code>const fs = require('fs')
+const path = require('path')
+
+const p = '/usr'
+const d = fs.readdirSync(p).map(f =&gt; {
+    return path.resolve(p, f)
+})
+console.log(d)</code></pre><p>输出如下：</p><pre><code>[
+  '/usr/bin',     '/usr/games',
+  '/usr/include', '/usr/lib',
+  '/usr/lib32',   '/usr/lib64',
+  '/usr/libexec', '/usr/libx32',
+  '/usr/local',   '/usr/sbin',
+  '/usr/share',   '/usr/src'
+]</code></pre><p>如果只想获取目录下的文件而不包含文件夹，可以定义一个 filter 过滤元素：</p><pre><code>const fs = require('fs')
+const path = require('path')
+
+const isFile = fileName =&gt; {
+    return fs.statSync(fileName).isFile()
+}
+const p = '/usr'
+const d = fs.readdirSync(p).map(f =&gt; {
+    return path.resolve(p, f)
+}).filter(isFile)
+
+console.log(d)</code></pre><h3>rename folder 重命名文件夹</h3><p>使用 <code>fs.rename()</code> 或 <code>fs.renameSync()</code> 重命名文件夹。第一个参数定义当前路径，第二个参数定义新路径：</p><pre><code>const fs = require('fs')
+
+fs.rename('./tmp', './new', err =&gt; {
+    if (err) {
+        console.log('rename error')
+        return
+    }
+    console.log('rename success')
+})</code></pre><h3>remove folder 删除文件夹</h3><p>使用 <code>fs.rmdir()</code> 或 <code>fs.rmdirSync()</code> 可以删除文件夹。</p><p>但删除文件夹相比其他操作稍微复杂，用到的工具可能超出你需要的部分。所以最简单的方法就是使用第三方模块：<strong>fs-extra</strong> 来处理。它是 fs 的替代品，在 fs 模块的基础上提供了很多新功能。</p><p>使用 <strong>fs-extra</strong> 的 <code>remove()</code> method 可以实现删除文件夹的功能：</p><pre><code>const fs = require('fs-extra')
+
+const p = './new'
+fs.remove(p, err =&gt; {
+    if (err) {
+        console.log('remove error')
+        return
+    }
+    console.log('remove success')
+})</code></pre><p>也可以使用 promise 模式：</p><pre><code>fs.remove(p)
+.then(() =&gt; console.log('remove success'))
+.catch((err) =&gt; console.log(err))</code></pre><p>还可以使用 async/await 模式：</p><pre><code>const rm = async (p) =&gt; {
+    try {
+        await fs.remove(p)
+        console.log('remove success')
+    } catch (error) {
+        console.log('remove error')
+    }
+}
+rm(p)</code></pre>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2140.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2140.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2139.html" />
+<id>https://blog.niekun.net/archives/2139.html</id>
+<updated>2021-02-07T11:07:10+08:00</updated>
+<published>2021-02-07T11:07:10+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。我的流程是：VMwar...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2139.html" xml:lang="zh-CN"><![CDATA[
+<p>由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。</p><p>我的流程是：</p><ul><li>VMware 安装 Ubuntu</li><li>共享 Windows 下的文件夹给 Ubuntu 作为开发目录</li><li>Windows 下使用 vs code 通过 ssh 方式远程连接 Ubuntu</li></ul><p>通过远程连接的方式在 Windows 下做 node.js 开发实际体验很好。但是在通过 npm 安装某些包时常常会有报错出现，错误日志大概意思就是说无法给 node_modules 文件夹内安装的库文件添加软连接到系统路径。</p><p>网上查询后发现了问题原因，我的开发目录实际是在 Windows 下的，Windows 和 Linux 有着不一样的文件系统和路径格式，所以 npm 在安装某些包含 bin 可执行文件的第三方库时，会默认自动创建相关文件的软链接到 Linux 系统路径，这样就就报错了。</p><p>如果要坚持使用共享目录的形式做开发，那么需要设置在 npm 安装新库时使用参数 <code>--no-bin-links</code> 告诉系统不要自动创建软连接，语法如下：</p><pre><code>npm install cowsay --no-bin-links
+</code></pre><p>这样就会跳过相关步骤。</p><p>也可以设置到 npm 配置中，这样以后安装的包都会默认不创建 bin 的软连接了：</p><pre><code>npm config set bin-links false
+</code></pre><p>当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。</p><p>参考链接：<a href="https://github.com/npm/npm/issues/2221">https://github.com/npm/npm/issues/2221</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2139.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2139.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[node.js 入门教程之五 -- HTTP request and response]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2137.html" />
@@ -2023,173 +2244,5 @@ setInterval(printTime, 1000);</code></pre><p><code>innerHTML</code> property 可
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1997.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1997.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[JavaScript 入门教程之五 -- Objects]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1996.html" />
-<id>https://blog.niekun.net/archives/1996.html</id>
-<updated>2020-12-18T15:25:00+08:00</updated>
-<published>2020-12-18T15:25:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[JavaScript 的 variables 变量是用来包含数据的容器。object 同样是变量，但是包含了多个数据。一个 object 是一组使用 name:value 模式定义的数据集合，大...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1996.html" xml:lang="zh-CN"><![CDATA[
-<p>JavaScript 的 variables 变量是用来包含数据的容器。object 同样是变量，但是包含了多个数据。</p><p>一个 object 是一组使用 <strong>name:value</strong> 模式定义的数据集合，大括号<code>{}</code> 内部定义数据，数据间使用逗号<code>,</code> 分隔，注意大括号结尾的分号<code>;</code>：</p><pre><code>var person = {
-    name: &quot;marco&quot;, age: 20,
-    like: &quot;basketball&quot;, height: 170
-};</code></pre><!--more--><p>这些数据叫做 <strong>properties</strong>：</p><table><thead><tr><th align="center"> </th><th align="center"> </th></tr></thead><tbody><tr><td align="center"><strong>property</strong></td><td align="center"><strong>property value</strong></td></tr><tr><td align="center">name</td><td align="center">marco</td></tr><tr><td align="center">age</td><td align="center">20</td></tr><tr><td align="center">like</td><td align="center">basketball</td></tr><tr><td align="center">height</td><td align="center">170</td></tr></tbody></table><p>object 初始化语法可以写在一行，也可以写在多行。以下两种写法都是一样的：</p><pre><code>var John = {name: &quot;John&quot;, age: 25};
-
-var John = {
-  name: &quot;John&quot;,
-  age: 25
-};</code></pre><p>JavaScript 的 object 就是一组有命名的数据的容器。</p><p>有两种方法访问 object 的 properties：</p><pre><code>objectName.propertyName
-//or
-objectName['propertyName']</code></pre><p>使用上面的示例访问 properties，以下两种结果是一样的：</p><pre><code>var x = person.age;
-var y = person['age'];</code></pre><p>使用 JavaScript 内建的 <code>length</code> property 可以得到 property 或 string 包含的字符个数:</p><pre><code>var a = person.name.length;</code></pre><h3>method</h3><p><strong>object method</strong> 就是一个定义了 function 的 property，使用 object method 的语法为：</p><pre><code>objectName.methodName()
-</code></pre><p>我们前面多次使用 <code>document.write()</code> 来输出内容到网页，实际上 <code>write()</code> function 就是 document object 的一个 method。</p><p>定义一个 method 的语法如下：</p><pre><code>methodName = function() { code lines }
-</code></pre><p>在上面的示例中给 object 加入一个 method：</p><pre><code>var person = {
-    name: &quot;marco&quot;, age: 20,
-    like: &quot;basketball&quot;, height: 62,
-    test: function() {
-        alert(&quot;method&quot;);
-    }
-};
-
-person.test();</code></pre><p>使用 method 的方法和 properties 一样，需要加上小括号<code>()</code>。</p><h3>The Object Constructor 构造器</h3><p>上一节我们学习了如何建立 object，例如：</p><pre><code>var person = {
-name: &quot;John&quot;, age: 42, favColor: &quot;green&quot;
-};</code></pre><p>以上的写法一次只能创建一个 object，那么如何设置一种 <strong>object type</strong> 用来创建多个统一类型的 objects 呢？</p><p>标准的方法是使用 <strong>constructor function</strong> 构造器来定义一个 <strong>object type</strong>：</p><pre><code>function person(name, age, color) {
-  this.name = name;
-  this.age = age;
-  this.favColor = color;
-}</code></pre><p>以上就是一个 constructor function，接收传入数据来赋值给 object properties。关键词 <code>this</code> 表示当前 object 本身。</p><p>当我们定义了一个 object constructor，就可以使用关键词 <code>new</code> 来新建一个 object：</p><pre><code>var p1 = new person(&quot;marco&quot;, 25, &quot;blue&quot;);
-document.write(p1.name);
-
-//output:
-//marco</code></pre><p>p1 就是 person 类型的 object，它的 properties 就是对应传入的数据。</p><p>同样的方法，可以在 object constructor 中定义 method：</p><pre><code>    function person(name, age, color) {
-        this.name = name;
-        this.age = age;
-        this.favColor = color;
-        this.changeName = function(name) {
-            this.name = name;
-        }
-    }
-
-    var p1 = new person(&quot;marco&quot;, 25, &quot;blue&quot;);
-    p1.changeName(&quot;john&quot;);
-    document.write(p1.name);</code></pre><p>以上示例中，我们定义了一个 <code>changeName</code> method，它有一个参数 <code>name</code> 用来赋值给 object 的 propertiy <code>name</code>。</p><p>也可以在 object constructor function 外部定义 method：</p><pre><code>function person(name, age, color) {
-    this.name = name;
-    this.age = age;
-    this.yearOfBirth = bornyear;
-}
-
-function bornyear() {
-    return 2020 - this.age;
-}
-
-var p1 = new person(&quot;marco&quot;, 25);
-document.write(p1.yearOfBirth());</code></pre><p>以上示例中，我们给 property <code>yearOfBirth</code> 赋值为 <code>bornyear</code>。<code>bornyear</code> function 在外部定义，this 关键词可以来访问 person 的 properties，因为 bornyear 复制给了 person 的一个 property。</p><p><strong>注意当将一个 function 赋值给 object 时不需要写小括号<code>()</code></strong>。</p><p>通过 object property name 来调用构造器定义的 method，注意不是外部 function 的名称。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1996.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1996.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[JavaScript 入门教程之四 -- Functions]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1992.html" />
-<id>https://blog.niekun.net/archives/1992.html</id>
-<updated>2020-12-18T13:58:00+08:00</updated>
-<published>2020-12-18T13:58:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[JavaScript function 就是一个执行特定任务的代码块。使用 function 的优点是：代码复用通过传入不同参数得到不同结果function 需要被调用才能执行。]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1992.html" xml:lang="zh-CN"><![CDATA[
-<p>JavaScript function 就是一个执行特定任务的代码块。</p><p>使用 function 的优点是：</p><ul><li>代码复用</li><li>通过传入不同参数得到不同结果</li></ul><p>function 需要被调用才能执行。</p><!--more--><h3>定义</h3><p>使用关键词 <code>function</code> 来定义一个 function，需要指定名称，使用大括号<code>{}</code> 来定义代码块：</p><pre><code>function name() { 
-  //code to be executed
-}</code></pre><p>function name 可以包含字符、数字，下划线和 <code>&amp;</code> 符号。</p><p>下面定义一个简单的 function：</p><pre><code>function myFunction() {
-    alert(&quot;call the function&quot;);
-}
-
-myFunction();</code></pre><p>一个 function 可以被调用任意次数，</p><p>当需要调用 function 时，直接使用 function name 名称及小括号<code>()</code> 即可。注意结尾要写分号<code>;</code>。</p><p>还有一种调用写法：<code>myFunction.call()</code>。当使用这种方法时，会自动将关键词 <code>this</code> 传入此 function，后续会详细介绍。</p><h3>function 参数</h3><p>function 可以接收参数，在定义时需要列出来：</p><pre><code>functionName(param1, param2, param3) {
-   // some code
-}</code></pre><p>多个参数使用逗号<code>,</code> 隔开。</p><p>当定义了参数后，就可以在 function 代码块内使用：</p><pre><code>function myFunction(name) {
-    alert(&quot;hi &quot; + name);
-}
-
-myFunction(&quot;marco&quot;);</code></pre><p>以上第一了一个 function 有一个 name 参数，当调用此 function 时需要给 name 赋值。function 内部就会将赋值数据分配个 name 参数。</p><p>调用 function 时，通过不同的参数值来得到不同的结果：</p><pre><code>myFunction(&quot;marco&quot;);
-myFunction(&quot;john&quot;);
-myFunction(&quot;tom&quot;);</code></pre><p>使用逗号分隔多个参数：</p><pre><code>function myFunction(name, age) {
-    alert(&quot;my name is &quot; + name + &quot;, age is &quot; + age);
-}
-
-myFunction(&quot;marco&quot;, 20);</code></pre><p>JavaScript <strong>不会检查</strong>调用 function 时的传入参数个数和定义的参数个数是否一致，如果调用时传入参数数量少于 function 定义参数个数，则缺失的参数会被赋值为 <code>undefined</code>，表示没有被赋值数据。如果传入参数数量大于 function 定义参数个数，可以使用数组：<code>arguments</code> 来访问这些传入数据，在 function 内可以被调用，形如：arguments[0], arguments[1]，arguments 数组是 function 内自动定义的，按顺序存储所有的传入参数数据。</p><p>请看下面示例：</p><pre><code>function test(a, b) {
-    console.log(arguments[0]);
-    console.log(arguments[1]);
-    console.log(arguments[2]);
-}
-test(1, 2, 3);
-
-//output:
-//1
-//2
-//3</code></pre><p>以上示例中，function 本身只定义了 2 个参数，但是我们在调用时传入了 3 个数据，这时候为了访问到第 3 个数据，就需要使用 <strong>arguments</strong> 数组来处理了。可以看到 function 内除了使用定义的参数名外，也可以使用内部自动定义的 <strong>arguments</strong> 数组来访问传入数据。</p><p>function 可以有一个可选的 <code>return</code> 命令，用来从 function 返回一个数据。</p><p>当 JavaScript 执行到 <code>return</code> 时，会停止执行后续指令。</p><p>下面的示例中，我们计算两个参数的和并返回结果：</p><pre><code>function myFunction(a, b) {
-    return a + b;
-}
-
-var x = myFunction(1, 2);</code></pre><p>变量 x 的值就是 3。</p><p><strong>如果 function 中没有 <code>return</code> 则默认会返回  <code>undefined</code></strong>。</p><h3>Alert, Prompt, Confirm</h3><p>JavaScript 提供三种弹出窗口：Alert, Prompt, Confirm。</p><p><strong>alert Box</strong> 用来给用户显示一个提示信息，需要点击 OK 来取消弹窗。有一个参数：</p><pre><code>alert(&quot;this is a alert&quot;);</code></pre><p>信息中需要换行的话可以加入 <code>\n</code>：</p><pre><code>alert(&quot;this is\n a alert&quot;);
-</code></pre><p>效果如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/1686727989.jpg" alt="2.jpg" title="2.jpg"></p><p><strong>Prompt Box</strong> 用来弹出一个用户可以输入数据的提示窗口。</p><p>用户需要点击 OK 或 cancel 来退出窗口，如果点击 OK 则会 return 输入的数据，如果点击 cancel 则会返回 null。</p><p><code>prompt()</code> 有两个参数，第一个是窗口显示的提示信息字符串，第二个是输入框的默认字符(可选项)：</p><pre><code>var a = prompt(&quot;please input value&quot;, &quot;test&quot;);
-document.write(a);</code></pre><p>效果如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/600067485.jpg" alt="3.jpg" title="3.jpg"></p><p>选择 OK 后变量 a 会赋值为输入的数据。</p><p><strong>confirm box</strong> 可以用来作为确认对话框。</p><p>用户必须点击 OK 或 cancel 来退出窗口，当点击 OK 后 box 会返回 true，当点击 cancel 后 box 会返回 false：</p><pre><code>var result = confirm(&quot;if confirm&quot;);
-
-if (result) {
-    alert(&quot;confirmed&quot;);
-}
-else {
-    alert(&quot;not confirmd&quot;);
-}</code></pre><p>弹出窗口不要过多的使用，因为弹出窗口会导致页面不可用。</p><h3>inline function</h3><p>有一种特殊的 function 可以在直接在调用中进行定义，不需要写 function 名称。例如想要对 array 数组的每个元素执行一个 function，通过 <code>forEach</code> method 来给每个元素调用 function：</p><pre><code>var arr = [1, 2, 3];
-arr.forEach(function(el) {
-    console.log(el * 2);
-});</code></pre><p>function 直接在调用中定义，参数 el 的值通过 <code>forEach</code> method 来传入每个元素的数据。</p><p>下一章介绍的 object 中，要定义一个 method 就可以使用 inline function 来建立：</p><pre><code>    function person(name, age, color) {
-        this.name = name;
-        this.age = age;
-        this.favColor = color;
-        this.changeName = function(name) {
-            this.name = name;
-        }
-    }</code></pre><p>具体的介绍参考：<a href="https://blog.niekun.net/archives/1996.html">JavaScript 入门教程之五 -- Objects</a></p><h3>apply and call method</h3><p>通过 function 的 <code>apply()</code> 和 <code>call()</code> method，可以将 method 应用于其他外部 object 上。</p><p><strong>object</strong> 将在下一章节进行介绍：<a href="https://blog.niekun.net/archives/1996.html">JavaScript 入门教程之五 -- Objects</a></p><p>下面的示例中，我们将 <strong>person</strong> object 的 <strong>fullName</strong> method 应用在 <strong>person1</strong> object上，也就是使用了 <strong>person1</strong> 的数据来调用 <strong>fullName</strong>：</p><pre><code>var person = {
-    fullName: function () {
-        console.log(this.firstName + &quot; &quot; + this.lastName);
-    }
-}
-
-var person1 = {
-    firstName: &quot;marco&quot;,
-    lastName: &quot;nie&quot;
-}
-person.fullName.apply(person1);
-
-//output:
-//marco nie</code></pre><p>以上示例中，我们使用了 person1 的 properties 作为 person 的数据来调用 function。</p><p>如果调用的 function 需要传入参数，需要在 <code>apply</code> method 中以数组的形式传入参数：</p><pre><code>var person = {
-    fullName: function (city, country) {
-        console.log(this.firstName + &quot; &quot; + this.lastName + &quot;, &quot; + city + &quot; &quot; + country);
-    }
-}
-
-var person1 = {
-    firstName: &quot;marco&quot;,
-    lastName: &quot;nie&quot;
-}
-person.fullName.apply(person1, [&quot;hz&quot;, &quot;china&quot;]);
-
-//output:
-//marco nie, hz china</code></pre><p>注意第一个参数还是一个 object，表示使用其 properties 作为被调用的 function 所在 object 的 properties，后面的数组作为 function 的参数数据。</p><p><code>call()</code> method 和 <code>apply()</code> 功能类似，区别是传入 function 的参数时需要分开单独传入：</p><pre><code>person.fullName.call(person1, &quot;hz&quot;, &quot;china&quot;);</code></pre><p>以上指令效果和上面的示例一样。</p><p>使用这种方法可以实现调用 function 时将所有参数作为一个数组出入：</p><pre><code>function test(a, b, c) {
-    console.log(a + b + c);
-}
-var arr = [1, 2, 3];
-test.apply(null, arr);</code></pre><p><strong>function</strong> 的常规使用方法就介绍完毕。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1992.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1992.html" thr:count="0"/>
 </entry>
 </feed>

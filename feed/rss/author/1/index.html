@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>admin</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2140.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2139.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2137.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2100.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2103.html"/>
@@ -17,11 +19,208 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2085.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2074.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2071.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2066.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2061.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2140.html">
+<title>node.js 入门教程之六 -- FileSystem</title>
+<link>https://blog.niekun.net/archives/2140.html</link>
+<dc:date>2021-02-07T17:17:30+08:00</dc:date>
+<description>File descriptor 文件描述器当需要访问文件系统里的某个文件时，需要首先得到这个文件的 file descriptor 文件描述器。一个 file descriptor 就是通过 fs 模块的 open() method 打开对应文件的返回数据。它的结构如下：const fs = require('fs')
+
+fs.open('./test.txt', 'r', (err, data) =&gt; {
+    if (err) {
+        console.log('open fail')
+        return
+    }
+    console.log('open success')
+})如果文件打开成功，callback 中的 data 数据就是一个 file descriptor。这种方式是异步处理的，文件打开过程中系统会执行其他任务。在上面的示例中，fs.open() 的第三个参数使用了 'f' 标记，它的意思就是以只读模式打开文件。我们可以通过使用不同的标记来以不同的方式打开文件：r 只读模式，文件不存在会报错a 只写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件r+ 读写模式，文件不存在会报错w+ 读写模式，streaming 流定位到文件起始位置，如果文件不存在则创建文件a+ 读写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件更多 flag 的使用参考：https://nodejs.org/api/fs.html#fs_file_system_flags也可以使用 fs.openSync() method 打开文件，其返回值为 file descriptor 而不是通过 callback 的方式：try {
+    const data = fs.openSync('./test.txt', 'r')
+    console.log('open success')
+} catch (error) {
+    console.log('open fail')
+}这种方式是同步模式的，程序会等待接收到 file descriptor 或者 error 后才执行后面的指令。File stats 文件信息每个文件都包含独自的属性信息，可以通过 node.js 查看。通常我们使用 fs 模块的 stat() method。以下是一个简单示例：const fs = require('fs')
+
+fs.stat('./test.txt', (err, stats) =&gt; {
+    if (err) {
+        console.log('read fail')
+        return
+    }
+    console.log(stats)
+})同样的，node.js 也提供了同步模式 method，在读取 stats 过程中会阻塞进程知道读取结束：try {
+    const stats = fs.statSync('./test.txt')
+    console.log(stats)
+} catch (error) {
+    console.log(error)
+}文件信息存储在 stats 变量中，可以读取其中的需要的信息，常用的有以下：是否是文件或文件夹：stats.isFile()，stats.isDirectory()是否是一个链接文件：stats.isSymbolicLink()文件大小(单位为字节)：stats.sizeFile Path 文件路径每个文件在系统中都有一个路径。在 Linux 中路径格式如：/users/joe/file.txt，在 Windows 中路径格式如：C:\users\joe\file.txt。在程序中引用路径时需要特别注意路径的格式。node.js 中可以使用 path 模块来处理文件路径相关数据。如果给定一个路径，可以提取其相关数据，如：path.dirname: 获取文件的上级文件夹路径path.basename: 获取文件名部分path.extname: 获取文件扩展名const path = require('path')
+
+const file = '/home/marco/file.txt'
+console.log(path.dirname(file))
+console.log(path.basename(file))
+console.log(path.extname(file))
+
+//output:
+/home/marco
+file.txt
+.txt可以获取文件名不包含扩展名部分，通过给 path.basename() 设置第二个参数：console.log(path.basename(file, path.extname(file)))
+
+//output:
+file可以组合多个部分为一个 path：const dir = 'home/marco/'
+p = path.join('/' + dir + 'test.txt')
+console.log(p)
+
+//output:
+/home/marco/test.txt使用 path.resolve() 可以从一个相对路径获取到绝对路径：p = path.resolve('file.txt')
+console.log(p)
+p = path.resolve('./test/file.txt')
+console.log(p)
+
+//OUTPUT:
+/mnt/hgfs/Development/node.js/filesystem/file.txt
+/mnt/hgfs/Development/node.js/filesystem/test/file.txt以上示例中，会将程序当前执行路径作为绝对路径添加给后面定义的文件相对路径。也可以将文件的相对目录单独定义，会自动组合它们：p = path.resolve('tmp', 'file.txt')
+console.log(p)
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/tmp/file.txt如果在路径前加斜杠/ 表明这就是一个绝对路径：p = path.resolve('/tmp', 'file.txt')
+console.log(p)
+
+//output:
+/tmp/file.txt如果路径中包含相对关系标记符如: .., //等，可以使用 path.normalize() 得到常规形式的路径：p = path.normalize('/home/../test/file.txt')
+console.log(p)
+
+//output:
+/test/file.txtpath.resolve 和 path.normalize 都不会检查路径是否真实存在，它们仅仅是根据提供的数据计算路径结果。reading file 读取文件最简单的方式读取文件内容就是通过 fs.readFile() method，需要给它传入文件路径，编码格式，callback function:const fs = require('fs')
+
+fs.readFile('./test.txt', 'utf-8', (err, data) =&gt; {
+    if (err) {
+        console.log('read fail')
+        return
+    }
+    console.log(data)
+})或者也可以使用同步模式的 fs.readFileSync()：try {
+    data = fs.readFileSync('./test.txt', 'utf-8')
+    console.log(data)
+} catch (error) {
+    console.log('read error')
+}fs.readFile() 和 fs.readFileSync() 都会先将文件内容读取到内存中，然后返回数据。这就意味着读取大文件会影响系统内存的占用量，所以一个比较好的选择是使用 stream 流读取文件内容。后续章节会介绍 stream 模块。writing file 文件写入最简单的写入文件的方法就是使用 fs.writeFile() method。示例如下：const fs = require('fs')
+
+const content = 'some new words'
+fs.writeFile('./test.txt', content, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})或者使用同步模式的版本 fs.writeFileSync()：try {
+    fs.writeFileSync('./test.txt', content)
+    console.log('write success')
+} catch (error) {
+    console.log('write error')
+}默认情况下，如果这个文件已经存在，API 会替换掉这个文件中已有的内容。我们可以通过定义 flag 来修改这个设置：fs.writeFile('./test.txt', content, {flag: 'a+'}, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})flag 的定义和上面的 fs.open 中定义的 flag 一样，可以参考设置。append to a file 给文件添加内容给已有文件附加内容更加方便的方法是使用 fs.appendFile()和 fs.appendFileSync()，例如：const fs = require('fs')
+
+content = '\nnew line\n'
+fs.appendFile('./test.txt', content, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})上面了方法都会在将数据完全写入文件后在执行 callback，这种情况下使用 stream 是一个更好的方法。working with folder 文件夹操作node.js 的 fs 模块提供了很多实用的 method 来对文件夹进行操作。检查文件夹是否存在使用 fs.access() 可以检查文件夹是否存在，以及 node.js 是否有访问它的权限：const fs = require('fs')
+
+fs.access('./tmp', err =&gt; {
+    console.log(err ? 'not exist' : 'exist')
+})
+
+//output:
+//not exist创建新文件夹使用 fs.mkdir() 或 fs.mkdirSync() 创建新文件夹：const fs = require('fs')
+
+const fd = 'tmp'
+try {
+    if (!fs.existsSync(fd)) {
+        fs.mkdirSync(fd)
+        console.log('create success')
+    }
+} catch (error) {
+    console.log('create fail')
+}上面使用了同步模式 method 创建文件夹，看起来更加直观。read content of a directory 读取目录内容使用 fs.readdir() 或 fs.readdirSync() 可以读取某个目录中的内容，包括其中的文件和文件夹。返回值为一个数组：const fs = require('fs')
+
+const p = '/usr'
+const d = fs.readdirSync(p)
+console.log(d)输出为：[
+  'bin',     'games',
+  'include', 'lib',
+  'lib32',   'lib64',
+  'libexec', 'libx32',
+  'local',   'sbin',
+  'share',   'src'
+]通过 path 模块的 join 或 resolve method 可以输出每个元素的绝对路径，修改以上示例：const fs = require('fs')
+const path = require('path')
+
+const p = '/usr'
+const d = fs.readdirSync(p).map(f =&gt; {
+    return path.resolve(p, f)
+})
+console.log(d)输出如下：[
+  '/usr/bin',     '/usr/games',
+  '/usr/include', '/usr/lib',
+  '/usr/lib32',   '/usr/lib64',
+  '/usr/libexec', '/usr/libx32',
+  '/usr/local',   '/usr/sbin',
+  '/usr/share',   '/usr/src'
+]如果只想获取目录下的文件而不包含文件夹，可以定义一个 filter 过滤元素：const fs = require('fs')
+const path = require('path')
+
+const isFile = fileName =&gt; {
+    return fs.statSync(fileName).isFile()
+}
+const p = '/usr'
+const d = fs.readdirSync(p).map(f =&gt; {
+    return path.resolve(p, f)
+}).filter(isFile)
+
+console.log(d)rename folder 重命名文件夹使用 fs.rename() 或 fs.renameSync() 重命名文件夹。第一个参数定义当前路径，第二个参数定义新路径：const fs = require('fs')
+
+fs.rename('./tmp', './new', err =&gt; {
+    if (err) {
+        console.log('rename error')
+        return
+    }
+    console.log('rename success')
+})remove folder 删除文件夹使用 fs.rmdir() 或 fs.rmdirSync() 可以删除文件夹。但删除文件夹相比其他操作稍微复杂，用到的工具可能超出你需要的部分。所以最简单的方法就是使用第三方模块：fs-extra 来处理。它是 fs 的替代品，在 fs 模块的基础上提供了很多新功能。使用 fs-extra 的 remove() method 可以实现删除文件夹的功能：const fs = require('fs-extra')
+
+const p = './new'
+fs.remove(p, err =&gt; {
+    if (err) {
+        console.log('remove error')
+        return
+    }
+    console.log('remove success')
+})也可以使用 promise 模式：fs.remove(p)
+.then(() =&gt; console.log('remove success'))
+.catch((err) =&gt; console.log(err))还可以使用 async/await 模式：const rm = async (p) =&gt; {
+    try {
+        await fs.remove(p)
+        console.log('remove success')
+    } catch (error) {
+        console.log('remove error')
+    }
+}
+rm(p)</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2139.html">
+<title>Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理</title>
+<link>https://blog.niekun.net/archives/2139.html</link>
+<dc:date>2021-02-07T11:07:10+08:00</dc:date>
+<description>由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。我的流程是：VMware 安装 Ubuntu共享 Windows 下的文件夹给 Ubuntu 作为开发目录Windows 下使用 vs code 通过 ssh 方式远程连接 Ubuntu通过远程连接的方式在 Windows 下做 node.js 开发实际体验很好。但是在通过 npm 安装某些包时常常会有报错出现，错误日志大概意思就是说无法给 node_modules 文件夹内安装的库文件添加软连接到系统路径。网上查询后发现了问题原因，我的开发目录实际是在 Windows 下的，Windows 和 Linux 有着不一样的文件系统和路径格式，所以 npm 在安装某些包含 bin 可执行文件的第三方库时，会默认自动创建相关文件的软链接到 Linux 系统路径，这样就就报错了。如果要坚持使用共享目录的形式做开发，那么需要设置在 npm 安装新库时使用参数 --no-bin-links 告诉系统不要自动创建软连接，语法如下：npm install cowsay --no-bin-links
+这样就会跳过相关步骤。也可以设置到 npm 配置中，这样以后安装的包都会默认不创建 bin 的软连接了：npm config set bin-links false
+当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。参考链接：https://github.com/npm/npm/issues/2221</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2137.html">
 <title>node.js 入门教程之五 -- HTTP request and response</title>
 <link>https://blog.niekun.net/archives/2137.html</link>
@@ -909,94 +1108,5 @@ Downloads
 InstallationPackage挂载主机共享路径到虚拟机对应路径下，设置所有用户可访问：$ sudo vmhgfs-fuse .host:/ /mnt/hgfs -o allow_other
 执行以上命令后，发现共享文件夹出现了：$ ls /mnt/hgfs/
 Development  Downloads  InstallationPackage以上就是解决 VMware Linux 虚拟机没有自动挂载共享目录的方法。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2066.html">
-<title>c++ 类型转换</title>
-<link>https://blog.niekun.net/archives/2066.html</link>
-<dc:date>2021-01-14T11:58:00+08:00</dc:date>
-<description>Implicit conversion 隐式转换当一个数据复制为兼容格式的类型时，隐式转换可以自动完成。请看下面示例：double a = 100.1;
-int b;
-b = a;
-cout &lt;&lt; b &lt;&lt; endl;
-
-//output:
-//100以上示例中，我们将 double 类型的数据复制给 int 类型的变量，不会引起语法报错，这就是 Implicit 隐式类型转换，也叫 standard conversion 标准转换。标准转换对一些基本的数据类型有效，能够对一些 numerical 数值类型的数据间进行转换，如：double to int，int to float，short to double，int to bool 等，也可以在 pointer 指针类型间转换。从小一些的整型如 short 转换到 int 类型，或者从 float 类型转换到 double 类型，这种转换过程叫做 promotion 晋升操作。这种转换可以确保原始数据完整的复制到目标数据类型中。其他数学运算类型间的转换可能不一定会完整的保留原始数据，下面是几种情况举例：一个负整数转换为 unsigned 类型，结果为 unsigned 类型数据所能表达的最大值数据转换为 bool 类型的数据时，对于数值类型原始数据为 0 时，对于指针类型指针数据为 null pointer 时，对应转换为 false。原始数据为所有其他情况时，转换结果为 true。浮点型数据转换为整型数据，数据会被截取整数部分，如果数据结果超出目标数据类型所能表达的最大值，会得到 undefined我们可以看到，隐式转换可能会带来数据精度的丢失，编译器此时会提示一条 warning 警告。可以通过使用 explicit conversion 显式转换来避免警告信息。class 的隐式转换class 中的隐式转换通过以下三个 function 控制：单参数的 constructors 允许从一个特定类型的数据隐式转换构造为一个 object通过等号操作符 Assignment operator 复用来隐式转换类型传播符 Type-cast 来隐式转换为特定的类型下面示例解释各种方式的含义：class A {};
-
-class B {
-public:
-    B(A a) {} //constructor: conversion from A
-    B operator=(A a) {return *this;} // assignment operator: conversion from A
-    operator A() {return A();} // type-cast: conversion to A
-};
-
-int main()
-{
-    A a; // instance a
-    B b = a; // constructor b from a
-    B c(a); // constructor c from a
-    b = a; // assignment a to b
-    a = b; // convert b to A type and assignment to a
-
-    return 0;
-}以上实例分别介绍了三种隐式转换的方式。构造器的一个传入参数为 A 类型数据，也就是等同于可以将 A 类型因素转换为 B 类型通过操作符复用将等号= 重新定义，等号右边的为 A 类型数据时，以A类型数据作为构造器参数返回 B 类型 object 指针当执行 B 类型数据赋值给 A 类型时，会通过类型传播符定义的 function 返回 A 类型 object构造器初始化 object时，当只有一个参数时，就相当于把传入数据转换为对应 object 类型了。上面示例中可以看到，有两种方法来构造 object：B b = a; // constructor b from a
-B c(a); // constructor c from a以上两种方式都是将 a 作为初始化参数构造 B 类型的 object。编写了等号操作符复用后，对某个指定类型的外部 object 进行等号操作时就会将其转换为当前 object 类型，而不会报错。通过类型传播符可以将 object 转换为其他指定类型的 object。关于操作符复用的语法参考我之前的教程：https://blog.niekun.net/archives/1920.htmlexplicit 关键词当调用一个 function 时，对于其传递参数 c++ 允许进行隐式转换，这在一些情况下会引起一些问题，因为我们并不是所有情况下都希望自动进行转换的。在以上示例中加入 function：void function(B b) {}
-此 function 有一个 B 类型的参数，但是在实际调用中，由于 B 中定义了 A 的隐式转换相关模块，所以我们在这里可以将 A 类型数据作为传入数据：fun(a);
-实际中我们可能并不需要这种转换，我们希望的是这里只能将 B 类型数据作为传入参数。通过关键词 explicit 来定义 constructor 可以实现这个需求，修改 B 的 constructor：explicit B(A a) {}
-再次执行程序，会发现以下几个指令会报错：B b = a;
-fun(a);通过 关键词 explicit 定义 constructor 的 class 不能通过 assignment 赋值符来初始化 object，也不能对 function 的传入参数进行隐式转换。explicit conversion 显式转换c++ 是一种严格区分数据类型的语言，对于那些会影响数据本身的转换，需要进行 explicit conversion 显式转换也叫做 type-casting。在过去的语法中有两种常规的 type-casting 方式：double e = 10.11;
-int f = int(e);
-int g = (int)e;第一种叫做 function 样式，第二种叫做 c-like C语言模式。对于那些基础数据类型的数据，这种转换模式没有什么问题，但这种语法对于 class 和 pointer 类型数据也会不加判断的进行转换，从而导致运行时的 runtime error。为了控制这些在 class 间进行转换的过程，新版 c++ 提供了 4 种 casting operators 传播符来供不同场景下使用：dynamic_cast &lt;new_type&gt; (expression)reinterpret_cast &lt;new_type&gt; (expression)static_cast &lt;new_type&gt; (expression)const_cast &lt;new_type&gt; (expression)dynamic_castdynamic_cast 只能用于某个 class 或(void*) 的指针。他的作用是确保转换后的目标类型指针指向的是一个完整有效的 object，而不是空 object。例如，从 derived class 指针转换为 base class 指针。但是对于多态化的 polymorphic class(包含 virtual 元素的 class)，当且仅当指向的 object 是一个完整有效的目标 object 类型，使用 dynamic_cast 就可以从 base class 指针转换为 derived class 指针，请看如下示例：class Base { virtual void dummy() {} };
-class Derived: public Base {int a;};
-
-int main()
-{
-    try {
-        Base *b1 = new Base;
-        Base *b2 = new Derived;
-        Derived *d;
-
-        d = dynamic_cast&lt;Derived*&gt;(b1);
-        if (d == 0)
-            cout &lt;&lt; &quot;null pointer on first type cast&quot; &lt;&lt; endl;
-
-        d = dynamic_cast&lt;Derived*&gt;(b2);
-        if (d == 0)
-            cout &lt;&lt; &quot;null pointer on second type cast&quot; &lt;&lt; endl;
-    } catch(exception e) {
-        cout &lt;&lt; e.what() &lt;&lt; endl;
-    }
-    return 0;
-}
-
-//output:
-//null pointer on first type cast以上示例中，我们建立了 Base class 和 Derived class，其中 Base 含有一个 virtual function。然后我们创建两个 Base 类型指针，两个指针分别预分配类型为 Base 和 Derived。在之前的 c++ 教程中提到过可以新建 base 类型的变量然后使用 derived 类型数据，需要了解的可以查看：https://blog.niekun.net/archives/1927.html。然后我们创建一个 Derived 类型指针，使用 dynamic_cast 分别将上面建立的两个 Base 类型指针转换为 Derived 类型。由于 b2 虽然是 Base 类型指针，但是我们预分配内存类型为 Derived 类型，所以它其实包含了 Derived object 所有属性。这样转换后的类型为完整的 Derived 类型指针。所以 d 指针不为空。而 b1 完全是 Base 类型指针，所以转换后的类型是不完整的 Derived 类型指针，所以赋值后结果为空。dynamic_cast 可以将任意指针转换为 void* 类型指针。static_caststatic_cast 可以转换任意相关联 class 类型的指针。不仅仅从 derived 到 base，也可以从 base 到 derived。不会判断是否转换到目标指针是完整的数据类型，所以完全由编程人员判断转换操作是否是安全的。相比于 dynamic_cast 有更大适用范围。以下示例语法不会报错：class Base {};
-class Derived: public Base {};
-
-Base * a = new Base;
-Derived * b = static_cast&lt;Derived*&gt;(a);b 指针会得到一个不完整的 Derived 类型数据，运行时可能报错。因此，使用 static_cast 不仅可以转换那些直接支持隐式转换的 class 指针，也可以在那些不支持转换的 class 间进行转换。我们测试在其他数据将进行转换：double a = 12.23;
-int b = static_cast&lt;int&gt;(a);
-cout &lt;&lt; b &lt;&lt; endl;
-
-//OUTPUT:
-//12以上，我们将 double 类型的数据转换为 int 类型，这种转换可以直接通过隐式转换完成，但是使用显式转换语法实现更加明确清晰。但前提是原类型和目标类型必须是 related 有关联的 object 类型。reinterpret_castreinterpret_cast 可以将任意类型指针转换为其他任意类型指针，甚至是完全没有关联的两个类型。转换的过程就是将源数据的二进制数据复制到新指针地址。相比于 static_cast 有更大适用范围。以下代码可以正常执行：class A { /* ... */ };
-class B { /* ... */ };
-A * a = new A;
-B * b = reinterpret_cast&lt;B*&gt;(a);此时 b 指针指向的是一个和 B 类型完全不相干的数据，此时访问 b 指向的数据是不安全的。const_castconst_cast 可以操作 const 类型的指针数据，例如当一个 function 需要非 const 类型传入数据时，可以通过 const_cast 进行转换。请看下面示例：void test(int a) {
-    cout &lt;&lt; a &lt;&lt; endl;
-}
-
-const int a = 10;
-test(a);以上示例中，调用 test function 会报错，因为传入参数需要是非 const 类型的数据。修改以上代码：const int a = 10;
-int *b = const_cast&lt;int*&gt;(&amp;a);
-test(*b);
-
-//output:
-//10通过 const_cast 将 const int 转换为 int，这样就可以在 function 中使用了。参考链接Type conversions</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2061.html">
-<title>VMware 虚拟机 NAT 网络下配置端口转发到主机</title>
-<link>https://blog.niekun.net/archives/2061.html</link>
-<dc:date>2021-01-12T11:06:00+08:00</dc:date>
-<description>今天安装了 Ubuntu 虚拟机用来做 node.js 开发，在选择网络模式时我选择了 NAT 模式，因为这样可以在主机处于不同网络环境下使虚拟机都有着同一个 IP 地址，方便管理。但是在此时中发现，虚拟机可以正常访问主机及外网，但是主机无法通过分配的 NAT 地址来 ssh 访问虚拟机。查询后发现这是正常现象。可以通过设置端口转发来将虚拟机端口映射到主机端口来实现对虚拟机的访问。首先给虚拟机设置一个静态 ip 地址：然后打开虚拟网络编辑器：选中 NAT 对应的网卡，这里是 vnet 8，点击 NAT 设置：在端口转发栏点击添加：设置要转发到的主机端口及对应虚拟机 IP 和端口等信息，这里我需要转发 ssh 的 22 端口到主机的 2222 端口：点击确定保存设置即可。设置好后就可以通过访问主机本地 2222 端口实现 ssh 访问虚拟机了。可以根据需要设置多个端口转发。</description>
 </item>
 </rdf:RDF>
