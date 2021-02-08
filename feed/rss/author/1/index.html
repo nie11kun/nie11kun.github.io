@@ -9,6 +9,9 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>admin</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2151.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2147.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2146.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2140.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2139.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2137.html"/>
@@ -16,16 +19,245 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2103.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2098.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2086.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2085.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2074.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2071.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2151.html">
+<title>node.js 入门教程九 -- events 模块</title>
+<link>https://blog.niekun.net/archives/2151.html</link>
+<dc:date>2021-02-08T21:42:00+08:00</dc:date>
+<description>在之前介绍 event loop 的章节，我们简单介绍了 events 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。events 模块提供了 EventEmitter class 它是处理 events 的关键工具。引入及初始化 events 模块如下：const EventEmitter = require('events')
+const eventEmitter = new EventEmitter()每个 event listener 事件监听器都是互相独立的，同时它们使用如下 events：newListener 当一个 event 被添加removeListener 当一个 event 被删除下面介绍常用的一些 method。eventEmitter.addListener()eventEmitter.addListener() 和 eventEmitter.on() 功能相同。可以给某个 event 添加一个 listener，语法如下：eventEmitter.addListener('test', () =&gt; {})
+eventEmitter.emit()eventEmitter.emit() 用来触发一个信号，信号触发后，对应信号的 event listener 会响应 callback function：eventEmitter.addListener('test', () =&gt; { console.log('test emited') })
+eventEmitter.emit('test')
+
+//output:
+//test emitedeventEmitter.eventNames()eventEmitter.eventNames() 会返回当前 EventEmitter object 内注册已的 events 为一个字符串数组：eventEmitter.addListener('test1', () =&gt; {})
+eventEmitter.addListener('test2', () =&gt; {})
+console.log(eventEmitter.eventNames())
+
+//output:
+//[ 'test1', 'test2' ]eventEmitter.getMaxListeners()eventEmitter.getMaxListeners() 返回当前 EventEmitter object 能添加的 event listener 最大数量。默认为 10 个，可以通过 setMaxListeners() 修改。eventEmitter.listenerCount()eventEmitter.listenerCount() 返回某个 event 定义的 listeners 数量：eventEmitter.addListener('test4', () =&gt; { console.log('a') })
+eventEmitter.addListener('test4', () =&gt; { console.log('b') })
+console.log(eventEmitter.listenerCount('test4'))
+
+//output:
+//2eventEmitter.listeners()eventEmitter.listeners() 返回某个 event 所有的 listeners 为一个数组：const f1 = () =&gt; {}
+const f2 = () =&gt; {}
+eventEmitter.addListener('test5', f1)
+eventEmitter.addListener('test5', f2)
+console.log(eventEmitter.listeners('test5'))
+
+//output:
+//[ [Function: f1], [Function: f2] ]eventEmitter.off()eventEmitter.off() 和 eventEmitter.removeListener() 功能相同。可以删除一个 event 的某个 listener，需要指定 event 名称和 listener callback 名称：const f3 = () =&gt; {}
+eventEmitter.addListener('test6', f3)
+eventEmitter.off('test6', f3)eventEmitter.on()eventEmitter.on() 同 eventEmitter.addListener() 功能相同。可以给某个 event 添加一个 listener：eventEmitter.on('test6', () =&gt; {})eventEmitter.once()eventEmitter.once() 监听一个 event 且其 callback function 只能被执行一次：eventEmitter.once('test7', () =&gt; console.log('once show once'))
+eventEmitter.emit('test7')
+eventEmitter.emit('test7')
+
+//output:
+//once show onceeventEmitter.prependListener()当通过 eventEmitter.on() 添加 listener 时，会按照添加顺序排列在此 event 队列中，当对应 event 触发时，会按照排列顺序以此执行 callback。使用 eventEmitter.prependListener() 添加的 listener 会添加到队列的最前面，触发时最先被执行：eventEmitter.on('test8', () =&gt; console.log('first listener'))
+eventEmitter.prependListener('test8', () =&gt; console.log('second listener'))
+eventEmitter.emit('test8')
+
+//output:
+//second listener
+//first listenereventEmitter.prependOnceListener()eventEmitter.prependOnceListener() 同 eventEmitter.on() 的区别和上面类似，会将 listener 添加到对应 event listeners 队列的最前面，然后最先被执行且只能响应一次：eventEmitter.once('test9', () =&gt; console.log('first listener'))
+eventEmitter.prependOnceListener('test9', () =&gt; console.log('second listener'))
+eventEmitter.emit('test9')
+eventEmitter.emit('test9')
+
+//output:
+//second listener
+//first listenereventEmitter.removeAllListeners()eventEmitter.removeAllListeners() 可以删除指定 event 的所有 listeners：eventEmitter.removeAllListeners('test9')eventEmitter.removeListener()eventEmitter.removeListener() 可以删除 event 的指定 listener。需要将 listener 的 callback function 定义为变量格式然后再调用，这样就可以在此 reference 它：const f1 = () =&gt; {}
+const f2 = () =&gt; {}
+eventEmitter.addListener('test5', f1)
+eventEmitter.addListener('test5', f2)
+
+eventEmitter.removeListener('test5', f1)eventEmitter.setMaxListeners()eventEmitter.setMaxListeners() 可以定义 EventEmitter object 最大可以添加的 listeners 数量：eventEmitter.setMaxListeners(20)
+console.log(eventEmitter.getMaxListeners())
+
+//output:
+//20以上就是 events 模块最常用功能的介绍。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2147.html">
+<title>node.js 入门教程之八 -- os 模块</title>
+<link>https://blog.niekun.net/archives/2147.html</link>
+<dc:date>2021-02-08T14:03:00+08:00</dc:date>
+<description>os 模块可以用来获取操作系统的底层信息和系统上运行的程序，以及和系统交互。它集成在 node.js 中，只需要引入即可：const os = require('os')
+这里先介绍一些在处理文件时有用的 properties：os.EOL 会返回 line delimiter 行定界符，\n on Linux and macOS, and \r\n on Windowsos.constants.signals 提供处理进程的信号常数，如：SIGHUP, SIGKILLos.constants.errno 提供报告 error 的相关常数，如：EADDRINUSE, EOVERFLOW完整的 signals 信号列表参考：https://nodejs.org/api/os.html#os_signal_constants下面介绍 os 模块常用的 method。os.arch()os.arch() 会返回底层架构的字符串，如：arm, x64, arm64：console.log(os.arch())
+
+//output:
+x64os.cpus()os.cpus() 会返回系统的 cpu 信息：console.log(os.cpus())
+
+//output:
+[
+  {
+    model: 'Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz',
+    speed: 2591,
+    times: {
+      user: 1871810,
+      nice: 17880,
+      sys: 1451160,
+      idle: 81134010,
+      irq: 0
+    }
+  },
+  {
+    model: 'Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz',
+    speed: 2591,
+    times: {
+      user: 1838130,
+      nice: 12780,
+      sys: 1532060,
+      idle: 81234660,
+      irq: 0
+    }
+  }
+]os.endianness()根据 node.js 是通过 Big Endian 或 Little Endian 大尾数或小尾数编译的，os.endianness() 返回 BE 或 LE：console.log(os.endianness())
+
+//output:
+LE关于 Big Endian 或 Little Endian 参考：https://en.wikipedia.org/wiki/Endiannessos.freemem()os.freemem() 返回系统可用内存，以字节为单位：console.log(os.freemem())
+
+//output:
+574537728os.homedir()os.homedir() 返回系统当前用户的 home 目录路径：console.log(os.homedir())
+
+//output:
+/home/marcoos.hostname()os.hostname() 返回 hostname 信息：console.log(os.hostname())
+
+//output:
+marco-virtual-machineos.loadavg()os.loadavg() 返回系统计算的平均加载时间，此 method 只在 Linux/macOS 下有意义：console.log(os.loadavg())
+
+//output:
+[ 0.08, 0.17, 0.13 ]os.networkInterfaces()os.networkInterfaces() 返回系统的网卡信息：console.log(os.networkInterfaces())
+
+//output:
+{ lo0:
+   [ { address: '127.0.0.1',
+       netmask: '255.0.0.0',
+       family: 'IPv4',
+       mac: 'fe:82:00:00:00:00',
+       internal: true },
+     { address: '::1',
+       netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
+       family: 'IPv6',
+       mac: 'fe:82:00:00:00:00',
+       scopeid: 0,
+       internal: true },
+     { address: 'fe80::1',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: 'fe:82:00:00:00:00',
+       scopeid: 1,
+       internal: true } ],
+  en1:
+   [ { address: 'fe82::9b:8282:d7e6:496e',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: '06:00:00:02:0e:00',
+       scopeid: 5,
+       internal: false },
+     { address: '192.168.1.38',
+       netmask: '255.255.255.0',
+       family: 'IPv4',
+       mac: '06:00:00:02:0e:00',
+       internal: false } ],
+  utun0:
+   [ { address: 'fe80::2513:72bc:f405:61d0',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: 'fe:80:00:20:00:00',
+       scopeid: 8,
+       internal: false } ] }os.platform()os.platform() 返回当前安装的 node.js 的编译平台，可能的返回值为：darwinfreebsdlinuxopenbsdwin32...moreos.release()os.release() 返回当前系统的版本号信息：console.log(os.release())
+
+//output:
+5.8.0-41-genericos.tmpdir()os.tmpdir() 返回系统的临时文件夹路径：console.log(os.tmpdir())
+
+//output:
+/tmpos.totalmem()os.totalmem() 返回系统的总内存数量，单位为 byte 字节：console.log(os.totalmem()/1024/1024)
+
+//output:
+1958.45703125os.type()os.type() 返回当前操作系统类型，返回值可以有：LinuxDarwin on macOSWindows_NT on Windowsos.uptime()os.uptime() 返回系统从上次开机来已运行的总时间，单位为秒：console.log(os.uptime()/3600)
+
+//output:
+24.260555555555555os.userInfo()os.userInfo() 返回一个 object 包含当前的 username, uid, gid, shell, 和 homedir：console.log(os.userInfo())
+
+//output:
+{
+  uid: 1000,
+  gid: 1000,
+  username: 'marco',
+  homedir: '/home/marco',
+  shell: '/bin/bash'
+}以上就是 os 模块的简单使用方法。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2146.html">
+<title>node.js 入门教程之七 -- fs 和 path 模块</title>
+<link>https://blog.niekun.net/archives/2146.html</link>
+<dc:date>2021-02-08T11:21:30+08:00</dc:date>
+<description>上一章节我们了解了如果访问文件系统。使用到了 fs 和 path 模块的部分功能，下面我们详细了解这两个模块可以实现的功能。fs module通过以上几个使用场景可以看到 fs 模块提供了很多有用的功能来对 file system 进行访问和交互。并且他是集成在 node.js core 中的，并不需要手动安装：const fs = require('fs')
+
+通过以上方式引入 fs 模块后，我们就可以使用它的各种功能了。包括：fs.access(): 检查文件是否存在以及 node.js 是否有权限访问fs.appendFile(): 给一个文件附加数据，如果文件不存在则会创建它fs.chmod(): 修改文件的权限fs.chown(): 修改文件的 owner 和 group 设置fs.close(): 关闭已经打开的文件的 descriptorfs.copyFile(): 复制一个文件fs.createReadStream(): 创建一个可读的文件 streamfs.createWriteStream(): 创建一个可写的文件 streamfs.link(): 创建一个文件的硬链接fs.mkdir(): 新建文件夹fs.mkdtemp(): 创建一个临时文件夹fs.open(): 打开一个文件的 descriptor，可定义打开编码类型fs.readdir(): 读取一个目录下的内容fs.readFile(): 读取一个文件的内容fs.readlink(): 读取一个软连接的值fs.realpath(): resolve 查询一个相对路径文件的绝对路径fs.rename(): 重命名文件或文件夹fs.rmdir(): 删除一个文件夹fs.stat(): 返回一个文件的状态信息fs.symlink(): 创建一个文件的软链接fs.truncate(): 将一个文件分割成指定长度大小fs.unlink(): 删除一个文件或一个软链接fs.unwatchFile(): 停止监测对一个文件的修改fs.utimes(): 修改一个文件的时间戳fs.watchFile(): 开始监测对一个文件的修改fs.writeFile(): 对一个文件写入数据fs 模块的一个特性是它的以上所有 method 默认都是 asynchronous 异步的，给 method 后加上 Sync 就可以使用同步模式，例如：fs.rename() -&gt; fs.renameSync()fs.write() -&gt; fs.writeSync()同步模式下通过使用 try/catch 块来处理 error 情况。同步模式下程序会在处理文件过程中出现进程阻塞直到处理完成，在编程中可以根据需要灵活运用。path modulepath 模块也提供了很多实用的功能来访问文件系统以及交互。同样的它也是集成在 node.js core 中而不需要单独安装。const path = require('path')
+通过 path.sep 可以获取当前系统的 path separator 路径分隔符：\ on Windows, and / on Linux/macOS。通过 path.delimiter 可以获取当前系统的 path delimiter 路径定界符：; on Windows, and : on Linux / macOS。例如在 Linux 下：console.log(process.env.PATH);
+// Prints: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin'
+
+process.env.PATH.split(path.delimiter);
+// Returns: ['/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/bin']在 Windows 下：console.log(process.env.PATH);
+// Prints: 'C:\Windows\system32;C:\Windows;C:\Program Files\node\'
+
+process.env.PATH.split(path.delimiter);
+// Returns ['C:\\Windows\\system32', 'C:\\Windows', 'C:\\Program Files\\node\\']下面是 path 的常用 method 介绍。path.basename()返回路径上的最后一部分，通过第二个参数可以过滤掉扩展名：console.log(path.basename('/home/marco/dir'))
+console.log(path.basename('/home/marco/file.txt'))
+console.log(path.basename('/home/marco/file.txt', '.txt'))
+
+//output:
+dir
+file.txt
+filepath.dirname()返回路径上的文件夹部分：console.log(path.dirname('/home/marco/file'))
+
+//output:
+/home/marcopath.extname()返回文件的扩展名：console.log(path.extname('/home/marco/file.txt'))
+
+//output:
+.txtpath.isAbsolute()返回路径是否是绝对路径：console.log(path.isAbsolute('/home/marco'))
+console.log(path.isAbsolute('./marco'))
+
+//output:
+true
+falsepath.join()将多个部分合并为一个路径：const name = 'marco';
+console.log(path.join('/home/' + name + '/file'))
+
+//output:
+/home/marco/filepath.normalize()将一个包含相对标记符的路径转换为常规绝对路径：console.log(path.normalize('/home/marco/../test'))
+
+//output:
+/home/testpath.parse()将路径拆分为一个 object，包含下面的 properties：root: 根目录dir: 从根目录开始的文件夹部分base: 文件名和扩展名name: 文件名不包含扩展名ext: 扩展名console.log(path.parse('/home/marco/test/file.txt'))
+
+//output:
+{
+  root: '/',
+  dir: '/home/marco/test',
+  base: 'file.txt',
+  ext: '.txt',
+  name: 'file'
+}path.relative()需要传入两个路径作为参数，第一个路径作为 base 基础路径，返回第二个路径相对于第一个路径的相对路径：console.log(path.relative('/home/marco', '/home/marco/test/file.txt'))
+
+//output:
+test/file.txtpath.resolve()计算一个相对路径的绝对路径，基于当前程序执行的路径：console.log(path.resolve('file.txt'))
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/file.txt也可以设置一个 base 路径，将会附加到相对路径中：console.log(path.resolve('tmp/test', 'file.txt'))
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/tmp/test/file.txt如果第一个 base 路径是绝对路径，则系统会认为这就是个绝对路径：console.log(path.resolve('/tmp/test', 'file.txt'))
+
+//output:
+/tmp/test/file.txt注意 path 模块对路径的处理不会判断这个路径是否真实存在，它只会按照指令处理路径这个字符串数据。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2140.html">
 <title>node.js 入门教程之六 -- FileSystem</title>
 <link>https://blog.niekun.net/archives/2140.html</link>
-<dc:date>2021-02-07T17:17:30+08:00</dc:date>
+<dc:date>2021-02-07T17:17:00+08:00</dc:date>
 <description>File descriptor 文件描述器当需要访问文件系统里的某个文件时，需要首先得到这个文件的 file descriptor 文件描述器。一个 file descriptor 就是通过 fs 模块的 open() method 打开对应文件的返回数据。它的结构如下：const fs = require('fs')
 
 fs.open('./test.txt', 'r', (err, data) =&gt; {
@@ -34,7 +266,7 @@ fs.open('./test.txt', 'r', (err, data) =&gt; {
         return
     }
     console.log('open success')
-})如果文件打开成功，callback 中的 data 数据就是一个 file descriptor。这种方式是异步处理的，文件打开过程中系统会执行其他任务。在上面的示例中，fs.open() 的第三个参数使用了 'f' 标记，它的意思就是以只读模式打开文件。我们可以通过使用不同的标记来以不同的方式打开文件：r 只读模式，文件不存在会报错a 只写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件r+ 读写模式，文件不存在会报错w+ 读写模式，streaming 流定位到文件起始位置，如果文件不存在则创建文件a+ 读写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件更多 flag 的使用参考：https://nodejs.org/api/fs.html#fs_file_system_flags也可以使用 fs.openSync() method 打开文件，其返回值为 file descriptor 而不是通过 callback 的方式：try {
+})如果文件打开成功，callback 中的 data 数据就是一个 file descriptor。注意并不是文件的内容。这种方式是异步处理的，文件打开过程中系统会执行其他任务。在上面的示例中，fs.open() 的第三个参数使用了 'f' 标记，它的意思就是以只读模式打开文件。我们可以通过使用不同的标记来以不同的方式打开文件：r 只读模式，文件不存在会报错a 只写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件r+ 读写模式，文件不存在会报错w+ 读写模式，streaming 流定位到文件起始位置，如果文件不存在则创建文件a+ 读写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件更多 flag 的使用参考：https://nodejs.org/api/fs.html#fs_file_system_flags也可以使用 fs.openSync() method 打开文件，其返回值为 file descriptor 而不是通过 callback 的方式：try {
     const data = fs.openSync('./test.txt', 'r')
     console.log('open success')
 } catch (error) {
@@ -204,6 +436,10 @@ fs.remove(p, err =&gt; {
 })也可以使用 promise 模式：fs.remove(p)
 .then(() =&gt; console.log('remove success'))
 .catch((err) =&gt; console.log(err))还可以使用 async/await 模式：const rm = async (p) =&gt; {
+    if (!fs.existsSync(p)) {
+        console.log('folder does not exist')
+        return
+    }
     try {
         await fs.remove(p)
         console.log('remove success')
@@ -211,7 +447,7 @@ fs.remove(p, err =&gt; {
         console.log('remove error')
     }
 }
-rm(p)</description>
+rm(p)下一章我们继续了解 fs 和 path 模块的详细内容。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2139.html">
 <title>Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理</title>
@@ -711,402 +947,5 @@ echo:echo &gt; test4.txt
 vim:vim test5.txt
 :wq
 使用中选择最简单的方式即可。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2085.html">
-<title>node.js 入门教程之三 -- npm</title>
-<link>https://blog.niekun.net/archives/2085.html</link>
-<dc:date>2021-01-26T15:45:00+08:00</dc:date>
-<description>调用 node.js 文件node.js 有内建的 module system 模块系统，一个node.js 文件可以导入其他 node.js 文件内定义的功能。语法如下：const library = require('./libs')和导入其他第三方模块类似使用 require 指令，需要指定 node.js 文件路径。以上示例表示导入当前目录下的 libs.js 文件。js 文件中默认定义的 objects 等元素是私有的，不能够被外部使用。在被导入的文件中，需要在引用前 expose 暴漏出需要被外部使用的功能。需要使用到 module system 的 module.exports API 来实现。当给一个 object 或 function 赋予 exports 属性时，就表明这些元素可以暴漏给外部。有两种方法来实现。第一种方法是将某个 object 直接赋值给 module.exports，module.exports 是 module system 的一个 object 用来将某个 object 暴漏出来，且只能在一个文件中赋值给某一个元素，下面是一个示例：libs.js 文件：const person = {
-    name: 'marco',
-    age: 20
-}
-
-module.exports = person;main.js 文件：const libs = require('./libs');
-
-console.log(libs.age);
-
-//OUTPUT:
-//20上面示例中，我们将 libs.js 文件的 person object 赋值给了 module.exports，在 main.js 中调用 libs.js 文件后，main.js 中的 libs object 就相当于 person object。我们可以发现，这种定义方法可以将某个 node.js 文件中的一个 object 暴漏给外部使用。第二种方法是将需要暴漏的元素定义为 exports 的 properties，这种方式可以将多个 objects 或 function 暴漏给外部。libs.js 文件：const person = {
-    name: 'marco',
-    age: 20
-}
-exports.person = person;
-
-exports.car = {
-    brand: 'bmw',
-    color: 'red'
-}main.js 文件：const libs = require('./libs');
-
-console.log(libs.person.age);
-console.log(libs.car.brand);
-
-//OUTPUT:
-//20
-//bmw以上示例中，我们先在 libs.js 中定义了两个 object，并都作为 exports 的一个 property，可以看到有两种方式定义。在 main.js 中调用后，通过调用 libs object 对应的 properties 名称即可调用对应暴露的元素。npm 包管理器npm 是 node.js 的标准包管理器。一开始，npm 作为下载和管理 node.js 包的依赖的工具，现在也成为了 JavaScript 前端开发工具。下载包如果项目中有 package.json 文件，可以通过下面指令自动安装所有在文件中定义的模块，安装路径为 node_modules 文件夹内：npm install
-安装某一个模块包：npm install &lt;package-name&gt;
-在项目中安装的包会自动添加条目到 package.json 文件中。也可以在安装时使用 --save 选项来添加到文件。更新包更新项目中所有包：npm update
-更新某一个包：npm update &lt;package-name&gt;
-执行任务package.json 文件内支持定义指定的命令行指令，通过下面的语法来执行：npm run &lt;task-name&gt;
-指令定义在 scripts 块内，例如：{
-  &quot;scripts&quot;: {
-    &quot;start&quot;: &quot;uname -r&quot;
-  }
-}此时我们在终端执行下面命令：$ npm run start
-Debugger attached.
-
-&gt; start
-&gt; uname -r
-
-5.8.0-38-generic
-Waiting for the debugger to disconnect...可以看到通过 run 定义命令的名称就可以执行对应的命令。包安装路径当使用 npm 安装包时，可以定义两种安装模式：local install 逻辑安装global install 全局安装默认情况下当我们使用下面指令安装包：npm install chalk
-包会安装到当前项目路径下的 node_modules 文件夹内。此时 npm 会将对应包的信息写入 package.json 文件内的 dependencies 块内，如：{
-  &quot;dependencies&quot;: {
-    &quot;chalk&quot;: &quot;^4.1.0&quot;,
-    &quot;inquirer&quot;: &quot;^7.3.3&quot;,
-    &quot;minimist&quot;: &quot;^1.2.5&quot;,
-    &quot;progress&quot;: &quot;^2.0.3&quot;
-  }
-}全局安装通过 -g 标记实现：npm install -g chalk
-使用全局安装模式时，npm 不会将包安装到项目路径下，而是 global location 路径下。通过 npm root -g 命令可以返回 golbal 路径的地址，Linux 默认地址为：/usr/local/lib/node_modules，Windows 默认地址为：C:\Users\YOU\AppData\Roaming\npm\node_modules。可执行程序当安装一个包后，我们通过 require 关键词来调用模块：const inquirer = require('inquirer')
-当安装的包是可执行程序的时候呢？当安装的包含有可执行程序时，程序会放在 node_modules/.bin/ 文件夹内，关于如何运行这些可执行程序，我们通过 cowsay 包来演示。首先安装 cowsay，这里安装到 global 路径下：npm install -g cowsay
-我的 global 路径地址为：/opt/node-v15.5.1-linux-x64/lib/node_modules，可执行文件被安装在 /opt/node-v15.5.1-linux-x64/bin/ 目录下：cowsay -&gt; ../lib/node_modules/cowsay/cli.js查看属性可以看到此可执行文件是指向 cli.js 的一个链接。通过 npx 命令可以方便的执行此程序，不需要提供程序所在路径：$ npx cowsay wow
- _____
-&lt; wow &gt;
- -----
-        \   ^__^
-         \  (oo)\_______
-            (__)\       )\/\
-                ||----w |
-                ||     ||package.json 文件package.json 文件是其项目的一个声明，它可以用来做一些完全没有关联的事情。例如，它是配置工具的仓库，也存储着 npm 安装的包的版本信息。下面是最简单的文件形式：{}
-文件需要遵守 json 格式，否则无法被程序读取其定义的内容。没有什么内容是必须的，所以可以是一个简单的大括号。如果你要做一个通过 npm 分享的 node.js 包，那么 package.json 文件需要定义一些必须的属性以供了解这个包的信息，后面会做详细介绍。下面是另一个示例：{
-  &quot;name&quot;: &quot;test-node&quot;
-}以上定义了一个 name property，定义了这个 app 或 package 的名称。文件和项目文件在同一文件夹下。下面是一个更加复杂的示例：{
-  &quot;name&quot;: &quot;test-project&quot;,
-  &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;description&quot;: &quot;A Vue.js project&quot;,
-  &quot;main&quot;: &quot;src/main.js&quot;,
-  &quot;private&quot;: true,
-  &quot;scripts&quot;: {
-    &quot;dev&quot;: &quot;webpack-dev-server --inline --progress --config build/webpack.dev.conf.js&quot;,
-    &quot;start&quot;: &quot;npm run dev&quot;,
-    &quot;unit&quot;: &quot;jest --config test/unit/jest.conf.js --coverage&quot;,
-    &quot;test&quot;: &quot;npm run unit&quot;,
-    &quot;lint&quot;: &quot;eslint --ext .js,.vue src test/unit&quot;,
-    &quot;build&quot;: &quot;node build/build.js&quot;
-  },
-  &quot;dependencies&quot;: {
-    &quot;vue&quot;: &quot;^2.5.2&quot;
-  },
-  &quot;devDependencies&quot;: {
-    &quot;autoprefixer&quot;: &quot;^7.1.2&quot;,
-    &quot;babel-core&quot;: &quot;^6.22.1&quot;,
-    &quot;babel-eslint&quot;: &quot;^8.2.1&quot;,
-    &quot;babel-helper-vue-jsx-merge-props&quot;: &quot;^2.0.3&quot;,
-    &quot;babel-jest&quot;: &quot;^21.0.2&quot;,
-    &quot;babel-loader&quot;: &quot;^7.1.1&quot;,
-    &quot;babel-plugin-dynamic-import-node&quot;: &quot;^1.2.0&quot;,
-    &quot;babel-plugin-syntax-jsx&quot;: &quot;^6.18.0&quot;,
-    &quot;babel-plugin-transform-es2015-modules-commonjs&quot;: &quot;^6.26.0&quot;,
-    &quot;babel-plugin-transform-runtime&quot;: &quot;^6.22.0&quot;,
-    &quot;babel-plugin-transform-vue-jsx&quot;: &quot;^3.5.0&quot;,
-    &quot;babel-preset-env&quot;: &quot;^1.3.2&quot;,
-    &quot;babel-preset-stage-2&quot;: &quot;^6.22.0&quot;,
-    &quot;chalk&quot;: &quot;^2.0.1&quot;,
-    &quot;copy-webpack-plugin&quot;: &quot;^4.0.1&quot;,
-    &quot;css-loader&quot;: &quot;^0.28.0&quot;,
-    &quot;eslint&quot;: &quot;^4.15.0&quot;,
-    &quot;eslint-config-airbnb-base&quot;: &quot;^11.3.0&quot;,
-    &quot;eslint-friendly-formatter&quot;: &quot;^3.0.0&quot;,
-    &quot;eslint-import-resolver-webpack&quot;: &quot;^0.8.3&quot;,
-    &quot;eslint-loader&quot;: &quot;^1.7.1&quot;,
-    &quot;eslint-plugin-import&quot;: &quot;^2.7.0&quot;,
-    &quot;eslint-plugin-vue&quot;: &quot;^4.0.0&quot;,
-    &quot;extract-text-webpack-plugin&quot;: &quot;^3.0.0&quot;,
-    &quot;file-loader&quot;: &quot;^1.1.4&quot;,
-    &quot;friendly-errors-webpack-plugin&quot;: &quot;^1.6.1&quot;,
-    &quot;html-webpack-plugin&quot;: &quot;^2.30.1&quot;,
-    &quot;jest&quot;: &quot;^22.0.4&quot;,
-    &quot;jest-serializer-vue&quot;: &quot;^0.3.0&quot;,
-    &quot;node-notifier&quot;: &quot;^5.1.2&quot;,
-    &quot;optimize-css-assets-webpack-plugin&quot;: &quot;^3.2.0&quot;,
-    &quot;ora&quot;: &quot;^1.2.0&quot;,
-    &quot;portfinder&quot;: &quot;^1.0.13&quot;,
-    &quot;postcss-import&quot;: &quot;^11.0.0&quot;,
-    &quot;postcss-loader&quot;: &quot;^2.0.8&quot;,
-    &quot;postcss-url&quot;: &quot;^7.2.1&quot;,
-    &quot;rimraf&quot;: &quot;^2.6.0&quot;,
-    &quot;semver&quot;: &quot;^5.3.0&quot;,
-    &quot;shelljs&quot;: &quot;^0.7.6&quot;,
-    &quot;uglifyjs-webpack-plugin&quot;: &quot;^1.1.1&quot;,
-    &quot;url-loader&quot;: &quot;^0.5.8&quot;,
-    &quot;vue-jest&quot;: &quot;^1.0.2&quot;,
-    &quot;vue-loader&quot;: &quot;^13.3.0&quot;,
-    &quot;vue-style-loader&quot;: &quot;^3.0.1&quot;,
-    &quot;vue-template-compiler&quot;: &quot;^2.5.2&quot;,
-    &quot;webpack&quot;: &quot;^3.6.0&quot;,
-    &quot;webpack-bundle-analyzer&quot;: &quot;^2.9.0&quot;,
-    &quot;webpack-dev-server&quot;: &quot;^2.9.1&quot;,
-    &quot;webpack-merge&quot;: &quot;^4.1.0&quot;
-  },
-  &quot;engines&quot;: {
-    &quot;node&quot;: &quot;&gt;= 6.0.0&quot;,
-    &quot;npm&quot;: &quot;&gt;= 3.0.0&quot;
-  },
-  &quot;browserslist&quot;: [&quot;&gt; 1%&quot;, &quot;last 2 versions&quot;, &quot;not ie &lt;= 8&quot;]
-}包含了很多的属性设置：version 表示当前版本号name 设置包名称description 对 app 简要的描述main 设置 app 的入口文件private 如果设置为 true 可以防止包被无意的发布到 npmscripts 定义可以运行的脚本命令dependencies npm 依赖包列表devDependencies 定义开发使用的 npm 包列表engines 设置 app 运行的 node 版本browserslist 指定支持的浏览器版本以上所有的属性都可以被 npm 或其他工具使用。常用属性下面介绍一些常规使用的属性，包括你在本地开发的项目也可以使用。name 定义app 名称：&quot;name&quot;: &quot;test-project&quot;
-name 必须小于 214 个字符，不能含有空格，只能包含小写字母，横杠- 或下划线_。如果将包发布到 npm，会生成一个独有的链接。author 定义作者信息：&quot;author&quot;: &quot;marco &lt;me@niekun.net&gt; (https://niekun.net)&quot;
-或者：  &quot;author&quot;: {
-    &quot;name&quot;: &quot;marco&quot;,
-    &quot;email&quot;: &quot;me@niekun.net&quot;,
-    &quot;url&quot;: &quot;https://niekun.net&quot;
-  }contributors 定义代码贡献者信息，可以包含多人：  &quot;contributors&quot;: [
-    {
-      &quot;name&quot;: &quot;marco&quot;,
-      &quot;email&quot;: &quot;me@niekun.net&quot;,
-      &quot;url&quot;: &quot;https://niekun.net&quot;
-    }
-  ]bugs 定义反馈 bug 的链接，一般是 GitHub issue 页面：&quot;bugs&quot;: &quot;https://github.com/whatever/package/issues&quot;
-homepage 定义包的主页链接：&quot;homepage&quot;: &quot;https://whatever.com/package&quot;
-version 定义当前包的版本：&quot;version&quot;: &quot;1.0.0&quot;
-此属性遵守 semantic versioning (semver) notation 语义版本标记语法。也就是由三个数字表示：x.x.xlicense 定义包的授权信息：&quot;license&quot;: &quot;MIT&quot;
-keywords 定义关于这个包实现功能的关键词，是一个数组：  &quot;keywords&quot;: [
-    &quot;learning&quot;,
-    &quot;nodejs&quot;
-  ]使用 keywords 可以帮助别人找到你的包，或者在 https://www.npmjs.com/ 网站上搜索关键词。description 定义一个对此 app 的简短描述：&quot;description&quot;: &quot;a node.js beginner guide&quot;
-repository 定义项目仓库地址：&quot;repository&quot;: &quot;github:whatever/node-project&quot;
-注意如果不是使用的 GitHub 也可以定义其他工具：&quot;repository&quot;: &quot;gitlab:whatever/node-project&quot;
-也可以明确的定义版本控制系统信息：  &quot;repository&quot;: {
-    &quot;type&quot;: &quot;git&quot;,
-    &quot;url&quot;: &quot;https://github.com/whatever/testing.git&quot;
-  }main 设置包的入口：&quot;main&quot;: &quot;./main.js&quot;
-private 如果设置为 true，可以防止包被无意的发布到 npm：&quot;private&quot;: &quot;true&quot;
-scripts 定义可执行的 node 脚本：  &quot;scripts&quot;: {
-    &quot;start&quot;: &quot;uname -r&quot;,
-    &quot;test&quot;: &quot;echo abcd&quot;
-  }定义的脚本是命令行程序，通过 npm run xxx 执行，如：npm run start
-dependencies 定义 app 需要安装的 npm 依赖包：  &quot;dependencies&quot;: {
-    &quot;chalk&quot;: &quot;^4.1.0&quot;,
-    &quot;inquirer&quot;: &quot;^7.3.3&quot;,
-    &quot;minimist&quot;: &quot;^1.2.5&quot;,
-    &quot;progress&quot;: &quot;^2.0.3&quot;
-  }当通过 npm install &lt;PACKAGENAME&gt; 安装包，会自动将包写入 package.json 文件的 dependencies 块。devDependencies 定义 app 开发需要的 npm 依赖包：&quot;devDependencies&quot;: {
-  &quot;autoprefixer&quot;: &quot;^7.1.2&quot;,
-  &quot;babel-core&quot;: &quot;^6.22.1&quot;
-}和 dependencies 的区别是这里定义的包只是在开发设备上安装，而不需要在执行设备上安装。开发包通过以下命令安装：npm install --save-dev &lt;PACKAGENAME&gt;
-engines 设置此包运行的 node 版本和其他命令版本：  &quot;engines&quot;: {
-    &quot;node&quot;: &quot;&gt;= 6.0.0&quot;,
-    &quot;npm&quot;: &quot;&gt;=3.0.0&quot;
-  }browserslist 定义 app 支持的浏览器版本：&quot;browserslist&quot;: [
-  &quot;&gt; 1%&quot;,
-  &quot;last 2 versions&quot;,
-  &quot;not ie &lt;= 8&quot;
-]以上定义的意义是：支持所有类型浏览器的最近两个版本且需要至少有 1% 的占有率，不包括小于等于 IE8 版本的浏览器。浏览器占有率信息来自于 https://caniuse.com/ 统计。依赖包版本信息在 dependencies 和 devDependencies 中定义了依赖包列表，每个包都定义了版本信息，如：^0.13.0 或 ~3.0.0，通过版本号前的符号可以们定义接受那些版本的升级，下面介绍版本标记的用法：无标记，如 1.0.0 定义只安装此版本的包latest 定义安装最新版本的包^ 只能升级到不改变最左边第一个非零数字的版本，如定义 ^0.13.0，通过 npm update 可以升级到 0.13.1 或 0.13.2，但不能升级到 0.14.0，定义 ^1.13.0，能够升级到 1.13.1 或 1.14.0，不能升级到 2.0.0~ 只能升级最后一位数字变化的版本，如 定义 ~1.13.0，能够升级到 1.13.1，但不能升级到 1.14.0&gt; 接受大于定义的版本号的更新&gt;= 接受大于等于定义的版本号的更新&lt; 接受小于定义的版本号的更新&lt;= 接受小于等于定义的版本号的更新- 设置一个版本范围，如：1.0.0 - 2.0.0|| 组合设置，如：&lt; 2.0.0 || &gt; 3.0.0更加详细的定义方法参考：https://nodejs.dev/learn/semantic-versioning-using-npmpackage-lock.json 文件在 npm 5 版本中 npm 引入了 package-lock.json 文件。前面介绍了 package.json 文件，它是一个通用的被广泛使用的配置文件。package-lock.json 文件的目的是更加确切的追踪安装的依赖包的版本，以用来 100% 复制开发者的安装环境到其他安装者设备上，即使某些包已经够了更新版本。这解决了一个 package.json 遗留的问题，在 package.json 中你可以定义某个包可接受的版本升级范围，版本格式遵守 semantic versioning (semver) notation 语义版本标记语法，例如：~1.13.1 可以升级到 1.13.2，但不可以升级到 1.14.0^1.13.1 可以升级到 1.14.0，但不能升级到 2.0.01.13.1 只能安装 1.13.1 版本，不能升级到其他任何版本你发布的包中并不包含开发环境中的  node_modules 文件夹因为它占用空间很大。当在其他设备中通过 npm install  命令安装依赖包时，竟会遵循上面定义的版本范围安装支持的最新版本到设备中，这就会导致用户安装的版本和你开发环境的版本不一致，可能导致 bug 的出现。package-lock.json 中定义了你当前开发环境安装的各种依赖包的准确版本，这样通过 npm install 命令安装的就是其中定义的准确版本。这一概念并不是 npm 独创的，其他编程语言也在使用类似的模式，如 php 的 Composer。package-lock.json 文件需要打包在仓库中，以供其他人使用。当使用 npm update 更新包时，package-lock.json 中的定义也会同步更新。下面是一个 package-lock.json 文件的示例，当我们执行 npm install cowsay 时，会创建以下内容：{
-  &quot;requires&quot;: true,
-  &quot;lockfileVersion&quot;: 1,
-  &quot;dependencies&quot;: {
-    &quot;ansi-regex&quot;: {
-      &quot;version&quot;: &quot;3.0.0&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/ansi-regex/-/ansi-regex-3.
-0.0.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-7QMXwyIGT3lGbAKWa922Bas32Zg=&quot;
-    },
-    &quot;cowsay&quot;: {
-      &quot;version&quot;: &quot;1.3.1&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/cowsay/-/cowsay-1.3.1.tgz&quot;
-,
-      &quot;integrity&quot;: &quot;sha512-3PVFe6FePVtPj1HTeLin9v8WyLl+VmM1l1H/5P+BTTDkM
-Ajufp+0F9eLjzRnOHzVAYeIYFF5po5NjRrgefnRMQ==&quot;,
-      &quot;requires&quot;: {
-        &quot;get-stdin&quot;: &quot;^5.0.1&quot;,
-        &quot;optimist&quot;: &quot;~0.6.1&quot;,
-        &quot;string-width&quot;: &quot;~2.1.1&quot;,
-        &quot;strip-eof&quot;: &quot;^1.0.0&quot;
-      }
-    },
-    &quot;get-stdin&quot;: {
-      &quot;version&quot;: &quot;5.0.1&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/get-stdin/-/get-stdin-5.0.
-1.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-Ei4WFZHiH/TFJTAwVpPyDmOTo5g=&quot;
-    },
-    &quot;is-fullwidth-code-point&quot;: {
-      &quot;version&quot;: &quot;2.0.0&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/is-fullwidth-code-point/-/
-is-fullwidth-code-point-2.0.0.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-o7MKXE8ZkYMWeqq5O+764937ZU8=&quot;
-    },
-    &quot;minimist&quot;: {
-      &quot;version&quot;: &quot;0.0.10&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/minimist/-/minimist-0.0.10
-.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-3j+YVD2/lggr5IrRoMfNqDYwHc8=&quot;
-    },
-    &quot;optimist&quot;: {
-      &quot;version&quot;: &quot;0.6.1&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/optimist/-/optimist-0.6.1.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-2j6nRob6IaGaERwybpDrFaAZZoY=&quot;,
-
-      &quot;requires&quot;: {
-        &quot;minimist&quot;: &quot;~0.0.1&quot;,
-        &quot;wordwrap&quot;: &quot;~0.0.2&quot;
-      }
-    },
-    &quot;string-width&quot;: {
-      &quot;version&quot;: &quot;2.1.1&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/string-width/-/string-width-2.1.1.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha512-nOqH59deCq9SRHlxq1Aw85Jnt4w6KvLKqWVik6oA9ZklXLNIOlqg4F2yrT1MVaTjAqvVwdfeZ7w7aCvJD7ugkw==&quot;,
-      &quot;requires&quot;: {
-        &quot;is-fullwidth-code-point&quot;: &quot;^2.0.0&quot;,
-        &quot;strip-ansi&quot;: &quot;^4.0.0&quot;
-      }
-    },
-    &quot;strip-ansi&quot;: {
-      &quot;version&quot;: &quot;4.0.0&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/strip-ansi/-/strip-ansi-4.0.0.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-qEeQIusaw2iocTibY1JixQXuNo8=&quot;,
-      &quot;requires&quot;: {
-        &quot;ansi-regex&quot;: &quot;^3.0.0&quot;
-      }
-    },
-    &quot;strip-eof&quot;: {
-      &quot;version&quot;: &quot;1.0.0&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/strip-eof/-/strip-eof-1.0.0.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-u0P/VZim6wXYm1n80SnJgzE2Br8=&quot;
-    },
-    &quot;wordwrap&quot;: {
-      &quot;version&quot;: &quot;0.0.3&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/wordwrap/-/wordwrap-0.0.3.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-o9XabNXAvAAI03I0u68b7WMFkQc=&quot;
-    }
-  }
-}我们安装的 cowsay 有如下依赖，它们会被自动安装：get-stdinoptimiststring-widthstrip-eof以上的依赖包可能也会有它们各自的其他依赖包，会自动安装相关其他包，每个包的依赖包在 requires 属性中定义。所有的包以字母排序顺序在文件中。每个包都有 version 属性定义了各自当前安装的版本，resolved 定义了包地址，integrity 字符串用来验证包。包版本管理及安装下面的指令查询当前安装的所有包及其依赖包：npm list
-输出信息示例：❯ npm list
-/Users/joe/dev/node/cowsay
-└─┬ cowsay@1.3.1
-  ├── get-stdin@5.0.1
-  ├─┬ optimist@0.6.1
-  │ ├── minimist@0.0.10
-  │ └── wordwrap@0.0.3
-  ├─┬ string-width@2.1.1
-  │ ├── is-fullwidth-code-point@2.0.0
-  │ └─┬ strip-ansi@4.0.0
-  │   └── ansi-regex@3.0.0
-  └── strip-eof@1.0.0当然也可以直接打开 package-lock.json 文件查看，但这样不太方便观察结构。npm list -g 用来查看 global 安装的包。如果只想查询顶层的包，也就是你主动通过 npm install 安装的那些包，可通过 npm list --depth=0 查询：❯ npm list --depth=0
-/Users/joe/dev/node/cowsay
-└── cowsay@1.3.1也可以单独查询某个包：❯ npm list cowsay
-/Users/joe/dev/node/cowsay
-└── cowsay@1.3.1使用下面命令查询某个包当前发布的最新版本：❯ npm view cowsay version
-1.4.0要安装某个包的特定版本需要加上 @ 标记：npm install cowsay@1.2.0
-查看某个包的所有历史版本列表：$ npm view cowsay versions
-[
-  '1.0.0', '1.0.1', '1.0.2',
-  '1.0.3', '1.1.0', '1.1.1',
-  '1.1.2', '1.1.3', '1.1.4',
-  '1.1.5', '1.1.6', '1.1.7',
-  '1.1.8', '1.1.9', '1.2.0',
-  '1.2.1', '1.3.0', '1.3.1',
-  '1.4.0'
-]通过 npm update 可以更新所有已安装的包，更新版本规则遵循 package.json 定义的版本升级范围，同时会更新 package-lock.json 文件内的当前包版本信息。想要查询当前有哪些包有更新版本时，可以执行 npm outdated 命令：其中有些更新是大版本更新， npm update 并不会更新到这些大版本，因为这些更新可能包含有重大的变化。如果要强制更新到最新的版本包括大版本更新，可以按顺序执行下面的命令：npm install -g npm-check-updates
-ncu -u
-npm update使用下面命令卸载某个包：npm uninstall &lt;package-name&gt;
-添加 -S 或 --save 标记删除 package.json 中的相关信息。如果要删除的包是一个开发包，在 devDependencies 中定义过，则需要添加 -D 或 --save-dev 标记来删除相关信息：npm uninstall -S &lt;package-name&gt;
-npm uninstall -D &lt;package-name&gt;如果包是 global 安装的，则卸载需要添加 -g 标记：npm uninstall -g &lt;package-name&gt;
-npm local 和 global 安装本地包和全局包的区别是本地包通过 npm install 安装到当前项目下的 node_modules 文件夹内，全局包通过 npm install -g 安装到系统路径下，路径地址可通过 npm root -g 查询。在程序中，只能 require 本地包：require('package-name')
-通常情况下推荐所有的包都以本地模式安装。这可以让不同的程序使用各自不同版本的包。更新一个全局包会同时影响所有使用这个包的 app。当一个包含有可执行程序时，应该安装为 global 全局包。这样所有的项目都可以调用执行。npm dependencies 和 devDependencies当通过 npm intall 安装包时，表示将包作为 dependency。包信息会自动写入 package.json 文件的 dependencies 块内。当安装时添加 -D 标记，表示将包作为 devdependency 安装。包信息会自动写入 devDependencies 块内。开发包的目的是用来开发程序时使用，作为产品运行时是不需要的。执行 npm install 会默认安装这些开发包。如果不需要安装开发包需要加上 --production 标记：npm install --production xxx
-npx 包运行器npx 可以用来运行 node.js 程序。node.js 开发者通常将大部分含有可执行程序的包作为 global 包发布，这样就使得可执行程序在系统 PATH 路径下可以被直接执行。但这样的弊端就是不能安装不同版本的包。使用 npx 命令可以自动寻找 node_modules 文件夹内的对应的名称的可执行程序，而不需要知道程序具体的路径，也不需要以 global 方式安装包。npx 另一个很好的功能是可以直接运行某些命令而不需要提前安装它们，还可以通过 @ 标记来执行不同版本的同一命令。cowsay 是一个很好的示例来说明 npx 的使用，如果我们以 global 模式安装 cowsay，可以通过下面方式执行：cowsay &quot;wow&quot;
-以上命令只有通过 global 方式安装才能够正常执行，否则会报错提示命令不存在。如果以 local 方式安装 cowsay，可以通过 npx 执行：npx cowsay &quot;Hello&quot;
-通过 @ 标记来执行不同版本的命令：npx node@10 -v #v10.18.1
-npx node@12 -v #v12.14.1npm 也可以直接执行来自 url 的任意代码片段，而不仅限于 npm 官方渠道发布的包。下面示例是执行部署在 glist 的包：npx https://gist.github.com/zkat/4bc19503fe9e9309e2bfaa2c58074d32
-可执行程序路径定义在 package.json 文件的 bin 属性内。glist 包含内容如下：当然执行不受控制网络的代码需要多加注意。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2074.html">
-<title>服务器部署 WebDAV 服务</title>
-<link>https://blog.niekun.net/archives/2074.html</link>
-<dc:date>2021-01-22T11:16:00+08:00</dc:date>
-<description>WebDAV(Web-based Distributed Authoring and Versioning) 一种基于 HTTP 1.1协议的通信协议。它扩展了HTTP 1.1在 GET、POST、HEAD等几个HTTP标准方法以外添加了一些新的方法，使应用程序可对Web Server直接读写，并支持写文件锁定(Locking)及解锁(Unlock)，还可以支持文件的版本控制。简单说 webdav 就像一个网盘，可以远程访问他的目录名对其文件进行读写操作。WebDAV 允许客户端进行下列操作：处理服务器上 WebDAV 发布目录中的资源具有正确权限的用户可以在 WebDAV目录中复制和移动文件修改与某些资源相关联的属性。例如，用户可写入并检索文件的属性信息锁定并解锁资源以便多个用户可同时读取一个文件。但每次只能有一个人修改文件搜索 WebDAV 目录中的文件的内容和属性下面介绍如何在服务器上部署 WebDAV 服务。这里通过 nginx 来代理。编译 nginx我们通过 nginx 来代理 webdav 服务，nginx 自带有 ngx_http_dav_module 模块，但是其不支持一些 webdav 的 method 如：PROPFIND, OPTIONS, LOCK, UNLOCK。可以通过第三方模块来完整支持 webdav 的特性。下载以下两个第三方模块：nginx-dav-ext-module：https://github.com/arut/nginx-dav-ext-moduleheaders-more-nginx-module：https://github.com/openresty/headers-more-nginx-module以上两个模块需要在编译时通过 --add-module 参数来引入模块，同时需要包含 --with-http_dav_module 模块，否则编译会报错。从源码编译 nginx 参考我之前的教程：https://blog.niekun.net/archives/30.html我使用的完整的编译参数如下：./configure --prefix=/opt/nginx-1.19.6 \
---user=nginx --group=nginx \
---with-compat --with-file-aio --with-threads \
---with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module \
---with-mail --with-mail_ssl_module \
---with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module \
---add-module=../echo-nginx-module \
---add-module=../ngx-fancyindex \
---add-module=../headers-more-nginx-module \
---add-module=../nginx-dav-ext-module配置文件nginx 编译安装完成后，需要配置 conf 文件来使 webdav 生效。我提前已经设置了一个单独的子域名来访问 webdav 服务，且使用 ssl 加密。首先建立 webdav 文件夹并设置正确的权限，否则在读写时会提示权限不足：mkdir /home/www/webdav
-chown -R www-data:www-data /home/www/webdav如果想要限制用户访问，可以使用 ngx_http_auth_basic_module 模块来建立账号访问，具体参考：https://blog.niekun.net/archives/730.html完整配置文件如下：dav_ext_lock_zone zone=foo:10m;
-server {
-    listen        443 ssl http2;
-    listen        [::]:443 ssl http2;
-    server_name   webdav.xxx.xxx;
-    include       my-server/ssl;
-
-    # 限制访问
-    auth_basic           &quot;Restricted Access&quot;;
-    auth_basic_user_file ../users/.adminpasswd;
-
-    # webdav 目录
-    root /home/www/webdav;
-    client_body_temp_path /opt/nginx/client_body_temp;
-
-    # webdav 设置
-    dav_access      user:rw  group:rw  all:r;
-    dav_methods PUT DELETE MKCOL COPY MOVE;
-    dav_ext_methods PROPFIND OPTIONS LOCK UNLOCK;
-    dav_ext_lock zone=foo;
-    create_full_put_path on;
-
-    # 优化大文件上传
-    send_timeout 3600;
-    client_body_timeout 3600;
-    keepalive_timeout 3600;
-    lingering_timeout 3600;
-    client_max_body_size 2G;
-
-    location / {
-        # 创建文件夹操作时结尾添加斜杠
-        if ($request_method = MKCOL) {
-            rewrite ^(.*[^/])$ $1/ break;
-        }
-
-        # 移动文件夹操作时结尾添加斜杠
-        if (-d $request_filename) {
-            rewrite ^(.*[^/])$ $1/;
-            set $md /;
-        }
-
-        set $x $http_destination$request_method;
-        if ($x ~ [^/]MOVE) {
-            more_set_input_headers -r &quot;Destination: ${http_destination}${md}&quot;;
-        }
-    }
-
-    # 拒绝 Windows 或 macos 多余文件上传到 webdav 路径
-    location ~ \.(_.*|DS_Store|Spotlight-V100|TemporaryItems|Trashes|hidden|localized)$ {
-        access_log  off;
-        error_log   off;
-
-        if ($request_method = PUT) {
-            return 403;
-        }
-        return 404;
-    }
-
-    location ~ \.metadata_never_index$ {
-        return 200 &quot;Don't index this drive, Finder!&quot;;
-    }
-}注意第一句 dav_ext_lock_zone 要放在 http 块内。否则会报错。配置文件修改好后，使用下面指令测试配置是否正确：nginx -t
-如果返回 ok 重启服务即可：systemctl restart nginx
-客户端连接nginx 配置好 webdav 模块并启动后，可以尝试在客户端访问。Windows 的 file explorer 和 macos 的 finder 都可以直接连接 webdav。Windows 端在 file explorer 中点击 home - easy access - map as drive：在弹出窗口中点击 connect to a web site：点击 next 在地址栏输入服务器 nginx 定义的 webdav 访问地址：点击 next 后如果设置了 auth_basic 会提示要求输入账户和密码，输入账户密码后就进入了 webdav 目录了，下面就可以测试新建文件，修改文件等操作。注意 Windows 中默认只有 https 方式访问的地址才可以设置 auth，否则不会弹出输入账户和密码的提示框，而是直接提示无法访问此地址。如果想要开放 http 方式的 auth 验证，需要修改注册表 HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WebClient\Parameters\BasicAuthLevel 的值为 2，然后重启系统即可，此键值定义为：0 - Basic authentication disabled1 - Basic authentication enabled for SSL shares only2 or greater - Basic authentication enabled for SSL shares and for non-SSL sharesmacos 端参考链接：Making Native WebDAV Actually Work on nginx with Finder and ExplorerNginx repair of WebDAV functionalityModule ngx_http_dav_moduleUsing Basic Authentication with Windows 7 and Windows Vista WebDAV Client</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2071.html">
-<title>修复 ubuntu vmware 虚拟机无法访问主机共享目录</title>
-<link>https://blog.niekun.net/archives/2071.html</link>
-<dc:date>2021-01-15T16:32:00+08:00</dc:date>
-<description>今天发现在 Ubuntu 20.04 虚拟机内无法访问设置的共享文件夹，在 /mnt/hgfs 目录下是空的，检查虚拟机设置并没有什么问题。最后发现是虚拟机没有自动挂载共享目录，命令行下进行挂载即可。首先查看当前设置的共享目录有哪些：$ vmware-hgfsclient 
-Development
-Downloads
-InstallationPackage挂载主机共享路径到虚拟机对应路径下，设置所有用户可访问：$ sudo vmhgfs-fuse .host:/ /mnt/hgfs -o allow_other
-执行以上命令后，发现共享文件夹出现了：$ ls /mnt/hgfs/
-Development  Downloads  InstallationPackage以上就是解决 VMware Linux 虚拟机没有自动挂载共享目录的方法。</description>
 </item>
 </rdf:RDF>

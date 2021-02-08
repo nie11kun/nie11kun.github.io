@@ -11,13 +11,269 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/web/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Sun, 07 Feb 2021 17:17:30 +0800</lastBuildDate>
-<pubDate>Sun, 07 Feb 2021 17:17:30 +0800</pubDate>
+<lastBuildDate>Mon, 08 Feb 2021 21:42:00 +0800</lastBuildDate>
+<pubDate>Mon, 08 Feb 2021 21:42:00 +0800</pubDate>
+<item>
+<title>node.js 入门教程九 -- events 模块</title>
+<link>https://blog.niekun.net/archives/2151.html</link>
+<guid>https://blog.niekun.net/archives/2151.html</guid>
+<pubDate>Mon, 08 Feb 2021 21:42:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[在之前介绍 event loop 的章节，我们简单介绍了 events 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。events 模块提供了 Ev...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>在之前介绍 <strong>event loop</strong> 的章节，我们简单介绍了 <strong>events</strong> 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。</p><p><strong>events</strong> 模块提供了 <strong>EventEmitter</strong> class 它是处理 events 的关键工具。</p><p>引入及初始化 events 模块如下：</p><pre><code>const EventEmitter = require('events')
+const eventEmitter = new EventEmitter()</code></pre><p>每个 event listener 事件监听器都是互相独立的，同时它们使用如下 events：</p><ul><li><strong>newListener</strong> 当一个 event 被添加</li><li><strong>removeListener</strong> 当一个 event 被删除</li></ul><p>下面介绍常用的一些 method。</p><!--more--><h3>eventEmitter.addListener()</h3><p><code>eventEmitter.addListener()</code> 和 <code>eventEmitter.on()</code> 功能相同。可以给某个 event 添加一个 listener，语法如下：</p><pre><code>eventEmitter.addListener('test', () =&gt; {})
+</code></pre><h3>eventEmitter.emit()</h3><p><code>eventEmitter.emit()</code> 用来触发一个信号，信号触发后，对应信号的 event listener 会响应 callback function：</p><pre><code>eventEmitter.addListener('test', () =&gt; { console.log('test emited') })
+eventEmitter.emit('test')
+
+//output:
+//test emited</code></pre><h3>eventEmitter.eventNames()</h3><p><code>eventEmitter.eventNames()</code> 会返回当前 <strong>EventEmitter</strong> object 内注册已的 events 为一个字符串数组：</p><pre><code>eventEmitter.addListener('test1', () =&gt; {})
+eventEmitter.addListener('test2', () =&gt; {})
+console.log(eventEmitter.eventNames())
+
+//output:
+//[ 'test1', 'test2' ]</code></pre><h3>eventEmitter.getMaxListeners()</h3><p><code>eventEmitter.getMaxListeners()</code> 返回当前 <strong>EventEmitter</strong> object 能添加的 event listener 最大数量。默认为 10 个，可以通过 <code>setMaxListeners()</code> 修改。</p><h3>eventEmitter.listenerCount()</h3><p><code>eventEmitter.listenerCount()</code> 返回某个 event 定义的 listeners 数量：</p><pre><code>eventEmitter.addListener('test4', () =&gt; { console.log('a') })
+eventEmitter.addListener('test4', () =&gt; { console.log('b') })
+console.log(eventEmitter.listenerCount('test4'))
+
+//output:
+//2</code></pre><h3>eventEmitter.listeners()</h3><p><code>eventEmitter.listeners()</code> 返回某个 event 所有的 listeners 为一个数组：</p><pre><code>const f1 = () =&gt; {}
+const f2 = () =&gt; {}
+eventEmitter.addListener('test5', f1)
+eventEmitter.addListener('test5', f2)
+console.log(eventEmitter.listeners('test5'))
+
+//output:
+//[ [Function: f1], [Function: f2] ]</code></pre><h3>eventEmitter.off()</h3><p><code>eventEmitter.off()</code> 和 <code>eventEmitter.removeListener()</code> 功能相同。可以删除一个 event 的某个 listener，需要指定 event 名称和 listener callback 名称：</p><pre><code>const f3 = () =&gt; {}
+eventEmitter.addListener('test6', f3)
+eventEmitter.off('test6', f3)</code></pre><h3>eventEmitter.on()</h3><p><code>eventEmitter.on()</code> 同 <code>eventEmitter.addListener()</code> 功能相同。可以给某个 event 添加一个 listener：</p><pre><code>eventEmitter.on('test6', () =&gt; {})</code></pre><h3>eventEmitter.once()</h3><p><code>eventEmitter.once()</code> 监听一个 event 且其 callback function 只能被执行一次：</p><pre><code>eventEmitter.once('test7', () =&gt; console.log('once show once'))
+eventEmitter.emit('test7')
+eventEmitter.emit('test7')
+
+//output:
+//once show once</code></pre><h3>eventEmitter.prependListener()</h3><p>当通过 <code>eventEmitter.on()</code> 添加 listener 时，会按照添加顺序排列在此 event 队列中，当对应 event 触发时，会按照排列顺序以此执行 callback。</p><p>使用 <code>eventEmitter.prependListener()</code> 添加的 listener 会添加到队列的最前面，触发时最先被执行：</p><pre><code>eventEmitter.on('test8', () =&gt; console.log('first listener'))
+eventEmitter.prependListener('test8', () =&gt; console.log('second listener'))
+eventEmitter.emit('test8')
+
+//output:
+//second listener
+//first listener</code></pre><h3>eventEmitter.prependOnceListener()</h3><p><code>eventEmitter.prependOnceListener()</code> 同 <code>eventEmitter.on()</code> 的区别和上面类似，会将 listener 添加到对应 event listeners 队列的最前面，然后最先被执行且只能响应一次：</p><pre><code>eventEmitter.once('test9', () =&gt; console.log('first listener'))
+eventEmitter.prependOnceListener('test9', () =&gt; console.log('second listener'))
+eventEmitter.emit('test9')
+eventEmitter.emit('test9')
+
+//output:
+//second listener
+//first listener</code></pre><h3>eventEmitter.removeAllListeners()</h3><p><code>eventEmitter.removeAllListeners()</code> 可以删除指定 event 的所有 listeners：</p><pre><code>eventEmitter.removeAllListeners('test9')</code></pre><h3>eventEmitter.removeListener()</h3><p><code>eventEmitter.removeListener()</code> 可以删除 event 的指定 listener。需要将 listener 的 callback function 定义为变量格式然后再调用，这样就可以在此 reference 它：</p><pre><code>const f1 = () =&gt; {}
+const f2 = () =&gt; {}
+eventEmitter.addListener('test5', f1)
+eventEmitter.addListener('test5', f2)
+
+eventEmitter.removeListener('test5', f1)</code></pre><h3>eventEmitter.setMaxListeners()</h3><p><code>eventEmitter.setMaxListeners()</code> 可以定义 <strong>EventEmitter</strong> object 最大可以添加的 listeners 数量：</p><pre><code>eventEmitter.setMaxListeners(20)
+console.log(eventEmitter.getMaxListeners())
+
+//output:
+//20</code></pre><p>以上就是 events 模块最常用功能的介绍。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2151.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2151.html</wfw:commentRss>
+</item>
+<item>
+<title>node.js 入门教程之八 -- os 模块</title>
+<link>https://blog.niekun.net/archives/2147.html</link>
+<guid>https://blog.niekun.net/archives/2147.html</guid>
+<pubDate>Mon, 08 Feb 2021 14:03:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[os 模块可以用来获取操作系统的底层信息和系统上运行的程序，以及和系统交互。它集成在 node.js 中，只需要引入即可：const os = require('os')这里先介绍一些在处理文件...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>os 模块可以用来获取操作系统的底层信息和系统上运行的程序，以及和系统交互。</p><p>它集成在 node.js 中，只需要引入即可：</p><pre><code>const os = require('os')
+</code></pre><p>这里先介绍一些在处理文件时有用的 properties：</p><ul><li>os.EOL 会返回 line delimiter 行定界符，<code>\n</code> on Linux and macOS, and <code>\r\n</code> on Windows</li><li>os.constants.signals 提供处理进程的信号常数，如：SIGHUP, SIGKILL</li><li>os.constants.errno 提供报告 error 的相关常数，如：EADDRINUSE, EOVERFLOW</li></ul><p>完整的 signals 信号列表参考：<a href="https://nodejs.org/api/os.html#os_signal_constants">https://nodejs.org/api/os.html#os_signal_constants</a></p><p>下面介绍 os 模块常用的 method。</p><!--more--><h3>os.arch()</h3><p><code>os.arch()</code> 会返回底层架构的字符串，如：arm, x64, arm64：</p><pre><code>console.log(os.arch())
+
+//output:
+x64</code></pre><h3>os.cpus()</h3><p><code>os.cpus()</code> 会返回系统的 cpu 信息：</p><pre><code>console.log(os.cpus())
+
+//output:
+[
+  {
+    model: 'Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz',
+    speed: 2591,
+    times: {
+      user: 1871810,
+      nice: 17880,
+      sys: 1451160,
+      idle: 81134010,
+      irq: 0
+    }
+  },
+  {
+    model: 'Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz',
+    speed: 2591,
+    times: {
+      user: 1838130,
+      nice: 12780,
+      sys: 1532060,
+      idle: 81234660,
+      irq: 0
+    }
+  }
+]</code></pre><h3>os.endianness()</h3><p>根据 node.js 是通过 Big Endian 或 Little Endian 大尾数或小尾数编译的，<code>os.endianness()</code> 返回 <strong>BE</strong> 或 <strong>LE</strong>：</p><pre><code>console.log(os.endianness())
+
+//output:
+LE</code></pre><p>关于 Big Endian 或 Little Endian 参考：<a href="https://en.wikipedia.org/wiki/Endianness">https://en.wikipedia.org/wiki/Endianness</a><br><img src="https://blog.niekun.net/usr/uploads/2021/02/1127147165.jpg" alt="1.jpg" title="1.jpg"></p><h3>os.freemem()</h3><p><code>os.freemem()</code> 返回系统可用内存，以字节为单位：</p><pre><code>console.log(os.freemem())
+
+//output:
+574537728</code></pre><h3>os.homedir()</h3><p><code>os.homedir()</code> 返回系统当前用户的 home 目录路径：</p><pre><code>console.log(os.homedir())
+
+//output:
+/home/marco</code></pre><h3>os.hostname()</h3><p><code>os.hostname()</code> 返回 hostname 信息：</p><pre><code>console.log(os.hostname())
+
+//output:
+marco-virtual-machine</code></pre><h3>os.loadavg()</h3><p><code>os.loadavg()</code> 返回系统计算的平均加载时间，此 method 只在 Linux/macOS 下有意义：</p><pre><code>console.log(os.loadavg())
+
+//output:
+[ 0.08, 0.17, 0.13 ]</code></pre><h3>os.networkInterfaces()</h3><p><code>os.networkInterfaces()</code> 返回系统的网卡信息：</p><pre><code>console.log(os.networkInterfaces())
+
+//output:
+{ lo0:
+   [ { address: '127.0.0.1',
+       netmask: '255.0.0.0',
+       family: 'IPv4',
+       mac: 'fe:82:00:00:00:00',
+       internal: true },
+     { address: '::1',
+       netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
+       family: 'IPv6',
+       mac: 'fe:82:00:00:00:00',
+       scopeid: 0,
+       internal: true },
+     { address: 'fe80::1',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: 'fe:82:00:00:00:00',
+       scopeid: 1,
+       internal: true } ],
+  en1:
+   [ { address: 'fe82::9b:8282:d7e6:496e',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: '06:00:00:02:0e:00',
+       scopeid: 5,
+       internal: false },
+     { address: '192.168.1.38',
+       netmask: '255.255.255.0',
+       family: 'IPv4',
+       mac: '06:00:00:02:0e:00',
+       internal: false } ],
+  utun0:
+   [ { address: 'fe80::2513:72bc:f405:61d0',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: 'fe:80:00:20:00:00',
+       scopeid: 8,
+       internal: false } ] }</code></pre><h3>os.platform()</h3><p><code>os.platform()</code> 返回当前安装的 node.js 的编译平台，可能的返回值为：</p><ul><li>darwin</li><li>freebsd</li><li>linux</li><li>openbsd</li><li>win32</li><li>...more</li></ul><h3>os.release()</h3><p><code>os.release()</code> 返回当前系统的版本号信息：</p><pre><code>console.log(os.release())
+
+//output:
+5.8.0-41-generic</code></pre><h3>os.tmpdir()</h3><p><code>os.tmpdir()</code> 返回系统的临时文件夹路径：</p><pre><code>console.log(os.tmpdir())
+
+//output:
+/tmp</code></pre><h3>os.totalmem()</h3><p><code>os.totalmem()</code> 返回系统的总内存数量，单位为 byte 字节：</p><pre><code>console.log(os.totalmem()/1024/1024)
+
+//output:
+1958.45703125</code></pre><h3>os.type()</h3><p><code>os.type()</code> 返回当前操作系统类型，返回值可以有：</p><ul><li><strong>Linux</strong></li><li><strong>Darwin</strong> on macOS</li><li><strong>Windows_NT</strong> on Windows</li></ul><h3>os.uptime()</h3><p><code>os.uptime()</code> 返回系统从上次开机来已运行的总时间，单位为秒：</p><pre><code>console.log(os.uptime()/3600)
+
+//output:
+24.260555555555555</code></pre><h3>os.userInfo()</h3><p><code>os.userInfo()</code> 返回一个 object 包含当前的 <strong>username</strong>, <strong>uid</strong>, <strong>gid</strong>, <strong>shell</strong>, 和 <strong>homedir</strong>：</p><pre><code>console.log(os.userInfo())
+
+//output:
+{
+  uid: 1000,
+  gid: 1000,
+  username: 'marco',
+  homedir: '/home/marco',
+  shell: '/bin/bash'
+}</code></pre><p>以上就是 os 模块的简单使用方法。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2147.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2147.html</wfw:commentRss>
+</item>
+<item>
+<title>node.js 入门教程之七 -- fs 和 path 模块</title>
+<link>https://blog.niekun.net/archives/2146.html</link>
+<guid>https://blog.niekun.net/archives/2146.html</guid>
+<pubDate>Mon, 08 Feb 2021 11:21:30 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[上一章节我们了解了如果访问文件系统。使用到了 fs 和 path 模块的部分功能，下面我们详细了解这两个模块可以实现的功能。fs module通过以上几个使用场景可以看到 fs 模块提供了很多有...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>上一章节我们了解了如果访问文件系统。使用到了 fs 和 path 模块的部分功能，下面我们详细了解这两个模块可以实现的功能。</p><h3>fs module</h3><p>通过以上几个使用场景可以看到 fs 模块提供了很多有用的功能来对 file system 进行访问和交互。并且他是集成在 node.js core 中的，并不需要手动安装：</p><pre><code>const fs = require('fs')
+
+</code></pre><!--more--><p>通过以上方式引入 fs 模块后，我们就可以使用它的各种功能了。包括：</p><ul><li><strong>fs.access()</strong>: 检查文件是否存在以及 node.js 是否有权限访问</li><li><strong>fs.appendFile()</strong>: 给一个文件附加数据，如果文件不存在则会创建它</li><li><strong>fs.chmod()</strong>: 修改文件的权限</li><li><strong>fs.chown()</strong>: 修改文件的 owner 和 group 设置</li><li><strong>fs.close()</strong>: 关闭已经打开的文件的 descriptor</li><li><strong>fs.copyFile()</strong>: 复制一个文件</li><li><strong>fs.createReadStream()</strong>: 创建一个可读的文件 stream</li><li><strong>fs.createWriteStream()</strong>: 创建一个可写的文件 stream</li><li><strong>fs.link()</strong>: 创建一个文件的硬链接</li><li><strong>fs.mkdir()</strong>: 新建文件夹</li><li><strong>fs.mkdtemp()</strong>: 创建一个临时文件夹</li><li><strong>fs.open()</strong>: 打开一个文件的 descriptor，可定义打开编码类型</li><li><strong>fs.readdir()</strong>: 读取一个目录下的内容</li><li><strong>fs.readFile(</strong>): 读取一个文件的内容</li><li><strong>fs.readlink()</strong>: 读取一个软连接的值</li><li><strong>fs.realpath()</strong>: resolve 查询一个相对路径文件的绝对路径</li><li><strong>fs.rename()</strong>: 重命名文件或文件夹</li><li><strong>fs.rmdir()</strong>: 删除一个文件夹</li><li><strong>fs.stat()</strong>: 返回一个文件的状态信息</li><li><strong>fs.symlink()</strong>: 创建一个文件的软链接</li><li><strong>fs.truncate()</strong>: 将一个文件分割成指定长度大小</li><li><strong>fs.unlink()</strong>: 删除一个文件或一个软链接</li><li><strong>fs.unwatchFile()</strong>: 停止监测对一个文件的修改</li><li><strong>fs.utimes()</strong>: 修改一个文件的时间戳</li><li><strong>fs.watchFile()</strong>: 开始监测对一个文件的修改</li><li><strong>fs.writeFile()</strong>: 对一个文件写入数据</li></ul><p>fs 模块的一个特性是它的以上所有 method 默认都是 asynchronous 异步的，给 method 后加上 <code>Sync</code> 就可以使用同步模式，例如：</p><ul><li><strong>fs.rename()</strong> -&gt; <strong>fs.renameSync()</strong></li><li><strong>fs.write()</strong> -&gt; <strong>fs.writeSync()</strong></li></ul><p>同步模式下通过使用 <strong>try/catch</strong> 块来处理 error 情况。同步模式下程序会在处理文件过程中出现<strong>进程阻塞</strong>直到处理完成，在编程中可以根据需要灵活运用。</p><h3>path module</h3><p>path 模块也提供了很多实用的功能来访问文件系统以及交互。同样的它也是集成在 node.js core 中而不需要单独安装。</p><pre><code>const path = require('path')
+</code></pre><p>通过 <code>path.sep</code> 可以获取当前系统的 path separator 路径分隔符：<code>\</code> on Windows, and <code>/</code> on Linux/macOS。<br>通过 <code>path.delimiter</code> 可以获取当前系统的 path delimiter 路径定界符：<code>;</code> on Windows, and <code>:</code> on Linux / macOS。</p><p>例如在 Linux 下：</p><pre><code>console.log(process.env.PATH);
+// Prints: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin'
+
+process.env.PATH.split(path.delimiter);
+// Returns: ['/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/bin']</code></pre><p>在 Windows 下：</p><pre><code>console.log(process.env.PATH);
+// Prints: 'C:\Windows\system32;C:\Windows;C:\Program Files\node\'
+
+process.env.PATH.split(path.delimiter);
+// Returns ['C:\\Windows\\system32', 'C:\\Windows', 'C:\\Program Files\\node\\']</code></pre><p>下面是 path 的常用 method 介绍。</p><h4>path.basename()</h4><p>返回路径上的最后一部分，通过第二个参数可以过滤掉扩展名：</p><pre><code>console.log(path.basename('/home/marco/dir'))
+console.log(path.basename('/home/marco/file.txt'))
+console.log(path.basename('/home/marco/file.txt', '.txt'))
+
+//output:
+dir
+file.txt
+file</code></pre><h4>path.dirname()</h4><p>返回路径上的文件夹部分：</p><pre><code>console.log(path.dirname('/home/marco/file'))
+
+//output:
+/home/marco</code></pre><h4>path.extname()</h4><p>返回文件的扩展名：</p><pre><code>console.log(path.extname('/home/marco/file.txt'))
+
+//output:
+.txt</code></pre><h4>path.isAbsolute()</h4><p>返回路径是否是绝对路径：</p><pre><code>console.log(path.isAbsolute('/home/marco'))
+console.log(path.isAbsolute('./marco'))
+
+//output:
+true
+false</code></pre><h4>path.join()</h4><p>将多个部分合并为一个路径：</p><pre><code>const name = 'marco';
+console.log(path.join('/home/' + name + '/file'))
+
+//output:
+/home/marco/file</code></pre><h4>path.normalize()</h4><p>将一个包含相对标记符的路径转换为常规绝对路径：</p><pre><code>console.log(path.normalize('/home/marco/../test'))
+
+//output:
+/home/test</code></pre><h4>path.parse()</h4><p>将路径拆分为一个 object，包含下面的 properties：</p><ul><li>root: 根目录</li><li>dir: 从根目录开始的文件夹部分</li><li>base: 文件名和扩展名</li><li>name: 文件名不包含扩展名</li><li>ext: 扩展名</li></ul><pre><code>console.log(path.parse('/home/marco/test/file.txt'))
+
+//output:
+{
+  root: '/',
+  dir: '/home/marco/test',
+  base: 'file.txt',
+  ext: '.txt',
+  name: 'file'
+}</code></pre><h4>path.relative()</h4><p>需要传入两个路径作为参数，第一个路径作为 base 基础路径，返回第二个路径相对于第一个路径的相对路径：</p><pre><code>console.log(path.relative('/home/marco', '/home/marco/test/file.txt'))
+
+//output:
+test/file.txt</code></pre><h4>path.resolve()</h4><p>计算一个相对路径的绝对路径，基于当前程序执行的路径：</p><pre><code>console.log(path.resolve('file.txt'))
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/file.txt</code></pre><p>也可以设置一个 base 路径，将会附加到相对路径中：</p><pre><code>console.log(path.resolve('tmp/test', 'file.txt'))
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/tmp/test/file.txt</code></pre><p>如果第一个 base 路径是绝对路径，则系统会认为这就是个绝对路径：</p><pre><code>console.log(path.resolve('/tmp/test', 'file.txt'))
+
+//output:
+/tmp/test/file.txt</code></pre><p>注意 <strong>path</strong> 模块对路径的处理不会判断这个路径是否真实存在，它只会按照指令处理路径这个字符串数据。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2146.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2146.html</wfw:commentRss>
+</item>
 <item>
 <title>node.js 入门教程之六 -- FileSystem</title>
 <link>https://blog.niekun.net/archives/2140.html</link>
 <guid>https://blog.niekun.net/archives/2140.html</guid>
-<pubDate>Sun, 07 Feb 2021 17:17:30 +0800</pubDate>
+<pubDate>Sun, 07 Feb 2021 17:17:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[File descriptor 文件描述器当需要访问文件系统里的某个文件时，需要首先得到这个文件的 file descriptor 文件描述器。一个 file descriptor 就是通过 f...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -29,7 +285,7 @@ fs.open('./test.txt', 'r', (err, data) =&gt; {
         return
     }
     console.log('open success')
-})</code></pre><p>如果文件打开成功，callback 中的 <strong>data</strong> 数据就是一个 file descriptor。这种方式是异步处理的，文件打开过程中系统会执行其他任务。</p><!--more--><p>在上面的示例中，<code>fs.open()</code> 的第三个参数使用了 <code>'f'</code> 标记，它的意思就是以<strong>只读模式</strong>打开文件。我们可以通过使用不同的标记来以不同的方式打开文件：</p><ul><li><strong>r</strong> 只读模式，文件不存在会报错</li><li><strong>a</strong> 只写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li><li><strong>r+</strong> 读写模式，文件不存在会报错</li><li><strong>w+</strong> 读写模式，streaming 流定位到文件起始位置，如果文件不存在则创建文件</li><li><strong>a+</strong> 读写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li></ul><p>更多 flag 的使用参考：<a href="https://nodejs.org/api/fs.html#fs_file_system_flags">https://nodejs.org/api/fs.html#fs_file_system_flags</a></p><p>也可以使用 <code>fs.openSync()</code> method 打开文件，其返回值为 file descriptor 而不是通过 callback 的方式：</p><pre><code>try {
+})</code></pre><p>如果文件打开成功，callback 中的 <strong>data</strong> 数据就是一个 file descriptor。注意并不是文件的内容。</p><p>这种方式是异步处理的，文件打开过程中系统会执行其他任务。</p><!--more--><p>在上面的示例中，<code>fs.open()</code> 的第三个参数使用了 <code>'f'</code> 标记，它的意思就是以<strong>只读模式</strong>打开文件。我们可以通过使用不同的标记来以不同的方式打开文件：</p><ul><li><strong>r</strong> 只读模式，文件不存在会报错</li><li><strong>a</strong> 只写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li><li><strong>r+</strong> 读写模式，文件不存在会报错</li><li><strong>w+</strong> 读写模式，streaming 流定位到文件起始位置，如果文件不存在则创建文件</li><li><strong>a+</strong> 读写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li></ul><p>更多 flag 的使用参考：<a href="https://nodejs.org/api/fs.html#fs_file_system_flags">https://nodejs.org/api/fs.html#fs_file_system_flags</a></p><p>也可以使用 <code>fs.openSync()</code> method 打开文件，其返回值为 file descriptor 而不是通过 callback 的方式：</p><pre><code>try {
     const data = fs.openSync('./test.txt', 'r')
     console.log('open success')
 } catch (error) {
@@ -199,6 +455,10 @@ fs.remove(p, err =&gt; {
 })</code></pre><p>也可以使用 promise 模式：</p><pre><code>fs.remove(p)
 .then(() =&gt; console.log('remove success'))
 .catch((err) =&gt; console.log(err))</code></pre><p>还可以使用 async/await 模式：</p><pre><code>const rm = async (p) =&gt; {
+    if (!fs.existsSync(p)) {
+        console.log('folder does not exist')
+        return
+    }
     try {
         await fs.remove(p)
         console.log('remove success')
@@ -206,7 +466,7 @@ fs.remove(p, err =&gt; {
         console.log('remove error')
     }
 }
-rm(p)</code></pre>
+rm(p)</code></pre><p>下一章我们继续了解 fs 和 path 模块的详细内容。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2140.html#comments</comments>
@@ -1284,938 +1544,6 @@ server.listen(port, hostname, () =&gt; {
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2043.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2043.html</wfw:commentRss>
-</item>
-<item>
-<title>JavaScript 入门教程之八 -- ES6</title>
-<link>https://blog.niekun.net/archives/2011.html</link>
-<guid>https://blog.niekun.net/archives/2011.html</guid>
-<pubDate>Mon, 21 Dec 2020 22:13:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[ECMAScript (ES) 就是标准 JavaScript 的脚本语言规范。它的第 6 个版本，开始被叫做 ECMAScript 6 (ES6) 然后改名为 ECMAScript 2015，...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p><strong>ECMAScript</strong> (ES) 就是标准 JavaScript 的脚本语言规范。</p><p>它的第 6 个版本，开始被叫做 ECMAScript 6 (ES6) 然后改名为 ECMAScript 2015，为编写更加复杂的程序添加了很重要的新语法。包括了：classes and modules, iterators and for/of loops, generators, arrow functions, binary data, typed arrays, collections (maps, sets and weak maps), promises, number and math enhancements, reflection, and proxies。</p><p>ES6 是 ES5 的超集，ES6 现在非常流行，原因就是它引入了新的约定和 OOP 的概念，如：<strong>classes</strong>。下面我们介绍一些 ES6 中最核心的一些特性。</p><p>需要注意的是只有浏览器支持 ES6 的情况下才能够执行 ES6 指令，否则会报错。</p><!--more--><h3>var & let</h3><p>ES6 中有三种方式定义变量：</p><pre><code>var a = 10;
-const b = &quot;test&quot;;
-let c = true;</code></pre><p>使用那种类型来申明变量取决于变量需要使用的 <strong>scope</strong> 范围。<strong>scope</strong> 是所有编程语言的基本概念，它定义了变量的可见范围。</p><p><code>var</code> 关键词定义的变量是全局有效的，或者在整个 function 内有效，而与具体在那个代码块内定义它无关。</p><p><code>let</code> 可以定义一个变量在某个特定 scope 内有效，如一个代码块或一个表达式内。</p><p>例如：</p><pre><code>if (true) {
-    let age = 5;
-}
-alert(age);</code></pre><p>以上代码会报错 <code>ES6.html:21 Uncaught ReferenceError: age is not defined</code>，可以打开浏览器调试窗口查看：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/431690113.jpg" alt="1.jpg" title="1.jpg"></p><p>这种情况下，name 变量只能在 if 表达式内被使用，因为它使用 <code>let</code> 申明。</p><p>测试 <code>var</code> 和 <code>let</code> 的区别，我们做下面的示例：</p><pre><code>&lt;script&gt;
-    function varTest() {
-        var x = 1;
-        if (true) {
-            var x = 2;
-            console.log(x); // 2
-        }
-        console.log(x); // 2
-    }
-
-    function letTest() {
-        let x = 3;
-        if (true) {
-            let x = 4;
-            console.log(x); // 4
-        }
-        console.log(x); // 3
-    }
-    varTest();
-    letTest();
-&lt;/script&gt;</code></pre><p>输出结果为：</p><pre><code>2
-2
-4
-3</code></pre><p><code>varTest()</code> 中定义的两个 x 实际上是同一个变量。<code>letTest()</code> 中 if 表达式中的 x 和外围的 x 不是一个变量。</p><p><code>let</code> 最常使用的地方就是 for 循环中：</p><pre><code>for (let index = 0; index &lt; 3; index++) {
-}</code></pre><p>index 只在 for 循环内可以被使用。</p><p><code>const</code> 变量和 <code>let</code> 变量一样都在 scope 内有效。不同点是 <code>const</code> 变量的值是不可变的，不能够被重新分配数据。</p><p>以下指令会报错：</p><pre><code>const a = 1;
-a = 2;</code></pre><h3>Template Literals</h3><p><strong>Template literals</strong> 文字模板是将变量输出到字符串的一种方式，ES6 之前需要打断字符串：</p><pre><code>var name = &quot;marco&quot;;
-var msg = &quot;hello&quot; + name + &quot;!&quot;;
-console.log(msg);</code></pre><p>ES6 引入了一种新的方式来处理：</p><pre><code>var name = &quot;marco&quot;;
-var msg = `hello ${name}!`;
-console.log(msg);</code></pre><p><strong>template literals</strong> 文字模板使用 <code>`</code> 符号来代替引号 <code>&quot;</code> 或 <code>'</code>。</p><p><code>${expression}</code> 是一个占位符，可以包含任何表达式，将评估的结果返回后嵌入 <strong>template literals</strong> 文字模板中。</p><p>例如：</p><pre><code>var a = 1;
-var b = 2;
-var msg = `sum is ${a + b}`;
-console.log(msg);</code></pre><h3>Loops and Functions in ES6</h3><p>在 JavaScript 中常用 <strong>for</strong> 循环来 iterate list 中的元素：</p><pre><code>let array = [1, 2, 3];
-for (let index = 0; index &lt; array.length; index++) {
-    const element = array[index];
-}</code></pre><p><strong>for...in</strong> 循环可以用来 iterating 一个含有一定数量的 properties 的 object：</p><pre><code>let obj = {
-    a: 1,
-    b: 2,
-    c: 3
-};
-for (let key in obj) {
-    console.log(obj[key]);
-}</code></pre><p>log 输出为：</p><pre><code>1
-2
-3</code></pre><p>注意 <code>for...in</code> loop 不能 iterate 一个 <strong>array</strong> 数组。虽然数组也是一个 object，但他的 index 索引是基于 number 数字的。基于 JavaScript engine，<code>for...in</code> 循环 iterate 某个 list 的元素的顺序是随机的，而且 iterating 索引是一个 string 字符串的，而不是 number 数字，所以当你测试对这个索引进行某些 math 数学加法运算，会发现执行的是对字符串的串联而不是数字运算。</p><p>ES6 中引入了一个 <code>for...of</code> loop 能够创建一个对 <strong>iterable object</strong> 进行 iterating 的循环，数组就是一种 iterable object，而含有 <code>name: value</code> 结构属性的 object 不属于。后面我们会介绍实际上是通过 <strong>Symbol.iterator</strong> 来索引数组类型的 object 的。</p><p>例如：</p><pre><code>let array = [1, 2, 3];
-for (const iterator of array) {
-    console.log(iterator);
-}</code></pre><p>在每个循环中，iterator 变量都会赋值为 object 内的坐标元素。</p><p><code>for...of</code> loop 适用于其他 <code>iterable objects</code> 例如 string 字符串：</p><pre><code>for (const iterator of &quot;object&quot;) {
-    console.log(iterator);
-}</code></pre><p>输出结果为：</p><pre><code>o
-b
-j
-e
-c
-t</code></pre><p><code>for...of</code> 同样适用于 ES6 新引入的一些集合：<strong>Map</strong>, <strong>Set</strong>, <strong>WeakMap</strong>, and <strong>WeakSet</strong>，后面我们会做介绍。</p><h3>Functions in ECMAScript 6</h3><p>ES6 之前定一个 function 的方法如下：</p><pre><code>function add(a, b) {
-    let sum = a + b;
-    console.log(sum);
-}</code></pre><p>ES6 介绍了一种新的语法，效果和上面的示例完全一样：</p><pre><code>const add = (a, b) =&gt; {
-    let sum = a + b;
-    console.log(sum);
-}</code></pre><p>这种写法叫做 <strong>arrow function</strong>，对于只有一个参数的简单 function 非常好用，可以省略关键词 <strong>function</strong> 和 <strong>return</strong> 甚至是大括号<code>{}</code>和小括号<code>()</code>：</p><pre><code>const greet = x =&gt; &quot;welcome&quot; + x;</code></pre><p>以上代码定义了一个 <strong>greet</strong> function，有一个参数和一个 string 返回值。</p><p>如果 function 没有参数，需要加一个小括号<code>()</code>：</p><pre><code>const x = () =&gt; alert(&quot;hi&quot;);</code></pre><p>这种语法对于 <strong>inline function</strong> 很有用。</p><p>假如有一个数组，需要对其每一个元素都执行某个 function，使用 array 的 <code>forEach</code> method 来为每个元素调用 function，传统写法如下：</p><pre><code>var arr = [1, 2 ,3 ];
-arr.forEach(function(el) {
-    console.log(el * 2);
-});</code></pre><p>在 ES6 中，以上功能可以重写为：</p><pre><code>arr.forEach(el =&gt; {
-    console.log(el * 2);
-});</code></pre><p>代码是不是简化很多呢？</p><h4>Default Parameters in ES6</h4><p>之前的 function 中定义参数的默认值可以这样：</p><pre><code>function test(a, b = 2, c = 3) {
-    console.log(a + b + c);
-}</code></pre><p>使用 <strong>arrow function</strong> 可以这样定义：</p><pre><code>const test = (a, b = 2, c = 3) =&gt; {
-    console.log(a + b + c);
-}</code></pre><h3>ES6 objects</h3><p>JavaScript 中 <strong>object</strong> 内可以定义多个 variable 变量，叫做 <strong>properties</strong>。properties 定义了 function 的叫做 <strong>method</strong>，例如：</p><pre><code>var person = {
-    name: &quot;marco&quot;, age: 20,
-    like: &quot;basketball&quot;, height: 62,
-    test: function() {
-        alert(&quot;method&quot;);
-    }
-};</code></pre><p><strong>test</strong> 就是一个 method，ES6 引入了一种简化的语法和 properties 名称来使定义更加方便和易懂。</p><p>新的语法定义 method 不需要冒号<code>:</code> 和 <code>functon</code> 关键词：</p><pre><code>let person = {
-    test() {
-        alert(&quot;hi&quot;);
-    }
-};
-person.test();</code></pre><p>当使用已知变量定义 properties 且定义名称和变量名称一样时，可以简写语法如下：</p><pre><code>let height = 160;
-let weight = 60;
-
-let man = {
-    height,
-    weight
-};</code></pre><p>以上定义中 <strong>man</strong> object 就定义了两个 properties：<strong>height</strong>，<strong>weight</strong>，且赋值为外部调用变量的值。</p><p>当在 object 中定义了相同名称的 properties，最后一个定义的 property 将会覆盖前面的：</p><pre><code>let x = {a: 2, a: 3, a: 4};
-console.log(x.a);</code></pre><p>输出结果为：4</p><p>在 ES5 中如果使用了 restrict 限制模式，定义重复名称的 properties 将会报语法错误，ES6 中<strong>取消了这个限制</strong>。</p><h4>Computed Property Names 预定义属性名</h4><p>ES6 中，可以使用 <strong>computed property name 预定义属性名</strong>。通过方括号<code>[]</code> 我们可以在 properties name 中使用一个表达式，可以进行包括串联字符串或数学运算等指令。当需要创建一个基于实际用户数据(id, email等)的特定 object 时非常有用。</p><p>示例 1：</p><pre><code>let name = &quot;marco&quot;;
-let id = &quot;123&quot;;
-let tel = &quot;1300000&quot;;
-
-let user = {
-    [name]: &quot;tom&quot;,
-    [`user_${id}`]: `${tel}`
-};
-console.log(user.user_123);
-
-//output:
-//1300000</code></pre><p>示例 2：</p><pre><code>let i = 0;
-
-let x = {
-    ['foo' + ++i]: i,
-    ['foo' + ++i]: i
-}
-console.log(x.foo1);
-console.log(x.foo2);
-
-//output:
-//1
-//2</code></pre><p>示例 3：</p><pre><code>var par = 'size';
-
-var config = {
-    [par]: 1,
-    ['mobile' + par.charAt(0).toUpperCase() + par.slice(1)]: 2
-}
-console.log(config.mobileSize);
-
-//output:
-//2</code></pre><p>当需要创建基于变量的自定义 object 时，这种方法很有效。</p><p>ES6 object 新增了一个新的 method：<code>assign()</code> 可以用来将多个 source 源结合起来创建一个新 object。<code>assign()</code> 也可以用来创建一个已知 object 的副本。</p><p>请看下面示例：</p><pre><code>let user1 = {
-    name: 'marco',
-    age: 20,
-    sex: 'male'
-}
-
-let user2 = {
-    name: 'jim',
-    age: 18,
-    tel: '12345'
-}
-
-let newUser = Object.assign({}, user1, user2);
-console.log(newUser.name);
-console.log(newUser.tel);
-
-//output:
-//jim
-//12345</code></pre><p><code>Object.assign()</code> 的第一个参数表示需要添加新 properties 的目标 object，第一个参数后的所有参数都会被作为 source 源，源参数的数量没有限制，可以任意多个。</p><p>但是源参数的顺序很重要，因为前面的源 properties 将会被后面的有着同样属性 name 的源 properties 覆盖。例如上面示例中，user1 的 name 和 age properties 会被 user2 的同样名称的 properties 覆盖。</p><p>以上示例，我们使用<code>{}</code> 作为目标 object，使用两个 object 作为源。</p><p>下面我们介绍如何使用 <code>assign()</code> 创建一个 object 复制，新 object 不和原 object 产生关联。</p><p>在下面的示例中，我们使用简单的 assignment <code>=</code> 来创建新 object，但是这种方式会在 object 和原 object 间产生 reference 关联。对新 object 的修改会影响到原 object：</p><pre><code>let person = {
-    name: 'marco',
-    age: 20
-};
-
-let newPerson = person;
-newPerson.name = &quot;tom&quot;;
-console.log(newPerson.name);
-console.log(person.name);
-
-//output:
-//tom
-//tom</code></pre><p>可以看到 修改 <strong>newPerson</strong> 的 <strong>name</strong> 属性也会同时影响到 <strong>person</strong> 的 <strong>name</strong> 属性。</p><p>为了避免这种情况，可以使用 <code>Object.assign()</code> 来新建 object：</p><pre><code>let person = {
-    name: 'marco',
-    age: 20
-};
-
-let newPerson = Object.assign({}, person);
-newPerson.name = 'tom';
-console.log(newPerson.name);
-console.log(person.name);
-
-//output:
-//tom
-//marco</code></pre><p>我们也可以在 <code>assign()</code> 中直接给 properties 赋值：</p><pre><code>let person = {
-    name: 'marco',
-    age: 20
-};
-
-let newPerson = Object.assign({}, person, {name: 'john'});
-console.log(newPerson.name);
-console.log(person.name);
-
-//output:
-//john
-//marco</code></pre><p>以上就是 ES6 中 object 的新语法介绍。</p><h3>Array Destructuring in ES6 数组拆解</h3><p><strong>destructuring assignment</strong> 拆解赋值语法能够实现将一个 array 的 values 拆分，或者将一个 object 的 properties 拆解为独立的个体。</p><h4>Destructuring array</h4><p>ES6中引入的快捷语法来拆解 <strong>array</strong> 数组，下面的示例介绍如何将数组元素拆解为独立个体：</p><pre><code>let arr = [1, 2, 3];
-let [a, b, c] = arr;
-
-console.log(a);
-console.log(b);
-console.log(c);</code></pre><p>也可以拆分一个 function 返回的数组：</p><pre><code>let a = () =&gt; {
-    return [1, 2, 3]
-};
-
-let [a, , c] = a();</code></pre><p>注意上面示例中，第二个参数留空了，表示 a 赋值数组第一个元素，c 赋值数组第三个元素。</p><p>以上 function 使用了 ES6 的简写语法，参考上一节的介绍。</p><p><strong>destructuring</strong> 拆分语法同样能够简化赋值和交换数据：</p><pre><code>let a, b, c = 3, d = 4;
-
-[a, b = 2] = [1]; //a=1, b=2
-[c, d] = [d, c]; //c=d, d=c
-
-console.log(a);
-console.log(b);
-console.log(c);
-console.log(d);
-
-//output:
-//1
-//2
-//4
-//3</code></pre><p>以上的语法再一些使用场景中能够很大简化代码量，使程序更加简洁。</p><h4>Destructuring object</h4><p>类似于拆解数组，也可以拆解 object 的 properties 为单独个体：</p><pre><code>let obj = {h: 1, s: 2};
-let {h, s} = obj;
-
-console.log(h);
-console.log(s);</code></pre><p>注意定义的新变量名需要和 object property 名称一致，否则新变量的值为：<strong>undefined</strong>。</p><p>也可以不声明新变量而直接赋值，但有语法要求。需要加小括号<code>()</code>：</p><pre><code>let obj = {h: 1, s: 2};
-let h, s;
-({h, s} = obj);</code></pre><p>拆解时可以给 <strong>object</strong> 的 properties 定义新的名称，使用: <strong>name: newname</strong> 形式：</p><pre><code>let obj = {h: 1, s: 2};
-let {h: a, s: b} = obj;
-
-console.log(a);
-console.log(b);</code></pre><p>这时候如果执行：<code>console.log(h);</code> 会报错。</p><p>最后，我们可以给新变量设置初值，如果 object 中没有定义这个属性，新变量就会使用初值：</p><pre><code>let user = {name: &quot;marco&quot;, id: 123};
-let {name = &quot;tom&quot;, age = 20} = user;
-console.log(name);
-console.log(age);
-
-//output:
-//marco
-//20</code></pre><p>以上示例中，<strong>user</strong> object 含有 name 属性，则赋值为对应数据，没有 age 属性则会使用默认值作为新变量的数据。</p><h3>ES6 Rest Parameters</h3><p>在 ES6 之前，如果调用 function 时传入的参数数量是变化的，我们可以使用 arguments array object 来访问这些传入数据。下面示例中，我们创建一个 function 来检查传入参数值是否都在一个给定数组内：</p><pre><code>function containsAll(arr) {
-    for (let index = 1; index &lt; arguments.length; index++) {
-        let num = arguments[index];
-        if (arr.indexOf(num) == -1) {
-            return false;
-        }
-    }
-    return true;
-}
-
-let x = [2, 4, 6, 8];
-console.log(containsAll(x, 2, 4));
-console.log(containsAll(x, 3, 4, 6));
-
-//output:
-//true
-//false</code></pre><p>可以看到 function 预定义的参数只有一个，我们在调用时传入了大于 1 个的参数，这时候在 function 内就需要使用 <strong>arguments</strong> 数组来索引传入数据。arguments[0] 代表第一个参数，也就是预定义的 arr 参数，其他数据在 <strong>arguments</strong> 数组中往后依次排列。</p><p>我们使用了 <strong>array</strong> 的 <strong>indexOf</strong> method 来获取某个数据在数组中的 position 位置，如果数组中不存在这个数据，则返回 <code>-1</code>，这里我们使用了 <code>===</code> identity operator 来确保数据类型和数值都要匹配上。</p><p>我们可以给 <strong>function</strong> 传入任意数量的数据，然后使用 <strong>arguments</strong> 数组来访问它们。</p><p>ES6 中通过使用 <strong>rest parameter</strong> <strong>剩余参数</strong>创建了一种更加简洁的语法，来访问变化的传入参数数据：</p><pre><code>function containsAll(arr, ...nums) {
-    for (const iterator of nums) {
-        if (arr.indexOf(iterator) == -1) {
-            return false;
-        }
-    }
-    return true;
-}</code></pre><p><strong>...nums</strong> 叫做 <strong>rest parameter</strong> <strong>剩余参数</strong>，它包含了所有 <strong>extra</strong> 附加的传入参数，<code>...</code> 叫做 <strong>Spread operator</strong> 延伸符。</p><p>只有后面的传入参数才可能被标记为 <strong>rest parameter</strong>，如果调用时没有 extra 附加的传入参数，则 <strong>rest parameter</strong> 的值将会是一个空数组<code>[]</code>，而不是 <strong>undefined</strong>。</p><h3>Spread Operator 延伸符</h3><p><strong>Spread Operator</strong> 延伸符类似于 <strong>Rest Parameter</strong>，但它在应用于 <strong>object</strong>，<strong>array</strong> 或 <strong>function</strong> 时有其他功能。</p><p><strong>function</strong></p><p>在 ES6之前，我们可以通过 <code>apply()</code> method 来实现调用 function 时使用数组作为传入参数：</p><pre><code>function test(a, b, c) {
-    console.log(a + b + c);
-}
-var arr = [1, 2, 3];
-test.apply(null, arr);
-
-//output:
-//6</code></pre><p>通过 function 的 <code>apply()</code> method，可以将 <strong>method</strong> 应用于其他外部 object 上，同时用一个数组传入 function 参数。具体参考：<a href="https://blog.niekun.net/archives/1992.html">JavaScript 入门教程之四 -- Functions</a></p><p>ES6 使用 <strong>Spread Operator</strong> 实现更加简单的语法来实现上面的功能：</p><pre><code>const test = (a, b, c, d) =&gt; {
-    console.log(a + b + c + d);
-}
-var arr = [1, 2, 3];
-test(...arr, 4);
-
-//output:
-//10</code></pre><p>以上示例中，我们使用了 <code>...</code> 延伸符来将数组数据作为传入参数。因为数组只有 3 个数据，所以我们后面又附加了一个传入参数。</p><p>也可以应用于 constructor function：</p><pre><code>let date = [2020, 11, 1];
-let x = new Date(...date);
-console.log(x.getFullYear());</code></pre><p><strong>array</strong></p><p>ES6 之前，我们使用下面方法给数组中插入元素：</p><pre><code>var arr = [&quot;one&quot;, &quot;two&quot;, &quot;five&quot;];
-arr.splice(2, 0, &quot;three&quot;, &quot;four&quot;);
-console.log(arr[3]);</code></pre><p><code>splice</code> method 用来给数组中某个位置插入数据，第一个参数是行号，第二个参数是列号，后面的参数是要插入的元素，可以是任意多个。</p><p>ES6 中，可以这样写：</p><pre><code>let newArr = [&quot;three&quot;, &quot;four&quot;];
-let arr = [&quot;one&quot;, &quot;two&quot;, ...newArr, &quot;five&quot;];</code></pre><p>因为数组的标准创建方法是：</p><pre><code>let arr = new Array(a, b, c);
-</code></pre><p>所以为了将传递参数放在数组中，我们就可以使用 <code>...</code><strong>延伸符</strong>来处理：</p><pre><code>let arr = new Array(...newArr);
-//or
-let arr = [...newArr];</code></pre><p><strong>object literals</strong></p><p>在 object 中使用 <strong>Spread Operator</strong> 可以复制所有的 properties 到新的 object：</p><pre><code>const obj1 = {
-    a: 1,
-    b: 2
-}
-const obj2 = {
-    c: 3,
-    d: 4
-}
-
-const obj3 = {...obj1, ...obj2};
-console.log(obj3.a);
-console.log(obj3.d);
-
-//output:
-//1
-//4</code></pre><p>使用前面提到的 <code>Object.assign()</code> method 也可以实现复制 object。</p><p><strong>注意</strong>，如果通过下面的方法想要合并两个 object 会得到不一样的结果：</p><pre><code>const merge = (...objs) =&gt; ({...objs});
-
-let newObj = merge(obj1, obj2);
-console.log(newOb);
-
-//output:
-//{0: {a: 1, b: 2}
-   1: {c: 3, d: 4}}</code></pre><p>它会将每个 object 作为一个 property 的值。</p><h3>Classes in ES6</h3><p>这一节我们将介绍如何创建 <strong>class</strong> 来创建同样结构的不同 object。</p><p>使用关键词 <strong>class</strong> 来创建 class，包含一个 <strong>constructor</strong> method 来初始化参数。这个结构和 c++ 的 class 定义方法很类似。</p><p>下面是一个示例：</p><pre><code>class Test {
-    constructor(a, b) {
-        this.a = a;
-        this.b = b;
-    }
-}</code></pre><p><strong>class</strong> 名称的首字母习惯用大写字符。声明好的 <strong>class</strong> 可以使用 <strong>new</strong> 关键词来创建 <strong>object</strong>：</p><pre><code>const x = new Test(1, 2);
-const y = new Test(3, 4);
-console.log(x.a);
-
-//output:
-//1</code></pre><p>在使用 class 前<strong>必须先定义它</strong>，如果把定义放在调用后面，则会报错：ReferenceError。</p><p>也可以在表达式中直接定义 class，可以有 class 名称，也可以不写：</p><pre><code>const x = class Test {
-    constructor(a, b) {
-        this.a = a;
-        this.b = b;
-    }
-};
-
-const y = class {
-    constructor(a, b) {
-        this.a = a;
-        this.b = b;
-    }
-};</code></pre><p><strong>constructor</strong> 是 class 来初始化 object 时的特殊 method，每个 class 只能够一个 <strong>constructor</strong>。</p><p>ES6 引入了一种简写语法，可以在定义 method 时省略 <strong>function</strong> 关键词。class 中定义的 method 叫做 <strong>prototype method</strong>，object 中可以调用对应 class 中的 method。</p><p>请看下面示例：</p><pre><code>class Test {
-    constructor(a, b) {
-        this.a = a;
-        this.b = b;
-    }
-    get sum() {
-        return this.calcSum();
-    }
-    calcSum() {
-        return this.a + this.b;
-    }
-}
-
-const x = new Test(1, 2);
-console.log(x.sum);
-console.log(x.calcSum());
-
-//output:
-//3
-//3</code></pre><p>以上代码中，<code>sum</code> 叫做 getter 获取器，<code>calcSum</code> 是 method。getter function 使用关键词 <strong>get</strong> 定义，必须有 return 返回值，调用时不需要写小括号<code>()</code>，类似于 property 的调用。</p><p><strong>static method</strong> 是另一种特殊 method，这种 method 不能在实例化的 object 中调用，只能被 class 本身调用，使用关键词 <strong>static</strong> 定义：</p><pre><code>class Test {
-    constructor(a, b) {
-        this.a = a;
-        this.b = b;
-    }
-    static distance(x, y) {
-        const dx = x.a - y.a;
-        const dy = x.b - y.b;
-        return Math.hypot(dx, dy);
-    }
-}
-
-const x = new Test(1, 2);
-const y = new Test(3, 4);
-let z = Test.distance(y, x);
-console.log(z);</code></pre><p>以上示例中可以看到，<strong>distance</strong> method 直接使用 <strong>Test</strong> class 调用，而不是 object。<strong>Static methods</strong> 常用于在一个 application 中创建功能性 function。</p><p><strong>extends</strong> 关键词用来创建一个 class 的 child class。child class 继承了 parent class 的所有 properties 和 methods。</p><p>示例：</p><pre><code>class Animal {
-    constructor(name) {
-        this.name = name;
-    }
-    speak() {
-        console.log(`${this.name} makes a noise.`);
-    }
-}
-
-class Dog extends Animal {
-    speak() {
-        console.log(`${this.name} barks.`)
-    }
-}
-
-let dog = new Dog('tom');
-dog.speak();
-
-//output:
-//tom barks.</code></pre><p>上面示例中，<strong>Dog</strong> class 是 <strong>Animal</strong> class 的 child class，继承了 Animal 的所有 properties 和 method。child class 也可以 overwrite 重写 parent class 的 method。</p><p>当 child class 也有 constructor 时，需要首先调用 <code>super()</code> 来初始化 parent class，然后才能使用 <strong>this</strong> 关键词。初始化参数要考虑 parent class 需要的参数：</p><pre><code>class Dog extends Animal {
-    constructor(name, age) {
-        super(name);
-        this.age = age;
-    }
-    speak() {
-        console.log(`${this.name} barks.`)
-    }
-}</code></pre><p>同样的，使用 <strong>super</strong> 关键词可以调用 <strong>parent</strong> 的 method，这在 <strong>child</strong> class 重写了某个 method 时可以使用这个方法调用 <strong>parent</strong> 原始的 method，下面是修改后的完整示例：</p><pre><code>class Animal {
-    constructor(name) {
-        this.name = name;
-    }
-    speak() {
-        console.log(`${this.name} makes a noise.`);
-    }
-}
-
-class Dog extends Animal {
-    constructor(name, age) {
-        super(name);
-        this.age = age;
-    }
-    speak() {
-        super.speak();
-        console.log(`${this.name} barks.`)
-    }
-}
-
-let dog = new Dog('tom', 10);
-dog.speak();
-console.log(dog.age);
-
-//output:
-//tom makes a noise.
-//tom barks.
-//10</code></pre><p><code>super.speak()</code> 调用了 <strong>parent</strong> class 的 method。</p><h3>ES6 Map</h3><p><strong>Map</strong> object 可以存储 <strong>key/value</strong> pairs 配对数据组。一个 key 或 value 可以是任何数据类型，例如 string，number，object，源数据等任何数据。</p><p>使用 <code>new Map([iterable])</code> 来创建 Map object，<strong>iterable</strong> 可以是任何可以 iterable 的数据，但每个元素都需要是由 key/value 两个构成的 pairs 数组。可以看到 Map 和 object 和相似，Map 的单个元素和 object 的 property 结构类似。但使用 Map 由如下优点：</p><ul><li>key 可以是任何数据类型，包括：function，object或其他</li><li>可以获取 Map 的 size，也就是包含的元素个数</li><li>可以直接在 Map 中 iterate</li><li>添加和删除 key/value 组合时性能更强</li></ul><pre><code>let map = new Map([
-    ['a', 1],
-    ['b', 2]
-]);
-console.log(map.size);
-
-//output:
-//2</code></pre><p>以上示例定义了一个 Map object。包含两个 pairs 配对，每个配对都是一个含有 2 个元素的数组。<strong>Map</strong> 的 <strong>size</strong> property 返回包含的配对个数。</p><p><strong>Map</strong> object 可用的 method：</p><ul><li><code>set(key, value)</code> 添加一个 pairs 配对，如果指定的 key 已经存在，则会替换对应的 value。</li><li><code>get(key)</code> 获取包含指定 key 的配对的 value，如果不存在指定 key 的 pairs 配对，则返回 undefined</li><li><code>has(key)</code> 查询是否存在包含指定 key 的配对，如果存在返回 true</li><li><code>delete(key)</code> 删除包含指定 key 的配对，然后返回 true，如果不存在这个配对，则返回 false</li><li><code>clear()</code> 删除所有 Map 中的 pairs 配对</li><li><code>keys()</code> 返回一个 iterator 包含所有 pairs 配对中的 key</li><li><code>values()</code> 返回一个 iterator 包含所有 pairs 配对中的 value</li><li><code>entries()</code> 返回一个 iterator 包含所有 pairs 配对数组：[key, value]</li></ul><p>示例：</p><pre><code>let map = new Map();
-map.set('a', 1).set('b', 2);
-
-console.log(map.get('a'));
-console.log(map.has('b'));
-
-for (const iterator of map.entries()) {
-    console.log(iterator[0] + &quot; : &quot; + iterator[1]);
-}
-
-//output:
-//1
-//true
-//a : 1
-//b : 2</code></pre><p>以上示例演示了部分 Map method。</p><h3>ES6 Set</h3><p><strong>Set</strong> object 可以用来存储 unique 唯一的 values，不允许有重复数据。</p><p>使用 <code>new Set([iterable])</code> 语法来创建一个 Set object，iterable 是一个数组或任何其他可以 iterate 的数据：</p><pre><code>let set = new Set([1, 3, 5, 1, 7, 5]);
-console.log(set.size);
-
-//output:
-//4</code></pre><p><strong>size</strong> property 返回这个 <strong>Set</strong> object 包含数据个数。可以看到返回值为 4，这是因为重复的数据会被忽略。</p><p>可供使用的 method 如下：</p><ul><li><code>add(value)</code> 添加一个新数据到 Set</li><li><code>delete(value)</code> 删除某个数据</li><li><code>has(value)</code> 检查是否存在某个数据，如果存在则返回 true</li><li><code>clear()</code> 清空 Set</li><li><code>values()</code> 返回一个 iterator 包含所有 Set object 中的数据。</li></ul><p>示例：</p><pre><code>let set = new Set();
-set.add(1).add(3).add(9).add(1);
-
-console.log(set.has(3));
-for (const iterator of set) {
-    console.log(iterator);
-}
-
-//output:
-//true
-//1
-//3
-//9</code></pre><p>以上示例介绍了 Set 部分 method 的用法。</p><p><strong>Set</strong> 支持不同的数据类型，例如 <code>1</code> 和 <code>'1'</code> 是不同的数据。甚至是 <strong>NaN</strong> 和 <strong>undefined</strong> 也可以存储在 <strong>Set</strong> 中。</p><h3>ES6 Promises</h3><p><code>Promise</code> 相比较于 <code>setTimeout()</code> method 是一种更好的<strong>异步编程</strong>方法。</p><p>通常想要延时执行某个 function，可以通过 <code>setTimeout()</code> 实现：</p><pre><code>setTimeout(() =&gt; {
-    console.log('second');
-    setTimeout(() =&gt; {
-        console.log('third');
-    }, 3000);
-}, 3000);
-console.log('first');
-
-//OUTPUT:
-//frist
-//second
-//third</code></pre><p>以上示例实现：先输出 first，延时 3 秒输出 second，然后再过 3 秒后输出 third。每个 function 只执行一次，如果要循环执行，可以使用  <code>setInterval()</code> 实现。</p><p><strong>setTimeout</strong> method 可以实现异步执行动作，但是如果需要处理的任务很多，使用这种方法就会导致嵌套很复杂。</p><p>ES6 引入的 <strong>promise</strong> 可以解决这个问题，使用下面语法结构创建 <strong>promise</strong>：</p><pre><code>new Promise(function(resolve, reject) {
-    if (success)
-        resolve(result);
-    else
-        reject(Error('failure'));
-});</code></pre><p>创建 <strong>Promise</strong> 需要定义一个 function 包含有两个参数，这两个参数是 method 类型的。可以在 function 中根据需要使用这两个 method。示例中 <strong>resolve</strong> 在 <strong>success</strong> 为 true 时被调用，<strong>reject</strong> 在 else 情况被调用。</p><p>那么 <strong>Promise</strong> 中需要的这两个 method 在哪里定义的呢？如果我们在程序中一个 method 返回类型为 <strong>Promise</strong> 类型，则可以调用 <code>then</code> method，有两个传入参数就是 2 个 method 的定义。</p><p>下面的示例中，定义一个返回值为 <strong>Promise</strong> 类型的 function，然后调用这个 function：</p><pre><code>const asyncTest = (work) =&gt; {
-    return new Promise((resolve, reject) =&gt; {
-        if (work === &quot;&quot;)
-            reject(Error('nothing'));
-        setTimeout(() =&gt; {
-            resolve(work);
-        }, 3000);
-    });
-};
-
-asyncTest('second')
-.then((result) =&gt; {
-    console.log(result);
-    return asyncTest('third');
-},
-(error) =&gt; console.log(error))
-.then((result) =&gt; console.log(result),
-(error) =&gt; console.log(error));
-
-console.log('frist');
-
-//OUTPUT:
-//frist
-//second
-//third</code></pre><p>以上示例和第一个示例效果一样，首先输出 frist，3 秒后输出 second，在经过 3 秒输出 third。同样的都是三个输出都是异步进行的。</p><p>以上语法相比之前的代码使逻辑关系更加清晰，<strong>Promise</strong> object 定义了调用两个 <strong>method</strong> 的原则，通过调用 <strong>then</strong> method 定义 2 个 method 的指令，只有 <strong>Promise</strong> 类型的 object 才有 <strong>then</strong> method。所以如果要继续扩充异步动作，只需要在某个 method 中返回 <strong>promise</strong> 类型的数据，就可以继续通过 <strong>then</strong> method 定义其他动作。</p><p>以上示例中，我们通过第一个 <strong>then</strong> 定义 1 个延时触发指令，然后返回一个新的 <strong>Promise</strong> 类型 object，这样可以继续调用第二个 <strong>then</strong> 来实现其他异步动作。以此类推可以继续扩展下去。</p><h3>Iterators & Generators</h3><p><strong>Symbol.iterator</strong> 是 object 内置默认的 iterator，for...of loop 就是基于这种类型的 iterator 来处理数组 object 的。</p><p>下面的示例介绍 <strong>Symbol.iterator</strong> 和 <strong>generator functions</strong> 如何使用：</p><pre><code>let myIterableObj = {
-    [Symbol.iterator]: function* () {
-        yield 1;
-        yield 2;
-        yield 3;
-    }
-};
-console.log([...myIterableObj])</code></pre><p>以上示例中，我们创建了一个 object 通过 <strong>Symbol.iterator</strong> 和 <strong>generator function</strong> 来定义一些 properties。</p><p>使用关键词 <strong>function</strong> 后加一个星号<code>*</code> 叫做 <strong>generator function</strong> (or gen function)。</p><p>通过下面示例介绍如何使用 <strong>generator function</strong>：</p><pre><code>function* id() {
-    let index = 0;
-    while (index &lt; 5) {
-        yield index++;
-    }
-}
-let x = id();
-console.log(x.next().value);
-console.log(x.next().value);
-console.log(x.next().value);
-
-//output:
-//0
-//1
-//2</code></pre><p>可以看到当 <strong>generator function</strong> 返回数据后，如果条件依然满足，它就不会直接跳出 function 而是会继续执行指令直到内部指令完全执行完毕，这一过程中可以使用关键词 <strong>yield</strong> 多次返回数据。这在实现异步程序中很有用，尤其是结合 <strong>Promise</strong> 来使用。</p><p><strong>generator function</strong> 可以进行多级嵌套使用，实现更加复杂的循环逻辑。</p><p>下面的示例依然结合 <strong>Symbol.iterator</strong> 和 <strong>generator functions</strong> 使用：</p><pre><code>const arr = ['a', '1', '3', '5b', '9', 'f'];
-const myObj = {
-    [Symbol.iterator]: function*() {
-        for (const iterator of arr) {
-            yield `${iterator}`;
-        }
-    }
-};
-
-const all = [...myObj]
-.map(i =&gt; parseInt(i, 10))
-.map(Math.sqrt)
-.filter(i =&gt; i &lt; 5)
-.reduce((i, d) =&gt; i + d);
-
-console.log(all);
-
-//output:
-//7.9681187850686666</code></pre><p>以上示例的过程如下：</p><ul><li>首先我们创建一个数组 arr，数组元素都是字符或字符串类型。</li><li>然后使用 <strong>Symbol.iterator</strong> 和 <strong>generator functions</strong> 的语法来创建一个 <strong>iterable object</strong>：myObj，数据使用前面定义的数组 arr。</li><li>然后创建一个新的 all 数组，数据使用第二部创建的 myObj，由于 myObj 也是 <strong>iterable objet</strong> 所以这里通过 <code>...</code> 延伸符来将 myObj 作为传入参数来创建数组 object。</li><li>然后使用数组的 <strong>map</strong> method 来将字符元素转换成 int 数字，这里会过滤掉一些不能转换的元素。</li><li>然后使用数组的 <strong>filter</strong> method 来进一步过滤元素</li><li>最后使用数字的 <strong>reduce</strong> method 来将所有元素进行计算，返回为一个数字。</li></ul><p><code>parseInt()</code> Function 可以将字符解析返回为一个数字。语法如下：</p><pre><code>parseInt(string, radix)
-</code></pre><p><strong>string</strong> 是需要解析的字符，<strong>radix</strong> 定义所使用的进制系统，可定义范围为：2-36，这是一个可选项，默认为 10。如果字符的首字符不是数字，则会返回 <strong>NaN</strong>。</p><p>map，filter 和 reduce method 的用法在 <a href="https://blog.niekun.net/archives/1997.html">JavaScript 入门教程之六 -- JS内置 Objects</a> 做过介绍。</p><p>更多 array 的 method 用法参考：<a href="https://www.w3schools.com/jsref/jsref_obj_array.asp">JavaScript Array Reference</a></p><h3>Modules 模组</h3><p>将相关的代码放在一个模块里有利于代码整洁度和可操作性，ES6 之前使用一些第三方库可以实现这一功能如：RequireJS, CommonJS，ES6 现在原生支持这一特性。</p><p><strong>使用 modules 模组需要考虑的：</strong></p><ul><li>可操作性，一个模组应该是完全独立的，不依赖于其他模组</li><li>命名空间 namespacing，前面介绍了变量申明的 scope，使用 var 会在代码中全局申明，可能引起命名污染，使用模组可以创建一个私有空间来完美解决这个问题</li><li>代码复用性，我们希望一个代码段能够被不同的项目引用，使用模组可以方便了在不同项目中调用</li></ul><p>下面介绍如何创建和使用 modules，我们在项目 lib 目录下创建 math.js 文件：</p><pre><code>export const sum = (x, y) =&gt; x + y;
-export let pi = 3.14;</code></pre><p>调用这个模块：</p><pre><code>&lt;script type=&quot;module&quot;&gt;
-    import * as math from './lib/math.js'
-    console.log(math.sum(math.pi, math.pi));
-&lt;/script&gt;
-
-//output:
-//6.28</code></pre><p>我们首先创建了一个 js 文件作为 module 模组，使用 <strong>export</strong> 关键词定义的 function 和 variable 变量可以被调用这个模组的文件访问到。</p><p>然后在我们的 script 中使用 import 关键词来调用模组。注意如果 script 中调用了其他模组，需要设置是script <strong>type</strong> 类型为 <strong>module</strong>，否则浏览器会报错。</p><p>import 时我们设置了这个 module 的名称为 <strong>math</strong>，module 中的 function 或 variable 时就可以通过 math 来调用，就像 object 一样。</p><p><strong>需要注意的是</strong>，如果你是在本地开发，直接打开包含调用了 module 的 html 文件或 js 文件会报错，提示：<em>Access to Script at ' from origin 'null' has been blocked by CORS policy</em>，需要通过真实的搭建一个 web 服务器来访问这个 html 文件才能正常执行。</p><p>如果使用 chrome 可以通过插件来建立一个简单的本地 web 服务器：<a href="https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb/related?hl=en">Web Server for Chrome</a></p><h3>Built-in Methods 内建 methods</h3><p>ES6 引入了一些新的内建 method 使有些任务可以更轻松地执行，下面介绍最常用的几种。</p><h4>Array Element Finding 数组元素查询</h4><p>ES6 之前我们想要得到一个数组经过某个规则过滤后的第一个元素，可以通过 <strong>filter</strong> method 实现：</p><pre><code>var x = [1, 4, 6, 3, 8].filter(function(i) {
-    return i &gt; 5;
-})[0];
-
-console.log(x);
-
-//output:
-//6</code></pre><p>现在我们可以使用 <strong>find</strong> method 更加简洁的语法实现相同的功能：</p><pre><code>var x = [1, 4, 6, 3, 8].find(i =&gt; i &gt; 5);
-console.log(x);
-
-//output:
-//6</code></pre><p>也可以使用 <strong>findIndex</strong> method 来得到符合条件的第一个元素的索引地址：</p><pre><code>var index = [1, 4, 6, 3, 8].findIndex(i =&gt; i &gt; 5);
-console.log(index);
-
-//output:
-//2</code></pre><h4>Repeating Strings 重复字符串</h4><p>ES6 之前，想要将一个字符串重复多次可以使用一下方法：</p><pre><code>console.log(Array(4).join('foo'));
-
-//output:
-//foofoofoo</code></pre><p>以上示例中，首先声明一个有 4 个元素 array 数组但没有赋初值，当前元素为 empty，然后通过 <strong>join</strong> method 给将所有元素合并为字符串，分隔符为 <strong>foo</strong>，这样我们就变相返回了一个将源字符串重复三次的新字符串。</p><p>使用 ES6 的新语法实现这个功能更加简单：</p><pre><code>console.log('foo'.repeat(3));
-
-//output:
-//foofoofoo</code></pre><p>字符串的 <strong>repeat</strong> method 的参数定义重复次数并返回新字符串。</p><h3>Searching Strings 查询字符串</h3><p>ES6 之前我们只能通过 <strong>indexOf</strong> method 来查询一个 string 中 text 的位置，如：</p><pre><code>var x = 'helloworld'.indexOf('llo') === 2;
-var y = 'helloworld'.indexOf('llo', 3) === -1;
-console.log(x);
-console.log(y);
-
-//output:
-//true
-//true</code></pre><p>关于 indexOf 的用法参考：<a href="https://blog.niekun.net/archives/1997.html">JavaScript 入门教程之六 -- JS内置 Objects</a></p><p>ES6 使用更加简洁明了的语法代替以上语法：</p><pre><code>var x = 'helloworld'.startsWith('hel', 0);
-var y = 'helloworld'.endsWith('hello', 5);
-var z = 'helloworld'.includes('llo');
-var i = 'helloworld'.includes('llo', 3);
-
-console.log(x);
-console.log(y);
-console.log(z);
-console.log(i);
-
-//output:
-//true
-//true
-//true
-//false</code></pre><p><strong>startsWith</strong> method 返回所查询的 text 的起始字符所在位置。<br><strong>endsWith</strong> method 返回所查询的 text 结束后紧跟的元素的所在位置。<br><strong>includes</strong> mehod 返回所查询的 text 的所在位置，默认从第 0 位开始，可自定义起始查询位置。</p><p>如果不存在所查询的元素，将返回 <code>-1</code>。</p><p>以上就是 ES6 中较常用的新语法，这里我推荐在实现同一功能的情况下，优先使用 ES6 新引入的语法来处理。这样可以使我们的代码更加简洁易读。</p><p><strong>经过 8 个章节的教程，我们基本涵盖了 JavaScript 的基本编程方法。后续的学习中需要继续补充完善，在实际应用中才能对 JavaScript 有进一步的认识。</strong></p>
-]]></content:encoded>
-<slash:comments>1</slash:comments>
-<comments>https://blog.niekun.net/archives/2011.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2011.html</wfw:commentRss>
-</item>
-<item>
-<title>JavaScript 入门教程之七 -- DOM</title>
-<link>https://blog.niekun.net/archives/2002.html</link>
-<guid>https://blog.niekun.net/archives/2002.html</guid>
-<pubDate>Sat, 19 Dec 2020 14:10:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[当你打开一个网页，html 页面会被加载和渲染到屏幕上。为了完成这个过程，浏览器会建立这个页面的 Document Object Model 模型。也就是一个指向页面逻辑架构的 object。一...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>当你打开一个网页，html 页面会被加载和渲染到屏幕上。为了完成这个过程，浏览器会建立这个页面的 <strong>Document Object Model</strong> 模型。也就是一个指向页面逻辑架构的 object。</p><p>一个页面的 <strong>DOM</strong> 可以被表示为一些嵌套的 boxes：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/4242689357.png" alt="1.png" title="1.png"></p><p>JavaScript 能够用来操作 <strong>DOM</strong>，动态的添加、删除、修改其中的元素。</p><!--more--><h3>DOM tree</h3><p>DOM 将一个 document 表达为一个 tree structure 树形结构， html 元素称为这个 tree 上的相关联的 nodes 节点。</p><p>整个 tree 上的 nodes 之间都是互相有关联的。nodes 可以有 child node 子节点。在同一个 tree level 层级的 nodes 叫做 siblings 兄弟关系。想象下面的一个 document structure：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/4196340561.png" alt="2.png" title="2.png"></p><p><strong>以上示例中的关系结构是：</strong></p><ul><li><code>&lt;html&gt;</code> 有两个 children：<code>&lt;head&gt;</code>, <code>&lt;body&gt;</code>;</li><li><code>&lt;head&gt;</code> 有一个 child：<code>&lt;title&gt;</code>，有一个 parent：<code>&lt;html&gt;</code>;</li><li><code>&lt;title&gt;</code> 有一个 parent：<code>&lt;head&gt;</code>， 没有 children;</li><li><code>&lt;body&gt;</code> 有两个 children：<code>&lt;h1&gt;</code> and <code>&lt;a&gt;</code>，有一个 parent：<code>&lt;html&gt;</code>;</li></ul><p>理解 HTML document 的元素间的关系很重要，这样我们就可以使用 JavaScript 来操纵这些元素了。</p><p><code>document</code> object 在 JavaScript 中被预定义，可以用来访问 DOM 中的所有元素。换句话说，<code>document</code> object 是页面中所有元素的拥有者。所以想要访问 html 页面中的元素，首先需要访问 <code>document</code> object。</p><p>看下面的示例：</p><pre><code>document.body.innerHTML = &quot;Some text&quot;;
-</code></pre><p><code>body</code> 是 DOM 中的元素，通过 <code>document</code> 来访问到它，然后通过其 <code>innerHTML</code> property 修改其内容。</p><h3>Selecting Elements</h3><p>所有的元素都是 object，都有 properties 和 method。<code>document</code> 有能够让我们选择其内部元素的 method，常用的有三种方法：</p><pre><code>//finds element by id
-document.getElementById(id) 
-
-//finds elements by class name
-document.getElementsByClassName(name) 
-
-//finds elements by tag name
-document.getElementsByTagName(name)</code></pre><p>下面的示例，我们使用 <code>getElementById</code> method 来选中一个元素，并修改其内容：</p><pre><code>var elem = document.getElementById(&quot;demo&quot;);
-elem.innerHTML = &quot;hello world&quot;;</code></pre><p>注意以上示例中我们需要 html 有一个元素设置 <code>id=&quot;demo&quot;</code>，如：</p><pre><code>&lt;body&gt;
-    &lt;div id=&quot;demo&quot;&gt;&lt;/div&gt;
-&lt;/body&gt;</code></pre><p><code>getElementsByClassName()</code> method 会返回一个特定 calss name 的集合。例如，我们有三个含有 <code>class=&quot;demo&quot;</code> 的元素：</p><pre><code>&lt;body&gt;
-    &lt;div class=&quot;demo&quot;&gt;test1&lt;/div&gt;
-    &lt;div class=&quot;demo&quot;&gt;test2&lt;/div&gt;
-    &lt;div class=&quot;demo&quot;&gt;test3&lt;/div&gt;
-&lt;/body&gt;</code></pre><p>首先选中全部 3 个元素为一个数组，然后修改第一个元素内容：</p><pre><code>&lt;script&gt;
-    var arr = document.getElementsByClassName(&quot;demo&quot;);
-    arr[0].innerHTML = &quot;hi&quot;;
-&lt;/script&gt;</code></pre><p>类似的方式， <code>getElementsByTagName</code> method 返回一个特定 tag 的集合。下面的示例中，将选中所有 paragraph 元素然后修改他们的内容：</p><pre><code>&lt;body&gt;
-    &lt;p&gt;1&lt;/p&gt;
-    &lt;p&gt;2&lt;/p&gt;
-    &lt;p&gt;3&lt;/p&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var arr = document.getElementsByTagName(&quot;p&quot;);
-    for (var i = 0; i &lt; arr.length; i++) {
-        arr[i].innerHTML = &quot;hi there&quot;;
-    }
-&lt;/script&gt;</code></pre><p>每个 DOM 中的元素都有 properties 和 method 来提供给我们关于其在 DOM 中的相互关系的信息：</p><ul><li><code>element.childNodes</code> 返回其子元素的数组</li><li><code>element.firstChild</code> 返回其第一个子元素</li><li><code>element.lastChild</code> 返回其最后一个子元素</li><li><code>element.hasChildNodes</code> 当其有子元素时返回 true，否则返回 false</li><li><code>element.nextSibling</code> 返回下一个处于同一 tree level 节点的元素</li><li><code>element.previousSibling</code> 返回上一个处于同一 tree level 节点的元素</li><li><code>element.parentNode</code> 返回其 parent 节点的元素</li></ul><h3>Changing Attributes</h3><p>当选中了想要的元素后，就可以修改其相关属性了。</p><p>我们前面使用过通过 <code>innerHTML</code> property 修改了元素的 text 内容。同样的方法，我们可以修改它的属性值，例如修改一个 image 的 <code>src</code> 属性：</p><pre><code>&lt;/body&gt;
-    &lt;img id=&quot;img1&quot; src=&quot;1.jpg&quot; alt=&quot;&quot; srcset=&quot;&quot;&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var el = document.getElementById(&quot;img1&quot;);
-    el.src = &quot;2.jpg&quot;;
-&lt;/script&gt;</code></pre><p>通常情况下，元素中所有的属性都可以通过 JavaScript 修改。</p><p>html 元素的 style 也可以通过 JavaScript 修改，所有的 style 属性可以通过 <code>style</code> object 来访问，例如：</p><pre><code>&lt;body&gt;
-    &lt;div id=&quot;demo2&quot; style=&quot;width: 200px;&quot;&gt;some text&lt;/div&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var x = document.getElementById(&quot;demo2&quot;);
-    x.style.color = '#6600FF';
-    x.style.width = '100px';
-&lt;/script&gt;</code></pre><p>所有的 css properties 都可以通过 JavaScript 修改。但是要注意，JavaScript 中相关 property 时，<strong>名称中不能够使用 dash<code>-</code> 横杠</strong>，如果 css 属性名称有横杠，需要转换成 camelCase versions，也就是相关首字母转换成大写。例如：js 在调用 <code>background-color</code> property 时需要写成 <code>backgroundColor</code>。</p><h3>Adding & Removing Elements 创建和删除元素</h3><p><strong>Adding Elements</strong></p><p>使用下面的 method 来创建节点 node：</p><ul><li><code>element.cloneNode()</code> clone 一个节点并将其返回</li><li><code>document.createElement(element)</code> 创建一个新元素的节点</li><li><code>document.createTextNode(text)</code> 创建一个新的 text 节点</li></ul><p>下面简单说下元素和节点：</p><pre><code>&lt;div&gt;
-    test1
-    &lt;p&gt;&lt;/p&gt;
-&lt;/div&gt;</code></pre><p>以上示例中，<code>div</code> 就是一个 element 元素，<code>test1</code> 就是这个元素下的 text node 节点，<code>p</code> 就是 <code>div</code> 元素下的另一个子元素节点。</p><p>例如：</p><pre><code>var node = document.createTextNode(&quot;Some new text&quot;);
-</code></pre><p>将会创建一个 text 节点，但是当前它并不会出现在页面上，因为还没有定义它属于那个元素。</p><p><code>element.appendChild(newNode)</code> method 来给元素添加一个新的子节点，并放在最后。</p><p><code>element.insertBefore(node1, node2)</code> method 将添加的新直接点 node1 放在已有的子节点 node2 之前。</p><p>下面做一个示例：</p><pre><code>&lt;body&gt;
-    &lt;div id=&quot;demo3&quot;&gt;test&lt;/div&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var p = document.createElement(&quot;p&quot;);
-    var node = document.createTextNode(&quot;some text&quot;);
-    p.appendChild(node);
-
-    var el = document.getElementById(&quot;demo3&quot;);
-    el.appendChild(p);
-&lt;/script&gt;</code></pre><p>以上出现的执行过程为：创建一个元素 <code>p</code> 和 text node <code>node</code>，然后将 node 作为 p 的子元素，最后将 p 添加到 el 中。</p><p><strong>Removing Elements</strong></p><p>想要<strong>删除一个元素</strong>，首先需要选中其 parent 元素，然后使用 <code>removeChild(node)</code> method 来删除相关子元素，例如：</p><pre><code>&lt;body&gt;
-    &lt;div id=&quot;div1&quot;&gt;
-        &lt;p id=&quot;p1&quot;&gt;some text one&lt;/p&gt;
-        &lt;p id=&quot;p2&quot;&gt;some text two&lt;/p&gt;
-    &lt;/div&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var parent = document.getElementById(&quot;div1&quot;);
-    var child = document.getElementById(&quot;p1&quot;);
-    parent.removeChild(child);
-&lt;/script&gt;</code></pre><p>也可以使用 <code>parentNode</code> property 来获取某个子元素的 parent 元素，然后执行相关操作：</p><pre><code>child.parentElement.removeChild(child);</code></pre><p><strong>Replacing Elements</strong></p><p>使用 <code>element.replaceChild(newNode, oldNode)</code> method 来替换一个元素。例如：</p><pre><code>&lt;script&gt;
-    var newEl = document.createElement(&quot;p&quot;);
-    var node = document.createTextNode(&quot;this is a new node&quot;);
-    newEl.appendChild(node);
-
-    var parent = document.getElementById(&quot;div1&quot;);
-    var child = document.getElementById(&quot;p1&quot;);
-    parent.replaceChild(newEl, child);
-&lt;/script&gt;</code></pre><h3>Animations 动态效果</h3><p>现在我们已经知道如何选择和修改元素，下面我们可以创建一个简单的动画效果。</p><p>首先建立一个 html 页面，包含一个 box 元素，后期通过 js 来让它动起来：</p><pre><code>&lt;style&gt;
-    #container {
-        width: 200px;
-        height: 200px;
-        background: green;
-        position: relative;
-    }
-    #box {
-        width: 50px;
-        height: 50px;
-        background: red;
-        position: absolute;
-    }
-&lt;/style&gt;
-&lt;body&gt;
-    &lt;div id=&quot;container&quot;&gt;
-        &lt;div id=&quot;box&quot;&gt;&lt;/div&gt;
-    &lt;/div&gt;
-&lt;/body&gt;</code></pre><p><strong>box</strong> 元素是 <strong>container</strong> 的子元素，注意两个的 <code>position</code> attribute，container 是 <strong>relative</strong>，box 是 <strong>absolute</strong>，我们将创建一个让 box 从左移动到右的动画。</p><p>为了实现动态效果，我们需要在一个很小的时间间隔下修改元素的相关 properties，可以使用 <code>setInterval()</code> method：</p><pre><code>&lt;script&gt;
-    var pos = 0;
-    var box = document.getElementById(&quot;box&quot;);
-
-    function move() {
-        pos++;
-        box.style.left = pos + &quot;px&quot;;
-    }
-
-    setInterval(move, 10);
-&lt;/script&gt;</code></pre><p>以上指令控制 <strong>box</strong> 的 <strong>left</strong> property 每 10 毫秒移动 1 位。</p><p>但是以上的代码会让 box 元素一直向右移动，我们可以加一个简单的判断来检测 box 到达 container 边沿，然后使用  <code>clearInterval()</code> method 停止定时器：</p><pre><code>function move() {
-    if (pos &gt;= 150) {
-        clearInterval();
-    } else {
-        pos++;
-        box.style.left = pos + &quot;px&quot;;
-    }
-}</code></pre><p>当 <strong>left</strong> 属性达到 150 时，由于 <strong>box</strong> 宽度为 50，<strong>container</strong> 宽度为 200，这时候 <strong>box</strong> 已经达到边沿。</p><h3>Handling Events 事件处理</h3><p>我们可以实现当一个 event 事件发生时执行特定 JavaScript 代码，如点击某个元素，移动鼠标，提交一个表格等。</p><p>当一个 event 发生在目标元素上时，一个 handling function 会被执行。常用的 html events 包括：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/171918129.png" alt="3.png" title="3.png"></p><p>event 事件可以作为一个属性添加在元素内，如：</p><pre><code> &lt;p onclick=&quot;someFunc()&quot;&gt;some text&lt;/p&gt;
-</code></pre><p>下面我们创建一个事件，当用户点击元素时弹出一个窗口：</p><pre><code>&lt;body&gt;
-    &lt;button onclick=&quot;show()&quot;&gt;click me&lt;/button&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    function show() {
-        alert(&quot;hello&quot;);
-    }
-&lt;/script&gt;</code></pre><p>event handling 事件响应也可以在 js 中直接分配给 elements：</p><pre><code>&lt;body&gt;
-    &lt;div id=&quot;demo&quot;&gt;demo&lt;/div&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var el = document.getElementById(&quot;demo&quot;);
-    el.onclick = function () {
-        el.innerHTML = &quot;clicked&quot;;
-    }
-&lt;/script&gt;</code></pre><p><strong>onload</strong> 和 <strong>onunload</strong> events 会在用户进入和离开页面时被触发。可以用来实现当页面加载完成后执行的动作：</p><pre><code>&lt;body onload=&quot;doSomething()&quot;&gt;
-</code></pre><p>类似的 <code>window.onload</code> event 可以在整个页面加载后执行动作：</p><pre><code>window.onload = function () {
-    //do someting
-}</code></pre><p><code>onchange</code> event 在文本框中很有用，当文本框的 text 内容被修改同时元素不在 focus 状态时 <code>onchange</code> event 响应。</p><p>例如：</p><pre><code>&lt;body&gt;
-    &lt;input type=&quot;text&quot; id=&quot;name&quot; onchange=&quot;changed()&quot;&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    function changed() {
-        var el = document.getElementById(&quot;name&quot;);
-        el.value = el.value.toUpperCase();
-    }
-&lt;/script&gt;</code></pre><p>以上示例中，当我们在文本框输入字符，然后将光标移动到其他地方或者敲回车键后，文本框字符会自动转换为大写。</p><p>理解 events 很重要，因为它是实现动态页面的核心。</p><p><strong>Event Listeners</strong></p><p><code>addEventListener()</code> method 可以给一个元素添加 event handler 而不会覆盖其已有的 event handlers。可以给一个元素添加多个 event handler 甚至是统一类型的 handler，比如可以添加两个 <code>click</code> handler。</p><p>语法如下：</p><pre><code>element.addEventListener(event, function, useCapture);
-</code></pre><ul><li>第一个参数是 event 类型，如："click" 或 "mousedown"，需要用引号包围</li><li>第二个参数是事件发生时调用的 function 名称，不需要写小括号<code>()</code></li><li>第三个参数时一个 Boolean 数值，定义是使用 event bubbling 还是 event capturing，这个参数是可选项，后续会介绍</li></ul><p><strong>注意这里 event 名称不需要 <code>on</code> 前缀</strong>，使用 <code>click</code> 代替 <code>onclick</code>。</p><pre><code>element.addEventListener(&quot;click&quot;, myFunction);
-element.addEventListener(&quot;mouseover&quot;, myFunction);
-
-function myFunction() {
-  alert(&quot;Hello World!&quot;);
-}</code></pre><p>以上代码给元素添加了两个 event handler，我们可以删除其中一个：</p><pre><code>element.removeEventListener(&quot;mouseover&quot;, myFunction);
-</code></pre><p>下面的示例中，我们给 button 创建一个 event handler，然后再触发事件后删除这个 event handler：</p><pre><code>&lt;body&gt;
-    &lt;button id=&quot;btn&quot;&gt;click me&lt;/button&gt;
-&lt;/body&gt;
-
-&lt;script&gt;
-    var btn = document.getElementById(&quot;btn&quot;);
-    btn.addEventListener(&quot;click&quot;, myFunction);
-
-    function myFunction() {
-        alert(Math.random());
-        btn.removeEventListener(&quot;click&quot;, myFunction);
-    }
-&lt;/script&gt;</code></pre><p>当第一次点击 button 后会弹出窗口，然后删除 <code>click</code> event，后面点击会没有反应。</p><p>IE8 及以下版本的浏览器不支持 <code>addEventListener()</code> 和 <code>removeEventListener()</code> methods，可以使用 <code>document.attachEvent()</code> 来添加 event handler。</p><p><strong>Event Propagation 事件传播</strong></p><p>在 DOM 中有两种方式进行 event propagation 事件传播：<strong>bubbling</strong> 和 <strong>capturing</strong>。</p><p>当事件触发时，可以定义元素顺序。例如有一个 <code>&lt;p&gt;</code> 元素在 <code>&lt;div&gt;</code> 元素内部，当用户点击 <code>&lt;p&gt;</code> 元素时，哪个元素的 <code>click</code> event handler 首先被触发？</p><ul><li>在 <strong>bubbling</strong> 模式下，最内部元素的 event 最先响应，逐级触发外层元素；</li><li>在 <strong>capturing</strong> 模式下，最外部元素的 event 最先响应，逐级触发内层元素。</li></ul><p><code>addEventListener()</code> method 支持设置事件传播类型，定义下面的 <strong>useCapture</strong> 参数：</p><pre><code>addEventListener(event, function, useCapture)
-</code></pre><p><strong>useCapture</strong> 默认值为 <strong>false</strong>，也就是 <strong>bubbling</strong> 模式，当设置为 <strong>true</strong> 时 event 使用 <strong>capturing</strong> 模式。例如：</p><pre><code>//Capturing propagation
-elem1.addEventListener(&quot;click&quot;, myFunction, true); 
-
-//Bubbling propagation
-elem2.addEventListener(&quot;click&quot;, myFunction, false);</code></pre><p>当同一个 event 存在于多个 DOM 层级中的元素时，设置 event propagation 事件传播模式很有用。</p><h3>Image Slider 幻灯片</h3><p>下面我们制作一个幻灯片程序，通过 <strong>Next</strong> 和 <strong>Prev</strong> button 来切换图片。</p><p>首先创建 html，包含两个 button 和一个 image：</p><pre><code>&lt;html&gt;
-&lt;body&gt;
-    &lt;button&gt; Prev &lt;/button&gt;
-    &lt;img id=&quot;slider&quot; src=&quot;https://blog.niekun.net/usr/uploads/2020/12/2749019084.jpg&quot;&gt;
-    &lt;button&gt; Next &lt;/button&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre><p>然后再 JavaScript 中定义我们的图片数组：</p><pre><code>&lt;script&gt;
-    var images = [
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/2749019084.jpg&quot;,
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/1648461111.jpg&quot;,
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/3914156262.jpg&quot;];
-&lt;/script&gt;</code></pre><p>下面需要添加响应 <strong>Next</strong> 和 <strong>Prev</strong> button 的 event handler 来切换不同图片：</p><pre><code>&lt;body&gt;
-    &lt;button onclick=&quot;prev()&quot;&gt; Prev &lt;/button&gt;
-    &lt;img id=&quot;slider&quot; src=&quot;https://blog.niekun.net/usr/uploads/2020/12/2749019084.jpg&quot;&gt;
-    &lt;button onclick=&quot;next()&quot;&gt; Next &lt;/button&gt;
-&lt;/body&gt;
-&lt;script&gt;
-    var images = [
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/2749019084.jpg&quot;,
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/1648461111.jpg&quot;,
-    &quot;https://blog.niekun.net/usr/uploads/2020/12/3914156262.jpg&quot;];
-
-    var num = 0;
-    function next() {
-        var slider = document.getElementById(&quot;slider&quot;);
-        num++;
-        if (num &gt;= images.length)
-            num = 0;
-        slider.src = images[num];
-    }
-
-    function prev() {
-        var slider = document.getElementById(&quot;slider&quot;);
-        num--;
-        if (num &lt; 0)
-            num = images.length - 1;
-        slider.src = images[num];
-    }
-&lt;/script&gt;</code></pre><p>效果如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/3936392311.jpg" alt="4.jpg" title="4.jpg"></p><p><strong>num</strong> 变量存储当前图片的 index 索引。</p><h3>Form Validation 表格验证</h3><p>html5 添加了一些用来验证的属性，例如 <strong>required</strong> attribute 能够添加给 <strong>input</strong> 元素来强制必须输入内容。</p><p>更加复杂的验证机制可以通过 JavaScript 完成。</p><p><strong>form</strong> 元素有一个 <strong>onsubmit</strong> event 能够用来进行验证。我们创建一个 form 表格，有两个 input 和一个 button，需要两个 input 输入一样的内容且不为空才通过验证：</p><pre><code>&lt;form onsubmit=&quot;return validate()&quot; method=&quot;post&quot;&gt;
-    number: &lt;input type=&quot;text&quot; name=&quot;num1&quot; id=&quot;num1&quot;&gt;
-    &lt;br&gt;
-    repeat: &lt;input type=&quot;text&quot; name=&quot;num2&quot; id=&quot;num2&quot;&gt;
-    &lt;br&gt;
-    &lt;input type=&quot;submit&quot; value=&quot;submit&quot;&gt;
-&lt;/form&gt;</code></pre><p>然后定义 <code>validate()</code> function：</p><pre><code>&lt;script&gt;
-    function validate() {
-        var n1 = document.getElementById(&quot;num1&quot;);
-        var n2 = document.getElementById(&quot;num2&quot;);
-
-        if (n1.value != &quot;&quot; &amp;&amp; n2.value != &quot;&quot;) {
-            if (n1.value == n2.value)
-                return true;
-        }
-        alert(&quot;the values shoud be equal and not blank&quot;);
-        return false;
-    }
-&lt;/script&gt;</code></pre><p>只有当 <strong>onsubmit</strong> event 的返回值为 <strong>true</strong> 时，form 才会被提交。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2002.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2002.html</wfw:commentRss>
-</item>
-<item>
-<title>JavaScript 入门教程之六 -- JS内置 Objects</title>
-<link>https://blog.niekun.net/archives/1997.html</link>
-<guid>https://blog.niekun.net/archives/1997.html</guid>
-<pubDate>Fri, 18 Dec 2020 18:53:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[下面介绍一些 JavaScript 内部定义好的 obect，可以直接使用。JavaScript Arrays 数组当你需要定义三个课程名称时，需要分别定义：var course1 =&quot...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>下面介绍一些 JavaScript 内部定义好的 obect，可以直接使用。</p><h3>JavaScript Arrays 数组</h3><p>当你需要定义三个课程名称时，需要分别定义：</p><pre><code>var course1 =&quot;HTML&quot;; 
-var course2 =&quot;CSS&quot;; 
-var course3 =&quot;JS&quot;; </code></pre><p>当你有 100 个课程名称呢？这时候可以使用 Array：</p><pre><code>var courses = new Array(&quot;HTML&quot;, &quot;CSS&quot;, &quot;JS&quot;);</code></pre><!--more--><p>以上定义了一个数组 courses，存储了 3 个元素。</p><p>可以使用 index 索引号内访问数组元素，索引号 0 表示第一个元素：</p><pre><code>var courses = new Array(&quot;HTML&quot;, &quot;CSS&quot;, &quot;JS&quot;);
-var course = courses[0];
-courses[1] = &quot;c++&quot;;</code></pre><p>以上示例表示：给变量 course 赋值数组第一个元素，给第二个元素赋值 <code>c++</code>。</p><p><strong>如果尝试访问超出数组元素的索引，会返回 <code>undefined</code></strong>。</p><p>在定义数组时也可以只申明数组元素个数，后续再给元素赋值：</p><pre><code>var courses = new Array(3);
-courses[0] = &quot;HTML&quot;;
-courses[1] = &quot;CSS&quot;;
-courses[2] = &quot;JS&quot;;</code></pre><p>array 数组是一种特殊的 object，它使用 index number 来访问元素，而标准 object 使用 property name 来访问元素，name 是字符形式。</p><p>如下是 array 和 object 的元素定义区别：</p><pre><code>var arr = {
-    0: 0,
-    1: 1,
-    2: 2,
-    3: 3
-}
-
-var obj = {
-    '0': 0,
-    '1': 1,
-    '2': 2,
-    '3': 3
-}</code></pre><p>在 array 的 index 数字索引永远是按顺序排列的。所以我们访问以上示例中 arr 和 obj 元素的方式为：<code>arr[0]</code>, <code>obj['0']</code>。</p><p>JavaScript array 是动态的，也就是你可以在创建时不传入任何参数给构造器：</p><pre><code>var courses = new Array();
-courses[0] = &quot;HTML&quot;;
-courses[1] = &quot;CSS&quot;;
-courses[2] = &quot;JS&quot;;
-courses[3] = &quot;C++&quot;;</code></pre><p>你可以添加任意多个元素给数组。</p><p>为了定义更加方便，可以使用 array literal 语法来创建数组：</p><pre><code>var courses = [&quot;HTML&quot;, &quot;CSS&quot;, &quot;JS&quot;];</code></pre><p>以上语法和使用 <code>new</code> 关键词创建的数组是一样的。<strong>推荐使用这种语法</strong>。</p><p><strong>JavaScript array 内建了很多实用的 properties 和 method。</strong></p><p><strong>length</strong> property 返回数组的元素个数：</p><pre><code>var courses = [&quot;HTML&quot;, &quot;CSS&quot;, &quot;JS&quot;];
-document.write(courses.length);</code></pre><p><code>length</code> 的返回值比最后一个元素的索引号大 1，如果数组为空，则返回值为 0。</p><p><strong>concat</strong> method 可以叠加两个数组并返回为一个新的数组：</p><pre><code>var c1 = [&quot;HTML&quot;, &quot;CSS&quot;, &quot;JS&quot;];
-var c2 = [&quot;C++&quot;];
-var newC = c1.concat(c2);</code></pre><p>newC 数组拥有四个元素："HTML", "CSS", "JS", "C++"。注意使用 <code>concat()</code> method 并不会影响 c1 和 c2。</p><p><code>map</code> method 可以给数组每个元素调用一个 function 然后返回修改后的数据为一个新数组：</p><pre><code>var arr = [1, 2, 3, 4];
-var newArr = arr.map(function(i) {
-    return i * 2;
-})
-console.log(newArr);
-
-//output:
-//0: 2
-//1: 4
-//2: 6
-//3: 8
-//length: 4</code></pre><p><code>reduce</code> Method 可以将数组元素合并为一个 value。语法为：</p><pre><code>array.reduce(function(total, currentValue))
-</code></pre><p>total 为元素合并的累积值，currentValue 为当前循环处理到的元素。调用 reduce 时，第一次传入 total 为 第一个元素数据，currentValue 为数组第二个元素，function 会返回一个结果作为第二次循环 total 的数据，currentValue 指向第三个元素，然后进行循环调用 function 累积 total 的值，最后返回 total。</p><p>下面举例说明：</p><pre><code>var arr = [1, 3 ,5];
-var sum = arr.reduce(function(total, curr) {
-    return total + curr;
-});
-console.log(sum);
-
-//output:
-//9</code></pre><p><code>filter</code> method 可以逐个过滤数组的元素，返回符合条件元素创建一个新数组。语法如下：</p><pre><code>array.filter(function(currentValue))
-</code></pre><p>filter 将数组元素逐个作为传入参数调用 function，function 返回值为 Boolean 类型，如果为 true 则返回当前数组元素，反之则丢弃当前数组元素。</p><p>示例如下：</p><pre><code>var arr = [1, 4, 6, 3, 8];
-var newArr = arr.filter(function(i) {
-    return i &lt; 5;
-});
-
-console.log(newArr);
-
-//OUTPUT:
-//0: 1
-//1: 4
-//2: 3
-//length: 3</code></pre><p><code>join</code> method 将数组所有元素转换为一个字符串并返回这个字符串。下面是一个示例：</p><pre><code>var arr = ['a', 'b', 'c'];
-var x = arr.join();
-console.log(x);
-
-//output:
-//a,b,c</code></pre><p>元素间会通过一个分隔符隔开，默认是一个逗号<code>,</code>，可以通过 join 的参数自定义分隔符：</p><pre><code>var arr = ['a', 'b', 'c'];
-var x = arr.join('/');
-console.log(x);
-
-//output:
-//a/b/c</code></pre><p><code>indexOf</code> method 搜索一个数组中特定的元素，并返回这个元素所在 index 索引。语法如下：</p><pre><code>array.indexOf(item, start)
-</code></pre><p><strong>item</strong> 是搜索的元素，<strong>start</strong> 定义开始搜索的位置，默认为 0。</p><p>示例如下：</p><pre><code>var arr = ['a', 'b', 'c', 'a', 'e', 'b'];
-var x = arr.indexOf('b');
-var y = arr.indexOf('b', 2);
-var z = arr.indexOf('f');
-console.log(x);
-console.log(y);
-console.log(z);
-
-//output:
-//1
-//5
-//-1</code></pre><p>当搜索的元素不存在时，返回值为 <code>-1</code>。</p><p><strong>Associative Arrays</strong> 关联型数组</p><p>很多编程语言支持给数组添加命名化的 index 索引，也就是给每个元素定义一个名称，<strong>但是 JavaScript 不支持这种操作</strong>，因为它只能使用内部默认的 index 数字型索引。</p><p>但是我们依然可以定义命名化的 index 索引数组，JavaScript 会将其作为一个 object 处理：</p><pre><code>var a = [];
-a[&quot;name&quot;] = &quot;marco&quot;;
-a[&quot;age&quot;] = 20;
-document.write(a[&quot;age&quot;]);</code></pre><p>JavaScript 会将 a 作为 object 处理，这样 name 和 age 就是其 properties。可以使用以上写法来读取 property 数据。</p><p>由于 a 数组被作为 object 处理，所以标准 array 的一些 method 和 properties 将无法正确执行，例如：<code>a.length</code> 返回值将是 0 而不是 2。</p><p>JavaScript 原生并不支持命名化的元素索引，所以<strong>推荐</strong>当你想要使用 number 数字型 index 时使用 array，当你想要使用命名化的索引时使用 object。</p><h3>the Math Object 数学对象</h3><p>the Math Object 可以用来处理数学运算任务，它包含多个 properties：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/2493943028.png" alt="1.png" title="1.png"></p><p><strong>Math 没有 constructor 构造器</strong>，所以使用时并不需要单独创建 object。例如：</p><pre><code>document.write(Math.PI);
-</code></pre><p>以上将输出：3.141592653589793</p><p>Math object 包含多个 method 用来计算：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/2808938315.png" alt="2.png" title="2.png"></p><p>下面示例计算 4 的平方根：</p><pre><code>var a = Math.sqrt(4);</code></pre><p>如果想要得到一个 0- 10 的随机数，可以使用下面方法：</p><pre><code>Math.ceil(Math.random() * 10);
-</code></pre><p>下面编写一个小程序，让用户输入一个数字然后将这个数字的平方根放在弹窗通知中：</p><pre><code>var n = prompt(&quot;please input a number: &quot;, &quot;&quot;);
-var m = Math.sqrt(n);
-alert(m);</code></pre><h3>The Date Object 时间对象</h3><p><code>setInterval()</code> method 用来在指定的间隔时间(毫秒)下调用 function 或评估一个表达式。它将会持续调用直到执行 <code> clearInterval()</code> 或关闭窗口。</p><p>下面的示例将会每三秒钟弹出窗口：</p><pre><code>function myAlert() {
-    alert(&quot;hello&quot;);
-}
-setInterval(myAlert, 3000);</code></pre><p>注意传递 function 时只需要写 function 名称即可，不需要小括号<code>()</code>。</p><p><code>Data</code> object 可以让我们使用时间元素，一个 <code>Date</code> object 由：a year, a month, a day, an hour, a minute, a second, and milliseconds 构成。</p><p>使用 <code>new</code> 关键词来创建一个 Date obect，包含有当前的<strong>日期和时间</strong>：</p><pre><code>var d = new Date();
-//d stores the current date and time</code></pre><p>也可以使用指定的日期和时间来创建 Date object：</p><pre><code>new Date(milliseconds)
-new Date(dateString)
-new Date(year, month, day, hours, minutes, seconds, milliseconds)</code></pre><p>JavaScript 日期计算使用毫秒为单位，起始日期为：01 January, 1970 00:00:00 (UTC)。一天包含 86,400,000 毫秒。</p><p>以下示例使用不同方式定义指定日期：</p><pre><code>//Fri Jan 02 1970 00:00:00
-var d1 = new Date(86400000); 
-
-//Fri Jan 02 2015 10:42:00
-var d2 = new Date(&quot;January 2, 2015 10:42:00&quot;);
-
-//Sat Jun 11 1988 11:42:00
-var d3 = new Date(88,5,11,11,42,0,0);</code></pre><p>JavaScript 的月份从 0 到 11，1 月就是 0，12 月就是 11。Date object 是 static 类型的，创建后就不会改变。</p><p>Date object 有如下 method 可供使用：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/986046713.png" alt="3.png" title="3.png"></p><p>例如读取当前小时数值：</p><pre><code>var d = new Date();
-document.write(d.getHours());</code></pre><p>下面示例在窗口显示当前时间，且每秒刷新一次：</p><pre><code>function printTime() {
-    var d = new Date();
-    var hour = d.getHours();
-    var min = d.getMinutes();
-    var sec = d.getSeconds();
-    document.body.innerHTML = hour + &quot;:&quot; + min + &quot;:&quot; + sec;
-}
-
-setInterval(printTime, 1000);</code></pre><p><code>innerHTML</code> property 可以设置或返回一个 HTML 元素的内容，这里我们将 document 的 body 块的内容赋值为我们定义的时间数据，并且每秒覆盖更新一次。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1997.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1997.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

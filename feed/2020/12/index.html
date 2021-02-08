@@ -547,7 +547,7 @@ console.log('first');
         resolve(result);
     else
         reject(Error('failure'));
-});</code></pre><p>创建 <strong>Promise</strong> 需要定义一个 function 包含有两个参数，这两个参数是 method 类型的。可以在 function 中根据需要使用这两个 method。示例中 <strong>resolve</strong> 在 <strong>success</strong> 为 true 时被调用，<strong>reject</strong> 在 else 情况被调用。</p><p>那么 <strong>Promise</strong> 中需要的这两个 method 在哪里定义的呢？如果我们在程序中一个 method 返回类型为 <strong>Promise</strong> 类型，则可以调用 <code>then</code> method，有两个传入参数就是 2 个 method 的定义。</p><p>下面的示例中，定义一个返回值为 <strong>Promise</strong> 类型的 function，然后调用这个 function：</p><pre><code>const asyncTest = (work) =&gt; {
+});</code></pre><p><strong>Promise</strong> 包含有两个 function 参数，这两个参数定义了 promise 成功和失败两种情况下的回传数据。在 promise 中定义这两者的逻辑。示例中 <strong>resolve</strong> 在 <strong>success</strong> 为 true 时被调用它的回传数据是 result 变量的数据，<strong>reject</strong> 在 else 情况被调用它的回传数据是字符串<code>failure</code>。</p><p>当 promise 定义后，它会在其他进程保持 pending 挂起状态等待 callback 调用。</p><p>那么 <strong>Promise</strong> 中需要的这两个回传数据在什么地方被使用呢？如果一个 object 的返回类型为 <strong>Promise</strong> ，则可以调用 <code>then</code> method，其中定义的两个 callback function 分别对应于 resolve 和 rejecct，传入数据分别来自他们在 promise 中的传入数据。</p><p>下面的示例中，定义一个返回值为 <strong>Promise</strong> 类型的 function，然后调用这个 function：</p><pre><code>const asyncTest = (work) =&gt; {
     return new Promise((resolve, reject) =&gt; {
         if (work === &quot;&quot;)
             reject(Error('nothing'));
@@ -571,7 +571,15 @@ console.log('frist');
 //OUTPUT:
 //frist
 //second
-//third</code></pre><p>以上示例和第一个示例效果一样，首先输出 frist，3 秒后输出 second，在经过 3 秒输出 third。同样的都是三个输出都是异步进行的。</p><p>以上语法相比之前的代码使逻辑关系更加清晰，<strong>Promise</strong> object 定义了调用两个 <strong>method</strong> 的原则，通过调用 <strong>then</strong> method 定义 2 个 method 的指令，只有 <strong>Promise</strong> 类型的 object 才有 <strong>then</strong> method。所以如果要继续扩充异步动作，只需要在某个 method 中返回 <strong>promise</strong> 类型的数据，就可以继续通过 <strong>then</strong> method 定义其他动作。</p><p>以上示例中，我们通过第一个 <strong>then</strong> 定义 1 个延时触发指令，然后返回一个新的 <strong>Promise</strong> 类型 object，这样可以继续调用第二个 <strong>then</strong> 来实现其他异步动作。以此类推可以继续扩展下去。</p><h3>Iterators & Generators</h3><p><strong>Symbol.iterator</strong> 是 object 内置默认的 iterator，for...of loop 就是基于这种类型的 iterator 来处理数组 object 的。</p><p>下面的示例介绍 <strong>Symbol.iterator</strong> 和 <strong>generator functions</strong> 如何使用：</p><pre><code>let myIterableObj = {
+//third</code></pre><p>以上示例和第一个示例效果一样，首先输出 frist，3 秒后输出 second，在经过 3 秒输出 third。同样的都是三个输出都是异步进行的。</p><p>以上语法相比之前的代码使逻辑关系更加清晰，<strong>Promise</strong> object 定义了调用两个 <strong>method</strong> 的原则，通过调用 <strong>then</strong> method 定义 2 个 method 的指令，只有 <strong>Promise</strong> 类型的 object 才有 <strong>then</strong> method。所以如果要继续扩充异步动作，只需要在某个 method 中返回 <strong>promise</strong> 类型的数据，就可以继续通过 <strong>then</strong> method 定义其他动作。</p><p>以上示例中，我们通过第一个 <strong>then</strong> 定义 1 个延时触发指令，然后返回一个新的 <strong>Promise</strong> 类型 object，这样可以继续调用第二个 <strong>then</strong> 来实现其他异步动作。以此类推可以继续扩展下去。</p><p>也可以使用 <strong>then</strong> 和 <strong>catch</strong> method 分别定义 resolve 和 reject 情况的 callback function，如：</p><pre><code>   asyncTest('second')
+   .then(result =&gt; {
+       console.log(result);
+       return asyncTest('third');
+   })
+   .then(result =&gt; console.log(result))
+   .catch(error =&gt; console.log(error))
+
+   console.log('frist');</code></pre><p>当 <strong>reject</strong> 情况时，会查找最近的一个 <strong>catch</strong> function。</p><h3>Iterators & Generators</h3><p><strong>Symbol.iterator</strong> 是 object 内置默认的 iterator，for...of loop 就是基于这种类型的 iterator 来处理数组 object 的。</p><p>下面的示例介绍 <strong>Symbol.iterator</strong> 和 <strong>generator functions</strong> 如何使用：</p><pre><code>let myIterableObj = {
     [Symbol.iterator]: function* () {
         yield 1;
         yield 2;

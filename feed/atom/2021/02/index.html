@@ -6,17 +6,282 @@ xml:base="https://blog.niekun.net/2021/02/"
 >
 <title type="text">Marco Nie - 2021年2月</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2021-02-07T17:17:30+08:00</updated>
+<updated>2021-02-08T21:42:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/2021/02/" />
 <id>https://blog.niekun.net/feed/atom/2021/02/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/02/" />
 <entry>
+<title type="html"><![CDATA[node.js 入门教程九 -- events 模块]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2151.html" />
+<id>https://blog.niekun.net/archives/2151.html</id>
+<updated>2021-02-08T21:42:00+08:00</updated>
+<published>2021-02-08T21:42:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[在之前介绍 event loop 的章节，我们简单介绍了 events 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。events 模块提供了 Ev...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2151.html" xml:lang="zh-CN"><![CDATA[
+<p>在之前介绍 <strong>event loop</strong> 的章节，我们简单介绍了 <strong>events</strong> 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。</p><p><strong>events</strong> 模块提供了 <strong>EventEmitter</strong> class 它是处理 events 的关键工具。</p><p>引入及初始化 events 模块如下：</p><pre><code>const EventEmitter = require('events')
+const eventEmitter = new EventEmitter()</code></pre><p>每个 event listener 事件监听器都是互相独立的，同时它们使用如下 events：</p><ul><li><strong>newListener</strong> 当一个 event 被添加</li><li><strong>removeListener</strong> 当一个 event 被删除</li></ul><p>下面介绍常用的一些 method。</p><!--more--><h3>eventEmitter.addListener()</h3><p><code>eventEmitter.addListener()</code> 和 <code>eventEmitter.on()</code> 功能相同。可以给某个 event 添加一个 listener，语法如下：</p><pre><code>eventEmitter.addListener('test', () =&gt; {})
+</code></pre><h3>eventEmitter.emit()</h3><p><code>eventEmitter.emit()</code> 用来触发一个信号，信号触发后，对应信号的 event listener 会响应 callback function：</p><pre><code>eventEmitter.addListener('test', () =&gt; { console.log('test emited') })
+eventEmitter.emit('test')
+
+//output:
+//test emited</code></pre><h3>eventEmitter.eventNames()</h3><p><code>eventEmitter.eventNames()</code> 会返回当前 <strong>EventEmitter</strong> object 内注册已的 events 为一个字符串数组：</p><pre><code>eventEmitter.addListener('test1', () =&gt; {})
+eventEmitter.addListener('test2', () =&gt; {})
+console.log(eventEmitter.eventNames())
+
+//output:
+//[ 'test1', 'test2' ]</code></pre><h3>eventEmitter.getMaxListeners()</h3><p><code>eventEmitter.getMaxListeners()</code> 返回当前 <strong>EventEmitter</strong> object 能添加的 event listener 最大数量。默认为 10 个，可以通过 <code>setMaxListeners()</code> 修改。</p><h3>eventEmitter.listenerCount()</h3><p><code>eventEmitter.listenerCount()</code> 返回某个 event 定义的 listeners 数量：</p><pre><code>eventEmitter.addListener('test4', () =&gt; { console.log('a') })
+eventEmitter.addListener('test4', () =&gt; { console.log('b') })
+console.log(eventEmitter.listenerCount('test4'))
+
+//output:
+//2</code></pre><h3>eventEmitter.listeners()</h3><p><code>eventEmitter.listeners()</code> 返回某个 event 所有的 listeners 为一个数组：</p><pre><code>const f1 = () =&gt; {}
+const f2 = () =&gt; {}
+eventEmitter.addListener('test5', f1)
+eventEmitter.addListener('test5', f2)
+console.log(eventEmitter.listeners('test5'))
+
+//output:
+//[ [Function: f1], [Function: f2] ]</code></pre><h3>eventEmitter.off()</h3><p><code>eventEmitter.off()</code> 和 <code>eventEmitter.removeListener()</code> 功能相同。可以删除一个 event 的某个 listener，需要指定 event 名称和 listener callback 名称：</p><pre><code>const f3 = () =&gt; {}
+eventEmitter.addListener('test6', f3)
+eventEmitter.off('test6', f3)</code></pre><h3>eventEmitter.on()</h3><p><code>eventEmitter.on()</code> 同 <code>eventEmitter.addListener()</code> 功能相同。可以给某个 event 添加一个 listener：</p><pre><code>eventEmitter.on('test6', () =&gt; {})</code></pre><h3>eventEmitter.once()</h3><p><code>eventEmitter.once()</code> 监听一个 event 且其 callback function 只能被执行一次：</p><pre><code>eventEmitter.once('test7', () =&gt; console.log('once show once'))
+eventEmitter.emit('test7')
+eventEmitter.emit('test7')
+
+//output:
+//once show once</code></pre><h3>eventEmitter.prependListener()</h3><p>当通过 <code>eventEmitter.on()</code> 添加 listener 时，会按照添加顺序排列在此 event 队列中，当对应 event 触发时，会按照排列顺序以此执行 callback。</p><p>使用 <code>eventEmitter.prependListener()</code> 添加的 listener 会添加到队列的最前面，触发时最先被执行：</p><pre><code>eventEmitter.on('test8', () =&gt; console.log('first listener'))
+eventEmitter.prependListener('test8', () =&gt; console.log('second listener'))
+eventEmitter.emit('test8')
+
+//output:
+//second listener
+//first listener</code></pre><h3>eventEmitter.prependOnceListener()</h3><p><code>eventEmitter.prependOnceListener()</code> 同 <code>eventEmitter.on()</code> 的区别和上面类似，会将 listener 添加到对应 event listeners 队列的最前面，然后最先被执行且只能响应一次：</p><pre><code>eventEmitter.once('test9', () =&gt; console.log('first listener'))
+eventEmitter.prependOnceListener('test9', () =&gt; console.log('second listener'))
+eventEmitter.emit('test9')
+eventEmitter.emit('test9')
+
+//output:
+//second listener
+//first listener</code></pre><h3>eventEmitter.removeAllListeners()</h3><p><code>eventEmitter.removeAllListeners()</code> 可以删除指定 event 的所有 listeners：</p><pre><code>eventEmitter.removeAllListeners('test9')</code></pre><h3>eventEmitter.removeListener()</h3><p><code>eventEmitter.removeListener()</code> 可以删除 event 的指定 listener。需要将 listener 的 callback function 定义为变量格式然后再调用，这样就可以在此 reference 它：</p><pre><code>const f1 = () =&gt; {}
+const f2 = () =&gt; {}
+eventEmitter.addListener('test5', f1)
+eventEmitter.addListener('test5', f2)
+
+eventEmitter.removeListener('test5', f1)</code></pre><h3>eventEmitter.setMaxListeners()</h3><p><code>eventEmitter.setMaxListeners()</code> 可以定义 <strong>EventEmitter</strong> object 最大可以添加的 listeners 数量：</p><pre><code>eventEmitter.setMaxListeners(20)
+console.log(eventEmitter.getMaxListeners())
+
+//output:
+//20</code></pre><p>以上就是 events 模块最常用功能的介绍。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2151.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2151.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之八 -- os 模块]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2147.html" />
+<id>https://blog.niekun.net/archives/2147.html</id>
+<updated>2021-02-08T14:03:00+08:00</updated>
+<published>2021-02-08T14:03:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[os 模块可以用来获取操作系统的底层信息和系统上运行的程序，以及和系统交互。它集成在 node.js 中，只需要引入即可：const os = require('os')这里先介绍一些在处理文件...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2147.html" xml:lang="zh-CN"><![CDATA[
+<p>os 模块可以用来获取操作系统的底层信息和系统上运行的程序，以及和系统交互。</p><p>它集成在 node.js 中，只需要引入即可：</p><pre><code>const os = require('os')
+</code></pre><p>这里先介绍一些在处理文件时有用的 properties：</p><ul><li>os.EOL 会返回 line delimiter 行定界符，<code>\n</code> on Linux and macOS, and <code>\r\n</code> on Windows</li><li>os.constants.signals 提供处理进程的信号常数，如：SIGHUP, SIGKILL</li><li>os.constants.errno 提供报告 error 的相关常数，如：EADDRINUSE, EOVERFLOW</li></ul><p>完整的 signals 信号列表参考：<a href="https://nodejs.org/api/os.html#os_signal_constants">https://nodejs.org/api/os.html#os_signal_constants</a></p><p>下面介绍 os 模块常用的 method。</p><!--more--><h3>os.arch()</h3><p><code>os.arch()</code> 会返回底层架构的字符串，如：arm, x64, arm64：</p><pre><code>console.log(os.arch())
+
+//output:
+x64</code></pre><h3>os.cpus()</h3><p><code>os.cpus()</code> 会返回系统的 cpu 信息：</p><pre><code>console.log(os.cpus())
+
+//output:
+[
+  {
+    model: 'Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz',
+    speed: 2591,
+    times: {
+      user: 1871810,
+      nice: 17880,
+      sys: 1451160,
+      idle: 81134010,
+      irq: 0
+    }
+  },
+  {
+    model: 'Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz',
+    speed: 2591,
+    times: {
+      user: 1838130,
+      nice: 12780,
+      sys: 1532060,
+      idle: 81234660,
+      irq: 0
+    }
+  }
+]</code></pre><h3>os.endianness()</h3><p>根据 node.js 是通过 Big Endian 或 Little Endian 大尾数或小尾数编译的，<code>os.endianness()</code> 返回 <strong>BE</strong> 或 <strong>LE</strong>：</p><pre><code>console.log(os.endianness())
+
+//output:
+LE</code></pre><p>关于 Big Endian 或 Little Endian 参考：<a href="https://en.wikipedia.org/wiki/Endianness">https://en.wikipedia.org/wiki/Endianness</a><br><img src="https://blog.niekun.net/usr/uploads/2021/02/1127147165.jpg" alt="1.jpg" title="1.jpg"></p><h3>os.freemem()</h3><p><code>os.freemem()</code> 返回系统可用内存，以字节为单位：</p><pre><code>console.log(os.freemem())
+
+//output:
+574537728</code></pre><h3>os.homedir()</h3><p><code>os.homedir()</code> 返回系统当前用户的 home 目录路径：</p><pre><code>console.log(os.homedir())
+
+//output:
+/home/marco</code></pre><h3>os.hostname()</h3><p><code>os.hostname()</code> 返回 hostname 信息：</p><pre><code>console.log(os.hostname())
+
+//output:
+marco-virtual-machine</code></pre><h3>os.loadavg()</h3><p><code>os.loadavg()</code> 返回系统计算的平均加载时间，此 method 只在 Linux/macOS 下有意义：</p><pre><code>console.log(os.loadavg())
+
+//output:
+[ 0.08, 0.17, 0.13 ]</code></pre><h3>os.networkInterfaces()</h3><p><code>os.networkInterfaces()</code> 返回系统的网卡信息：</p><pre><code>console.log(os.networkInterfaces())
+
+//output:
+{ lo0:
+   [ { address: '127.0.0.1',
+       netmask: '255.0.0.0',
+       family: 'IPv4',
+       mac: 'fe:82:00:00:00:00',
+       internal: true },
+     { address: '::1',
+       netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
+       family: 'IPv6',
+       mac: 'fe:82:00:00:00:00',
+       scopeid: 0,
+       internal: true },
+     { address: 'fe80::1',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: 'fe:82:00:00:00:00',
+       scopeid: 1,
+       internal: true } ],
+  en1:
+   [ { address: 'fe82::9b:8282:d7e6:496e',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: '06:00:00:02:0e:00',
+       scopeid: 5,
+       internal: false },
+     { address: '192.168.1.38',
+       netmask: '255.255.255.0',
+       family: 'IPv4',
+       mac: '06:00:00:02:0e:00',
+       internal: false } ],
+  utun0:
+   [ { address: 'fe80::2513:72bc:f405:61d0',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: 'fe:80:00:20:00:00',
+       scopeid: 8,
+       internal: false } ] }</code></pre><h3>os.platform()</h3><p><code>os.platform()</code> 返回当前安装的 node.js 的编译平台，可能的返回值为：</p><ul><li>darwin</li><li>freebsd</li><li>linux</li><li>openbsd</li><li>win32</li><li>...more</li></ul><h3>os.release()</h3><p><code>os.release()</code> 返回当前系统的版本号信息：</p><pre><code>console.log(os.release())
+
+//output:
+5.8.0-41-generic</code></pre><h3>os.tmpdir()</h3><p><code>os.tmpdir()</code> 返回系统的临时文件夹路径：</p><pre><code>console.log(os.tmpdir())
+
+//output:
+/tmp</code></pre><h3>os.totalmem()</h3><p><code>os.totalmem()</code> 返回系统的总内存数量，单位为 byte 字节：</p><pre><code>console.log(os.totalmem()/1024/1024)
+
+//output:
+1958.45703125</code></pre><h3>os.type()</h3><p><code>os.type()</code> 返回当前操作系统类型，返回值可以有：</p><ul><li><strong>Linux</strong></li><li><strong>Darwin</strong> on macOS</li><li><strong>Windows_NT</strong> on Windows</li></ul><h3>os.uptime()</h3><p><code>os.uptime()</code> 返回系统从上次开机来已运行的总时间，单位为秒：</p><pre><code>console.log(os.uptime()/3600)
+
+//output:
+24.260555555555555</code></pre><h3>os.userInfo()</h3><p><code>os.userInfo()</code> 返回一个 object 包含当前的 <strong>username</strong>, <strong>uid</strong>, <strong>gid</strong>, <strong>shell</strong>, 和 <strong>homedir</strong>：</p><pre><code>console.log(os.userInfo())
+
+//output:
+{
+  uid: 1000,
+  gid: 1000,
+  username: 'marco',
+  homedir: '/home/marco',
+  shell: '/bin/bash'
+}</code></pre><p>以上就是 os 模块的简单使用方法。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2147.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2147.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之七 -- fs 和 path 模块]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2146.html" />
+<id>https://blog.niekun.net/archives/2146.html</id>
+<updated>2021-02-08T11:21:30+08:00</updated>
+<published>2021-02-08T11:21:30+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[上一章节我们了解了如果访问文件系统。使用到了 fs 和 path 模块的部分功能，下面我们详细了解这两个模块可以实现的功能。fs module通过以上几个使用场景可以看到 fs 模块提供了很多有...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2146.html" xml:lang="zh-CN"><![CDATA[
+<p>上一章节我们了解了如果访问文件系统。使用到了 fs 和 path 模块的部分功能，下面我们详细了解这两个模块可以实现的功能。</p><h3>fs module</h3><p>通过以上几个使用场景可以看到 fs 模块提供了很多有用的功能来对 file system 进行访问和交互。并且他是集成在 node.js core 中的，并不需要手动安装：</p><pre><code>const fs = require('fs')
+
+</code></pre><!--more--><p>通过以上方式引入 fs 模块后，我们就可以使用它的各种功能了。包括：</p><ul><li><strong>fs.access()</strong>: 检查文件是否存在以及 node.js 是否有权限访问</li><li><strong>fs.appendFile()</strong>: 给一个文件附加数据，如果文件不存在则会创建它</li><li><strong>fs.chmod()</strong>: 修改文件的权限</li><li><strong>fs.chown()</strong>: 修改文件的 owner 和 group 设置</li><li><strong>fs.close()</strong>: 关闭已经打开的文件的 descriptor</li><li><strong>fs.copyFile()</strong>: 复制一个文件</li><li><strong>fs.createReadStream()</strong>: 创建一个可读的文件 stream</li><li><strong>fs.createWriteStream()</strong>: 创建一个可写的文件 stream</li><li><strong>fs.link()</strong>: 创建一个文件的硬链接</li><li><strong>fs.mkdir()</strong>: 新建文件夹</li><li><strong>fs.mkdtemp()</strong>: 创建一个临时文件夹</li><li><strong>fs.open()</strong>: 打开一个文件的 descriptor，可定义打开编码类型</li><li><strong>fs.readdir()</strong>: 读取一个目录下的内容</li><li><strong>fs.readFile(</strong>): 读取一个文件的内容</li><li><strong>fs.readlink()</strong>: 读取一个软连接的值</li><li><strong>fs.realpath()</strong>: resolve 查询一个相对路径文件的绝对路径</li><li><strong>fs.rename()</strong>: 重命名文件或文件夹</li><li><strong>fs.rmdir()</strong>: 删除一个文件夹</li><li><strong>fs.stat()</strong>: 返回一个文件的状态信息</li><li><strong>fs.symlink()</strong>: 创建一个文件的软链接</li><li><strong>fs.truncate()</strong>: 将一个文件分割成指定长度大小</li><li><strong>fs.unlink()</strong>: 删除一个文件或一个软链接</li><li><strong>fs.unwatchFile()</strong>: 停止监测对一个文件的修改</li><li><strong>fs.utimes()</strong>: 修改一个文件的时间戳</li><li><strong>fs.watchFile()</strong>: 开始监测对一个文件的修改</li><li><strong>fs.writeFile()</strong>: 对一个文件写入数据</li></ul><p>fs 模块的一个特性是它的以上所有 method 默认都是 asynchronous 异步的，给 method 后加上 <code>Sync</code> 就可以使用同步模式，例如：</p><ul><li><strong>fs.rename()</strong> -&gt; <strong>fs.renameSync()</strong></li><li><strong>fs.write()</strong> -&gt; <strong>fs.writeSync()</strong></li></ul><p>同步模式下通过使用 <strong>try/catch</strong> 块来处理 error 情况。同步模式下程序会在处理文件过程中出现<strong>进程阻塞</strong>直到处理完成，在编程中可以根据需要灵活运用。</p><h3>path module</h3><p>path 模块也提供了很多实用的功能来访问文件系统以及交互。同样的它也是集成在 node.js core 中而不需要单独安装。</p><pre><code>const path = require('path')
+</code></pre><p>通过 <code>path.sep</code> 可以获取当前系统的 path separator 路径分隔符：<code>\</code> on Windows, and <code>/</code> on Linux/macOS。<br>通过 <code>path.delimiter</code> 可以获取当前系统的 path delimiter 路径定界符：<code>;</code> on Windows, and <code>:</code> on Linux / macOS。</p><p>例如在 Linux 下：</p><pre><code>console.log(process.env.PATH);
+// Prints: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin'
+
+process.env.PATH.split(path.delimiter);
+// Returns: ['/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/bin']</code></pre><p>在 Windows 下：</p><pre><code>console.log(process.env.PATH);
+// Prints: 'C:\Windows\system32;C:\Windows;C:\Program Files\node\'
+
+process.env.PATH.split(path.delimiter);
+// Returns ['C:\\Windows\\system32', 'C:\\Windows', 'C:\\Program Files\\node\\']</code></pre><p>下面是 path 的常用 method 介绍。</p><h4>path.basename()</h4><p>返回路径上的最后一部分，通过第二个参数可以过滤掉扩展名：</p><pre><code>console.log(path.basename('/home/marco/dir'))
+console.log(path.basename('/home/marco/file.txt'))
+console.log(path.basename('/home/marco/file.txt', '.txt'))
+
+//output:
+dir
+file.txt
+file</code></pre><h4>path.dirname()</h4><p>返回路径上的文件夹部分：</p><pre><code>console.log(path.dirname('/home/marco/file'))
+
+//output:
+/home/marco</code></pre><h4>path.extname()</h4><p>返回文件的扩展名：</p><pre><code>console.log(path.extname('/home/marco/file.txt'))
+
+//output:
+.txt</code></pre><h4>path.isAbsolute()</h4><p>返回路径是否是绝对路径：</p><pre><code>console.log(path.isAbsolute('/home/marco'))
+console.log(path.isAbsolute('./marco'))
+
+//output:
+true
+false</code></pre><h4>path.join()</h4><p>将多个部分合并为一个路径：</p><pre><code>const name = 'marco';
+console.log(path.join('/home/' + name + '/file'))
+
+//output:
+/home/marco/file</code></pre><h4>path.normalize()</h4><p>将一个包含相对标记符的路径转换为常规绝对路径：</p><pre><code>console.log(path.normalize('/home/marco/../test'))
+
+//output:
+/home/test</code></pre><h4>path.parse()</h4><p>将路径拆分为一个 object，包含下面的 properties：</p><ul><li>root: 根目录</li><li>dir: 从根目录开始的文件夹部分</li><li>base: 文件名和扩展名</li><li>name: 文件名不包含扩展名</li><li>ext: 扩展名</li></ul><pre><code>console.log(path.parse('/home/marco/test/file.txt'))
+
+//output:
+{
+  root: '/',
+  dir: '/home/marco/test',
+  base: 'file.txt',
+  ext: '.txt',
+  name: 'file'
+}</code></pre><h4>path.relative()</h4><p>需要传入两个路径作为参数，第一个路径作为 base 基础路径，返回第二个路径相对于第一个路径的相对路径：</p><pre><code>console.log(path.relative('/home/marco', '/home/marco/test/file.txt'))
+
+//output:
+test/file.txt</code></pre><h4>path.resolve()</h4><p>计算一个相对路径的绝对路径，基于当前程序执行的路径：</p><pre><code>console.log(path.resolve('file.txt'))
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/file.txt</code></pre><p>也可以设置一个 base 路径，将会附加到相对路径中：</p><pre><code>console.log(path.resolve('tmp/test', 'file.txt'))
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/tmp/test/file.txt</code></pre><p>如果第一个 base 路径是绝对路径，则系统会认为这就是个绝对路径：</p><pre><code>console.log(path.resolve('/tmp/test', 'file.txt'))
+
+//output:
+/tmp/test/file.txt</code></pre><p>注意 <strong>path</strong> 模块对路径的处理不会判断这个路径是否真实存在，它只会按照指令处理路径这个字符串数据。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2146.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2146.html" thr:count="0"/>
+</entry>
+<entry>
 <title type="html"><![CDATA[node.js 入门教程之六 -- FileSystem]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2140.html" />
 <id>https://blog.niekun.net/archives/2140.html</id>
-<updated>2021-02-07T17:17:30+08:00</updated>
-<published>2021-02-07T17:17:30+08:00</published>
+<updated>2021-02-07T17:17:00+08:00</updated>
+<published>2021-02-07T17:17:00+08:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
@@ -31,7 +296,7 @@ fs.open('./test.txt', 'r', (err, data) =&gt; {
         return
     }
     console.log('open success')
-})</code></pre><p>如果文件打开成功，callback 中的 <strong>data</strong> 数据就是一个 file descriptor。这种方式是异步处理的，文件打开过程中系统会执行其他任务。</p><!--more--><p>在上面的示例中，<code>fs.open()</code> 的第三个参数使用了 <code>'f'</code> 标记，它的意思就是以<strong>只读模式</strong>打开文件。我们可以通过使用不同的标记来以不同的方式打开文件：</p><ul><li><strong>r</strong> 只读模式，文件不存在会报错</li><li><strong>a</strong> 只写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li><li><strong>r+</strong> 读写模式，文件不存在会报错</li><li><strong>w+</strong> 读写模式，streaming 流定位到文件起始位置，如果文件不存在则创建文件</li><li><strong>a+</strong> 读写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li></ul><p>更多 flag 的使用参考：<a href="https://nodejs.org/api/fs.html#fs_file_system_flags">https://nodejs.org/api/fs.html#fs_file_system_flags</a></p><p>也可以使用 <code>fs.openSync()</code> method 打开文件，其返回值为 file descriptor 而不是通过 callback 的方式：</p><pre><code>try {
+})</code></pre><p>如果文件打开成功，callback 中的 <strong>data</strong> 数据就是一个 file descriptor。注意并不是文件的内容。</p><p>这种方式是异步处理的，文件打开过程中系统会执行其他任务。</p><!--more--><p>在上面的示例中，<code>fs.open()</code> 的第三个参数使用了 <code>'f'</code> 标记，它的意思就是以<strong>只读模式</strong>打开文件。我们可以通过使用不同的标记来以不同的方式打开文件：</p><ul><li><strong>r</strong> 只读模式，文件不存在会报错</li><li><strong>a</strong> 只写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li><li><strong>r+</strong> 读写模式，文件不存在会报错</li><li><strong>w+</strong> 读写模式，streaming 流定位到文件起始位置，如果文件不存在则创建文件</li><li><strong>a+</strong> 读写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li></ul><p>更多 flag 的使用参考：<a href="https://nodejs.org/api/fs.html#fs_file_system_flags">https://nodejs.org/api/fs.html#fs_file_system_flags</a></p><p>也可以使用 <code>fs.openSync()</code> method 打开文件，其返回值为 file descriptor 而不是通过 callback 的方式：</p><pre><code>try {
     const data = fs.openSync('./test.txt', 'r')
     console.log('open success')
 } catch (error) {
@@ -201,6 +466,10 @@ fs.remove(p, err =&gt; {
 })</code></pre><p>也可以使用 promise 模式：</p><pre><code>fs.remove(p)
 .then(() =&gt; console.log('remove success'))
 .catch((err) =&gt; console.log(err))</code></pre><p>还可以使用 async/await 模式：</p><pre><code>const rm = async (p) =&gt; {
+    if (!fs.existsSync(p)) {
+        console.log('folder does not exist')
+        return
+    }
     try {
         await fs.remove(p)
         console.log('remove success')
@@ -208,7 +477,7 @@ fs.remove(p, err =&gt; {
         console.log('remove error')
     }
 }
-rm(p)</code></pre>
+rm(p)</code></pre><p>下一章我们继续了解 fs 和 path 模块的详细内容。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2140.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2140.html" thr:count="0"/>
