@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2155.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2151.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2147.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2146.html"/>
@@ -18,10 +19,151 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2100.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2085.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2051.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2043.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2155.html">
+<title>node.js 入门教程十 -- http 模块</title>
+<link>https://blog.niekun.net/archives/2155.html</link>
+<dc:date>2021-02-15T14:01:46+08:00</dc:date>
+<description>http 模块是 node.js 处理 networking 网络的关键模块。在之前的章节我介绍了使用 http 模块建立 server 以及发起 GET/POST 请求的方法，可以参考：https://blog.niekun.net/archives/2137.htmlhttp 模块集成于 node.js 核心无需单独安装，使用下面命令引入模块：const http = require('http')
+模块提供了很多 properties，methods 和 classes。Properties 属性http.METHODShttp.METHODS property 返回 http 所有的可用 method 列表：&gt; console.log(require('http').METHODS)
+[
+  'ACL',        'BIND',        'CHECKOUT',
+  'CONNECT',    'COPY',        'DELETE',
+  'GET',        'HEAD',        'LINK',
+  'LOCK',       'M-SEARCH',    'MERGE',
+  'MKACTIVITY', 'MKCALENDAR',  'MKCOL',
+  'MOVE',       'NOTIFY',      'OPTIONS',
+  'PATCH',      'POST',        'PRI',
+  'PROPFIND',   'PROPPATCH',   'PURGE',
+  'PUT',        'REBIND',      'REPORT',
+  'SEARCH',     'SOURCE',      'SUBSCRIBE',
+  'TRACE',      'UNBIND',      'UNLINK',
+  'UNLOCK',     'UNSUBSCRIBE'
+]http.STATUS_CODEShttp.STATUS_CODES 返回所有的 http 状态码及描述的 list 列表：&gt; console.log(require('http').STATUS_CODES)
+{
+  '100': 'Continue',
+  '101': 'Switching Protocols',
+  '102': 'Processing',
+  '103': 'Early Hints',
+  '200': 'OK',
+  '201': 'Created',
+  '202': 'Accepted',
+  '203': 'Non-Authoritative Information',
+  '204': 'No Content',
+  '205': 'Reset Content',
+  '206': 'Partial Content',
+  '207': 'Multi-Status',
+  '208': 'Already Reported',
+  '226': 'IM Used',
+  '300': 'Multiple Choices',
+  '301': 'Moved Permanently',
+  '302': 'Found',
+  '303': 'See Other',
+  '304': 'Not Modified',
+  '305': 'Use Proxy',
+  '307': 'Temporary Redirect',
+  '308': 'Permanent Redirect',
+  '400': 'Bad Request',
+  '401': 'Unauthorized',
+  '402': 'Payment Required',
+  '403': 'Forbidden',
+  '404': 'Not Found',
+  '405': 'Method Not Allowed',
+  '406': 'Not Acceptable',
+  '407': 'Proxy Authentication Required',
+  '408': 'Request Timeout',
+  '409': 'Conflict',
+  '410': 'Gone',
+  '411': 'Length Required',
+  '412': 'Precondition Failed',
+  '413': 'Payload Too Large',
+  '414': 'URI Too Long',
+  '415': 'Unsupported Media Type',
+  '416': 'Range Not Satisfiable',
+  '417': 'Expectation Failed',
+  '418': &quot;I'm a Teapot&quot;,
+  '421': 'Misdirected Request',
+  '422': 'Unprocessable Entity',
+  '423': 'Locked',
+  '424': 'Failed Dependency',
+  '425': 'Too Early',
+  '426': 'Upgrade Required',
+  '428': 'Precondition Required',
+  '429': 'Too Many Requests',
+  '431': 'Request Header Fields Too Large',
+  '451': 'Unavailable For Legal Reasons',
+  '500': 'Internal Server Error',
+  '501': 'Not Implemented',
+  '502': 'Bad Gateway',
+  '503': 'Service Unavailable',
+  '504': 'Gateway Timeout',
+  '505': 'HTTP Version Not Supported',
+  '506': 'Variant Also Negotiates',
+  '507': 'Insufficient Storage',
+  '508': 'Loop Detected',
+  '509': 'Bandwidth Limit Exceeded',
+  '510': 'Not Extended',
+  '511': 'Network Authentication Required'
+}http.globalAgenthttp.globalAgent 指向 http.Agent class 的一个 instance 实例，也就是一个 Agent object。这个 Agent object 用来管理 server 同 http 客户端链接的持续连接和链接复用，这也是 node.js 网络服务的关键点。&gt; console.log(require('http').globalAgent)
+Agent {
+  _events: [Object: null prototype] {
+    free: [Function (anonymous)],
+    newListener: [Function: maybeEnableKeylog]
+  },
+  _eventsCount: 2,
+  _maxListeners: undefined,
+  defaultPort: 80,
+  protocol: 'http:',
+  options: { path: null },
+  requests: {},
+  sockets: {},
+  freeSockets: {},
+  keepAliveMsecs: 1000,
+  keepAlive: false,
+  maxSockets: Infinity,
+  maxFreeSockets: 256,
+  scheduling: 'lifo',
+  maxTotalSockets: Infinity,
+  totalSocketCount: 0,
+  [Symbol(kCapture)]: false
+}methods 功能http.createServer()http.createServer() 返回一个 http.Server class 实例。const server = http.createServer((req, res) =&gt; {
+  //handle every single request with this callback
+})http.request()http.request() 对服务器发起一个 http 请求。返回一个 http.ClientRequest class 实例。const options = {
+    hostname: 'localhost',
+    port: 3000,
+    path: '/',
+    method: 'GET'
+}
+
+const req = https.request(options, res =&gt; {
+    console.log(`statusCode is：${res.statusCode}`);
+    res.on('data', d =&gt; {
+        process.stdout.write(d)
+    })
+})
+
+req.on('error', err =&gt; console.log(err))
+req.end()http.get()http.get() 同 http.request() 类似，但会自动将 http method 设置为 GET，且自动调用 req.end()。const https = require('http')
+const options = {
+    hostname: 'localhost',
+    port: 3000,
+    path: '/'
+}
+
+const req = https.get(options, res =&gt; {
+    console.log(`statusCode is：${res.statusCode}`);
+    res.on('data', d =&gt; {
+        process.stdout.write(d)
+    })
+})
+
+req.on('error', err =&gt; console.log(err))Classes 类http 模块提供 5 个 calsses：http.Agenthttp.ClientRequesthttp.Serverhttp.ServerResponsehttp.IncomingMessagehttp.Agentnode.js 会创建一个全局的 http.Agent instance 实例来管理 server 同 http 客户端链接的持续连接和链接复用，这个 object 可以确保一个客户端对服务端发起的一系列请求是按队列排序的，且使用单独的 socket 接口。同样 agent object 管理着一个 sockets 池，这是影响性能的关键因素。http.ClientRequest当 http.request() 或 http.get() 被调用时会创建一个 http.ClientRequest object。当收到来自服务器的 response 时，response event 会被触发，http.request() 内定义的 callback 会作为 response 的响应被调用，同时将 http.IncomingMessage 的实例作为传入参数，其中包含了 response 数据。response 数据有两种方式读取，第一种是通过 response.read() method，第二种是在 response 的 callback function 中通过监听 data event 来获取 stream 中的数据。http.Server当通过 http.createServer() 创建一个 server 时会返回 http.Server 实例。 http.Server 实例需要使用它的以下 method：close() 停止 server 接收新的链接listen() 启动 server 并开始监听请求http.createServer() 的 callback 监听 request event 并响应。http.ServerResponse由 http.Server object 创建，作为 request event 的第二个参数传入，代码中作为 callback 的 res 参数使用：const server = http.createServer((req, res) =&gt; {
+  //res is an http.ServerResponse object
+})end() 是 http.ServerResponse object 必须被使用的 method，用来表示 response 信息已经完整，可以结束这个 response，同时将 response 发送出去。下面的 method 可以用来处理 http headers：getHeaderNames() 获取当前 http headers 名称的列表getHeaders() 获取当前 http headers 副本setHeader('headername', value) 设置一个 http headergetHeader('headername') 获取当前的一个 http header 的设置removeHeader('headername') 删除一个 http headerhasHeader('headername') 如果某个 http header 有被设置则返回 trueheadersSent() 如果 http headers 已经发送给了客户端则返回 true服务端编辑好 headers 条目后可以通过 response.writeHead() method 发送给客户端，第一个参数是 statusCode。通过 response.write() 在 response body 中发送数据给客户端，它会将缓冲区的数据发送到 http response stream。如果还没有使用 response.writeHead() 发送 headers 则会先发送 headers，包含 statusCode 和 message，它们可以通过下面语法设置：response.statusCode = 500
+response.statusMessage = 'Internal Server Error'http.IncomingMessagehttp.IncomingMessage 可以在以下两个地方创建：http.Server 当监听 request eventhttp.ClientRequest 当监听 response event它可以用来访问 response 数据：通过 statusCode 和 statusMessage 读取状态信息通过 headers method 或 rawHeaders method 读取 headers 信息通过 method method 获取可用 http method通过 httpVersion method 获取 http 版本信息通过 url method 获取 URL 信息通过 socket method 获取底层 socket 信息在 http.IncomingMessage 生效一个可读的 stream 接口后，数据可在 stream 中读取。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2151.html">
 <title>node.js 入门教程九 -- events 模块</title>
 <link>https://blog.niekun.net/archives/2151.html</link>
@@ -194,7 +336,7 @@ marco-virtual-machineos.loadavg()os.loadavg() 返回系统计算的平均加载�
 <item rdf:about="https://blog.niekun.net/archives/2146.html">
 <title>node.js 入门教程之七 -- fs 和 path 模块</title>
 <link>https://blog.niekun.net/archives/2146.html</link>
-<dc:date>2021-02-08T11:21:30+08:00</dc:date>
+<dc:date>2021-02-08T11:21:00+08:00</dc:date>
 <description>上一章节我们了解了如果访问文件系统。使用到了 fs 和 path 模块的部分功能，下面我们详细了解这两个模块可以实现的功能。fs module通过以上几个使用场景可以看到 fs 模块提供了很多有用的功能来对 file system 进行访问和交互。并且他是集成在 node.js core 中的，并不需要手动安装：const fs = require('fs')
 
 通过以上方式引入 fs 模块后，我们就可以使用它的各种功能了。包括：fs.access(): 检查文件是否存在以及 node.js 是否有权限访问fs.appendFile(): 给一个文件附加数据，如果文件不存在则会创建它fs.chmod(): 修改文件的权限fs.chown(): 修改文件的 owner 和 group 设置fs.close(): 关闭已经打开的文件的 descriptorfs.copyFile(): 复制一个文件fs.createReadStream(): 创建一个可读的文件 streamfs.createWriteStream(): 创建一个可写的文件 streamfs.link(): 创建一个文件的硬链接fs.mkdir(): 新建文件夹fs.mkdtemp(): 创建一个临时文件夹fs.open(): 打开一个文件的 descriptor，可定义打开编码类型fs.readdir(): 读取一个目录下的内容fs.readFile(): 读取一个文件的内容fs.readlink(): 读取一个软连接的值fs.realpath(): resolve 查询一个相对路径文件的绝对路径fs.rename(): 重命名文件或文件夹fs.rmdir(): 删除一个文件夹fs.stat(): 返回一个文件的状态信息fs.symlink(): 创建一个文件的软链接fs.truncate(): 将一个文件分割成指定长度大小fs.unlink(): 删除一个文件或一个软链接fs.unwatchFile(): 停止监测对一个文件的修改fs.utimes(): 修改一个文件的时间戳fs.watchFile(): 开始监测对一个文件的修改fs.writeFile(): 对一个文件写入数据fs 模块的一个特性是它的以上所有 method 默认都是 asynchronous 异步的，给 method 后加上 Sync 就可以使用同步模式，例如：fs.rename() -&gt; fs.renameSync()fs.write() -&gt; fs.writeSync()同步模式下通过使用 try/catch 块来处理 error 情况。同步模式下程序会在处理文件过程中出现进程阻塞直到处理完成，在编程中可以根据需要灵活运用。path modulepath 模块也提供了很多实用的功能来访问文件系统以及交互。同样的它也是集成在 node.js core 中而不需要单独安装。const path = require('path')
@@ -486,7 +628,7 @@ const req = https.request(options, res =&gt; {
 })
 
 req.on('error', err =&gt; console.log(err))
-req.end()以上示例执行过程为：首先引入 https 模块。创建一个 options object 存储请求的信息。创建一个 https request，使用 options 作为请求信息，当请求成功后会执行后面定义的 callback function。定义一个 event handler 事件管理器来处理当 error 被触发时的响应。最后结束这个 request下面是一个 POST 请求示例：const https = require('https')
+req.end()以上示例执行过程为：首先引入 https 模块。创建一个 options object 存储请求的信息。创建一个 https request，使用 options 作为请求信息，当请求成功后会执行后面定义的 callback function。定义一个 event handler 事件管理器来处理当 error 被触发时的响应。最后结束这个 request发起 POST 请求下面是一个 POST 请求示例：const https = require('https')
 
 const data = JSON.stringify({
     todo: 'go to sleep'
@@ -1450,28 +1592,5 @@ console.log(str.match(/ab/gi));
 //OUTPUT:
 //[ 'ab', 'ab' ]
 //[ 'ab', 'ab', 'AB' ]当 question object 的 type 定义为 password 类型时，输入时信息会被隐藏。prompt method 用来显示提示框，传入参数就是预定义的 question 数组，其返回值为 promise 类型，所以可以通过 then method 来实现异步响应。promise 的用法参考：https://blog.niekun.net/archives/2011.html这里通过 then method 定义了 success 的 function，传入参数就是用户输入的数据构成的 object，通过 question object 中 name property 定义的名称来索引到具体的某个输入数据。更多 inquirer 示例：https://github.com/SBoudrias/Inquirer.js/tree/master/packages/inquirer/examples</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2043.html">
-<title>node.js 入门教程之一 -- 介绍</title>
-<link>https://blog.niekun.net/archives/2043.html</link>
-<dc:date>2021-01-08T09:28:00+08:00</dc:date>
-<description>Node.js 是一个开源跨平台的 JavaScript 运行环境，它是时下最流行的工具，能够应用于几乎所有的项目。Node.js 运行 V8 JavaScript engine。它是 chrome 的核心，这让 Node.js 可以脱离浏览器运行 JavaScript 代码。一个 Node.js app 运行在一个线程中，不会给每个 request 建立一个进程。Node.js 在其标准库中提供了一个 asynchronous I/O primitives 异步 IO 原生语法库来防止阻塞，同时 Node.js 中的库使用一种 non-blocking paradigms 无阻塞范式，将阻塞作为一种 exception 来处理。当 Node.js 执行 IO 动作，例如读取文件，访问数据库等，不同于等待进程，占用 CPU 资源，Node.js 会在收到 request 响应后再去处理后续操作。这将使 Node.js 可以在一个 server 上同时处理上千条链接而不会引入大量的进程而导致 bug 出现。Node.js 的另一大优势是使用 JavaScript 的前端开发者可以同时编写 server 端的代码而不用学习新的语言。最新的 ECMAScript 标准可以在 Node.js 中使用，你不需要等待用户去更新浏览器。通过使用不同版本的 Node.js 来切换不同的 ECMAScript 标准。Node.js 使用 JavaScript 语言，如果你还不太了解 js 可以参考我之前的 8 篇 JavaScript 教程：JavaScript 入门教程之一 -- 总览海量的第三方库通过 npm 简单的结构帮助 Node.js 生态系统快速的增长。目前 npm 注册超过 1,000,000 个开源库可供免费使用。hello worldweb server 是最常见的 hello world 示例。新建一个 js 文件，内容如下：const http = require('http')
-
-const hostname = '127.0.0.1'
-const port = 8080
-
-const server = http.createServer((req, res) =&gt; {
-  res.statusCode = 200
-  res.setHeader('Content-Type', 'text/plain')
-  res.end('Hello World!\n')
-})
-
-server.listen(port, hostname, () =&gt; {
-  console.log(`Server running at http://${hostname}:${port}/`)
-})以上代码首先引入 http 模块。Node.js 使用 CommonJS module 系统，使用内建的 require 关键词来引入其他文件写好的 module 模块。Node.js 有一个很好的标准库：https://nodejs.org/api/，包含有对 network 的直接支持。createServer method 创建一个新的 http server 并返回它。定义了一个 requestListener function，会被自动添加到 request event。listen method 定义特定的监听地址和端口。当 server 运行起来后， listen method 调用的 function 会被执行，这里我们显示 server 已启动的信息。当收到一个 request，会自动调用 request event，并传入两个 object：一个 request (an http.IncomingMessage object) 和一个 response (an http.ServerResponse object)。这两个 object 是处理 http 访问的核心。request object 提供了 request 请求的信息，在以上示例中没有使用到这个，但是我们可读取 request header 和 data 数据。response object 用来返回数据给发起请求者，在这里通过：res.statusCode = 200
-返回一个 200 状态码，表示一次成功的响应。然后我们设置一个 header：res.setHeader('Content-Type', 'text/plain')
-最后我们关闭 response 响应，并将响应内容作为 end method 的参数传入：res.end('Hello World\n')
-Node.js Frameworks and ToolsNode.js 是一个底层平台，为了让开发更加容易，海量的基于 Node.js 的第三方库通过社区建立。它们中的很多已经非常流行，以下是一些常见的第三方库：AdonisJs: A full-stack framework highly focused on developer ergonomics, stability, and confidence. Adonis is one of the fastest Node.js web frameworks.Express: It provides one of the most simple yet powerful ways to create a web server. Its minimalist approach, unopinionated, focused on the core features of a server, is key to its success.Fastify: A web framework highly focused on providing the best developer experience with the least overhead and a powerful plugin architecture. Fastify is one of the fastest Node.js web frameworks.Gatsby: A React-based, GraphQL powered, static site generator with a very rich ecosystem of plugins and starters.hapi: A rich framework for building applications and services that enables developers to focus on writing reusable application logic instead of spending time building infrastructure.koa: It is built by the same team behind Express, aims to be even simpler and smaller, building on top of years of knowledge. The new project born out of the need to create incompatible changes without disrupting the existing community.Loopback.io: Makes it easy to build modern applications that require complex integrations.Meteor: An incredibly powerful full-stack framework, powering you with an isomorphic approach to building apps with JavaScript, sharing code on the client and the server. Once an off-the-shelf tool that provided everything, now integrates with frontend libs React, Vue, and Angular. Can be used to create mobile apps as well.Micro: It provides a very lightweight server to create asynchronous HTTP microservices.NestJS: A TypeScript based progressive Node.js framework for building enterprise-grade efficient, reliable and scalable server-side applications.Next.js: React framework that gives you the best developer experience with all the features you need for production: hybrid static & server rendering, TypeScript support, smart bundling, route pre-fetching, and more.Nx: A toolkit for full-stack monorepo development using NestJS, Express, React, Angular, and more! Nx helps scale your development from one team building one application to many teams collaborating on multiple applications!Sapper: Sapper is a framework for building web applications of all sizes, with a beautiful development experience and flexible filesystem-based routing. Offers SSR and more!Socket.io: A real-time communication engine to build network applications.Strapi: Strapi is a flexible, open-source Headless CMS that gives developers the freedom to choose their favorite tools and frameworks while also allowing editors to easily manage and distribute their content. By making the admin panel and API extensible through a plugin system, Strapi enables the world's largest companies to accelerate content delivery while building beautiful digital experiences.安装在官方下载页面下载对应系统的安装包：https://nodejs.org/en/download/macOS 可以通过 brew 来安装：brew install node
-node.js 和浏览器端的区别浏览器端和 node.js 都是使用 JavaScript 作为编程语言，但他们是完全不同的。node.js 可以同时开发前端和后端 application，这样使用一种语言就可以完成所有的开发。浏览器中使用 DOM 结构，或者其他 web 平台的 API 如：cookies，这些在 node.js 中都是没有的，document 或 window 等这些 object 是没有的。使用 node.js 由你来控制 environment，你知道 application 所使用的 node.js 是哪个版本的，相比较于浏览器，你并不知道用户使用了什么浏览器。所以你可以使用更加现代的 ES 标准来编写程序。另一个区别是 node.js 使用 CommonJS 模块系统，浏览器端我们已经可以使用 ES 的标准命令来导入模块了。也就是说 node.js 中使用 require() 而浏览器端使用 import。参考链接https://nodejs.dev/learn/introduction-to-nodejs</description>
 </item>
 </rdf:RDF>

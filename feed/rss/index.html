@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2155.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2151.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2147.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2146.html"/>
@@ -18,10 +19,151 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2100.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2103.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2098.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2086.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2155.html">
+<title>node.js 入门教程十 -- http 模块</title>
+<link>https://blog.niekun.net/archives/2155.html</link>
+<dc:date>2021-02-15T14:01:46+08:00</dc:date>
+<description>http 模块是 node.js 处理 networking 网络的关键模块。在之前的章节我介绍了使用 http 模块建立 server 以及发起 GET/POST 请求的方法，可以参考：https://blog.niekun.net/archives/2137.htmlhttp 模块集成于 node.js 核心无需单独安装，使用下面命令引入模块：const http = require('http')
+模块提供了很多 properties，methods 和 classes。Properties 属性http.METHODShttp.METHODS property 返回 http 所有的可用 method 列表：&gt; console.log(require('http').METHODS)
+[
+  'ACL',        'BIND',        'CHECKOUT',
+  'CONNECT',    'COPY',        'DELETE',
+  'GET',        'HEAD',        'LINK',
+  'LOCK',       'M-SEARCH',    'MERGE',
+  'MKACTIVITY', 'MKCALENDAR',  'MKCOL',
+  'MOVE',       'NOTIFY',      'OPTIONS',
+  'PATCH',      'POST',        'PRI',
+  'PROPFIND',   'PROPPATCH',   'PURGE',
+  'PUT',        'REBIND',      'REPORT',
+  'SEARCH',     'SOURCE',      'SUBSCRIBE',
+  'TRACE',      'UNBIND',      'UNLINK',
+  'UNLOCK',     'UNSUBSCRIBE'
+]http.STATUS_CODEShttp.STATUS_CODES 返回所有的 http 状态码及描述的 list 列表：&gt; console.log(require('http').STATUS_CODES)
+{
+  '100': 'Continue',
+  '101': 'Switching Protocols',
+  '102': 'Processing',
+  '103': 'Early Hints',
+  '200': 'OK',
+  '201': 'Created',
+  '202': 'Accepted',
+  '203': 'Non-Authoritative Information',
+  '204': 'No Content',
+  '205': 'Reset Content',
+  '206': 'Partial Content',
+  '207': 'Multi-Status',
+  '208': 'Already Reported',
+  '226': 'IM Used',
+  '300': 'Multiple Choices',
+  '301': 'Moved Permanently',
+  '302': 'Found',
+  '303': 'See Other',
+  '304': 'Not Modified',
+  '305': 'Use Proxy',
+  '307': 'Temporary Redirect',
+  '308': 'Permanent Redirect',
+  '400': 'Bad Request',
+  '401': 'Unauthorized',
+  '402': 'Payment Required',
+  '403': 'Forbidden',
+  '404': 'Not Found',
+  '405': 'Method Not Allowed',
+  '406': 'Not Acceptable',
+  '407': 'Proxy Authentication Required',
+  '408': 'Request Timeout',
+  '409': 'Conflict',
+  '410': 'Gone',
+  '411': 'Length Required',
+  '412': 'Precondition Failed',
+  '413': 'Payload Too Large',
+  '414': 'URI Too Long',
+  '415': 'Unsupported Media Type',
+  '416': 'Range Not Satisfiable',
+  '417': 'Expectation Failed',
+  '418': &quot;I'm a Teapot&quot;,
+  '421': 'Misdirected Request',
+  '422': 'Unprocessable Entity',
+  '423': 'Locked',
+  '424': 'Failed Dependency',
+  '425': 'Too Early',
+  '426': 'Upgrade Required',
+  '428': 'Precondition Required',
+  '429': 'Too Many Requests',
+  '431': 'Request Header Fields Too Large',
+  '451': 'Unavailable For Legal Reasons',
+  '500': 'Internal Server Error',
+  '501': 'Not Implemented',
+  '502': 'Bad Gateway',
+  '503': 'Service Unavailable',
+  '504': 'Gateway Timeout',
+  '505': 'HTTP Version Not Supported',
+  '506': 'Variant Also Negotiates',
+  '507': 'Insufficient Storage',
+  '508': 'Loop Detected',
+  '509': 'Bandwidth Limit Exceeded',
+  '510': 'Not Extended',
+  '511': 'Network Authentication Required'
+}http.globalAgenthttp.globalAgent 指向 http.Agent class 的一个 instance 实例，也就是一个 Agent object。这个 Agent object 用来管理 server 同 http 客户端链接的持续连接和链接复用，这也是 node.js 网络服务的关键点。&gt; console.log(require('http').globalAgent)
+Agent {
+  _events: [Object: null prototype] {
+    free: [Function (anonymous)],
+    newListener: [Function: maybeEnableKeylog]
+  },
+  _eventsCount: 2,
+  _maxListeners: undefined,
+  defaultPort: 80,
+  protocol: 'http:',
+  options: { path: null },
+  requests: {},
+  sockets: {},
+  freeSockets: {},
+  keepAliveMsecs: 1000,
+  keepAlive: false,
+  maxSockets: Infinity,
+  maxFreeSockets: 256,
+  scheduling: 'lifo',
+  maxTotalSockets: Infinity,
+  totalSocketCount: 0,
+  [Symbol(kCapture)]: false
+}methods 功能http.createServer()http.createServer() 返回一个 http.Server class 实例。const server = http.createServer((req, res) =&gt; {
+  //handle every single request with this callback
+})http.request()http.request() 对服务器发起一个 http 请求。返回一个 http.ClientRequest class 实例。const options = {
+    hostname: 'localhost',
+    port: 3000,
+    path: '/',
+    method: 'GET'
+}
+
+const req = https.request(options, res =&gt; {
+    console.log(`statusCode is：${res.statusCode}`);
+    res.on('data', d =&gt; {
+        process.stdout.write(d)
+    })
+})
+
+req.on('error', err =&gt; console.log(err))
+req.end()http.get()http.get() 同 http.request() 类似，但会自动将 http method 设置为 GET，且自动调用 req.end()。const https = require('http')
+const options = {
+    hostname: 'localhost',
+    port: 3000,
+    path: '/'
+}
+
+const req = https.get(options, res =&gt; {
+    console.log(`statusCode is：${res.statusCode}`);
+    res.on('data', d =&gt; {
+        process.stdout.write(d)
+    })
+})
+
+req.on('error', err =&gt; console.log(err))Classes 类http 模块提供 5 个 calsses：http.Agenthttp.ClientRequesthttp.Serverhttp.ServerResponsehttp.IncomingMessagehttp.Agentnode.js 会创建一个全局的 http.Agent instance 实例来管理 server 同 http 客户端链接的持续连接和链接复用，这个 object 可以确保一个客户端对服务端发起的一系列请求是按队列排序的，且使用单独的 socket 接口。同样 agent object 管理着一个 sockets 池，这是影响性能的关键因素。http.ClientRequest当 http.request() 或 http.get() 被调用时会创建一个 http.ClientRequest object。当收到来自服务器的 response 时，response event 会被触发，http.request() 内定义的 callback 会作为 response 的响应被调用，同时将 http.IncomingMessage 的实例作为传入参数，其中包含了 response 数据。response 数据有两种方式读取，第一种是通过 response.read() method，第二种是在 response 的 callback function 中通过监听 data event 来获取 stream 中的数据。http.Server当通过 http.createServer() 创建一个 server 时会返回 http.Server 实例。 http.Server 实例需要使用它的以下 method：close() 停止 server 接收新的链接listen() 启动 server 并开始监听请求http.createServer() 的 callback 监听 request event 并响应。http.ServerResponse由 http.Server object 创建，作为 request event 的第二个参数传入，代码中作为 callback 的 res 参数使用：const server = http.createServer((req, res) =&gt; {
+  //res is an http.ServerResponse object
+})end() 是 http.ServerResponse object 必须被使用的 method，用来表示 response 信息已经完整，可以结束这个 response，同时将 response 发送出去。下面的 method 可以用来处理 http headers：getHeaderNames() 获取当前 http headers 名称的列表getHeaders() 获取当前 http headers 副本setHeader('headername', value) 设置一个 http headergetHeader('headername') 获取当前的一个 http header 的设置removeHeader('headername') 删除一个 http headerhasHeader('headername') 如果某个 http header 有被设置则返回 trueheadersSent() 如果 http headers 已经发送给了客户端则返回 true服务端编辑好 headers 条目后可以通过 response.writeHead() method 发送给客户端，第一个参数是 statusCode。通过 response.write() 在 response body 中发送数据给客户端，它会将缓冲区的数据发送到 http response stream。如果还没有使用 response.writeHead() 发送 headers 则会先发送 headers，包含 statusCode 和 message，它们可以通过下面语法设置：response.statusCode = 500
+response.statusMessage = 'Internal Server Error'http.IncomingMessagehttp.IncomingMessage 可以在以下两个地方创建：http.Server 当监听 request eventhttp.ClientRequest 当监听 response event它可以用来访问 response 数据：通过 statusCode 和 statusMessage 读取状态信息通过 headers method 或 rawHeaders method 读取 headers 信息通过 method method 获取可用 http method通过 httpVersion method 获取 http 版本信息通过 url method 获取 URL 信息通过 socket method 获取底层 socket 信息在 http.IncomingMessage 生效一个可读的 stream 接口后，数据可在 stream 中读取。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2151.html">
 <title>node.js 入门教程九 -- events 模块</title>
 <link>https://blog.niekun.net/archives/2151.html</link>
@@ -194,7 +336,7 @@ marco-virtual-machineos.loadavg()os.loadavg() 返回系统计算的平均加载�
 <item rdf:about="https://blog.niekun.net/archives/2146.html">
 <title>node.js 入门教程之七 -- fs 和 path 模块</title>
 <link>https://blog.niekun.net/archives/2146.html</link>
-<dc:date>2021-02-08T11:21:30+08:00</dc:date>
+<dc:date>2021-02-08T11:21:00+08:00</dc:date>
 <description>上一章节我们了解了如果访问文件系统。使用到了 fs 和 path 模块的部分功能，下面我们详细了解这两个模块可以实现的功能。fs module通过以上几个使用场景可以看到 fs 模块提供了很多有用的功能来对 file system 进行访问和交互。并且他是集成在 node.js core 中的，并不需要手动安装：const fs = require('fs')
 
 通过以上方式引入 fs 模块后，我们就可以使用它的各种功能了。包括：fs.access(): 检查文件是否存在以及 node.js 是否有权限访问fs.appendFile(): 给一个文件附加数据，如果文件不存在则会创建它fs.chmod(): 修改文件的权限fs.chown(): 修改文件的 owner 和 group 设置fs.close(): 关闭已经打开的文件的 descriptorfs.copyFile(): 复制一个文件fs.createReadStream(): 创建一个可读的文件 streamfs.createWriteStream(): 创建一个可写的文件 streamfs.link(): 创建一个文件的硬链接fs.mkdir(): 新建文件夹fs.mkdtemp(): 创建一个临时文件夹fs.open(): 打开一个文件的 descriptor，可定义打开编码类型fs.readdir(): 读取一个目录下的内容fs.readFile(): 读取一个文件的内容fs.readlink(): 读取一个软连接的值fs.realpath(): resolve 查询一个相对路径文件的绝对路径fs.rename(): 重命名文件或文件夹fs.rmdir(): 删除一个文件夹fs.stat(): 返回一个文件的状态信息fs.symlink(): 创建一个文件的软链接fs.truncate(): 将一个文件分割成指定长度大小fs.unlink(): 删除一个文件或一个软链接fs.unwatchFile(): 停止监测对一个文件的修改fs.utimes(): 修改一个文件的时间戳fs.watchFile(): 开始监测对一个文件的修改fs.writeFile(): 对一个文件写入数据fs 模块的一个特性是它的以上所有 method 默认都是 asynchronous 异步的，给 method 后加上 Sync 就可以使用同步模式，例如：fs.rename() -&gt; fs.renameSync()fs.write() -&gt; fs.writeSync()同步模式下通过使用 try/catch 块来处理 error 情况。同步模式下程序会在处理文件过程中出现进程阻塞直到处理完成，在编程中可以根据需要灵活运用。path modulepath 模块也提供了很多实用的功能来访问文件系统以及交互。同样的它也是集成在 node.js core 中而不需要单独安装。const path = require('path')
@@ -486,7 +628,7 @@ const req = https.request(options, res =&gt; {
 })
 
 req.on('error', err =&gt; console.log(err))
-req.end()以上示例执行过程为：首先引入 https 模块。创建一个 options object 存储请求的信息。创建一个 https request，使用 options 作为请求信息，当请求成功后会执行后面定义的 callback function。定义一个 event handler 事件管理器来处理当 error 被触发时的响应。最后结束这个 request下面是一个 POST 请求示例：const https = require('https')
+req.end()以上示例执行过程为：首先引入 https 模块。创建一个 options object 存储请求的信息。创建一个 https request，使用 options 作为请求信息，当请求成功后会执行后面定义的 callback function。定义一个 event handler 事件管理器来处理当 error 被触发时的响应。最后结束这个 request发起 POST 请求下面是一个 POST 请求示例：const https = require('https')
 
 const data = JSON.stringify({
     todo: 'go to sleep'
@@ -935,17 +1077,5 @@ SID(security identifier) 是每个 UWP 应用独有的识别码，可以从注�
 也可以根据网络协议设置：http=httpproxy:8080;https=httpsproxy:8080
 第二行设置 bypass 忽略列表，可以设置忽略代理本地地址或其他需要排除的地址：&lt;local&gt;;*.extranet.example.com;
 点击 ok 保存后即可，此时在 WinConfig 中选中的 UWP 应用就会通过代理地址访问网络。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2086.html">
-<title>创建新文件 in Linux</title>
-<link>https://blog.niekun.net/archives/2086.html</link>
-<dc:date>2021-01-28T08:17:25+08:00</dc:date>
-<description>下面介绍几种常用的命令行创建新文件的方法。touch：touch test1.txt
-&gt;:&gt; test2.txt
-cat:cat /dev/null &gt; test3.txt
-echo:echo &gt; test4.txt
-vim:vim test5.txt
-:wq
-使用中选择最简单的方式即可。</description>
 </item>
 </rdf:RDF>

@@ -4,13 +4,1459 @@ xmlns:thr="http://purl.org/syndication/thread/1.0"
 xml:lang="zh-CN"
 xml:base="https://blog.niekun.net/category/dev/"
 >
-<title type="text">Marco Nie - Program</title>
+<title type="text">Marco Nie - Development</title>
 <subtitle type="text"></subtitle>
-<updated>2021-01-14T11:58:00+08:00</updated>
+<updated>2021-02-15T14:01:46+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/dev/" />
 <id>https://blog.niekun.net/feed/atom/category/dev/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/dev/" />
+<entry>
+<title type="html"><![CDATA[node.js 入门教程十 -- http 模块]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2155.html" />
+<id>https://blog.niekun.net/archives/2155.html</id>
+<updated>2021-02-15T14:01:46+08:00</updated>
+<published>2021-02-15T14:01:46+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[http 模块是 node.js 处理 networking 网络的关键模块。在之前的章节我介绍了使用 http 模块建立 server 以及发起 GET/POST 请求的方法，可以参考：htt...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2155.html" xml:lang="zh-CN"><![CDATA[
+<p><strong>http</strong> 模块是 node.js 处理 networking 网络的关键模块。在之前的章节我介绍了使用 <strong>http</strong> 模块建立 server 以及发起 GET/POST 请求的方法，可以参考：<a href="https://blog.niekun.net/archives/2137.html">https://blog.niekun.net/archives/2137.html</a></p><p>http 模块集成于 node.js 核心无需单独安装，使用下面命令引入模块：</p><pre><code>const http = require('http')
+</code></pre><p>模块提供了很多 <strong>properties</strong>，<strong>methods</strong> 和 <strong>classes</strong>。</p><!--more--><h3>Properties 属性</h3><h4>http.METHODS</h4><p><strong>http.METHODS</strong> property 返回 http 所有的可用 method 列表：</p><pre><code>&gt; console.log(require('http').METHODS)
+[
+  'ACL',        'BIND',        'CHECKOUT',
+  'CONNECT',    'COPY',        'DELETE',
+  'GET',        'HEAD',        'LINK',
+  'LOCK',       'M-SEARCH',    'MERGE',
+  'MKACTIVITY', 'MKCALENDAR',  'MKCOL',
+  'MOVE',       'NOTIFY',      'OPTIONS',
+  'PATCH',      'POST',        'PRI',
+  'PROPFIND',   'PROPPATCH',   'PURGE',
+  'PUT',        'REBIND',      'REPORT',
+  'SEARCH',     'SOURCE',      'SUBSCRIBE',
+  'TRACE',      'UNBIND',      'UNLINK',
+  'UNLOCK',     'UNSUBSCRIBE'
+]</code></pre><h4>http.STATUS_CODES</h4><p><strong>http.STATUS_CODES</strong> 返回所有的 http 状态码及描述的 list 列表：</p><pre><code>&gt; console.log(require('http').STATUS_CODES)
+{
+  '100': 'Continue',
+  '101': 'Switching Protocols',
+  '102': 'Processing',
+  '103': 'Early Hints',
+  '200': 'OK',
+  '201': 'Created',
+  '202': 'Accepted',
+  '203': 'Non-Authoritative Information',
+  '204': 'No Content',
+  '205': 'Reset Content',
+  '206': 'Partial Content',
+  '207': 'Multi-Status',
+  '208': 'Already Reported',
+  '226': 'IM Used',
+  '300': 'Multiple Choices',
+  '301': 'Moved Permanently',
+  '302': 'Found',
+  '303': 'See Other',
+  '304': 'Not Modified',
+  '305': 'Use Proxy',
+  '307': 'Temporary Redirect',
+  '308': 'Permanent Redirect',
+  '400': 'Bad Request',
+  '401': 'Unauthorized',
+  '402': 'Payment Required',
+  '403': 'Forbidden',
+  '404': 'Not Found',
+  '405': 'Method Not Allowed',
+  '406': 'Not Acceptable',
+  '407': 'Proxy Authentication Required',
+  '408': 'Request Timeout',
+  '409': 'Conflict',
+  '410': 'Gone',
+  '411': 'Length Required',
+  '412': 'Precondition Failed',
+  '413': 'Payload Too Large',
+  '414': 'URI Too Long',
+  '415': 'Unsupported Media Type',
+  '416': 'Range Not Satisfiable',
+  '417': 'Expectation Failed',
+  '418': &quot;I'm a Teapot&quot;,
+  '421': 'Misdirected Request',
+  '422': 'Unprocessable Entity',
+  '423': 'Locked',
+  '424': 'Failed Dependency',
+  '425': 'Too Early',
+  '426': 'Upgrade Required',
+  '428': 'Precondition Required',
+  '429': 'Too Many Requests',
+  '431': 'Request Header Fields Too Large',
+  '451': 'Unavailable For Legal Reasons',
+  '500': 'Internal Server Error',
+  '501': 'Not Implemented',
+  '502': 'Bad Gateway',
+  '503': 'Service Unavailable',
+  '504': 'Gateway Timeout',
+  '505': 'HTTP Version Not Supported',
+  '506': 'Variant Also Negotiates',
+  '507': 'Insufficient Storage',
+  '508': 'Loop Detected',
+  '509': 'Bandwidth Limit Exceeded',
+  '510': 'Not Extended',
+  '511': 'Network Authentication Required'
+}</code></pre><h4>http.globalAgent</h4><p><strong>http.globalAgent</strong> 指向 <strong>http.Agent</strong> class 的一个 instance 实例，也就是一个 <strong>Agent</strong> object。</p><p>这个 <strong>Agent</strong> object 用来管理 server 同 http 客户端链接的持续连接和链接复用，这也是 node.js 网络服务的关键点。</p><pre><code>&gt; console.log(require('http').globalAgent)
+Agent {
+  _events: [Object: null prototype] {
+    free: [Function (anonymous)],
+    newListener: [Function: maybeEnableKeylog]
+  },
+  _eventsCount: 2,
+  _maxListeners: undefined,
+  defaultPort: 80,
+  protocol: 'http:',
+  options: { path: null },
+  requests: {},
+  sockets: {},
+  freeSockets: {},
+  keepAliveMsecs: 1000,
+  keepAlive: false,
+  maxSockets: Infinity,
+  maxFreeSockets: 256,
+  scheduling: 'lifo',
+  maxTotalSockets: Infinity,
+  totalSocketCount: 0,
+  [Symbol(kCapture)]: false
+}</code></pre><h3>methods 功能</h3><h4>http.createServer()</h4><p><code>http.createServer()</code> 返回一个 <strong>http.Server</strong> class 实例。</p><pre><code>const server = http.createServer((req, res) =&gt; {
+  //handle every single request with this callback
+})</code></pre><h4>http.request()</h4><p><code>http.request()</code> 对服务器发起一个 http 请求。返回一个 <strong>http.ClientRequest</strong> class 实例。</p><pre><code>const options = {
+    hostname: 'localhost',
+    port: 3000,
+    path: '/',
+    method: 'GET'
+}
+
+const req = https.request(options, res =&gt; {
+    console.log(`statusCode is：${res.statusCode}`);
+    res.on('data', d =&gt; {
+        process.stdout.write(d)
+    })
+})
+
+req.on('error', err =&gt; console.log(err))
+req.end()</code></pre><h4>http.get()</h4><p><code>http.get()</code> 同 <code>http.request()</code> 类似，但会自动将 http method 设置为 GET，且自动调用 <code>req.end()</code>。</p><pre><code>const https = require('http')
+const options = {
+    hostname: 'localhost',
+    port: 3000,
+    path: '/'
+}
+
+const req = https.get(options, res =&gt; {
+    console.log(`statusCode is：${res.statusCode}`);
+    res.on('data', d =&gt; {
+        process.stdout.write(d)
+    })
+})
+
+req.on('error', err =&gt; console.log(err))</code></pre><h3>Classes 类</h3><p>http 模块提供 5 个 calsses：</p><ul><li>http.Agent</li><li>http.ClientRequest</li><li>http.Server</li><li>http.ServerResponse</li><li>http.IncomingMessage</li></ul><h4>http.Agent</h4><p>node.js 会创建一个全局的 <strong>http.Agent</strong> instance 实例来管理 server 同 http 客户端链接的持续连接和链接复用，这个 object 可以确保一个客户端对服务端发起的一系列请求是按队列排序的，且使用单独的 socket 接口。同样 agent object 管理着一个 sockets 池，这是影响性能的关键因素。</p><h4>http.ClientRequest</h4><p>当 <code>http.request()</code> 或 <code>http.get()</code> 被调用时会创建一个 <strong>http.ClientRequest</strong> object。</p><p>当收到来自服务器的 response 时，<strong>response</strong> event 会被触发，<code>http.request()</code> 内定义的 callback 会作为 <strong>response</strong> 的响应被调用，同时将 <strong>http.IncomingMessage</strong> 的实例作为传入参数，其中包含了 response 数据。</p><p>response 数据有两种方式读取，第一种是通过 <code>response.read()</code> method，第二种是在 response 的 callback function 中通过监听 <strong>data</strong> event 来获取 stream 中的数据。</p><h4>http.Server</h4><p>当通过 <code>http.createServer()</code> 创建一个 server 时会返回 <strong>http.Server</strong> 实例。 <strong>http.Server</strong> 实例需要使用它的以下 method：</p><ul><li><code>close()</code> 停止 server 接收新的链接</li><li><code>listen()</code> 启动 server 并开始监听请求</li></ul><p><code>http.createServer()</code> 的 callback 监听 <strong>request</strong> event 并响应。</p><h4>http.ServerResponse</h4><p>由 <strong>http.Server</strong> object 创建，作为 <strong>request</strong> event 的第二个参数传入，代码中作为 callback 的 res 参数使用：</p><pre><code>const server = http.createServer((req, res) =&gt; {
+  //res is an http.ServerResponse object
+})</code></pre><p><code>end()</code> 是 <strong>http.ServerResponse</strong> object 必须被使用的 method，用来表示 response 信息已经完整，可以结束这个 response，同时将 response 发送出去。</p><p>下面的 method 可以用来处理 http headers：</p><ul><li><strong>getHeaderNames()</strong> 获取当前 http headers 名称的列表</li><li><strong>getHeaders()</strong> 获取当前 http headers 副本</li><li><strong>setHeader('headername', value)</strong> 设置一个 http header</li><li><strong>getHeader('headername')</strong> 获取当前的一个 http header 的设置</li><li><strong>removeHeader('headername')</strong> 删除一个 http header</li><li><strong>hasHeader('headername')</strong> 如果某个 http header 有被设置则返回 true</li><li><strong>headersSent()</strong> 如果 http headers 已经发送给了客户端则返回 true</li></ul><p>服务端编辑好 headers 条目后可以通过 <code>response.writeHead()</code> method 发送给客户端，第一个参数是 statusCode。</p><p>通过 <code>response.write()</code> 在 response body 中发送数据给客户端，它会将缓冲区的数据发送到 http response stream。如果还没有使用 <code>response.writeHead()</code> 发送 headers 则会先发送 headers，包含 statusCode 和 message，它们可以通过下面语法设置：</p><pre><code>response.statusCode = 500
+response.statusMessage = 'Internal Server Error'</code></pre><h4>http.IncomingMessage</h4><p><strong>http.IncomingMessage</strong> 可以在以下两个地方创建：</p><ul><li><strong>http.Server</strong> 当监听 <strong>request</strong> event</li><li><strong>http.ClientRequest</strong> 当监听 <strong>response</strong> event</li></ul><p>它可以用来访问 response 数据：</p><ul><li>通过 <strong>statusCode</strong> 和 <strong>statusMessage</strong> 读取状态信息</li><li>通过 <strong>headers</strong> method 或 <strong>rawHeaders</strong> method 读取 headers 信息</li><li>通过 <strong>method</strong> method 获取可用 http method</li><li>通过 <strong>httpVersion</strong> method 获取 http 版本信息</li><li>通过 <strong>url</strong> method 获取 URL 信息</li><li>通过 <strong>socket</strong> method 获取底层 socket 信息</li></ul><p>在 <strong>http.IncomingMessage</strong> 生效一个可读的 stream 接口后，数据可在 stream 中读取。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2155.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2155.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[node.js 入门教程九 -- events 模块]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2151.html" />
+<id>https://blog.niekun.net/archives/2151.html</id>
+<updated>2021-02-08T21:42:00+08:00</updated>
+<published>2021-02-08T21:42:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[在之前介绍 event loop 的章节，我们简单介绍了 events 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。events 模块提供了 Ev...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2151.html" xml:lang="zh-CN"><![CDATA[
+<p>在之前介绍 <strong>event loop</strong> 的章节，我们简单介绍了 <strong>events</strong> 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。</p><p><strong>events</strong> 模块提供了 <strong>EventEmitter</strong> class 它是处理 events 的关键工具。</p><p>引入及初始化 events 模块如下：</p><pre><code>const EventEmitter = require('events')
+const eventEmitter = new EventEmitter()</code></pre><p>每个 event listener 事件监听器都是互相独立的，同时它们使用如下 events：</p><ul><li><strong>newListener</strong> 当一个 event 被添加</li><li><strong>removeListener</strong> 当一个 event 被删除</li></ul><p>下面介绍常用的一些 method。</p><!--more--><h3>eventEmitter.addListener()</h3><p><code>eventEmitter.addListener()</code> 和 <code>eventEmitter.on()</code> 功能相同。可以给某个 event 添加一个 listener，语法如下：</p><pre><code>eventEmitter.addListener('test', () =&gt; {})
+</code></pre><h3>eventEmitter.emit()</h3><p><code>eventEmitter.emit()</code> 用来触发一个信号，信号触发后，对应信号的 event listener 会响应 callback function：</p><pre><code>eventEmitter.addListener('test', () =&gt; { console.log('test emited') })
+eventEmitter.emit('test')
+
+//output:
+//test emited</code></pre><h3>eventEmitter.eventNames()</h3><p><code>eventEmitter.eventNames()</code> 会返回当前 <strong>EventEmitter</strong> object 内注册已的 events 为一个字符串数组：</p><pre><code>eventEmitter.addListener('test1', () =&gt; {})
+eventEmitter.addListener('test2', () =&gt; {})
+console.log(eventEmitter.eventNames())
+
+//output:
+//[ 'test1', 'test2' ]</code></pre><h3>eventEmitter.getMaxListeners()</h3><p><code>eventEmitter.getMaxListeners()</code> 返回当前 <strong>EventEmitter</strong> object 能添加的 event listener 最大数量。默认为 10 个，可以通过 <code>setMaxListeners()</code> 修改。</p><h3>eventEmitter.listenerCount()</h3><p><code>eventEmitter.listenerCount()</code> 返回某个 event 定义的 listeners 数量：</p><pre><code>eventEmitter.addListener('test4', () =&gt; { console.log('a') })
+eventEmitter.addListener('test4', () =&gt; { console.log('b') })
+console.log(eventEmitter.listenerCount('test4'))
+
+//output:
+//2</code></pre><h3>eventEmitter.listeners()</h3><p><code>eventEmitter.listeners()</code> 返回某个 event 所有的 listeners 为一个数组：</p><pre><code>const f1 = () =&gt; {}
+const f2 = () =&gt; {}
+eventEmitter.addListener('test5', f1)
+eventEmitter.addListener('test5', f2)
+console.log(eventEmitter.listeners('test5'))
+
+//output:
+//[ [Function: f1], [Function: f2] ]</code></pre><h3>eventEmitter.off()</h3><p><code>eventEmitter.off()</code> 和 <code>eventEmitter.removeListener()</code> 功能相同。可以删除一个 event 的某个 listener，需要指定 event 名称和 listener callback 名称：</p><pre><code>const f3 = () =&gt; {}
+eventEmitter.addListener('test6', f3)
+eventEmitter.off('test6', f3)</code></pre><h3>eventEmitter.on()</h3><p><code>eventEmitter.on()</code> 同 <code>eventEmitter.addListener()</code> 功能相同。可以给某个 event 添加一个 listener：</p><pre><code>eventEmitter.on('test6', () =&gt; {})</code></pre><h3>eventEmitter.once()</h3><p><code>eventEmitter.once()</code> 监听一个 event 且其 callback function 只能被执行一次：</p><pre><code>eventEmitter.once('test7', () =&gt; console.log('once show once'))
+eventEmitter.emit('test7')
+eventEmitter.emit('test7')
+
+//output:
+//once show once</code></pre><h3>eventEmitter.prependListener()</h3><p>当通过 <code>eventEmitter.on()</code> 添加 listener 时，会按照添加顺序排列在此 event 队列中，当对应 event 触发时，会按照排列顺序以此执行 callback。</p><p>使用 <code>eventEmitter.prependListener()</code> 添加的 listener 会添加到队列的最前面，触发时最先被执行：</p><pre><code>eventEmitter.on('test8', () =&gt; console.log('first listener'))
+eventEmitter.prependListener('test8', () =&gt; console.log('second listener'))
+eventEmitter.emit('test8')
+
+//output:
+//second listener
+//first listener</code></pre><h3>eventEmitter.prependOnceListener()</h3><p><code>eventEmitter.prependOnceListener()</code> 同 <code>eventEmitter.on()</code> 的区别和上面类似，会将 listener 添加到对应 event listeners 队列的最前面，然后最先被执行且只能响应一次：</p><pre><code>eventEmitter.once('test9', () =&gt; console.log('first listener'))
+eventEmitter.prependOnceListener('test9', () =&gt; console.log('second listener'))
+eventEmitter.emit('test9')
+eventEmitter.emit('test9')
+
+//output:
+//second listener
+//first listener</code></pre><h3>eventEmitter.removeAllListeners()</h3><p><code>eventEmitter.removeAllListeners()</code> 可以删除指定 event 的所有 listeners：</p><pre><code>eventEmitter.removeAllListeners('test9')</code></pre><h3>eventEmitter.removeListener()</h3><p><code>eventEmitter.removeListener()</code> 可以删除 event 的指定 listener。需要将 listener 的 callback function 定义为变量格式然后再调用，这样就可以在此 reference 它：</p><pre><code>const f1 = () =&gt; {}
+const f2 = () =&gt; {}
+eventEmitter.addListener('test5', f1)
+eventEmitter.addListener('test5', f2)
+
+eventEmitter.removeListener('test5', f1)</code></pre><h3>eventEmitter.setMaxListeners()</h3><p><code>eventEmitter.setMaxListeners()</code> 可以定义 <strong>EventEmitter</strong> object 最大可以添加的 listeners 数量：</p><pre><code>eventEmitter.setMaxListeners(20)
+console.log(eventEmitter.getMaxListeners())
+
+//output:
+//20</code></pre><p>以上就是 events 模块最常用功能的介绍。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2151.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2151.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之八 -- os 模块]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2147.html" />
+<id>https://blog.niekun.net/archives/2147.html</id>
+<updated>2021-02-08T14:03:00+08:00</updated>
+<published>2021-02-08T14:03:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[os 模块可以用来获取操作系统的底层信息和系统上运行的程序，以及和系统交互。它集成在 node.js 中，只需要引入即可：const os = require('os')这里先介绍一些在处理文件...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2147.html" xml:lang="zh-CN"><![CDATA[
+<p>os 模块可以用来获取操作系统的底层信息和系统上运行的程序，以及和系统交互。</p><p>它集成在 node.js 中，只需要引入即可：</p><pre><code>const os = require('os')
+</code></pre><p>这里先介绍一些在处理文件时有用的 properties：</p><ul><li>os.EOL 会返回 line delimiter 行定界符，<code>\n</code> on Linux and macOS, and <code>\r\n</code> on Windows</li><li>os.constants.signals 提供处理进程的信号常数，如：SIGHUP, SIGKILL</li><li>os.constants.errno 提供报告 error 的相关常数，如：EADDRINUSE, EOVERFLOW</li></ul><p>完整的 signals 信号列表参考：<a href="https://nodejs.org/api/os.html#os_signal_constants">https://nodejs.org/api/os.html#os_signal_constants</a></p><p>下面介绍 os 模块常用的 method。</p><!--more--><h3>os.arch()</h3><p><code>os.arch()</code> 会返回底层架构的字符串，如：arm, x64, arm64：</p><pre><code>console.log(os.arch())
+
+//output:
+x64</code></pre><h3>os.cpus()</h3><p><code>os.cpus()</code> 会返回系统的 cpu 信息：</p><pre><code>console.log(os.cpus())
+
+//output:
+[
+  {
+    model: 'Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz',
+    speed: 2591,
+    times: {
+      user: 1871810,
+      nice: 17880,
+      sys: 1451160,
+      idle: 81134010,
+      irq: 0
+    }
+  },
+  {
+    model: 'Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz',
+    speed: 2591,
+    times: {
+      user: 1838130,
+      nice: 12780,
+      sys: 1532060,
+      idle: 81234660,
+      irq: 0
+    }
+  }
+]</code></pre><h3>os.endianness()</h3><p>根据 node.js 是通过 Big Endian 或 Little Endian 大尾数或小尾数编译的，<code>os.endianness()</code> 返回 <strong>BE</strong> 或 <strong>LE</strong>：</p><pre><code>console.log(os.endianness())
+
+//output:
+LE</code></pre><p>关于 Big Endian 或 Little Endian 参考：<a href="https://en.wikipedia.org/wiki/Endianness">https://en.wikipedia.org/wiki/Endianness</a><br><img src="https://blog.niekun.net/usr/uploads/2021/02/1127147165.jpg" alt="1.jpg" title="1.jpg"></p><h3>os.freemem()</h3><p><code>os.freemem()</code> 返回系统可用内存，以字节为单位：</p><pre><code>console.log(os.freemem())
+
+//output:
+574537728</code></pre><h3>os.homedir()</h3><p><code>os.homedir()</code> 返回系统当前用户的 home 目录路径：</p><pre><code>console.log(os.homedir())
+
+//output:
+/home/marco</code></pre><h3>os.hostname()</h3><p><code>os.hostname()</code> 返回 hostname 信息：</p><pre><code>console.log(os.hostname())
+
+//output:
+marco-virtual-machine</code></pre><h3>os.loadavg()</h3><p><code>os.loadavg()</code> 返回系统计算的平均加载时间，此 method 只在 Linux/macOS 下有意义：</p><pre><code>console.log(os.loadavg())
+
+//output:
+[ 0.08, 0.17, 0.13 ]</code></pre><h3>os.networkInterfaces()</h3><p><code>os.networkInterfaces()</code> 返回系统的网卡信息：</p><pre><code>console.log(os.networkInterfaces())
+
+//output:
+{ lo0:
+   [ { address: '127.0.0.1',
+       netmask: '255.0.0.0',
+       family: 'IPv4',
+       mac: 'fe:82:00:00:00:00',
+       internal: true },
+     { address: '::1',
+       netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
+       family: 'IPv6',
+       mac: 'fe:82:00:00:00:00',
+       scopeid: 0,
+       internal: true },
+     { address: 'fe80::1',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: 'fe:82:00:00:00:00',
+       scopeid: 1,
+       internal: true } ],
+  en1:
+   [ { address: 'fe82::9b:8282:d7e6:496e',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: '06:00:00:02:0e:00',
+       scopeid: 5,
+       internal: false },
+     { address: '192.168.1.38',
+       netmask: '255.255.255.0',
+       family: 'IPv4',
+       mac: '06:00:00:02:0e:00',
+       internal: false } ],
+  utun0:
+   [ { address: 'fe80::2513:72bc:f405:61d0',
+       netmask: 'ffff:ffff:ffff:ffff::',
+       family: 'IPv6',
+       mac: 'fe:80:00:20:00:00',
+       scopeid: 8,
+       internal: false } ] }</code></pre><h3>os.platform()</h3><p><code>os.platform()</code> 返回当前安装的 node.js 的编译平台，可能的返回值为：</p><ul><li>darwin</li><li>freebsd</li><li>linux</li><li>openbsd</li><li>win32</li><li>...more</li></ul><h3>os.release()</h3><p><code>os.release()</code> 返回当前系统的版本号信息：</p><pre><code>console.log(os.release())
+
+//output:
+5.8.0-41-generic</code></pre><h3>os.tmpdir()</h3><p><code>os.tmpdir()</code> 返回系统的临时文件夹路径：</p><pre><code>console.log(os.tmpdir())
+
+//output:
+/tmp</code></pre><h3>os.totalmem()</h3><p><code>os.totalmem()</code> 返回系统的总内存数量，单位为 byte 字节：</p><pre><code>console.log(os.totalmem()/1024/1024)
+
+//output:
+1958.45703125</code></pre><h3>os.type()</h3><p><code>os.type()</code> 返回当前操作系统类型，返回值可以有：</p><ul><li><strong>Linux</strong></li><li><strong>Darwin</strong> on macOS</li><li><strong>Windows_NT</strong> on Windows</li></ul><h3>os.uptime()</h3><p><code>os.uptime()</code> 返回系统从上次开机来已运行的总时间，单位为秒：</p><pre><code>console.log(os.uptime()/3600)
+
+//output:
+24.260555555555555</code></pre><h3>os.userInfo()</h3><p><code>os.userInfo()</code> 返回一个 object 包含当前的 <strong>username</strong>, <strong>uid</strong>, <strong>gid</strong>, <strong>shell</strong>, 和 <strong>homedir</strong>：</p><pre><code>console.log(os.userInfo())
+
+//output:
+{
+  uid: 1000,
+  gid: 1000,
+  username: 'marco',
+  homedir: '/home/marco',
+  shell: '/bin/bash'
+}</code></pre><p>以上就是 os 模块的简单使用方法。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2147.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2147.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之七 -- fs 和 path 模块]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2146.html" />
+<id>https://blog.niekun.net/archives/2146.html</id>
+<updated>2021-02-08T11:21:00+08:00</updated>
+<published>2021-02-08T11:21:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[上一章节我们了解了如果访问文件系统。使用到了 fs 和 path 模块的部分功能，下面我们详细了解这两个模块可以实现的功能。fs module通过以上几个使用场景可以看到 fs 模块提供了很多有...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2146.html" xml:lang="zh-CN"><![CDATA[
+<p>上一章节我们了解了如果访问文件系统。使用到了 fs 和 path 模块的部分功能，下面我们详细了解这两个模块可以实现的功能。</p><h3>fs module</h3><p>通过以上几个使用场景可以看到 fs 模块提供了很多有用的功能来对 file system 进行访问和交互。并且他是集成在 node.js core 中的，并不需要手动安装：</p><pre><code>const fs = require('fs')
+
+</code></pre><!--more--><p>通过以上方式引入 fs 模块后，我们就可以使用它的各种功能了。包括：</p><ul><li><strong>fs.access()</strong>: 检查文件是否存在以及 node.js 是否有权限访问</li><li><strong>fs.appendFile()</strong>: 给一个文件附加数据，如果文件不存在则会创建它</li><li><strong>fs.chmod()</strong>: 修改文件的权限</li><li><strong>fs.chown()</strong>: 修改文件的 owner 和 group 设置</li><li><strong>fs.close()</strong>: 关闭已经打开的文件的 descriptor</li><li><strong>fs.copyFile()</strong>: 复制一个文件</li><li><strong>fs.createReadStream()</strong>: 创建一个可读的文件 stream</li><li><strong>fs.createWriteStream()</strong>: 创建一个可写的文件 stream</li><li><strong>fs.link()</strong>: 创建一个文件的硬链接</li><li><strong>fs.mkdir()</strong>: 新建文件夹</li><li><strong>fs.mkdtemp()</strong>: 创建一个临时文件夹</li><li><strong>fs.open()</strong>: 打开一个文件的 descriptor，可定义打开编码类型</li><li><strong>fs.readdir()</strong>: 读取一个目录下的内容</li><li><strong>fs.readFile(</strong>): 读取一个文件的内容</li><li><strong>fs.readlink()</strong>: 读取一个软连接的值</li><li><strong>fs.realpath()</strong>: resolve 查询一个相对路径文件的绝对路径</li><li><strong>fs.rename()</strong>: 重命名文件或文件夹</li><li><strong>fs.rmdir()</strong>: 删除一个文件夹</li><li><strong>fs.stat()</strong>: 返回一个文件的状态信息</li><li><strong>fs.symlink()</strong>: 创建一个文件的软链接</li><li><strong>fs.truncate()</strong>: 将一个文件分割成指定长度大小</li><li><strong>fs.unlink()</strong>: 删除一个文件或一个软链接</li><li><strong>fs.unwatchFile()</strong>: 停止监测对一个文件的修改</li><li><strong>fs.utimes()</strong>: 修改一个文件的时间戳</li><li><strong>fs.watchFile()</strong>: 开始监测对一个文件的修改</li><li><strong>fs.writeFile()</strong>: 对一个文件写入数据</li></ul><p>fs 模块的一个特性是它的以上所有 method 默认都是 asynchronous 异步的，给 method 后加上 <code>Sync</code> 就可以使用同步模式，例如：</p><ul><li><strong>fs.rename()</strong> -&gt; <strong>fs.renameSync()</strong></li><li><strong>fs.write()</strong> -&gt; <strong>fs.writeSync()</strong></li></ul><p>同步模式下通过使用 <strong>try/catch</strong> 块来处理 error 情况。同步模式下程序会在处理文件过程中出现<strong>进程阻塞</strong>直到处理完成，在编程中可以根据需要灵活运用。</p><h3>path module</h3><p>path 模块也提供了很多实用的功能来访问文件系统以及交互。同样的它也是集成在 node.js core 中而不需要单独安装。</p><pre><code>const path = require('path')
+</code></pre><p>通过 <code>path.sep</code> 可以获取当前系统的 path separator 路径分隔符：<code>\</code> on Windows, and <code>/</code> on Linux/macOS。<br>通过 <code>path.delimiter</code> 可以获取当前系统的 path delimiter 路径定界符：<code>;</code> on Windows, and <code>:</code> on Linux / macOS。</p><p>例如在 Linux 下：</p><pre><code>console.log(process.env.PATH);
+// Prints: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin'
+
+process.env.PATH.split(path.delimiter);
+// Returns: ['/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/bin']</code></pre><p>在 Windows 下：</p><pre><code>console.log(process.env.PATH);
+// Prints: 'C:\Windows\system32;C:\Windows;C:\Program Files\node\'
+
+process.env.PATH.split(path.delimiter);
+// Returns ['C:\\Windows\\system32', 'C:\\Windows', 'C:\\Program Files\\node\\']</code></pre><p>下面是 path 的常用 method 介绍。</p><h4>path.basename()</h4><p>返回路径上的最后一部分，通过第二个参数可以过滤掉扩展名：</p><pre><code>console.log(path.basename('/home/marco/dir'))
+console.log(path.basename('/home/marco/file.txt'))
+console.log(path.basename('/home/marco/file.txt', '.txt'))
+
+//output:
+dir
+file.txt
+file</code></pre><h4>path.dirname()</h4><p>返回路径上的文件夹部分：</p><pre><code>console.log(path.dirname('/home/marco/file'))
+
+//output:
+/home/marco</code></pre><h4>path.extname()</h4><p>返回文件的扩展名：</p><pre><code>console.log(path.extname('/home/marco/file.txt'))
+
+//output:
+.txt</code></pre><h4>path.isAbsolute()</h4><p>返回路径是否是绝对路径：</p><pre><code>console.log(path.isAbsolute('/home/marco'))
+console.log(path.isAbsolute('./marco'))
+
+//output:
+true
+false</code></pre><h4>path.join()</h4><p>将多个部分合并为一个路径：</p><pre><code>const name = 'marco';
+console.log(path.join('/home/' + name + '/file'))
+
+//output:
+/home/marco/file</code></pre><h4>path.normalize()</h4><p>将一个包含相对标记符的路径转换为常规绝对路径：</p><pre><code>console.log(path.normalize('/home/marco/../test'))
+
+//output:
+/home/test</code></pre><h4>path.parse()</h4><p>将路径拆分为一个 object，包含下面的 properties：</p><ul><li>root: 根目录</li><li>dir: 从根目录开始的文件夹部分</li><li>base: 文件名和扩展名</li><li>name: 文件名不包含扩展名</li><li>ext: 扩展名</li></ul><pre><code>console.log(path.parse('/home/marco/test/file.txt'))
+
+//output:
+{
+  root: '/',
+  dir: '/home/marco/test',
+  base: 'file.txt',
+  ext: '.txt',
+  name: 'file'
+}</code></pre><h4>path.relative()</h4><p>需要传入两个路径作为参数，第一个路径作为 base 基础路径，返回第二个路径相对于第一个路径的相对路径：</p><pre><code>console.log(path.relative('/home/marco', '/home/marco/test/file.txt'))
+
+//output:
+test/file.txt</code></pre><h4>path.resolve()</h4><p>计算一个相对路径的绝对路径，基于当前程序执行的路径：</p><pre><code>console.log(path.resolve('file.txt'))
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/file.txt</code></pre><p>也可以设置一个 base 路径，将会附加到相对路径中：</p><pre><code>console.log(path.resolve('tmp/test', 'file.txt'))
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/tmp/test/file.txt</code></pre><p>如果第一个 base 路径是绝对路径，则系统会认为这就是个绝对路径：</p><pre><code>console.log(path.resolve('/tmp/test', 'file.txt'))
+
+//output:
+/tmp/test/file.txt</code></pre><p>注意 <strong>path</strong> 模块对路径的处理不会判断这个路径是否真实存在，它只会按照指令处理路径这个字符串数据。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2146.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2146.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之六 -- FileSystem]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2140.html" />
+<id>https://blog.niekun.net/archives/2140.html</id>
+<updated>2021-02-07T17:17:00+08:00</updated>
+<published>2021-02-07T17:17:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[File descriptor 文件描述器当需要访问文件系统里的某个文件时，需要首先得到这个文件的 file descriptor 文件描述器。一个 file descriptor 就是通过 f...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2140.html" xml:lang="zh-CN"><![CDATA[
+<h3>File descriptor 文件描述器</h3><p>当需要访问文件系统里的某个文件时，需要首先得到这个文件的 file descriptor 文件描述器。</p><p>一个 file descriptor 就是通过 <strong>fs</strong> 模块的 <code>open()</code> method 打开对应文件的返回数据。它的结构如下：</p><pre><code>const fs = require('fs')
+
+fs.open('./test.txt', 'r', (err, data) =&gt; {
+    if (err) {
+        console.log('open fail')
+        return
+    }
+    console.log('open success')
+})</code></pre><p>如果文件打开成功，callback 中的 <strong>data</strong> 数据就是一个 file descriptor。注意并不是文件的内容。</p><p>这种方式是异步处理的，文件打开过程中系统会执行其他任务。</p><!--more--><p>在上面的示例中，<code>fs.open()</code> 的第三个参数使用了 <code>'f'</code> 标记，它的意思就是以<strong>只读模式</strong>打开文件。我们可以通过使用不同的标记来以不同的方式打开文件：</p><ul><li><strong>r</strong> 只读模式，文件不存在会报错</li><li><strong>a</strong> 只写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li><li><strong>r+</strong> 读写模式，文件不存在会报错</li><li><strong>w+</strong> 读写模式，streaming 流定位到文件起始位置，如果文件不存在则创建文件</li><li><strong>a+</strong> 读写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件</li></ul><p>更多 flag 的使用参考：<a href="https://nodejs.org/api/fs.html#fs_file_system_flags">https://nodejs.org/api/fs.html#fs_file_system_flags</a></p><p>也可以使用 <code>fs.openSync()</code> method 打开文件，其返回值为 file descriptor 而不是通过 callback 的方式：</p><pre><code>try {
+    const data = fs.openSync('./test.txt', 'r')
+    console.log('open success')
+} catch (error) {
+    console.log('open fail')
+}</code></pre><p>这种方式是同步模式的，程序会等待接收到 file descriptor 或者 error 后才执行后面的指令。</p><h3>File stats 文件信息</h3><p>每个文件都包含独自的属性信息，可以通过 node.js 查看。通常我们使用 fs 模块的 <code>stat()</code> method。</p><p>以下是一个简单示例：</p><pre><code>const fs = require('fs')
+
+fs.stat('./test.txt', (err, stats) =&gt; {
+    if (err) {
+        console.log('read fail')
+        return
+    }
+    console.log(stats)
+})</code></pre><p>同样的，node.js 也提供了同步模式 method，在读取 stats 过程中会阻塞进程知道读取结束：</p><pre><code>try {
+    const stats = fs.statSync('./test.txt')
+    console.log(stats)
+} catch (error) {
+    console.log(error)
+}</code></pre><p>文件信息存储在 stats 变量中，可以读取其中的需要的信息，常用的有以下：</p><ul><li>是否是文件或文件夹：<code>stats.isFile()</code>，<code>stats.isDirectory()</code></li><li>是否是一个链接文件：<code>stats.isSymbolicLink()</code></li><li>文件大小(单位为字节)：<code>stats.size</code></li></ul><h3>File Path 文件路径</h3><p>每个文件在系统中都有一个路径。在 Linux 中路径格式如：<code>/users/joe/file.txt</code>，在 Windows 中路径格式如：<code>C:\users\joe\file.txt</code>。在程序中引用路径时需要特别注意路径的格式。</p><p>node.js 中可以使用 <strong>path</strong> 模块来处理文件路径相关数据。</p><p>如果给定一个路径，可以提取其相关数据，如：</p><ul><li><strong>path.dirname</strong>: 获取文件的上级文件夹路径</li><li><strong>path.basename</strong>: 获取文件名部分</li><li><strong>path.extname</strong>: 获取文件扩展名</li></ul><pre><code>const path = require('path')
+
+const file = '/home/marco/file.txt'
+console.log(path.dirname(file))
+console.log(path.basename(file))
+console.log(path.extname(file))
+
+//output:
+/home/marco
+file.txt
+.txt</code></pre><p>可以获取文件名不包含扩展名部分，通过给 <code>path.basename()</code> 设置第二个参数：</p><pre><code>console.log(path.basename(file, path.extname(file)))
+
+//output:
+file</code></pre><p>可以组合多个部分为一个 path：</p><pre><code>const dir = 'home/marco/'
+p = path.join('/' + dir + 'test.txt')
+console.log(p)
+
+//output:
+/home/marco/test.txt</code></pre><p>使用 <code>path.resolve()</code> 可以从一个相对路径获取到绝对路径：</p><pre><code>p = path.resolve('file.txt')
+console.log(p)
+p = path.resolve('./test/file.txt')
+console.log(p)
+
+//OUTPUT:
+/mnt/hgfs/Development/node.js/filesystem/file.txt
+/mnt/hgfs/Development/node.js/filesystem/test/file.txt</code></pre><p>以上示例中，会将程序当前执行路径作为绝对路径添加给后面定义的文件相对路径。</p><p>也可以将文件的相对目录单独定义，会自动组合它们：</p><pre><code>p = path.resolve('tmp', 'file.txt')
+console.log(p)
+
+//output:
+/mnt/hgfs/Development/node.js/filesystem/tmp/file.txt</code></pre><p>如果在路径前加斜杠<code>/</code> 表明这就是一个绝对路径：</p><pre><code>p = path.resolve('/tmp', 'file.txt')
+console.log(p)
+
+//output:
+/tmp/file.txt</code></pre><p>如果路径中包含相对关系标记符如: <code>..</code>, <code>//</code>等，可以使用 <code>path.normalize()</code> 得到常规形式的路径：</p><pre><code>p = path.normalize('/home/../test/file.txt')
+console.log(p)
+
+//output:
+/test/file.txt</code></pre><p>path.resolve 和 path.normalize <strong>都不会检查路径是否真实存在</strong>，它们仅仅是根据提供的数据计算路径结果。</p><h3>reading file 读取文件</h3><p>最简单的方式读取文件内容就是通过 <code>fs.readFile()</code> method，需要给它传入文件路径，编码格式，callback function:</p><pre><code>const fs = require('fs')
+
+fs.readFile('./test.txt', 'utf-8', (err, data) =&gt; {
+    if (err) {
+        console.log('read fail')
+        return
+    }
+    console.log(data)
+})</code></pre><p>或者也可以使用同步模式的 <code>fs.readFileSync()</code>：</p><pre><code>try {
+    data = fs.readFileSync('./test.txt', 'utf-8')
+    console.log(data)
+} catch (error) {
+    console.log('read error')
+}</code></pre><p><code>fs.readFile()</code> 和 <code>fs.readFileSync()</code> 都会先将文件内容读取到内存中，然后返回数据。这就意味着读取大文件会影响系统内存的占用量，所以一个比较好的选择是使用 stream 流读取文件内容。后续章节会介绍 stream 模块。</p><h3>writing file 文件写入</h3><p>最简单的写入文件的方法就是使用 <code>fs.writeFile()</code> method。</p><p>示例如下：</p><pre><code>const fs = require('fs')
+
+const content = 'some new words'
+fs.writeFile('./test.txt', content, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})</code></pre><p>或者使用同步模式的版本 <code>fs.writeFileSync()</code>：</p><pre><code>try {
+    fs.writeFileSync('./test.txt', content)
+    console.log('write success')
+} catch (error) {
+    console.log('write error')
+}</code></pre><p>默认情况下，如果这个文件已经存在，API 会替换掉这个文件中已有的内容。我们可以通过定义 <strong>flag</strong> 来修改这个设置：</p><pre><code>fs.writeFile('./test.txt', content, {flag: 'a+'}, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})</code></pre><p>flag 的定义和上面的 <code>fs.open</code> 中定义的 flag 一样，可以参考设置。</p><h3>append to a file 给文件添加内容</h3><p>给已有文件附加内容更加方便的方法是使用 <code>fs.appendFile()</code>和 <code>fs.appendFileSync()</code>，例如：</p><pre><code>const fs = require('fs')
+
+content = '\nnew line\n'
+fs.appendFile('./test.txt', content, err =&gt; {
+    if (err) {
+        console.log('write error')
+        return
+    }
+    console.log('write success')
+})</code></pre><p>上面了方法都会在将数据完全写入文件后在执行 callback，这种情况下使用 stream 是一个更好的方法。</p><h3>working with folder 文件夹操作</h3><p>node.js 的 fs 模块提供了很多实用的 method 来对文件夹进行操作。</p><h4>检查文件夹是否存在</h4><p>使用 <code>fs.access()</code> 可以检查文件夹是否存在，以及 node.js 是否有访问它的权限：</p><pre><code>const fs = require('fs')
+
+fs.access('./tmp', err =&gt; {
+    console.log(err ? 'not exist' : 'exist')
+})
+
+//output:
+//not exist</code></pre><h4>创建新文件夹</h4><p>使用 <code>fs.mkdir()</code> 或 <code>fs.mkdirSync()</code> 创建新文件夹：</p><pre><code>const fs = require('fs')
+
+const fd = 'tmp'
+try {
+    if (!fs.existsSync(fd)) {
+        fs.mkdirSync(fd)
+        console.log('create success')
+    }
+} catch (error) {
+    console.log('create fail')
+}</code></pre><p>上面使用了同步模式 method 创建文件夹，看起来更加直观。</p><h3>read content of a directory 读取目录内容</h3><p>使用 <code>fs.readdir()</code> 或 <code>fs.readdirSync()</code> 可以读取某个目录中的内容，包括其中的文件和文件夹。返回值为一个数组：</p><pre><code>const fs = require('fs')
+
+const p = '/usr'
+const d = fs.readdirSync(p)
+console.log(d)</code></pre><p>输出为：</p><pre><code>[
+  'bin',     'games',
+  'include', 'lib',
+  'lib32',   'lib64',
+  'libexec', 'libx32',
+  'local',   'sbin',
+  'share',   'src'
+]</code></pre><p>通过 <strong>path</strong> 模块的 <strong>join</strong> 或 <strong>resolve</strong> method 可以输出每个元素的绝对路径，修改以上示例：</p><pre><code>const fs = require('fs')
+const path = require('path')
+
+const p = '/usr'
+const d = fs.readdirSync(p).map(f =&gt; {
+    return path.resolve(p, f)
+})
+console.log(d)</code></pre><p>输出如下：</p><pre><code>[
+  '/usr/bin',     '/usr/games',
+  '/usr/include', '/usr/lib',
+  '/usr/lib32',   '/usr/lib64',
+  '/usr/libexec', '/usr/libx32',
+  '/usr/local',   '/usr/sbin',
+  '/usr/share',   '/usr/src'
+]</code></pre><p>如果只想获取目录下的文件而不包含文件夹，可以定义一个 filter 过滤元素：</p><pre><code>const fs = require('fs')
+const path = require('path')
+
+const isFile = fileName =&gt; {
+    return fs.statSync(fileName).isFile()
+}
+const p = '/usr'
+const d = fs.readdirSync(p).map(f =&gt; {
+    return path.resolve(p, f)
+}).filter(isFile)
+
+console.log(d)</code></pre><h3>rename folder 重命名文件夹</h3><p>使用 <code>fs.rename()</code> 或 <code>fs.renameSync()</code> 重命名文件夹。第一个参数定义当前路径，第二个参数定义新路径：</p><pre><code>const fs = require('fs')
+
+fs.rename('./tmp', './new', err =&gt; {
+    if (err) {
+        console.log('rename error')
+        return
+    }
+    console.log('rename success')
+})</code></pre><h3>remove folder 删除文件夹</h3><p>使用 <code>fs.rmdir()</code> 或 <code>fs.rmdirSync()</code> 可以删除文件夹。</p><p>但删除文件夹相比其他操作稍微复杂，用到的工具可能超出你需要的部分。所以最简单的方法就是使用第三方模块：<strong>fs-extra</strong> 来处理。它是 fs 的替代品，在 fs 模块的基础上提供了很多新功能。</p><p>使用 <strong>fs-extra</strong> 的 <code>remove()</code> method 可以实现删除文件夹的功能：</p><pre><code>const fs = require('fs-extra')
+
+const p = './new'
+fs.remove(p, err =&gt; {
+    if (err) {
+        console.log('remove error')
+        return
+    }
+    console.log('remove success')
+})</code></pre><p>也可以使用 promise 模式：</p><pre><code>fs.remove(p)
+.then(() =&gt; console.log('remove success'))
+.catch((err) =&gt; console.log(err))</code></pre><p>还可以使用 async/await 模式：</p><pre><code>const rm = async (p) =&gt; {
+    if (!fs.existsSync(p)) {
+        console.log('folder does not exist')
+        return
+    }
+    try {
+        await fs.remove(p)
+        console.log('remove success')
+    } catch (error) {
+        console.log('remove error')
+    }
+}
+rm(p)</code></pre><p>下一章我们继续了解 fs 和 path 模块的详细内容。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2140.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2140.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2139.html" />
+<id>https://blog.niekun.net/archives/2139.html</id>
+<updated>2021-02-07T11:07:10+08:00</updated>
+<published>2021-02-07T11:07:10+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。我的流程是：VMwar...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2139.html" xml:lang="zh-CN"><![CDATA[
+<p>由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。</p><p>我的流程是：</p><ul><li>VMware 安装 Ubuntu</li><li>共享 Windows 下的文件夹给 Ubuntu 作为开发目录</li><li>Windows 下使用 vs code 通过 ssh 方式远程连接 Ubuntu</li></ul><p>通过远程连接的方式在 Windows 下做 node.js 开发实际体验很好。但是在通过 npm 安装某些包时常常会有报错出现，错误日志大概意思就是说无法给 node_modules 文件夹内安装的库文件添加软连接到系统路径。</p><p>网上查询后发现了问题原因，我的开发目录实际是在 Windows 下的，Windows 和 Linux 有着不一样的文件系统和路径格式，所以 npm 在安装某些包含 bin 可执行文件的第三方库时，会默认自动创建相关文件的软链接到 Linux 系统路径，这样就就报错了。</p><p>如果要坚持使用共享目录的形式做开发，那么需要设置在 npm 安装新库时使用参数 <code>--no-bin-links</code> 告诉系统不要自动创建软连接，语法如下：</p><pre><code>npm install cowsay --no-bin-links
+</code></pre><p>这样就会跳过相关步骤。</p><p>也可以设置到 npm 配置中，这样以后安装的包都会默认不创建 bin 的软连接了：</p><pre><code>npm config set bin-links false
+</code></pre><p>当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。</p><p>参考链接：<a href="https://github.com/npm/npm/issues/2221">https://github.com/npm/npm/issues/2221</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2139.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2139.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之五 -- HTTP request and response]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2137.html" />
+<id>https://blog.niekun.net/archives/2137.html</id>
+<updated>2021-02-06T16:50:00+08:00</updated>
+<published>2021-02-06T16:50:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[搭建 http server下面是一个 http server 的示例：const http = require('http')process.env.PORT = 3000const port...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2137.html" xml:lang="zh-CN"><![CDATA[
+<h3>搭建 http server</h3><p>下面是一个 http server 的示例：</p><pre><code>const http = require('http')
+process.env.PORT = 3000
+const port = process.env.PORT
+
+const server = http.createServer((req, res) =&gt; {
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'text/html')
+    res.end('&lt;h1&gt;hello world&lt;/h1&gt;')
+})
+server.listen(port, () =&gt; console.log(`server running at port ${port}`))</code></pre><p>访问 <a href="http://localhost">http://localhost</a>:3000 就会看到页面显示 <strong>hello world</strong>。</p><!--more--><p>下面我们简单解释下以上示例的执行过程：</p><ul><li>首先引入 <strong>http</strong> module</li><li>设置环境变量 PORT 为 3000，然后赋值给 port 变量</li><li>创建一个 server，其中含有一个 callback function，用户访问 server 时会被调用</li><li>设置监听端口并启动 server，当 server 启动成功后，会执行 server.listen 内定义的 callback function</li></ul><p>当 server 收到用户的请求时，会触发 <strong>request event</strong> 并提供了两个数据：一个 <strong>request</strong>(http.IncomingMessage object) 和一个 <strong>response</strong>(http.ServerResponse object)。</p><ul><li><strong>request</strong> 提供了 request 的详细信息，可以用来获取请求 hreaders 和请求数据。</li><li><strong>response</strong> 用来操作将要发送给客户端的数据。</li></ul><p><strong>在上面的示例中，我们修改了 response 相关信息：</strong></p><ul><li>设置 statusCode 为 200</li><li>设置一个 header</li><li>结束 response 并将响应内容作为数据传入 <code>end()</code></li></ul><h3>发起 GET 请求</h3><p>下面示例发起一个 GET 请求：</p><pre><code>const https = require('https')
+const options = {
+    hostname: 'niekun.net',
+    port: 443,
+    path: '/',
+    method: 'GET'
+}
+
+const req = https.request(options, res =&gt; {
+    console.log(`statusCode is：${res.statusCode}`);
+    res.on('data', d =&gt; {
+        process.stdout.write(d)
+    })
+})
+
+req.on('error', err =&gt; console.log(err))
+req.end()</code></pre><p><strong>以上示例执行过程为：</strong></p><ul><li>首先引入 https 模块。</li><li>创建一个 <strong>options</strong> object 存储请求的信息。</li><li>创建一个 <strong>https</strong> request，使用 options 作为请求信息，当请求成功后会执行后面定义的 callback function。</li><li>定义一个 event handler 事件管理器来处理当 error 被触发时的响应。</li><li>最后结束这个 request</li></ul><h3>发起 POST 请求</h3><p>下面是一个 POST 请求示例：</p><pre><code>const https = require('https')
+
+const data = JSON.stringify({
+    todo: 'go to sleep'
+})
+
+const options = {
+    hostname: 'niekun.net',
+    port: 443,
+    path: '/',
+    method: 'POST',
+    Headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': data.length
+    }
+}
+
+const req = https.request(options, res =&gt; {
+    console.log(`statusCode is：${res.statusCode}`);
+    res.on('data', d =&gt; {
+        process.stdout.write(d)
+    })
+})
+req.on('error', err =&gt; console.log(err))
+
+req.write(data)
+req.end()</code></pre><p>POST 请求相比 GET 请求多了 <code>request.write(data)</code> 部分，因为 POST 是把数据消息放在 body 中的。</p><p>PUT 和 DELETE 请求和 POST 格式相同，只需要修改 request.method 即可。</p><h3>使用 Axios 库发起 POST 请求</h3><p>上面介绍了是应用 https 模块来发起 POST 请求，我们也可以使用第三方库使代码更加简洁，这里介绍 axios 库实现(需要通过 npm 安装)：</p><pre><code>const axios = require('axios')
+
+axios
+.post('http://localhost:3000', {
+    todo: 'go to sleep'
+})
+.then(res =&gt; {
+    console.log(`statusCode is: ${res.status}`)
+    process.stdout.write(res.data)
+})
+.catch(err =&gt; console.log(err))</code></pre><h3>获取 http request body 数据</h3><p>下面介绍 server 端如何提取在 http request body 中的 json 数据。</p><p>如果你使用 <strong>Express</strong> 模块创建 http server，那么只需要使用它的 body-parser 内容拆分模块即可实现提取 json 数据，<strong>Express</strong> 模块在第一章做过示例，如果客户端使用上面的 axios 示例发起请求，服务端代码如下：</p><pre><code>const express = require('express');
+const app = express();
+
+process.env.PORT = 3000
+const port = process.env.PORT
+
+app.use(
+    express.urlencoded({
+        extended: true
+    })
+)
+app.use(express.json())
+
+app.get('/', (req, res) =&gt; {
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'text/html')
+    res.end('&lt;h1&gt;hello world&lt;/h1&gt;')
+})
+
+app.post('/', (req, res) =&gt; {
+  console.log(req.body.todo)
+  res.statusCode = 200
+  res.setHeader('Content-Type', 'text/html')
+  res.end('hello world\n')
+});
+
+const server = app.listen(port, () =&gt; console.log('Server ready'));</code></pre><p>我们使用 express 模块创建了一个 server，并同时监听 GET 和 POST 请求并定义了 callback 响应，通过 <code>app.use</code> 设置了对请求 body 数据的 json 支持。</p><p>当启动上面实例中使用 axios 开启的服务端的程序后，server 端收到 POST 请求后就会提取请求 body 中的 todo 对应内容并输出到终端。客户端成功收到 response 后会输出 200 状态码和响应内容。</p><p>我们通过浏览器直接访问 <code>localhost:3000</code> 会发起一个 GET 请求，浏览器会显示 hello world。</p><p>如果你不想使用 express 模块创建 server，那么 server 端要提取 POST request body 中的 json 数据就稍微麻烦一些。</p><p>首先需要理解的是当我们通过 <code>http.createServer()</code> 创建了一个 http 服务后，callback function 会在所有的 request headers 内容都接收到后被调用，而不是 request body。</p><p><strong>connection callback</strong> 中传递的完整的 <strong>request</strong> object 数据是在 stream 流中。所以我们必须监听传输的 request body 的内容，它们是在一些 chunks 数据块中的。</p><p>首先我们通过监听 <strong>data</strong> event 获取 body 数据，<strong>data</strong> event 在传输过程中会被多次触发，当 request 数据传输完毕后 end event 会被触发。</p><p>通过下面的代码可以获取到完整的 body 数据：</p><pre><code>const server = http.createServer((req, res) =&gt; {
+    let data = '';
+    req.on('data', chunk =&gt; {
+        data += chunk;
+    })
+    req.on('end', () =&gt; {
+        console.log(JSON.parse(data).todo)
+    })
+})</code></pre><p>以上代码中，data 最终存储了 request body 的数据，然后通过 <code>JSON.parse</code> method 可以解析 json 内容。</p><p>server 端完整的代码如下：</p><pre><code>const http = require('http')
+process.env.PORT = 3000
+const port = process.env.PORT
+
+const server = http.createServer((req, res) =&gt; {
+    let data = '';
+    req.on('data', chunk =&gt; {
+        data += chunk;
+    })
+    req.on('end', () =&gt; {
+        console.log(JSON.parse(data).todo)
+    })
+
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'text/html')
+    res.end('&lt;h1&gt;hello world&lt;/h1&gt;')
+})
+server.listen(port, () =&gt; console.log(`server running at port ${port}`))</code></pre><p>以上就是 <strong>http</strong> request 和 response 部分的简单介绍。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2137.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2137.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之四 -- Event Loop 和 asynchronous]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2100.html" />
+<id>https://blog.niekun.net/archives/2100.html</id>
+<updated>2021-02-04T21:36:00+08:00</updated>
+<published>2021-02-04T21:36:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[Event Loop 事件循环event loop 是我们学习 node.js 中最重要的方面之一。因为它解释了 node.js 如何进行异步动作，同时不会出现 IO 阻塞问题。这也是 node...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2100.html" xml:lang="zh-CN"><![CDATA[
+<h3>Event Loop 事件循环</h3><p><strong>event loop</strong> 是我们学习 node.js 中最重要的方面之一。因为它解释了 node.js 如何进行异步动作，同时不会出现 IO 阻塞问题。这也是 node.js 能够变得如此流行的原因之一。</p><p>node.js 代码运行在单进程中，也就是说它在一刻只能执行一个任务。这一限制特性使得我们不用担心任务间冲突问题。我们在变开发中只需要专注于代码本身，同时应避免进程阻塞，例如同步方式等待网络请求，死循环等。</p><p>通常情况下，浏览器中的每个 tab 页面都是都有各自独立的 event loop，防止某个页面的死循环或过高的资源消耗影响到整个浏览器的体验。我们只需要关注于我们的代码运行在一个单一的 event loop 中，编程中要注意到这一点，防止进程阻塞。</p><!--more--><p>JavaScript 代码中如果有长时间等待 return 返回给 event loop 控制时，任何其他代码将会被阻塞，也会阻塞页面 UI 单元，用户在此期间无法进行点击，滚动等操作。</p><p>几乎所有的 JavaScript 原生 IO 指令都是 non-blocking 非阻塞式的，例如：网络请求，文件读写等，阻塞是一种 exception 例外情况，这也是 JavaScript 大量的使用 callback 方式，以及最近引入的 promise 和 async/await。</p><h4>call stack 调用结构</h4><p>JavaScript 的 call 调用过程的结构遵循 LIFO (Last In, First Out)，也就是总是先响应最近的任务。</p><p>event loop 总是连续的检查 call stack 看是否有任务需要执行。在这个过程中，它会将发现的任务添加到 call stack 中并按顺序执行。</p><p>下面是一个简单的示例：</p><pre><code>const bar = () =&gt; console.log('bar');
+const baz = () =&gt; console.log('baz');
+
+const foo = () =&gt; {
+    console.log('foo');
+    bar();
+    baz();
+}
+
+foo();
+console.log('END');
+
+//output:
+//foo
+//bar
+//baz
+//END</code></pre><p>在以上示例中，首先会调用 foo()，在 foo 中首先会调用 bar()，然后调用 baz()。call stack 执行过程如下：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2945905311.png" alt="2021-02-02T13:21:33.png" title="2021-02-02T13:21:33.png"></p><p>在 event loop 的每次 iteration 递归执行中会查询 call stack 中是否有需要执行的任务，如果有则执行它，直到 loop 结束为止，如下是循环中的全过程：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/627372670.png" alt="2021-02-02T13:23:25.png" title="2021-02-02T13:23:25.png"></p><p>以上示例说明了 JavaScript 在一般情况下按顺序执行代码的过程。下面介绍如何将一个 function 推迟到 call stack 递归到最后时再被调用。</p><p>需要使用以下的代码指令：</p><pre><code>setTimeout(() =&gt; {}, 0)
+</code></pre><p>以上代码调用了 setTimeout 延时 function，但是将延时设置为 <code>0</code>，这样的意义就是要求它在可以执行的时候立刻执行其中定义的 function。那么如何才能让其在层级的最后再执行 function 呢？下面是一个完整的片段：</p><pre><code>const bar = () =&gt; console.log('bar');
+const baz = () =&gt; console.log('baz');
+
+const foo = () =&gt; {
+    console.log('foo');
+    setTimeout(bar, 0);
+    baz();
+}
+
+foo();
+console.log('END');
+
+//output:
+//foo
+//baz
+//END
+//bar</code></pre><p>以上示例中，我们在 foo 中先调用 setTimeout function，并将时间设置为 0，要求其在可以执行时立刻执行内部定义的指令，以上示例循环的 call stack 过程如下：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/281898740.png" alt="2021-02-04T12:49:01.png" title="2021-02-04T12:49:01.png"></p><p>下面时循环的顺序执行全过程：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2606253446.png" alt="2021-02-04T12:50:30.png" title="2021-02-04T12:50:30.png"></p><p>为什么会是这样的执行顺序呢？为什么 setTimeout 时间设置为 0 反而最后才执行其 function？下面做介绍。</p><h4>Message Queue 消息队列</h4><p>当 <code>setTimeout()</code> 被调用时，浏览器或 node.js 会开启一个定时器，当定时时间到达时，这里我们设置为 0 也就是立刻到达了时间，callback 响应的 function 会被放到 Message Queue 消息队列中。</p><p>Message Queue 消息队列也管理着用户主动触发的一些事件如鼠标点击键盘输入等，或者 fetch 获取响应信息，这些消息按顺序排列着等待被代码执行。</p><p><strong>call stack</strong> 和 <strong>Message Queue</strong> 是互相独立的，event loop 循环时 call stack 中的任务是优先的，它会首先查找 call stack 中需要执行的代码并按顺序执行，当 satck 执行完成后再去查看 Message Queue 中需要处理的任务。</p><p>我们并不需要等待一些 functions 如 setTimeout 或 fetch 这些任务的执行过程，因为这些工作由浏览器提供且这些任务运行在它们单独的线程中。例如当我们设置了 setTimeout 2 秒的定时，我们并不需要停下来等待这 2 秒钟，而是会执行层级中接下来的指令。</p><h4>Job Queue 任务队列</h4><p>ES6 中引入了一种新的 <strong>Job Queue</strong> 任务队列概念，也就是 <strong>Promise</strong>。提供了在条件到达后立刻执行被调用 function 的方法，而不是等待到 call stack 结束。</p><p>当 <strong>Promise</strong> 定义的 <strong>resolve</strong> 条件满足时，会在当前 call stack 执行结束后立刻执行 <strong>resolve</strong> function。</p><p>简单的区分 <strong>Message Queue</strong> 和 <strong>Job Queue</strong>：<strong>Message Queue</strong> 会将出现的每个任务按顺序排列到队列最后，等待排队执行。而 <strong>Job Queue</strong> 就像拿到了快捷车票，会在 stack 中的指令结束后立刻跳转到这个任务上来。</p><p>下面是一个示例：</p><pre><code>const bar = () =&gt; console.log('bar');
+const baz = () =&gt; console.log('baz');
+
+const foo = () =&gt; {
+    console.log('foo');
+    setTimeout(bar, 0);
+    new Promise((resolve, reject) =&gt;
+            resolve(&quot;should be right after baz, before bar&quot;))
+        .then(resolve =&gt; console.log(resolve));
+    baz();
+}
+
+foo();
+console.log('END');
+
+//output:
+//foo
+//baz
+//END
+//should be right after baz, before bar
+//bar</code></pre><p>以上示例可以看到，<strong>promise</strong> 定义之后会继续运行 stack 中接下来的常规指令，然后 <strong>promise</strong> 的 <strong>resolve</strong> 条件会立刻得到满足，此时异步任务会在 stack 中的任务执行结束后立刻被响应而不是排列到队列最后。</p><h3>理解 process.nextTick()</h3><p>上面我们介绍了 event loop 的相关概念，一次的 event loop 循环叫做一个 <strong>tick</strong>，注意此循环只包含常规 call stack 中的任务。当我们给 <code>process.nextTick()</code> 传递一个 function 时，就是告诉 engine 在本次循环 tick 结束下次循环开始前执行这个 function。</p><p>语法如下：</p><pre><code>process.nextTick(() =&gt; {
+  //do something
+})</code></pre><p>当 call stack 中的任务执行完毕后，js engine 会优先查询是否在 nextTick 中定义了 function，如果有就会优先执行它们，然后是 <strong>Job Queue</strong> 的异步响应，最后才是 <strong>Message Queue</strong> 队列中的任务。</p><p>请看下面的示例：</p><pre><code>const bar = () =&gt; console.log('bar');
+const baz = () =&gt; console.log('baz');
+
+const foo = () =&gt; {
+    console.log('foo');
+    setTimeout(bar, 0);
+    new Promise((resolve, reject) =&gt;
+            resolve(&quot;should be right after baz, before bar&quot;))
+        .then(resolve =&gt; console.log(resolve));
+    baz();
+}
+
+foo();
+console.log('END');
+
+process.nextTick(() =&gt; console.log(&quot;next tick&quot;));
+
+//output:
+//foo
+//baz
+//END
+//next tick
+//should be right after baz, before bar
+//bar</code></pre><h3>理解 setImmediate()</h3><p><strong>setImmediate</strong> function 用来定义在下次 event loop 循环开始前执行的 function。语法如下：</p><pre><code>setImmediate(() =&gt; {
+  //run something
+})</code></pre><p><code>setImmediate()</code> 和上面讲到的 <code>setTimeout(() =&gt; {}, 0)</code>，<code>Promise</code>，<code>process.nextTick()</code>，不同点是它是执行在下个循环中的，而其它几种都是属于当前循环的，所以它是最后被执行的。</p><p>下面是一个包含这几种类型的异步任务的完整示例：</p><pre><code>const bar = () =&gt; console.log('bar');
+const baz = () =&gt; console.log('baz');
+
+const foo = () =&gt; {
+    console.log('foo');
+    setTimeout(bar, 0);
+    new Promise((resolve, reject) =&gt;
+            resolve(&quot;should be right after baz, before bar&quot;))
+        .then(resolve =&gt; console.log(resolve));
+    baz();
+}
+
+foo();
+console.log('END');
+
+process.nextTick(() =&gt; console.log(&quot;next tick&quot;));
+setImmediate(() =&gt; console.log(&quot;immediate&quot;));
+
+//output:
+//foo
+//baz
+//END
+//next tick
+//should be right after baz, before bar
+//bar
+//immediate</code></pre><h3>timers 定时器</h3><h4>setTimeout()</h4><p>当需要延时执行一个 function 时，可以使用 <strong>setTimeout</strong> function 实现。使用它定义需要延时执行的任务以及延时的具体时间，以毫秒为单位。示例如下：</p><pre><code>setTimeout(() =&gt; {
+    console.log('delay 1s')
+}, 1000);
+
+console.log('start')</code></pre><p>以上示例会延时一秒输出对应信息。</p><p>也可以传入预定义的 function 以及传递数据给 setTimeout：</p><pre><code>const test = (a, b) =&gt; console.log(a + b);
+setTimeout(test, 2000, 1, 2);</code></pre><p>以上示例中，<strong>setTimeout</strong> 调用 <strong>test</strong> function，1 和 2 为 <strong>test</strong> 的传入数据。</p><p>setTimeout 会返回一个 timer ID，你可以存储这个它，可以通过 id 清除对应的定时器以取消对应的计划任务：</p><pre><code>const t1 = setTimeout(() =&gt; {
+    console.log('delay 1s')
+}, 1000);
+clearTimeout(t1);</code></pre><p>以上示例中由于通过 id 清除了 t1 定时器，所以任务不会被执行。</p><p>一个特殊情况就是将延时设置为 0 也就是上一节介绍的内容，这是定义的任务会排列在 message queue 中并在本次循环结束后按顺序被执行。</p><h4>setInterval()</h4><p><strong>setInterval</strong> 和 <strong>setTimeout</strong> 功能类似，但区别是 setInterval 会连续响应定义的任务，响应的间隔时间以毫秒为单位，在 setInterval 中自定义。</p><p>下面是一个简单的示例：</p><pre><code>setInterval(() =&gt; {
+    console.log('wow');
+}, 500);</code></pre><p>程序运行后会每隔 500 毫秒连续输出信息。</p><p>同样的通过 timer ID 使用 clearInterval 可以清除对应的 setInterval 定时任务：</p><pre><code>const t2 = setInterval(() =&gt; {
+    console.log('wow');
+}, 500);
+
+setTimeout(() =&gt; {
+    clearInterval(t2);
+}, 2000);</code></pre><p>以上程序执行后，会每隔 500 毫秒输出 <code>wow</code>，两秒后停止输出。</p><p>setInterval 会在指定的时间间隔下连续执行定义的 function 而不会考虑这个定义的 function 运行需要多少时间。</p><p>如果这个 function 一直保持固定的执行时间，不会有什么问题：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3551443188.png" alt="2021-02-05T03:21:16.png" title="2021-02-05T03:21:16.png"></p><p>如果这个 function 在一些情况下执行时间大于设定的间隔时间，则前一个任务还没结束下一个任务已经要开始，就会造成冲突问题：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/584595761.png" alt="2021-02-05T03:22:09.png" title="2021-02-05T03:22:09.png"></p><p>为了避免这种情况发生，可以在需要连续调用的 function 执行结束时调用递归 setTimeout 来避免：</p><pre><code>const test2 = () =&gt; {
+    console.log('wow');
+    setTimeout(test2, 1000);
+}
+
+test2();</code></pre><p>以上示例中，我们在 function 定义中在指令结束后定义一个 setTimeout 调用其本身，这样可以实现连续对自身的调用且能保证每个任务都是被完整执行后才开始下一次执行的：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3663076236.png" alt="2021-02-05T03:29:17.png" title="2021-02-05T03:29:17.png"></p><h3>Asynchronous and Callbacks 异步与响应</h3><p>在目前的电脑中，应用程序在特定的时间在占用系统资源运行任务，然后结束程序释放资源给其他程序使用。这个过程在以极快的速度循环进行着以至于我们以为这些程序在同时进行处理(多处理器设备除外)。</p><p>程序内部通过 interrupts 中断：一个发送给处理器的信号，来获得系统的注意及时处理相关响应动作。这使得系统可以在某个任务等待回应过程中去处理其他事情，例如当程序在等待某个网络回应时，不能要求整个系统都停下来等待。</p><p>通常情况下，编程语言都是默认以 synchronous 同步的方式执行代码的，部分编程语言提供了其他支持库的方式实现异步，或者通过多线程的方式支持异步。</p><p>JavaScript 默认是同步和单线程模式，也就是说它不可以新建线程和平行运行。代码是按照编程顺序逐行执行的，如下示例：</p><pre><code>const a = 1
+const b = 2
+const c = a * b
+console.log(c)</code></pre><p>但是 JavaScript 是诞生于浏览器的，它的主要工作就是响应用户的交互操作，如：onClick, onMouseOver, onChange, onSubmit 等。那么它如何在同步模式下实现上面的功能呢？</p><p>答案就在他的运行环境中，浏览器提供了一系列的 APIs 来处理这些功能。node.js 引入了 non-blocking I/O 无阻塞 IO 的环境使得在此基础上扩展了文件访问，网络访问等的异步处理能力。</p><p>你无法预知用户何时会点击了浏览器的一个按钮，所以我们就会提前定义一个 <strong>click event</strong> 的 <strong>event handler</strong> 事件处理器，这个 <strong>event handler</strong> 内需要定义一个 function，当事件被触发时会自动被调用。</p><p>如下示例定义了一个 button 的 <strong>click event handler</strong>：</p><pre><code>document.getElementById('button').addEventListener('click', () =&gt; {});
+</code></pre><p>这个响应过程叫做 callback。</p><p>一个 callback 就是一个作为某个 function 的传入参数的 function，且只会在 event 被触发时才被执行。</p><p>JavaScript 可以定义 first-class functions，能够以参数的形式传入其他 function，也叫 higher-order functions。</p><p>通常情况，我们可以将客户端代码放在 <strong>window</strong> object 的 <strong>load</strong> event 中作为 callback function，这样就可以在页面加载完成后执行这部分代码：</p><pre><code>window.addEventListener('load', () =&gt; {
+    //...
+})</code></pre><p>callback 不止在浏览器的 DOM 结构下应用，一个常用的情景就是定时器：</p><pre><code>setTimeout(() =&gt; {
+  // runs after 2 seconds
+}, 2000)</code></pre><p>XHR 请求也会接受 callback，下面的示例中将一个 function 赋值给 XMLHttpRequest 的一个 property，当特定的 event 发生时会调用定义的 function：</p><pre><code>const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+const xhr = new XMLHttpRequest();
+xhr.onreadystatechange = () =&gt; {
+    if (xhr.readyState == 4) {
+        xhr.status == 200 ? console.log(xhr.responseText) : console.log('error');
+    };
+};
+xhr.open('GET', 'https://niekun.net');
+xhr.send();</code></pre><p>以上示例执行后，如果网址访问成功则会输出网页内容，否则输出 error。</p><p>那么如何处理 callback 的 errors？通常情况下 node.js 接受的的策略是：将 <strong>callback</strong> function 的第一个参数作为 <strong>error</strong> object，叫做 <strong>error-first callbacks</strong>。当没有 error 时 object 为 null，当有 error 发生时，object 中会包含相关信息。</p><p>下面是一个读取文件的示例：</p><pre><code>const fs = require('fs')
+fs.readFile('./fs.json', (err, data) =&gt; {
+    if (err !== null) {
+        console.log('read error');
+        return;
+    }
+    console.log(data.toString());
+})</code></pre><p>在读取中有错误时 err 会包含错误信息。</p><p>callback 在一般情况下使用很方便，但是每个 callback 相当于增加了一层嵌套层级，当你有很多个 callback 时就会产生多级嵌套，代码结构会越来越复杂。例如一下示例：</p><pre><code>window.addEventListener('load', () =&gt; {
+  document.getElementById('button').addEventListener('click', () =&gt; {
+    setTimeout(() =&gt; {
+      items.forEach(item =&gt; {
+        //your code here
+      })
+    }, 2000)
+  })
+})</code></pre><p>以上是一个四级嵌套，看起来已经比较复杂了，如果有更多的 callback 发生代码的结构会变得更加难以理解。</p><h3>Promise 异步</h3><p>从 ES6 开始 JavaScript 引入了多个处理异步代码的功能代替 callback 模式，包括：Promises (ES6) 和 Async/Await (ES2017)。</p><p><strong>promise</strong> 在我之前的 JavaScript 教程中做了介绍，参考：<a href="https://blog.niekun.net/archives/2011.html">https://blog.niekun.net/archives/2011.html</a></p><p>下面是一个 promise 的应用示例：</p><pre><code>let done = true;
+
+const isItDoneYet = new Promise((resolve, reject) =&gt; {
+    if (done) {
+        const workDone = &quot;working done&quot;;
+        resolve(workDone);
+    } else {
+        const why = 'still working on';
+        reject(why);
+    }
+});
+
+const checkIfDone = () =&gt; {
+    isItDoneYet
+    .then((ok =&gt; console.log(ok)), (err =&gt; console.log(err)))
+}
+
+checkIfDone();
+
+//output:
+//working done</code></pre><p><strong>resolve</strong> 和 <strong>reject</strong> function 也可以分别在 then 和 catch 中定义：</p><pre><code>const checkIfDone = () =&gt; {
+    isItDoneYet
+    .then(ok =&gt; console.log(ok))
+    .catch(err =&gt; console.log(err))
+}</code></pre><p>一个 promise 就是定义一个数据的 proxy 代理，这个数据会在后续中产生。promise 可以用来执行异步任务而不需要使用 callback。它在最近的 ES2017 更新中被进一步的整合为 async 和 await。理解 promise 的运行机制对于理解 async 和 await 很有必要。</p><p>当调用一个 promise 时，它将保持在 pending 挂起状态，程序会继续执行下面的指令。在 promise pending 状态直到它有了 resolve 解决指令期间，可以提供其调用 function 需要的数据。</p><p>创建的 promise 最终会在一个 <strong>resolved</strong> state 或 <strong>rejected</strong> state 状态下结束，并分别调用其 callback function：<strong>then</strong> 和 <strong>catch</strong>。</p><p>promise API 提供了一个 constructor 构建器，通过 <code>new Promise()</code> 初始化。在上面的示例中，promise 判断参数 done 的值，如果为 true 则进入 <strong>resolved</strong> 状态(当 then 的 resolve 调用时)，如果为 false 则进入 <strong>rejected</strong> 状态(当 catch 调用时)。在没有调用 then 或 catch 时，promise 保持 pending 状态。</p><p>通过 resolve 和 reject，我们可以和向前交流获取 promise 的状态结果，以及根据结果执行什么指令。这里我们只是简单的输出了一行字符串信息，也可以是一个 object 或 null 也可以。由于在此之前我们已经创建了 promise，所以它已经开始了执行，这对于理解 resuming a promise 继续执行 promise 很重要。</p><p>一个常用的 promise 使用的技巧：<strong>Promisifying</strong>，定义一个包含 callback 的常规 function，callback 返回一个 promise，下面是一个示例：</p><pre><code>const fs = require('fs');
+
+const getFile = (fileName) =&gt; {
+    return new Promise((resolve, rejects) =&gt; {
+        fs.readFile('./fs.json', (err, data) =&gt; {
+            if (err) {
+                rejects(err)
+                return
+            }
+            resolve(data)
+        })
+    })
+}
+
+getFile(&quot;fs.json&quot;)
+    .then(data =&gt; console.log(data.toString()))
+    .catch(err =&gt; console.log(err))</code></pre><p>通过上面的介绍，我们知道了通过 <code>new Promise()</code> 命令可以创建一个 promise，然后根据实际条件执行 promise 的 <strong>resolve</strong>(then) 或 <strong>reject</strong>(catch) function。</p><h4>promises chain 链</h4><p>一个 promise 可以作为另一个 promise 的返回，可以组成一个 promises 链条。</p><p>Fetch API 是介绍 promises 链很好的示例。它可以 fetch 获取一个资源，然后顺序执行一个 promises chain。fetch API 是基于 promise 的结构，调用 <code>fetch()</code> 就等同于通过 <code>new Promise()</code> 定义 promise。</p><p>下面的是一个 promises 链示例，使用了 Fetch API：</p><pre><code>const fetch = require('node-fetch');
+
+const status = response =&gt; {
+    if (response.status &gt;= 200 &amp;&amp; response.status &lt; 300) {
+        return Promise.resolve(response)
+    }
+    return Promise.reject(new Error(response.statusText))
+}
+
+const json = response =&gt; response.json() // return a promise
+
+fetch('https://api.github.com/users/github') // return a promise, resolve is a response type
+    .then(status) // use response as data and reture a promise
+    .then(json) // use response as data convert to json and reture a promise
+    .then(data =&gt; console.log('Request succeeded with JSON response', data)) // resolve call
+    .catch(err =&gt; console.log('Request failed', err)) // if status promise call reject function, would call here</code></pre><p><strong>以上程序的执行过程如下：</strong></p><ul><li>使用 fetch 获取一个 url 的数据，然后返回一个 promise，resolve 时返回数据为一个 <strong>response</strong>，其中包含很多 properties，这里需要用到 status 和 statusText</li><li>当 fetch 数据完成后我们调用 resolve 也就是 <strong>status</strong> function，status 使用 response 数据来判断并返回一个 promise，resolve 数据为 response 本身</li><li>下一步当 <strong>status</strong> promise 调用 resolve 时会调用 <strong>json</strong> function，将 response 数据转换为 json 格式并返回一个 promise resolve 数据为 json 数据，如果 <strong>status</strong> 进入 reject 也就是 response 不正常，则会直接执行最后的 <strong>catch</strong> function 跳过前面的环节</li><li>然后是数据的输出，当 <strong>json</strong> promise 调用 resolve 时会执行输出 data 数据</li></ul><p>在上面的示例中，我们在 promise 链的最后定义了一个 catch，当 promise 链中的任何一个 promise 失败然后 raise 一个 error 或者 reject，控制器会执行链中定义的最近的一个 catch。</p><p><strong>reject</strong> 或 raise <strong>error</strong> 都会触发 catch 部分，下面两种定义的 promise 语法都会进入 catch：</p><pre><code>new Promise((resolve, reject) =&gt; {
+    throw new Error('error')
+}).catch(err =&gt; console.log(err))
+
+new Promise((resolve, reject) =&gt; {
+    reject('error')
+}).catch(err =&gt; console.log(err))</code></pre><p>也可以将 errors 级联，如果在 catch 中再次 throw 一个 error，可以再次附加一个 catch 来处理它：</p><pre><code>new Promise((resolve, reject) =&gt; {
+    throw new Error('error')
+})
+.catch(err =&gt; {throw new Error('error')})
+.catch(err =&gt; console.log(err))</code></pre><h4>promises 顺序</h4><p>多个 promises 可以控制他们的响应顺序，使用 <code>Promise.all()</code> 可以定义一个 promise list 表，当 promises 都 resolve 时设置执行动作。</p><p>请看下面的测试：</p><pre><code>const fetch = require('node-fetch');
+
+const f1 = fetch('http://localhost/fs.json');
+const f2 = fetch('http://localhost/fs2.json');
+
+Promise.all([f1, f2])
+.then(response =&gt; console.log(&quot;array of results&quot;, response))
+.catch(err =&gt; console.log(err))</code></pre><p>返回的结果：</p><pre><code>array of results [
+  Response {
+    size: 0,
+    timeout: 0,
+    [Symbol(Body internals)]: { body: [PassThrough], disturbed: false, error: null },
+    [Symbol(Response internals)]: {
+      url: 'http://localhost/fs.json',
+      status: 404,
+      statusText: 'Not Found',
+      headers: [Headers],
+      counter: 0
+    }
+  },
+  Response {
+    size: 0,
+    timeout: 0,
+    [Symbol(Body internals)]: { body: [PassThrough], disturbed: false, error: null },
+    [Symbol(Response internals)]: {
+      url: 'http://localhost/fs2.json',
+      status: 404,
+      statusText: 'Not Found',
+      headers: [Headers],
+      counter: 0
+    }
+  }
+]</code></pre><p>可以看到 response 是一个数组，包含了两个 promise 返回的数据且按数组定义的顺序排列。</p><p>使用 ES6 的 object 拆解语法，上面示例也可以这样写：</p><pre><code>Promise.all([f1, f2])
+.then(([response1, response2]) =&gt; console.log(&quot;array of results&quot;, response1, response2))
+.catch(err =&gt; console.log(err))</code></pre><h4>Promise.race()</h4><p>当 <code>Promise.race()</code> 中定义的 promises 数组中有第一个 resolve 的 promise 时，这个 promise 会运行 then 且只运行这一次，最终的状态就是那个 promise resolved 状态。</p><p>下面是一个示例：</p><pre><code>const first = new Promise((resolve, reject) =&gt; {
+    setTimeout(resolve, 500, 'first');
+})
+const second = new Promise((resolve, reject) =&gt; {
+    setTimeout(resolve, 100, 'second');
+})
+Promise.race([first, second]).then(res =&gt; console.log(res))
+
+//output:
+//second</code></pre><p>上面的示例中，首先定义了两个 promise，当 resolve 时都是执行了一个定时器。先到达定时时间的 promise 将会执行 resolve 动作。</p><h3>async 和 await</h3><p>JavaScript 从 ES2015 才引入 promise 代替 callback，从 ES2017 开始 JavaScript 处理异步有了更加简化的语法：<strong>async/await</strong>。</p><p><strong>async</strong> functions 是 promise 和 generator 的结合。也即是说 async/await 是基于 promise 的。关于 promise 和 generator 的 JavaScript 语法可以参考：<a href="https://blog.niekun.net/archives/2011.html">https://blog.niekun.net/archives/2011.html</a></p><p>promise 是为了处理异步而创造的，但随着使用场景的复杂化，它的劣势被凸显出来：语法臃肿，promise 链不能打断需要联系书写。于是便诞生了 <strong>async</strong> function。它可以让代码看起来像是同步代码，但在底层它是异步的且无 IO 阻塞问题。</p><p>首先我们定义一个异步 promise：</p><pre><code>const doSomethingAsync = () =&gt; {
+    return new Promise(resolve =&gt; {
+        setTimeout(resolve, 2000, 'i did something')
+    })
+}</code></pre><p><strong>setTimeout</strong> 第三个参数是 resolve 的传入数据。</p><p>当我们要调用这个 <strong>promise</strong> function 时使用关键词 <strong>await</strong>，然后 call 动作将会 pending 挂起状态直到 promise 被 resolved 或 rejected，注意在客户端代码中，需要使用 <strong>async</strong> 定义相关 function：</p><pre><code>const doSomething = async () =&gt; {
+    console.log(await doSomethingAsync());
+}
+console.log('before')
+doSomething()
+console.log('after')
+
+//output:
+//before
+//after
+//i did something</code></pre><p>以上是一个简单的示例说明 async 的用法，await 后的 promise function 返回值是 resolve 或 reject 的数据。</p><p>在 function 定义中使用 async 关键词意味着这个 function 返回值为 promise 类型，即使定义中没有明确定义返回类型，它依然会返回 promise。所以以下代码是有效的：</p><pre><code>const test = async () =&gt; {
+    return 'test';
+}
+test().then(res =&gt; console.log(res))
+
+//output:
+//test</code></pre><p>以上的代码和下面的写法是一样的效果：</p><pre><code>const test = async () =&gt; {
+    return Promise.resolve('test');
+}
+test().then(res =&gt; console.log(res))</code></pre><p>可以看到使用 async 后语法得到了简化易读，当代码很复杂时这一优势会更加明显，下面是使用 promise 语法读取 json 数据并拆解它的示例：</p><pre><code>const getFirstUserData = () =&gt; {
+    return fetch('/js.json') // return a promise, resolve response data
+        .then(response =&gt; response.json()) // reture a promise, resolve translate response data to json type
+        .then(users =&gt; users[0]) // return a promise, resolve is first element in response array data
+        .then(user =&gt; fetch(`/users/${user.name}`)) // use first element data to fetch new data and return response data when resolve
+        .then(userResponse =&gt; userResponse.json()) // translate to json type and return it if resolve
+}
+getFirstUserData()</code></pre><p>下面使用 <strong>async/await</strong> 来实现上面的功能：</p><pre><code>const { default: fetch } = require(&quot;node-fetch&quot;)
+
+const getFirstUserData = async () =&gt; {
+    const response = await fetch('/js.json')
+    const users = await response.json()
+    const user = users[0]
+    const userResponse = await fetch(`/users/${user.name}`)
+    const userData = await userResponse.json()
+
+    return userData;
+}
+getFirstUserData()</code></pre><h4>多个 async function 组合使用</h4><p><strong>async</strong> function 可以很方便的组成 chain 链，且语法相比较 promise 更加易读。</p><p>下面是一个多个 async function 组合使用的示例：</p><pre><code>const promiseToDoSomething = () =&gt; {
+    return new Promise(resolve =&gt; {
+        setTimeout(resolve, 2000, 'i did something')
+    })
+}
+
+const watchSomeoneDoingSomething = async () =&gt; {
+    const something = await promiseToDoSomething()
+    return something + '\nand i watched'
+}
+
+const watchSomeoneWatchingSomeoneDoingSomething = async () =&gt; {
+    const something = await watchSomeoneDoingSomething()
+    return something + '\nand i watched as well'
+}
+
+watchSomeoneWatchingSomeoneDoingSomething().then(res =&gt; console.log(res))
+
+//output:
+//i did something
+//and i watched
+//and i watched as well</code></pre><p><strong>async/await</strong> function 看起来就像是同步代码，这样调试起来非常方便。</p><h3>Event emitter 事件触发器</h3><p>如果在浏览器端开发过 JavaScript，你肯定了解用户通过 events 事件来实现交互，如：鼠标点击，键盘按键，鼠标移动等。</p><p>在后端，node.js 通过 <strong>events</strong> module 可以建立一个小型系统来处理 events 事件。通常使用 <strong>EventEmitter</strong> class，下面是初始化 <strong>events</strong> 的方法：</p><pre><code>const EventEmitter = require('events')
+const eventEmitter = new EventEmitter()</code></pre><p>此时 <strong>eventEmitter</strong> object 有很多 properties，其中最常用的就是 <strong>on</strong> 和 <strong>emit</strong> method：</p><ul><li><strong>on</strong> 用来定义一个 event 事件，同时定义一个 callback function，当 event 触发后被执行</li><li><strong>emit</strong> 用来触发某个 event 事件</li></ul><p>下面我们创建一个 <strong>start</strong> event：</p><pre><code>eventEmitter.on('start', () =&gt; console.log('started'))</code></pre><p>然后触发 <strong>start</strong>：</p><pre><code>eventEmitter.emit('start')
+
+//output:
+//start</code></pre><p>可以给 event 传递参数，在 callback 时使用：</p><pre><code>eventEmitter.on('test1', par =&gt; console.log('started', par))
+eventEmitter.emit('test1', 'wow')
+
+//output:
+//started wow</code></pre><p>当然也可以给 event 传递多个数据：</p><pre><code>eventEmitter.on('test2', (a, b) =&gt; console.log(`started from ${a} to ${b}`))
+eventEmitter.emit('test2', 1, 200)
+
+//output:
+//started from 1 to 200</code></pre><p><strong>EventEmitter</strong> object 同样有很多其他实用 method 来实现交互，例如：</p><ul><li><strong>once()</strong>: 添加一个一次性的 event 事件监听器，只会被触发一次</li><li><strong>removeListener() / off()</strong>: 删除某个已定义的 event 监听器</li><li><strong>removeAllListeners()</strong>: 删除所有的 event 监听器</li></ul><p>更多关于 events module 的用法参考：<a href="https://nodejs.org/api/events.html">https://nodejs.org/api/events.html</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2100.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2100.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之三 -- npm]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2085.html" />
+<id>https://blog.niekun.net/archives/2085.html</id>
+<updated>2021-01-26T15:45:00+08:00</updated>
+<published>2021-01-26T15:45:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[调用 node.js 文件node.js 有内建的 module system 模块系统，一个node.js 文件可以导入其他 node.js 文件内定义的功能。语法如下：const libra...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2085.html" xml:lang="zh-CN"><![CDATA[
+<h3>调用 node.js 文件</h3><p>node.js 有内建的 module system 模块系统，一个node.js 文件可以导入其他 node.js 文件内定义的功能。</p><p>语法如下：</p><pre><code>const library = require('./libs')</code></pre><p>和导入其他第三方模块类似使用 <strong>require</strong> 指令，需要指定 node.js 文件路径。以上示例表示导入当前目录下的 <strong>libs.js</strong> 文件。</p><p>js 文件中默认定义的 objects 等元素是私有的，不能够被外部使用。在被导入的文件中，需要在引用前 expose 暴漏出需要被外部使用的功能。需要使用到 module system 的 <strong>module.exports</strong> API 来实现。</p><!--more--><p>当给一个 <strong>object</strong> 或 <strong>function</strong> 赋予 <strong>exports</strong> 属性时，就表明这些元素可以暴漏给外部。<strong>有两种方法来实现</strong>。</p><p><strong>第一种方法</strong>是将某个 object 直接赋值给 <strong>module.exports</strong>，<strong>module.exports</strong> 是 module system 的一个 object 用来将某个 object 暴漏出来，且只能在一个文件中赋值给某一个元素，下面是一个示例：</p><p><strong>libs.js</strong> 文件：</p><pre><code>const person = {
+    name: 'marco',
+    age: 20
+}
+
+module.exports = person;</code></pre><p><strong>main.js</strong> 文件：</p><pre><code>const libs = require('./libs');
+
+console.log(libs.age);
+
+//OUTPUT:
+//20</code></pre><p>上面示例中，我们将 <strong>libs.js</strong> 文件的 <strong>person</strong> object 赋值给了 <strong>module.exports</strong>，在 <strong>main.js</strong> 中调用 <strong>libs.js</strong> 文件后，<strong>main.js</strong> 中的 <strong>libs</strong> object 就相当于 <strong>person</strong> object。</p><p>我们可以发现，这种定义方法可以将某个 node.js 文件中的一个 object 暴漏给外部使用。</p><p><strong>第二种方法</strong>是将需要暴漏的元素定义为 <strong>exports</strong> 的 properties，这种方式可以将多个 objects 或 function 暴漏给外部。</p><p>libs.js 文件：</p><pre><code>const person = {
+    name: 'marco',
+    age: 20
+}
+exports.person = person;
+
+exports.car = {
+    brand: 'bmw',
+    color: 'red'
+}</code></pre><p>main.js 文件：</p><pre><code>const libs = require('./libs');
+
+console.log(libs.person.age);
+console.log(libs.car.brand);
+
+//OUTPUT:
+//20
+//bmw</code></pre><p>以上示例中，我们先在 <strong>libs.js</strong> 中定义了两个 object，并都作为 <strong>exports</strong> 的一个 property，可以看到有两种方式定义。在 <strong>main.js</strong> 中调用后，通过调用 <strong>libs</strong> object 对应的 properties 名称即可调用对应暴露的元素。</p><h3>npm 包管理器</h3><p><strong>npm</strong> 是 <strong>node.js</strong> 的标准包管理器。</p><p>一开始，npm 作为下载和管理 node.js 包的依赖的工具，现在也成为了 JavaScript 前端开发工具。</p><h4>下载包</h4><p>如果项目中有 <strong>package.json</strong> 文件，可以通过下面指令自动安装所有在文件中定义的模块，安装路径为 <strong>node_modules</strong> 文件夹内：</p><pre><code>npm install
+</code></pre><p>安装某一个模块包：</p><pre><code>npm install &lt;package-name&gt;
+</code></pre><p>在项目中安装的包会自动添加条目到 <strong>package.json</strong> 文件中。也可以在安装时使用 <code>--save</code> 选项来添加到文件。</p><h4>更新包</h4><p>更新项目中所有包：</p><pre><code>npm update
+</code></pre><p>更新某一个包：</p><pre><code>npm update &lt;package-name&gt;
+</code></pre><h4>执行任务</h4><p><strong>package.json</strong> 文件内支持定义指定的命令行指令，通过下面的语法来执行：</p><pre><code>npm run &lt;task-name&gt;
+</code></pre><p>指令定义在 <strong>scripts</strong> 块内，例如：</p><pre><code>{
+  &quot;scripts&quot;: {
+    &quot;start&quot;: &quot;uname -r&quot;
+  }
+}</code></pre><p>此时我们在终端执行下面命令：</p><pre><code>$ npm run start
+Debugger attached.
+
+&gt; start
+&gt; uname -r
+
+5.8.0-38-generic
+Waiting for the debugger to disconnect...</code></pre><p>可以看到通过 run 定义命令的名称就可以执行对应的命令。</p><h4>包安装路径</h4><p>当使用 npm 安装包时，可以定义两种安装模式：</p><ul><li>local install 逻辑安装</li><li>global install 全局安装</li></ul><p>默认情况下当我们使用下面指令安装包：</p><pre><code>npm install chalk
+</code></pre><p>包会安装到当前项目路径下的 node_modules 文件夹内。此时 npm 会将对应包的信息写入 <strong>package.json</strong> 文件内的 <strong>dependencies</strong> 块内，如：</p><pre><code>{
+  &quot;dependencies&quot;: {
+    &quot;chalk&quot;: &quot;^4.1.0&quot;,
+    &quot;inquirer&quot;: &quot;^7.3.3&quot;,
+    &quot;minimist&quot;: &quot;^1.2.5&quot;,
+    &quot;progress&quot;: &quot;^2.0.3&quot;
+  }
+}</code></pre><p>全局安装通过 <code>-g</code> 标记实现：</p><pre><code>npm install -g chalk
+</code></pre><p>使用全局安装模式时，npm 不会将包安装到项目路径下，而是 <strong>global</strong> location 路径下。通过 <code>npm root -g</code> 命令可以返回 golbal 路径的地址，Linux 默认地址为：<code>/usr/local/lib/node_modules</code>，Windows 默认地址为：<code>C:\Users\YOU\AppData\Roaming\npm\node_modules</code>。</p><h4>可执行程序</h4><p>当安装一个包后，我们通过 <strong>require</strong> 关键词来调用模块：</p><pre><code>const inquirer = require('inquirer')
+</code></pre><p>当安装的包是可执行程序的时候呢？当安装的包含有可执行程序时，程序会放在 <code>node_modules/.bin/</code> 文件夹内，关于如何运行这些可执行程序，我们通过 <strong>cowsay</strong> 包来演示。</p><p>首先安装 <strong>cowsay</strong>，这里安装到 global 路径下：</p><pre><code>npm install -g cowsay
+</code></pre><p>我的 global 路径地址为：<code>/opt/node-v15.5.1-linux-x64/lib/node_modules</code>，可执行文件被安装在 <code>/opt/node-v15.5.1-linux-x64/bin/</code> 目录下：</p><pre><code>cowsay -&gt; ../lib/node_modules/cowsay/cli.js</code></pre><p>查看属性可以看到此可执行文件是指向 cli.js 的一个链接。</p><p>通过 <strong>npx</strong> 命令可以方便的执行此程序，不需要提供程序所在路径：</p><pre><code>$ npx cowsay wow
+ _____
+&lt; wow &gt;
+ -----
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||</code></pre><h3>package.json 文件</h3><p>package.json 文件是其项目的一个声明，它可以用来做一些完全没有关联的事情。例如，它是配置工具的仓库，也存储着 npm 安装的包的版本信息。</p><p>下面是最简单的文件形式：</p><pre><code>{}
+</code></pre><p>文件需要遵守 json 格式，否则无法被程序读取其定义的内容。没有什么内容是必须的，所以可以是一个简单的大括号。如果你要做一个通过 npm 分享的 node.js 包，那么 package.json 文件需要定义一些必须的属性以供了解这个包的信息，后面会做详细介绍。</p><p>下面是另一个示例：</p><pre><code>{
+  &quot;name&quot;: &quot;test-node&quot;
+}</code></pre><p>以上定义了一个 <strong>name</strong> property，定义了这个 app 或 package 的名称。文件和项目文件在同一文件夹下。</p><p>下面是一个更加复杂的示例：</p><pre><code>{
+  &quot;name&quot;: &quot;test-project&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;description&quot;: &quot;A Vue.js project&quot;,
+  &quot;main&quot;: &quot;src/main.js&quot;,
+  &quot;private&quot;: true,
+  &quot;scripts&quot;: {
+    &quot;dev&quot;: &quot;webpack-dev-server --inline --progress --config build/webpack.dev.conf.js&quot;,
+    &quot;start&quot;: &quot;npm run dev&quot;,
+    &quot;unit&quot;: &quot;jest --config test/unit/jest.conf.js --coverage&quot;,
+    &quot;test&quot;: &quot;npm run unit&quot;,
+    &quot;lint&quot;: &quot;eslint --ext .js,.vue src test/unit&quot;,
+    &quot;build&quot;: &quot;node build/build.js&quot;
+  },
+  &quot;dependencies&quot;: {
+    &quot;vue&quot;: &quot;^2.5.2&quot;
+  },
+  &quot;devDependencies&quot;: {
+    &quot;autoprefixer&quot;: &quot;^7.1.2&quot;,
+    &quot;babel-core&quot;: &quot;^6.22.1&quot;,
+    &quot;babel-eslint&quot;: &quot;^8.2.1&quot;,
+    &quot;babel-helper-vue-jsx-merge-props&quot;: &quot;^2.0.3&quot;,
+    &quot;babel-jest&quot;: &quot;^21.0.2&quot;,
+    &quot;babel-loader&quot;: &quot;^7.1.1&quot;,
+    &quot;babel-plugin-dynamic-import-node&quot;: &quot;^1.2.0&quot;,
+    &quot;babel-plugin-syntax-jsx&quot;: &quot;^6.18.0&quot;,
+    &quot;babel-plugin-transform-es2015-modules-commonjs&quot;: &quot;^6.26.0&quot;,
+    &quot;babel-plugin-transform-runtime&quot;: &quot;^6.22.0&quot;,
+    &quot;babel-plugin-transform-vue-jsx&quot;: &quot;^3.5.0&quot;,
+    &quot;babel-preset-env&quot;: &quot;^1.3.2&quot;,
+    &quot;babel-preset-stage-2&quot;: &quot;^6.22.0&quot;,
+    &quot;chalk&quot;: &quot;^2.0.1&quot;,
+    &quot;copy-webpack-plugin&quot;: &quot;^4.0.1&quot;,
+    &quot;css-loader&quot;: &quot;^0.28.0&quot;,
+    &quot;eslint&quot;: &quot;^4.15.0&quot;,
+    &quot;eslint-config-airbnb-base&quot;: &quot;^11.3.0&quot;,
+    &quot;eslint-friendly-formatter&quot;: &quot;^3.0.0&quot;,
+    &quot;eslint-import-resolver-webpack&quot;: &quot;^0.8.3&quot;,
+    &quot;eslint-loader&quot;: &quot;^1.7.1&quot;,
+    &quot;eslint-plugin-import&quot;: &quot;^2.7.0&quot;,
+    &quot;eslint-plugin-vue&quot;: &quot;^4.0.0&quot;,
+    &quot;extract-text-webpack-plugin&quot;: &quot;^3.0.0&quot;,
+    &quot;file-loader&quot;: &quot;^1.1.4&quot;,
+    &quot;friendly-errors-webpack-plugin&quot;: &quot;^1.6.1&quot;,
+    &quot;html-webpack-plugin&quot;: &quot;^2.30.1&quot;,
+    &quot;jest&quot;: &quot;^22.0.4&quot;,
+    &quot;jest-serializer-vue&quot;: &quot;^0.3.0&quot;,
+    &quot;node-notifier&quot;: &quot;^5.1.2&quot;,
+    &quot;optimize-css-assets-webpack-plugin&quot;: &quot;^3.2.0&quot;,
+    &quot;ora&quot;: &quot;^1.2.0&quot;,
+    &quot;portfinder&quot;: &quot;^1.0.13&quot;,
+    &quot;postcss-import&quot;: &quot;^11.0.0&quot;,
+    &quot;postcss-loader&quot;: &quot;^2.0.8&quot;,
+    &quot;postcss-url&quot;: &quot;^7.2.1&quot;,
+    &quot;rimraf&quot;: &quot;^2.6.0&quot;,
+    &quot;semver&quot;: &quot;^5.3.0&quot;,
+    &quot;shelljs&quot;: &quot;^0.7.6&quot;,
+    &quot;uglifyjs-webpack-plugin&quot;: &quot;^1.1.1&quot;,
+    &quot;url-loader&quot;: &quot;^0.5.8&quot;,
+    &quot;vue-jest&quot;: &quot;^1.0.2&quot;,
+    &quot;vue-loader&quot;: &quot;^13.3.0&quot;,
+    &quot;vue-style-loader&quot;: &quot;^3.0.1&quot;,
+    &quot;vue-template-compiler&quot;: &quot;^2.5.2&quot;,
+    &quot;webpack&quot;: &quot;^3.6.0&quot;,
+    &quot;webpack-bundle-analyzer&quot;: &quot;^2.9.0&quot;,
+    &quot;webpack-dev-server&quot;: &quot;^2.9.1&quot;,
+    &quot;webpack-merge&quot;: &quot;^4.1.0&quot;
+  },
+  &quot;engines&quot;: {
+    &quot;node&quot;: &quot;&gt;= 6.0.0&quot;,
+    &quot;npm&quot;: &quot;&gt;= 3.0.0&quot;
+  },
+  &quot;browserslist&quot;: [&quot;&gt; 1%&quot;, &quot;last 2 versions&quot;, &quot;not ie &lt;= 8&quot;]
+}</code></pre><p>包含了很多的属性设置：</p><ul><li><strong>version</strong> 表示当前版本号</li><li><strong>name</strong> 设置包名称</li><li><strong>description</strong> 对 app 简要的描述</li><li><strong>main</strong> 设置 app 的入口文件</li><li><strong>private</strong> 如果设置为 true 可以防止包被无意的发布到 npm</li><li><strong>scripts</strong> 定义可以运行的脚本命令</li><li><strong>dependencies</strong> npm 依赖包列表</li><li><strong>devDependencies</strong> 定义开发使用的 npm 包列表</li><li><strong>engines</strong> 设置 app 运行的 node 版本</li><li><strong>browserslist</strong> 指定支持的浏览器版本</li></ul><p>以上所有的属性都可以被 npm 或其他工具使用。</p><h4>常用属性</h4><p>下面介绍一些常规使用的属性，包括你在本地开发的项目也可以使用。</p><p><strong>name</strong> 定义app 名称：</p><pre><code>&quot;name&quot;: &quot;test-project&quot;
+</code></pre><p>name 必须小于 214 个字符，不能含有空格，只能包含<strong>小写字母，横杠<code>-</code> 或下划线<code>_</code></strong>。如果将包发布到 npm，会生成一个独有的链接。</p><p><strong>author</strong> 定义作者信息：</p><pre><code>&quot;author&quot;: &quot;marco &lt;me@niekun.net&gt; (https://niekun.net)&quot;
+</code></pre><p>或者：</p><pre><code>  &quot;author&quot;: {
+    &quot;name&quot;: &quot;marco&quot;,
+    &quot;email&quot;: &quot;me@niekun.net&quot;,
+    &quot;url&quot;: &quot;https://niekun.net&quot;
+  }</code></pre><p><strong>contributors</strong> 定义代码贡献者信息，可以包含多人：</p><pre><code>  &quot;contributors&quot;: [
+    {
+      &quot;name&quot;: &quot;marco&quot;,
+      &quot;email&quot;: &quot;me@niekun.net&quot;,
+      &quot;url&quot;: &quot;https://niekun.net&quot;
+    }
+  ]</code></pre><p><strong>bugs</strong> 定义反馈 bug 的链接，一般是 GitHub issue 页面：</p><pre><code>&quot;bugs&quot;: &quot;https://github.com/whatever/package/issues&quot;
+</code></pre><p><strong>homepage</strong> 定义包的主页链接：</p><pre><code>&quot;homepage&quot;: &quot;https://whatever.com/package&quot;
+</code></pre><p><strong>version</strong> 定义当前包的版本：</p><pre><code>&quot;version&quot;: &quot;1.0.0&quot;
+</code></pre><p>此属性遵守 semantic versioning (semver) notation 语义版本标记语法。也就是由三个数字表示：x.x.x</p><p><strong>license</strong> 定义包的授权信息：</p><pre><code>&quot;license&quot;: &quot;MIT&quot;
+</code></pre><p><strong>keywords</strong> 定义关于这个包实现功能的关键词，是一个数组：</p><pre><code>  &quot;keywords&quot;: [
+    &quot;learning&quot;,
+    &quot;nodejs&quot;
+  ]</code></pre><p>使用 keywords 可以帮助别人找到你的包，或者在 <a href="https://www.npmjs.com/">https://www.npmjs.com/</a> 网站上搜索关键词。</p><p><strong>description</strong> 定义一个对此 app 的简短描述：</p><pre><code>&quot;description&quot;: &quot;a node.js beginner guide&quot;
+</code></pre><p><strong>repository</strong> 定义项目仓库地址：</p><pre><code>&quot;repository&quot;: &quot;github:whatever/node-project&quot;
+</code></pre><p>注意如果不是使用的 GitHub 也可以定义其他工具：</p><pre><code>&quot;repository&quot;: &quot;gitlab:whatever/node-project&quot;
+</code></pre><p>也可以明确的定义版本控制系统信息：</p><pre><code>  &quot;repository&quot;: {
+    &quot;type&quot;: &quot;git&quot;,
+    &quot;url&quot;: &quot;https://github.com/whatever/testing.git&quot;
+  }</code></pre><p><strong>main</strong> 设置包的入口：</p><pre><code>&quot;main&quot;: &quot;./main.js&quot;
+</code></pre><p><strong>private</strong> 如果设置为 true，可以防止包被无意的发布到 npm：</p><pre><code>&quot;private&quot;: &quot;true&quot;
+</code></pre><p><strong>scripts</strong> 定义可执行的 node 脚本：</p><pre><code>  &quot;scripts&quot;: {
+    &quot;start&quot;: &quot;uname -r&quot;,
+    &quot;test&quot;: &quot;echo abcd&quot;
+  }</code></pre><p>定义的脚本是命令行程序，通过 npm run xxx 执行，如：</p><pre><code>npm run start
+</code></pre><p><strong>dependencies</strong> 定义 app 需要安装的 npm 依赖包：</p><pre><code>  &quot;dependencies&quot;: {
+    &quot;chalk&quot;: &quot;^4.1.0&quot;,
+    &quot;inquirer&quot;: &quot;^7.3.3&quot;,
+    &quot;minimist&quot;: &quot;^1.2.5&quot;,
+    &quot;progress&quot;: &quot;^2.0.3&quot;
+  }</code></pre><p>当通过 <code>npm install &lt;PACKAGENAME&gt;</code> 安装包，会自动将包写入 package.json 文件的 dependencies 块。</p><p><strong>devDependencies</strong> 定义 app 开发需要的 npm 依赖包：</p><pre><code>&quot;devDependencies&quot;: {
+  &quot;autoprefixer&quot;: &quot;^7.1.2&quot;,
+  &quot;babel-core&quot;: &quot;^6.22.1&quot;
+}</code></pre><p>和 <strong>dependencies</strong> 的区别是这里定义的包只是在开发设备上安装，而不需要在执行设备上安装。开发包通过以下命令安装：</p><pre><code>npm install --save-dev &lt;PACKAGENAME&gt;
+</code></pre><p><strong>engines</strong> 设置此包运行的 node 版本和其他命令版本：</p><pre><code>  &quot;engines&quot;: {
+    &quot;node&quot;: &quot;&gt;= 6.0.0&quot;,
+    &quot;npm&quot;: &quot;&gt;=3.0.0&quot;
+  }</code></pre><p><strong>browserslist</strong> 定义 app 支持的浏览器版本：</p><pre><code>&quot;browserslist&quot;: [
+  &quot;&gt; 1%&quot;,
+  &quot;last 2 versions&quot;,
+  &quot;not ie &lt;= 8&quot;
+]</code></pre><p>以上定义的意义是：支持所有类型浏览器的最近两个版本且需要至少有 1% 的占有率，不包括小于等于 IE8 版本的浏览器。浏览器占有率信息来自于 <a href="https://caniuse.com/">https://caniuse.com/</a> 统计。</p><h4>依赖包版本信息</h4><p>在 <strong>dependencies</strong> 和 <strong>devDependencies</strong> 中定义了依赖包列表，每个包都定义了版本信息，如：<strong>^0.13.0</strong> 或 <strong>~3.0.0</strong>，通过版本号前的符号可以们定义接受那些版本的升级，下面介绍版本标记的用法：</p><ul><li>无标记，如 1.0.0 定义只安装此版本的包</li><li><strong>latest</strong> 定义安装最新版本的包</li><li><strong>^</strong> 只能升级到不改变最左边第一个非零数字的版本，如定义 <strong>^0.13.0</strong>，通过 npm update 可以升级到 0.13.1 或 0.13.2，但不能升级到 0.14.0，定义 <strong>^1.13.0</strong>，能够升级到 1.13.1 或 1.14.0，不能升级到 2.0.0</li><li><strong>~</strong> 只能升级最后一位数字变化的版本，如 定义 <strong>~1.13.0</strong>，能够升级到 1.13.1，但不能升级到 1.14.0</li><li><strong>&gt;</strong> 接受大于定义的版本号的更新</li><li><strong>&gt;=</strong> 接受大于等于定义的版本号的更新</li><li><strong>&lt;</strong> 接受小于定义的版本号的更新</li><li><strong>&lt;=</strong> 接受小于等于定义的版本号的更新</li><li><strong>-</strong> 设置一个版本范围，如：1.0.0 - 2.0.0</li><li><strong>||</strong> 组合设置，如：&lt; 2.0.0 || &gt; 3.0.0</li></ul><p>更加详细的定义方法参考：<a href="https://nodejs.dev/learn/semantic-versioning-using-npm">https://nodejs.dev/learn/semantic-versioning-using-npm</a></p><h3>package-lock.json 文件</h3><p>在 npm 5 版本中 npm 引入了 package-lock.json 文件。</p><p>前面介绍了 package.json 文件，它是一个通用的被广泛使用的配置文件。package-lock.json 文件的目的是更加确切的追踪安装的依赖包的版本，以用来 100% 复制开发者的安装环境到其他安装者设备上，即使某些包已经够了更新版本。</p><p>这解决了一个 package.json 遗留的问题，在 package.json 中你可以定义某个包可接受的版本升级范围，版本格式遵守 semantic versioning (semver) notation 语义版本标记语法，例如：</p><ul><li><strong>~1.13.1</strong> 可以升级到 1.13.2，但不可以升级到 1.14.0</li><li><strong>^1.13.1</strong> 可以升级到 1.14.0，但不能升级到 2.0.0</li><li><strong>1.13.1</strong> 只能安装 1.13.1 版本，不能升级到其他任何版本</li></ul><p>你发布的包中并不包含开发环境中的  node_modules 文件夹因为它占用空间很大。当在其他设备中通过 <code>npm install</code>  命令安装依赖包时，竟会遵循上面定义的版本范围安装支持的最新版本到设备中，这就会导致用户安装的版本和你开发环境的版本不一致，可能导致 bug 的出现。</p><p>package-lock.json 中定义了你当前开发环境安装的各种依赖包的准确版本，这样通过 <code>npm install</code> 命令安装的就是其中定义的准确版本。</p><p>这一概念并不是 npm 独创的，其他编程语言也在使用类似的模式，如 php 的 Composer。</p><p>package-lock.json 文件需要打包在仓库中，以供其他人使用。当使用 <code>npm update</code> 更新包时，package-lock.json 中的定义也会同步更新。</p><p>下面是一个 package-lock.json 文件的示例，当我们执行 <code>npm install cowsay</code> 时，会创建以下内容：</p><pre><code>{
+  &quot;requires&quot;: true,
+  &quot;lockfileVersion&quot;: 1,
+  &quot;dependencies&quot;: {
+    &quot;ansi-regex&quot;: {
+      &quot;version&quot;: &quot;3.0.0&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/ansi-regex/-/ansi-regex-3.
+0.0.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-7QMXwyIGT3lGbAKWa922Bas32Zg=&quot;
+    },
+    &quot;cowsay&quot;: {
+      &quot;version&quot;: &quot;1.3.1&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/cowsay/-/cowsay-1.3.1.tgz&quot;
+,
+      &quot;integrity&quot;: &quot;sha512-3PVFe6FePVtPj1HTeLin9v8WyLl+VmM1l1H/5P+BTTDkM
+Ajufp+0F9eLjzRnOHzVAYeIYFF5po5NjRrgefnRMQ==&quot;,
+      &quot;requires&quot;: {
+        &quot;get-stdin&quot;: &quot;^5.0.1&quot;,
+        &quot;optimist&quot;: &quot;~0.6.1&quot;,
+        &quot;string-width&quot;: &quot;~2.1.1&quot;,
+        &quot;strip-eof&quot;: &quot;^1.0.0&quot;
+      }
+    },
+    &quot;get-stdin&quot;: {
+      &quot;version&quot;: &quot;5.0.1&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/get-stdin/-/get-stdin-5.0.
+1.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-Ei4WFZHiH/TFJTAwVpPyDmOTo5g=&quot;
+    },
+    &quot;is-fullwidth-code-point&quot;: {
+      &quot;version&quot;: &quot;2.0.0&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/is-fullwidth-code-point/-/
+is-fullwidth-code-point-2.0.0.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-o7MKXE8ZkYMWeqq5O+764937ZU8=&quot;
+    },
+    &quot;minimist&quot;: {
+      &quot;version&quot;: &quot;0.0.10&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/minimist/-/minimist-0.0.10
+.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-3j+YVD2/lggr5IrRoMfNqDYwHc8=&quot;
+    },
+    &quot;optimist&quot;: {
+      &quot;version&quot;: &quot;0.6.1&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/optimist/-/optimist-0.6.1.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-2j6nRob6IaGaERwybpDrFaAZZoY=&quot;,
+
+      &quot;requires&quot;: {
+        &quot;minimist&quot;: &quot;~0.0.1&quot;,
+        &quot;wordwrap&quot;: &quot;~0.0.2&quot;
+      }
+    },
+    &quot;string-width&quot;: {
+      &quot;version&quot;: &quot;2.1.1&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/string-width/-/string-width-2.1.1.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha512-nOqH59deCq9SRHlxq1Aw85Jnt4w6KvLKqWVik6oA9ZklXLNIOlqg4F2yrT1MVaTjAqvVwdfeZ7w7aCvJD7ugkw==&quot;,
+      &quot;requires&quot;: {
+        &quot;is-fullwidth-code-point&quot;: &quot;^2.0.0&quot;,
+        &quot;strip-ansi&quot;: &quot;^4.0.0&quot;
+      }
+    },
+    &quot;strip-ansi&quot;: {
+      &quot;version&quot;: &quot;4.0.0&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/strip-ansi/-/strip-ansi-4.0.0.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-qEeQIusaw2iocTibY1JixQXuNo8=&quot;,
+      &quot;requires&quot;: {
+        &quot;ansi-regex&quot;: &quot;^3.0.0&quot;
+      }
+    },
+    &quot;strip-eof&quot;: {
+      &quot;version&quot;: &quot;1.0.0&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/strip-eof/-/strip-eof-1.0.0.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-u0P/VZim6wXYm1n80SnJgzE2Br8=&quot;
+    },
+    &quot;wordwrap&quot;: {
+      &quot;version&quot;: &quot;0.0.3&quot;,
+      &quot;resolved&quot;: &quot;https://registry.npmjs.org/wordwrap/-/wordwrap-0.0.3.tgz&quot;,
+      &quot;integrity&quot;: &quot;sha1-o9XabNXAvAAI03I0u68b7WMFkQc=&quot;
+    }
+  }
+}</code></pre><p>我们安装的 cowsay 有如下依赖，它们会被自动安装：</p><ul><li>get-stdin</li><li>optimist</li><li>string-width</li><li>strip-eof</li></ul><p>以上的依赖包可能也会有它们各自的其他依赖包，会自动安装相关其他包，每个包的依赖包在 <strong>requires</strong> 属性中定义。</p><p>所有的包以字母排序顺序在文件中。每个包都有 <strong>version</strong> 属性定义了各自当前安装的版本，<strong>resolved</strong> 定义了包地址，<strong>integrity</strong> 字符串用来验证包。</p><h3>包版本管理及安装</h3><p>下面的指令查询当前安装的所有包及其依赖包：</p><pre><code>npm list
+</code></pre><p>输出信息示例：</p><pre><code>❯ npm list
+/Users/joe/dev/node/cowsay
+└─┬ cowsay@1.3.1
+  ├── get-stdin@5.0.1
+  ├─┬ optimist@0.6.1
+  │ ├── minimist@0.0.10
+  │ └── wordwrap@0.0.3
+  ├─┬ string-width@2.1.1
+  │ ├── is-fullwidth-code-point@2.0.0
+  │ └─┬ strip-ansi@4.0.0
+  │   └── ansi-regex@3.0.0
+  └── strip-eof@1.0.0</code></pre><p>当然也可以直接打开 package-lock.json 文件查看，但这样不太方便观察结构。</p><p><code>npm list -g</code> 用来查看 global 安装的包。</p><p>如果只想查询顶层的包，也就是你主动通过 <code>npm install</code> 安装的那些包，可通过 <code>npm list --depth=0</code> 查询：</p><pre><code>❯ npm list --depth=0
+/Users/joe/dev/node/cowsay
+└── cowsay@1.3.1</code></pre><p>也可以单独查询某个包：</p><pre><code>❯ npm list cowsay
+/Users/joe/dev/node/cowsay
+└── cowsay@1.3.1</code></pre><p>使用下面命令查询某个包当前发布的最新版本：</p><pre><code>❯ npm view cowsay version
+1.4.0</code></pre><p>要安装某个包的特定版本需要加上 <code>@</code> 标记：</p><pre><code>npm install cowsay@1.2.0
+</code></pre><p>查看某个包的所有历史版本列表：</p><pre><code>$ npm view cowsay versions
+[
+  '1.0.0', '1.0.1', '1.0.2',
+  '1.0.3', '1.1.0', '1.1.1',
+  '1.1.2', '1.1.3', '1.1.4',
+  '1.1.5', '1.1.6', '1.1.7',
+  '1.1.8', '1.1.9', '1.2.0',
+  '1.2.1', '1.3.0', '1.3.1',
+  '1.4.0'
+]</code></pre><p>通过 <code>npm update</code> 可以更新所有已安装的包，更新版本规则遵循 package.json 定义的版本升级范围，同时会更新 package-lock.json 文件内的当前包版本信息。</p><p>想要查询当前有哪些包有更新版本时，可以执行 <code>npm outdated</code> 命令：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/1402612766.png" alt="2021-01-29T01:29:02.png" title="2021-01-29T01:29:02.png"></p><p>其中有些更新是大版本更新， <code>npm update</code> 并不会更新到这些大版本，因为这些更新可能包含有重大的变化。如果要强制更新到最新的版本包括大版本更新，可以按顺序执行下面的命令：</p><pre><code>npm install -g npm-check-updates
+ncu -u
+npm update</code></pre><p>使用下面命令卸载某个包：</p><pre><code>npm uninstall &lt;package-name&gt;
+</code></pre><p>添加 <code>-S</code> 或 <code>--save</code> 标记删除 package.json 中的相关信息。如果要删除的包是一个开发包，在 devDependencies 中定义过，则需要添加 <code>-D</code> 或 <code>--save-dev</code> 标记来删除相关信息：</p><pre><code>npm uninstall -S &lt;package-name&gt;
+npm uninstall -D &lt;package-name&gt;</code></pre><p>如果包是 global 安装的，则卸载需要添加 <code>-g</code> 标记：</p><pre><code>npm uninstall -g &lt;package-name&gt;
+</code></pre><h3>npm local 和 global 安装</h3><p>本地包和全局包的区别是本地包通过 <code>npm install</code> 安装到当前项目下的 node_modules 文件夹内，全局包通过 <code>npm install -g</code> 安装到系统路径下，路径地址可通过 <code>npm root -g</code> 查询。</p><p>在程序中，只能 require 本地包：</p><pre><code>require('package-name')
+</code></pre><p>通常情况下推荐所有的包都以本地模式安装。这可以让不同的程序使用各自不同版本的包。更新一个全局包会同时影响所有使用这个包的 app。</p><p>当一个包含有可执行程序时，应该安装为 global 全局包。这样所有的项目都可以调用执行。</p><h3>npm dependencies 和 devDependencies</h3><p>当通过 npm intall 安装包时，表示将包作为 dependency。包信息会自动写入 package.json 文件的 dependencies 块内。当安装时添加 <code>-D</code> 标记，表示将包作为 devdependency 安装。包信息会自动写入 devDependencies 块内。</p><p>开发包的目的是用来开发程序时使用，作为产品运行时是不需要的。</p><p>执行 npm install 会默认安装这些开发包。如果不需要安装开发包需要加上 <code>--production</code> 标记：</p><pre><code>npm install --production xxx
+</code></pre><h3>npx 包运行器</h3><p>npx 可以用来运行 node.js 程序。node.js 开发者通常将大部分含有可执行程序的包作为 global 包发布，这样就使得可执行程序在系统 PATH 路径下可以被直接执行。但这样的弊端就是不能安装不同版本的包。</p><p>使用 npx 命令可以自动寻找 node_modules 文件夹内的对应的名称的可执行程序，而不需要知道程序具体的路径，也不需要以 global 方式安装包。</p><p>npx 另一个很好的功能是可以直接运行某些命令而不需要提前安装它们，还可以通过 <code>@</code> 标记来执行不同版本的同一命令。</p><p>cowsay 是一个很好的示例来说明 npx 的使用，如果我们以 global 模式安装 cowsay，可以通过下面方式执行：</p><pre><code>cowsay &quot;wow&quot;
+</code></pre><p>以上命令只有通过 global 方式安装才能够正常执行，否则会报错提示命令不存在。</p><p>如果以 local 方式安装 cowsay，可以通过 npx 执行：</p><pre><code>npx cowsay &quot;Hello&quot;
+</code></pre><p>通过 <code>@</code> 标记来执行不同版本的命令：</p><pre><code>npx node@10 -v #v10.18.1
+npx node@12 -v #v12.14.1</code></pre><p>npm 也可以直接执行来自 url 的任意代码片段，而不仅限于 npm 官方渠道发布的包。下面示例是执行部署在 glist 的包：</p><pre><code>npx https://gist.github.com/zkat/4bc19503fe9e9309e2bfaa2c58074d32
+</code></pre><p>可执行程序路径定义在 package.json 文件的 bin 属性内。</p><p>glist 包含内容如下：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/1152197546.jpg" alt="1.jpg" title="1.jpg"></p><p>当然执行不受控制网络的代码需要多加注意。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2085.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2085.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[c++ 类型转换]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2066.html" />
@@ -104,786 +1550,5 @@ test(*b);
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2066.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2066.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[QT 网络应用]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1973.html" />
-<id>https://blog.niekun.net/archives/1973.html</id>
-<updated>2020-12-16T16:59:00+08:00</updated>
-<published>2020-12-16T16:59:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[最近研究了下 QT 如何访问网络，做一些简单总结。首先在 pro 文件内定义网络属性：QT  += network如果需要连接 https 需要安装 openssl 工具，使用 QT 的 Mai...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1973.html" xml:lang="zh-CN"><![CDATA[
-<p>最近研究了下 QT 如何访问网络，做一些简单总结。</p><p>首先在 pro 文件内定义网络属性：</p><pre><code>QT  += network
-</code></pre><p>如果需要连接 https 需要安装 openssl 工具，使用 QT 的 MaintenanceTool 工具找到 openssl toolkit 并安装。否则执行程序时 ssl 会报错。</p><p>安装后需要将 openssl 路径加入系统 PATH，默认安装路径为：<code>Qt/Tools/OpenSSL</code>。根据需要将对应系统版本的 bin 路径加入 PATH 如：<code>C:\Qt\Tools\OpenSSL\Win_x86\bin</code>，里面包含相关 lib 库文件。添加方法参考：<a href="https://blog.niekun.net/archives/413.html">https://blog.niekun.net/archives/413.html</a>。</p><!--more--><p>需要用到的 QT class：<br><a href="https://doc.qt.io/qt-5/qnetworkaccessmanager.html">QNetworkAccessManager</a><br><a href="https://doc.qt.io/qt-5/qnetworkrequest.html">QNetworkRequest</a><br><a href="https://doc.qt.io/qt-5/qsslconfiguration.html">QSslConfiguration</a><br><a href="https://doc.qt.io/qt-5/qnetworkreply.html">QNetworkReply</a></p><p>我们做一个示例，新建项目，在头文件添加相关引用：</p><pre><code>#include &lt;QNetworkAccessManager&gt;
-#include &lt;QNetworkReply&gt;</code></pre><p>public 栏添加触发网络访问的 function：</p><pre><code>public:
-    void doRequest();</code></pre><p>private 栏定义指针：</p><pre><code>private:
-    QNetworkAccessManager *manager;</code></pre><p>添加 private slots 用来处理服务器的回应：</p><pre><code>private slots:
-    void replyFinished(QNetworkReply *reply);</code></pre><p>传入参数 reply 用来接收网络访问响应内容，对应于 signal: <code>void QNetworkAccessManager::finished(QNetworkReply *reply)</code>，signal 触发后的数据通过 connect 会自动传入 slot 中，下面在源文件中做详细定义。</p><p>下面修改源文件，先在构造器中调用触发网络 function: <code>doRequest()</code>：</p><pre><code>MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-{
-    ui-&gt;setupUi(this);
-    doRequest();
-}</code></pre><p>下面实现 <code>doRequest()</code> 的内容：</p><pre><code>void MainWindow::doRequest() {
-    manager = new QNetworkAccessManager(this);
-
-    QSslConfiguration sSlConfig;
-    sSlConfig.setDefaultConfiguration(QSslConfiguration::defaultConfiguration());
-    sSlConfig.setProtocol(QSsl::TlsV1_2);
-
-    QNetworkRequest request;
-    request.setSslConfiguration(sSlConfig);
-    request.setUrl(QUrl(&quot;https://info.niekun.net&quot;));
-    request.setRawHeader(&quot;User-Agent&quot;, &quot;MyOwnBrowser 1.0&quot;);
-
-    manager-&gt;get(request);
-
-    connect(manager, &amp;QNetworkAccessManager::finished, this, &amp;MainWindow::replyFinished);
-    connect(manager, &amp;QNetworkAccessManager::finished, manager, &amp;QNetworkAccessManager::deleteLater);
-}</code></pre><p>首先实例化一个 QNetworkAccessManager 用来访问网络。</p><p>然后构造我们的 request 和 ssl 的初始化内容，request 中设置了访问的网络地址，定义了一个 request 的 header。</p><p>QNetworkAccessManager  的 object 使用 <code>get</code> function 来启动网络请求。</p><p>然后我们使用 <code>connect</code> 根据网络请求发出后的响应来触发相关 slot function。signal 触发后的数据会传入 slot function 中。所以 signal：<code>void QNetworkAccessManager::finished(QNetworkReply *reply)</code> 触发后返回的数据 reply 自动作为传入数据给 <code>replyFinished</code>。</p><p>第二个 connect 的作用是网络请求结束后释放相关内存，避免造成内存溢出。</p><p>注意这里我使用了新版的 QT connect 语法，详细参考官方文档：<a href="https://wiki.qt.io/New_Signal_Slot_Syntax">https://wiki.qt.io/New_Signal_Slot_Syntax</a></p><p>下面实现 replyFinished：</p><pre><code>void MainWindow::replyFinished(QNetworkReply *reply) {
-    if(reply-&gt;error())
-    {
-        qDebug() &lt;&lt; &quot;ERROR!&quot;;
-        qDebug() &lt;&lt; reply-&gt;errorString();
-    }
-    else
-    {
-        qDebug() &lt;&lt; reply-&gt;header(QNetworkRequest::ContentTypeHeader).toString();
-        qDebug() &lt;&lt; reply-&gt;header(QNetworkRequest::LastModifiedHeader).toDateTime().toString();;
-        qDebug() &lt;&lt; reply-&gt;header(QNetworkRequest::ContentLengthHeader).toULongLong();
-        qDebug() &lt;&lt; reply-&gt;attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-        qDebug() &lt;&lt; reply-&gt;attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
-        qDebug() &lt;&lt; &quot;-----------------------&quot;;
-        qDebug().noquote() &lt;&lt; reply-&gt;readAll();
-    }
-}</code></pre><p>reply 指向 <code>&amp;QNetworkAccessManager::finished</code> 的 QNetworkReply 数据。</p><p>在此 function 中，我们输出 reply 中的部分信息来检测网络是否通畅。其他的可用类型可以查询：<a href="https://doc.qt.io/qt-5/qnetworkrequest.html#public-types">https://doc.qt.io/qt-5/qnetworkrequest.html#public-types</a></p><p>注意使用 <code>qDebug().noquote()</code> 来自动将字符串中的 <code>\n</code> 作为换行处理。</p><p>正常输出信息如下：</p><pre><code>&quot;text/plain&quot;
-&quot;&quot;
-0
-200
-&quot;OK&quot;
------------------------
-request info:
-request: GET / HTTP/1.1
-scheme: https
-host: info.niekun.net
-http_host: info.niekun.net
-uri: /
-request_uri: /
-connection: 202130
-remote_addr: 172.68.189.53
-client_real_ip: 1.81.217.183
-server_port: 443
-
-other variates:
-http_x_forwarded_for: 1.81.217.183
-proxy_add_x_forwarded_for: 1.81.217.183, 172.68.189.53</code></pre><p>以上就是 QT 访问网络的简单教程。</p><p>参考链接：<br><a href="https://www.bogotobogo.com/Qt/Qt5_Downloading_Files_QNetworkAccessManager_QNetworkRequest.php">https://www.bogotobogo.com/Qt/Qt5_Downloading_Files_QNetworkAccessManager_QNetworkRequest.php</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1973.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1973.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[c++ 字符串数组指针的研究]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1968.html" />
-<id>https://blog.niekun.net/archives/1968.html</id>
-<updated>2020-12-08T21:37:00+08:00</updated>
-<published>2020-12-08T21:37:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[在实际使用中发现对字符串的运用是一个容易混乱的地方，尤其是使用指针指向一个字符串数组的时候。下面做一些简单分析。一个简单的测试：    const char* test1 = &amp;quot;abc...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1968.html" xml:lang="zh-CN"><![CDATA[
-<p>在实际使用中发现对字符串的运用是一个容易混乱的地方，尤其是使用指针指向一个字符串数组的时候。下面做一些简单分析。</p><p><strong>一个简单的测试：</strong></p><pre><code>    const char* test1 = &quot;abc&quot;;
-    const string test2 = &quot;abc&quot;;
-
-    cout &lt;&lt; test1 &lt;&lt; endl;
-    cout &lt;&lt; *test1 &lt;&lt; endl;
-    cout &lt;&lt; test2 &lt;&lt; endl;
-    cout &lt;&lt; sizeof (test1) &lt;&lt; endl;
-    cout &lt;&lt; sizeof (test2) &lt;&lt; endl;</code></pre><p>输出如下：</p><pre><code>abc
-a
-abc
-8
-24</code></pre><!--more--><p>以前我的教程里提到过，字符串就相当于一个字符数组。指针会指向它的首个字符地址。<code>test1</code> 指针理论上存储着字符串的首地址。</p><p>但我们可以看到直接输出 <code>test1</code> 会得到实际字符串内容，而不是首个字符地址。输出 <code>*test</code> 会得到正常的首字符内容。</p><p>字符串指针使用 sizeof 得到这个指针所占用内存大小，而不是字符串内容的大小。</p><p>同时我们可以发现，一个字符指针可以直接指向一个字符串，而不需要先定义一个字符串变量然后建立指针指向这个变量。这是因为一个<strong>字符串可以看做一个字符数组，同时它也是一个整体</strong>，字符指针可以直接定义指向它。</p><p><strong>下面测试 int 型数组：</strong></p><pre><code>    const int test3[] = {1, 3 ,5};
-    const int* test4 = test3;
-
-    cout &lt;&lt; test3 &lt;&lt; endl;
-    cout &lt;&lt; test4 &lt;&lt; endl;
-    cout &lt;&lt; test4[0] &lt;&lt; endl;
-    cout &lt;&lt; *test4 &lt;&lt; endl;
-    cout &lt;&lt; sizeof(test4) &lt;&lt; endl;
-    cout &lt;&lt; sizeof(test4[0]) &lt;&lt; endl;</code></pre><p>输出结果：</p><pre><code>0x7ffee8cbaa58
-0x7ffee8cbaa58
-1
-1
-8
-4</code></pre><p>可以看到直接输出数组名称或指针名称得到的是数组所在地址。<code>*test</code> 和 <code>test[0]</code> 会得到数组第一位内容。</p><p>test4 是一个指针，所以 sizeof 得到的是这个指针做占用的内存空间而不是数组本身占用空间。无法通过 sizeof 计算出数组个数。</p><p>以上实验，我们先建立了一个 int 型数组变量，然后建立 int 型指针指向这个变量，如果直接在一行中建立一个指针指向一个数组会报错，这就和上面测试的字符指针不一样了。因为其他类型的数组不同于字符串，它的每个元素是独立的个体，所以无法使用一个指针直接指向他们全部。</p><p><strong>下面做最后一个测试：</strong></p><pre><code>const char* test5[] = {
-    &quot;abc&quot;,
-    &quot;def&quot;,
-    &quot;ohg&quot;,
-    &quot;asdf&quot;
-};
-
-const string test6[] = {
-    &quot;abc&quot;,
-    &quot;def&quot;,
-    &quot;ohg&quot;,
-    &quot;asdf&quot;
-};
-
-int x = sizeof (test5)/sizeof(test5[0]);
-cout &lt;&lt; test5 &lt;&lt; endl;
-cout &lt;&lt; *test5 &lt;&lt; endl;
-cout &lt;&lt; test5[0] &lt;&lt; endl;
-cout &lt;&lt; *test5[0] &lt;&lt; endl;
-cout &lt;&lt; x &lt;&lt; endl;
-cout &lt;&lt; sizeof(test5) &lt;&lt; endl;
-cout &lt;&lt; sizeof(test5[0]) &lt;&lt; endl;
-
-cout &lt;&lt; &quot;*************\n&quot;;
-
-x = sizeof (test6)/sizeof(test6[0]);
-cout &lt;&lt; test6 &lt;&lt; endl;
-cout &lt;&lt; *test6 &lt;&lt; endl;
-cout &lt;&lt; test6[0] &lt;&lt; endl;
-cout &lt;&lt; x &lt;&lt; endl;
-cout &lt;&lt; sizeof(test6) &lt;&lt; endl;
-cout &lt;&lt; sizeof(test6[0]) &lt;&lt; endl;</code></pre><p>输出结果如下：</p><pre><code>0x7ffee596ea40
-abc
-abc
-a
-4
-32
-8
-*************
-0x7ffee596e9e0
-abc
-abc
-4
-96
-24</code></pre><p><strong>由于字符串本身就是一个字符数组，所以一个字符串数组相当于一个二维的数组。定义字符串数组的指针，就是数组中每个字符串对应的指针的集合。</strong>所以这个数组指针本身不是字符串类型的，而它的每个指针元素都是字符串指针类型的。</p><p>可以看到类似于第一组测试，非字符串的指针直接输出指针名称，所以 <code>test5</code> 得到字符串数组的地址。</p><p><code>*test5</code> 和 <code>test5[0]</code> 都表示指针数组第一个元素，也就是字符串类型的指针，根据第一组实验可以知道使用字符串指针名称输出本身字符串而不是地址，所以输出此指针可以直接得到字符串内容。</p><p><code>*test5[0]</code> 就是字符串指针的首字符地址内容，也就是得到第一个字符串第一个字符的内容。</p><p>test5 指针数组使用 sizeof 得到的是这个指针数组总共占用的内存大小，也就是每个指针大小的总和。除以单个指针大小就可以得到这个数组指针的个数，也就是对应指向的数组的元素个数。</p><p>test6 字符串数组使用 sizeof 得到的是这个字符串数组所有元素的占用内存大小，除以单个字符串大小就可以得到这个数组的元素个数。</p><p>我们可以看到 test5 和 test6 使用 sizeof 都可以得到数组的元素个数，但他们的原理是完全不同的，一个是使用指针的内存大小，一个是使用数组本身的内存大小。</p><p><strong>总结：</strong><br>字符串的指针名称可以直接输出字符串内容而不是地址。其他指针类型指向的数据，如字符，数字，字符串数组，number 型数组等，指针名输出的都是数据地址。</p><p>指针使用 sizeof 得到的是指针所占用的内存大小。可以使用 <code>sizeof(*Pointer)</code> 得到数据本身大小。</p><p>字符串数组的指针使用 sizeof 得到指针数组的总大小，可以用来间接计算数组元素个数。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1968.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1968.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[macOS 下使用 QT 部署工具 macdeployqt]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1966.html" />
-<id>https://blog.niekun.net/archives/1966.html</id>
-<updated>2020-12-05T23:53:15+08:00</updated>
-<published>2020-12-05T23:53:15+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[在 Windows 下可以使用 QT 部署工具：windeployqt 来自动提取可执行程序的依赖库，在 macOS 下同样有部署工具：macdeployqt 实现相同的功能。工具路径在 QT ...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1966.html" xml:lang="zh-CN"><![CDATA[
-<p>在 Windows 下可以使用 QT 部署工具：windeployqt 来自动提取可执行程序的依赖库，在 macOS 下同样有部署工具：macdeployqt 实现相同的功能。</p><p>工具路径在 QT 安装目录的对应编译器 bin 目录下，如：<code>/Users/marconie/Qt/5.15.2/clang_64/bin/macdeployqt</code></p><p>为了方便使用建议将 bin 目录添加到系统 PATH 中，我的终端是 zsh 添加方法如下：</p><p>打开 <code>~/.zshrc</code> 添加如下内容，可以使用 vim 来操作：</p><pre><code>export PATH=$PATH:/Users/marconie/Qt/5.15.2/clang_64/bin</code></pre><p>编辑完成后关闭文件，刷新源：</p><pre><code>source ~/.zshrc
-</code></pre><p>现在就可以直接使用命令了：</p><pre><code>macdeployqt -h
-
-</code></pre><!--more--><p>部署的方法是直接在 macdeployqt 后提供 app 路径：</p><pre><code>macdeployqt path/to/test.app
-</code></pre><p>执行后会自动搜索此 app 需要的 QT 库并打包到 app 内，可以打开 app 包查看相关内容：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/3770174957.jpg" alt="Screen Shot 2020-12-05 at 23.49.48.jpg" title="Screen Shot 2020-12-05 at 23.49.48.jpg"></p><p>如果项目中使用了其他第三方库，此部署工具不会自动提取相关文件，需要手动将相关库文件添加到 <code>app/Contents/Frameworks</code> 文件夹内。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1966.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1966.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[QT 添加第三方库]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1958.html" />
-<id>https://blog.niekun.net/archives/1958.html</id>
-<updated>2020-12-02T11:52:00+08:00</updated>
-<published>2020-12-02T11:52:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[如果要在 QT 中使用第三方库，需要将相关库文件路径写入项目 pro 文件内，有两种方式：GUI 对话框添加或直接编辑 pro 文件。GUI 添加使用 GUI 添加的好处是比较直观，使用鼠标点击...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1958.html" xml:lang="zh-CN"><![CDATA[
-<p>如果要在 QT 中使用第三方库，需要将相关库文件路径写入项目 pro 文件内，有两种方式：GUI 对话框添加或直接编辑 pro 文件。</p><h3>GUI 添加</h3><p>使用 GUI 添加的好处是比较直观，使用鼠标点击即可。</p><p>右键项目名称，点击 add library：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/3998509933.jpg" alt="1.jpg" title="1.jpg"></p><!--more--><p>选中 external library 点击 next：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/1625536441.jpg" alt="2.jpg" title="2.jpg"></p><p>选择头文件所在目录路径：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/3830480933.jpg" alt="3.jpg" title="3.jpg"></p><p>如果有 lib 库文件的话需要链接进来，没有的话可以不设置：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/1700799379.jpg" alt="4.jpg" title="4.jpg"></p><p>其他保持默认然后点击 next 完成添加。</p><p>我们打开 pro 文件可以看到在文件最后添加了相关内容：</p><pre><code>win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../Library/boost_1_72_0/stage/lib/ -llibboost_filesystem-mgw81-mt-x32-1_72.dll
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../Library/boost_1_72_0/stage/lib/ -llibboost_filesystem-mgw81-mt-x32-1_72.dlld
-else:unix: LIBS += -L$$PWD/../../../Library/boost_1_72_0/stage/lib/ -llibboost_filesystem-mgw81-mt-x32-1_72.dll
-
-INCLUDEPATH += $$PWD/../../../Library/boost_1_72_0
-DEPENDPATH += $$PWD/../../../Library/boost_1_72_0</code></pre><h3>pro 文件添加</h3><p>根据添加一个第三方库所增加的语句，我们可以手动直接编辑 pro 文件完成添加：</p><ul><li><code>LIBS</code> 指定 lib 库文件路径，没有的话不需要定义</li><li><code>INCLUDEPATH</code> 指头文件所在目录</li><li><code>DEPENDPATH</code> 定义和头文件相同目录即可</li></ul><p>例如我们添加一个 boost filesystem 库到项目：</p><pre><code>LIBS += -L&quot;/path/to/boost_1_72_0/stage/lib/&quot; \
-        -llibboost_filesystem-mgw81-mt-x32-1_72 \
-        -llibboost_regex-mgw81-mt-x32-1_72
-
-INCLUDEPATH += &quot;/path/to/boost_1_72_0&quot;
-DEPENDPATH += &quot;/path/to/boost_1_72_0&quot;</code></pre><p><code>LIBS</code> 中，使用 <code>-L</code> 添加 lib 库目录，使用 <code>-l</code> 添加具体某个库文件，可以不写文件后缀。</p><p>以上就是 QT 中添加第三方库的方法。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1958.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1958.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[Macros 聚集 in c++]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1956.html" />
-<id>https://blog.niekun.net/archives/1956.html</id>
-<updated>2020-12-01T11:37:00+08:00</updated>
-<published>2020-12-01T11:37:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[在 c++ 中，一个 Macro 就是一段代码的聚合。使用这个 macro 名称就代表着对应的代码段。有两种常见的 macro：object 形式，function 形式。可以定义任意有效的字符...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1956.html" xml:lang="zh-CN"><![CDATA[
-<p>在 c++ 中，一个 Macro 就是一段代码的聚合。使用这个 macro 名称就代表着对应的代码段。</p><p>有两种常见的 macro：object 形式，function 形式。可以定义任意有效的字符作为 macro 名称，甚至是 c 关键词。</p><!--more--><h3>object 形式</h3><p>object 形式的 macro 就是简单的使用一个 identifier 代替代码片段。使用 <code>#define</code> 定义一个 macro：</p><pre><code>#define TESTINT 1024
-
-void main() {
-    int a = TESTINT;
-    cout &lt;&lt; a &lt;&lt; endl;
-}
-
-//output:
-//1024</code></pre><p>也可以定义一个片段：</p><pre><code>#define NUMBERS 1, 2, 3
-
-void main() {
-    int x[] = { NUMBERS };
-    //int x[] = { 1, 2, 3 };这两句效果相同
-}</code></pre><p>也可以多层定义：</p><pre><code>#define NUMBER1 1
-#define NUMBER2 NUMBER1</code></pre><p>以上示例中 NUMBER2 等于 NUMBER1。</p><h3>function 形式</h3><p>可以定义 function 形式的 macro，需要在定义中 macro 名称后加上圆括号<code>()</code>。例如：</p><pre><code>#define lang_init()  c_init()</code></pre><p>定义后就可以使用 <code>lang_init()</code> 来调用 <code>c_init()</code> 了，类似于 alias。</p><p>object 类型的 macro 可以和 function 类型的 macro 同名，区别就是有没有圆括号：</p><pre><code>#define test 100
-#define test() func()
-
-void main() {
-    int a = test;
-    test();
-}</code></pre><p>以上就是对 macro 的简单介绍。</p><p>参考链接：<br><a href="https://gcc.gnu.org/onlinedocs/cpp/Macros.html">https://gcc.gnu.org/onlinedocs/cpp/Macros.html</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1956.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1956.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[c++ 中 string 字符串的含义]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1953.html" />
-<id>https://blog.niekun.net/archives/1953.html</id>
-<updated>2020-11-25T11:52:00+08:00</updated>
-<published>2020-11-25T11:52:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[有如下代码：int main(){    char *s;    s = &amp;quot;hello&amp;quot;;    cout &amp;lt;&amp;lt; *s &amp;lt;&amp;lt; endl;    cou...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1953.html" xml:lang="zh-CN"><![CDATA[
-<p>有如下代码：</p><pre><code>int main()
-{
-    char *s;
-    s = &quot;hello&quot;;
-
-    cout &lt;&lt; *s &lt;&lt; endl;
-    cout &lt;&lt; s &lt;&lt; endl;
-
-    return 0;
-}
-
-//OUTPUT:
-//h
-//hello</code></pre><p>首先定义了一个指针，然后给指针赋值为一个字符串。看起来以上写法有错误，s 指针是一个地址，为什么给它赋值一个字符串？</p><p>因为在 c++ 中字符串类似于我们提到的数组，使用数组名就表示第一个数组元素的地址。例如：</p><pre><code>int main()
-{
-    int arr[] = {1, 3};
-    int *p = arr;
-
-    cout &lt;&lt; *p &lt;&lt; endl;
-    cout &lt;&lt; *(p+1) &lt;&lt; endl;
-
-    return 0;
-}
-
-//OUTPUT:
-//1
-//3</code></pre><p>同样在字符串中，<code>s = &quot;hello&quot;</code> 表示将首字母 <code>h</code> 的地址赋给指针。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1953.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1953.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[c++ 中数组类型数据作为 function 参数时的注意事项]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1946.html" />
-<id>https://blog.niekun.net/archives/1946.html</id>
-<updated>2020-11-25T11:16:00+08:00</updated>
-<published>2020-11-25T11:16:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[关于 function 的基础教程参考：C++ 入门教程之四 -- Functions当 function 的传入参数为数组时，如果我们想要得到数组元素个数可能会这样写：void testFun...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1946.html" xml:lang="zh-CN"><![CDATA[
-<p>关于 function 的基础教程参考：<a href="https://blog.niekun.net/archives/1915.html">C++ 入门教程之四 -- Functions</a></p><p>当 function 的传入参数为数组时，如果我们想要得到数组元素个数可能会这样写：</p><pre><code>void testFunc(int arr[]) {
-    int count = sizeof(arr)/sizeof(arr[0]);
-}
-
-int main()
-{
-    int arr[] = {1, 3, 6, 8};
-    cout &lt;&lt; testFunc(arr) &lt;&lt; endl;
-
-    return 0;
-}</code></pre><p>sizeof function 可以返回数据占用内存空间的大小。所以用整个 arr 大小除以第一个元素大小可以得到数组元素个数。</p><p>但是测试会发现以上得到的 count 值并不是 arr 数组元素个数 4 而是 2。这是因为当 function 传入数组数据时，会自动将其转换为 pointer 指针类型。这时候使用 <code>sizeof()</code> 得到的不是 arr 数据所在地址的内存大小，而是这个指向 arr 数组的指针所占用内存大小。</p><!--more--><p>我们做个实验：</p><pre><code>int main()
-{
-    int *arrP = new int[4];
-    cout &lt;&lt; sizeof(arrP) &lt;&lt; endl;
-    cout &lt;&lt; sizeof(arrP[0]) &lt;&lt; endl;
-    return 0;
-}
-
-//output:
-//8
-//4</code></pre><p>以上建立了一个指针指向 4 个元素的数组，然后分别查看其整个指针和某个元素指针的内存大小，得到的结果是 8 和 4。所以他们两个相除结果为 2。</p><p>因为指针指向的是数组第一个元素，如果我们要通过指针给数组元素赋值，可以使用 <code>*(pointer + n)</code> 的方式完成，例如：</p><pre><code>int *arrP = new int[4];
-*arrP = 1;
-*(arrP+1) = 2;</code></pre><p><code>*(arrP+1)</code> 就是第 2 个数组元素。</p><p>可以用指针查询数组中某个元素的内存大小，数组名 arr 表示数组所在地址(不需要加地址转换符<code>&amp;</code>)：</p><pre><code>int main()
-{
-    int arr[] = {1, 3, 6, 8};
-    int *arrP = arr;
-
-    cout &lt;&lt; sizeof(*arrP) &lt;&lt; endl;
-    cout &lt;&lt; sizeof(*(arrP+1)) &lt;&lt; endl;
-
-    return 0;
-}
-
-//output:
-//4
-//4</code></pre><p>由于 arr 数组名表示此数组第一个元素所在地址的指针，所以我们可以直接使用此名称来用指针的方式地区元素数据：</p><pre><code>int main()
-{
-    int arr[] = {1, 3, 6, 8};
-    cout &lt;&lt; *arr &lt;&lt; endl;
-    cout &lt;&lt; *(arr+1) &lt;&lt; endl;
-
-    return 0;
-}
-
-//output:
-//1
-//3</code></pre><p>那么如何在 function 使用数组作为传入数据时如何能够直接使用它的数据而不是指针类型呢？可以使用以下方法：</p><pre><code>template &lt;size_t N&gt;
-int testFunc(int (&amp;arr)[N]) {
-    int count = sizeof(arr) / sizeof(arr[0]);
-    return count;
-}
-
-int main()
-{
-    int arr[] = {1, 3, 6, 8};
-    int count = testFunc(arr);
-
-    cout &lt;&lt; count &lt;&lt; endl;
-    return 0;
-}
-
-//OUTPUT:
-//4</code></pre><p>创建一个 function template，<code>size_t</code> 类型表示任意数据类型的元素占用内存大小，此处将其作为 generic data type 用来定义实际传入的数组所占用内存容量的 template，然后以传入数据的实际地址的模式将数组的元素都顺序都传入 function。这样传入数据就是实际数据地址而不是指针。</p><p>关于 function 的传入数据实际地址是使用指针形式 <code>*</code> 还是 <code>&amp;</code> 形式，在前面我介绍过，形式如下：</p><pre><code>void test1(int *a) {
-    *a = 3;
-}
-
-void test2(int &amp;a) {
-    a = 2;
-}
-
-int main()
-{
-    int a = 1;
-    int *p = &amp;a;
-
-    test1(p);
-    cout &lt;&lt; a &lt;&lt; endl;
-
-    test2(a);
-    cout &lt;&lt; a &lt;&lt; endl;
-
-    return 0;
-}
-
-//OUTPUT:
-//3
-//2</code></pre><p>function 中使用在指针类型的传入数据时需要传入一个指针，当定义为 <code>&amp;</code> 时可以直接传入数据名称。两种方法都是 by reference 会影响到对应内存地址的数据内容。可参考教程：<a href="https://blog.niekun.net/archives/1915.html">C++ 入门教程之四 -- Functions</a></p><p><strong>参考链接：</strong><br><a href="https://stackoverflow.com/questions/4839626/element-count-of-an-array-in-c">https://stackoverflow.com/questions/4839626/element-count-of-an-array-in-c</a><br><a href="https://www.tutorialspoint.com/cplusplus/cpp_pointer_to_an_array.htm">https://www.tutorialspoint.com/cplusplus/cpp_pointer_to_an_array.htm</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1946.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1946.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[C++ 入门教程之八 -- Templates - Exceptions - Files]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1940.html" />
-<id>https://blog.niekun.net/archives/1940.html</id>
-<updated>2020-11-23T21:41:00+08:00</updated>
-<published>2020-11-23T21:41:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[function template使用 function 和 class 使我们编程更加简单及易操作。但是它们仍然受限于 c++ 编程规范，在定义它们的参数时必须指定参数的类型。例如：int s...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1940.html" xml:lang="zh-CN"><![CDATA[
-<h3>function template</h3><p>使用 function 和 class 使我们编程更加简单及易操作。但是它们仍然受限于 c++ 编程规范，在定义它们的参数时必须指定参数的类型。例如：</p><pre><code>int sum(int a, int b) {
-  return a+b;
-}
-
-int main () {
-  int x=7, y=15;
-  cout &lt;&lt; sum(x, y) &lt;&lt; endl;
-}</code></pre><!--more--><p>以上示例中，需要我们定义sum function 需要传入两个 int 型数据，返回其相加结果。在 main 中调用 sum function。</p><p><code>sum()</code> 可以正确的执行指令，但它的限制是必须传入 int 类型的数据。</p><p>如果需要实现两个 double 类型数据相加，需要再次定义新 funtion：</p><pre><code>double sum(double a, double b) {
-  return a+b;
-}</code></pre><p>使用 <strong>function template</strong> 能够让我们只定义一个 <code>sum()</code> 来适用于所有类型的数据。</p><p>使用关键词 <code>template</code> 来定义一个 function template，在尖括号<code>&lt;&gt;</code>内定义通用数据类型：</p><pre><code>template &lt;class T&gt; 
-</code></pre><p>关键词 <code>class</code> 表示一个申明要定义 generic 通用数据类型，注意不要和我之前学习的 <code>class</code> 混淆。</p><p>也可以使用关键词 <code>typename</code>：</p><pre><code>template &lt;typename T&gt; 
-</code></pre><p><code>T</code> 表示我们的 generic 通用数据类型名称，在后续中可以使用此名称代表数据类型，<strong>可以是任意自定义字符</strong>。</p><p>修改我们的示例：</p><pre><code>#include &lt;iostream&gt;
-using namespace std;
-
-template &lt;class T&gt;
-T sum(T a, T b)
-{
-    return a + b;
-}
-
-int main()
-{
-    int x=7, y=15;
-    cout &lt;&lt; sum(x, y) &lt;&lt; endl;
-
-    double a=7.15, b=15.54;
-    cout &lt;&lt; sum(a, b) &lt;&lt; endl;
-
-    return 0;
-}</code></pre><p>我们在 function 中建立了一个 generic data type 通用数据类型 T，返回值和传入参数类型都为 T。在 mian 中调用时，会根据实际传入数据类型来动态确定 T 的实际类型。</p><p>function template 可以节省编程中很多时间，因为只需要一次定义就可以兼容不同的数据类型。</p><p>我们也可以同时定义多个 generic data type，使用逗号<code>,</code> 分隔多个定义类型：</p><pre><code>template &lt;class T, class U&gt;
-T smaller(T a, U b) {
-  return (a &lt; b ? a : b);
-}
-
-int main () {
-  int x=72;
-  double y=15.34;
-  cout &lt;&lt; smaller(x, y) &lt;&lt; endl;
-}</code></pre><p>以上示例定义了两个通用数据类型，返回值类型为第一种数据类型。<code>(a &lt; b ? a : b)</code> 表达式的意思是：判断 a 是否小于 b，如果结果为 true 则返回 a 的值，如果结果为 flase 返回 b 的值，两个参数可以是不同数据类型，如：int 和 double。</p><p>在 mian 中调用 smaller function，返回结果为两个参数中较大的那个的值，由于返回值类型为第一个定义数据类型 T，而我们调用时传入的第一个参数类型为 int，所以返回结果也为 int 型。</p><p>需要注意的是在一旦定义了 function template，在 function 中就一定要使用定义的那些通用数据类型，否则编译器会报错。</p><h3>class template</h3><p>同样也可以定义 class template，允许 class 的元素类型为 generic data type。语法如下：</p><pre><code>template &lt;class T&gt;
-class MyClass {
-
-};</code></pre><p>类似于 function template，多个 generic data type 使用逗号<code>,</code> 分隔：</p><pre><code>template &lt;class T,class U&gt;
-</code></pre><p>下面举例说明使用方法：</p><pre><code>template &lt;class T&gt;
-class Pair {
-    public:
-    Pair (T a, T b):
-    first(a), second(b) {
-    }
-    
-    private:
-    T first, second;
-};</code></pre><p>以上建立了一个 class template，类型为 T，通过构造器对 private 里的两个 T 类型的参数初始化数据。</p><p>在 class template 外定义 function，如 class 大括号外或一个单独文件，需要在 class 后标记 class template 内定义过的 generic type。例如在以上示例的 class 外建立 bigger function：</p><pre><code>template &lt;class T&gt;
-class Pair {
-    public:
-    Pair (T a, T b):
-    first(a), second(b) {
-    }
-    T bigger();
-
-    private:
-    T first, second;
-};
-
-template &lt;class T&gt;
-T Pair&lt;T&gt;::bigger() {
-    return (first&gt;second ? first : second);
-}</code></pre><p>上面示例中使用了 scope resolution operator - 范围解析符<code>::</code> 来表示外部的 Pair() function 属于哪个 class，在头文件章节介绍过，具体参考：<a href="https://blog.niekun.net/archives/1920.html">C++ 入门教程之六 -- Classes 实践</a>。</p><p>bigger function 返回 class 两个属性变量中较大的值。</p><p>在 main 中实例化 Pair class 时需要使用尖括号定义当前实际要使用的数据类型，如 int 类型：</p><pre><code>void main() {
-    Pair&lt;int&gt; obj(11, 22);
-    cout &lt;&lt; obj.bigger() &lt;&lt; endl;
-}</code></pre><p>也可以定义 double 类型：</p><pre><code>void main() {
-    Pair&lt;double&gt; obj(11.23, 22.56);
-    cout &lt;&lt; obj.bigger() &lt;&lt; endl;
-}</code></pre><h3>template 特例</h3><p>在前面介绍的 class template 中，实例化 object 时定义不同的数据类型会执行同样的 function 指令内容。template specialization 特例允许当我们定义某些特定数据类型作为 template type 时执行和通用指令不同的内容。</p><p>下面举例说明，当定义数据类型为 char 时执行和其他数据类型不同的指令，先建立一个常规 class template：</p><pre><code>template &lt;class T&gt;
-class MyClass {
-public:
-    MyClass(T x) {
-        cout &lt;&lt; x &lt;&lt; &quot; - not a char&quot; &lt;&lt; endl;
-    }
-};</code></pre><p>以上 class 用来作为常规数据类型情况下的处理。</p><p>为了处理当数据类型为 char 时的情况，我们建立一个 class specialization 特例：</p><pre><code>template &lt;&gt;
-class MyClass&lt;char&gt; {
-public:
-    MyClass(char x) {
-        cout &lt;&lt; x &lt;&lt; &quot; - is a char&quot; &lt;&lt; endl;
-    }
-};</code></pre><p>以上代码中，首先在 class 前声明了一个没有参数的 <code>template &lt;&gt;</code>，这是为了区别于通用数据类型情况，表明此 class specialization 里的数据类型是已知的和特定的。而由于这个 class 依然是属于 class template 类型的，只是一个特例情况的处理，所以这句声明不能省略。</p><p>在 class template 名称后面的 <code>&lt;char&gt;</code> 定义了此 clas 属于对哪种 specialization 特例数据类型的处理。当我们实例化时，如果定义的数据类型是属于 template specialization 里定义的类型时，会将此 class 作为实例化对象。</p><p>需要注意得是对常规数据类型的 class template 和特定类型数据的 class template 两者的 body 内容是完全独立互不影响的，specialization template 并不从 generic template 里继承任何元素，如果需要的话可以编写完全不同的功能。</p><p>在 main 中使用不同数据类型进行实例化测试：</p><pre><code>int main() {
-    MyClass&lt;int&gt; obj1(22);
-    MyClass&lt;double&gt; obj2(11.34);
-    MyClass&lt;char&gt; obj3('a');
-    
-    return 0;
-}
-
-//output:
-//22 - not a char
-//11.34 - not a char
-//a - is a char</code></pre><p>可以看到 generic template 适用于数据类型：int 和 double，而 specialization template 适用于数据类型：char。</p><h3>exception 例外</h3><p>程序在执行中遇到问题叫做：exception 例外。</p><p>在 c++ 中，exception 是对程序遇到反常情况的反应。如：0做除数时。</p><p>c++ 的 exception handling 例外管理器是通过三个关键词：<code>try</code>，<code>catch</code> 和 <code>throw</code> 来建立的。<code>throw</code> 是用来当问题出现时调出某一个 exception 响应动作的。例如：</p><pre><code>int motherAge = 40;
-int sonAge = 50;
-if (sonAge &gt; motherAge) {
-    throw 99;
-}</code></pre><p>以上示例中，当 sonAge 大于 motherAge 时，程序首先会自动识别 throw 语句中元素的数据类型，然后根据这个数据类型去寻找处理这类数据类型的 exception 块。最后使用 throw 内的数据作为传入参数在 exception 中使用。</p><p>throw 中的数据类型可以是任意的，如 123 为 int 型，a 为 char 型，11.24 为 double 型，一下示例写法都是正确的：</p><pre><code>int motherAge = 40;
-int sonAge = 50;
-if (sonAge &gt; motherAge) {
-    throw ‘a’;
-}
-
-if (sonAge = motherAge) {
-    throw 12.45;
-}</code></pre><h3>catching exception</h3><p>那么具体如何响应 exception 呢？需要使用 <code>try/catch</code> block 模块来构造完整的 throw 和 response 过程。一个 try block 块用来激活特殊情况的 exception 功能，在 try 后面需要跟一个或多个 catch block 块来执行某种特定 throw 类型的 exception 动作。在 catch 后需要定义特定的数据类型对应于 throw 的某种数据类型。</p><p>下面举例说明：</p><pre><code>try {
-    int motherAge = 40;
-    int sonAge = 50;
-    if (sonAge &gt; motherAge) {
-        throw 99;
-    }
-} catch (int x) {
-    cout &lt;&lt; &quot;wrong age value - Error&quot; &lt;&lt; x &lt;&lt; endl;
-} catch (char x) {
-    cout &lt;&lt; &quot;example for other catch&quot; &lt;&lt; x &lt;&lt; endl;
-}
-
-//output: wrong age value - Error99</code></pre><p>以上例子中，try 块 throw 了一个 exception，throw 的数据 99 是 int 类型，所以匹配到 catch 中定义类型也为 int 型的 exception 块。然后将 99 作为传入数据在 exception 中使用。当只有一种 exception 情况是，只需要定义一个 throw 和一个 catch 块即可。</p><p>下面的示例是提示用户输入两个数字，然后将它们相除，exception 的情况是当第二个数为 0：</p><pre><code>try {
-    int num1;
-    cout &lt;&lt; &quot;enter the first number:&quot;;
-    cin &gt;&gt; num1;
-    
-    int num2;
-    cout &lt;&lt; &quot;enter the second number:&quot;;
-    cin &gt;&gt; num2;
-    
-    if (num2 == 0) {
-        throw 0;
-    }
-    cout &lt;&lt; &quot;result: &quot; &lt;&lt; num1 / num2 &lt;&lt; endl;
-} catch (int x) {
-    cout &lt;&lt; &quot;division by zero!&quot; &lt;&lt; endl;
-}</code></pre><p><code>cin</code> 是 istream class 类型的 object 用来输入数据流，数据输入后会存在后面的变量中。当输入的第二个数字非零时不会触发 exception 响应，当为零时 throw 类型为 int，然后匹配到 exception 中类型也为 int 的块，然后执行其中指令。</p><p>如果以上程序中不考虑输入数据是否为 0，则当除数为 0 时程序会崩溃。</p><p>catch 块也可以管理在 try 块中任何类型的 throw exception，不同于catch 后定义某一种数据类型，使用省略号<code>(...)</code> 来表示响应任何类型的 throw，例如：</p><pre><code>try {
-//...
-} catch (...) {
-    cout &lt;&lt; &quot;division by zero!&quot; &lt;&lt; endl;
-}</code></pre><p>这样当 try 块 throw 一个 exception 时，无论 throw 类型为什么都会匹配到此通用 catch 块。</p><h3>Files 文件处理</h3><p>c++ 另一个常用的功能就是对文件的读写操作，需要用到 c++ 标准库：`<fstream>'</p><p>在 fstream 中定义了三种数据类型：</p><ul><li>ofstream：输出文件流，用来创建或写入文件</li><li>ifstream：输入文件流，用来读取文件信息</li><li>fstream：通用文件流，包含 ofsteam 和 ifstream 的内容，支持创建，读入，写入文件。</li></ul><p>在 c++ 中对文件操作需要 include <code>iostream</code> 和 <code>fstream</code>:</p><pre><code>#include &lt;iostream&gt;
-#include &lt;fstream&gt;</code></pre><p>对文件操作的一些 class 直接或间接继承自 istream 和 ostream，例如在上一节用到的 <code>cin</code> 就是 istream class 的一个 object，<code>cout</code> 是 ostream class 的一个 object。</p><h3>打开文件及写入</h3><p>在对文件进读写前，需要首先打开它。</p><p>ofstream 和 fstream 的 object 都可以用来打开文件然后进行写操作，我们打开一个 test.txt 文件然后写入内容最后关闭文件：</p><pre><code>#include &lt;iostream&gt;
-#include &lt;fstream&gt;
-using namespace std;
-
-int main() {
-    ofstream MyFile;
-    MyFile.open(&quot;test.txt&quot;);
-    MyFile &lt;&lt; &quot;some text.\n&quot;;
-    MyFile.close();
-
-    return 0;
-}</code></pre><p>以上代码创建一个 ofstream 类型的 object，使用 open function 打开一个文件，然后给这个文件写入内容，最后关闭文件。如果此文件不存在则 open function 会自动创建。可以看到使用了和之前操作 iostream 同样的 stream 流操作符 <code>&lt;&lt;</code>。</p><p>open function 打开的文件可以是一个路径，如果只有文件名则默认在程序根目录。</p><p>也可以使用 ofstream 的构造器直接给 object 初始化定义文件路径：</p><pre><code>int main(int argc, const char * argv[]) {
-
-    ofstream MyFile(&quot;test.txt&quot;);
-    MyFile &lt;&lt; &quot;some text.\n&quot;;
-    MyFile.close();
-    
-    return 0;
-}</code></pre><p><strong>使用 open function 的区别是可以定义一个文件的绝对路径，可以和程序不在一个目录。</strong></p><p>在特定情况下，使用 open function 打开文件会无效，如：没有权限打开文件。这时候可以使用 is_open function 来确认文件是否已经被正确打开且可以被访问：</p><pre><code>int main(int argc, const char * argv[]) {
-
-    ofstream MyFile(&quot;test.txt&quot;);
-    if (MyFile.is_open()) {
-        MyFile &lt;&lt; &quot;some text.\n&quot;;
-    } else {
-        cout &lt;&lt; &quot;somethin went wrong&quot; &lt;&lt; endl;
-    }
-    MyFile.close();
-    
-    return 0;
-}</code></pre><p>is_open function 检查文件是否被正常打开，返回值为：true 或 false。</p><p>open function 的第二参数可以用来定义文件打开模式，一下是支持的模式列表：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/3255690305.jpeg" alt="1.jpeg" title="1.jpeg"></p><p>以上的 flag 标记可以结合起来使用，用或操作符<code>|</code> 来分隔。例如使用 write 模式同时 truncate 文件，使用一下语句：</p><pre><code>ofstream outfile;
-outfile.open(&quot;file.dat&quot;, ios::out | ios::trunc );</code></pre><h3>读取文件</h3><p>类似于写文件，读取文件需要一个 ifstream 或 fstream 的 object。示例如下：</p><pre><code>string line;
-ifstream ReadFile(&quot;test.txt&quot;);
-if (ReadFile.is_open()) {
-    while (getline(ReadFile, line)) {
-        cout &lt;&lt; line &lt;&lt; endl;
-    }
-} else {
-    cout &lt;&lt; &quot;fail to open file&quot; &lt;&lt; endl;
-}</code></pre><p>首先创建一个 ifstream class 的实例 ReadFile并初始化文件地址。如果文件打开正常则使用 getline function 来一行行的读取文件内容到字符串 line，然后打印到输出。</p><p>getline function 属于 istream class，会逐行读取来自 istream 输入流的内容到一个字符串变量，每次执行都会自动换行定位到下一行输入流 istream 的内容直到结尾会跳出 while 循环。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1940.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1940.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[C++ 入门教程之七 -- 继承和多态]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1927.html" />
-<id>https://blog.niekun.net/archives/1927.html</id>
-<updated>2020-11-21T22:31:00+08:00</updated>
-<published>2020-11-21T22:31:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[inheritance 继承inheritance 继承是面向对象编程最重要的概念之一。继承允许我们基于已有的 class 创建新的 class。这能够极大的方便我们创建应用程序。一个 clas...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1927.html" xml:lang="zh-CN"><![CDATA[
-<h3>inheritance 继承</h3><p><strong>inheritance 继承</strong>是面向对象编程最重要的概念之一。继承允许我们基于已有的 class 创建新的 class。这能够极大的方便我们创建应用程序。</p><p>一个 class 的属性被其他 class 继承，我们称这个 class 叫做 base class。一个从 base class 继承属性的 class 我们称其为 derived class。一个 derived class 获得所有 base class 的功能，且可以有自己独有的功能：<br><img src="https://blog.niekun.net/usr/uploads/2020/11/1471544588.png" alt="1.png" title="1.png"></p><!--more--><p><strong>继承</strong>的概念是 <code>is a 属于是什么</code> 的关系，例如：猫 is a 动物，狗 is a 动物。两者都继承了动物的属性。</p><p>我们来建立两个 class：Mother 和 Daughter：</p><pre><code>class Mother
-{
- public:
- Mother() {};
- void sayHi() {
-   cout &lt;&lt; &quot;Hi&quot;;
- } 
-};
-
-class Daughter 
-{
- public: 
- Daughter() {};
-};</code></pre><p>Mother 有一个 <code>sayHi()</code> function。下面我们让 Daughter 继承 Mother 的属性，Daughter class 名称修改如下：</p><pre><code>class Daughter : public Mother
-{
- public: 
- Daughter() {};
-};</code></pre><p>使用一个冒号<code>:</code> 标记 base class。access specifier 访问标记符 <code>public</code> 表示所有 base class 里 public 段下的内容继承给 derived class 里的 public 段下。</p><p>以上示例中 Daughter 继承了所有 Mother 的 public 下的元素，所以我们可以实例化一个 Daughter 的 object 然后调用 <code>sayHi()</code> function 了：</p><pre><code>#include &lt;iostream&gt;
-
-using  namespace std;
-
-class Mother
-{
- public:
- Mother() {};
- void sayHi() {
-   cout &lt;&lt; &quot;Hi&quot; &lt;&lt; endl;
- }
-};
-
-class Daughter: public Mother
-{
- public:
- Daughter() {};
-};
-
-int main(int argc, const char * argv[]) {
-    Daughter d;
-    d.sayHi();
-    return 0;
-}</code></pre><p><strong>关于 access 访问标记符的使用，在下面会详细介绍使用方法。</strong></p><p>一个 derived class 可以继承所有 base class 的 function 出过一下几种特殊情况类型：</p><ul><li>constructor and destructor 构造器和销毁器</li><li>复用操作符 function</li><li>friend function</li></ul><p>一个 class 可以同时继承多个 base class，使用逗号<code>,</code> 分隔 base class，如：<code>class Daughter: public Mother, public Father</code>。</p><h3>protected 元素</h3><p>对于 class 中的元素的 access 访问表示符，我们前面使用了 public 和 private。public 里的元素可以被外界访问或修改，private 里的元素只能被 class 内部使用，或者通过 friend function 来读取。</p><p>除了以上两种识别符外，还有一种类型：<code>protected</code>。</p><p>在 protected 内的元素和 private 段内的很类似。唯一的区别是，protected 内的元素可以被 derived class 访问。</p><p>例如我们给 Mother 添加一个 protected 元素：</p><pre><code>class Mother {
- public:
- void sayHi() {
-   cout &lt;&lt; var;
- }
-
- private:
- int var=0;
-
- protected:
- int someVar;
-};</code></pre><p>someVar 变量可以被 Daughter 访问。</p><h3>继承的类型</h3><p>access 访问标记符能够用来定义继承类型。</p><p>在上面的示例中我们使用 public 作为访问标记符：<code>class Daughter: public Mother</code>。private 和 protected 同样可以被使用。</p><p><strong>三者的区别：</strong></p><ul><li>Public Inheritance: base class 里 public 段内的元素继承到 derived class 里的 public 段内，base class 里 protected 段内的元素继承到 derived class 里 protected 段内，base class 里 private 段内的元素永远不能能够被 derived class 直接访问，但可以通过 public 或 protected 内的 function 来间接获取数据。</li><li>Protected Inheritance: base class 里 public 和 protected 段内的元素继承到 derived class 里的 protected 段内。</li><li>Private Inheritance: base class 里 public 和 protected 段内的元素继承到 derived class 里的 private 段内。</li></ul><p>public 继承类型在<strong>继承</strong>中是最常用的。如果在程序中没有指定某个继承类型，则默认为 <strong>private</strong>。</p><h3>构造器和销毁器</h3><p>上面提到了 derived class 不会继承 base class 的构造器和销毁器。但是 derived class 的实例 object 在被建立和销毁时，base class 的构造器和销毁器会被自动调用。</p><p>我们建立 Mother class：</p><pre><code>class Mother
-{
- public:
- Mother() {
-   cout &lt;&lt; &quot;mother's constructor&quot; &lt;&lt; endl;
- }
- ~Mother() {
-   cout &lt;&lt; &quot;mother's destructor&quot; &lt;&lt; endl;
- }
-};
-
-int main(int argc, const char * argv[]) {
-    Mother m;
-    return 0;
-}</code></pre><p>实例化 Mother 后，输出如下：</p><pre><code>mother's constructor
-mother's destructor</code></pre><p>然后我们建立 Daughter class：</p><pre><code>class Daughter: public Mother
-{
- public:
- Daughter() {
-    cout &lt;&lt; &quot;daughter's constructor&quot; &lt;&lt; endl;
- }
- ~Daughter() {
-   cout &lt;&lt; &quot;daugther's destructor&quot; &lt;&lt; endl;
- }
-};
-
-int main(int argc, const char * argv[]) {
-    Daughter d;
-    return 0;
-}</code></pre><p>实例化 Daughter 后，输出如下：</p><pre><code>mother's constructor
-daughter's constructor
-daugther's destructor
-mother's destructor</code></pre><p>可以看到当 Daughter 的 object 创建时，首先 base class 的构造器被调用，然后调用 derived class 的构造器。<br>当 object 销毁时，首先 derived class 的销毁器被调用，然后 base class 的销毁器被调用。</p><p>你可以理解为 derived class 依赖于 base class 才能工作，所以 base class 需要首先被执行。</p><h3>多态性</h3><p>polymorphism 多态化意思是：拥有多种样式。通常多态化出现在那些有着继承关系的 class 中。在 c++ 中多态性意思是在调用同一个 function 时随着 object 类型的不同而有着不同的执行效果。</p><p>下面举例说明：我们创建一个游戏，有两种人物：monster 怪物和 ninja 忍者。他们都有一个共同的 function：<code>attack</code>，但是两者攻击的模式是不同的。在这个场景下，多态性能够实现不同的 objects 调用同样的 attack function 而有不同的实现效果。</p><p>首先创建一个 Enemy class：</p><pre><code>class Enemy {
- protected: 
- int attackPower;
-
- public:
- void setAttackPower(int a){
-  attackPower = a;
- }
-};</code></pre><p>Enemy class 有一个public function：setAttackPower 来设置 protected 里的参数：attackPower。</p><p>然后我们建立两个 derived class 以 Enemy 为 base class，各自有独立的 attack function：</p><pre><code>class Ninja: public Enemy {
- public:
- void attack() {
-   cout &lt;&lt; &quot;Ninja! - &quot;&lt;&lt;attackPower&lt;&lt;endl;
- }
-};
-
-class Monster: public Enemy {
- public:
- void attack() {
-   cout &lt;&lt; &quot;Monster! - &quot;&lt;&lt;attackPower&lt;&lt;endl;
- }
-};</code></pre><p>在 main 中实例化：</p><pre><code>int main() {   
- Ninja n;
- Monster m;  
-}</code></pre><p>由于 Monster 和 Ninja 都继承自 Enemy，所以他们的实例 object 也都是 Enemy 类型的 object。我们可以如下定义：</p><pre><code>Enemy *e1 = &amp;n;
-Enemy *e2 = &amp;m;</code></pre><p>我们定义两个 Enemy 类型的指针指向两个 object。</p><p>在 main 中调用对应的 function：</p><pre><code>int main(int argc, const char * argv[]) {
-    Ninja n;
-    Monster m;
-    Enemy *e1 = &amp;n;
-    Enemy *e2 = &amp;m;
-    
-    e1-&gt;setAttackPower(20);
-    e2-&gt;setAttackPower(80);
-    
-    n.attack();
-    m.attack();
-    return 0;
-}</code></pre><p>两个指针都是 Enemy 类型的，所以可以用来使用 Enemy 中的 function 设置参数，然后分别调用 derived class 的 object 的 attack function。注意这里没法用这两个指针直接调用 <code>attack()</code>，因为 Enemy 中并没有定义这个 function。</p><h3>虚拟 function</h3><p>上面的示例中，我们使用 Enemy 类型的指针指向了 derived class 的 object。但是我们无法使用这个指针调用 attack function，因为在 base class 中不包含这个 function。为了实现这个功能，需要在 base class 中定义一个 attack 的 <code>virtual function</code>。</p><p>virtual function 的意义就是在 base class 里定义一个 function，在 derived class 内 override 重写这个 function，这样就可以实现多态化，使用 base class 类型的指针调用同一个 function 根据 derived class 的不同而实现不同的功能。</p><p>使用关键词 <code>virtual</code> 定义 virtual function：</p><pre><code>class Enemy {
-    protected:
-    int attackPower;
-    
-    public:
-    virtual void attack() {}
-    void setAttackPower(int a){
-        attackPower = a;
-    }
-};</code></pre><p>在 Enemy class 中我们定义一个 attack 的 virtual function，然后在两个 derived class 中重写这个 function 使其有着不同的内容。</p><p>现在我们就可以使用 Enemy 类型的指针调用 attack function了：</p><pre><code>int main(int argc, const char * argv[]) {
-    Ninja n;
-    Monster m;
-    Enemy *e1 = &amp;n;
-    Enemy *e2 = &amp;m;
-    
-    e1-&gt;setAttackPower(20);
-    e2-&gt;setAttackPower(80);
-    
-    e1-&gt;attack();
-    e2-&gt;attack();
-    return 0;
-}</code></pre><p>virtual function 类似于一个模版，告诉 derived class 可以定义属于自己的这个 function 功能。指针在调用时会根据 object 属于哪个 derived class 而去具体完成指令。</p><p>一个包含有 virtual function 的 class 称之为<strong>多态化的 class</strong>。</p><p>当然在 base class 内的 virtual function 也可以给其具体的指令，我们给 Enemy class 里的 virtual attack function 定义内容：</p><pre><code>class Enemy {
-    protected:
-    int attackPower;
-    
-    public:
-    virtual void attack() {
-        cout &lt;&lt; &quot;Enemy! - &quot; &lt;&lt;attackPower &lt;&lt; endl;
-    }
-    void setAttackPower(int a){
-        attackPower = a;
-    }
-};</code></pre><p>然后创建一个 Enemy 的 object 及其指针，尝试调用其 attack function：</p><pre><code>int main(int argc, const char * argv[]) {
-    Ninja n;
-    Monster m;
-    Enemy e;
-    
-    Enemy *e1 = &amp;n;
-    Enemy *e2 = &amp;m;
-    Enemy *e3 = &amp;e;
-    
-    e1-&gt;setAttackPower(20);
-    e2-&gt;setAttackPower(80);
-    e3-&gt;setAttackPower(30);
-    
-    e1-&gt;attack();
-    e2-&gt;attack();
-    e3-&gt;attack();
-    return 0;
-}</code></pre><p>输出如下：</p><pre><code>Ninja! - 20
-Monster! - 80
-Enemy! - 30</code></pre><p>这就是多态化 class 的优势，不同的 derive class 使用同一名称的 function 在不同的场景下执行不同的指令。</p><h3>abstract class</h3><p>当我们在 base class 中定义 virtual function 时，在 base class 中并没有此 function 具体要实现的内容，只有在 derived class 中才需要做定义。这种情况下，可以将 base class 中的 virtual class 定义为 pure virtual functions 纯粹的虚拟 function 而不需要定义它的任何内容。使用 <code>=0</code> 来进行表示：</p><pre><code>class Enemy {
- public:
-  virtual void attack() = 0;
-}; </code></pre><p>如果 base class 中定义了 pure virtual functions，那么在 derived class 中必须重写此 function，否则在实例化 derived class 时编译器会报错。</p><p>这种包含有 pure virtual functions 的 class 叫做 abstract class 抽象化的 class，这种 class 不能直接实例化 object，会产生报错。必须实例化其 derived class 且重写了 virtual function。</p><p>现在实例化 Enemy 的 object 会报错：</p><pre><code>Enemy e; // Error
-</code></pre><p>这种 pure virtual functions 的好处是，我们可以直接定义 base class 类型的指针指向不同的 derived class object，然后使用同样的 function 名称来执行不同的指令。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1927.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1927.html" thr:count="0"/>
 </entry>
 </feed>
