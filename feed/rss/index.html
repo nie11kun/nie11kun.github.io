@@ -9,7 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
-<rdf:li resource="https://blog.niekun.net/archives/2155.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2157.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2156.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2151.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2147.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2146.html"/>
@@ -18,14 +19,75 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2137.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2100.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2103.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2098.html"/>
 </rdf:Seq>
 </items>
 </channel>
-<item rdf:about="https://blog.niekun.net/archives/2155.html">
+<item rdf:about="https://blog.niekun.net/archives/2157.html">
+<title>node.js 入门教程十一 -- buffers 缓存</title>
+<link>https://blog.niekun.net/archives/2157.html</link>
+<dc:date>2021-02-16T17:26:25+08:00</dc:date>
+<description>一个 buffer 缓存就是一个内存空间。JavaScript 开发者相较于 c++/go 等语言的开发者对内存的理解比较少。它表示在 JavaScript V8 engine 之外的分配的一块 fixed-size 固定大小的内存。可以想象 buffer 就是一个 integer 整型数组，每个元素代表一个 byte 的数据。node.js 中 buffer 通过 Buffer class 实现。为何需要 buffer引入 Buffer 是为了帮助开发者处理 binary 二进制数据。传统的 ecosystem 只可以处理 strings 字符串数据。Buffer 和 streams 是紧密关联的，当 stream processor 流处理器接收数据的速度大于其处理速度时，就会先将数据放在 buffer 中。可以想象下，在我们看在线视频时，在网络较好的情况下进度条中可以看到视频下载的进度是超过当前播放进度的，此时浏览器就会先 buffer 缓存数据后续按时间顺序播放出来。创建 buffer可以通过 Buffer.from(), Buffer.alloc() 和 Buffer.allocUnsafe() methods 来创建一个 buffer，下面依次介绍。使用 Buffer.from() 可以从 array 数组创建 buffer：const buf1 = Buffer.from('hey!')
+使用 Buffer.from(string[, encoding]) 可以设置 string 的编码类型，Default: utf8：const buf2 = Buffer.from('7468697320697320612074c3a97374', 'hex')
+也可以根据另一个 buffer：const buf3 = Buffer.from(buf1)
+通过 Buffer.alloc() 或 Buffer.allocUnsafe() 来初始化一个指定大小的 buffer，单位为 byte 字节：const buf4 = Buffer.alloc(1024)
+const buf5 = Buffer.allocUnsafe(1024)
+以上会创建一个 1kb 大小的 buffer。通过 alloc 创建的 buffer 会初始化其数据为 0，而 allocUnsafe 创建的 buffer 内的数据会是 uninitiated 未初始化的，这就表示使用 allocUnsafe 比 alloc 创建速度更快。但是通过 allocUnsafe 创建的 buffer 内存空间会包含有以前的数据可能引起潜在问题。使用 buffer我们可以像访问数组一样访问 buffer 数据：const buf1 = Buffer.from('hey!')
+
+console.log(buf1[0])
+console.log(buf1[1])
+console.log(buf1[2])
+
+//output:
+//104
+//101
+//121这些输出的数字就是代表 buffer 中每个字符的 Unicode Code，h =&gt; 104, e =&gt; 101, y =&gt; 121。使用 toString() method 可以将 buffer 输出为字符：console.log(buf1)
+console.log(buf1.toString())
+
+//output:
+//&lt;Buffer 68 65 79 21&gt;
+//hey!buf1.length 可以读取 buffer 长度：console.log(buf1.length)
+
+//output:
+//4也可以使用循环 iterate buffer 的数据：for (const iterator of buf1) {
+    console.log(iterator)
+}
+
+//output:
+104
+101
+121
+33通过 write() method 可以给 buffer 写入数据：const buf6 = Buffer.alloc(5)
+buf6.write('hello')也可以像数组一样修改某个元素的数据：const buf6 = Buffer.alloc(5)
+buf6.write('hello')
+buf6[0] = 111
+console.log(buf6.toString())
+
+//output:
+//oello可以看到需要修改字符对应的 Unicode Code。使用 copy() method 可以复制 buffer 数据到其他 buffer：const buf1 = Buffer.from('hey!')
+const buf7 = Buffer.alloc(4)
+buf1.copy(buf7)
+console.log(buf7.toString())
+
+//output:
+//hey!注意是源 buffer 掉用 copy method 来复制数据到目标 buffer。默认情况下会复制 buffer 的整个数据， copy method 可以设置其他三个参数来自定义目标 buffer 起始接收数据位置，源 buffer 起始复制数据位置，以及复制的新 buffer 的长度：const buf8 = Buffer.alloc(2)
+buf1.copy(buf8, 0, 0, 2)
+console.log(buf8.toString())
+
+//output:
+//he可以使用 slice method 来选取 buffer 的一个片段，它和 copy 的不同是 slice 获取的 buffer 片段仍然和源 buffer 相关联，修改源 buffer 会改变片段中的 buffer 数据。slice 的第一个参数定义起始位置，第二个参数是选项，可以定义终止位置：const buf1 = Buffer.from('hey!')
+const slice = buf1.slice(0, 2)
+console.log(slice.toString())
+buf1[0] = 111
+console.log(slice.toString())
+
+//output:
+//he
+//oe以上就是 Buffer 的简单使用方法。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2156.html">
 <title>node.js 入门教程十 -- http 模块</title>
-<link>https://blog.niekun.net/archives/2155.html</link>
-<dc:date>2021-02-15T14:01:46+08:00</dc:date>
+<link>https://blog.niekun.net/archives/2156.html</link>
+<dc:date>2021-02-15T14:01:00+08:00</dc:date>
 <description>http 模块是 node.js 处理 networking 网络的关键模块。在之前的章节我介绍了使用 http 模块建立 server 以及发起 GET/POST 请求的方法，可以参考：https://blog.niekun.net/archives/2137.htmlhttp 模块集成于 node.js 核心无需单独安装，使用下面命令引入模块：const http = require('http')
 模块提供了很多 properties，methods 和 classes。Properties 属性http.METHODShttp.METHODS property 返回 http 所有的可用 method 列表：&gt; console.log(require('http').METHODS)
 [
@@ -1067,15 +1129,5 @@ eventEmitter.emit('test2', 1, 200)
 <link>https://blog.niekun.net/archives/2103.html</link>
 <dc:date>2021-02-03T10:28:00+08:00</dc:date>
 <description>最近研究了下 Windows 的共享设置，目的是在同一局域网下共享文件夹给其他设备读写。下面从原理和实际操作上介绍下共享过程。SMBWindows 共享使用 Server Message Block (SMB) 协议，它可以让应用程序访问本机网络下的其他设备的文件及服务。SMB 是 IBM 在 1980 年代创造的协议，目前已经有了很多的升级及分支。SMB 协议允许应用程序访问远程主机的文件和资源如打印机等，也可以同远程主机上设置了接收 SMB 协议的应用程序通信。它运行在网络的 layer 7 层，也就是 application 应用层，使用 TCP/IP 的 445 端口传输数据。从 Windows 95 开始，微软将引入了 SMB 协议的支持。Linux 端，samba 作为一个开源软件提供 SMB 的支持。SMB 协议也是在不断发展的，下面是一个简单的版本更新过程：SMB 1.0 (1984): IBM 为 DOS 下的文件共享创造了 SMBCIFS (1996): 微软开发了 SMB 的分支版本并集成在 Windows 95，添加了大文件的支持，直接在 TCP/IP 传输SMB 2.0 (2006): 在 Windows Vista 和 Windows Server 2008 中发布. 提升了性能SMB 2.1 (2010): 在 Windows Server 2008 R2 和 Windows 7 中发布SMB 3.0 (2012): 在 Windows 8 和 Windows Server 2012 中发布. 提升了性能，增加备份，安全和管理功能SMB 3.02 (2014): 在 Windows 8.1 和 Windows Server 2012 R2 中发布. 提升性能并完全停止支持 CIFS/SMB 1.0SMB 3.1.1 (2015): 在 Windows 10 和 Windows Server 2016 中发布在 2017 年，利用 SMB 1.0 的漏洞，WannaCry 勒索软件在互联网中大规模传播，微软虽然立刻发布了补丁，但专家还是建议立刻停止运行 SMB 1.0 协议。Windows 设置共享下面介绍在 Windows 10 中配置共享文件夹。首先打开控制面板，进入 network and Internet：点击 network and sharing center：点击 change advanced sharing settings：在 current profile 中打开网络发现和文件共享：然后在 all network 中关闭密码保护(否则在其他设备访问时会提示输入账户密码)：控制面板配置完成后，我们开始配置需要共享的文件夹。在需要共享的文件夹上点击右键，选择属性：在 share 选项卡中点击 share：在下拉菜单中选择 everyone，然后点击 add：修改此文件夹的读写权限，我这里设置读和写：点击 share 开启共享：返回属性栏，点击 advanced share：选中 share this folder：点击 permission：设置共享权限，我这里设置为可读写：确认后共享文件夹就配置完成了。访问共享文件下面介绍在其他局域网设备访问主机的共享文件夹。Windows在 Windows 上，打开 file explorer，点击 network：在右侧就是本地网络下启用了网络发现的设备列表，点击进入设置了共享文件夹的设备名称就可以访问了：也可以在地址栏直接输入共享路径地址，以双反斜线\\开头后面是设备 IP 或名称，如：\\DESKTOP-BS3C55D。关于设备的名称，可以在终端通过 whoami 命令查询：iPhone在支持 SMB 协议的设备或应用程序中都可以打开 Windows 共享的文件，下面介绍通过 iPhone 的 files app 来连接到 Windows 共享目录。打开 files app，点击右上角的 ... 选择 connect to server：在 server 中输入共享主机的地址，这里直接输入 IP 地址：选择 guest 点击 next：完成后就可以访问到共享目录了：如果文件夹设置的是可读写权限，就可以在手机上传输文件到共享目录了。参考链接：Server Message Block Protocol (SMB protocol)</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2098.html">
-<title>解除 UWP 应用的网络隔离</title>
-<link>https://blog.niekun.net/archives/2098.html</link>
-<dc:date>2021-02-02T09:33:00+08:00</dc:date>
-<description>Microsoft store 里都是 UWP 应用，运行在被称为 App Container 的虚拟沙箱环境中，其安全性及纯净度远胜于传统的 EXE 应用。但 App Container 机制同时也阻止了网络流量发送到本机（即 loopback）， 使大部分网络抓包调试工具无法对 UWP 应用进行流量分析。该机制也阻止了 UWP 应用访问 localhost，如果你的代理地址在本地地址，UWP 就无法访问。有两种方法来解除某个 UWP 应用的沙盒隔离，一种是使用系统自带的工具 CheckNetIsolation，一种是使用第三方工具 fiddler。CheckNetIsolationWindows 10 自带了一个 CheckNetIsolation 工具，可以解除 UWP 应用的网络隔离，使之可以正常访问本地地址在终端执行以下指令即可：CheckNetIsolation.exe loopbackexempt -a -p=SID
-SID(security identifier) 是每个 UWP 应用独有的识别码，可以从注册表中获得应用的 SID 码。快捷键 win + R 打开运行窗口，输入 regedit 进入注册表。访问如下路径：\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppContainer\Mappings\：此路径下的左侧文件夹名称就是当前安装的每个 UWP 应用的 SID 码，右侧的 DisplayName 就是应用的名称，可以用来帮助找到需要的应用 SID。复制需要解除隔离的应用的 SID 码执行上面的命令即可。然后应用就可以正常访问本地地址了，也可以使用抓包工具获取到流量。fiddler也可以使用第三方软件来实现以上任务，这里介绍 fiddler。fiddler 是一款免费的网络调试代理工具。官网地址：https://www.telerik.com/fiddler下载安装后打开应用，点击左上角的 WinConfig：会弹出所有 UWP 应用列表，找到需要解除隔离的应用，点击左侧的选择框，然后点击 save change 即可：此时再次运行对应的应用，就可以在 fiddler 看到应用的流量信息了。注意 fiddler 需要一直保持开启状态解除隔离才会生效。使用 fiddler 还可以方便的设置代理服务，使选中的应用通过代理访问网络，点击 tools - options：在弹出栏中，点击 gateway，选择 manual proxy configuration：第一行设置代理地址，模式为：proxyserver:8080
-也可以根据网络协议设置：http=httpproxy:8080;https=httpsproxy:8080
-第二行设置 bypass 忽略列表，可以设置忽略代理本地地址或其他需要排除的地址：&lt;local&gt;;*.extranet.example.com;
-点击 ok 保存后即可，此时在 WinConfig 中选中的 UWP 应用就会通过代理地址访问网络。</description>
 </item>
 </rdf:RDF>

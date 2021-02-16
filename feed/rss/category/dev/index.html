@@ -9,7 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
-<rdf:li resource="https://blog.niekun.net/archives/2155.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2157.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2156.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2151.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2147.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2146.html"/>
@@ -18,14 +19,75 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2137.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2100.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2085.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2066.html"/>
 </rdf:Seq>
 </items>
 </channel>
-<item rdf:about="https://blog.niekun.net/archives/2155.html">
+<item rdf:about="https://blog.niekun.net/archives/2157.html">
+<title>node.js 入门教程十一 -- buffers 缓存</title>
+<link>https://blog.niekun.net/archives/2157.html</link>
+<dc:date>2021-02-16T17:26:25+08:00</dc:date>
+<description>一个 buffer 缓存就是一个内存空间。JavaScript 开发者相较于 c++/go 等语言的开发者对内存的理解比较少。它表示在 JavaScript V8 engine 之外的分配的一块 fixed-size 固定大小的内存。可以想象 buffer 就是一个 integer 整型数组，每个元素代表一个 byte 的数据。node.js 中 buffer 通过 Buffer class 实现。为何需要 buffer引入 Buffer 是为了帮助开发者处理 binary 二进制数据。传统的 ecosystem 只可以处理 strings 字符串数据。Buffer 和 streams 是紧密关联的，当 stream processor 流处理器接收数据的速度大于其处理速度时，就会先将数据放在 buffer 中。可以想象下，在我们看在线视频时，在网络较好的情况下进度条中可以看到视频下载的进度是超过当前播放进度的，此时浏览器就会先 buffer 缓存数据后续按时间顺序播放出来。创建 buffer可以通过 Buffer.from(), Buffer.alloc() 和 Buffer.allocUnsafe() methods 来创建一个 buffer，下面依次介绍。使用 Buffer.from() 可以从 array 数组创建 buffer：const buf1 = Buffer.from('hey!')
+使用 Buffer.from(string[, encoding]) 可以设置 string 的编码类型，Default: utf8：const buf2 = Buffer.from('7468697320697320612074c3a97374', 'hex')
+也可以根据另一个 buffer：const buf3 = Buffer.from(buf1)
+通过 Buffer.alloc() 或 Buffer.allocUnsafe() 来初始化一个指定大小的 buffer，单位为 byte 字节：const buf4 = Buffer.alloc(1024)
+const buf5 = Buffer.allocUnsafe(1024)
+以上会创建一个 1kb 大小的 buffer。通过 alloc 创建的 buffer 会初始化其数据为 0，而 allocUnsafe 创建的 buffer 内的数据会是 uninitiated 未初始化的，这就表示使用 allocUnsafe 比 alloc 创建速度更快。但是通过 allocUnsafe 创建的 buffer 内存空间会包含有以前的数据可能引起潜在问题。使用 buffer我们可以像访问数组一样访问 buffer 数据：const buf1 = Buffer.from('hey!')
+
+console.log(buf1[0])
+console.log(buf1[1])
+console.log(buf1[2])
+
+//output:
+//104
+//101
+//121这些输出的数字就是代表 buffer 中每个字符的 Unicode Code，h =&gt; 104, e =&gt; 101, y =&gt; 121。使用 toString() method 可以将 buffer 输出为字符：console.log(buf1)
+console.log(buf1.toString())
+
+//output:
+//&lt;Buffer 68 65 79 21&gt;
+//hey!buf1.length 可以读取 buffer 长度：console.log(buf1.length)
+
+//output:
+//4也可以使用循环 iterate buffer 的数据：for (const iterator of buf1) {
+    console.log(iterator)
+}
+
+//output:
+104
+101
+121
+33通过 write() method 可以给 buffer 写入数据：const buf6 = Buffer.alloc(5)
+buf6.write('hello')也可以像数组一样修改某个元素的数据：const buf6 = Buffer.alloc(5)
+buf6.write('hello')
+buf6[0] = 111
+console.log(buf6.toString())
+
+//output:
+//oello可以看到需要修改字符对应的 Unicode Code。使用 copy() method 可以复制 buffer 数据到其他 buffer：const buf1 = Buffer.from('hey!')
+const buf7 = Buffer.alloc(4)
+buf1.copy(buf7)
+console.log(buf7.toString())
+
+//output:
+//hey!注意是源 buffer 掉用 copy method 来复制数据到目标 buffer。默认情况下会复制 buffer 的整个数据， copy method 可以设置其他三个参数来自定义目标 buffer 起始接收数据位置，源 buffer 起始复制数据位置，以及复制的新 buffer 的长度：const buf8 = Buffer.alloc(2)
+buf1.copy(buf8, 0, 0, 2)
+console.log(buf8.toString())
+
+//output:
+//he可以使用 slice method 来选取 buffer 的一个片段，它和 copy 的不同是 slice 获取的 buffer 片段仍然和源 buffer 相关联，修改源 buffer 会改变片段中的 buffer 数据。slice 的第一个参数定义起始位置，第二个参数是选项，可以定义终止位置：const buf1 = Buffer.from('hey!')
+const slice = buf1.slice(0, 2)
+console.log(slice.toString())
+buf1[0] = 111
+console.log(slice.toString())
+
+//output:
+//he
+//oe以上就是 Buffer 的简单使用方法。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2156.html">
 <title>node.js 入门教程十 -- http 模块</title>
-<link>https://blog.niekun.net/archives/2155.html</link>
-<dc:date>2021-02-15T14:01:46+08:00</dc:date>
+<link>https://blog.niekun.net/archives/2156.html</link>
+<dc:date>2021-02-15T14:01:00+08:00</dc:date>
 <description>http 模块是 node.js 处理 networking 网络的关键模块。在之前的章节我介绍了使用 http 模块建立 server 以及发起 GET/POST 请求的方法，可以参考：https://blog.niekun.net/archives/2137.htmlhttp 模块集成于 node.js 核心无需单独安装，使用下面命令引入模块：const http = require('http')
 模块提供了很多 properties，methods 和 classes。Properties 属性http.METHODShttp.METHODS property 返回 http 所有的可用 method 列表：&gt; console.log(require('http').METHODS)
 [
@@ -1368,88 +1430,5 @@ npx 包运行器npx 可以用来运行 node.js 程序。node.js 开发者通常�
 通过 @ 标记来执行不同版本的命令：npx node@10 -v #v10.18.1
 npx node@12 -v #v12.14.1npm 也可以直接执行来自 url 的任意代码片段，而不仅限于 npm 官方渠道发布的包。下面示例是执行部署在 glist 的包：npx https://gist.github.com/zkat/4bc19503fe9e9309e2bfaa2c58074d32
 可执行程序路径定义在 package.json 文件的 bin 属性内。glist 包含内容如下：当然执行不受控制网络的代码需要多加注意。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2066.html">
-<title>c++ 类型转换</title>
-<link>https://blog.niekun.net/archives/2066.html</link>
-<dc:date>2021-01-14T11:58:00+08:00</dc:date>
-<description>Implicit conversion 隐式转换当一个数据复制为兼容格式的类型时，隐式转换可以自动完成。请看下面示例：double a = 100.1;
-int b;
-b = a;
-cout &lt;&lt; b &lt;&lt; endl;
-
-//output:
-//100以上示例中，我们将 double 类型的数据复制给 int 类型的变量，不会引起语法报错，这就是 Implicit 隐式类型转换，也叫 standard conversion 标准转换。标准转换对一些基本的数据类型有效，能够对一些 numerical 数值类型的数据间进行转换，如：double to int，int to float，short to double，int to bool 等，也可以在 pointer 指针类型间转换。从小一些的整型如 short 转换到 int 类型，或者从 float 类型转换到 double 类型，这种转换过程叫做 promotion 晋升操作。这种转换可以确保原始数据完整的复制到目标数据类型中。其他数学运算类型间的转换可能不一定会完整的保留原始数据，下面是几种情况举例：一个负整数转换为 unsigned 类型，结果为 unsigned 类型数据所能表达的最大值数据转换为 bool 类型的数据时，对于数值类型原始数据为 0 时，对于指针类型指针数据为 null pointer 时，对应转换为 false。原始数据为所有其他情况时，转换结果为 true。浮点型数据转换为整型数据，数据会被截取整数部分，如果数据结果超出目标数据类型所能表达的最大值，会得到 undefined我们可以看到，隐式转换可能会带来数据精度的丢失，编译器此时会提示一条 warning 警告。可以通过使用 explicit conversion 显式转换来避免警告信息。class 的隐式转换class 中的隐式转换通过以下三个 function 控制：单参数的 constructors 允许从一个特定类型的数据隐式转换构造为一个 object通过等号操作符 Assignment operator 复用来隐式转换类型传播符 Type-cast 来隐式转换为特定的类型下面示例解释各种方式的含义：class A {};
-
-class B {
-public:
-    B(A a) {} //constructor: conversion from A
-    B operator=(A a) {return *this;} // assignment operator: conversion from A
-    operator A() {return A();} // type-cast: conversion to A
-};
-
-int main()
-{
-    A a; // instance a
-    B b = a; // constructor b from a
-    B c(a); // constructor c from a
-    b = a; // assignment a to b
-    a = b; // convert b to A type and assignment to a
-
-    return 0;
-}以上实例分别介绍了三种隐式转换的方式。构造器的一个传入参数为 A 类型数据，也就是等同于可以将 A 类型因素转换为 B 类型通过操作符复用将等号= 重新定义，等号右边的为 A 类型数据时，以A类型数据作为构造器参数返回 B 类型 object 指针当执行 B 类型数据赋值给 A 类型时，会通过类型传播符定义的 function 返回 A 类型 object构造器初始化 object时，当只有一个参数时，就相当于把传入数据转换为对应 object 类型了。上面示例中可以看到，有两种方法来构造 object：B b = a; // constructor b from a
-B c(a); // constructor c from a以上两种方式都是将 a 作为初始化参数构造 B 类型的 object。编写了等号操作符复用后，对某个指定类型的外部 object 进行等号操作时就会将其转换为当前 object 类型，而不会报错。通过类型传播符可以将 object 转换为其他指定类型的 object。关于操作符复用的语法参考我之前的教程：https://blog.niekun.net/archives/1920.htmlexplicit 关键词当调用一个 function 时，对于其传递参数 c++ 允许进行隐式转换，这在一些情况下会引起一些问题，因为我们并不是所有情况下都希望自动进行转换的。在以上示例中加入 function：void function(B b) {}
-此 function 有一个 B 类型的参数，但是在实际调用中，由于 B 中定义了 A 的隐式转换相关模块，所以我们在这里可以将 A 类型数据作为传入数据：fun(a);
-实际中我们可能并不需要这种转换，我们希望的是这里只能将 B 类型数据作为传入参数。通过关键词 explicit 来定义 constructor 可以实现这个需求，修改 B 的 constructor：explicit B(A a) {}
-再次执行程序，会发现以下几个指令会报错：B b = a;
-fun(a);通过 关键词 explicit 定义 constructor 的 class 不能通过 assignment 赋值符来初始化 object，也不能对 function 的传入参数进行隐式转换。explicit conversion 显式转换c++ 是一种严格区分数据类型的语言，对于那些会影响数据本身的转换，需要进行 explicit conversion 显式转换也叫做 type-casting。在过去的语法中有两种常规的 type-casting 方式：double e = 10.11;
-int f = int(e);
-int g = (int)e;第一种叫做 function 样式，第二种叫做 c-like C语言模式。对于那些基础数据类型的数据，这种转换模式没有什么问题，但这种语法对于 class 和 pointer 类型数据也会不加判断的进行转换，从而导致运行时的 runtime error。为了控制这些在 class 间进行转换的过程，新版 c++ 提供了 4 种 casting operators 传播符来供不同场景下使用：dynamic_cast &lt;new_type&gt; (expression)reinterpret_cast &lt;new_type&gt; (expression)static_cast &lt;new_type&gt; (expression)const_cast &lt;new_type&gt; (expression)dynamic_castdynamic_cast 只能用于某个 class 或(void*) 的指针。他的作用是确保转换后的目标类型指针指向的是一个完整有效的 object，而不是空 object。例如，从 derived class 指针转换为 base class 指针。但是对于多态化的 polymorphic class(包含 virtual 元素的 class)，当且仅当指向的 object 是一个完整有效的目标 object 类型，使用 dynamic_cast 就可以从 base class 指针转换为 derived class 指针，请看如下示例：class Base { virtual void dummy() {} };
-class Derived: public Base {int a;};
-
-int main()
-{
-    try {
-        Base *b1 = new Base;
-        Base *b2 = new Derived;
-        Derived *d;
-
-        d = dynamic_cast&lt;Derived*&gt;(b1);
-        if (d == 0)
-            cout &lt;&lt; &quot;null pointer on first type cast&quot; &lt;&lt; endl;
-
-        d = dynamic_cast&lt;Derived*&gt;(b2);
-        if (d == 0)
-            cout &lt;&lt; &quot;null pointer on second type cast&quot; &lt;&lt; endl;
-    } catch(exception e) {
-        cout &lt;&lt; e.what() &lt;&lt; endl;
-    }
-    return 0;
-}
-
-//output:
-//null pointer on first type cast以上示例中，我们建立了 Base class 和 Derived class，其中 Base 含有一个 virtual function。然后我们创建两个 Base 类型指针，两个指针分别预分配类型为 Base 和 Derived。在之前的 c++ 教程中提到过可以新建 base 类型的变量然后使用 derived 类型数据，需要了解的可以查看：https://blog.niekun.net/archives/1927.html。然后我们创建一个 Derived 类型指针，使用 dynamic_cast 分别将上面建立的两个 Base 类型指针转换为 Derived 类型。由于 b2 虽然是 Base 类型指针，但是我们预分配内存类型为 Derived 类型，所以它其实包含了 Derived object 所有属性。这样转换后的类型为完整的 Derived 类型指针。所以 d 指针不为空。而 b1 完全是 Base 类型指针，所以转换后的类型是不完整的 Derived 类型指针，所以赋值后结果为空。dynamic_cast 可以将任意指针转换为 void* 类型指针。static_caststatic_cast 可以转换任意相关联 class 类型的指针。不仅仅从 derived 到 base，也可以从 base 到 derived。不会判断是否转换到目标指针是完整的数据类型，所以完全由编程人员判断转换操作是否是安全的。相比于 dynamic_cast 有更大适用范围。以下示例语法不会报错：class Base {};
-class Derived: public Base {};
-
-Base * a = new Base;
-Derived * b = static_cast&lt;Derived*&gt;(a);b 指针会得到一个不完整的 Derived 类型数据，运行时可能报错。因此，使用 static_cast 不仅可以转换那些直接支持隐式转换的 class 指针，也可以在那些不支持转换的 class 间进行转换。我们测试在其他数据将进行转换：double a = 12.23;
-int b = static_cast&lt;int&gt;(a);
-cout &lt;&lt; b &lt;&lt; endl;
-
-//OUTPUT:
-//12以上，我们将 double 类型的数据转换为 int 类型，这种转换可以直接通过隐式转换完成，但是使用显式转换语法实现更加明确清晰。但前提是原类型和目标类型必须是 related 有关联的 object 类型。reinterpret_castreinterpret_cast 可以将任意类型指针转换为其他任意类型指针，甚至是完全没有关联的两个类型。转换的过程就是将源数据的二进制数据复制到新指针地址。相比于 static_cast 有更大适用范围。以下代码可以正常执行：class A { /* ... */ };
-class B { /* ... */ };
-A * a = new A;
-B * b = reinterpret_cast&lt;B*&gt;(a);此时 b 指针指向的是一个和 B 类型完全不相干的数据，此时访问 b 指向的数据是不安全的。const_castconst_cast 可以操作 const 类型的指针数据，例如当一个 function 需要非 const 类型传入数据时，可以通过 const_cast 进行转换。请看下面示例：void test(int a) {
-    cout &lt;&lt; a &lt;&lt; endl;
-}
-
-const int a = 10;
-test(a);以上示例中，调用 test function 会报错，因为传入参数需要是非 const 类型的数据。修改以上代码：const int a = 10;
-int *b = const_cast&lt;int*&gt;(&amp;a);
-test(*b);
-
-//output:
-//10通过 const_cast 将 const int 转换为 int，这样就可以在 function 中使用了。参考链接Type conversions</description>
 </item>
 </rdf:RDF>

@@ -6,23 +6,96 @@ xml:base="https://blog.niekun.net/author/1/"
 >
 <title type="text">Marco Nie - admin</title>
 <subtitle type="text">admin</subtitle>
-<updated>2021-02-15T14:01:46+08:00</updated>
+<updated>2021-02-16T17:26:25+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/author/1/" />
 <id>https://blog.niekun.net/feed/atom/author/1/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/author/1/" />
 <entry>
+<title type="html"><![CDATA[node.js 入门教程十一 -- buffers 缓存]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2157.html" />
+<id>https://blog.niekun.net/archives/2157.html</id>
+<updated>2021-02-16T17:26:25+08:00</updated>
+<published>2021-02-16T17:26:25+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[一个 buffer 缓存就是一个内存空间。JavaScript 开发者相较于 c++/go 等语言的开发者对内存的理解比较少。它表示在 JavaScript V8 engine 之外的分配的一块...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2157.html" xml:lang="zh-CN"><![CDATA[
+<p>一个 buffer 缓存就是一个内存空间。JavaScript 开发者相较于 c++/go 等语言的开发者对内存的理解比较少。它表示在 JavaScript V8 engine 之外的分配的一块 fixed-size 固定大小的内存。可以想象 buffer 就是一个 integer 整型数组，每个元素代表一个 byte 的数据。</p><p>node.js 中 buffer 通过 <strong>Buffer</strong> class 实现。</p><!--more--><h3>为何需要 buffer</h3><p>引入 <strong>Buffer</strong> 是为了帮助开发者处理 binary 二进制数据。传统的 ecosystem 只可以处理 strings 字符串数据。<strong>Buffer</strong> 和 streams 是紧密关联的，当 stream processor 流处理器接收数据的速度大于其处理速度时，就会先将数据放在 buffer 中。</p><p>可以想象下，在我们看在线视频时，在网络较好的情况下进度条中可以看到视频下载的进度是超过当前播放进度的，此时浏览器就会先 buffer 缓存数据后续按时间顺序播放出来。</p><h3>创建 buffer</h3><p>可以通过 <code>Buffer.from()</code>, <code>Buffer.alloc()</code> 和 <code>Buffer.allocUnsafe()</code> methods 来创建一个 buffer，下面依次介绍。</p><p>使用 <strong>Buffer.from()</strong> 可以从 array 数组创建 buffer：</p><pre><code>const buf1 = Buffer.from('hey!')
+</code></pre><p>使用 <strong>Buffer.from(string[, encoding])</strong> 可以设置 string 的编码类型，Default: <strong>utf8</strong>：</p><pre><code>const buf2 = Buffer.from('7468697320697320612074c3a97374', 'hex')
+</code></pre><p>也可以根据另一个 buffer：</p><pre><code>const buf3 = Buffer.from(buf1)
+</code></pre><p>通过 <strong>Buffer.alloc()</strong> 或 <strong>Buffer.allocUnsafe()</strong> 来初始化一个指定大小的 buffer，单位为 byte 字节：</p><pre><code>const buf4 = Buffer.alloc(1024)
+const buf5 = Buffer.allocUnsafe(1024)
+</code></pre><p>以上会创建一个 1kb 大小的 buffer。</p><p>通过 <strong>alloc</strong> 创建的 buffer 会初始化其数据为 0，而 <strong>allocUnsafe</strong> 创建的 buffer 内的数据会是 uninitiated 未初始化的，这就表示使用 <strong>allocUnsafe</strong> 比 <strong>alloc</strong> 创建速度更快。但是通过 <strong>allocUnsafe</strong> 创建的 buffer 内存空间会包含有以前的数据可能引起潜在问题。</p><h3>使用 buffer</h3><p>我们可以像访问数组一样访问 buffer 数据：</p><pre><code>const buf1 = Buffer.from('hey!')
+
+console.log(buf1[0])
+console.log(buf1[1])
+console.log(buf1[2])
+
+//output:
+//104
+//101
+//121</code></pre><p>这些输出的数字就是代表 buffer 中每个字符的 Unicode Code，h =&gt; 104, e =&gt; 101, y =&gt; 121。</p><p>使用 <strong>toString()</strong> method 可以将 buffer 输出为字符：</p><pre><code>console.log(buf1)
+console.log(buf1.toString())
+
+//output:
+//&lt;Buffer 68 65 79 21&gt;
+//hey!</code></pre><p>buf1.length 可以读取 buffer 长度：</p><pre><code>console.log(buf1.length)
+
+//output:
+//4</code></pre><p>也可以使用循环 iterate buffer 的数据：</p><pre><code>for (const iterator of buf1) {
+    console.log(iterator)
+}
+
+//output:
+104
+101
+121
+33</code></pre><p>通过 <strong>write()</strong> method 可以给 buffer 写入数据：</p><pre><code>const buf6 = Buffer.alloc(5)
+buf6.write('hello')</code></pre><p>也可以像数组一样修改某个元素的数据：</p><pre><code>const buf6 = Buffer.alloc(5)
+buf6.write('hello')
+buf6[0] = 111
+console.log(buf6.toString())
+
+//output:
+//oello</code></pre><p>可以看到需要修改字符对应的 Unicode Code。</p><p>使用 <strong>copy()</strong> method 可以复制 buffer 数据到其他 buffer：</p><pre><code>const buf1 = Buffer.from('hey!')
+const buf7 = Buffer.alloc(4)
+buf1.copy(buf7)
+console.log(buf7.toString())
+
+//output:
+//hey!</code></pre><p>注意是源 buffer 掉用 <strong>copy</strong> method 来复制数据到目标 buffer。</p><p>默认情况下会复制 buffer 的整个数据， <strong>copy</strong> method 可以设置其他三个参数来自定义目标 buffer 起始接收数据位置，源 buffer 起始复制数据位置，以及复制的新 buffer 的长度：</p><pre><code>const buf8 = Buffer.alloc(2)
+buf1.copy(buf8, 0, 0, 2)
+console.log(buf8.toString())
+
+//output:
+//he</code></pre><p>可以使用 <strong>slice</strong> method 来选取 buffer 的一个片段，它和 copy 的不同是 slice 获取的 buffer 片段仍然和源 buffer 相关联，修改源 buffer 会改变片段中的 buffer 数据。</p><p>slice 的第一个参数定义起始位置，第二个参数是选项，可以定义终止位置：</p><pre><code>const buf1 = Buffer.from('hey!')
+const slice = buf1.slice(0, 2)
+console.log(slice.toString())
+buf1[0] = 111
+console.log(slice.toString())
+
+//output:
+//he
+//oe</code></pre><p>以上就是 <strong>Buffer</strong> 的简单使用方法。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2157.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2157.html" thr:count="0"/>
+</entry>
+<entry>
 <title type="html"><![CDATA[node.js 入门教程十 -- http 模块]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2155.html" />
-<id>https://blog.niekun.net/archives/2155.html</id>
-<updated>2021-02-15T14:01:46+08:00</updated>
-<published>2021-02-15T14:01:46+08:00</published>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2156.html" />
+<id>https://blog.niekun.net/archives/2156.html</id>
+<updated>2021-02-15T14:01:00+08:00</updated>
+<published>2021-02-15T14:01:00+08:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
 <summary type="html"><![CDATA[http 模块是 node.js 处理 networking 网络的关键模块。在之前的章节我介绍了使用 http 模块建立 server 以及发起 GET/POST 请求的方法，可以参考：htt...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2155.html" xml:lang="zh-CN"><![CDATA[
+<content type="html" xml:base="https://blog.niekun.net/archives/2156.html" xml:lang="zh-CN"><![CDATA[
 <p><strong>http</strong> 模块是 node.js 处理 networking 网络的关键模块。在之前的章节我介绍了使用 <strong>http</strong> 模块建立 server 以及发起 GET/POST 请求的方法，可以参考：<a href="https://blog.niekun.net/archives/2137.html">https://blog.niekun.net/archives/2137.html</a></p><p>http 模块集成于 node.js 核心无需单独安装，使用下面命令引入模块：</p><pre><code>const http = require('http')
 </code></pre><p>模块提供了很多 <strong>properties</strong>，<strong>methods</strong> 和 <strong>classes</strong>。</p><!--more--><h3>Properties 属性</h3><h4>http.METHODS</h4><p><strong>http.METHODS</strong> property 返回 http 所有的可用 method 列表：</p><pre><code>&gt; console.log(require('http').METHODS)
 [
@@ -161,8 +234,8 @@ req.on('error', err =&gt; console.log(err))</code></pre><h3>Classes 类</h3><p>h
 })</code></pre><p><code>end()</code> 是 <strong>http.ServerResponse</strong> object 必须被使用的 method，用来表示 response 信息已经完整，可以结束这个 response，同时将 response 发送出去。</p><p>下面的 method 可以用来处理 http headers：</p><ul><li><strong>getHeaderNames()</strong> 获取当前 http headers 名称的列表</li><li><strong>getHeaders()</strong> 获取当前 http headers 副本</li><li><strong>setHeader('headername', value)</strong> 设置一个 http header</li><li><strong>getHeader('headername')</strong> 获取当前的一个 http header 的设置</li><li><strong>removeHeader('headername')</strong> 删除一个 http header</li><li><strong>hasHeader('headername')</strong> 如果某个 http header 有被设置则返回 true</li><li><strong>headersSent()</strong> 如果 http headers 已经发送给了客户端则返回 true</li></ul><p>服务端编辑好 headers 条目后可以通过 <code>response.writeHead()</code> method 发送给客户端，第一个参数是 statusCode。</p><p>通过 <code>response.write()</code> 在 response body 中发送数据给客户端，它会将缓冲区的数据发送到 http response stream。如果还没有使用 <code>response.writeHead()</code> 发送 headers 则会先发送 headers，包含 statusCode 和 message，它们可以通过下面语法设置：</p><pre><code>response.statusCode = 500
 response.statusMessage = 'Internal Server Error'</code></pre><h4>http.IncomingMessage</h4><p><strong>http.IncomingMessage</strong> 可以在以下两个地方创建：</p><ul><li><strong>http.Server</strong> 当监听 <strong>request</strong> event</li><li><strong>http.ClientRequest</strong> 当监听 <strong>response</strong> event</li></ul><p>它可以用来访问 response 数据：</p><ul><li>通过 <strong>statusCode</strong> 和 <strong>statusMessage</strong> 读取状态信息</li><li>通过 <strong>headers</strong> method 或 <strong>rawHeaders</strong> method 读取 headers 信息</li><li>通过 <strong>method</strong> method 获取可用 http method</li><li>通过 <strong>httpVersion</strong> method 获取 http 版本信息</li><li>通过 <strong>url</strong> method 获取 URL 信息</li><li>通过 <strong>socket</strong> method 获取底层 socket 信息</li></ul><p>在 <strong>http.IncomingMessage</strong> 生效一个可读的 stream 接口后，数据可在 stream 中读取。</p>
 ]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2155.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2155.html" thr:count="0"/>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2156.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2156.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[node.js 入门教程九 -- events 模块]]></title>
@@ -1155,26 +1228,5 @@ eventEmitter.emit('test2', 1, 200)
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2103.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2103.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[解除 UWP 应用的网络隔离]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2098.html" />
-<id>https://blog.niekun.net/archives/2098.html</id>
-<updated>2021-02-02T09:33:00+08:00</updated>
-<published>2021-02-02T09:33:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[Microsoft store 里都是 UWP 应用，运行在被称为 App Container 的虚拟沙箱环境中，其安全性及纯净度远胜于传统的 EXE 应用。但 App Container 机制...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2098.html" xml:lang="zh-CN"><![CDATA[
-<p>Microsoft store 里都是 UWP 应用，运行在被称为 App Container 的虚拟沙箱环境中，其安全性及纯净度远胜于传统的 EXE 应用。但 App Container 机制同时也阻止了网络流量发送到本机（即 loopback）， 使大部分网络抓包调试工具无法对 UWP 应用进行流量分析。该机制也阻止了 UWP 应用访问 localhost，如果你的代理地址在本地地址，UWP 就无法访问。</p><p>有两种方法来解除某个 UWP 应用的沙盒隔离，一种是使用系统自带的工具 <strong>CheckNetIsolation</strong>，一种是使用第三方工具 <strong>fiddler</strong>。</p><h3>CheckNetIsolation</h3><p>Windows 10 自带了一个 CheckNetIsolation 工具，可以解除 UWP 应用的网络隔离，使之可以正常访问本地地址在终端执行以下指令即可：</p><pre><code>CheckNetIsolation.exe loopbackexempt -a -p=SID
-</code></pre><p>SID(security identifier) 是每个 UWP 应用独有的识别码，可以从注册表中获得应用的 SID 码。</p><!--more--><p>快捷键 win + R 打开运行窗口，输入 regedit 进入注册表。访问如下路径：<code>\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppContainer\Mappings\</code>：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3861334125.jpg" alt="1.jpg" title="1.jpg"></p><p>此路径下的左侧文件夹名称就是当前安装的每个 UWP 应用的 SID 码，右侧的 DisplayName 就是应用的名称，可以用来帮助找到需要的应用 SID。</p><p>复制需要解除隔离的应用的 SID 码执行上面的命令即可。然后应用就可以正常访问本地地址了，也可以使用抓包工具获取到流量。</p><h3>fiddler</h3><p>也可以使用第三方软件来实现以上任务，这里介绍 fiddler。</p><p>fiddler 是一款免费的网络调试代理工具。官网地址：<a href="https://www.telerik.com/fiddler">https://www.telerik.com/fiddler</a></p><p>下载安装后打开应用，点击左上角的 WinConfig：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/186160648.jpg" alt="2.jpg" title="2.jpg"></p><p>会弹出所有 UWP 应用列表，找到需要解除隔离的应用，点击左侧的选择框，然后点击 save change 即可：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2421167178.jpg" alt="3.jpg" title="3.jpg"></p><p>此时再次运行对应的应用，就可以在 fiddler 看到应用的流量信息了。<strong>注意 fiddler 需要一直保持开启状态解除隔离才会生效。</strong></p><p>使用 fiddler 还可以方便的设置代理服务，使选中的应用通过代理访问网络，点击 tools - options：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3134568243.jpg" alt="4.jpg" title="4.jpg"></p><p>在弹出栏中，点击 gateway，选择 manual proxy configuration：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3205051089.jpg" alt="5.jpg" title="5.jpg"></p><p>第一行设置代理地址，模式为：</p><pre><code>proxyserver:8080
-</code></pre><p>也可以根据网络协议设置：</p><pre><code>http=httpproxy:8080;https=httpsproxy:8080
-</code></pre><p>第二行设置 bypass 忽略列表，可以设置忽略代理本地地址或其他需要排除的地址：</p><pre><code>&lt;local&gt;;*.extranet.example.com;
-</code></pre><p>点击 ok 保存后即可，此时在 WinConfig 中选中的 UWP 应用就会通过代理地址访问网络。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2098.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2098.html" thr:count="0"/>
 </entry>
 </feed>

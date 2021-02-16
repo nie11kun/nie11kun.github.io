@@ -11,13 +11,83 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/node/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Mon, 15 Feb 2021 14:01:46 +0800</lastBuildDate>
-<pubDate>Mon, 15 Feb 2021 14:01:46 +0800</pubDate>
+<lastBuildDate>Tue, 16 Feb 2021 17:26:25 +0800</lastBuildDate>
+<pubDate>Tue, 16 Feb 2021 17:26:25 +0800</pubDate>
+<item>
+<title>node.js 入门教程十一 -- buffers 缓存</title>
+<link>https://blog.niekun.net/archives/2157.html</link>
+<guid>https://blog.niekun.net/archives/2157.html</guid>
+<pubDate>Tue, 16 Feb 2021 17:26:25 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[一个 buffer 缓存就是一个内存空间。JavaScript 开发者相较于 c++/go 等语言的开发者对内存的理解比较少。它表示在 JavaScript V8 engine 之外的分配的一块...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>一个 buffer 缓存就是一个内存空间。JavaScript 开发者相较于 c++/go 等语言的开发者对内存的理解比较少。它表示在 JavaScript V8 engine 之外的分配的一块 fixed-size 固定大小的内存。可以想象 buffer 就是一个 integer 整型数组，每个元素代表一个 byte 的数据。</p><p>node.js 中 buffer 通过 <strong>Buffer</strong> class 实现。</p><!--more--><h3>为何需要 buffer</h3><p>引入 <strong>Buffer</strong> 是为了帮助开发者处理 binary 二进制数据。传统的 ecosystem 只可以处理 strings 字符串数据。<strong>Buffer</strong> 和 streams 是紧密关联的，当 stream processor 流处理器接收数据的速度大于其处理速度时，就会先将数据放在 buffer 中。</p><p>可以想象下，在我们看在线视频时，在网络较好的情况下进度条中可以看到视频下载的进度是超过当前播放进度的，此时浏览器就会先 buffer 缓存数据后续按时间顺序播放出来。</p><h3>创建 buffer</h3><p>可以通过 <code>Buffer.from()</code>, <code>Buffer.alloc()</code> 和 <code>Buffer.allocUnsafe()</code> methods 来创建一个 buffer，下面依次介绍。</p><p>使用 <strong>Buffer.from()</strong> 可以从 array 数组创建 buffer：</p><pre><code>const buf1 = Buffer.from('hey!')
+</code></pre><p>使用 <strong>Buffer.from(string[, encoding])</strong> 可以设置 string 的编码类型，Default: <strong>utf8</strong>：</p><pre><code>const buf2 = Buffer.from('7468697320697320612074c3a97374', 'hex')
+</code></pre><p>也可以根据另一个 buffer：</p><pre><code>const buf3 = Buffer.from(buf1)
+</code></pre><p>通过 <strong>Buffer.alloc()</strong> 或 <strong>Buffer.allocUnsafe()</strong> 来初始化一个指定大小的 buffer，单位为 byte 字节：</p><pre><code>const buf4 = Buffer.alloc(1024)
+const buf5 = Buffer.allocUnsafe(1024)
+</code></pre><p>以上会创建一个 1kb 大小的 buffer。</p><p>通过 <strong>alloc</strong> 创建的 buffer 会初始化其数据为 0，而 <strong>allocUnsafe</strong> 创建的 buffer 内的数据会是 uninitiated 未初始化的，这就表示使用 <strong>allocUnsafe</strong> 比 <strong>alloc</strong> 创建速度更快。但是通过 <strong>allocUnsafe</strong> 创建的 buffer 内存空间会包含有以前的数据可能引起潜在问题。</p><h3>使用 buffer</h3><p>我们可以像访问数组一样访问 buffer 数据：</p><pre><code>const buf1 = Buffer.from('hey!')
+
+console.log(buf1[0])
+console.log(buf1[1])
+console.log(buf1[2])
+
+//output:
+//104
+//101
+//121</code></pre><p>这些输出的数字就是代表 buffer 中每个字符的 Unicode Code，h =&gt; 104, e =&gt; 101, y =&gt; 121。</p><p>使用 <strong>toString()</strong> method 可以将 buffer 输出为字符：</p><pre><code>console.log(buf1)
+console.log(buf1.toString())
+
+//output:
+//&lt;Buffer 68 65 79 21&gt;
+//hey!</code></pre><p>buf1.length 可以读取 buffer 长度：</p><pre><code>console.log(buf1.length)
+
+//output:
+//4</code></pre><p>也可以使用循环 iterate buffer 的数据：</p><pre><code>for (const iterator of buf1) {
+    console.log(iterator)
+}
+
+//output:
+104
+101
+121
+33</code></pre><p>通过 <strong>write()</strong> method 可以给 buffer 写入数据：</p><pre><code>const buf6 = Buffer.alloc(5)
+buf6.write('hello')</code></pre><p>也可以像数组一样修改某个元素的数据：</p><pre><code>const buf6 = Buffer.alloc(5)
+buf6.write('hello')
+buf6[0] = 111
+console.log(buf6.toString())
+
+//output:
+//oello</code></pre><p>可以看到需要修改字符对应的 Unicode Code。</p><p>使用 <strong>copy()</strong> method 可以复制 buffer 数据到其他 buffer：</p><pre><code>const buf1 = Buffer.from('hey!')
+const buf7 = Buffer.alloc(4)
+buf1.copy(buf7)
+console.log(buf7.toString())
+
+//output:
+//hey!</code></pre><p>注意是源 buffer 掉用 <strong>copy</strong> method 来复制数据到目标 buffer。</p><p>默认情况下会复制 buffer 的整个数据， <strong>copy</strong> method 可以设置其他三个参数来自定义目标 buffer 起始接收数据位置，源 buffer 起始复制数据位置，以及复制的新 buffer 的长度：</p><pre><code>const buf8 = Buffer.alloc(2)
+buf1.copy(buf8, 0, 0, 2)
+console.log(buf8.toString())
+
+//output:
+//he</code></pre><p>可以使用 <strong>slice</strong> method 来选取 buffer 的一个片段，它和 copy 的不同是 slice 获取的 buffer 片段仍然和源 buffer 相关联，修改源 buffer 会改变片段中的 buffer 数据。</p><p>slice 的第一个参数定义起始位置，第二个参数是选项，可以定义终止位置：</p><pre><code>const buf1 = Buffer.from('hey!')
+const slice = buf1.slice(0, 2)
+console.log(slice.toString())
+buf1[0] = 111
+console.log(slice.toString())
+
+//output:
+//he
+//oe</code></pre><p>以上就是 <strong>Buffer</strong> 的简单使用方法。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2157.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2157.html</wfw:commentRss>
+</item>
 <item>
 <title>node.js 入门教程十 -- http 模块</title>
-<link>https://blog.niekun.net/archives/2155.html</link>
-<guid>https://blog.niekun.net/archives/2155.html</guid>
-<pubDate>Mon, 15 Feb 2021 14:01:46 +0800</pubDate>
+<link>https://blog.niekun.net/archives/2156.html</link>
+<guid>https://blog.niekun.net/archives/2156.html</guid>
+<pubDate>Mon, 15 Feb 2021 14:01:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[http 模块是 node.js 处理 networking 网络的关键模块。在之前的章节我介绍了使用 http 模块建立 server 以及发起 GET/POST 请求的方法，可以参考：htt...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -160,8 +230,8 @@ req.on('error', err =&gt; console.log(err))</code></pre><h3>Classes 类</h3><p>h
 response.statusMessage = 'Internal Server Error'</code></pre><h4>http.IncomingMessage</h4><p><strong>http.IncomingMessage</strong> 可以在以下两个地方创建：</p><ul><li><strong>http.Server</strong> 当监听 <strong>request</strong> event</li><li><strong>http.ClientRequest</strong> 当监听 <strong>response</strong> event</li></ul><p>它可以用来访问 response 数据：</p><ul><li>通过 <strong>statusCode</strong> 和 <strong>statusMessage</strong> 读取状态信息</li><li>通过 <strong>headers</strong> method 或 <strong>rawHeaders</strong> method 读取 headers 信息</li><li>通过 <strong>method</strong> method 获取可用 http method</li><li>通过 <strong>httpVersion</strong> method 获取 http 版本信息</li><li>通过 <strong>url</strong> method 获取 URL 信息</li><li>通过 <strong>socket</strong> method 获取底层 socket 信息</li></ul><p>在 <strong>http.IncomingMessage</strong> 生效一个可读的 stream 接口后，数据可在 stream 中读取。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2155.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2155.html</wfw:commentRss>
+<comments>https://blog.niekun.net/archives/2156.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2156.html</wfw:commentRss>
 </item>
 <item>
 <title>node.js 入门教程九 -- events 模块</title>
@@ -1647,37 +1717,6 @@ console.log(str.match(/ab/gi));
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2051.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2051.html</wfw:commentRss>
-</item>
-<item>
-<title>node.js 入门教程之一 -- 介绍</title>
-<link>https://blog.niekun.net/archives/2043.html</link>
-<guid>https://blog.niekun.net/archives/2043.html</guid>
-<pubDate>Fri, 08 Jan 2021 09:28:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[Node.js 是一个开源跨平台的 JavaScript 运行环境，它是时下最流行的工具，能够应用于几乎所有的项目。Node.js 运行 V8 JavaScript engine。它是 chro...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>Node.js 是一个开源跨平台的 JavaScript 运行环境，它是时下最流行的工具，能够应用于几乎所有的项目。Node.js 运行 V8 JavaScript engine。它是 chrome 的核心，这让 Node.js 可以脱离浏览器运行 JavaScript 代码。</p><p>一个 Node.js app 运行在一个线程中，不会给每个 request 建立一个进程。Node.js 在其标准库中提供了一个 asynchronous I/O primitives 异步 IO 原生语法库来防止阻塞，同时 Node.js 中的库使用一种 non-blocking paradigms 无阻塞范式，将阻塞作为一种 exception 来处理。</p><p>当 Node.js 执行 IO 动作，例如读取文件，访问数据库等，不同于等待进程，占用 CPU 资源，Node.js 会在收到 request 响应后再去处理后续操作。这将使 Node.js 可以在一个 server 上同时处理上千条链接而不会引入大量的进程而导致 bug 出现。</p><p>Node.js 的另一大优势是使用 JavaScript 的前端开发者可以同时编写 server 端的代码而不用学习新的语言。</p><p>最新的 ECMAScript 标准可以在 Node.js 中使用，你不需要等待用户去更新浏览器。通过使用不同版本的 Node.js 来切换不同的 ECMAScript 标准。</p><!--more--><p>Node.js 使用 JavaScript 语言，如果你还不太了解 js 可以参考我之前的 8 篇 JavaScript 教程：<a href="https://blog.niekun.net/archives/1979.html">JavaScript 入门教程之一 -- 总览</a></p><h3>海量的第三方库</h3><p>通过 <strong>npm</strong> 简单的结构帮助 Node.js 生态系统快速的增长。目前 <strong>npm</strong> 注册超过 1,000,000 个开源库可供免费使用。</p><h3>hello world</h3><p>web server 是最常见的 hello world 示例。</p><p>新建一个 js 文件，内容如下：</p><pre><code>const http = require('http')
-
-const hostname = '127.0.0.1'
-const port = 8080
-
-const server = http.createServer((req, res) =&gt; {
-  res.statusCode = 200
-  res.setHeader('Content-Type', 'text/plain')
-  res.end('Hello World!\n')
-})
-
-server.listen(port, hostname, () =&gt; {
-  console.log(`Server running at http://${hostname}:${port}/`)
-})</code></pre><p>以上代码首先引入 <strong>http</strong> 模块。Node.js 使用 CommonJS module 系统，使用内建的 <strong>require</strong> 关键词来引入其他文件写好的 module 模块。</p><p>Node.js 有一个很好的标准库：<a href="https://nodejs.org/api/">https://nodejs.org/api/</a>，包含有对 network 的直接支持。</p><p><strong>createServer</strong> method 创建一个新的 http server 并返回它。定义了一个 <strong>requestListener</strong> function，会被自动添加到 <strong>request</strong> event。</p><p><strong>listen</strong> method 定义特定的监听地址和端口。当 server 运行起来后， <strong>listen</strong> method 调用的 function 会被执行，这里我们显示 server 已启动的信息。</p><p>当收到一个 request，会自动调用 <strong>request</strong> event，并传入两个 object：一个 <strong>request</strong> (an http.IncomingMessage object) 和一个 <strong>response</strong> (an http.ServerResponse object)。</p><p>这两个 object 是处理 http 访问的核心。</p><p><strong>request</strong> object 提供了 request 请求的信息，在以上示例中没有使用到这个，但是我们可读取 request header 和 data 数据。</p><p><strong>response</strong> object 用来返回数据给发起请求者，在这里通过：</p><pre><code>res.statusCode = 200
-</code></pre><p>返回一个 200 状态码，表示一次成功的响应。</p><p>然后我们设置一个 header：</p><pre><code>res.setHeader('Content-Type', 'text/plain')
-</code></pre><p>最后我们关闭 response 响应，并将响应内容作为 <strong>end</strong> method 的参数传入：</p><pre><code>res.end('Hello World\n')
-</code></pre><h3>Node.js Frameworks and Tools</h3><p>Node.js 是一个底层平台，为了让开发更加容易，海量的基于 Node.js 的第三方库通过社区建立。它们中的很多已经非常流行，以下是一些常见的第三方库：</p><ul><li><strong>AdonisJs</strong>: A full-stack framework highly focused on developer ergonomics, stability, and confidence. Adonis is one of the fastest Node.js web frameworks.</li><li><strong>Express</strong>: It provides one of the most simple yet powerful ways to create a web server. Its minimalist approach, unopinionated, focused on the core features of a server, is key to its success.</li><li><strong>Fastify</strong>: A web framework highly focused on providing the best developer experience with the least overhead and a powerful plugin architecture. Fastify is one of the fastest Node.js web frameworks.</li><li><strong>Gatsby</strong>: A React-based, GraphQL powered, static site generator with a very rich ecosystem of plugins and starters.</li><li><strong>hapi</strong>: A rich framework for building applications and services that enables developers to focus on writing reusable application logic instead of spending time building infrastructure.</li><li><strong>koa</strong>: It is built by the same team behind Express, aims to be even simpler and smaller, building on top of years of knowledge. The new project born out of the need to create incompatible changes without disrupting the existing community.</li><li><strong>Loopback.io</strong>: Makes it easy to build modern applications that require complex integrations.</li><li><strong>Meteor</strong>: An incredibly powerful full-stack framework, powering you with an isomorphic approach to building apps with JavaScript, sharing code on the client and the server. Once an off-the-shelf tool that provided everything, now integrates with frontend libs React, Vue, and Angular. Can be used to create mobile apps as well.</li><li><strong>Micro</strong>: It provides a very lightweight server to create asynchronous HTTP microservices.</li><li><strong>NestJS</strong>: A TypeScript based progressive Node.js framework for building enterprise-grade efficient, reliable and scalable server-side applications.</li><li><strong>Next.js</strong>: React framework that gives you the best developer experience with all the features you need for production: hybrid static & server rendering, TypeScript support, smart bundling, route pre-fetching, and more.</li><li><strong>Nx</strong>: A toolkit for full-stack monorepo development using NestJS, Express, React, Angular, and more! Nx helps scale your development from one team building one application to many teams collaborating on multiple applications!</li><li><strong>Sapper</strong>: Sapper is a framework for building web applications of all sizes, with a beautiful development experience and flexible filesystem-based routing. Offers SSR and more!</li><li><strong>Socket.io</strong>: A real-time communication engine to build network applications.</li><li><strong>Strapi</strong>: Strapi is a flexible, open-source Headless CMS that gives developers the freedom to choose their favorite tools and frameworks while also allowing editors to easily manage and distribute their content. By making the admin panel and API extensible through a plugin system, Strapi enables the world's largest companies to accelerate content delivery while building beautiful digital experiences.</li></ul><h3>安装</h3><p>在官方下载页面下载对应系统的安装包：<a href="https://nodejs.org/en/download/">https://nodejs.org/en/download/</a></p><p>macOS 可以通过 brew 来安装：</p><pre><code>brew install node
-</code></pre><h3>node.js 和浏览器端的区别</h3><p>浏览器端和 node.js 都是使用 JavaScript 作为编程语言，但他们是完全不同的。</p><p>node.js 可以同时开发前端和后端 application，这样使用一种语言就可以完成所有的开发。</p><p>浏览器中使用 DOM 结构，或者其他 web 平台的 API 如：cookies，这些在 node.js 中都是没有的，<strong>document</strong> 或 <strong>window</strong> 等这些 object 是没有的。</p><p>使用 node.js 由你来控制 environment，你知道 application 所使用的 node.js 是哪个版本的，相比较于浏览器，你并不知道用户使用了什么浏览器。所以你可以使用更加现代的 ES 标准来编写程序。</p><p>另一个区别是 node.js 使用 <strong>CommonJS</strong> 模块系统，浏览器端我们已经可以使用 ES 的标准命令来导入模块了。也就是说 node.js 中使用 <strong>require()</strong> 而浏览器端使用 <strong>import</strong>。</p><h3>参考链接</h3><p><a href="https://nodejs.dev/learn/introduction-to-nodejs">https://nodejs.dev/learn/introduction-to-nodejs</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2043.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2043.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
