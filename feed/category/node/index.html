@@ -11,13 +11,167 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/node/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Tue, 16 Feb 2021 17:26:25 +0800</lastBuildDate>
-<pubDate>Tue, 16 Feb 2021 17:26:25 +0800</pubDate>
+<lastBuildDate>Sat, 20 Feb 2021 17:19:45 +0800</lastBuildDate>
+<pubDate>Sat, 20 Feb 2021 17:19:45 +0800</pubDate>
 <item>
-<title>node.js 入门教程十一 -- buffers 缓存</title>
+<title>node.js 入门教程之十三 -- environment，error 和 log</title>
+<link>https://blog.niekun.net/archives/2165.html</link>
+<guid>https://blog.niekun.net/archives/2165.html</guid>
+<pubDate>Sat, 20 Feb 2021 17:19:45 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[environment 运行环境production environment 产品环境和 development environment 开发环境可以设置不同的配置。node.js 默认为 de...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<h3>environment 运行环境</h3><p><strong>production environment 产品环境</strong>和 <strong>development environment 开发环境</strong>可以设置不同的配置。</p><p>node.js 默认为 development env 开发环境。通过设置环境变量：<code>NODE_ENV=production</code> 可以告诉 node.js 当前为产品环境。Linux 中可以通过如下指令修改：</p><pre><code>export NODE_ENV=production
+</code></pre><p>这样在当前 shell 中就会以 production 模式运行 node 程序，如果要永久修改此环境变量可以将命令写入 <strong>~/.bashrc</strong> 文件。</p><p>也可以在运行 node 程序时定义 <strong>NODE_ENV</strong>：</p><pre><code>NODE_ENV=production node app.js
+
+</code></pre><!--more--><p>设置 <strong>NODE_ENV</strong> 为 <strong>production</strong> 有如下优势：</p><ul><li>日志记录保持在最小 level</li><li>更多的 caching 缓存级别来提高运行效率</li></ul><p>可以通过状态判读符来判断当前运行环境，执行不同指令：</p><pre><code>if (process.env.NODE_ENV === 'development') {
+    console.log('running on development environment')
+}
+if (process.env.NODE_ENV === 'production') {
+    console.log('running on production environment')
+}
+if (['production', 'staging'].indexOf(process.env.NODE_ENV) != -1) {
+    console.log('running on production environment')
+} else {
+    console.log('running on development environment')
+}</code></pre><p>上面第三个指令通过调用 array 的 <strong>indexOf</strong> 来获取某个字符串在数组中的索引号，如果不存在这个字符串则返回 <strong>-1</strong>。注意使用类型判断符<code>===</code> 是为了保证类型和数值都匹配。</p><h3>error handling 错误处理</h3><p>node.js 中通过 exceptions 来处理 error 情况。</p><p>可以通过 <strong>throw</strong> 创建一个 <strong>exception</strong>：</p><pre><code>const test = 123;
+throw test;</code></pre><p>当 JavaScript 执行到上面的 throw 时程序会立刻停止，然后控制权会交给最近的 exception handler 例外控制器。</p><p>JavaScript 中 test 可以是任意的字符串，数字或者 object。但在 node.js 中只用来 throw <strong>Error</strong> objects。</p><p>一个 error object 可以是 <strong>Error</strong> 的实例或者是 Error class 的 child class 的实例：</p><pre><code>throw new Error('error')
+
+class childError extends Error {
+}
+throw new childError('error')</code></pre><p>下面介绍几种 <strong>exception handler</strong> 处理器。</p><p><strong>第一种</strong>是通过 <strong>try/catch</strong> 声明来处理，在 try 中定义任意 exception 以及对应的 catch 块来响应：</p><pre><code>try {
+    const a = 1;
+    if (a == 0) {
+        throw 'abc'
+    } else {
+        throw 123
+    }
+} catch (e) {
+    console.log(e)
+}</code></pre><p>catch 的参数 e 就是对应 throw 的数据。</p><p>如果在程序执行中，如果某个 throw 的 exception 没有被 catch，程序就会立刻 crash。可以通过监听 <strong>process</strong> 的 <strong>uncaughtException</strong> event 事件来解决这个问题：</p><pre><code>process.on('uncaughtException', err =&gt; {
+    console.log('there was a uncaught error', err)
+    process.exit(1)
+})
+
+const test = 123;
+throw test;</code></pre><p><strong>第二种</strong>是 <strong>promise</strong> 中的 error handler。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2165.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2165.html</wfw:commentRss>
+</item>
+<item>
+<title>node.js 入门教程之十二 -- Streams 流</title>
+<link>https://blog.niekun.net/archives/2161.html</link>
+<guid>https://blog.niekun.net/archives/2161.html</guid>
+<pubDate>Sat, 20 Feb 2021 14:43:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[Streams 是驱动 node.js 程序的核心概念。它提供了处理对文件的读写，网络传输，或者其他端到端的数据交换的更加高效的方式。streams 流并不是 node.js 首先引入的概念，u...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p><strong>Streams</strong> 是驱动 node.js 程序的核心概念。它提供了处理对文件的读写，网络传输，或者其他端到端的数据交换的更加高效的方式。</p><p>streams 流并不是 node.js 首先引入的概念，unix 操作系统在很久之前就在使用了，一个程序可以通过 pipe 管道操作符 <code>|</code> 来传递 streams 流给其他程序。</p><p>下面的示例是在 Linux 中，通过 pipe 管道将 cat 读取的文件数据传递给 grep 进行过滤，test.txt 文件内容如下：</p><pre><code>aaa bbb
+bbb ccc
+aaa ccc</code></pre><pre><code>$ cat test.txt | grep aaa
+aaa bbb
+aaa ccc</code></pre><!--more--><h3>stream 优点</h3><p>在传统方法中，当程序读取一个文件内容时会先将文件内容全部读取到内存中，然后再去使用它。而使用 stream 时会一段段的读取文件内容并进行处理，而不需要整体读取到内存。</p><p>node.js 的 <strong>stream</strong> 模块是构建所有 streaming API 的底层。所有的 streams 流都是 eventEmitter 的实例。每种类型的 stream 都有各自的 event 事件，在数据流变化时触发对应事件。</p><p>相比于其他数据处理方法，<strong>streams</strong> 有两个优势：</p><ul><li>内存效率：在使用数据前不需要将大量数据存入内存中。</li><li>时间效率：能够更快的进入数据处理阶段，在获取到文件后能够很快的使用它而不需要等待它全部加载完毕。</li></ul><h3>使用方法</h3><p>下面我们从一个示例来说明 stream 的使用方法。我们建立一个 http server，当收到请求时读取一个本地文件的内容并作为 response 发送给客户端。</p><p>首先传统实现方式如下：</p><pre><code>const http = require('http')
+const fs = require('fs')
+
+const hostname = '127.0.0.1'
+const port = 3000
+
+const server = http.createServer((req, res) =&gt; {
+    fs.readFile(__dirname + '/test.txt', (err, data) =&gt; {
+        if (err) {
+            console.log('read error')
+        }
+        res.end(data)
+    })
+})
+
+server.listen(port, hostname, () =&gt; {
+    console.log(`Server running at http://${hostname}:${port}/`)
+})</code></pre><p>以上方式在收到请求后，通过 <code>readFile()</code> 读取文件内容到内存中，当成功后会调用 callback 通过 <code>res.end(data)</code> 发送读取的数据给客户端。如果文件较大时以上过程会花费一些时间。</p><p><strong>__dirname</strong> 返回当前执行文件的路径。</p><p>下面介绍使用 stream 实现上面的过程：</p><pre><code>const http = require('http')
+const fs = require('fs')
+
+const hostname = '127.0.0.1'
+const port = 3000
+
+const server = http.createServer((req, res) =&gt; {
+    const stream = fs.createReadStream(__dirname + '/test.txt')
+    stream.pipe(res)
+})
+
+server.listen(port, hostname, () =&gt; {
+    console.log(`Server running at http://${hostname}:${port}/`)
+})</code></pre><p>通过 <code>fs.createReadStream()</code> 返回一个文件的 stream。</p><p>不同于第一种，以上方式会在 stream 中只要有了 data chunk 块就立刻作为 response 数据传输给客户端。这样就会一边读取文件一边传输数据。</p><h3>pipe()</h3><p>以上示例中调用 <strong>stream</strong> 的 <code>pipe()</code> method。它的功能是建立一个 source stream 源流到 destination stream 目标流的 pipe 管道。这样文件的 stream 流通向了 http response。</p><p><code>pipe()</code> 的返回是 destination stream 目标流，这样就可以很方便的链接多个 pipe：</p><pre><code>src.pipe(dest1).pipe(dest2)</code></pre><p>以下写法和上面示例效果一样：</p><pre><code>src.pipe(dest1)
+dest1.pipe(dest2)</code></pre><h3>基于 stream 的 node.js API</h3><p>由于 stream 的巨大优势，很多 node.js 核心模块提供了 stream 的原生支持，以下是常用的部分：</p><ul><li><strong>process.stdin</strong> 返回一个链接到 stdin 的 stream</li><li><strong>process.stdout</strong> 返回一个链接到 stdout 的 stream</li><li><strong>process.stderr</strong> 返回一个链接到 stderr 的 stream</li><li><strong>fs.createReadStream()</strong> 创建一个文件的可读的 stream</li><li><strong>fs.createWriteStream()</strong> 创建一个文件的可写的 stream</li><li><strong>net.connect()</strong> 初始化一个基于 stream 的连接</li><li><strong>http.request()</strong> 返回一个 http.ClientRequest 实例，它是一个可写的 stream</li></ul><h3>streams 的类型</h3><p>有四个 streams 的 calsses：</p><ul><li><strong>Readable</strong>: 一个可以作为管道源头的 stream，不能作为管道的目标也就是不能写入数据</li><li><strong>Writable</strong>: 一个可以作为管道目标的 stream，不能作为管道源头也就是不能从中获取数据</li><li><strong>Duplex</strong>: 一个既可作为管道源头也可以作为目标的 stream</li><li><strong>Transform</strong>: 类似于 Duplex</li></ul><h3>创建 readable stream</h3><p>从 stream 模块定义一个可读的 stream 然后通过定义 <code>readable._read()</code> method 内容完成初始化：</p><pre><code>const Stream = require('stream')
+const readableStream = new Stream.Readable()
+
+readableStream._read = () =&gt; {}</code></pre><p>初始化也可以这样写：</p><pre><code>const readableStream = new Stream.Readable({
+    read() {}
+})</code></pre><p>以上就创建了一个可读的 stream，可以给其传输数据：</p><pre><code>readableStream.push('hi')
+readableStream.push('hello')</code></pre><p>可以将这个 stream 和一个可写的 stream 之间建立管道：</p><pre><code>readableStream.pipe(process.stdout)
+</code></pre><h3>创建 writable stream</h3><p>通过实例化一个 <strong>Writable</strong> object 然后通过定义 <code>_write()</code> method 内容完成初始化：</p><pre><code>const Stream = require('stream')
+const writeableStream = new Stream.Writable()
+
+writeableStream._write = (chunk, encoding, callback) =&gt; {
+    console.log(chunk.toString())
+    callback()
+}</code></pre><p>接收到的数据块传入 chunk，encoding 定义数据类型，callback function 是当一个 chunk 数据块传输完成后调用，此 callback 可在 <strong>writeableStream.write</strong> 内定义，一般可以是 error 处理，下面会介绍。</p><p>可以将定义的可写 stream 同一个可读 stream  pipe 管道连接：</p><pre><code>process.stdin.pipe(writeableStream)
+</code></pre><p>这样就可以在 stdin 和 writeableStream 间建立 pipe，此时在 stdin 输入数据就会立刻将数据显示在终端。</p><h3>从可读的 stream 读取数据</h3><p>下面的示例中，我们建立一个可读的 stream 和一个 可写的 stream，并建立 pipe 管道连接：</p><pre><code>const Stream = require('stream')
+
+const readableStream = new Stream.Readable()
+readableStream._read = () =&gt; {}
+
+const writeableStream = new Stream.Writable()
+writeableStream._write = (chunk, encoding, callback) =&gt; {
+    console.log(chunk.toString())
+    callback()
+}
+
+readableStream.pipe(writeableStream)
+
+readableStream.push('hi\n')
+readableStream.push('hello\n')</code></pre><p>也通过 <strong>readable</strong> event 事件来处理可读 stream。当 stream 中有准备好的数据块时会触发 readable event：</p><pre><code>readableStream.on('readable', () =&gt; {
+    console.log(readableStream.read().toString())
+})</code></pre><h3>给可写的 stream 写入数据</h3><p>使用 write method 来写入数据：</p><pre><code>writeableStream.write('hello world\n')
+</code></pre><p>可以定义写入数据的编码格式和 callback function：</p><pre><code>writeableStream.write('hello world\n', 'utf-8', err =&gt; {console.log(err)})
+</code></pre><p>实际中 callback function 是否会执行要看 stream 初始化中在 <code>writeableStream._write</code> 是否调用了 callback。</p><p>如果数据写入已经完成，可以使用 <strong>end</strong> method 来告诉可写的 stream：</p><pre><code>const Stream = require('stream')
+const writeableStream = new Stream.Writable()
+
+writeableStream._write = (chunk, encoding, next) =&gt; {
+    console.log(chunk.toString())
+    next()
+}
+
+process.stdin.pipe(writeableStream)
+
+writeableStream.write('hello world\n')
+writeableStream.end()</code></pre><p>以上示例中如果在最后一句不调用 <strong>end</strong> method 则 writeableStream 会持续保持接收来自 stdin 的数据状态。</p><h3>创建 transform stream</h3><p>和可写的 stream 创建方式类似，可读也可写：</p><pre><code>const Stream = require('stream')
+const transformStream = new Stream.Transform()
+
+transformStream._transform = (chunk, encoding, callback) =&gt; {
+    console.log('transform' + chunk.toString())
+    transformStream.push(chunk)
+    callback()
+}
+
+const writeableStream = new Stream.Writable()
+writeableStream._write = (chunk, encoding, callback) =&gt; {
+    console.log('write' + chunk.toString())
+    callback()
+}
+
+process.stdin.pipe(transformStream).pipe(writeableStream)</code></pre><p>在 <code>transformStream._transform</code> 定义了当 transform stream 接收到数据后通过 <code>transformStream.push</code> 将数据发到 readable stream 中，这样其他 stream 就可以读取到它接收到的数据了。</p><p>更多 stream 使用方法参考：<a href="https://nodejs.org/api/stream.html">https://nodejs.org/api/stream.html</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2161.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2161.html</wfw:commentRss>
+</item>
+<item>
+<title>node.js 入门教程之十一 -- buffers 缓存</title>
 <link>https://blog.niekun.net/archives/2157.html</link>
 <guid>https://blog.niekun.net/archives/2157.html</guid>
-<pubDate>Tue, 16 Feb 2021 17:26:25 +0800</pubDate>
+<pubDate>Tue, 16 Feb 2021 17:26:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[一个 buffer 缓存就是一个内存空间。JavaScript 开发者相较于 c++/go 等语言的开发者对内存的理解比较少。它表示在 JavaScript V8 engine 之外的分配的一块...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -84,7 +238,7 @@ console.log(slice.toString())
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2157.html</wfw:commentRss>
 </item>
 <item>
-<title>node.js 入门教程十 -- http 模块</title>
+<title>node.js 入门教程之十 -- http 模块</title>
 <link>https://blog.niekun.net/archives/2156.html</link>
 <guid>https://blog.niekun.net/archives/2156.html</guid>
 <pubDate>Mon, 15 Feb 2021 14:01:00 +0800</pubDate>
@@ -234,7 +388,7 @@ response.statusMessage = 'Internal Server Error'</code></pre><h4>http.IncomingMe
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2156.html</wfw:commentRss>
 </item>
 <item>
-<title>node.js 入门教程九 -- events 模块</title>
+<title>node.js 入门教程之九 -- events 模块</title>
 <link>https://blog.niekun.net/archives/2151.html</link>
 <guid>https://blog.niekun.net/archives/2151.html</guid>
 <pubDate>Mon, 08 Feb 2021 21:42:00 +0800</pubDate>
@@ -1170,553 +1324,6 @@ eventEmitter.emit('test2', 1, 200)
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2100.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2100.html</wfw:commentRss>
-</item>
-<item>
-<title>node.js 入门教程之三 -- npm</title>
-<link>https://blog.niekun.net/archives/2085.html</link>
-<guid>https://blog.niekun.net/archives/2085.html</guid>
-<pubDate>Tue, 26 Jan 2021 15:45:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[调用 node.js 文件node.js 有内建的 module system 模块系统，一个node.js 文件可以导入其他 node.js 文件内定义的功能。语法如下：const libra...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<h3>调用 node.js 文件</h3><p>node.js 有内建的 module system 模块系统，一个node.js 文件可以导入其他 node.js 文件内定义的功能。</p><p>语法如下：</p><pre><code>const library = require('./libs')</code></pre><p>和导入其他第三方模块类似使用 <strong>require</strong> 指令，需要指定 node.js 文件路径。以上示例表示导入当前目录下的 <strong>libs.js</strong> 文件。</p><p>js 文件中默认定义的 objects 等元素是私有的，不能够被外部使用。在被导入的文件中，需要在引用前 expose 暴漏出需要被外部使用的功能。需要使用到 module system 的 <strong>module.exports</strong> API 来实现。</p><!--more--><p>当给一个 <strong>object</strong> 或 <strong>function</strong> 赋予 <strong>exports</strong> 属性时，就表明这些元素可以暴漏给外部。<strong>有两种方法来实现</strong>。</p><p><strong>第一种方法</strong>是将某个 object 直接赋值给 <strong>module.exports</strong>，<strong>module.exports</strong> 是 module system 的一个 object 用来将某个 object 暴漏出来，且只能在一个文件中赋值给某一个元素，下面是一个示例：</p><p><strong>libs.js</strong> 文件：</p><pre><code>const person = {
-    name: 'marco',
-    age: 20
-}
-
-module.exports = person;</code></pre><p><strong>main.js</strong> 文件：</p><pre><code>const libs = require('./libs');
-
-console.log(libs.age);
-
-//OUTPUT:
-//20</code></pre><p>上面示例中，我们将 <strong>libs.js</strong> 文件的 <strong>person</strong> object 赋值给了 <strong>module.exports</strong>，在 <strong>main.js</strong> 中调用 <strong>libs.js</strong> 文件后，<strong>main.js</strong> 中的 <strong>libs</strong> object 就相当于 <strong>person</strong> object。</p><p>我们可以发现，这种定义方法可以将某个 node.js 文件中的一个 object 暴漏给外部使用。</p><p><strong>第二种方法</strong>是将需要暴漏的元素定义为 <strong>exports</strong> 的 properties，这种方式可以将多个 objects 或 function 暴漏给外部。</p><p>libs.js 文件：</p><pre><code>const person = {
-    name: 'marco',
-    age: 20
-}
-exports.person = person;
-
-exports.car = {
-    brand: 'bmw',
-    color: 'red'
-}</code></pre><p>main.js 文件：</p><pre><code>const libs = require('./libs');
-
-console.log(libs.person.age);
-console.log(libs.car.brand);
-
-//OUTPUT:
-//20
-//bmw</code></pre><p>以上示例中，我们先在 <strong>libs.js</strong> 中定义了两个 object，并都作为 <strong>exports</strong> 的一个 property，可以看到有两种方式定义。在 <strong>main.js</strong> 中调用后，通过调用 <strong>libs</strong> object 对应的 properties 名称即可调用对应暴露的元素。</p><h3>npm 包管理器</h3><p><strong>npm</strong> 是 <strong>node.js</strong> 的标准包管理器。</p><p>一开始，npm 作为下载和管理 node.js 包的依赖的工具，现在也成为了 JavaScript 前端开发工具。</p><h4>下载包</h4><p>如果项目中有 <strong>package.json</strong> 文件，可以通过下面指令自动安装所有在文件中定义的模块，安装路径为 <strong>node_modules</strong> 文件夹内：</p><pre><code>npm install
-</code></pre><p>安装某一个模块包：</p><pre><code>npm install &lt;package-name&gt;
-</code></pre><p>在项目中安装的包会自动添加条目到 <strong>package.json</strong> 文件中。也可以在安装时使用 <code>--save</code> 选项来添加到文件。</p><h4>更新包</h4><p>更新项目中所有包：</p><pre><code>npm update
-</code></pre><p>更新某一个包：</p><pre><code>npm update &lt;package-name&gt;
-</code></pre><h4>执行任务</h4><p><strong>package.json</strong> 文件内支持定义指定的命令行指令，通过下面的语法来执行：</p><pre><code>npm run &lt;task-name&gt;
-</code></pre><p>指令定义在 <strong>scripts</strong> 块内，例如：</p><pre><code>{
-  &quot;scripts&quot;: {
-    &quot;start&quot;: &quot;uname -r&quot;
-  }
-}</code></pre><p>此时我们在终端执行下面命令：</p><pre><code>$ npm run start
-Debugger attached.
-
-&gt; start
-&gt; uname -r
-
-5.8.0-38-generic
-Waiting for the debugger to disconnect...</code></pre><p>可以看到通过 run 定义命令的名称就可以执行对应的命令。</p><h4>包安装路径</h4><p>当使用 npm 安装包时，可以定义两种安装模式：</p><ul><li>local install 逻辑安装</li><li>global install 全局安装</li></ul><p>默认情况下当我们使用下面指令安装包：</p><pre><code>npm install chalk
-</code></pre><p>包会安装到当前项目路径下的 node_modules 文件夹内。此时 npm 会将对应包的信息写入 <strong>package.json</strong> 文件内的 <strong>dependencies</strong> 块内，如：</p><pre><code>{
-  &quot;dependencies&quot;: {
-    &quot;chalk&quot;: &quot;^4.1.0&quot;,
-    &quot;inquirer&quot;: &quot;^7.3.3&quot;,
-    &quot;minimist&quot;: &quot;^1.2.5&quot;,
-    &quot;progress&quot;: &quot;^2.0.3&quot;
-  }
-}</code></pre><p>全局安装通过 <code>-g</code> 标记实现：</p><pre><code>npm install -g chalk
-</code></pre><p>使用全局安装模式时，npm 不会将包安装到项目路径下，而是 <strong>global</strong> location 路径下。通过 <code>npm root -g</code> 命令可以返回 golbal 路径的地址，Linux 默认地址为：<code>/usr/local/lib/node_modules</code>，Windows 默认地址为：<code>C:\Users\YOU\AppData\Roaming\npm\node_modules</code>。</p><h4>可执行程序</h4><p>当安装一个包后，我们通过 <strong>require</strong> 关键词来调用模块：</p><pre><code>const inquirer = require('inquirer')
-</code></pre><p>当安装的包是可执行程序的时候呢？当安装的包含有可执行程序时，程序会放在 <code>node_modules/.bin/</code> 文件夹内，关于如何运行这些可执行程序，我们通过 <strong>cowsay</strong> 包来演示。</p><p>首先安装 <strong>cowsay</strong>，这里安装到 global 路径下：</p><pre><code>npm install -g cowsay
-</code></pre><p>我的 global 路径地址为：<code>/opt/node-v15.5.1-linux-x64/lib/node_modules</code>，可执行文件被安装在 <code>/opt/node-v15.5.1-linux-x64/bin/</code> 目录下：</p><pre><code>cowsay -&gt; ../lib/node_modules/cowsay/cli.js</code></pre><p>查看属性可以看到此可执行文件是指向 cli.js 的一个链接。</p><p>通过 <strong>npx</strong> 命令可以方便的执行此程序，不需要提供程序所在路径：</p><pre><code>$ npx cowsay wow
- _____
-&lt; wow &gt;
- -----
-        \   ^__^
-         \  (oo)\_______
-            (__)\       )\/\
-                ||----w |
-                ||     ||</code></pre><h3>package.json 文件</h3><p>package.json 文件是其项目的一个声明，它可以用来做一些完全没有关联的事情。例如，它是配置工具的仓库，也存储着 npm 安装的包的版本信息。</p><p>下面是最简单的文件形式：</p><pre><code>{}
-</code></pre><p>文件需要遵守 json 格式，否则无法被程序读取其定义的内容。没有什么内容是必须的，所以可以是一个简单的大括号。如果你要做一个通过 npm 分享的 node.js 包，那么 package.json 文件需要定义一些必须的属性以供了解这个包的信息，后面会做详细介绍。</p><p>下面是另一个示例：</p><pre><code>{
-  &quot;name&quot;: &quot;test-node&quot;
-}</code></pre><p>以上定义了一个 <strong>name</strong> property，定义了这个 app 或 package 的名称。文件和项目文件在同一文件夹下。</p><p>下面是一个更加复杂的示例：</p><pre><code>{
-  &quot;name&quot;: &quot;test-project&quot;,
-  &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;description&quot;: &quot;A Vue.js project&quot;,
-  &quot;main&quot;: &quot;src/main.js&quot;,
-  &quot;private&quot;: true,
-  &quot;scripts&quot;: {
-    &quot;dev&quot;: &quot;webpack-dev-server --inline --progress --config build/webpack.dev.conf.js&quot;,
-    &quot;start&quot;: &quot;npm run dev&quot;,
-    &quot;unit&quot;: &quot;jest --config test/unit/jest.conf.js --coverage&quot;,
-    &quot;test&quot;: &quot;npm run unit&quot;,
-    &quot;lint&quot;: &quot;eslint --ext .js,.vue src test/unit&quot;,
-    &quot;build&quot;: &quot;node build/build.js&quot;
-  },
-  &quot;dependencies&quot;: {
-    &quot;vue&quot;: &quot;^2.5.2&quot;
-  },
-  &quot;devDependencies&quot;: {
-    &quot;autoprefixer&quot;: &quot;^7.1.2&quot;,
-    &quot;babel-core&quot;: &quot;^6.22.1&quot;,
-    &quot;babel-eslint&quot;: &quot;^8.2.1&quot;,
-    &quot;babel-helper-vue-jsx-merge-props&quot;: &quot;^2.0.3&quot;,
-    &quot;babel-jest&quot;: &quot;^21.0.2&quot;,
-    &quot;babel-loader&quot;: &quot;^7.1.1&quot;,
-    &quot;babel-plugin-dynamic-import-node&quot;: &quot;^1.2.0&quot;,
-    &quot;babel-plugin-syntax-jsx&quot;: &quot;^6.18.0&quot;,
-    &quot;babel-plugin-transform-es2015-modules-commonjs&quot;: &quot;^6.26.0&quot;,
-    &quot;babel-plugin-transform-runtime&quot;: &quot;^6.22.0&quot;,
-    &quot;babel-plugin-transform-vue-jsx&quot;: &quot;^3.5.0&quot;,
-    &quot;babel-preset-env&quot;: &quot;^1.3.2&quot;,
-    &quot;babel-preset-stage-2&quot;: &quot;^6.22.0&quot;,
-    &quot;chalk&quot;: &quot;^2.0.1&quot;,
-    &quot;copy-webpack-plugin&quot;: &quot;^4.0.1&quot;,
-    &quot;css-loader&quot;: &quot;^0.28.0&quot;,
-    &quot;eslint&quot;: &quot;^4.15.0&quot;,
-    &quot;eslint-config-airbnb-base&quot;: &quot;^11.3.0&quot;,
-    &quot;eslint-friendly-formatter&quot;: &quot;^3.0.0&quot;,
-    &quot;eslint-import-resolver-webpack&quot;: &quot;^0.8.3&quot;,
-    &quot;eslint-loader&quot;: &quot;^1.7.1&quot;,
-    &quot;eslint-plugin-import&quot;: &quot;^2.7.0&quot;,
-    &quot;eslint-plugin-vue&quot;: &quot;^4.0.0&quot;,
-    &quot;extract-text-webpack-plugin&quot;: &quot;^3.0.0&quot;,
-    &quot;file-loader&quot;: &quot;^1.1.4&quot;,
-    &quot;friendly-errors-webpack-plugin&quot;: &quot;^1.6.1&quot;,
-    &quot;html-webpack-plugin&quot;: &quot;^2.30.1&quot;,
-    &quot;jest&quot;: &quot;^22.0.4&quot;,
-    &quot;jest-serializer-vue&quot;: &quot;^0.3.0&quot;,
-    &quot;node-notifier&quot;: &quot;^5.1.2&quot;,
-    &quot;optimize-css-assets-webpack-plugin&quot;: &quot;^3.2.0&quot;,
-    &quot;ora&quot;: &quot;^1.2.0&quot;,
-    &quot;portfinder&quot;: &quot;^1.0.13&quot;,
-    &quot;postcss-import&quot;: &quot;^11.0.0&quot;,
-    &quot;postcss-loader&quot;: &quot;^2.0.8&quot;,
-    &quot;postcss-url&quot;: &quot;^7.2.1&quot;,
-    &quot;rimraf&quot;: &quot;^2.6.0&quot;,
-    &quot;semver&quot;: &quot;^5.3.0&quot;,
-    &quot;shelljs&quot;: &quot;^0.7.6&quot;,
-    &quot;uglifyjs-webpack-plugin&quot;: &quot;^1.1.1&quot;,
-    &quot;url-loader&quot;: &quot;^0.5.8&quot;,
-    &quot;vue-jest&quot;: &quot;^1.0.2&quot;,
-    &quot;vue-loader&quot;: &quot;^13.3.0&quot;,
-    &quot;vue-style-loader&quot;: &quot;^3.0.1&quot;,
-    &quot;vue-template-compiler&quot;: &quot;^2.5.2&quot;,
-    &quot;webpack&quot;: &quot;^3.6.0&quot;,
-    &quot;webpack-bundle-analyzer&quot;: &quot;^2.9.0&quot;,
-    &quot;webpack-dev-server&quot;: &quot;^2.9.1&quot;,
-    &quot;webpack-merge&quot;: &quot;^4.1.0&quot;
-  },
-  &quot;engines&quot;: {
-    &quot;node&quot;: &quot;&gt;= 6.0.0&quot;,
-    &quot;npm&quot;: &quot;&gt;= 3.0.0&quot;
-  },
-  &quot;browserslist&quot;: [&quot;&gt; 1%&quot;, &quot;last 2 versions&quot;, &quot;not ie &lt;= 8&quot;]
-}</code></pre><p>包含了很多的属性设置：</p><ul><li><strong>version</strong> 表示当前版本号</li><li><strong>name</strong> 设置包名称</li><li><strong>description</strong> 对 app 简要的描述</li><li><strong>main</strong> 设置 app 的入口文件</li><li><strong>private</strong> 如果设置为 true 可以防止包被无意的发布到 npm</li><li><strong>scripts</strong> 定义可以运行的脚本命令</li><li><strong>dependencies</strong> npm 依赖包列表</li><li><strong>devDependencies</strong> 定义开发使用的 npm 包列表</li><li><strong>engines</strong> 设置 app 运行的 node 版本</li><li><strong>browserslist</strong> 指定支持的浏览器版本</li></ul><p>以上所有的属性都可以被 npm 或其他工具使用。</p><h4>常用属性</h4><p>下面介绍一些常规使用的属性，包括你在本地开发的项目也可以使用。</p><p><strong>name</strong> 定义app 名称：</p><pre><code>&quot;name&quot;: &quot;test-project&quot;
-</code></pre><p>name 必须小于 214 个字符，不能含有空格，只能包含<strong>小写字母，横杠<code>-</code> 或下划线<code>_</code></strong>。如果将包发布到 npm，会生成一个独有的链接。</p><p><strong>author</strong> 定义作者信息：</p><pre><code>&quot;author&quot;: &quot;marco &lt;me@niekun.net&gt; (https://niekun.net)&quot;
-</code></pre><p>或者：</p><pre><code>  &quot;author&quot;: {
-    &quot;name&quot;: &quot;marco&quot;,
-    &quot;email&quot;: &quot;me@niekun.net&quot;,
-    &quot;url&quot;: &quot;https://niekun.net&quot;
-  }</code></pre><p><strong>contributors</strong> 定义代码贡献者信息，可以包含多人：</p><pre><code>  &quot;contributors&quot;: [
-    {
-      &quot;name&quot;: &quot;marco&quot;,
-      &quot;email&quot;: &quot;me@niekun.net&quot;,
-      &quot;url&quot;: &quot;https://niekun.net&quot;
-    }
-  ]</code></pre><p><strong>bugs</strong> 定义反馈 bug 的链接，一般是 GitHub issue 页面：</p><pre><code>&quot;bugs&quot;: &quot;https://github.com/whatever/package/issues&quot;
-</code></pre><p><strong>homepage</strong> 定义包的主页链接：</p><pre><code>&quot;homepage&quot;: &quot;https://whatever.com/package&quot;
-</code></pre><p><strong>version</strong> 定义当前包的版本：</p><pre><code>&quot;version&quot;: &quot;1.0.0&quot;
-</code></pre><p>此属性遵守 semantic versioning (semver) notation 语义版本标记语法。也就是由三个数字表示：x.x.x</p><p><strong>license</strong> 定义包的授权信息：</p><pre><code>&quot;license&quot;: &quot;MIT&quot;
-</code></pre><p><strong>keywords</strong> 定义关于这个包实现功能的关键词，是一个数组：</p><pre><code>  &quot;keywords&quot;: [
-    &quot;learning&quot;,
-    &quot;nodejs&quot;
-  ]</code></pre><p>使用 keywords 可以帮助别人找到你的包，或者在 <a href="https://www.npmjs.com/">https://www.npmjs.com/</a> 网站上搜索关键词。</p><p><strong>description</strong> 定义一个对此 app 的简短描述：</p><pre><code>&quot;description&quot;: &quot;a node.js beginner guide&quot;
-</code></pre><p><strong>repository</strong> 定义项目仓库地址：</p><pre><code>&quot;repository&quot;: &quot;github:whatever/node-project&quot;
-</code></pre><p>注意如果不是使用的 GitHub 也可以定义其他工具：</p><pre><code>&quot;repository&quot;: &quot;gitlab:whatever/node-project&quot;
-</code></pre><p>也可以明确的定义版本控制系统信息：</p><pre><code>  &quot;repository&quot;: {
-    &quot;type&quot;: &quot;git&quot;,
-    &quot;url&quot;: &quot;https://github.com/whatever/testing.git&quot;
-  }</code></pre><p><strong>main</strong> 设置包的入口：</p><pre><code>&quot;main&quot;: &quot;./main.js&quot;
-</code></pre><p><strong>private</strong> 如果设置为 true，可以防止包被无意的发布到 npm：</p><pre><code>&quot;private&quot;: &quot;true&quot;
-</code></pre><p><strong>scripts</strong> 定义可执行的 node 脚本：</p><pre><code>  &quot;scripts&quot;: {
-    &quot;start&quot;: &quot;uname -r&quot;,
-    &quot;test&quot;: &quot;echo abcd&quot;
-  }</code></pre><p>定义的脚本是命令行程序，通过 npm run xxx 执行，如：</p><pre><code>npm run start
-</code></pre><p><strong>dependencies</strong> 定义 app 需要安装的 npm 依赖包：</p><pre><code>  &quot;dependencies&quot;: {
-    &quot;chalk&quot;: &quot;^4.1.0&quot;,
-    &quot;inquirer&quot;: &quot;^7.3.3&quot;,
-    &quot;minimist&quot;: &quot;^1.2.5&quot;,
-    &quot;progress&quot;: &quot;^2.0.3&quot;
-  }</code></pre><p>当通过 <code>npm install &lt;PACKAGENAME&gt;</code> 安装包，会自动将包写入 package.json 文件的 dependencies 块。</p><p><strong>devDependencies</strong> 定义 app 开发需要的 npm 依赖包：</p><pre><code>&quot;devDependencies&quot;: {
-  &quot;autoprefixer&quot;: &quot;^7.1.2&quot;,
-  &quot;babel-core&quot;: &quot;^6.22.1&quot;
-}</code></pre><p>和 <strong>dependencies</strong> 的区别是这里定义的包只是在开发设备上安装，而不需要在执行设备上安装。开发包通过以下命令安装：</p><pre><code>npm install --save-dev &lt;PACKAGENAME&gt;
-</code></pre><p><strong>engines</strong> 设置此包运行的 node 版本和其他命令版本：</p><pre><code>  &quot;engines&quot;: {
-    &quot;node&quot;: &quot;&gt;= 6.0.0&quot;,
-    &quot;npm&quot;: &quot;&gt;=3.0.0&quot;
-  }</code></pre><p><strong>browserslist</strong> 定义 app 支持的浏览器版本：</p><pre><code>&quot;browserslist&quot;: [
-  &quot;&gt; 1%&quot;,
-  &quot;last 2 versions&quot;,
-  &quot;not ie &lt;= 8&quot;
-]</code></pre><p>以上定义的意义是：支持所有类型浏览器的最近两个版本且需要至少有 1% 的占有率，不包括小于等于 IE8 版本的浏览器。浏览器占有率信息来自于 <a href="https://caniuse.com/">https://caniuse.com/</a> 统计。</p><h4>依赖包版本信息</h4><p>在 <strong>dependencies</strong> 和 <strong>devDependencies</strong> 中定义了依赖包列表，每个包都定义了版本信息，如：<strong>^0.13.0</strong> 或 <strong>~3.0.0</strong>，通过版本号前的符号可以们定义接受那些版本的升级，下面介绍版本标记的用法：</p><ul><li>无标记，如 1.0.0 定义只安装此版本的包</li><li><strong>latest</strong> 定义安装最新版本的包</li><li><strong>^</strong> 只能升级到不改变最左边第一个非零数字的版本，如定义 <strong>^0.13.0</strong>，通过 npm update 可以升级到 0.13.1 或 0.13.2，但不能升级到 0.14.0，定义 <strong>^1.13.0</strong>，能够升级到 1.13.1 或 1.14.0，不能升级到 2.0.0</li><li><strong>~</strong> 只能升级最后一位数字变化的版本，如 定义 <strong>~1.13.0</strong>，能够升级到 1.13.1，但不能升级到 1.14.0</li><li><strong>&gt;</strong> 接受大于定义的版本号的更新</li><li><strong>&gt;=</strong> 接受大于等于定义的版本号的更新</li><li><strong>&lt;</strong> 接受小于定义的版本号的更新</li><li><strong>&lt;=</strong> 接受小于等于定义的版本号的更新</li><li><strong>-</strong> 设置一个版本范围，如：1.0.0 - 2.0.0</li><li><strong>||</strong> 组合设置，如：&lt; 2.0.0 || &gt; 3.0.0</li></ul><p>更加详细的定义方法参考：<a href="https://nodejs.dev/learn/semantic-versioning-using-npm">https://nodejs.dev/learn/semantic-versioning-using-npm</a></p><h3>package-lock.json 文件</h3><p>在 npm 5 版本中 npm 引入了 package-lock.json 文件。</p><p>前面介绍了 package.json 文件，它是一个通用的被广泛使用的配置文件。package-lock.json 文件的目的是更加确切的追踪安装的依赖包的版本，以用来 100% 复制开发者的安装环境到其他安装者设备上，即使某些包已经够了更新版本。</p><p>这解决了一个 package.json 遗留的问题，在 package.json 中你可以定义某个包可接受的版本升级范围，版本格式遵守 semantic versioning (semver) notation 语义版本标记语法，例如：</p><ul><li><strong>~1.13.1</strong> 可以升级到 1.13.2，但不可以升级到 1.14.0</li><li><strong>^1.13.1</strong> 可以升级到 1.14.0，但不能升级到 2.0.0</li><li><strong>1.13.1</strong> 只能安装 1.13.1 版本，不能升级到其他任何版本</li></ul><p>你发布的包中并不包含开发环境中的  node_modules 文件夹因为它占用空间很大。当在其他设备中通过 <code>npm install</code>  命令安装依赖包时，竟会遵循上面定义的版本范围安装支持的最新版本到设备中，这就会导致用户安装的版本和你开发环境的版本不一致，可能导致 bug 的出现。</p><p>package-lock.json 中定义了你当前开发环境安装的各种依赖包的准确版本，这样通过 <code>npm install</code> 命令安装的就是其中定义的准确版本。</p><p>这一概念并不是 npm 独创的，其他编程语言也在使用类似的模式，如 php 的 Composer。</p><p>package-lock.json 文件需要打包在仓库中，以供其他人使用。当使用 <code>npm update</code> 更新包时，package-lock.json 中的定义也会同步更新。</p><p>下面是一个 package-lock.json 文件的示例，当我们执行 <code>npm install cowsay</code> 时，会创建以下内容：</p><pre><code>{
-  &quot;requires&quot;: true,
-  &quot;lockfileVersion&quot;: 1,
-  &quot;dependencies&quot;: {
-    &quot;ansi-regex&quot;: {
-      &quot;version&quot;: &quot;3.0.0&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/ansi-regex/-/ansi-regex-3.
-0.0.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-7QMXwyIGT3lGbAKWa922Bas32Zg=&quot;
-    },
-    &quot;cowsay&quot;: {
-      &quot;version&quot;: &quot;1.3.1&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/cowsay/-/cowsay-1.3.1.tgz&quot;
-,
-      &quot;integrity&quot;: &quot;sha512-3PVFe6FePVtPj1HTeLin9v8WyLl+VmM1l1H/5P+BTTDkM
-Ajufp+0F9eLjzRnOHzVAYeIYFF5po5NjRrgefnRMQ==&quot;,
-      &quot;requires&quot;: {
-        &quot;get-stdin&quot;: &quot;^5.0.1&quot;,
-        &quot;optimist&quot;: &quot;~0.6.1&quot;,
-        &quot;string-width&quot;: &quot;~2.1.1&quot;,
-        &quot;strip-eof&quot;: &quot;^1.0.0&quot;
-      }
-    },
-    &quot;get-stdin&quot;: {
-      &quot;version&quot;: &quot;5.0.1&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/get-stdin/-/get-stdin-5.0.
-1.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-Ei4WFZHiH/TFJTAwVpPyDmOTo5g=&quot;
-    },
-    &quot;is-fullwidth-code-point&quot;: {
-      &quot;version&quot;: &quot;2.0.0&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/is-fullwidth-code-point/-/
-is-fullwidth-code-point-2.0.0.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-o7MKXE8ZkYMWeqq5O+764937ZU8=&quot;
-    },
-    &quot;minimist&quot;: {
-      &quot;version&quot;: &quot;0.0.10&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/minimist/-/minimist-0.0.10
-.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-3j+YVD2/lggr5IrRoMfNqDYwHc8=&quot;
-    },
-    &quot;optimist&quot;: {
-      &quot;version&quot;: &quot;0.6.1&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/optimist/-/optimist-0.6.1.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-2j6nRob6IaGaERwybpDrFaAZZoY=&quot;,
-
-      &quot;requires&quot;: {
-        &quot;minimist&quot;: &quot;~0.0.1&quot;,
-        &quot;wordwrap&quot;: &quot;~0.0.2&quot;
-      }
-    },
-    &quot;string-width&quot;: {
-      &quot;version&quot;: &quot;2.1.1&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/string-width/-/string-width-2.1.1.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha512-nOqH59deCq9SRHlxq1Aw85Jnt4w6KvLKqWVik6oA9ZklXLNIOlqg4F2yrT1MVaTjAqvVwdfeZ7w7aCvJD7ugkw==&quot;,
-      &quot;requires&quot;: {
-        &quot;is-fullwidth-code-point&quot;: &quot;^2.0.0&quot;,
-        &quot;strip-ansi&quot;: &quot;^4.0.0&quot;
-      }
-    },
-    &quot;strip-ansi&quot;: {
-      &quot;version&quot;: &quot;4.0.0&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/strip-ansi/-/strip-ansi-4.0.0.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-qEeQIusaw2iocTibY1JixQXuNo8=&quot;,
-      &quot;requires&quot;: {
-        &quot;ansi-regex&quot;: &quot;^3.0.0&quot;
-      }
-    },
-    &quot;strip-eof&quot;: {
-      &quot;version&quot;: &quot;1.0.0&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/strip-eof/-/strip-eof-1.0.0.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-u0P/VZim6wXYm1n80SnJgzE2Br8=&quot;
-    },
-    &quot;wordwrap&quot;: {
-      &quot;version&quot;: &quot;0.0.3&quot;,
-      &quot;resolved&quot;: &quot;https://registry.npmjs.org/wordwrap/-/wordwrap-0.0.3.tgz&quot;,
-      &quot;integrity&quot;: &quot;sha1-o9XabNXAvAAI03I0u68b7WMFkQc=&quot;
-    }
-  }
-}</code></pre><p>我们安装的 cowsay 有如下依赖，它们会被自动安装：</p><ul><li>get-stdin</li><li>optimist</li><li>string-width</li><li>strip-eof</li></ul><p>以上的依赖包可能也会有它们各自的其他依赖包，会自动安装相关其他包，每个包的依赖包在 <strong>requires</strong> 属性中定义。</p><p>所有的包以字母排序顺序在文件中。每个包都有 <strong>version</strong> 属性定义了各自当前安装的版本，<strong>resolved</strong> 定义了包地址，<strong>integrity</strong> 字符串用来验证包。</p><h3>包版本管理及安装</h3><p>下面的指令查询当前安装的所有包及其依赖包：</p><pre><code>npm list
-</code></pre><p>输出信息示例：</p><pre><code>❯ npm list
-/Users/joe/dev/node/cowsay
-└─┬ cowsay@1.3.1
-  ├── get-stdin@5.0.1
-  ├─┬ optimist@0.6.1
-  │ ├── minimist@0.0.10
-  │ └── wordwrap@0.0.3
-  ├─┬ string-width@2.1.1
-  │ ├── is-fullwidth-code-point@2.0.0
-  │ └─┬ strip-ansi@4.0.0
-  │   └── ansi-regex@3.0.0
-  └── strip-eof@1.0.0</code></pre><p>当然也可以直接打开 package-lock.json 文件查看，但这样不太方便观察结构。</p><p><code>npm list -g</code> 用来查看 global 安装的包。</p><p>如果只想查询顶层的包，也就是你主动通过 <code>npm install</code> 安装的那些包，可通过 <code>npm list --depth=0</code> 查询：</p><pre><code>❯ npm list --depth=0
-/Users/joe/dev/node/cowsay
-└── cowsay@1.3.1</code></pre><p>也可以单独查询某个包：</p><pre><code>❯ npm list cowsay
-/Users/joe/dev/node/cowsay
-└── cowsay@1.3.1</code></pre><p>使用下面命令查询某个包当前发布的最新版本：</p><pre><code>❯ npm view cowsay version
-1.4.0</code></pre><p>要安装某个包的特定版本需要加上 <code>@</code> 标记：</p><pre><code>npm install cowsay@1.2.0
-</code></pre><p>查看某个包的所有历史版本列表：</p><pre><code>$ npm view cowsay versions
-[
-  '1.0.0', '1.0.1', '1.0.2',
-  '1.0.3', '1.1.0', '1.1.1',
-  '1.1.2', '1.1.3', '1.1.4',
-  '1.1.5', '1.1.6', '1.1.7',
-  '1.1.8', '1.1.9', '1.2.0',
-  '1.2.1', '1.3.0', '1.3.1',
-  '1.4.0'
-]</code></pre><p>通过 <code>npm update</code> 可以更新所有已安装的包，更新版本规则遵循 package.json 定义的版本升级范围，同时会更新 package-lock.json 文件内的当前包版本信息。</p><p>想要查询当前有哪些包有更新版本时，可以执行 <code>npm outdated</code> 命令：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/1402612766.png" alt="2021-01-29T01:29:02.png" title="2021-01-29T01:29:02.png"></p><p>其中有些更新是大版本更新， <code>npm update</code> 并不会更新到这些大版本，因为这些更新可能包含有重大的变化。如果要强制更新到最新的版本包括大版本更新，可以按顺序执行下面的命令：</p><pre><code>npm install -g npm-check-updates
-ncu -u
-npm update</code></pre><p>使用下面命令卸载某个包：</p><pre><code>npm uninstall &lt;package-name&gt;
-</code></pre><p>添加 <code>-S</code> 或 <code>--save</code> 标记删除 package.json 中的相关信息。如果要删除的包是一个开发包，在 devDependencies 中定义过，则需要添加 <code>-D</code> 或 <code>--save-dev</code> 标记来删除相关信息：</p><pre><code>npm uninstall -S &lt;package-name&gt;
-npm uninstall -D &lt;package-name&gt;</code></pre><p>如果包是 global 安装的，则卸载需要添加 <code>-g</code> 标记：</p><pre><code>npm uninstall -g &lt;package-name&gt;
-</code></pre><h3>npm local 和 global 安装</h3><p>本地包和全局包的区别是本地包通过 <code>npm install</code> 安装到当前项目下的 node_modules 文件夹内，全局包通过 <code>npm install -g</code> 安装到系统路径下，路径地址可通过 <code>npm root -g</code> 查询。</p><p>在程序中，只能 require 本地包：</p><pre><code>require('package-name')
-</code></pre><p>通常情况下推荐所有的包都以本地模式安装。这可以让不同的程序使用各自不同版本的包。更新一个全局包会同时影响所有使用这个包的 app。</p><p>当一个包含有可执行程序时，应该安装为 global 全局包。这样所有的项目都可以调用执行。</p><h3>npm dependencies 和 devDependencies</h3><p>当通过 npm intall 安装包时，表示将包作为 dependency。包信息会自动写入 package.json 文件的 dependencies 块内。当安装时添加 <code>-D</code> 标记，表示将包作为 devdependency 安装。包信息会自动写入 devDependencies 块内。</p><p>开发包的目的是用来开发程序时使用，作为产品运行时是不需要的。</p><p>执行 npm install 会默认安装这些开发包。如果不需要安装开发包需要加上 <code>--production</code> 标记：</p><pre><code>npm install --production xxx
-</code></pre><h3>npx 包运行器</h3><p>npx 可以用来运行 node.js 程序。node.js 开发者通常将大部分含有可执行程序的包作为 global 包发布，这样就使得可执行程序在系统 PATH 路径下可以被直接执行。但这样的弊端就是不能安装不同版本的包。</p><p>使用 npx 命令可以自动寻找 node_modules 文件夹内的对应的名称的可执行程序，而不需要知道程序具体的路径，也不需要以 global 方式安装包。</p><p>npx 另一个很好的功能是可以直接运行某些命令而不需要提前安装它们，还可以通过 <code>@</code> 标记来执行不同版本的同一命令。</p><p>cowsay 是一个很好的示例来说明 npx 的使用，如果我们以 global 模式安装 cowsay，可以通过下面方式执行：</p><pre><code>cowsay &quot;wow&quot;
-</code></pre><p>以上命令只有通过 global 方式安装才能够正常执行，否则会报错提示命令不存在。</p><p>如果以 local 方式安装 cowsay，可以通过 npx 执行：</p><pre><code>npx cowsay &quot;Hello&quot;
-</code></pre><p>通过 <code>@</code> 标记来执行不同版本的命令：</p><pre><code>npx node@10 -v #v10.18.1
-npx node@12 -v #v12.14.1</code></pre><p>npm 也可以直接执行来自 url 的任意代码片段，而不仅限于 npm 官方渠道发布的包。下面示例是执行部署在 glist 的包：</p><pre><code>npx https://gist.github.com/zkat/4bc19503fe9e9309e2bfaa2c58074d32
-</code></pre><p>可执行程序路径定义在 package.json 文件的 bin 属性内。</p><p>glist 包含内容如下：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/1152197546.jpg" alt="1.jpg" title="1.jpg"></p><p>当然执行不受控制网络的代码需要多加注意。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2085.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2085.html</wfw:commentRss>
-</item>
-<item>
-<title>node.js 入门教程之二 -- Getting Started</title>
-<link>https://blog.niekun.net/archives/2051.html</link>
-<guid>https://blog.niekun.net/archives/2051.html</guid>
-<pubDate>Sat, 09 Jan 2021 15:48:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[V8 JavaScript EngineV8 是 chrome 浏览器的 JavaScript Engine 名称，它是用来在 chrome 中获取和执行 JavaScript 代码的工具。V8...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<h3>V8 JavaScript Engine</h3><p>V8 是 chrome 浏览器的 JavaScript Engine 名称，它是用来在 chrome 中获取和执行 JavaScript 代码的工具。V8 提供了一个 JavaScript 的运行环境，DOM 及其他 web API 是由 browser 提供的。</p><p>JavaScript Engine 是独立于其所寄生的浏览器的，这一特性才使 node.js 得以诞生。node.js 选择了 V8 Engine 且随着 node.js 的不断成长，大量服务端通过 JavaScript 编写的程序使用 v8 Engine。</p><p>基于 V8 同样可以创造桌面应用，例如 Electron 项目。</p><p>不同的浏览器有着各自的 Engine：</p><ul><li><strong>Firefox</strong> has SpiderMonkey</li><li><strong>Safari</strong> has JavaScriptCore (also called Nitro)</li><li><strong>Edge</strong> was originally based on Chakra but has more recently been rebuilt using Chromium and the V8 engine.</li></ul><p>所有的 Engine 都遵守 ECMAScript 标准。</p><!--more--><p>在最初时候 JavaScript 被作为一种  interpreted language 解释型语言。但是现代 JavaScript Engine 不在单单 interpret 解释代码，而是要 compile 编译代码。</p><p>从 2009 年起，Firefox 将 SpiderMonkey 编译器集成到浏览器中，从此大家都开始引入这一方案。</p><p>JavaScript 代码被 V8 通过内部的 just-in-time (JIT) 编译器编译来提高执行效率。</p><h3>命令行运行 node.js 代码</h3><p>一般情况下在安装好 node.js 后，可以通过 node 命令执行 node.js 代码，需要传递被执行文件的路径：</p><pre><code>node app.js
-</code></pre><h3>触发信号的使用</h3><p>当在终端中执行 node.js 程序时，可以通过快捷键 <code>ctrl C</code> 退出程序。当我们下面介绍如果通过更加<strong>程序化的方式</strong>实现退出动作。</p><p><strong>首先介绍第一种比较直接粗暴的方式</strong>：</p><pre><code>process.exit()
-</code></pre><p>通过调用 <strong>precess</strong> 模块的 <strong>exit</strong> function ，进程会立即被强行终止。这意味着任何它当前挂起的任务，正在传输的数据，对文件的访问和读写等都会被以一种不友好的方式终止掉。</p><p><strong>process</strong> 不需要通过 <strong>require</strong> 的方式引入，他是默认被包含的。</p><p>你可以传递一个整型数字作为 exit code 退出码，不写的话默认为 <code>0</code>：</p><pre><code>process.exit(1)
-</code></pre><p>不同的退出码有不同的意义，你可以使用不同的退出码来和其他程序响应。各种退出码的意义：<a href="https://nodejs.org/api/process.html#process_exit_codes">https://nodejs.org/api/process.html#process_exit_codes</a></p><p>你也可以提前设置退出码：</p><pre><code>process.exitCode = 1
-</code></pre><p>在后续执行到 <code>process.exit</code> 时会返回此处设置的值。</p><p><strong>下面介绍更加友好的退出方式</strong>。</p><p>在上一节中，我们介绍了通过 http 模块搭建一个简单的 web 服务器，使用 express 模块也可以搭建 web 服务器，默认没有安装此模块，首先需要通过 npm 进行安装，模块会安装到当前路径下：</p><pre><code>npm install express
-</code></pre><p>新建 js 文件，内容如下：</p><pre><code>const express = require('express')
-const app = express()
-
-app.get('/', (req, res) =&gt; {
-  res.send('Hi!')
-})
-
-const server = app.listen(3000, () =&gt; console.log('Server ready'))</code></pre><p>打开浏览器访问本地 3000 端口即可看到输出。</p><p>这个 web 服务会一直进行下去，如果调用了 <code>process.exit()</code>，当前的响应会立刻被终止，这是显然不太好的。</p><p>我们可以通过发送一个 <strong>SIGTERM</strong> 信号，然后处理对这个信号的响应。响应的动作可以是关闭这个 web 服务，上面的示例增加如下代码：</p><pre><code>process.on('SIGTERM', () =&gt; {
-    server.close(() =&gt; console.log('process termimated'));
-});</code></pre><p>这里我们监控一个 <strong>SIGTERM</strong> signal 作为一个 event 事件，然后响应关闭服务器的动作。</p><p><code>process.on</code> 叫做 <strong>signal handler</strong> 信号响应器，用来定义接受的信号及对应的响应动作。这里定义当 <strong>SIGTERM</strong> 信号被触发后，执行关闭 server 动作及输出 log。</p><p><strong>SIGTERM</strong> 是告诉系统将进程友好终止的信号。此信号被触发后，首先会执行 <strong>signal handler</strong> 信号响应器所定义的响应动作，也就是关闭 web 服务器，最后再终止对应进程。</p><p><strong>SIGTERM</strong> 信号一般是由进程管理器，如：<strong>upstart</strong>，<strong>supervisord</strong> 发出。这里我们在程序内部触发此信号：</p><pre><code>setTimeout(() =&gt; {
-    process.kill(process.pid, 'SIGTERM')
-}, 3000);</code></pre><p><code>process.kill()</code> method 用来将 <strong>signal</strong> 信号发送给对应 <strong>pid</strong> 进程。语法如下：</p><pre><code>process.kill(pid, signal)
-</code></pre><ul><li><strong>pid</strong> <number> 进程 ID</li><li><strong>signal</strong> <string> | <number> 要发送的信号, 大写字母的字符串或数字. 默认为: 'SIGTERM'</li></ul><p>当 pid 对应进程不存在时将会 throw 一个 error。<code>process.pid</code> 返回值为当前程序的进程 ID。</p><p>虽然 <code>process.kill</code> 名称看起来是要终止一个进程，但是他的确仅仅是一个 <strong>signal sender</strong> 信号发送器。具体会有什么样的结果完全取决于发送的是什么信号，以及对应信号的响应。<strong>kill</strong> method 的文档：<a href="https://nodejs.org/api/process.html#process_process_kill_pid_signal">https://nodejs.org/api/process.html#process_process_kill_pid_signal</a></p><p>以上示例中，加入对 <strong>SIGTERM</strong> 信号的触发和响应后，效果为：首先开启一个 web 服务器，3 秒后会尝试关闭此服务器并输出 log，此处会等待服务器完全结束当前 request 才会结束，最后终止进程：</p><pre><code>$ node express.js 
-Server ready
-process termimated</code></pre><p>注意 Windows 下 <strong>signal handler</strong> 信号响应器会无效，以上示例如果在 Windows 下执行不会输出最后一行 log 信息。</p><p><strong>常见的信号：</strong></p><ul><li><strong>SIGTERM</strong> 告诉系统需要友好的终止某个进程</li><li><strong>SIGKILL</strong> 立即结束对应进程，类似于 <code>process.exit()</code> 的效果</li><li><strong>beforeExit</strong> 进程退出前会触发此信号</li><li><strong>exit</strong> 进程退出时会触发此信号</li></ul><p>下面是一个对部分信号触发时间的测试：</p><pre><code>process.on(&quot;beforeExit&quot;, () =&gt;
-    console.log(&quot;before exit&quot;));
-
-process.on(&quot;exit&quot;, () =&gt;
-    console.log(&quot;exit&quot;));
-
-console.log(&quot;running&quot;);</code></pre><p>以上程序执行后输出信息如下：</p><pre><code>$ node process.js 
-running
-before exit
-exit</code></pre><p>更多信号的意义参考：<a href="https://man7.org/linux/man-pages/man7/signal.7.html">signal(7) — Linux manual page</a><br>更多使用方法参考：<a href="https://nodejs.org/api/process.html#process_signal_events">Signal events</a></p><h3>环境变量的读取</h3><p>node.js 的核心模块 <strong>process</strong> 提供了 <strong>env</strong> properties 寄存了当前程序开始时的所有 environment variables 环境变量。执行以下命令可以输出所有变量：</p><pre><code>console.log(process.env);
-</code></pre><p>查看某一个变量：</p><pre><code>console.log(process.env.HOME);
-
-//-&gt; /home/marco</code></pre><p>也可以设置自定义的环境变量并给其赋值：</p><pre><code>console.log(process.env.TEST);
-process.env.TEST = &quot;dev&quot;;
-console.log(process.env.TEST);
-
-// output:
-// undefined
-// dev</code></pre><h3>node.js REPL</h3><p>通常情况下我们将代码写在 js 文件中，然后通过 node 命令执行：</p><pre><code>node app.js
-</code></pre><p>如果不指定需要执行的 js 文件，则会进入 REPL (Read Evaluate Print Loop) 编程环境，可以通过直接输入指令，逐行执行代码。</p><p>进入 REPL：</p><pre><code>$ node
-Welcome to Node.js v15.5.1.
-Type &quot;.help&quot; for more information.
-&gt; </code></pre><p>尝试输出 log 信息：</p><pre><code>&gt; console.log('test')
-test
-undefined
-&gt; </code></pre><p>可以发现首先会输出指定的字符串内容，然后输出 <strong>undefined</strong>，它是 <code>console.log</code> function 的返回值。</p><p>同样在 REPL 中也可以使用 tab 键来自动补全指令名称。</p><p>输入 JavaScript object 名称和符号点<code>.</code>，然后点击 tab 键会输出指定 object 的所有 properties。例如 Array：</p><pre><code>&gt; Array.
-Array.__defineGetter__      Array.__defineSetter__      Array.__lookupGetter__      Array.__lookupSetter__
-Array.__proto__             Array.hasOwnProperty        Array.isPrototypeOf         Array.propertyIsEnumerable
-Array.toLocaleString        Array.valueOf
-
-Array.apply                 Array.arguments             Array.bind                  Array.call
-Array.caller                Array.constructor           Array.toString
-
-Array.from                  Array.isArray               Array.length                Array.name
-Array.of                    Array.prototype
-
-&gt; Array.</code></pre><p>使用这种方式输出  global objects 全局可用的所有 objects：</p><pre><code>&gt; global.
-global.__defineGetter__      global.__defineSetter__      global.__lookupGetter__      global.__lookupSetter__
-global.__proto__             global.hasOwnProperty        global.isPrototypeOf         global.propertyIsEnumerable
-global.toLocaleString        global.toString              global.valueOf
-
-global.constructor
-
-global.AbortController       global.AbortSignal           global.AggregateError        global.Array
-global.ArrayBuffer           global.Atomics               global.BigInt                global.BigInt64Array
-global.BigUint64Array        global.Boolean               global.Buffer                global.DataView
-global.Date                  global.Error                 global.EvalError             global.Event
-global.EventTarget           global.FinalizationRegistry  global.Float32Array          global.Float64Array
-global.Function              global.Infinity              global.Int16Array            global.Int32Array
-global.Int8Array             global.Intl                  global.JSON                  global.Map
-global.Math                  global.MessageChannel        global.MessageEvent          global.MessagePort
-global.NaN                   global.Number                global.Object                global.Promise
-global.Proxy                 global.RangeError            global.ReferenceError        global.Reflect
-global.RegExp                global.Set                   global.SharedArrayBuffer     global.String
-global.Symbol                global.SyntaxError           global.TextDecoder           global.TextEncoder
-global.TypeError             global.URIError              global.URL                   global.URLSearchParams
-global.Uint16Array           global.Uint32Array           global.Uint8Array            global.Uint8ClampedArray
-global.WeakMap               global.WeakRef               global.WeakSet               global.WebAssembly
-global._                     global._error                global.assert                global.async_hooks
-global.buffer                global.child_process         global.clearImmediate        global.clearInterval
-global.clearTimeout          global.cluster               global.console               global.constants
-global.crypto                global.decodeURI             global.decodeURIComponent    global.dgram
-global.diagnostics_channel   global.dns                   global.domain                global.encodeURI
-global.encodeURIComponent    global.escape                global.eval                  global.events
-global.fs                    global.global                global.globalThis            global.http
-global.http2                 global.https                 global.inspector             global.isFinite
-global.isNaN                 global.module                global.net                   global.os
-global.parseFloat            global.parseInt              global.path                  global.perf_hooks
-global.process               global.punycode              global.querystring           global.queueMicrotask
-global.readline              global.repl                  global.require               global.setImmediate
-global.setInterval           global.setTimeout            global.stream                global.string_decoder
-global.sys                   global.timers                global.tls                   global.trace_events
-global.tty                   global.undefined             global.unescape              global.url
-global.util                  global.v8                    global.vm                    global.wasi
-global.worker_threads        global.zlib
-
-&gt; global.</code></pre><p>REPL 有一些特殊指令，以 <code>.</code> 开始：</p><ul><li><code>.help</code>: shows the dot commands help</li><li><code>.editor</code>: enables editor mode, to write multiline JavaScript code with ease. Once you are in this mode, enter ctrl-D to run the code you wrote.</li><li><code>.break</code>: when inputting a multi-line expression, entering the .break command will abort further input. Same as pressing ctrl-C.</li><li><code>.clear</code>: resets the REPL context to an empty object and clears any multi-line expression currently being input.</li><li><code>.load</code>: loads a JavaScript file, relative to the current working directory</li><li><code>.save</code>: saves all you entered in the REPL session to a file (specify the filename)</li><li><code>.exit</code>: exits the repl (same as pressing ctrl-C two times)</li></ul><h3>来自命令行的传递参数</h3><p>在执行某个 js 文件时，你可以传入任意个数的数据作为传入参数供程序内使用。参数可以是独立的，也可以是以 key/value 形式：</p><pre><code>node app.js jon
-node appljs name=jon age=20</code></pre><p>如果使用第二种方式，则需要对其进行解析，后面会介绍。</p><p>通过访问 <strong>process</strong> 模块的 <strong>argv</strong> property 可以 retrieve 这些传入参数，<strong>argv</strong> 是一个数组，它的首个元素是 node 可执行文件路径，第二个元素是当前执行的 js 文件路径，其他元素就是传入参数数据。</p><p>我们新建 argv.js 文件内容如下：</p><pre><code>process.argv.forEach((val, index) =&gt; {
-    console.log(`${index}: ${val}`);
-});</code></pre><p>执行以下指令：</p><pre><code>$ node argv.js ABC
-0: /opt/node-v15.5.1-linux-x64/bin/node
-1: /mnt/hgfs/Development/node.js/argv.js
-2: ABC</code></pre><p>可以看到第三个元素是我们传入的数据。</p><p>可以通过 array 的 <strong>slice</strong> method 将所有传入参数单独提取出来：</p><pre><code>const val = process.argv.slice(2);
-</code></pre><p><strong>slice</strong> 语法如下：</p><pre><code>array.slice(start, end)
-</code></pre><p>将指定的数组范围内的元素生成一个新数组并返回，<strong>start</strong> 参数为起始元素索引，<strong>end</strong> 为终止元素索引，<strong>end</strong> 默认值为原数组最后一个元素。</p><p><strong>如果传入参数没有定义索引 key：</strong></p><pre><code>node app.js jon
-</code></pre><p>使用以下方法调用：</p><pre><code>const val = process.argv.slice(2);
-console.log(val[0]);</code></pre><p><strong>如果传入参数定义了索引 key：</strong></p><pre><code>node app.js name=jon
-</code></pre><p>此时 <strong>args[0]</strong> 的值为 <strong>name=joe</strong>，需要对其进行解析操作，最简单的是使用 minimist 库实现(先通过 <strong>npm</strong> 安装)：</p><pre><code>const args = require('minimist')(process.argv.slice(2));
-console.log(args['name']);
-console.log(args['age']);</code></pre><p>此时我们需要在传入参数的索引 key 前加双横杠<code>--</code>:</p><pre><code>$ node argv.js --name=jon --age=20
-jon
-20</code></pre><h3>命令行输出</h3><p>node.js 提供了一个 <strong>console</strong> 模块提供了很多有用的方法来在命令行下交互信息。它同浏览器下的 <strong>console</strong> object 类似。</p><p>最基础的就是 <code>console.log</code> method，可以将传入数据输出为字符串到终端。如果传入一个 object，会将其渲染为 string。</p><p>你可以输出多个数据，例如：</p><pre><code>let a = 1;
-let b = 2;
-console.log(a, b);
-
-//output:
-//1 2</code></pre><p>可以使用连接符来组合字符串和变量：</p><pre><code>console.log('num1 is ' + a + ', num2 is ' + b)
-</code></pre><p>通过传入变量和一个对应的 format specifier 格式占位符来使格式解析更加明晰：</p><pre><code>console.log('num1 is %s, num2 is %s', a, b)
-</code></pre><ul><li><strong>%s</strong> 格式化一个变量成字符串</li><li><strong>%d</strong> 格式化一个变量成数字</li><li><strong>%i</strong> 格式化一个变量成整数</li><li><strong>%o</strong> 格式化一个变量为 object</li></ul><p>调用 <strong>clear</strong> method 可以清空当前终端的信息:</p><pre><code>console.clear();
-</code></pre><p><strong>count</strong> method 可以实现对一个输出字符串的累计计数，输出字符串的同时会显示此字符串已经输出的次数，执行以下代码：</p><pre><code>console.count('count1')
-console.count('count2')
-console.count('count1')
-console.count('count1')</code></pre><p>输出结果为：</p><pre><code>count1: 1
-count2: 1
-count1: 2
-count1: 3</code></pre><p>结合 <strong>time</strong> 和 <strong>timeEnd</strong> method 可以计算执行一段代码花费的时间：</p><pre><code>const doSomeThing = () =&gt; console.log('test');
-const measureTime = () =&gt; {
-    console.time();
-    doSomeThing();
-    console.timeEnd();
-}
-measureTime()
-
-//output:
-//test
-//default: 5.937ms</code></pre><p>以上示例中，调用 <code>console.time()</code> 开始计时，调用 <code>console.timeEnd()</code> 终止计时并返回总时间。</p><p>通过 <code>console.log</code> 等输出到终端的信息称之为 standard 标准输出：<strong>stdout</strong>，通过 <code>console.error</code> 会输出到 <strong>stderr</strong> stream 流，不会显示到终端而是输出到了 error log。</p><p>可以通过  <code>escape sequences</code> 转义序列来给输出信息添加颜色，执行下面示例：</p><pre><code>console.log('\x1b[31m%s, \x1b[33m%s', 'hello', 'world')
-</code></pre><p>输出如下：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/4134573984.png" alt="2021-01-12T07:41:15.png" title="2021-01-12T07:41:15.png"></p><p><code>\x1b[</code> 后跟对应颜色的数字编号即可：</p><ul><li>30m    Black</li><li>31m    Red</li><li>32m    Green</li><li>33m    Yellow</li><li>34m    Blue</li><li>35m    Purple</li><li>36m    Cyan</li><li>37m    White</li></ul><p>但这种方法比较麻烦，输入也不太友好。</p><p>最好的方式是通过 Chalk 库来实现这个功能，它不仅可以修改颜色，还可以设置粗体，下划线，斜体等效果。需要通过 <code>npm install chalk</code> 安装库。</p><p>使用方法如下：</p><pre><code>const chalk = require('chalk')
-console.log(chalk.yellow('hello world'))</code></pre><p>这种方法使代码更加清晰可读。更多 chalk 使用方法参考：<a href="https://github.com/chalk/chalk">https://github.com/chalk/chalk</a></p><p><strong>创建进度条</strong></p><p>Progress 模块可以用来在终端创建进度条效果，通过 <code>npm install progress</code> 安装。</p><p>下面示例创建一个 10 级的进度条，每 100 ms 进一格，完成后取消定时器：</p><pre><code>const ProgressBar = require('progress')
-
-const bar = new ProgressBar(':bar', { total: 10 })
-const timer = setInterval(() =&gt; {
-    bar.tick();
-    if (bar.complete) {
-        clearInterval(timer);
-    }
-}, 100);</code></pre><p>每调用一次 <code>bar.tick()</code> 就会前进一格，可以在程序中添加进度条来提示进度。</p><h3>命令行输入</h3><p>下面介绍如何在命令行下进行输入输出交互。</p><p>node.js 从 version 7 开始提供了 <strong>readline</strong> module 可以在程序运行期间获取一个可读取的 stream 流的数据，如 <strong>process.stdin</strong> stream，一次读取一行数据。</p><p>请看下面示例：</p><pre><code>const readline = require('readline').createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-
-readline.question(&quot;what is your name\n&quot;, name =&gt; {
-    console.log(`Hi, ${name}`);
-    readline.close();
-});
-
-//output:
-//what is your name
-//marco
-//Hi, marco</code></pre><p><strong>question()</strong> method 显示第一个参数数据到命令行，然后等待用户输入数据，当用户输入数据并敲回车后会自动调用定义的 function，并将输入数据作为传入数据。</p><p>readline 的更多用法参考：<a href="https://nodejs.org/api/readline.html">https://nodejs.org/api/readline.html</a></p><p>但需要输入一个密码时，我们希望在输入时可以隐藏输入的信息，我们可以通过 <strong>Inquirer.js</strong> 模块来实现需求。</p><p><strong>Inquirer.js</strong> 项目地址：<a href="https://github.com/SBoudrias/Inquirer.js">https://github.com/SBoudrias/Inquirer.js</a></p><p>通过 npm 安装：</p><pre><code>npm install inquirer
-</code></pre><p><strong>inquirer</strong> 可以实现很多输入交互方式，如：常规输入，密码，列表，选项框等，下面举例说明：</p><pre><code>const inquirer = require('inquirer')
-
-var questions = [
-    {
-        type: 'input',
-        name: 'name',
-        message: 'what is your name\n',
-        default: function () {
-            return 'Doe';
-        }
-    },
-    {
-        type: 'input',
-        name: 'age',
-        message: 'how old are you?\n'
-    },
-    {
-        type: 'input',
-        name: 'phone number',
-        message: 'please input your phone number\n',
-        validate: function (value) {
-            var pass = value.match(
-              /^1[3|4|5|6|7|8|9][0-9]{9}$/
-            );
-            if (pass)
-              return true;
-            else
-                return 'Please enter a valid phone number';
-        }
-    },
-    {
-        type: 'password',
-        name: 'password',
-        message: 'your password\n'
-    }
-];
-
-inquirer.prompt(questions)
-.then(answers =&gt; {
-    console.log(`Hi, ${answers['name']}, you age is ${answers['age']}, your phone number is ${answers['phone number']}`);
-});</code></pre><p><strong>questions</strong> 数组定义了需要输入的内容，可以定义多项输入信息，每个输入内容都是一个独立的 question object 用来定义这个 question 具体的模式，下面介绍最常用的几个 properties：</p><ul><li>type 提示框的类型，默认为 input，可选项有: input, number, confirm, list, rawlist, expand, checkbox, password, editor</li><li>name 定义了此 question 的名称，用来在 answers 中读取数据时使用</li><li>message 定义一个打印输出的字符串提示信息</li><li>default 如果没有输入内容，则使用此处定义的默认值，可以是变量或 function</li><li>validate 用来判断输入信息是否满足一定条件，如果满足则返回 true，不满足返回预定一个提示信息并停留在当前 question 等待用户修改输入内容</li></ul><p>更多使用 question object 的属性参考：<a href="https://github.com/SBoudrias/Inquirer.js#question">https://github.com/SBoudrias/Inquirer.js#question</a></p><p>在上面的示例中，通过 <strong>validate</strong> function 判断电话号码是否有效，通过 <strong>string</strong> 的 <strong>match</strong> method 使用正则表达式来匹配信息。<strong>match</strong> method 语法如下：</p><pre><code>string.match(regexp)
-</code></pre><p>注意 regexp 是一个字符串，需要使用斜杠<code>/</code>来包围，如：</p><pre><code>var str = &quot;abcdefab&quot;;
-if (str.match(/ab/))
-    console.log(true);
-else
-    console.log(false);
-
-//output:
-//true</code></pre><p>还可以使用修饰符来设置正则匹配限制，可用的修饰符有 <code>g</code> 和 <code>i</code>，放在正则表达式结尾斜杠<code>/</code>后面。</p><p><code>g</code> 修饰符表示 global 全局查找，当使用 g 时，所有匹配结果将会返回，当不使用 g 时，只有第一个匹配的结果会返回，且包含其 groups，index 等信息：</p><pre><code>var str = &quot;abcdefab&quot;;
-console.log(str.match(/ab/));
-console.log(str.match(/ab/g));
-
-//OUTPUT:
-//[ 'ab', index: 0, input: 'abcdefab', groups: undefined ]
-//[ 'ab', 'ab' ]</code></pre><p><code>i</code> 修饰符用来设置忽略大小写：</p><pre><code>var str = &quot;abcdefabAB&quot;;
-console.log(str.match(/ab/g));
-console.log(str.match(/ab/gi));
-
-//OUTPUT:
-//[ 'ab', 'ab' ]
-//[ 'ab', 'ab', 'AB' ]</code></pre><p>当 <strong>question</strong> object 的 <strong>type</strong> 定义为 <strong>password</strong> 类型时，输入时信息会被隐藏。</p><p><strong>prompt</strong> method 用来显示提示框，传入参数就是预定义的 question 数组，其返回值为 <strong>promise</strong> 类型，所以可以通过 <strong>then</strong> method 来实现异步响应。promise 的用法参考：<a href="https://blog.niekun.net/archives/2011.html">https://blog.niekun.net/archives/2011.html</a></p><p>这里通过 <strong>then</strong> method 定义了 success 的 function，传入参数就是用户输入的数据构成的 object，通过 <strong>question</strong> object 中 <strong>name</strong> property 定义的名称来索引到具体的某个输入数据。</p><p>更多 inquirer 示例：<a href="https://github.com/SBoudrias/Inquirer.js/tree/master/packages/inquirer/examples">https://github.com/SBoudrias/Inquirer.js/tree/master/packages/inquirer/examples</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2051.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2051.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

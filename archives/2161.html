@@ -1,0 +1,407 @@
+<!DOCTYPE HTML>
+<html class="no-js">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="renderer" content="webkit">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>node.js 入门教程之十二 -- Streams 流 - Marco Nie</title>
+
+<link rel="stylesheet" href="https://niekun.net/webcdn/bootstrap-4.4.1-dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="../usr/themes/TypechoAwesome/normalize.css">
+<link rel="stylesheet" href="../usr/themes/TypechoAwesome/style.css">
+<!--[if lt IE 9]>
+    <script src="//cdnjscn.b0.upaiyun.com/libs/html5shiv/r29/html5.min.js"></script>
+    <script src="//cdnjscn.b0.upaiyun.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+<meta name="description" content="Streams 是驱动 node.js 程序的核心概念。它提供了处理对文件的读写，网络传输，或者其他端到端的数据交换的更加高效的方式。streams 流并不是 node.js 首先引入的概念，u..." />
+<meta name="generator" content="Typecho 1.2/18.10.23" />
+<meta name="template" content="TypechoAwesome" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="node.js 入门教程之十二 -- Streams 流 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2161.html" />
+<link rel="alternate" type="application/rdf+xml" title="node.js 入门教程之十二 -- Streams 流 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2161.html" />
+<link rel="alternate" type="application/atom+xml" title="node.js 入门教程之十二 -- Streams 流 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2161.html" />
+<script type="e1549369583b5fc530729d47-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (id) {
+            return document.getElementById(id);
+        },
+    
+        create : function (tag, attr) {
+            var el = document.createElement(tag);
+        
+            for (var key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+
+        reply : function (cid, coid) {
+            var comment = this.dom(cid), parent = comment.parentNode,
+                response = this.dom('respond-post-2161'), input = this.dom('comment-parent'),
+                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
+                textarea = response.getElementsByTagName('textarea')[0];
+
+            if (null == input) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent',
+                    'id'   : 'comment-parent'
+                });
+
+                form.appendChild(input);
+            }
+
+            input.setAttribute('value', coid);
+
+            if (null == this.dom('comment-form-place-holder')) {
+                var holder = this.create('div', {
+                    'id' : 'comment-form-place-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+
+            comment.appendChild(response);
+            this.dom('cancel-comment-reply-link').style.display = '';
+
+            if (null != textarea && 'text' == textarea.name) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            var response = this.dom('respond-post-2161'),
+            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+
+            if (null != input) {
+                input.parentNode.removeChild(input);
+            }
+
+            if (null == holder) {
+                return true;
+            }
+
+            this.dom('cancel-comment-reply-link').style.display = 'none';
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script>
+<script type="e1549369583b5fc530729d47-text/javascript">
+(function () {
+    var event = document.addEventListener ? {
+        add: 'addEventListener',
+        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
+        load: 'DOMContentLoaded'
+    } : {
+        add: 'attachEvent',
+        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
+        load: 'onload'
+    }, added = false;
+
+    document[event.add](event.load, function () {
+        var r = document.getElementById('respond-post-2161'),
+            input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = '_';
+        input.value = (function () {
+    var _vZQA = '3a'//'Rr'
++'PS'//'PS'
++//'L'
+'3'+//'zq'
+'3da'+//'cLQ'
+'d2'+//'b'
+'01'+//'ohi'
+'8fd'+'2b'//'5G'
++'92c'//'rs'
++//'0'
+'1d'+'000'//'W'
++'a'//'CWB'
++'82'//'kA'
++'f2c'//'P'
++//'w'
+'w'+//'i'
+'ab2', _Xq19T = [[2,4],[29,30]];
+    
+    for (var i = 0; i < _Xq19T.length; i ++) {
+        _vZQA = _vZQA.substring(0, _Xq19T[i][0]) + _vZQA.substring(_Xq19T[i][1]);
+    }
+
+    return _vZQA;
+})();
+
+        if (null != r) {
+            var forms = r.getElementsByTagName('form');
+            if (forms.length > 0) {
+                function append() {
+                    if (!added) {
+                        forms[0].appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (var i = 0; i < event.triggers.length; i ++) {
+                    var trigger = event.triggers[i];
+                    document[event.add](trigger, append);
+                    window[event.add](trigger, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+<body>
+<!--[if lt IE 8]
+    <div class="browsehappy" role="dialog">当前网页 <strong>不支持</strong> 你正在使用的浏览器. 为了正常的访问, 请 <a href="http://browsehappy.com/">升级你的浏览器</a>.</div>
+<![endif]-->
+<div class="container-fluid">
+<nav class="navbar navbar-expand-md navbar-light bg-light d-md-none">
+<a class="navbar-brand text-dark" href="../index.html">Marco Nie</a>
+<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+<span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse" id="navbarSupportedContent">
+<form class="form-inline" id="search" method="post" action="../index.html" role="search">
+<label for="s" class="sr-only">搜索关键字</label>
+<input type="text" id="s" name="s" class="text form-control" placeholder="输入关键字搜索" />
+<button type="submit" class="submit my-auto">搜索</button>
+</form>
+<div class="dropdown-divider"></div>
+<p class="text-info nav-title">分类</p>
+<ul class="widget-list nav-item-style"><li class="category-level-0 category-parent"><a href="../category/Linux/index.html">Linux</a><ul class="widget-list nav-item-style"><li class="category-level-1 category-child category-level-odd"><a href="../category/ubuntu/index.html">ubuntu</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/photo/index.html">Photograph</a></li><li class="category-level-0 category-parent"><a href="../category/media/index.html">media process</a><ul class="widget-list nav-item-style"><li class="category-level-1 category-child category-level-odd"><a href="../category/ps/index.html">photoshop</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/fxp/index.html">final cut pro</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/lr/index.html">lightroom</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/c4d/index.html">cinema 4D</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/Windows/index.html">Windows</a></li><li class="category-level-0 category-parent"><a href="../category/macos/index.html">macOS</a></li><li class="category-level-0 category-parent"><a href="../category/hardware/index.html">hardware</a><ul class="widget-list nav-item-style"><li class="category-level-1 category-child category-level-odd"><a href="../category/router/index.html">router</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/a73/index.html">SONY A7M3</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/essay/index.html">essay</a></li><li class="category-level-0 category-parent"><a href="../category/other/index.html">other</a></li><li class="category-level-0 category-parent"><a href="../category/dev/index.html">Development</a><ul class="widget-list nav-item-style"><li class="category-level-1 category-child category-level-odd"><a href="../category/cpp/index.html">c++</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/py/index.html">python</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/go/index.html">go</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/siemens/index.html">siemens</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/web/index.html">web</a><ul class="widget-list nav-item-style"><li class="category-level-2 category-child category-level-even"><a href="../category/html/index.html">html</a></li><li class="category-level-2 category-child category-level-even"><a href="../category/css/index.html">css</a></li><li class="category-level-2 category-child category-level-even"><a href="../category/js/index.html">javascript</a></li><li class="category-level-2 category-child category-level-even"><a href="../category/node/index.html">node.js</a></li></ul></li></ul></li><li class="category-level-0 category-parent"><a href="../category/software/index.html">software</a></li></ul>
+<div class="dropdown-divider"></div>
+<p class="text-info nav-title">归档</p>
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link nav-title" href="../2021/02/index.html">February 2021</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2021/01/index.html">January 2021</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/12/index.html">December 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/11/index.html">November 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/10/index.html">October 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/09/index.html">September 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/08/index.html">August 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/07/index.html">July 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/06/index.html">June 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/05/index.html">May 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/04/index.html">April 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/03/index.html">March 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/02/index.html">February 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/01/index.html">January 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/12/index.html">December 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/11/index.html">November 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/10/index.html">October 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/09/index.html">September 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/08/index.html">August 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/07/index.html">July 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/04/index.html">April 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/03/index.html">March 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/02/index.html">February 2019</a></li> </ul>
+</div>
+</nav>
+</div>
+<header id="header" class="clearfix">
+<div class="container">
+<div class="row">
+<div class="site-name col-md-9 col-12 d-none d-md-block">
+<a id="logo" class="text-decoration-none" href="../index.html">Marco Nie</a>
+<p class="description mb-2">you are the company you keep...</p>
+</div>
+<div class="site-search col-md-3 d-none d-md-block">
+<form id="search" method="post" action="../index.html" role="search">
+<label for="s" class="sr-only">搜索关键字</label>
+<input type="text" id="s" name="s" class="text" placeholder="输入关键字搜索" />
+<button type="submit" class="submit my-auto">搜索</button>
+</form>
+</div>
+<div class="col-12">
+<ul class="nav nav-tabs clearfix" role="navigation">
+<li class="nav-item">
+<a class="nav-link" href="../index.html">Article</a>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="../start-page.html" title="About me">About me</a>
+</li>
+</ul>
+</div>
+</div>
+</header>
+</div>
+<div id="body">
+<div class="container">
+<div class="row">
+<div class="col-md-9 col-12" id="main" role="main">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h1 class="post-title" itemprop="name headline"><a itemprop="url" href="2161.html">node.js 入门教程之十二 -- Streams 流</a></h1>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2021-02-20T14:43:00+08:00" itemprop="datePublished">2021-02-20</time></li>
+<li>分类: <a href="../category/js/index.html">javascript</a>,<a href="../category/node/index.html">node.js</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p><strong>Streams</strong> 是驱动 node.js 程序的核心概念。它提供了处理对文件的读写，网络传输，或者其他端到端的数据交换的更加高效的方式。</p><p>streams 流并不是 node.js 首先引入的概念，unix 操作系统在很久之前就在使用了，一个程序可以通过 pipe 管道操作符 <code>|</code> 来传递 streams 流给其他程序。</p><p>下面的示例是在 Linux 中，通过 pipe 管道将 cat 读取的文件数据传递给 grep 进行过滤，test.txt 文件内容如下：</p><pre><code>aaa bbb
+bbb ccc
+aaa ccc</code></pre><pre><code>$ cat test.txt | grep aaa
+aaa bbb
+aaa ccc</code></pre><h3>stream 优点</h3><p>在传统方法中，当程序读取一个文件内容时会先将文件内容全部读取到内存中，然后再去使用它。而使用 stream 时会一段段的读取文件内容并进行处理，而不需要整体读取到内存。</p><p>node.js 的 <strong>stream</strong> 模块是构建所有 streaming API 的底层。所有的 streams 流都是 eventEmitter 的实例。每种类型的 stream 都有各自的 event 事件，在数据流变化时触发对应事件。</p><p>相比于其他数据处理方法，<strong>streams</strong> 有两个优势：</p><ul><li>内存效率：在使用数据前不需要将大量数据存入内存中。</li><li>时间效率：能够更快的进入数据处理阶段，在获取到文件后能够很快的使用它而不需要等待它全部加载完毕。</li></ul><h3>使用方法</h3><p>下面我们从一个示例来说明 stream 的使用方法。我们建立一个 http server，当收到请求时读取一个本地文件的内容并作为 response 发送给客户端。</p><p>首先传统实现方式如下：</p><pre><code>const http = require('http')
+const fs = require('fs')
+
+const hostname = '127.0.0.1'
+const port = 3000
+
+const server = http.createServer((req, res) =&gt; {
+    fs.readFile(__dirname + '/test.txt', (err, data) =&gt; {
+        if (err) {
+            console.log('read error')
+        }
+        res.end(data)
+    })
+})
+
+server.listen(port, hostname, () =&gt; {
+    console.log(`Server running at http://${hostname}:${port}/`)
+})</code></pre><p>以上方式在收到请求后，通过 <code>readFile()</code> 读取文件内容到内存中，当成功后会调用 callback 通过 <code>res.end(data)</code> 发送读取的数据给客户端。如果文件较大时以上过程会花费一些时间。</p><p><strong>__dirname</strong> 返回当前执行文件的路径。</p><p>下面介绍使用 stream 实现上面的过程：</p><pre><code>const http = require('http')
+const fs = require('fs')
+
+const hostname = '127.0.0.1'
+const port = 3000
+
+const server = http.createServer((req, res) =&gt; {
+    const stream = fs.createReadStream(__dirname + '/test.txt')
+    stream.pipe(res)
+})
+
+server.listen(port, hostname, () =&gt; {
+    console.log(`Server running at http://${hostname}:${port}/`)
+})</code></pre><p>通过 <code>fs.createReadStream()</code> 返回一个文件的 stream。</p><p>不同于第一种，以上方式会在 stream 中只要有了 data chunk 块就立刻作为 response 数据传输给客户端。这样就会一边读取文件一边传输数据。</p><h3>pipe()</h3><p>以上示例中调用 <strong>stream</strong> 的 <code>pipe()</code> method。它的功能是建立一个 source stream 源流到 destination stream 目标流的 pipe 管道。这样文件的 stream 流通向了 http response。</p><p><code>pipe()</code> 的返回是 destination stream 目标流，这样就可以很方便的链接多个 pipe：</p><pre><code>src.pipe(dest1).pipe(dest2)</code></pre><p>以下写法和上面示例效果一样：</p><pre><code>src.pipe(dest1)
+dest1.pipe(dest2)</code></pre><h3>基于 stream 的 node.js API</h3><p>由于 stream 的巨大优势，很多 node.js 核心模块提供了 stream 的原生支持，以下是常用的部分：</p><ul><li><strong>process.stdin</strong> 返回一个链接到 stdin 的 stream</li><li><strong>process.stdout</strong> 返回一个链接到 stdout 的 stream</li><li><strong>process.stderr</strong> 返回一个链接到 stderr 的 stream</li><li><strong>fs.createReadStream()</strong> 创建一个文件的可读的 stream</li><li><strong>fs.createWriteStream()</strong> 创建一个文件的可写的 stream</li><li><strong>net.connect()</strong> 初始化一个基于 stream 的连接</li><li><strong>http.request()</strong> 返回一个 http.ClientRequest 实例，它是一个可写的 stream</li></ul><h3>streams 的类型</h3><p>有四个 streams 的 calsses：</p><ul><li><strong>Readable</strong>: 一个可以作为管道源头的 stream，不能作为管道的目标也就是不能写入数据</li><li><strong>Writable</strong>: 一个可以作为管道目标的 stream，不能作为管道源头也就是不能从中获取数据</li><li><strong>Duplex</strong>: 一个既可作为管道源头也可以作为目标的 stream</li><li><strong>Transform</strong>: 类似于 Duplex</li></ul><h3>创建 readable stream</h3><p>从 stream 模块定义一个可读的 stream 然后通过定义 <code>readable._read()</code> method 内容完成初始化：</p><pre><code>const Stream = require('stream')
+const readableStream = new Stream.Readable()
+
+readableStream._read = () =&gt; {}</code></pre><p>初始化也可以这样写：</p><pre><code>const readableStream = new Stream.Readable({
+    read() {}
+})</code></pre><p>以上就创建了一个可读的 stream，可以给其传输数据：</p><pre><code>readableStream.push('hi')
+readableStream.push('hello')</code></pre><p>可以将这个 stream 和一个可写的 stream 之间建立管道：</p><pre><code>readableStream.pipe(process.stdout)
+</code></pre><h3>创建 writable stream</h3><p>通过实例化一个 <strong>Writable</strong> object 然后通过定义 <code>_write()</code> method 内容完成初始化：</p><pre><code>const Stream = require('stream')
+const writeableStream = new Stream.Writable()
+
+writeableStream._write = (chunk, encoding, callback) =&gt; {
+    console.log(chunk.toString())
+    callback()
+}</code></pre><p>接收到的数据块传入 chunk，encoding 定义数据类型，callback function 是当一个 chunk 数据块传输完成后调用，此 callback 可在 <strong>writeableStream.write</strong> 内定义，一般可以是 error 处理，下面会介绍。</p><p>可以将定义的可写 stream 同一个可读 stream pipe 管道连接：</p><pre><code>process.stdin.pipe(writeableStream)
+</code></pre><p>这样就可以在 stdin 和 writeableStream 间建立 pipe，此时在 stdin 输入数据就会立刻将数据显示在终端。</p><h3>从可读的 stream 读取数据</h3><p>下面的示例中，我们建立一个可读的 stream 和一个 可写的 stream，并建立 pipe 管道连接：</p><pre><code>const Stream = require('stream')
+
+const readableStream = new Stream.Readable()
+readableStream._read = () =&gt; {}
+
+const writeableStream = new Stream.Writable()
+writeableStream._write = (chunk, encoding, callback) =&gt; {
+    console.log(chunk.toString())
+    callback()
+}
+
+readableStream.pipe(writeableStream)
+
+readableStream.push('hi\n')
+readableStream.push('hello\n')</code></pre><p>也通过 <strong>readable</strong> event 事件来处理可读 stream。当 stream 中有准备好的数据块时会触发 readable event：</p><pre><code>readableStream.on('readable', () =&gt; {
+    console.log(readableStream.read().toString())
+})</code></pre><h3>给可写的 stream 写入数据</h3><p>使用 write method 来写入数据：</p><pre><code>writeableStream.write('hello world\n')
+</code></pre><p>可以定义写入数据的编码格式和 callback function：</p><pre><code>writeableStream.write('hello world\n', 'utf-8', err =&gt; {console.log(err)})
+</code></pre><p>实际中 callback function 是否会执行要看 stream 初始化中在 <code>writeableStream._write</code> 是否调用了 callback。</p><p>如果数据写入已经完成，可以使用 <strong>end</strong> method 来告诉可写的 stream：</p><pre><code>const Stream = require('stream')
+const writeableStream = new Stream.Writable()
+
+writeableStream._write = (chunk, encoding, next) =&gt; {
+    console.log(chunk.toString())
+    next()
+}
+
+process.stdin.pipe(writeableStream)
+
+writeableStream.write('hello world\n')
+writeableStream.end()</code></pre><p>以上示例中如果在最后一句不调用 <strong>end</strong> method 则 writeableStream 会持续保持接收来自 stdin 的数据状态。</p><h3>创建 transform stream</h3><p>和可写的 stream 创建方式类似，可读也可写：</p><pre><code>const Stream = require('stream')
+const transformStream = new Stream.Transform()
+
+transformStream._transform = (chunk, encoding, callback) =&gt; {
+    console.log('transform' + chunk.toString())
+    transformStream.push(chunk)
+    callback()
+}
+
+const writeableStream = new Stream.Writable()
+writeableStream._write = (chunk, encoding, callback) =&gt; {
+    console.log('write' + chunk.toString())
+    callback()
+}
+
+process.stdin.pipe(transformStream).pipe(writeableStream)</code></pre><p>在 <code>transformStream._transform</code> 定义了当 transform stream 接收到数据后通过 <code>transformStream.push</code> 将数据发到 readable stream 中，这样其他 stream 就可以读取到它接收到的数据了。</p><p>更多 stream 使用方法参考：<a href="https://nodejs.org/api/stream.html">https://nodejs.org/api/stream.html</a></p> </div>
+<p itemprop="keywords" class="tags">标签: none</p>
+</article>
+<div id="comments">
+<div id="respond-post-2161" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="2161.html#respond-post-2161" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-e1549369583b5fc530729d47-="">取消回复</a> </div>
+<h3 id="response">添加新评论</h3>
+<form method="post" action="https://blog.niekun.net/archives/2161.html/comment" id="comment-form" role="form">
+<p>
+<label for="author" class="required">称呼</label>
+<input type="text" name="author" id="author" class="text" value="" required />
+</p>
+<p>
+<label for="mail" class="required">Email</label>
+<input type="email" name="mail" id="mail" class="text" value="" required />
+</p>
+<p>
+<label for="url">网站</label>
+<input type="url" name="url" id="url" class="text" placeholder="http://" value="" />
+</p>
+<p>
+<label for="textarea" class="required">内容</label>
+<textarea rows="8" cols="50" name="text" id="textarea" class="textarea" required></textarea>
+</p>
+<p>
+<button type="submit" class="submit">提交评论</button>
+</p>
+</form>
+</div>
+</div>
+<ul class="post-near">
+<li>上一篇: <a href="2157.html" title="node.js 入门教程之十一 -- buffers 缓存">node.js 入门教程之十一 -- buffers 缓存</a></li>
+<li>下一篇: <a href="2165.html" title="node.js 入门教程之十三 -- environment，error 和 log">node.js 入门教程之十三 -- environment，error 和 log</a></li>
+</ul>
+</div>
+<div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
+<section class="widget">
+<h4 class="Display 2">最新文章</h4>
+<ul class="widget-list">
+<li><a href="2165.html">node.js 入门教程之十三 -- environment，error 和 log</a></li><li><a href="2161.html">node.js 入门教程之十二 -- Streams 流</a></li><li><a href="2157.html">node.js 入门教程之十一 -- buffers 缓存</a></li><li><a href="2156.html">node.js 入门教程之十 -- http 模块</a></li><li><a href="2151.html">node.js 入门教程之九 -- events 模块</a></li><li><a href="2147.html">node.js 入门教程之八 -- os 模块</a></li><li><a href="2146.html">node.js 入门教程之七 -- fs 和 path 模块</a></li><li><a href="2140.html">node.js 入门教程之六 -- FileSystem</a></li><li><a href="2139.html">Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理</a></li><li><a href="2137.html">node.js 入门教程之五 -- HTTP request and response</a></li> </ul>
+</section>
+<section class="widget">
+<h4 class="Display 2">最近回复</h4>
+<ul class="widget-list">
+<li><a href="2011.html#comment-26">ahxinny</a>: let相当于局域变量，但 和局域变量还是不同。局域变量在函数体内...</li>
+<li><a href="1918.html#comment-25">ahxinny</a>: 有点云里雾里的。</li>
+<li><a href="1895.html#comment-24">ahxinny</a>: 前面的易懂，指针之后有点登天。</li>
+<li><a href="1885.html#comment-23">ahxinny</a>: 学习了。哈哈哈！</li>
+<li><a href="1906.html#comment-22">ahxinny</a>: 可以偷看你的手机内容了。</li>
+<li><a href="1869.html#comment-21">ahxinny</a>: 打错了不能撤销消息?</li>
+<li><a href="1869.html#comment-20">ahxinny</a>: 一天不学习，赶不上刘少奇。活到老学到老。</li>
+<li><a href="1869.html#comment-19">ahxinny</a>: 一天不学习，赶不上刘少奇。活到来学到老。</li>
+<li><a href="1757.html#comment-18">ahxinny</a>: 这个好！对处理文件数据有用</li>
+<li><a href="1754.html#comment-17">ahxinny</a>: 这个有点看不懂了。资料先收集着</li>
+</ul>
+</section>
+<section class="widget">
+<h4 class="Display 2">分类</h4>
+<ul class="widget-list"><li class="category-level-0 category-parent"><a href="../category/Linux/index.html">Linux</a><ul class="widget-list"><li class="category-level-1 category-child category-level-odd"><a href="../category/ubuntu/index.html">ubuntu</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/photo/index.html">Photograph</a></li><li class="category-level-0 category-parent"><a href="../category/media/index.html">media process</a><ul class="widget-list"><li class="category-level-1 category-child category-level-odd"><a href="../category/ps/index.html">photoshop</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/fxp/index.html">final cut pro</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/lr/index.html">lightroom</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/c4d/index.html">cinema 4D</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/Windows/index.html">Windows</a></li><li class="category-level-0 category-parent"><a href="../category/macos/index.html">macOS</a></li><li class="category-level-0 category-parent"><a href="../category/hardware/index.html">hardware</a><ul class="widget-list"><li class="category-level-1 category-child category-level-odd"><a href="../category/router/index.html">router</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/a73/index.html">SONY A7M3</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/essay/index.html">essay</a></li><li class="category-level-0 category-parent"><a href="../category/other/index.html">other</a></li><li class="category-level-0 category-parent"><a href="../category/dev/index.html">Development</a><ul class="widget-list"><li class="category-level-1 category-child category-level-odd"><a href="../category/cpp/index.html">c++</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/py/index.html">python</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/go/index.html">go</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/siemens/index.html">siemens</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/web/index.html">web</a><ul class="widget-list"><li class="category-level-2 category-child category-level-even"><a href="../category/html/index.html">html</a></li><li class="category-level-2 category-child category-level-even"><a href="../category/css/index.html">css</a></li><li class="category-level-2 category-child category-level-even"><a href="../category/js/index.html">javascript</a></li><li class="category-level-2 category-child category-level-even"><a href="../category/node/index.html">node.js</a></li></ul></li></ul></li><li class="category-level-0 category-parent"><a href="../category/software/index.html">software</a></li></ul> </section>
+<section class="widget">
+<h4 class="Display 2">归档</h4>
+<ul class="widget-list">
+<li><a href="../2021/02/index.html">February 2021</a></li><li><a href="../2021/01/index.html">January 2021</a></li><li><a href="../2020/12/index.html">December 2020</a></li><li><a href="../2020/11/index.html">November 2020</a></li><li><a href="../2020/10/index.html">October 2020</a></li><li><a href="../2020/09/index.html">September 2020</a></li><li><a href="../2020/08/index.html">August 2020</a></li><li><a href="../2020/07/index.html">July 2020</a></li><li><a href="../2020/06/index.html">June 2020</a></li><li><a href="../2020/05/index.html">May 2020</a></li><li><a href="../2020/04/index.html">April 2020</a></li><li><a href="../2020/03/index.html">March 2020</a></li><li><a href="../2020/02/index.html">February 2020</a></li><li><a href="../2020/01/index.html">January 2020</a></li><li><a href="../2019/12/index.html">December 2019</a></li><li><a href="../2019/11/index.html">November 2019</a></li><li><a href="../2019/10/index.html">October 2019</a></li><li><a href="../2019/09/index.html">September 2019</a></li><li><a href="../2019/08/index.html">August 2019</a></li><li><a href="../2019/07/index.html">July 2019</a></li><li><a href="../2019/04/index.html">April 2019</a></li><li><a href="../2019/03/index.html">March 2019</a></li><li><a href="../2019/02/index.html">February 2019</a></li> </ul>
+</section>
+<section class="widget">
+<h4 class="Display 2">其它</h4>
+<ul class="widget-list">
+<li><a href="../feed/index.html">文章 RSS</a></li>
+<li><a href="../feed/comments/index.html">评论 RSS</a></li>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</div>
+<footer id="footer" role="contentinfo">
+&copy; 2021 <a href="../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
+</footer>
+<script type="e1549369583b5fc530729d47-text/javascript">
+    navItemSytle();
+</script>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="e1549369583b5fc530729d47-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="e1549369583b5fc530729d47-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="e1549369583b5fc530729d47-text/javascript"></script>
+<script src="../usr/themes/TypechoAwesome/navItem.js" type="e1549369583b5fc530729d47-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="e1549369583b5fc530729d47-|49" defer=""></script></body>
+</html>

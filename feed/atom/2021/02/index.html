@@ -6,17 +6,177 @@ xml:base="https://blog.niekun.net/2021/02/"
 >
 <title type="text">Marco Nie - 2021年2月</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2021-02-16T17:26:25+08:00</updated>
+<updated>2021-02-20T17:19:45+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/2021/02/" />
 <id>https://blog.niekun.net/feed/atom/2021/02/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/02/" />
 <entry>
-<title type="html"><![CDATA[node.js 入门教程十一 -- buffers 缓存]]></title>
+<title type="html"><![CDATA[node.js 入门教程之十三 -- environment，error 和 log]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2165.html" />
+<id>https://blog.niekun.net/archives/2165.html</id>
+<updated>2021-02-20T17:19:45+08:00</updated>
+<published>2021-02-20T17:19:45+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[environment 运行环境production environment 产品环境和 development environment 开发环境可以设置不同的配置。node.js 默认为 de...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2165.html" xml:lang="zh-CN"><![CDATA[
+<h3>environment 运行环境</h3><p><strong>production environment 产品环境</strong>和 <strong>development environment 开发环境</strong>可以设置不同的配置。</p><p>node.js 默认为 development env 开发环境。通过设置环境变量：<code>NODE_ENV=production</code> 可以告诉 node.js 当前为产品环境。Linux 中可以通过如下指令修改：</p><pre><code>export NODE_ENV=production
+</code></pre><p>这样在当前 shell 中就会以 production 模式运行 node 程序，如果要永久修改此环境变量可以将命令写入 <strong>~/.bashrc</strong> 文件。</p><p>也可以在运行 node 程序时定义 <strong>NODE_ENV</strong>：</p><pre><code>NODE_ENV=production node app.js
+
+</code></pre><!--more--><p>设置 <strong>NODE_ENV</strong> 为 <strong>production</strong> 有如下优势：</p><ul><li>日志记录保持在最小 level</li><li>更多的 caching 缓存级别来提高运行效率</li></ul><p>可以通过状态判读符来判断当前运行环境，执行不同指令：</p><pre><code>if (process.env.NODE_ENV === 'development') {
+    console.log('running on development environment')
+}
+if (process.env.NODE_ENV === 'production') {
+    console.log('running on production environment')
+}
+if (['production', 'staging'].indexOf(process.env.NODE_ENV) != -1) {
+    console.log('running on production environment')
+} else {
+    console.log('running on development environment')
+}</code></pre><p>上面第三个指令通过调用 array 的 <strong>indexOf</strong> 来获取某个字符串在数组中的索引号，如果不存在这个字符串则返回 <strong>-1</strong>。注意使用类型判断符<code>===</code> 是为了保证类型和数值都匹配。</p><h3>error handling 错误处理</h3><p>node.js 中通过 exceptions 来处理 error 情况。</p><p>可以通过 <strong>throw</strong> 创建一个 <strong>exception</strong>：</p><pre><code>const test = 123;
+throw test;</code></pre><p>当 JavaScript 执行到上面的 throw 时程序会立刻停止，然后控制权会交给最近的 exception handler 例外控制器。</p><p>JavaScript 中 test 可以是任意的字符串，数字或者 object。但在 node.js 中只用来 throw <strong>Error</strong> objects。</p><p>一个 error object 可以是 <strong>Error</strong> 的实例或者是 Error class 的 child class 的实例：</p><pre><code>throw new Error('error')
+
+class childError extends Error {
+}
+throw new childError('error')</code></pre><p>下面介绍几种 <strong>exception handler</strong> 处理器。</p><p><strong>第一种</strong>是通过 <strong>try/catch</strong> 声明来处理，在 try 中定义任意 exception 以及对应的 catch 块来响应：</p><pre><code>try {
+    const a = 1;
+    if (a == 0) {
+        throw 'abc'
+    } else {
+        throw 123
+    }
+} catch (e) {
+    console.log(e)
+}</code></pre><p>catch 的参数 e 就是对应 throw 的数据。</p><p>如果在程序执行中，如果某个 throw 的 exception 没有被 catch，程序就会立刻 crash。可以通过监听 <strong>process</strong> 的 <strong>uncaughtException</strong> event 事件来解决这个问题：</p><pre><code>process.on('uncaughtException', err =&gt; {
+    console.log('there was a uncaught error', err)
+    process.exit(1)
+})
+
+const test = 123;
+throw test;</code></pre><p><strong>第二种</strong>是 <strong>promise</strong> 中的 error handler。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2165.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2165.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之十二 -- Streams 流]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2161.html" />
+<id>https://blog.niekun.net/archives/2161.html</id>
+<updated>2021-02-20T14:43:00+08:00</updated>
+<published>2021-02-20T14:43:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[Streams 是驱动 node.js 程序的核心概念。它提供了处理对文件的读写，网络传输，或者其他端到端的数据交换的更加高效的方式。streams 流并不是 node.js 首先引入的概念，u...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2161.html" xml:lang="zh-CN"><![CDATA[
+<p><strong>Streams</strong> 是驱动 node.js 程序的核心概念。它提供了处理对文件的读写，网络传输，或者其他端到端的数据交换的更加高效的方式。</p><p>streams 流并不是 node.js 首先引入的概念，unix 操作系统在很久之前就在使用了，一个程序可以通过 pipe 管道操作符 <code>|</code> 来传递 streams 流给其他程序。</p><p>下面的示例是在 Linux 中，通过 pipe 管道将 cat 读取的文件数据传递给 grep 进行过滤，test.txt 文件内容如下：</p><pre><code>aaa bbb
+bbb ccc
+aaa ccc</code></pre><pre><code>$ cat test.txt | grep aaa
+aaa bbb
+aaa ccc</code></pre><!--more--><h3>stream 优点</h3><p>在传统方法中，当程序读取一个文件内容时会先将文件内容全部读取到内存中，然后再去使用它。而使用 stream 时会一段段的读取文件内容并进行处理，而不需要整体读取到内存。</p><p>node.js 的 <strong>stream</strong> 模块是构建所有 streaming API 的底层。所有的 streams 流都是 eventEmitter 的实例。每种类型的 stream 都有各自的 event 事件，在数据流变化时触发对应事件。</p><p>相比于其他数据处理方法，<strong>streams</strong> 有两个优势：</p><ul><li>内存效率：在使用数据前不需要将大量数据存入内存中。</li><li>时间效率：能够更快的进入数据处理阶段，在获取到文件后能够很快的使用它而不需要等待它全部加载完毕。</li></ul><h3>使用方法</h3><p>下面我们从一个示例来说明 stream 的使用方法。我们建立一个 http server，当收到请求时读取一个本地文件的内容并作为 response 发送给客户端。</p><p>首先传统实现方式如下：</p><pre><code>const http = require('http')
+const fs = require('fs')
+
+const hostname = '127.0.0.1'
+const port = 3000
+
+const server = http.createServer((req, res) =&gt; {
+    fs.readFile(__dirname + '/test.txt', (err, data) =&gt; {
+        if (err) {
+            console.log('read error')
+        }
+        res.end(data)
+    })
+})
+
+server.listen(port, hostname, () =&gt; {
+    console.log(`Server running at http://${hostname}:${port}/`)
+})</code></pre><p>以上方式在收到请求后，通过 <code>readFile()</code> 读取文件内容到内存中，当成功后会调用 callback 通过 <code>res.end(data)</code> 发送读取的数据给客户端。如果文件较大时以上过程会花费一些时间。</p><p><strong>__dirname</strong> 返回当前执行文件的路径。</p><p>下面介绍使用 stream 实现上面的过程：</p><pre><code>const http = require('http')
+const fs = require('fs')
+
+const hostname = '127.0.0.1'
+const port = 3000
+
+const server = http.createServer((req, res) =&gt; {
+    const stream = fs.createReadStream(__dirname + '/test.txt')
+    stream.pipe(res)
+})
+
+server.listen(port, hostname, () =&gt; {
+    console.log(`Server running at http://${hostname}:${port}/`)
+})</code></pre><p>通过 <code>fs.createReadStream()</code> 返回一个文件的 stream。</p><p>不同于第一种，以上方式会在 stream 中只要有了 data chunk 块就立刻作为 response 数据传输给客户端。这样就会一边读取文件一边传输数据。</p><h3>pipe()</h3><p>以上示例中调用 <strong>stream</strong> 的 <code>pipe()</code> method。它的功能是建立一个 source stream 源流到 destination stream 目标流的 pipe 管道。这样文件的 stream 流通向了 http response。</p><p><code>pipe()</code> 的返回是 destination stream 目标流，这样就可以很方便的链接多个 pipe：</p><pre><code>src.pipe(dest1).pipe(dest2)</code></pre><p>以下写法和上面示例效果一样：</p><pre><code>src.pipe(dest1)
+dest1.pipe(dest2)</code></pre><h3>基于 stream 的 node.js API</h3><p>由于 stream 的巨大优势，很多 node.js 核心模块提供了 stream 的原生支持，以下是常用的部分：</p><ul><li><strong>process.stdin</strong> 返回一个链接到 stdin 的 stream</li><li><strong>process.stdout</strong> 返回一个链接到 stdout 的 stream</li><li><strong>process.stderr</strong> 返回一个链接到 stderr 的 stream</li><li><strong>fs.createReadStream()</strong> 创建一个文件的可读的 stream</li><li><strong>fs.createWriteStream()</strong> 创建一个文件的可写的 stream</li><li><strong>net.connect()</strong> 初始化一个基于 stream 的连接</li><li><strong>http.request()</strong> 返回一个 http.ClientRequest 实例，它是一个可写的 stream</li></ul><h3>streams 的类型</h3><p>有四个 streams 的 calsses：</p><ul><li><strong>Readable</strong>: 一个可以作为管道源头的 stream，不能作为管道的目标也就是不能写入数据</li><li><strong>Writable</strong>: 一个可以作为管道目标的 stream，不能作为管道源头也就是不能从中获取数据</li><li><strong>Duplex</strong>: 一个既可作为管道源头也可以作为目标的 stream</li><li><strong>Transform</strong>: 类似于 Duplex</li></ul><h3>创建 readable stream</h3><p>从 stream 模块定义一个可读的 stream 然后通过定义 <code>readable._read()</code> method 内容完成初始化：</p><pre><code>const Stream = require('stream')
+const readableStream = new Stream.Readable()
+
+readableStream._read = () =&gt; {}</code></pre><p>初始化也可以这样写：</p><pre><code>const readableStream = new Stream.Readable({
+    read() {}
+})</code></pre><p>以上就创建了一个可读的 stream，可以给其传输数据：</p><pre><code>readableStream.push('hi')
+readableStream.push('hello')</code></pre><p>可以将这个 stream 和一个可写的 stream 之间建立管道：</p><pre><code>readableStream.pipe(process.stdout)
+</code></pre><h3>创建 writable stream</h3><p>通过实例化一个 <strong>Writable</strong> object 然后通过定义 <code>_write()</code> method 内容完成初始化：</p><pre><code>const Stream = require('stream')
+const writeableStream = new Stream.Writable()
+
+writeableStream._write = (chunk, encoding, callback) =&gt; {
+    console.log(chunk.toString())
+    callback()
+}</code></pre><p>接收到的数据块传入 chunk，encoding 定义数据类型，callback function 是当一个 chunk 数据块传输完成后调用，此 callback 可在 <strong>writeableStream.write</strong> 内定义，一般可以是 error 处理，下面会介绍。</p><p>可以将定义的可写 stream 同一个可读 stream  pipe 管道连接：</p><pre><code>process.stdin.pipe(writeableStream)
+</code></pre><p>这样就可以在 stdin 和 writeableStream 间建立 pipe，此时在 stdin 输入数据就会立刻将数据显示在终端。</p><h3>从可读的 stream 读取数据</h3><p>下面的示例中，我们建立一个可读的 stream 和一个 可写的 stream，并建立 pipe 管道连接：</p><pre><code>const Stream = require('stream')
+
+const readableStream = new Stream.Readable()
+readableStream._read = () =&gt; {}
+
+const writeableStream = new Stream.Writable()
+writeableStream._write = (chunk, encoding, callback) =&gt; {
+    console.log(chunk.toString())
+    callback()
+}
+
+readableStream.pipe(writeableStream)
+
+readableStream.push('hi\n')
+readableStream.push('hello\n')</code></pre><p>也通过 <strong>readable</strong> event 事件来处理可读 stream。当 stream 中有准备好的数据块时会触发 readable event：</p><pre><code>readableStream.on('readable', () =&gt; {
+    console.log(readableStream.read().toString())
+})</code></pre><h3>给可写的 stream 写入数据</h3><p>使用 write method 来写入数据：</p><pre><code>writeableStream.write('hello world\n')
+</code></pre><p>可以定义写入数据的编码格式和 callback function：</p><pre><code>writeableStream.write('hello world\n', 'utf-8', err =&gt; {console.log(err)})
+</code></pre><p>实际中 callback function 是否会执行要看 stream 初始化中在 <code>writeableStream._write</code> 是否调用了 callback。</p><p>如果数据写入已经完成，可以使用 <strong>end</strong> method 来告诉可写的 stream：</p><pre><code>const Stream = require('stream')
+const writeableStream = new Stream.Writable()
+
+writeableStream._write = (chunk, encoding, next) =&gt; {
+    console.log(chunk.toString())
+    next()
+}
+
+process.stdin.pipe(writeableStream)
+
+writeableStream.write('hello world\n')
+writeableStream.end()</code></pre><p>以上示例中如果在最后一句不调用 <strong>end</strong> method 则 writeableStream 会持续保持接收来自 stdin 的数据状态。</p><h3>创建 transform stream</h3><p>和可写的 stream 创建方式类似，可读也可写：</p><pre><code>const Stream = require('stream')
+const transformStream = new Stream.Transform()
+
+transformStream._transform = (chunk, encoding, callback) =&gt; {
+    console.log('transform' + chunk.toString())
+    transformStream.push(chunk)
+    callback()
+}
+
+const writeableStream = new Stream.Writable()
+writeableStream._write = (chunk, encoding, callback) =&gt; {
+    console.log('write' + chunk.toString())
+    callback()
+}
+
+process.stdin.pipe(transformStream).pipe(writeableStream)</code></pre><p>在 <code>transformStream._transform</code> 定义了当 transform stream 接收到数据后通过 <code>transformStream.push</code> 将数据发到 readable stream 中，这样其他 stream 就可以读取到它接收到的数据了。</p><p>更多 stream 使用方法参考：<a href="https://nodejs.org/api/stream.html">https://nodejs.org/api/stream.html</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2161.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2161.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[node.js 入门教程之十一 -- buffers 缓存]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2157.html" />
 <id>https://blog.niekun.net/archives/2157.html</id>
-<updated>2021-02-16T17:26:25+08:00</updated>
-<published>2021-02-16T17:26:25+08:00</published>
+<updated>2021-02-16T17:26:00+08:00</updated>
+<published>2021-02-16T17:26:00+08:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
@@ -85,7 +245,7 @@ console.log(slice.toString())
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2157.html" thr:count="0"/>
 </entry>
 <entry>
-<title type="html"><![CDATA[node.js 入门教程十 -- http 模块]]></title>
+<title type="html"><![CDATA[node.js 入门教程之十 -- http 模块]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2156.html" />
 <id>https://blog.niekun.net/archives/2156.html</id>
 <updated>2021-02-15T14:01:00+08:00</updated>
@@ -238,7 +398,7 @@ response.statusMessage = 'Internal Server Error'</code></pre><h4>http.IncomingMe
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2156.html" thr:count="0"/>
 </entry>
 <entry>
-<title type="html"><![CDATA[node.js 入门教程九 -- events 模块]]></title>
+<title type="html"><![CDATA[node.js 入门教程之九 -- events 模块]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2151.html" />
 <id>https://blog.niekun.net/archives/2151.html</id>
 <updated>2021-02-08T21:42:00+08:00</updated>
@@ -855,378 +1015,5 @@ server.listen(port, () =&gt; console.log(`server running at port ${port}`))</cod
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2137.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2137.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[node.js 入门教程之四 -- Event Loop 和 asynchronous]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2100.html" />
-<id>https://blog.niekun.net/archives/2100.html</id>
-<updated>2021-02-04T21:36:00+08:00</updated>
-<published>2021-02-04T21:36:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[Event Loop 事件循环event loop 是我们学习 node.js 中最重要的方面之一。因为它解释了 node.js 如何进行异步动作，同时不会出现 IO 阻塞问题。这也是 node...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2100.html" xml:lang="zh-CN"><![CDATA[
-<h3>Event Loop 事件循环</h3><p><strong>event loop</strong> 是我们学习 node.js 中最重要的方面之一。因为它解释了 node.js 如何进行异步动作，同时不会出现 IO 阻塞问题。这也是 node.js 能够变得如此流行的原因之一。</p><p>node.js 代码运行在单进程中，也就是说它在一刻只能执行一个任务。这一限制特性使得我们不用担心任务间冲突问题。我们在变开发中只需要专注于代码本身，同时应避免进程阻塞，例如同步方式等待网络请求，死循环等。</p><p>通常情况下，浏览器中的每个 tab 页面都是都有各自独立的 event loop，防止某个页面的死循环或过高的资源消耗影响到整个浏览器的体验。我们只需要关注于我们的代码运行在一个单一的 event loop 中，编程中要注意到这一点，防止进程阻塞。</p><!--more--><p>JavaScript 代码中如果有长时间等待 return 返回给 event loop 控制时，任何其他代码将会被阻塞，也会阻塞页面 UI 单元，用户在此期间无法进行点击，滚动等操作。</p><p>几乎所有的 JavaScript 原生 IO 指令都是 non-blocking 非阻塞式的，例如：网络请求，文件读写等，阻塞是一种 exception 例外情况，这也是 JavaScript 大量的使用 callback 方式，以及最近引入的 promise 和 async/await。</p><h4>call stack 调用结构</h4><p>JavaScript 的 call 调用过程的结构遵循 LIFO (Last In, First Out)，也就是总是先响应最近的任务。</p><p>event loop 总是连续的检查 call stack 看是否有任务需要执行。在这个过程中，它会将发现的任务添加到 call stack 中并按顺序执行。</p><p>下面是一个简单的示例：</p><pre><code>const bar = () =&gt; console.log('bar');
-const baz = () =&gt; console.log('baz');
-
-const foo = () =&gt; {
-    console.log('foo');
-    bar();
-    baz();
-}
-
-foo();
-console.log('END');
-
-//output:
-//foo
-//bar
-//baz
-//END</code></pre><p>在以上示例中，首先会调用 foo()，在 foo 中首先会调用 bar()，然后调用 baz()。call stack 执行过程如下：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2945905311.png" alt="2021-02-02T13:21:33.png" title="2021-02-02T13:21:33.png"></p><p>在 event loop 的每次 iteration 递归执行中会查询 call stack 中是否有需要执行的任务，如果有则执行它，直到 loop 结束为止，如下是循环中的全过程：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/627372670.png" alt="2021-02-02T13:23:25.png" title="2021-02-02T13:23:25.png"></p><p>以上示例说明了 JavaScript 在一般情况下按顺序执行代码的过程。下面介绍如何将一个 function 推迟到 call stack 递归到最后时再被调用。</p><p>需要使用以下的代码指令：</p><pre><code>setTimeout(() =&gt; {}, 0)
-</code></pre><p>以上代码调用了 setTimeout 延时 function，但是将延时设置为 <code>0</code>，这样的意义就是要求它在可以执行的时候立刻执行其中定义的 function。那么如何才能让其在层级的最后再执行 function 呢？下面是一个完整的片段：</p><pre><code>const bar = () =&gt; console.log('bar');
-const baz = () =&gt; console.log('baz');
-
-const foo = () =&gt; {
-    console.log('foo');
-    setTimeout(bar, 0);
-    baz();
-}
-
-foo();
-console.log('END');
-
-//output:
-//foo
-//baz
-//END
-//bar</code></pre><p>以上示例中，我们在 foo 中先调用 setTimeout function，并将时间设置为 0，要求其在可以执行时立刻执行内部定义的指令，以上示例循环的 call stack 过程如下：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/281898740.png" alt="2021-02-04T12:49:01.png" title="2021-02-04T12:49:01.png"></p><p>下面时循环的顺序执行全过程：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2606253446.png" alt="2021-02-04T12:50:30.png" title="2021-02-04T12:50:30.png"></p><p>为什么会是这样的执行顺序呢？为什么 setTimeout 时间设置为 0 反而最后才执行其 function？下面做介绍。</p><h4>Message Queue 消息队列</h4><p>当 <code>setTimeout()</code> 被调用时，浏览器或 node.js 会开启一个定时器，当定时时间到达时，这里我们设置为 0 也就是立刻到达了时间，callback 响应的 function 会被放到 Message Queue 消息队列中。</p><p>Message Queue 消息队列也管理着用户主动触发的一些事件如鼠标点击键盘输入等，或者 fetch 获取响应信息，这些消息按顺序排列着等待被代码执行。</p><p><strong>call stack</strong> 和 <strong>Message Queue</strong> 是互相独立的，event loop 循环时 call stack 中的任务是优先的，它会首先查找 call stack 中需要执行的代码并按顺序执行，当 satck 执行完成后再去查看 Message Queue 中需要处理的任务。</p><p>我们并不需要等待一些 functions 如 setTimeout 或 fetch 这些任务的执行过程，因为这些工作由浏览器提供且这些任务运行在它们单独的线程中。例如当我们设置了 setTimeout 2 秒的定时，我们并不需要停下来等待这 2 秒钟，而是会执行层级中接下来的指令。</p><h4>Job Queue 任务队列</h4><p>ES6 中引入了一种新的 <strong>Job Queue</strong> 任务队列概念，也就是 <strong>Promise</strong>。提供了在条件到达后立刻执行被调用 function 的方法，而不是等待到 call stack 结束。</p><p>当 <strong>Promise</strong> 定义的 <strong>resolve</strong> 条件满足时，会在当前 call stack 执行结束后立刻执行 <strong>resolve</strong> function。</p><p>简单的区分 <strong>Message Queue</strong> 和 <strong>Job Queue</strong>：<strong>Message Queue</strong> 会将出现的每个任务按顺序排列到队列最后，等待排队执行。而 <strong>Job Queue</strong> 就像拿到了快捷车票，会在 stack 中的指令结束后立刻跳转到这个任务上来。</p><p>下面是一个示例：</p><pre><code>const bar = () =&gt; console.log('bar');
-const baz = () =&gt; console.log('baz');
-
-const foo = () =&gt; {
-    console.log('foo');
-    setTimeout(bar, 0);
-    new Promise((resolve, reject) =&gt;
-            resolve(&quot;should be right after baz, before bar&quot;))
-        .then(resolve =&gt; console.log(resolve));
-    baz();
-}
-
-foo();
-console.log('END');
-
-//output:
-//foo
-//baz
-//END
-//should be right after baz, before bar
-//bar</code></pre><p>以上示例可以看到，<strong>promise</strong> 定义之后会继续运行 stack 中接下来的常规指令，然后 <strong>promise</strong> 的 <strong>resolve</strong> 条件会立刻得到满足，此时异步任务会在 stack 中的任务执行结束后立刻被响应而不是排列到队列最后。</p><h3>理解 process.nextTick()</h3><p>上面我们介绍了 event loop 的相关概念，一次的 event loop 循环叫做一个 <strong>tick</strong>，注意此循环只包含常规 call stack 中的任务。当我们给 <code>process.nextTick()</code> 传递一个 function 时，就是告诉 engine 在本次循环 tick 结束下次循环开始前执行这个 function。</p><p>语法如下：</p><pre><code>process.nextTick(() =&gt; {
-  //do something
-})</code></pre><p>当 call stack 中的任务执行完毕后，js engine 会优先查询是否在 nextTick 中定义了 function，如果有就会优先执行它们，然后是 <strong>Job Queue</strong> 的异步响应，最后才是 <strong>Message Queue</strong> 队列中的任务。</p><p>请看下面的示例：</p><pre><code>const bar = () =&gt; console.log('bar');
-const baz = () =&gt; console.log('baz');
-
-const foo = () =&gt; {
-    console.log('foo');
-    setTimeout(bar, 0);
-    new Promise((resolve, reject) =&gt;
-            resolve(&quot;should be right after baz, before bar&quot;))
-        .then(resolve =&gt; console.log(resolve));
-    baz();
-}
-
-foo();
-console.log('END');
-
-process.nextTick(() =&gt; console.log(&quot;next tick&quot;));
-
-//output:
-//foo
-//baz
-//END
-//next tick
-//should be right after baz, before bar
-//bar</code></pre><h3>理解 setImmediate()</h3><p><strong>setImmediate</strong> function 用来定义在下次 event loop 循环开始前执行的 function。语法如下：</p><pre><code>setImmediate(() =&gt; {
-  //run something
-})</code></pre><p><code>setImmediate()</code> 和上面讲到的 <code>setTimeout(() =&gt; {}, 0)</code>，<code>Promise</code>，<code>process.nextTick()</code>，不同点是它是执行在下个循环中的，而其它几种都是属于当前循环的，所以它是最后被执行的。</p><p>下面是一个包含这几种类型的异步任务的完整示例：</p><pre><code>const bar = () =&gt; console.log('bar');
-const baz = () =&gt; console.log('baz');
-
-const foo = () =&gt; {
-    console.log('foo');
-    setTimeout(bar, 0);
-    new Promise((resolve, reject) =&gt;
-            resolve(&quot;should be right after baz, before bar&quot;))
-        .then(resolve =&gt; console.log(resolve));
-    baz();
-}
-
-foo();
-console.log('END');
-
-process.nextTick(() =&gt; console.log(&quot;next tick&quot;));
-setImmediate(() =&gt; console.log(&quot;immediate&quot;));
-
-//output:
-//foo
-//baz
-//END
-//next tick
-//should be right after baz, before bar
-//bar
-//immediate</code></pre><h3>timers 定时器</h3><h4>setTimeout()</h4><p>当需要延时执行一个 function 时，可以使用 <strong>setTimeout</strong> function 实现。使用它定义需要延时执行的任务以及延时的具体时间，以毫秒为单位。示例如下：</p><pre><code>setTimeout(() =&gt; {
-    console.log('delay 1s')
-}, 1000);
-
-console.log('start')</code></pre><p>以上示例会延时一秒输出对应信息。</p><p>也可以传入预定义的 function 以及传递数据给 setTimeout：</p><pre><code>const test = (a, b) =&gt; console.log(a + b);
-setTimeout(test, 2000, 1, 2);</code></pre><p>以上示例中，<strong>setTimeout</strong> 调用 <strong>test</strong> function，1 和 2 为 <strong>test</strong> 的传入数据。</p><p>setTimeout 会返回一个 timer ID，你可以存储这个它，可以通过 id 清除对应的定时器以取消对应的计划任务：</p><pre><code>const t1 = setTimeout(() =&gt; {
-    console.log('delay 1s')
-}, 1000);
-clearTimeout(t1);</code></pre><p>以上示例中由于通过 id 清除了 t1 定时器，所以任务不会被执行。</p><p>一个特殊情况就是将延时设置为 0 也就是上一节介绍的内容，这是定义的任务会排列在 message queue 中并在本次循环结束后按顺序被执行。</p><h4>setInterval()</h4><p><strong>setInterval</strong> 和 <strong>setTimeout</strong> 功能类似，但区别是 setInterval 会连续响应定义的任务，响应的间隔时间以毫秒为单位，在 setInterval 中自定义。</p><p>下面是一个简单的示例：</p><pre><code>setInterval(() =&gt; {
-    console.log('wow');
-}, 500);</code></pre><p>程序运行后会每隔 500 毫秒连续输出信息。</p><p>同样的通过 timer ID 使用 clearInterval 可以清除对应的 setInterval 定时任务：</p><pre><code>const t2 = setInterval(() =&gt; {
-    console.log('wow');
-}, 500);
-
-setTimeout(() =&gt; {
-    clearInterval(t2);
-}, 2000);</code></pre><p>以上程序执行后，会每隔 500 毫秒输出 <code>wow</code>，两秒后停止输出。</p><p>setInterval 会在指定的时间间隔下连续执行定义的 function 而不会考虑这个定义的 function 运行需要多少时间。</p><p>如果这个 function 一直保持固定的执行时间，不会有什么问题：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3551443188.png" alt="2021-02-05T03:21:16.png" title="2021-02-05T03:21:16.png"></p><p>如果这个 function 在一些情况下执行时间大于设定的间隔时间，则前一个任务还没结束下一个任务已经要开始，就会造成冲突问题：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/584595761.png" alt="2021-02-05T03:22:09.png" title="2021-02-05T03:22:09.png"></p><p>为了避免这种情况发生，可以在需要连续调用的 function 执行结束时调用递归 setTimeout 来避免：</p><pre><code>const test2 = () =&gt; {
-    console.log('wow');
-    setTimeout(test2, 1000);
-}
-
-test2();</code></pre><p>以上示例中，我们在 function 定义中在指令结束后定义一个 setTimeout 调用其本身，这样可以实现连续对自身的调用且能保证每个任务都是被完整执行后才开始下一次执行的：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3663076236.png" alt="2021-02-05T03:29:17.png" title="2021-02-05T03:29:17.png"></p><h3>Asynchronous and Callbacks 异步与响应</h3><p>在目前的电脑中，应用程序在特定的时间在占用系统资源运行任务，然后结束程序释放资源给其他程序使用。这个过程在以极快的速度循环进行着以至于我们以为这些程序在同时进行处理(多处理器设备除外)。</p><p>程序内部通过 interrupts 中断：一个发送给处理器的信号，来获得系统的注意及时处理相关响应动作。这使得系统可以在某个任务等待回应过程中去处理其他事情，例如当程序在等待某个网络回应时，不能要求整个系统都停下来等待。</p><p>通常情况下，编程语言都是默认以 synchronous 同步的方式执行代码的，部分编程语言提供了其他支持库的方式实现异步，或者通过多线程的方式支持异步。</p><p>JavaScript 默认是同步和单线程模式，也就是说它不可以新建线程和平行运行。代码是按照编程顺序逐行执行的，如下示例：</p><pre><code>const a = 1
-const b = 2
-const c = a * b
-console.log(c)</code></pre><p>但是 JavaScript 是诞生于浏览器的，它的主要工作就是响应用户的交互操作，如：onClick, onMouseOver, onChange, onSubmit 等。那么它如何在同步模式下实现上面的功能呢？</p><p>答案就在他的运行环境中，浏览器提供了一系列的 APIs 来处理这些功能。node.js 引入了 non-blocking I/O 无阻塞 IO 的环境使得在此基础上扩展了文件访问，网络访问等的异步处理能力。</p><p>你无法预知用户何时会点击了浏览器的一个按钮，所以我们就会提前定义一个 <strong>click event</strong> 的 <strong>event handler</strong> 事件处理器，这个 <strong>event handler</strong> 内需要定义一个 function，当事件被触发时会自动被调用。</p><p>如下示例定义了一个 button 的 <strong>click event handler</strong>：</p><pre><code>document.getElementById('button').addEventListener('click', () =&gt; {});
-</code></pre><p>这个响应过程叫做 callback。</p><p>一个 callback 就是一个作为某个 function 的传入参数的 function，且只会在 event 被触发时才被执行。</p><p>JavaScript 可以定义 first-class functions，能够以参数的形式传入其他 function，也叫 higher-order functions。</p><p>通常情况，我们可以将客户端代码放在 <strong>window</strong> object 的 <strong>load</strong> event 中作为 callback function，这样就可以在页面加载完成后执行这部分代码：</p><pre><code>window.addEventListener('load', () =&gt; {
-    //...
-})</code></pre><p>callback 不止在浏览器的 DOM 结构下应用，一个常用的情景就是定时器：</p><pre><code>setTimeout(() =&gt; {
-  // runs after 2 seconds
-}, 2000)</code></pre><p>XHR 请求也会接受 callback，下面的示例中将一个 function 赋值给 XMLHttpRequest 的一个 property，当特定的 event 发生时会调用定义的 function：</p><pre><code>const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
-const xhr = new XMLHttpRequest();
-xhr.onreadystatechange = () =&gt; {
-    if (xhr.readyState == 4) {
-        xhr.status == 200 ? console.log(xhr.responseText) : console.log('error');
-    };
-};
-xhr.open('GET', 'https://niekun.net');
-xhr.send();</code></pre><p>以上示例执行后，如果网址访问成功则会输出网页内容，否则输出 error。</p><p>那么如何处理 callback 的 errors？通常情况下 node.js 接受的的策略是：将 <strong>callback</strong> function 的第一个参数作为 <strong>error</strong> object，叫做 <strong>error-first callbacks</strong>。当没有 error 时 object 为 null，当有 error 发生时，object 中会包含相关信息。</p><p>下面是一个读取文件的示例：</p><pre><code>const fs = require('fs')
-fs.readFile('./fs.json', (err, data) =&gt; {
-    if (err !== null) {
-        console.log('read error');
-        return;
-    }
-    console.log(data.toString());
-})</code></pre><p>在读取中有错误时 err 会包含错误信息。</p><p>callback 在一般情况下使用很方便，但是每个 callback 相当于增加了一层嵌套层级，当你有很多个 callback 时就会产生多级嵌套，代码结构会越来越复杂。例如一下示例：</p><pre><code>window.addEventListener('load', () =&gt; {
-  document.getElementById('button').addEventListener('click', () =&gt; {
-    setTimeout(() =&gt; {
-      items.forEach(item =&gt; {
-        //your code here
-      })
-    }, 2000)
-  })
-})</code></pre><p>以上是一个四级嵌套，看起来已经比较复杂了，如果有更多的 callback 发生代码的结构会变得更加难以理解。</p><h3>Promise 异步</h3><p>从 ES6 开始 JavaScript 引入了多个处理异步代码的功能代替 callback 模式，包括：Promises (ES6) 和 Async/Await (ES2017)。</p><p><strong>promise</strong> 在我之前的 JavaScript 教程中做了介绍，参考：<a href="https://blog.niekun.net/archives/2011.html">https://blog.niekun.net/archives/2011.html</a></p><p>下面是一个 promise 的应用示例：</p><pre><code>let done = true;
-
-const isItDoneYet = new Promise((resolve, reject) =&gt; {
-    if (done) {
-        const workDone = &quot;working done&quot;;
-        resolve(workDone);
-    } else {
-        const why = 'still working on';
-        reject(why);
-    }
-});
-
-const checkIfDone = () =&gt; {
-    isItDoneYet
-    .then((ok =&gt; console.log(ok)), (err =&gt; console.log(err)))
-}
-
-checkIfDone();
-
-//output:
-//working done</code></pre><p><strong>resolve</strong> 和 <strong>reject</strong> function 也可以分别在 then 和 catch 中定义：</p><pre><code>const checkIfDone = () =&gt; {
-    isItDoneYet
-    .then(ok =&gt; console.log(ok))
-    .catch(err =&gt; console.log(err))
-}</code></pre><p>一个 promise 就是定义一个数据的 proxy 代理，这个数据会在后续中产生。promise 可以用来执行异步任务而不需要使用 callback。它在最近的 ES2017 更新中被进一步的整合为 async 和 await。理解 promise 的运行机制对于理解 async 和 await 很有必要。</p><p>当调用一个 promise 时，它将保持在 pending 挂起状态，程序会继续执行下面的指令。在 promise pending 状态直到它有了 resolve 解决指令期间，可以提供其调用 function 需要的数据。</p><p>创建的 promise 最终会在一个 <strong>resolved</strong> state 或 <strong>rejected</strong> state 状态下结束，并分别调用其 callback function：<strong>then</strong> 和 <strong>catch</strong>。</p><p>promise API 提供了一个 constructor 构建器，通过 <code>new Promise()</code> 初始化。在上面的示例中，promise 判断参数 done 的值，如果为 true 则进入 <strong>resolved</strong> 状态(当 then 的 resolve 调用时)，如果为 false 则进入 <strong>rejected</strong> 状态(当 catch 调用时)。在没有调用 then 或 catch 时，promise 保持 pending 状态。</p><p>通过 resolve 和 reject，我们可以和向前交流获取 promise 的状态结果，以及根据结果执行什么指令。这里我们只是简单的输出了一行字符串信息，也可以是一个 object 或 null 也可以。由于在此之前我们已经创建了 promise，所以它已经开始了执行，这对于理解 resuming a promise 继续执行 promise 很重要。</p><p>一个常用的 promise 使用的技巧：<strong>Promisifying</strong>，定义一个包含 callback 的常规 function，callback 返回一个 promise，下面是一个示例：</p><pre><code>const fs = require('fs');
-
-const getFile = (fileName) =&gt; {
-    return new Promise((resolve, rejects) =&gt; {
-        fs.readFile('./fs.json', (err, data) =&gt; {
-            if (err) {
-                rejects(err)
-                return
-            }
-            resolve(data)
-        })
-    })
-}
-
-getFile(&quot;fs.json&quot;)
-    .then(data =&gt; console.log(data.toString()))
-    .catch(err =&gt; console.log(err))</code></pre><p>通过上面的介绍，我们知道了通过 <code>new Promise()</code> 命令可以创建一个 promise，然后根据实际条件执行 promise 的 <strong>resolve</strong>(then) 或 <strong>reject</strong>(catch) function。</p><h4>promises chain 链</h4><p>一个 promise 可以作为另一个 promise 的返回，可以组成一个 promises 链条。</p><p>Fetch API 是介绍 promises 链很好的示例。它可以 fetch 获取一个资源，然后顺序执行一个 promises chain。fetch API 是基于 promise 的结构，调用 <code>fetch()</code> 就等同于通过 <code>new Promise()</code> 定义 promise。</p><p>下面的是一个 promises 链示例，使用了 Fetch API：</p><pre><code>const fetch = require('node-fetch');
-
-const status = response =&gt; {
-    if (response.status &gt;= 200 &amp;&amp; response.status &lt; 300) {
-        return Promise.resolve(response)
-    }
-    return Promise.reject(new Error(response.statusText))
-}
-
-const json = response =&gt; response.json() // return a promise
-
-fetch('https://api.github.com/users/github') // return a promise, resolve is a response type
-    .then(status) // use response as data and reture a promise
-    .then(json) // use response as data convert to json and reture a promise
-    .then(data =&gt; console.log('Request succeeded with JSON response', data)) // resolve call
-    .catch(err =&gt; console.log('Request failed', err)) // if status promise call reject function, would call here</code></pre><p><strong>以上程序的执行过程如下：</strong></p><ul><li>使用 fetch 获取一个 url 的数据，然后返回一个 promise，resolve 时返回数据为一个 <strong>response</strong>，其中包含很多 properties，这里需要用到 status 和 statusText</li><li>当 fetch 数据完成后我们调用 resolve 也就是 <strong>status</strong> function，status 使用 response 数据来判断并返回一个 promise，resolve 数据为 response 本身</li><li>下一步当 <strong>status</strong> promise 调用 resolve 时会调用 <strong>json</strong> function，将 response 数据转换为 json 格式并返回一个 promise resolve 数据为 json 数据，如果 <strong>status</strong> 进入 reject 也就是 response 不正常，则会直接执行最后的 <strong>catch</strong> function 跳过前面的环节</li><li>然后是数据的输出，当 <strong>json</strong> promise 调用 resolve 时会执行输出 data 数据</li></ul><p>在上面的示例中，我们在 promise 链的最后定义了一个 catch，当 promise 链中的任何一个 promise 失败然后 raise 一个 error 或者 reject，控制器会执行链中定义的最近的一个 catch。</p><p><strong>reject</strong> 或 raise <strong>error</strong> 都会触发 catch 部分，下面两种定义的 promise 语法都会进入 catch：</p><pre><code>new Promise((resolve, reject) =&gt; {
-    throw new Error('error')
-}).catch(err =&gt; console.log(err))
-
-new Promise((resolve, reject) =&gt; {
-    reject('error')
-}).catch(err =&gt; console.log(err))</code></pre><p>也可以将 errors 级联，如果在 catch 中再次 throw 一个 error，可以再次附加一个 catch 来处理它：</p><pre><code>new Promise((resolve, reject) =&gt; {
-    throw new Error('error')
-})
-.catch(err =&gt; {throw new Error('error')})
-.catch(err =&gt; console.log(err))</code></pre><h4>promises 顺序</h4><p>多个 promises 可以控制他们的响应顺序，使用 <code>Promise.all()</code> 可以定义一个 promise list 表，当 promises 都 resolve 时设置执行动作。</p><p>请看下面的测试：</p><pre><code>const fetch = require('node-fetch');
-
-const f1 = fetch('http://localhost/fs.json');
-const f2 = fetch('http://localhost/fs2.json');
-
-Promise.all([f1, f2])
-.then(response =&gt; console.log(&quot;array of results&quot;, response))
-.catch(err =&gt; console.log(err))</code></pre><p>返回的结果：</p><pre><code>array of results [
-  Response {
-    size: 0,
-    timeout: 0,
-    [Symbol(Body internals)]: { body: [PassThrough], disturbed: false, error: null },
-    [Symbol(Response internals)]: {
-      url: 'http://localhost/fs.json',
-      status: 404,
-      statusText: 'Not Found',
-      headers: [Headers],
-      counter: 0
-    }
-  },
-  Response {
-    size: 0,
-    timeout: 0,
-    [Symbol(Body internals)]: { body: [PassThrough], disturbed: false, error: null },
-    [Symbol(Response internals)]: {
-      url: 'http://localhost/fs2.json',
-      status: 404,
-      statusText: 'Not Found',
-      headers: [Headers],
-      counter: 0
-    }
-  }
-]</code></pre><p>可以看到 response 是一个数组，包含了两个 promise 返回的数据且按数组定义的顺序排列。</p><p>使用 ES6 的 object 拆解语法，上面示例也可以这样写：</p><pre><code>Promise.all([f1, f2])
-.then(([response1, response2]) =&gt; console.log(&quot;array of results&quot;, response1, response2))
-.catch(err =&gt; console.log(err))</code></pre><h4>Promise.race()</h4><p>当 <code>Promise.race()</code> 中定义的 promises 数组中有第一个 resolve 的 promise 时，这个 promise 会运行 then 且只运行这一次，最终的状态就是那个 promise resolved 状态。</p><p>下面是一个示例：</p><pre><code>const first = new Promise((resolve, reject) =&gt; {
-    setTimeout(resolve, 500, 'first');
-})
-const second = new Promise((resolve, reject) =&gt; {
-    setTimeout(resolve, 100, 'second');
-})
-Promise.race([first, second]).then(res =&gt; console.log(res))
-
-//output:
-//second</code></pre><p>上面的示例中，首先定义了两个 promise，当 resolve 时都是执行了一个定时器。先到达定时时间的 promise 将会执行 resolve 动作。</p><h3>async 和 await</h3><p>JavaScript 从 ES2015 才引入 promise 代替 callback，从 ES2017 开始 JavaScript 处理异步有了更加简化的语法：<strong>async/await</strong>。</p><p><strong>async</strong> functions 是 promise 和 generator 的结合。也即是说 async/await 是基于 promise 的。关于 promise 和 generator 的 JavaScript 语法可以参考：<a href="https://blog.niekun.net/archives/2011.html">https://blog.niekun.net/archives/2011.html</a></p><p>promise 是为了处理异步而创造的，但随着使用场景的复杂化，它的劣势被凸显出来：语法臃肿，promise 链不能打断需要联系书写。于是便诞生了 <strong>async</strong> function。它可以让代码看起来像是同步代码，但在底层它是异步的且无 IO 阻塞问题。</p><p>首先我们定义一个异步 promise：</p><pre><code>const doSomethingAsync = () =&gt; {
-    return new Promise(resolve =&gt; {
-        setTimeout(resolve, 2000, 'i did something')
-    })
-}</code></pre><p><strong>setTimeout</strong> 第三个参数是 resolve 的传入数据。</p><p>当我们要调用这个 <strong>promise</strong> function 时使用关键词 <strong>await</strong>，然后 call 动作将会 pending 挂起状态直到 promise 被 resolved 或 rejected，注意在客户端代码中，需要使用 <strong>async</strong> 定义相关 function：</p><pre><code>const doSomething = async () =&gt; {
-    console.log(await doSomethingAsync());
-}
-console.log('before')
-doSomething()
-console.log('after')
-
-//output:
-//before
-//after
-//i did something</code></pre><p>以上是一个简单的示例说明 async 的用法，await 后的 promise function 返回值是 resolve 或 reject 的数据。</p><p>在 function 定义中使用 async 关键词意味着这个 function 返回值为 promise 类型，即使定义中没有明确定义返回类型，它依然会返回 promise。所以以下代码是有效的：</p><pre><code>const test = async () =&gt; {
-    return 'test';
-}
-test().then(res =&gt; console.log(res))
-
-//output:
-//test</code></pre><p>以上的代码和下面的写法是一样的效果：</p><pre><code>const test = async () =&gt; {
-    return Promise.resolve('test');
-}
-test().then(res =&gt; console.log(res))</code></pre><p>可以看到使用 async 后语法得到了简化易读，当代码很复杂时这一优势会更加明显，下面是使用 promise 语法读取 json 数据并拆解它的示例：</p><pre><code>const getFirstUserData = () =&gt; {
-    return fetch('/js.json') // return a promise, resolve response data
-        .then(response =&gt; response.json()) // reture a promise, resolve translate response data to json type
-        .then(users =&gt; users[0]) // return a promise, resolve is first element in response array data
-        .then(user =&gt; fetch(`/users/${user.name}`)) // use first element data to fetch new data and return response data when resolve
-        .then(userResponse =&gt; userResponse.json()) // translate to json type and return it if resolve
-}
-getFirstUserData()</code></pre><p>下面使用 <strong>async/await</strong> 来实现上面的功能：</p><pre><code>const { default: fetch } = require(&quot;node-fetch&quot;)
-
-const getFirstUserData = async () =&gt; {
-    const response = await fetch('/js.json')
-    const users = await response.json()
-    const user = users[0]
-    const userResponse = await fetch(`/users/${user.name}`)
-    const userData = await userResponse.json()
-
-    return userData;
-}
-getFirstUserData()</code></pre><h4>多个 async function 组合使用</h4><p><strong>async</strong> function 可以很方便的组成 chain 链，且语法相比较 promise 更加易读。</p><p>下面是一个多个 async function 组合使用的示例：</p><pre><code>const promiseToDoSomething = () =&gt; {
-    return new Promise(resolve =&gt; {
-        setTimeout(resolve, 2000, 'i did something')
-    })
-}
-
-const watchSomeoneDoingSomething = async () =&gt; {
-    const something = await promiseToDoSomething()
-    return something + '\nand i watched'
-}
-
-const watchSomeoneWatchingSomeoneDoingSomething = async () =&gt; {
-    const something = await watchSomeoneDoingSomething()
-    return something + '\nand i watched as well'
-}
-
-watchSomeoneWatchingSomeoneDoingSomething().then(res =&gt; console.log(res))
-
-//output:
-//i did something
-//and i watched
-//and i watched as well</code></pre><p><strong>async/await</strong> function 看起来就像是同步代码，这样调试起来非常方便。</p><h3>Event emitter 事件触发器</h3><p>如果在浏览器端开发过 JavaScript，你肯定了解用户通过 events 事件来实现交互，如：鼠标点击，键盘按键，鼠标移动等。</p><p>在后端，node.js 通过 <strong>events</strong> module 可以建立一个小型系统来处理 events 事件。通常使用 <strong>EventEmitter</strong> class，下面是初始化 <strong>events</strong> 的方法：</p><pre><code>const EventEmitter = require('events')
-const eventEmitter = new EventEmitter()</code></pre><p>此时 <strong>eventEmitter</strong> object 有很多 properties，其中最常用的就是 <strong>on</strong> 和 <strong>emit</strong> method：</p><ul><li><strong>on</strong> 用来定义一个 event 事件，同时定义一个 callback function，当 event 触发后被执行</li><li><strong>emit</strong> 用来触发某个 event 事件</li></ul><p>下面我们创建一个 <strong>start</strong> event：</p><pre><code>eventEmitter.on('start', () =&gt; console.log('started'))</code></pre><p>然后触发 <strong>start</strong>：</p><pre><code>eventEmitter.emit('start')
-
-//output:
-//start</code></pre><p>可以给 event 传递参数，在 callback 时使用：</p><pre><code>eventEmitter.on('test1', par =&gt; console.log('started', par))
-eventEmitter.emit('test1', 'wow')
-
-//output:
-//started wow</code></pre><p>当然也可以给 event 传递多个数据：</p><pre><code>eventEmitter.on('test2', (a, b) =&gt; console.log(`started from ${a} to ${b}`))
-eventEmitter.emit('test2', 1, 200)
-
-//output:
-//started from 1 to 200</code></pre><p><strong>EventEmitter</strong> object 同样有很多其他实用 method 来实现交互，例如：</p><ul><li><strong>once()</strong>: 添加一个一次性的 event 事件监听器，只会被触发一次</li><li><strong>removeListener() / off()</strong>: 删除某个已定义的 event 监听器</li><li><strong>removeAllListeners()</strong>: 删除所有的 event 监听器</li></ul><p>更多关于 events module 的用法参考：<a href="https://nodejs.org/api/events.html">https://nodejs.org/api/events.html</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2100.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2100.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[Windows 10 配置共享文件夹]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2103.html" />
-<id>https://blog.niekun.net/archives/2103.html</id>
-<updated>2021-02-03T10:28:00+08:00</updated>
-<published>2021-02-03T10:28:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[最近研究了下 Windows 的共享设置，目的是在同一局域网下共享文件夹给其他设备读写。下面从原理和实际操作上介绍下共享过程。SMBWindows 共享使用 Server Message Blo...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2103.html" xml:lang="zh-CN"><![CDATA[
-<p>最近研究了下 Windows 的共享设置，目的是在同一局域网下共享文件夹给其他设备读写。下面从原理和实际操作上介绍下共享过程。</p><h3>SMB</h3><p>Windows 共享使用 Server Message Block (SMB) 协议，它可以让应用程序访问本机网络下的其他设备的文件及服务。</p><p>SMB 是 IBM 在 1980 年代创造的协议，目前已经有了很多的升级及分支。</p><p>SMB 协议允许应用程序访问远程主机的文件和资源如打印机等，也可以同远程主机上设置了接收 SMB 协议的应用程序通信。它运行在网络的 layer 7 层，也就是 application 应用层，使用 TCP/IP 的 445 端口传输数据。</p><p>从 Windows 95 开始，微软将引入了 SMB 协议的支持。Linux 端，samba 作为一个开源软件提供 SMB 的支持。</p><!--more--><p>SMB 协议也是在不断发展的，下面是一个简单的版本更新过程：</p><ul><li>SMB 1.0 (1984): IBM 为 DOS 下的文件共享创造了 SMB</li><li>CIFS (1996): 微软开发了 SMB 的分支版本并集成在 Windows 95，添加了大文件的支持，直接在 TCP/IP 传输</li><li>SMB 2.0 (2006): 在 Windows Vista 和 Windows Server 2008 中发布. 提升了性能</li><li>SMB 2.1 (2010): 在 Windows Server 2008 R2 和 Windows 7 中发布</li><li>SMB 3.0 (2012): 在 Windows 8 和 Windows Server 2012 中发布. 提升了性能，增加备份，安全和管理功能</li><li>SMB 3.02 (2014): 在 Windows 8.1 和 Windows Server 2012 R2 中发布. 提升性能并完全停止支持 CIFS/SMB 1.0</li><li>SMB 3.1.1 (2015): 在 Windows 10 和 Windows Server 2016 中发布</li></ul><p>在 2017 年，利用 SMB 1.0 的漏洞，WannaCry 勒索软件在互联网中大规模传播，微软虽然立刻发布了补丁，但专家还是建议立刻停止运行 SMB 1.0 协议。</p><h3>Windows 设置共享</h3><p>下面介绍在 Windows 10 中配置共享文件夹。</p><p>首先打开控制面板，进入 network and Internet：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3484356955.jpg" alt="1.jpg" title="1.jpg"></p><p>点击 network and sharing center：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/1555287216.jpg" alt="2.jpg" title="2.jpg"></p><p>点击 change advanced sharing settings：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3540072456.jpg" alt="3.jpg" title="3.jpg"></p><p>在 current profile 中打开网络发现和文件共享：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/87039655.jpg" alt="4.jpg" title="4.jpg"></p><p>然后在 all network 中关闭密码保护(否则在其他设备访问时会提示输入账户密码)：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/368588129.jpg" alt="5.jpg" title="5.jpg"></p><p>控制面板配置完成后，我们开始配置需要共享的文件夹。</p><p>在需要共享的文件夹上点击右键，选择属性：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/244669714.jpg" alt="6.jpg" title="6.jpg"></p><p>在 share 选项卡中点击 share：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3905984961.jpg" alt="7.jpg" title="7.jpg"></p><p>在下拉菜单中选择 everyone，然后点击 add：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/1822670699.jpg" alt="8.jpg" title="8.jpg"></p><p>修改此文件夹的读写权限，我这里设置读和写：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3658771641.jpg" alt="9.jpg" title="9.jpg"></p><p>点击 share 开启共享：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3388059287.jpg" alt="10.jpg" title="10.jpg"></p><p>返回属性栏，点击 advanced share：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/1235392306.jpg" alt="11.jpg" title="11.jpg"></p><p>选中 share this folder：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2162677218.jpg" alt="12.jpg" title="12.jpg"></p><p>点击 permission：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2270117126.jpg" alt="13.jpg" title="13.jpg"></p><p>设置共享权限，我这里设置为可读写：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2247707898.jpg" alt="14.jpg" title="14.jpg"></p><p>确认后共享文件夹就配置完成了。</p><h3>访问共享文件</h3><p>下面介绍在其他局域网设备访问主机的共享文件夹。</p><h4>Windows</h4><p>在 Windows 上，打开 file explorer，点击 network：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3714944153.jpg" alt="15.jpg" title="15.jpg"></p><p>在右侧就是本地网络下启用了网络发现的设备列表，点击进入设置了共享文件夹的设备名称就可以访问了：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/1841189733.jpg" alt="16.jpg" title="16.jpg"></p><p>也可以在地址栏直接输入共享路径地址，以双反斜线<code>\\</code>开头后面是设备 IP 或名称，如：<code>\\DESKTOP-BS3C55D</code>。</p><p>关于设备的名称，可以在终端通过 <code>whoami</code> 命令查询：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/969206228.jpg" alt="17.jpg" title="17.jpg"></p><h4>iPhone</h4><p><strong>在支持 SMB 协议的设备或应用程序中都可以打开 Windows 共享的文件</strong>，下面介绍通过 iPhone 的 files app 来连接到 Windows 共享目录。</p><p><strong>打开 files app，点击右上角的 <code>...</code> 选择 connect to server：</strong><br><img src="https://blog.niekun.net/usr/uploads/2021/02/765618703.jpg" alt="IMG_3227.jpg" title="IMG_3227.jpg"></p><p><strong>在 server 中输入共享主机的地址，这里直接输入 IP 地址：</strong><br><img src="https://blog.niekun.net/usr/uploads/2021/02/323133738.png" alt="IMG_3229.PNG" title="IMG_3229.PNG"></p><p><strong>选择 guest 点击 next：</strong><br><img src="https://blog.niekun.net/usr/uploads/2021/02/2346742928.png" alt="IMG_3230.PNG" title="IMG_3230.PNG"></p><p><strong>完成后就可以访问到共享目录了：</strong><br><img src="https://blog.niekun.net/usr/uploads/2021/02/989176749.png" alt="IMG_3232.PNG" title="IMG_3232.PNG"></p><p>如果文件夹设置的是可读写权限，就可以在手机上传输文件到共享目录了。</p><p>参考链接：<br><a href="https://searchnetworking.techtarget.com/definition/Server-Message-Block-Protocol">Server Message Block Protocol (SMB protocol)</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2103.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2103.html" thr:count="0"/>
 </entry>
 </feed>
