@@ -11,13 +11,62 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/2021/02/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Sat, 20 Feb 2021 17:19:45 +0800</lastBuildDate>
-<pubDate>Sat, 20 Feb 2021 17:19:45 +0800</pubDate>
+<lastBuildDate>Sun, 21 Feb 2021 22:02:00 +0800</lastBuildDate>
+<pubDate>Sun, 21 Feb 2021 22:02:00 +0800</pubDate>
 <item>
-<title>node.js 入门教程之十三 -- environment，error 和 log</title>
+<title>node.js 入门教程之十四 -- TypeScript</title>
+<link>https://blog.niekun.net/archives/2169.html</link>
+<guid>https://blog.niekun.net/archives/2169.html</guid>
+<pubDate>Sun, 21 Feb 2021 22:02:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[TypeScript 是微软开发的开源编程语言，在全世界的开发者中流行。本质上来说 typescript 是 JavaScript 的超集，为其添加了很多功能。标志性的就是添加了 static ...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p><strong>TypeScript</strong> 是微软开发的开源编程语言，在全世界的开发者中流行。</p><p>本质上来说 <strong>typescript</strong> 是 <strong>JavaScript</strong> 的超集，为其添加了很多功能。标志性的就是添加了 <strong>static type</strong> 静态类型定义，它可以声明期待的数据类型，例如：声明 function 中的期待的传入数据类型，期望的返回值的类型，object 的结构及 property 的数据类型等。</p><p>typescript 是一个强大的工具，给 JavaScript 项目开启了新的世界。它使我们的代码更加的安全有力，在程序发布前就可以防止很多的 bug 出现。在编写代码期间就能够及时反映出问题点，并且它已经被整合在现代的编译器中，如 VS code。</p><!--more--><h3>语法说明</h3><p>下面是一个 typescript 代码示例：</p><pre><code>type User = {
+    name: string;
+    age: number;
+};
+
+function isAdult(user: User): boolean {
+    return user.age &gt;= 18;
+}
+
+const justine: User = {
+    name: 'Justine',
+    age: 23,
+};
+
+const isJustineAnAdult: boolean = isAdult(justine);</code></pre><ul><li>首先我们通过 <strong>type</strong> 关键词定义一个自定义的 object 类型 <strong>User</strong>，其中定义了 <strong>User</strong> 的两个 properties 及其数据类型。</li><li>然后在定义的 function <strong>isAudlt</strong> 中接收一个参数，此参数类型为 <strong>User</strong> 类型，然后返回值类型为 <strong>boolean</strong> 类型。</li><li>然后我们定义了 <strong>justine</strong> object 且其类型为 <strong>User</strong>。在其中定义的两个 properties 也符合 User 中的类型。</li><li>最后定义了变量 <strong>isJustineAnAdult</strong> 且其数据类型为 <strong>boolean</strong>，将 <strong>isAudlt</strong> 的返回值赋给它。</li></ul><p>如果我们在编程中没有使用指定的数据类型，typescript 将会给出警告提醒我们错误的地方，比如上面的示例中修改 justine 的 age 为一个字符串：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3878778226.png" alt="2021-02-21T13:39:09.png" title="2021-02-21T13:39:09.png"></p><p>在 vs code 中会提示此处有错误。</p><p>另一方面也并不需要将所有地方的数据类型都做出声明，typescript 会自动推断出需要的类型。例如：即使我们不给 <strong>isJustineAnAdult</strong> 声明 boolean 类型，typescript 也会自动推断它是 boolean 类型的。</p><p>那么如何运行 typescript 代码呢？首先需要通过 npm 安装 typescript，它会安装我们需要的一些可执行程序：</p><pre><code>npm install typescript
+</code></pre><p>下面我们可以通过 <strong>tsc</strong> 命令将 typescript 代码转换为标准 JavaScript 代码。</p><p>我们将上面示例中的代码保存为 demo.ts 文件，然后通过 npx 调用 tsc 命令(如果以 global 方式安装 typescript 则可以直接运行命令)：</p><pre><code>npx tsc demo.ts
+</code></pre><p>以上命令会转换 JavaScript 代码并自动创建一个 demo.js 文件，此文件可以在 node.js 运行:</p><pre><code>function isAdult(user) {
+    return user.age &gt;= 18;
+}
+var justine = {
+    name: 'Justine',
+    age: 23
+};
+var isJustineAnAdult = isAdult(justine);</code></pre><p>如果 typescript 代码中包含错误，则使用上面的转换命令会出现报错信息：</p><pre><code>% npx tsc demo.ts
+demo.ts:12:5 - error TS2322: Type 'string' is not assignable to type 'number'.
+
+12     age: '23',
+       ~~
+
+  demo.ts:3:5
+    3     age: number;
+          ~~
+    The expected type comes from property 'age' which is declared here on type 'User'
+
+
+Found 1 error.</code></pre><p>可以看到 typescript 成功的防止将包含潜在错误代码的程序发布出去。</p><h3>更多介绍</h3><p>除此之外 typescript 也包含了很多其他很好的工具，如：<strong>interfaces</strong>, <strong>classes</strong>, <strong>utility types</strong> 等。更多使用方法参考 typescript 官方文档：<a href="https://www.typescriptlang.org/docs">https://www.typescriptlang.org/docs</a>。</p><p>typescript 在 node.js 生态中已经有了很好的发展，且被用于很多开源项目和框架中。以下是一些使用 typescript 的开源项目：</p><ul><li><strong>NestJS</strong> - robust and fully-featured framework that makes creating scalable and well-architected systems easy and pleasant</li><li><strong>TypeORM</strong> - great ORM influenced by other well-known tools from other languages like Hibernate, Doctrine or Entity Framework</li><li><strong>Prisma</strong> - next-generation ORM featuring a declarative data model, generated migrations and fully type-safe database queries</li><li><strong>RxJS</strong> - widely used library for reactive programming</li></ul><h3>总结</h3><p>通过这 14 篇教程，我们介绍了 node.js 的基本语法和相关使用场景。后期可以在具体项目中进行更加详细的体验。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2169.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2169.html</wfw:commentRss>
+</item>
+<item>
+<title>node.js 入门教程之十三 -- environment，error handler 和 log object</title>
 <link>https://blog.niekun.net/archives/2165.html</link>
 <guid>https://blog.niekun.net/archives/2165.html</guid>
-<pubDate>Sat, 20 Feb 2021 17:19:45 +0800</pubDate>
+<pubDate>Sat, 20 Feb 2021 17:19:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[environment 运行环境production environment 产品环境和 development environment 开发环境可以设置不同的配置。node.js 默认为 de...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -49,12 +98,93 @@ throw new childError('error')</code></pre><p>下面介绍几种 <strong>exceptio
 } catch (e) {
     console.log(e)
 }</code></pre><p>catch 的参数 e 就是对应 throw 的数据。</p><p>如果在程序执行中，如果某个 throw 的 exception 没有被 catch，程序就会立刻 crash。可以通过监听 <strong>process</strong> 的 <strong>uncaughtException</strong> event 事件来解决这个问题：</p><pre><code>process.on('uncaughtException', err =&gt; {
-    console.log('there was a uncaught error', err)
+    console.log('there was a uncaught error: ', err.message)
     process.exit(1)
 })
 
-const test = 123;
-throw test;</code></pre><p><strong>第二种</strong>是 <strong>promise</strong> 中的 error handler。</p>
+throw new Error('error')</code></pre><p><strong>第二种</strong>是 <strong>promise</strong> 中的 error handler。</p><p>使用 promise 可以将多个操作过程组合成链，在链的最后处理 error 情况，下面是一个简单示例：</p><pre><code>let a = 0;
+let b = 0;
+
+const doSomething1 = new Promise((resolve, reject) =&gt; {
+    if (a == 0)
+        resolve('resolve 1')
+    else
+        reject('reject 1')
+})
+
+const doSomething2 = (data) =&gt; {
+    return new Promise((resolve, reject) =&gt; {
+        if (b == 0)
+            resolve(data + ' : resolve 2')
+        else
+            reject('reject 2')
+
+    })
+}
+
+doSomething1
+    .then(doSomething2)
+    .then(res =&gt; console.log(res))
+    .catch(rej =&gt; console.log(rej))</code></pre><p>当 <strong>doSomething1</strong> 为 resolve 时会执行 <code>doSomething2()</code>，为 reject 时会直接进入 catch 块。同样的 <strong>doSomething2</strong> 返回的 promise 为 reject 时也会进入 catch 块。此时通过输出的信息可以知道是在哪一个 promise 链响应了 exception。</p><p><strong>第三种</strong>是 <strong>async/await</strong> 的 error handling。</p><p>使用 <strong>async/await</strong> 也是通过 <strong>try/catch</strong> 来处理 exception 情况的：</p><pre><code>let a = 1;
+const demo = new Promise((resolve, reject) =&gt; {
+    if (a == 0) {
+        setTimeout(resolve, 1000, 'resolve');
+    } else {
+        reject('reject')
+    }
+})
+
+const test = async() =&gt; {
+    try {
+        const data = await demo
+        console.log(data)
+    } catch (error) {
+        console.log(error)
+    }
+}
+test()
+
+//output:
+//reject</code></pre><p>当 <strong>demo</strong> promise 为 reject 时会响应 <code>test()</code> 中的 catch 块。</p><h3>日志输出 object</h3><p>当我们在浏览器中使用 <code>console.log()</code> 输出某个 object 时，会得到一个很好的效果：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2696578422.png" alt="2021-02-21T07:32:18.png" title="2021-02-21T07:32:18.png"></p><p>点击箭头可以展开日志，完整地展示 object 的 properties：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3439824675.png" alt="2021-02-21T07:33:15.png" title="2021-02-21T07:33:15.png"></p><p>在 node.js 中和浏览器有所不同，它是将 object 的内容以字符串的形式输出到终端或者日志文件中。</p><p>对于简单的 object 来说没有什么问题，但是对于包含超过 2 层嵌套以上的 object 来说 node.js 就会放弃输出所有内容而用一个 <strong>[Object]</strong> 占位符表示剩余内容：</p><pre><code>const obj = {
+    name: 'joe',
+    age: 35,
+    person1: {
+        name: 'Tony',
+        age: 50,
+        person2: {
+            name: 'Albert',
+            age: 21,
+            person3: {
+                name: 'Peter',
+                age: 23
+            }
+        }
+    }
+}
+console.log(obj)</code></pre><p>输出结果为：</p><pre><code>{
+  name: 'joe',
+  age: 35,
+  person1: {
+    name: 'Tony',
+    age: 50,
+    person2: { name: 'Albert', age: 21, person3: [Object] }
+  }
+}</code></pre><p>可以看到第三层的内容已经用 <strong>[Object]</strong> 取代。</p><p>强制要求输出 object 所有内容的最好的方法就是使用 <code>JSON.stringify()</code>：</p><pre><code>console.log(JSON.stringify(obj, undefined, 2))</code></pre><p>输出如下：</p><pre><code>{
+  &quot;name&quot;: &quot;joe&quot;,
+  &quot;age&quot;: 35,
+  &quot;person1&quot;: {
+    &quot;name&quot;: &quot;Tony&quot;,
+    &quot;age&quot;: 50,
+    &quot;person2&quot;: {
+      &quot;name&quot;: &quot;Albert&quot;,
+      &quot;age&quot;: 21,
+      &quot;person3&quot;: {
+        &quot;name&quot;: &quot;Peter&quot;,
+        &quot;age&quot;: 23
+      }
+    }
+  }
+}</code></pre><p>第一个参数定义需要输出的 object，第二个参数是定义一个 function 用来转换字符串内容也可以不定义，第三个是定义缩进量。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2165.html#comments</comments>
@@ -861,132 +991,6 @@ rm(p)</code></pre><p>下一章我们继续了解 fs 和 path 模块的详细内�
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2139.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2139.html</wfw:commentRss>
-</item>
-<item>
-<title>node.js 入门教程之五 -- HTTP request and response</title>
-<link>https://blog.niekun.net/archives/2137.html</link>
-<guid>https://blog.niekun.net/archives/2137.html</guid>
-<pubDate>Sat, 06 Feb 2021 16:50:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[搭建 http server下面是一个 http server 的示例：const http = require('http')process.env.PORT = 3000const port...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<h3>搭建 http server</h3><p>下面是一个 http server 的示例：</p><pre><code>const http = require('http')
-process.env.PORT = 3000
-const port = process.env.PORT
-
-const server = http.createServer((req, res) =&gt; {
-    res.statusCode = 200
-    res.setHeader('Content-Type', 'text/html')
-    res.end('&lt;h1&gt;hello world&lt;/h1&gt;')
-})
-server.listen(port, () =&gt; console.log(`server running at port ${port}`))</code></pre><p>访问 <a href="http://localhost">http://localhost</a>:3000 就会看到页面显示 <strong>hello world</strong>。</p><!--more--><p>下面我们简单解释下以上示例的执行过程：</p><ul><li>首先引入 <strong>http</strong> module</li><li>设置环境变量 PORT 为 3000，然后赋值给 port 变量</li><li>创建一个 server，其中含有一个 callback function，用户访问 server 时会被调用</li><li>设置监听端口并启动 server，当 server 启动成功后，会执行 server.listen 内定义的 callback function</li></ul><p>当 server 收到用户的请求时，会触发 <strong>request event</strong> 并提供了两个数据：一个 <strong>request</strong>(http.IncomingMessage object) 和一个 <strong>response</strong>(http.ServerResponse object)。</p><ul><li><strong>request</strong> 提供了 request 的详细信息，可以用来获取请求 hreaders 和请求数据。</li><li><strong>response</strong> 用来操作将要发送给客户端的数据。</li></ul><p><strong>在上面的示例中，我们修改了 response 相关信息：</strong></p><ul><li>设置 statusCode 为 200</li><li>设置一个 header</li><li>结束 response 并将响应内容作为数据传入 <code>end()</code></li></ul><h3>发起 GET 请求</h3><p>下面示例发起一个 GET 请求：</p><pre><code>const https = require('https')
-const options = {
-    hostname: 'niekun.net',
-    port: 443,
-    path: '/',
-    method: 'GET'
-}
-
-const req = https.request(options, res =&gt; {
-    console.log(`statusCode is：${res.statusCode}`);
-    res.on('data', d =&gt; {
-        process.stdout.write(d)
-    })
-})
-
-req.on('error', err =&gt; console.log(err))
-req.end()</code></pre><p><strong>以上示例执行过程为：</strong></p><ul><li>首先引入 https 模块。</li><li>创建一个 <strong>options</strong> object 存储请求的信息。</li><li>创建一个 <strong>https</strong> request，使用 options 作为请求信息，当请求成功后会执行后面定义的 callback function。</li><li>定义一个 event handler 事件管理器来处理当 error 被触发时的响应。</li><li>最后结束这个 request</li></ul><h3>发起 POST 请求</h3><p>下面是一个 POST 请求示例：</p><pre><code>const https = require('https')
-
-const data = JSON.stringify({
-    todo: 'go to sleep'
-})
-
-const options = {
-    hostname: 'niekun.net',
-    port: 443,
-    path: '/',
-    method: 'POST',
-    Headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': data.length
-    }
-}
-
-const req = https.request(options, res =&gt; {
-    console.log(`statusCode is：${res.statusCode}`);
-    res.on('data', d =&gt; {
-        process.stdout.write(d)
-    })
-})
-req.on('error', err =&gt; console.log(err))
-
-req.write(data)
-req.end()</code></pre><p>POST 请求相比 GET 请求多了 <code>request.write(data)</code> 部分，因为 POST 是把数据消息放在 body 中的。</p><p>PUT 和 DELETE 请求和 POST 格式相同，只需要修改 request.method 即可。</p><h3>使用 Axios 库发起 POST 请求</h3><p>上面介绍了是应用 https 模块来发起 POST 请求，我们也可以使用第三方库使代码更加简洁，这里介绍 axios 库实现(需要通过 npm 安装)：</p><pre><code>const axios = require('axios')
-
-axios
-.post('http://localhost:3000', {
-    todo: 'go to sleep'
-})
-.then(res =&gt; {
-    console.log(`statusCode is: ${res.status}`)
-    process.stdout.write(res.data)
-})
-.catch(err =&gt; console.log(err))</code></pre><h3>获取 http request body 数据</h3><p>下面介绍 server 端如何提取在 http request body 中的 json 数据。</p><p>如果你使用 <strong>Express</strong> 模块创建 http server，那么只需要使用它的 body-parser 内容拆分模块即可实现提取 json 数据，<strong>Express</strong> 模块在第一章做过示例，如果客户端使用上面的 axios 示例发起请求，服务端代码如下：</p><pre><code>const express = require('express');
-const app = express();
-
-process.env.PORT = 3000
-const port = process.env.PORT
-
-app.use(
-    express.urlencoded({
-        extended: true
-    })
-)
-app.use(express.json())
-
-app.get('/', (req, res) =&gt; {
-    res.statusCode = 200
-    res.setHeader('Content-Type', 'text/html')
-    res.end('&lt;h1&gt;hello world&lt;/h1&gt;')
-})
-
-app.post('/', (req, res) =&gt; {
-  console.log(req.body.todo)
-  res.statusCode = 200
-  res.setHeader('Content-Type', 'text/html')
-  res.end('hello world\n')
-});
-
-const server = app.listen(port, () =&gt; console.log('Server ready'));</code></pre><p>我们使用 express 模块创建了一个 server，并同时监听 GET 和 POST 请求并定义了 callback 响应，通过 <code>app.use</code> 设置了对请求 body 数据的 json 支持。</p><p>当启动上面实例中使用 axios 开启的服务端的程序后，server 端收到 POST 请求后就会提取请求 body 中的 todo 对应内容并输出到终端。客户端成功收到 response 后会输出 200 状态码和响应内容。</p><p>我们通过浏览器直接访问 <code>localhost:3000</code> 会发起一个 GET 请求，浏览器会显示 hello world。</p><p>如果你不想使用 express 模块创建 server，那么 server 端要提取 POST request body 中的 json 数据就稍微麻烦一些。</p><p>首先需要理解的是当我们通过 <code>http.createServer()</code> 创建了一个 http 服务后，callback function 会在所有的 request headers 内容都接收到后被调用，而不是 request body。</p><p><strong>connection callback</strong> 中传递的完整的 <strong>request</strong> object 数据是在 stream 流中。所以我们必须监听传输的 request body 的内容，它们是在一些 chunks 数据块中的。</p><p>首先我们通过监听 <strong>data</strong> event 获取 body 数据，<strong>data</strong> event 在传输过程中会被多次触发，当 request 数据传输完毕后 end event 会被触发。</p><p>通过下面的代码可以获取到完整的 body 数据：</p><pre><code>const server = http.createServer((req, res) =&gt; {
-    let data = '';
-    req.on('data', chunk =&gt; {
-        data += chunk;
-    })
-    req.on('end', () =&gt; {
-        console.log(JSON.parse(data).todo)
-    })
-})</code></pre><p>以上代码中，data 最终存储了 request body 的数据，然后通过 <code>JSON.parse</code> method 可以解析 json 内容。</p><p>server 端完整的代码如下：</p><pre><code>const http = require('http')
-process.env.PORT = 3000
-const port = process.env.PORT
-
-const server = http.createServer((req, res) =&gt; {
-    let data = '';
-    req.on('data', chunk =&gt; {
-        data += chunk;
-    })
-    req.on('end', () =&gt; {
-        console.log(JSON.parse(data).todo)
-    })
-
-    res.statusCode = 200
-    res.setHeader('Content-Type', 'text/html')
-    res.end('&lt;h1&gt;hello world&lt;/h1&gt;')
-})
-server.listen(port, () =&gt; console.log(`server running at port ${port}`))</code></pre><p>以上就是 <strong>http</strong> request 和 response 部分的简单介绍。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2137.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2137.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
