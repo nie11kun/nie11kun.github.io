@@ -9,10 +9,215 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2184.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2183.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2176.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2175.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2184.html">
+<title>React 入门教程之四 -- 渲染</title>
+<link>https://blog.niekun.net/archives/2184.html</link>
+<dc:date>2021-02-24T17:17:52+08:00</dc:date>
+<description>rendering elements 渲染元素一个 element 表示我们想要显示在屏幕上的内容：const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
+不同于浏览器 DOM 中的 elements，React elements 是简单的 objects 且可以很方便的创建，React DOM 会严格的刷新 DOM 并匹配对应的 React elements。容易混淆的概念是 component 和 element，区别是 component 是用来创建 element 的。在后续章节会介绍。在 DOM 中渲染元素我们的 html 页面中定义了一个 div 容器：&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
+我们将其称作 root DOM 节点，因为它所有的内容都是被 React DOM 管理的。通常情况下使用 React 创建的程序只有一个 root DOM 节点。如果你是将 React 整合到现有网站中，你可以有任意个独立的 root DOM 节点。将 React elements 渲染到 root DOM 节点，需要通过调用 ReactDOM.render()，并将 React element 和 root DOM 节点作为传入参数：const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
+
+ReactDOM.render(
+    element,
+    document.getElementById('root')
+);此时页面会显示 hello world。刷新渲染的元素React element 是 immutable 不可改变的，当创建了一个 element 后不可以修改其 children 或 attributes，一个 element 就好像一个视频的一帧，它表示了某一时间点的 UI。从我们目前学到的知识，唯一刷新 UI 的方法就是重新创建新的 elements 然后调用 ReactDOM.render()，通过设置 setInterval 来定时刷新：const tick = () =&gt; {
+    const element = &lt;h1&gt;{new Date().toLocaleTimeString()}&lt;/h1&gt;;
+
+    ReactDOM.render(
+        element,
+        document.getElementById('root')
+    );
+}
+setInterval(tick, 1000);这样就会每秒钟创建一个新的 element 并通过 ReactDOM.render() 渲染到界面。通常情况下大多数 React app 只会调用 ReactDOM.render() 一次。下一章节会介绍如何将封装到 component 中。React 只会更新必要的内容React DOM 会比较其当前和上一个状态的，然后只对有了变化的部分进行更新来达到最终期望的状态。我们打开上面示例的运行页面，通过chrome 的开发工具查看 elements 情况，可以看到只有时间元素每秒在刷新：![2021-02-24T07:44:17.png][即使我们每秒钟都新建并渲染 element，但是只有时间文本 node 是一直通过 React DOM 在刷新的。通过以上的实验，思考我们的 UI 在某个时间点应该是什么样的，而不是只想这着去修改它。components 和 propscomponents 将 UI 元素分割为独立的，可复用的片段，每个片段都是单独存在的。这一章节介绍 component 的概念，更多细节参考：React.Componentcomponents 类似于 JavaScript 的 functions，它可以接受抽象的输入数据(props)，然后返回 React elements 用来在界面上显示。Function 和 Class Components最简单的定义 component 方式就是定义一个 JavaScript function：const Welcome = (props) =&gt; {
+    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;
+}上面的 function 是一个有效的 React component，因为它接受一个单参数 props object 作为传入数据并返回一个 React element。我们称这种 component 为 function component。也可以使用 ES6 的 class 定义 component：class Welcome extends React.Component {
+    render() {
+        return &lt;h1&gt;hello, {this.props.name}&lt;/h1&gt;
+    }
+}以上两种定义方式是一致的。需要注意的是 components 名称必须是以大写字母开头，因为 React 会见以小写字母开头的 components 作为 DOM tags 标签，如：&lt;div /&gt; 表示一个 html div 标签。rendering a component上面的介绍中，我们只遇到了 DOM tags 标签类型的 React elements，例如：const element = &lt;div /&gt;;
+elements 也可以表示用户自定义的 components：const element = &lt;Welcome name='marco' /&gt;
+当 React 检测到使用了用户自定义的 components 它会将此 JSX 内的 attributes 或 children 作为一个 object 传入 component，这个 object 叫做 props。下面的示例会输出 hello, marco:const Welcome = (props) =&gt; {
+    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;;
+}
+
+const element = &lt;Welcome name='marco' /&gt;;
+ReactDOM.render(
+    element,
+    document.getElementById('root')
+);以上示例过程如下：首先调用 ReactDOM.render() 渲染 &lt;Welcome name=&quot;Sara&quot; /&gt; 元素.React 调用 Welcome component 使用 {name: 'Sara'} 作为 props.Welcome component 返回一个 &lt;h1&gt;Hello, Sara&lt;/h1&gt; 元素.React DOM 高效的更新 DOM 来匹配 &lt;h1&gt;Hello, Sara&lt;/h1&gt; 结果.构建 componentcomponent 可以在其输出中引入关联其他 components。这可以让我们在一个 component 内抽象出一个多层的结构。一个 button，一个 form，一个 dialog 或者一个 screen，在 React app 中他们都统称为 components。例如我们可以创建一个 App component 来渲染多个 Welcome component：const Welcome = (props) =&gt; {
+    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;;
+}
+
+const App = () =&gt; {
+    return (
+        &lt;div&gt;
+            &lt;Welcome name='marco' /&gt;
+            &lt;Welcome name='tim' /&gt;
+            &lt;Welcome name='jone' /&gt;
+        &lt;/div&gt;
+    )
+}
+ReactDOM.render(
+    &lt;App /&gt;,
+    document.getElementById('root')
+);以上示例中，没有定义 App 的 props，因为不需要给其传入数据，也是可以的。一般情况下，新建的 React app 只有一个顶层的 App component。拆解 component不要害怕将一个 component 拆解为多个小 components。例如下面这个 Comment component：function Comment(props) {
+  return (
+    &lt;div className=&quot;Comment&quot;&gt;
+      &lt;div className=&quot;UserInfo&quot;&gt;
+        &lt;img className=&quot;Avatar&quot;
+          src={props.author.avatarUrl}
+          alt={props.author.name}
+        /&gt;
+        &lt;div className=&quot;UserInfo-name&quot;&gt;
+          {props.author.name}
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className=&quot;Comment-text&quot;&gt;
+        {props.text}
+      &lt;/div&gt;
+      &lt;div className=&quot;Comment-date&quot;&gt;
+        {formatDate(props.date)}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}它的 props 包含一个 author object，一个 text，一个 data，描述了一个社交网站上一个 commit 的内容。修改这个 component 有点困难，因为它有很多的嵌套，同时也难以复用它的内部组件。下面我们尝试拆解这个 component。首先我们拆解出 Avatar：const Avatar = (props) =&gt; {
+    return (
+        &lt;img className=&quot;Avatar&quot;
+            src={props.user.avatarUrl}
+            alt={props.user.name}
+        /&gt;
+    );
+}Avatar 并不需要知道它被用于 commit 中，因此我们修改其 prop 名称为一个更加通用的：user。推荐从 component 本身为出发点命名 props，而不是考虑什么地方使用它。现在我们可以简化 Commit component：function Comment(props) {
+    return (
+        &lt;div className=&quot;Comment&quot;&gt;
+            &lt;div className=&quot;UserInfo&quot;&gt;
+                &lt;Avatar user={props.author} /&gt;
+                &lt;div className=&quot;UserInfo-name&quot;&gt;
+                    {props.author.name}
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div className=&quot;Comment-text&quot;&gt;
+                {props.text}
+            &lt;/div&gt;
+            &lt;div className=&quot;Comment-date&quot;&gt;
+                {formatDate(props.date)}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+}我们将 props.author 作为 user 数据传入 Avatar component 中。下面我们拆解 UserInfo，其中包含一个 Avatar component：const UserInfo = (props) =&gt; {
+    return (
+        &lt;div className=&quot;UserInfo&quot;&gt;
+            &lt;Avatar user={props.user} /&gt;
+            &lt;div className=&quot;UserInfo-name&quot;&gt;
+                {props.user.name}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+}然后进一步简化 Commit：function Comment(props) {
+    return (
+        &lt;div className=&quot;Comment&quot;&gt;
+            &lt;UserInfo user={props.user} /&gt;
+            &lt;div className=&quot;Comment-text&quot;&gt;
+                {props.text}
+            &lt;/div&gt;
+            &lt;div className=&quot;Comment-date&quot;&gt;
+                {formatDate(props.date)}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+}拆解 component 在开始看起来使工作量变大了，但是在稍微复杂写的 app 中我们就能够利用这些可复用的 components。一条基本准则是：如果 UI 中的某一部分被多次使用，如 button，panel，Avatar等，或者其自身结构比较复杂，如：App, FeedStory, Comment 等，将他们拆解为独立 components 是一个好的选项。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2183.html">
+<title>React 入门教程之三 -- 介绍  JSX</title>
+<link>https://blog.niekun.net/archives/2183.html</link>
+<dc:date>2021-02-24T14:45:12+08:00</dc:date>
+<description>请看下面的一个定义：const element = &lt;h1&gt;Hello, world!&lt;/h1&gt;;
+它既不是一个 string 也不是 html。它叫做 JSX，是一种对 JavaScript 语法的扩展。推荐在 React 中使用 JSX 来描述 UI，它用来创建 React 类型的 elements 然后将其在 DOM 中渲染。下面对 JSX 做一些基本介绍。使用 JSX 的原因React 认同这种观点：渲染逻辑结构和 UI 逻辑结构是原生相互耦合的，events 的处理，状态的变化，数据何时显示等。不同于人为的将 markup 部分和 logic 逻辑部分放在单独的文件，React 的耦合单元叫做 components 可以同时包含 markup 和 logic 部分。React 并不强制要求使用 JSX，但是大部分开发者认为它可以帮助在 JavaScript 中处理 UI 的问题。它也可以帮助 React 显示更多的 error 或 warning 信息。JSX 中使用 JavaScript 表达式下面的示例中，我们声明一个变量并在 JSX 中通过大括号{} 调用变量：const name = 'marco nie';
+const element = &lt;h1&gt;hello, {name}&lt;/h1&gt;
+
+ReactDOM.render(
+    element,
+    document.getElementById('root')
+);我们可以将任意的 JavaScript 表达式通过大括号{}放如 JSX 中。例如：1 + 1，user.name 都是有效的 JavaScript 表达式：const city = 'han zhong';
+const user = {
+    name: 'marco',
+    age: 20
+}
+const element = &lt;h1&gt;hello, {user.name}, from {city}, time: {1 + 20}&lt;/h1&gt;可以将 JSX 分割成多行以提高代码可读性，需要使用小括号包围起来，防止编译器错误的自动添加分行符：const element = (
+    &lt;h1&gt;
+        hello, {user.name}, from {city}, time: {1 + 20}
+    &lt;/h1&gt;
+);编译后 JSX 表达式会转换为通用的 JavaScript function 或 objects。这就意味着我们可以在 if 或 for 表达式中，传入数据中或者 返回值中使用 JSX：const testFuc = () =&gt; {
+    return &lt;h1&gt;hello, {user.name}&lt;/h1&gt;
+}JSX 中定义属性可以使用引号 &quot;&quot; 将一个字符串作为属性：const el1 = &lt;div tabIndex=&quot;0&quot;&gt;&lt;/div&gt;
+可以以通过大括号{} 将一个 JavaScript 表达式嵌入属性：const el2 = &lt;img src={user.name}&gt;&lt;/img&gt;
+当使用 JavaScript 嵌入属性时不能在大括号中使用引号，同一个属性中只能使用引号嵌入字符串或者大括号嵌入 JavaScript 表达式中的一种。由于 JSX 更加接近于 JavaScript 而不是 html，所以 React 中的 DOM 使用 camelCase 属性命名规范代替 html 中的属性名称，例如 html 元素的 class 属性在 JSX 中定义为 className，tabindex 在 JSX 中为 tabIndex。定义子元素如果一个 tag 元素内容是空的则可以使用 /&gt; 立刻结束定义：const el3 = &lt;img src=''/&gt;
+JSX tag 标签内也可以有子元素：const el4 = (
+    &lt;div&gt;
+        &lt;h1&gt;hello,&lt;/h1&gt;
+        &lt;h2&gt;i am your friend&lt;/h2&gt;
+    &lt;/div&gt;
+);注意只能在一个元素内定义子元素，不能直接定义两个同级的元素否则会报错。防止 injection 注入攻击在 JSX 中嵌入用户输入是安全的：const title = response.potentiallyMaliciousInput;
+// This is safe:
+const element = &lt;h1&gt;{title}&lt;/h1&gt;;默认情况下 React 在渲染前会将脱开所有嵌入 JSX 中的数据，因此可以确保不会注入任何没有明确定义在应用中的数据。渲染前所有的所有内容都会转换为 string 字符串形式。则能够防止 XSS (cross-site-scripting) 攻击。JSX 表达 objectsBabel 会将 JSX 向下编译为对 React.createElement() 的调用，以下两种定义方法是相同的：const el5 = (
+    &lt;h1 className='test'&gt;
+        hello world
+    &lt;/h1&gt;
+);const el6 = React.createElement(
+    'h1',
+    {className: 'test'},
+    'hello world'
+)通过 React.createElement() 创建元素会额外做一些语法检查来防止错误代码。但通常我们使用下面语法创建一个 object：const el7 = {
+    type: 'h1',
+    props: {
+        className: 'test',
+        children: 'hello world'
+    }
+}以上方式创建的 object 叫做 React elements。React 使用这些 objects 来构建 DOM 并及时更新。推荐代码编辑器使用 Babel 语法定义环境，这样可以同时支持 ES6 和 JSX 语法结构。设置方法参考：https://babeljs.io/docs/en/editors</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2176.html">
+<title>React 入门教程之二 -- hello world</title>
+<link>https://blog.niekun.net/archives/2176.html</link>
+<dc:date>2021-02-24T12:40:18+08:00</dc:date>
+<description>下面我们通过创建 Create React App 介绍 React 的基本语法。通过上一节介绍的方法创建一个新程序 my-app-1:npx create-react-app my-app-1
+cd my-app-1关于创建新项目及可能出现的问题参考上一篇：https://blog.niekun.net/archives/2175.htmlCreate React App 官方教程：https://create-react-app.dev/docs/documentation-intro项目结构程序目录结构如下：my-app-1
+├── README.md
+├── node_modules
+├── package.json
+├── .gitignore
+├── public
+│   ├── favicon.ico
+│   ├── index.html
+│   ├── logo192.png
+│   ├── logo512.png
+│   ├── manifest.json
+│   └── robots.txt
+└── src
+    ├── App.css
+    ├── App.js
+    ├── App.test.js
+    ├── index.css
+    ├── index.js
+    ├── logo.svg
+    ├── serviceWorker.js
+    └── setupTests.js对于一个项目而言，下面两个文件是必须的:public/index.html 是页面的模板文件;src/index.js 是 JavaScript 入口文件.其他文件可以根据需要添加，删除或重命名。可以在 src 目录下建立子目录，为了加快 build 编译项目的速度，只有在 src 目录下的文件才会被 webpack 处理。所以需要将所有的 js 和 css 文件放在 src 目录下，否则 webpack 打包器不会识别到它们。只有在 public 目录下的文件才会被 public/index.html 文件识别到。所以所有的项目文件都需要放在 public 和 src 目录下，与项目无关的文件可以放在上级路径内，例如项目说明文件等。可用脚本指令在项目目录下，可以执行如下命令。npm start开发模式下运行 app：npm start
+打开 http://localhost:3000 可以查看效果。对代码作出修改后页面会自动重新加载。npm test交互模式下运行 test 运行器。更多介绍参考：https://create-react-app.dev/docs/running-testsnpm run build编译项目程序到 build 目录下，会自动将 React 转换为产品模式，并优化项目结构以提高性能。代码是经过 minified 最小化处理过的，文件名都包含 hashes 以在客户端能够及时识别更新。更多 build 参考：https://create-react-app.dev/docs/production-build清理项目默认使用的模板是 cra-template，包含一个基本的页面和 React component，我们先将项目清理掉不需要的内容。打开 public 目录下的 index.html 可以看到 body 块内定义了：&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
+index.html 内可以使用 %PUBLIC_URL% 表示 public 目录地址。删除 src 目录内所有文件，并新建 index.js 文件。运行程序：npm start
+会自动在浏览器打开项目。hello world最简单的 React 示例如下，将代码加入 index.js 文件：const React = require('react')
+const ReactDOM = require('react-dom')
+
+ReactDOM.render(
+    &lt;h1&gt;hello world&lt;/h1&gt;,
+    document.getElementById('root')
+);保存文件后刷新浏览器页面查看效果。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2175.html">
 <title>React 入门教程之一 -- 简介</title>
 <link>https://blog.niekun.net/archives/2175.html</link>
@@ -36,6 +241,8 @@ ReactDOM.render(e(LikeButton), domContainer);以上就是将 React component 加
 &lt;script src=&quot;https://unpkg.com/react-dom@17/umd/react-dom.production.min.js&quot; crossorigin&gt;&lt;/script&gt;对于我们自己编写的 React 脚本可以通过工具得到缩小后的版本，这里介绍通过 node.js 的 terser 库来实现：首先安装 node.js在项目目录下运行 npm init -y运行 npm install terser例如需要缩小 like_button.js，在终端运行：npx terser -c -m -o like_button.min.js -- like_button.js
 就会在当前目录下得到缩小后的脚本文件 like_button.min.js。创建一个新的 React 程序以上介绍了如何将 React 添加到现有的 html 中，但是通过一套整合的工具链可以得到更好的用户和开发体验。React 团队推荐下面几种解决方案：如果你要学习 React 或者要创建一个单页面 app，推荐使用 Create React App如果你要使用 node.js 创建一个 server-rendered 服务器端渲染的网站，推荐使用 Next.js如果你要建立一个静态内容的网站，推荐使用 GatsbyCreate React AppCreate React App 是学习 React 很好的环境，也是建立单页面 React 应用程序最好的方式。官方网站：https://create-react-app.dev/它会自动设置开发环境是我们可以使用最新的 JavaScript 功能，提供很好的开发体验以及对发布时对程序进行优化。使用下面指令创建并运行一个新项目：npx create-react-app my-app
 cd my-app
-npm start注意如果你之前使用 npm install -g create-react-app全局安装过 create-react-app，推荐先卸载它 npm uninstall -g create-react-app 从而确保 npx 能够安装最新的版本。创建 React App 不会处理后端的数据和逻辑，它只建立前端通道。所以你可以使用任何后端服务。通过 npm start 运行程序后，打开 http://localhost:3000/ 可以查看程序运行效果。当程序需要进行部署时，运行 npm run build 会在 build 目录下创建一个经过最小化代码优化处理的项目包，可以将其部署到服务器。Next.jsNext.js 是一个流行的 React framework 来创建 static 和 server‑rendered 程序。官网：https://nextjs.org/GatsbyGatsby 是通过 React 创建静态网站的最好的工具。它使我们可以使用 React components 但输出预渲染的 html 和 css 以确保页面加载速度。</description>
+npm start注意如果你之前使用 npm install -g create-react-app全局安装过 create-react-app，推荐先卸载它 npm uninstall -g create-react-app 从而确保 npx 能够安装最新的版本。node.js 会自动安装 react, react-dom, 和 react-scripts with cra-template。通过 --template 选项可以自定义使用什么模板创建新程序，默认为：cra-template，模板可以在官网搜索：cra-template-*如果安装中报错，可以尝试更新 npm 以及清除缓存，然后再次尝试安装：npm i -g npm@latest
+npm cache clean -f
+如果在本地开发推荐替换 npm 国内源可以提高下载速度，参考：https://blog.niekun.net/archives/2085.html创建 React App 不会处理后端的数据和逻辑，它只建立前端通道。所以你可以使用任何后端服务。通过 npm start 运行程序后，打开 http://localhost:3000/ 可以查看程序运行效果。当程序需要进行部署时，运行 npm run build 会在 build 目录下创建一个经过最小化代码优化处理的项目包，可以将其部署到服务器。Next.jsNext.js 是一个流行的 React framework 来创建 static 和 server‑rendered 程序。官网：https://nextjs.org/GatsbyGatsby 是通过 React 创建静态网站的最好的工具。它使我们可以使用 React components 但输出预渲染的 html 和 css 以确保页面加载速度。</description>
 </item>
 </rdf:RDF>

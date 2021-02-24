@@ -9,6 +9,9 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2184.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2183.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2176.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2175.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2169.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2165.html"/>
@@ -16,12 +19,211 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2157.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2156.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2151.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2147.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2146.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2140.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2184.html">
+<title>React 入门教程之四 -- 渲染</title>
+<link>https://blog.niekun.net/archives/2184.html</link>
+<dc:date>2021-02-24T17:17:52+08:00</dc:date>
+<description>rendering elements 渲染元素一个 element 表示我们想要显示在屏幕上的内容：const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
+不同于浏览器 DOM 中的 elements，React elements 是简单的 objects 且可以很方便的创建，React DOM 会严格的刷新 DOM 并匹配对应的 React elements。容易混淆的概念是 component 和 element，区别是 component 是用来创建 element 的。在后续章节会介绍。在 DOM 中渲染元素我们的 html 页面中定义了一个 div 容器：&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
+我们将其称作 root DOM 节点，因为它所有的内容都是被 React DOM 管理的。通常情况下使用 React 创建的程序只有一个 root DOM 节点。如果你是将 React 整合到现有网站中，你可以有任意个独立的 root DOM 节点。将 React elements 渲染到 root DOM 节点，需要通过调用 ReactDOM.render()，并将 React element 和 root DOM 节点作为传入参数：const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
+
+ReactDOM.render(
+    element,
+    document.getElementById('root')
+);此时页面会显示 hello world。刷新渲染的元素React element 是 immutable 不可改变的，当创建了一个 element 后不可以修改其 children 或 attributes，一个 element 就好像一个视频的一帧，它表示了某一时间点的 UI。从我们目前学到的知识，唯一刷新 UI 的方法就是重新创建新的 elements 然后调用 ReactDOM.render()，通过设置 setInterval 来定时刷新：const tick = () =&gt; {
+    const element = &lt;h1&gt;{new Date().toLocaleTimeString()}&lt;/h1&gt;;
+
+    ReactDOM.render(
+        element,
+        document.getElementById('root')
+    );
+}
+setInterval(tick, 1000);这样就会每秒钟创建一个新的 element 并通过 ReactDOM.render() 渲染到界面。通常情况下大多数 React app 只会调用 ReactDOM.render() 一次。下一章节会介绍如何将封装到 component 中。React 只会更新必要的内容React DOM 会比较其当前和上一个状态的，然后只对有了变化的部分进行更新来达到最终期望的状态。我们打开上面示例的运行页面，通过chrome 的开发工具查看 elements 情况，可以看到只有时间元素每秒在刷新：![2021-02-24T07:44:17.png][即使我们每秒钟都新建并渲染 element，但是只有时间文本 node 是一直通过 React DOM 在刷新的。通过以上的实验，思考我们的 UI 在某个时间点应该是什么样的，而不是只想这着去修改它。components 和 propscomponents 将 UI 元素分割为独立的，可复用的片段，每个片段都是单独存在的。这一章节介绍 component 的概念，更多细节参考：React.Componentcomponents 类似于 JavaScript 的 functions，它可以接受抽象的输入数据(props)，然后返回 React elements 用来在界面上显示。Function 和 Class Components最简单的定义 component 方式就是定义一个 JavaScript function：const Welcome = (props) =&gt; {
+    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;
+}上面的 function 是一个有效的 React component，因为它接受一个单参数 props object 作为传入数据并返回一个 React element。我们称这种 component 为 function component。也可以使用 ES6 的 class 定义 component：class Welcome extends React.Component {
+    render() {
+        return &lt;h1&gt;hello, {this.props.name}&lt;/h1&gt;
+    }
+}以上两种定义方式是一致的。需要注意的是 components 名称必须是以大写字母开头，因为 React 会见以小写字母开头的 components 作为 DOM tags 标签，如：&lt;div /&gt; 表示一个 html div 标签。rendering a component上面的介绍中，我们只遇到了 DOM tags 标签类型的 React elements，例如：const element = &lt;div /&gt;;
+elements 也可以表示用户自定义的 components：const element = &lt;Welcome name='marco' /&gt;
+当 React 检测到使用了用户自定义的 components 它会将此 JSX 内的 attributes 或 children 作为一个 object 传入 component，这个 object 叫做 props。下面的示例会输出 hello, marco:const Welcome = (props) =&gt; {
+    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;;
+}
+
+const element = &lt;Welcome name='marco' /&gt;;
+ReactDOM.render(
+    element,
+    document.getElementById('root')
+);以上示例过程如下：首先调用 ReactDOM.render() 渲染 &lt;Welcome name=&quot;Sara&quot; /&gt; 元素.React 调用 Welcome component 使用 {name: 'Sara'} 作为 props.Welcome component 返回一个 &lt;h1&gt;Hello, Sara&lt;/h1&gt; 元素.React DOM 高效的更新 DOM 来匹配 &lt;h1&gt;Hello, Sara&lt;/h1&gt; 结果.构建 componentcomponent 可以在其输出中引入关联其他 components。这可以让我们在一个 component 内抽象出一个多层的结构。一个 button，一个 form，一个 dialog 或者一个 screen，在 React app 中他们都统称为 components。例如我们可以创建一个 App component 来渲染多个 Welcome component：const Welcome = (props) =&gt; {
+    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;;
+}
+
+const App = () =&gt; {
+    return (
+        &lt;div&gt;
+            &lt;Welcome name='marco' /&gt;
+            &lt;Welcome name='tim' /&gt;
+            &lt;Welcome name='jone' /&gt;
+        &lt;/div&gt;
+    )
+}
+ReactDOM.render(
+    &lt;App /&gt;,
+    document.getElementById('root')
+);以上示例中，没有定义 App 的 props，因为不需要给其传入数据，也是可以的。一般情况下，新建的 React app 只有一个顶层的 App component。拆解 component不要害怕将一个 component 拆解为多个小 components。例如下面这个 Comment component：function Comment(props) {
+  return (
+    &lt;div className=&quot;Comment&quot;&gt;
+      &lt;div className=&quot;UserInfo&quot;&gt;
+        &lt;img className=&quot;Avatar&quot;
+          src={props.author.avatarUrl}
+          alt={props.author.name}
+        /&gt;
+        &lt;div className=&quot;UserInfo-name&quot;&gt;
+          {props.author.name}
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className=&quot;Comment-text&quot;&gt;
+        {props.text}
+      &lt;/div&gt;
+      &lt;div className=&quot;Comment-date&quot;&gt;
+        {formatDate(props.date)}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}它的 props 包含一个 author object，一个 text，一个 data，描述了一个社交网站上一个 commit 的内容。修改这个 component 有点困难，因为它有很多的嵌套，同时也难以复用它的内部组件。下面我们尝试拆解这个 component。首先我们拆解出 Avatar：const Avatar = (props) =&gt; {
+    return (
+        &lt;img className=&quot;Avatar&quot;
+            src={props.user.avatarUrl}
+            alt={props.user.name}
+        /&gt;
+    );
+}Avatar 并不需要知道它被用于 commit 中，因此我们修改其 prop 名称为一个更加通用的：user。推荐从 component 本身为出发点命名 props，而不是考虑什么地方使用它。现在我们可以简化 Commit component：function Comment(props) {
+    return (
+        &lt;div className=&quot;Comment&quot;&gt;
+            &lt;div className=&quot;UserInfo&quot;&gt;
+                &lt;Avatar user={props.author} /&gt;
+                &lt;div className=&quot;UserInfo-name&quot;&gt;
+                    {props.author.name}
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div className=&quot;Comment-text&quot;&gt;
+                {props.text}
+            &lt;/div&gt;
+            &lt;div className=&quot;Comment-date&quot;&gt;
+                {formatDate(props.date)}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+}我们将 props.author 作为 user 数据传入 Avatar component 中。下面我们拆解 UserInfo，其中包含一个 Avatar component：const UserInfo = (props) =&gt; {
+    return (
+        &lt;div className=&quot;UserInfo&quot;&gt;
+            &lt;Avatar user={props.user} /&gt;
+            &lt;div className=&quot;UserInfo-name&quot;&gt;
+                {props.user.name}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+}然后进一步简化 Commit：function Comment(props) {
+    return (
+        &lt;div className=&quot;Comment&quot;&gt;
+            &lt;UserInfo user={props.user} /&gt;
+            &lt;div className=&quot;Comment-text&quot;&gt;
+                {props.text}
+            &lt;/div&gt;
+            &lt;div className=&quot;Comment-date&quot;&gt;
+                {formatDate(props.date)}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+}拆解 component 在开始看起来使工作量变大了，但是在稍微复杂写的 app 中我们就能够利用这些可复用的 components。一条基本准则是：如果 UI 中的某一部分被多次使用，如 button，panel，Avatar等，或者其自身结构比较复杂，如：App, FeedStory, Comment 等，将他们拆解为独立 components 是一个好的选项。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2183.html">
+<title>React 入门教程之三 -- 介绍  JSX</title>
+<link>https://blog.niekun.net/archives/2183.html</link>
+<dc:date>2021-02-24T14:45:12+08:00</dc:date>
+<description>请看下面的一个定义：const element = &lt;h1&gt;Hello, world!&lt;/h1&gt;;
+它既不是一个 string 也不是 html。它叫做 JSX，是一种对 JavaScript 语法的扩展。推荐在 React 中使用 JSX 来描述 UI，它用来创建 React 类型的 elements 然后将其在 DOM 中渲染。下面对 JSX 做一些基本介绍。使用 JSX 的原因React 认同这种观点：渲染逻辑结构和 UI 逻辑结构是原生相互耦合的，events 的处理，状态的变化，数据何时显示等。不同于人为的将 markup 部分和 logic 逻辑部分放在单独的文件，React 的耦合单元叫做 components 可以同时包含 markup 和 logic 部分。React 并不强制要求使用 JSX，但是大部分开发者认为它可以帮助在 JavaScript 中处理 UI 的问题。它也可以帮助 React 显示更多的 error 或 warning 信息。JSX 中使用 JavaScript 表达式下面的示例中，我们声明一个变量并在 JSX 中通过大括号{} 调用变量：const name = 'marco nie';
+const element = &lt;h1&gt;hello, {name}&lt;/h1&gt;
+
+ReactDOM.render(
+    element,
+    document.getElementById('root')
+);我们可以将任意的 JavaScript 表达式通过大括号{}放如 JSX 中。例如：1 + 1，user.name 都是有效的 JavaScript 表达式：const city = 'han zhong';
+const user = {
+    name: 'marco',
+    age: 20
+}
+const element = &lt;h1&gt;hello, {user.name}, from {city}, time: {1 + 20}&lt;/h1&gt;可以将 JSX 分割成多行以提高代码可读性，需要使用小括号包围起来，防止编译器错误的自动添加分行符：const element = (
+    &lt;h1&gt;
+        hello, {user.name}, from {city}, time: {1 + 20}
+    &lt;/h1&gt;
+);编译后 JSX 表达式会转换为通用的 JavaScript function 或 objects。这就意味着我们可以在 if 或 for 表达式中，传入数据中或者 返回值中使用 JSX：const testFuc = () =&gt; {
+    return &lt;h1&gt;hello, {user.name}&lt;/h1&gt;
+}JSX 中定义属性可以使用引号 &quot;&quot; 将一个字符串作为属性：const el1 = &lt;div tabIndex=&quot;0&quot;&gt;&lt;/div&gt;
+可以以通过大括号{} 将一个 JavaScript 表达式嵌入属性：const el2 = &lt;img src={user.name}&gt;&lt;/img&gt;
+当使用 JavaScript 嵌入属性时不能在大括号中使用引号，同一个属性中只能使用引号嵌入字符串或者大括号嵌入 JavaScript 表达式中的一种。由于 JSX 更加接近于 JavaScript 而不是 html，所以 React 中的 DOM 使用 camelCase 属性命名规范代替 html 中的属性名称，例如 html 元素的 class 属性在 JSX 中定义为 className，tabindex 在 JSX 中为 tabIndex。定义子元素如果一个 tag 元素内容是空的则可以使用 /&gt; 立刻结束定义：const el3 = &lt;img src=''/&gt;
+JSX tag 标签内也可以有子元素：const el4 = (
+    &lt;div&gt;
+        &lt;h1&gt;hello,&lt;/h1&gt;
+        &lt;h2&gt;i am your friend&lt;/h2&gt;
+    &lt;/div&gt;
+);注意只能在一个元素内定义子元素，不能直接定义两个同级的元素否则会报错。防止 injection 注入攻击在 JSX 中嵌入用户输入是安全的：const title = response.potentiallyMaliciousInput;
+// This is safe:
+const element = &lt;h1&gt;{title}&lt;/h1&gt;;默认情况下 React 在渲染前会将脱开所有嵌入 JSX 中的数据，因此可以确保不会注入任何没有明确定义在应用中的数据。渲染前所有的所有内容都会转换为 string 字符串形式。则能够防止 XSS (cross-site-scripting) 攻击。JSX 表达 objectsBabel 会将 JSX 向下编译为对 React.createElement() 的调用，以下两种定义方法是相同的：const el5 = (
+    &lt;h1 className='test'&gt;
+        hello world
+    &lt;/h1&gt;
+);const el6 = React.createElement(
+    'h1',
+    {className: 'test'},
+    'hello world'
+)通过 React.createElement() 创建元素会额外做一些语法检查来防止错误代码。但通常我们使用下面语法创建一个 object：const el7 = {
+    type: 'h1',
+    props: {
+        className: 'test',
+        children: 'hello world'
+    }
+}以上方式创建的 object 叫做 React elements。React 使用这些 objects 来构建 DOM 并及时更新。推荐代码编辑器使用 Babel 语法定义环境，这样可以同时支持 ES6 和 JSX 语法结构。设置方法参考：https://babeljs.io/docs/en/editors</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2176.html">
+<title>React 入门教程之二 -- hello world</title>
+<link>https://blog.niekun.net/archives/2176.html</link>
+<dc:date>2021-02-24T12:40:18+08:00</dc:date>
+<description>下面我们通过创建 Create React App 介绍 React 的基本语法。通过上一节介绍的方法创建一个新程序 my-app-1:npx create-react-app my-app-1
+cd my-app-1关于创建新项目及可能出现的问题参考上一篇：https://blog.niekun.net/archives/2175.htmlCreate React App 官方教程：https://create-react-app.dev/docs/documentation-intro项目结构程序目录结构如下：my-app-1
+├── README.md
+├── node_modules
+├── package.json
+├── .gitignore
+├── public
+│   ├── favicon.ico
+│   ├── index.html
+│   ├── logo192.png
+│   ├── logo512.png
+│   ├── manifest.json
+│   └── robots.txt
+└── src
+    ├── App.css
+    ├── App.js
+    ├── App.test.js
+    ├── index.css
+    ├── index.js
+    ├── logo.svg
+    ├── serviceWorker.js
+    └── setupTests.js对于一个项目而言，下面两个文件是必须的:public/index.html 是页面的模板文件;src/index.js 是 JavaScript 入口文件.其他文件可以根据需要添加，删除或重命名。可以在 src 目录下建立子目录，为了加快 build 编译项目的速度，只有在 src 目录下的文件才会被 webpack 处理。所以需要将所有的 js 和 css 文件放在 src 目录下，否则 webpack 打包器不会识别到它们。只有在 public 目录下的文件才会被 public/index.html 文件识别到。所以所有的项目文件都需要放在 public 和 src 目录下，与项目无关的文件可以放在上级路径内，例如项目说明文件等。可用脚本指令在项目目录下，可以执行如下命令。npm start开发模式下运行 app：npm start
+打开 http://localhost:3000 可以查看效果。对代码作出修改后页面会自动重新加载。npm test交互模式下运行 test 运行器。更多介绍参考：https://create-react-app.dev/docs/running-testsnpm run build编译项目程序到 build 目录下，会自动将 React 转换为产品模式，并优化项目结构以提高性能。代码是经过 minified 最小化处理过的，文件名都包含 hashes 以在客户端能够及时识别更新。更多 build 参考：https://create-react-app.dev/docs/production-build清理项目默认使用的模板是 cra-template，包含一个基本的页面和 React component，我们先将项目清理掉不需要的内容。打开 public 目录下的 index.html 可以看到 body 块内定义了：&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
+index.html 内可以使用 %PUBLIC_URL% 表示 public 目录地址。删除 src 目录内所有文件，并新建 index.js 文件。运行程序：npm start
+会自动在浏览器打开项目。hello world最简单的 React 示例如下，将代码加入 index.js 文件：const React = require('react')
+const ReactDOM = require('react-dom')
+
+ReactDOM.render(
+    &lt;h1&gt;hello world&lt;/h1&gt;,
+    document.getElementById('root')
+);保存文件后刷新浏览器页面查看效果。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2175.html">
 <title>React 入门教程之一 -- 简介</title>
 <link>https://blog.niekun.net/archives/2175.html</link>
@@ -45,7 +247,9 @@ ReactDOM.render(e(LikeButton), domContainer);以上就是将 React component 加
 &lt;script src=&quot;https://unpkg.com/react-dom@17/umd/react-dom.production.min.js&quot; crossorigin&gt;&lt;/script&gt;对于我们自己编写的 React 脚本可以通过工具得到缩小后的版本，这里介绍通过 node.js 的 terser 库来实现：首先安装 node.js在项目目录下运行 npm init -y运行 npm install terser例如需要缩小 like_button.js，在终端运行：npx terser -c -m -o like_button.min.js -- like_button.js
 就会在当前目录下得到缩小后的脚本文件 like_button.min.js。创建一个新的 React 程序以上介绍了如何将 React 添加到现有的 html 中，但是通过一套整合的工具链可以得到更好的用户和开发体验。React 团队推荐下面几种解决方案：如果你要学习 React 或者要创建一个单页面 app，推荐使用 Create React App如果你要使用 node.js 创建一个 server-rendered 服务器端渲染的网站，推荐使用 Next.js如果你要建立一个静态内容的网站，推荐使用 GatsbyCreate React AppCreate React App 是学习 React 很好的环境，也是建立单页面 React 应用程序最好的方式。官方网站：https://create-react-app.dev/它会自动设置开发环境是我们可以使用最新的 JavaScript 功能，提供很好的开发体验以及对发布时对程序进行优化。使用下面指令创建并运行一个新项目：npx create-react-app my-app
 cd my-app
-npm start注意如果你之前使用 npm install -g create-react-app全局安装过 create-react-app，推荐先卸载它 npm uninstall -g create-react-app 从而确保 npx 能够安装最新的版本。创建 React App 不会处理后端的数据和逻辑，它只建立前端通道。所以你可以使用任何后端服务。通过 npm start 运行程序后，打开 http://localhost:3000/ 可以查看程序运行效果。当程序需要进行部署时，运行 npm run build 会在 build 目录下创建一个经过最小化代码优化处理的项目包，可以将其部署到服务器。Next.jsNext.js 是一个流行的 React framework 来创建 static 和 server‑rendered 程序。官网：https://nextjs.org/GatsbyGatsby 是通过 React 创建静态网站的最好的工具。它使我们可以使用 React components 但输出预渲染的 html 和 css 以确保页面加载速度。</description>
+npm start注意如果你之前使用 npm install -g create-react-app全局安装过 create-react-app，推荐先卸载它 npm uninstall -g create-react-app 从而确保 npx 能够安装最新的版本。node.js 会自动安装 react, react-dom, 和 react-scripts with cra-template。通过 --template 选项可以自定义使用什么模板创建新程序，默认为：cra-template，模板可以在官网搜索：cra-template-*如果安装中报错，可以尝试更新 npm 以及清除缓存，然后再次尝试安装：npm i -g npm@latest
+npm cache clean -f
+如果在本地开发推荐替换 npm 国内源可以提高下载速度，参考：https://blog.niekun.net/archives/2085.html创建 React App 不会处理后端的数据和逻辑，它只建立前端通道。所以你可以使用任何后端服务。通过 npm start 运行程序后，打开 http://localhost:3000/ 可以查看程序运行效果。当程序需要进行部署时，运行 npm run build 会在 build 目录下创建一个经过最小化代码优化处理的项目包，可以将其部署到服务器。Next.jsNext.js 是一个流行的 React framework 来创建 static 和 server‑rendered 程序。官网：https://nextjs.org/GatsbyGatsby 是通过 React 创建静态网站的最好的工具。它使我们可以使用 React components 但输出预渲染的 html 和 css 以确保页面加载速度。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2169.html">
 <title>node.js 入门教程之十四 -- TypeScript</title>
@@ -568,374 +772,5 @@ console.log(eventEmitter.getMaxListeners())
 
 //output:
 //20以上就是 events 模块最常用功能的介绍。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2147.html">
-<title>node.js 入门教程之八 -- os 模块</title>
-<link>https://blog.niekun.net/archives/2147.html</link>
-<dc:date>2021-02-08T14:03:00+08:00</dc:date>
-<description>os 模块可以用来获取操作系统的底层信息和系统上运行的程序，以及和系统交互。它集成在 node.js 中，只需要引入即可：const os = require('os')
-这里先介绍一些在处理文件时有用的 properties：os.EOL 会返回 line delimiter 行定界符，\n on Linux and macOS, and \r\n on Windowsos.constants.signals 提供处理进程的信号常数，如：SIGHUP, SIGKILLos.constants.errno 提供报告 error 的相关常数，如：EADDRINUSE, EOVERFLOW完整的 signals 信号列表参考：https://nodejs.org/api/os.html#os_signal_constants下面介绍 os 模块常用的 method。os.arch()os.arch() 会返回底层架构的字符串，如：arm, x64, arm64：console.log(os.arch())
-
-//output:
-x64os.cpus()os.cpus() 会返回系统的 cpu 信息：console.log(os.cpus())
-
-//output:
-[
-  {
-    model: 'Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz',
-    speed: 2591,
-    times: {
-      user: 1871810,
-      nice: 17880,
-      sys: 1451160,
-      idle: 81134010,
-      irq: 0
-    }
-  },
-  {
-    model: 'Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz',
-    speed: 2591,
-    times: {
-      user: 1838130,
-      nice: 12780,
-      sys: 1532060,
-      idle: 81234660,
-      irq: 0
-    }
-  }
-]os.endianness()根据 node.js 是通过 Big Endian 或 Little Endian 大尾数或小尾数编译的，os.endianness() 返回 BE 或 LE：console.log(os.endianness())
-
-//output:
-LE关于 Big Endian 或 Little Endian 参考：https://en.wikipedia.org/wiki/Endiannessos.freemem()os.freemem() 返回系统可用内存，以字节为单位：console.log(os.freemem())
-
-//output:
-574537728os.homedir()os.homedir() 返回系统当前用户的 home 目录路径：console.log(os.homedir())
-
-//output:
-/home/marcoos.hostname()os.hostname() 返回 hostname 信息：console.log(os.hostname())
-
-//output:
-marco-virtual-machineos.loadavg()os.loadavg() 返回系统计算的平均加载时间，此 method 只在 Linux/macOS 下有意义：console.log(os.loadavg())
-
-//output:
-[ 0.08, 0.17, 0.13 ]os.networkInterfaces()os.networkInterfaces() 返回系统的网卡信息：console.log(os.networkInterfaces())
-
-//output:
-{ lo0:
-   [ { address: '127.0.0.1',
-       netmask: '255.0.0.0',
-       family: 'IPv4',
-       mac: 'fe:82:00:00:00:00',
-       internal: true },
-     { address: '::1',
-       netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
-       family: 'IPv6',
-       mac: 'fe:82:00:00:00:00',
-       scopeid: 0,
-       internal: true },
-     { address: 'fe80::1',
-       netmask: 'ffff:ffff:ffff:ffff::',
-       family: 'IPv6',
-       mac: 'fe:82:00:00:00:00',
-       scopeid: 1,
-       internal: true } ],
-  en1:
-   [ { address: 'fe82::9b:8282:d7e6:496e',
-       netmask: 'ffff:ffff:ffff:ffff::',
-       family: 'IPv6',
-       mac: '06:00:00:02:0e:00',
-       scopeid: 5,
-       internal: false },
-     { address: '192.168.1.38',
-       netmask: '255.255.255.0',
-       family: 'IPv4',
-       mac: '06:00:00:02:0e:00',
-       internal: false } ],
-  utun0:
-   [ { address: 'fe80::2513:72bc:f405:61d0',
-       netmask: 'ffff:ffff:ffff:ffff::',
-       family: 'IPv6',
-       mac: 'fe:80:00:20:00:00',
-       scopeid: 8,
-       internal: false } ] }os.platform()os.platform() 返回当前安装的 node.js 的编译平台，可能的返回值为：darwinfreebsdlinuxopenbsdwin32...moreos.release()os.release() 返回当前系统的版本号信息：console.log(os.release())
-
-//output:
-5.8.0-41-genericos.tmpdir()os.tmpdir() 返回系统的临时文件夹路径：console.log(os.tmpdir())
-
-//output:
-/tmpos.totalmem()os.totalmem() 返回系统的总内存数量，单位为 byte 字节：console.log(os.totalmem()/1024/1024)
-
-//output:
-1958.45703125os.type()os.type() 返回当前操作系统类型，返回值可以有：LinuxDarwin on macOSWindows_NT on Windowsos.uptime()os.uptime() 返回系统从上次开机来已运行的总时间，单位为秒：console.log(os.uptime()/3600)
-
-//output:
-24.260555555555555os.userInfo()os.userInfo() 返回一个 object 包含当前的 username, uid, gid, shell, 和 homedir：console.log(os.userInfo())
-
-//output:
-{
-  uid: 1000,
-  gid: 1000,
-  username: 'marco',
-  homedir: '/home/marco',
-  shell: '/bin/bash'
-}以上就是 os 模块的简单使用方法。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2146.html">
-<title>node.js 入门教程之七 -- fs 和 path 模块</title>
-<link>https://blog.niekun.net/archives/2146.html</link>
-<dc:date>2021-02-08T11:21:00+08:00</dc:date>
-<description>上一章节我们了解了如果访问文件系统。使用到了 fs 和 path 模块的部分功能，下面我们详细了解这两个模块可以实现的功能。fs module通过以上几个使用场景可以看到 fs 模块提供了很多有用的功能来对 file system 进行访问和交互。并且他是集成在 node.js core 中的，并不需要手动安装：const fs = require('fs')
-
-通过以上方式引入 fs 模块后，我们就可以使用它的各种功能了。包括：fs.access(): 检查文件是否存在以及 node.js 是否有权限访问fs.appendFile(): 给一个文件附加数据，如果文件不存在则会创建它fs.chmod(): 修改文件的权限fs.chown(): 修改文件的 owner 和 group 设置fs.close(): 关闭已经打开的文件的 descriptorfs.copyFile(): 复制一个文件fs.createReadStream(): 创建一个可读的文件 streamfs.createWriteStream(): 创建一个可写的文件 streamfs.link(): 创建一个文件的硬链接fs.mkdir(): 新建文件夹fs.mkdtemp(): 创建一个临时文件夹fs.open(): 打开一个文件的 descriptor，可定义打开编码类型fs.readdir(): 读取一个目录下的内容fs.readFile(): 读取一个文件的内容fs.readlink(): 读取一个软连接的值fs.realpath(): resolve 查询一个相对路径文件的绝对路径fs.rename(): 重命名文件或文件夹fs.rmdir(): 删除一个文件夹fs.stat(): 返回一个文件的状态信息fs.symlink(): 创建一个文件的软链接fs.truncate(): 将一个文件分割成指定长度大小fs.unlink(): 删除一个文件或一个软链接fs.unwatchFile(): 停止监测对一个文件的修改fs.utimes(): 修改一个文件的时间戳fs.watchFile(): 开始监测对一个文件的修改fs.writeFile(): 对一个文件写入数据fs 模块的一个特性是它的以上所有 method 默认都是 asynchronous 异步的，给 method 后加上 Sync 就可以使用同步模式，例如：fs.rename() -&gt; fs.renameSync()fs.write() -&gt; fs.writeSync()同步模式下通过使用 try/catch 块来处理 error 情况。同步模式下程序会在处理文件过程中出现进程阻塞直到处理完成，在编程中可以根据需要灵活运用。path modulepath 模块也提供了很多实用的功能来访问文件系统以及交互。同样的它也是集成在 node.js core 中而不需要单独安装。const path = require('path')
-通过 path.sep 可以获取当前系统的 path separator 路径分隔符：\ on Windows, and / on Linux/macOS。通过 path.delimiter 可以获取当前系统的 path delimiter 路径定界符：; on Windows, and : on Linux / macOS。例如在 Linux 下：console.log(process.env.PATH);
-// Prints: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin'
-
-process.env.PATH.split(path.delimiter);
-// Returns: ['/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/bin']在 Windows 下：console.log(process.env.PATH);
-// Prints: 'C:\Windows\system32;C:\Windows;C:\Program Files\node\'
-
-process.env.PATH.split(path.delimiter);
-// Returns ['C:\\Windows\\system32', 'C:\\Windows', 'C:\\Program Files\\node\\']下面是 path 的常用 method 介绍。path.basename()返回路径上的最后一部分，通过第二个参数可以过滤掉扩展名：console.log(path.basename('/home/marco/dir'))
-console.log(path.basename('/home/marco/file.txt'))
-console.log(path.basename('/home/marco/file.txt', '.txt'))
-
-//output:
-dir
-file.txt
-filepath.dirname()返回路径上的文件夹部分：console.log(path.dirname('/home/marco/file'))
-
-//output:
-/home/marcopath.extname()返回文件的扩展名：console.log(path.extname('/home/marco/file.txt'))
-
-//output:
-.txtpath.isAbsolute()返回路径是否是绝对路径：console.log(path.isAbsolute('/home/marco'))
-console.log(path.isAbsolute('./marco'))
-
-//output:
-true
-falsepath.join()将多个部分合并为一个路径：const name = 'marco';
-console.log(path.join('/home/' + name + '/file'))
-
-//output:
-/home/marco/filepath.normalize()将一个包含相对标记符的路径转换为常规绝对路径：console.log(path.normalize('/home/marco/../test'))
-
-//output:
-/home/testpath.parse()将路径拆分为一个 object，包含下面的 properties：root: 根目录dir: 从根目录开始的文件夹部分base: 文件名和扩展名name: 文件名不包含扩展名ext: 扩展名console.log(path.parse('/home/marco/test/file.txt'))
-
-//output:
-{
-  root: '/',
-  dir: '/home/marco/test',
-  base: 'file.txt',
-  ext: '.txt',
-  name: 'file'
-}path.relative()需要传入两个路径作为参数，第一个路径作为 base 基础路径，返回第二个路径相对于第一个路径的相对路径：console.log(path.relative('/home/marco', '/home/marco/test/file.txt'))
-
-//output:
-test/file.txtpath.resolve()计算一个相对路径的绝对路径，基于当前程序执行的路径：console.log(path.resolve('file.txt'))
-
-//output:
-/mnt/hgfs/Development/node.js/filesystem/file.txt也可以设置一个 base 路径，将会附加到相对路径中：console.log(path.resolve('tmp/test', 'file.txt'))
-
-//output:
-/mnt/hgfs/Development/node.js/filesystem/tmp/test/file.txt如果第一个 base 路径是绝对路径，则系统会认为这就是个绝对路径：console.log(path.resolve('/tmp/test', 'file.txt'))
-
-//output:
-/tmp/test/file.txt注意 path 模块对路径的处理不会判断这个路径是否真实存在，它只会按照指令处理路径这个字符串数据。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2140.html">
-<title>node.js 入门教程之六 -- FileSystem</title>
-<link>https://blog.niekun.net/archives/2140.html</link>
-<dc:date>2021-02-07T17:17:00+08:00</dc:date>
-<description>File descriptor 文件描述器当需要访问文件系统里的某个文件时，需要首先得到这个文件的 file descriptor 文件描述器。一个 file descriptor 就是通过 fs 模块的 open() method 打开对应文件的返回数据。它的结构如下：const fs = require('fs')
-
-fs.open('./test.txt', 'r', (err, data) =&gt; {
-    if (err) {
-        console.log('open fail')
-        return
-    }
-    console.log('open success')
-})如果文件打开成功，callback 中的 data 数据就是一个 file descriptor。注意并不是文件的内容。这种方式是异步处理的，文件打开过程中系统会执行其他任务。在上面的示例中，fs.open() 的第三个参数使用了 'f' 标记，它的意思就是以只读模式打开文件。我们可以通过使用不同的标记来以不同的方式打开文件：r 只读模式，文件不存在会报错a 只写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件r+ 读写模式，文件不存在会报错w+ 读写模式，streaming 流定位到文件起始位置，如果文件不存在则创建文件a+ 读写模式，streaming 流定位到文件结尾位置，如果文件不存在则创建文件更多 flag 的使用参考：https://nodejs.org/api/fs.html#fs_file_system_flags也可以使用 fs.openSync() method 打开文件，其返回值为 file descriptor 而不是通过 callback 的方式：try {
-    const data = fs.openSync('./test.txt', 'r')
-    console.log('open success')
-} catch (error) {
-    console.log('open fail')
-}这种方式是同步模式的，程序会等待接收到 file descriptor 或者 error 后才执行后面的指令。File stats 文件信息每个文件都包含独自的属性信息，可以通过 node.js 查看。通常我们使用 fs 模块的 stat() method。以下是一个简单示例：const fs = require('fs')
-
-fs.stat('./test.txt', (err, stats) =&gt; {
-    if (err) {
-        console.log('read fail')
-        return
-    }
-    console.log(stats)
-})同样的，node.js 也提供了同步模式 method，在读取 stats 过程中会阻塞进程知道读取结束：try {
-    const stats = fs.statSync('./test.txt')
-    console.log(stats)
-} catch (error) {
-    console.log(error)
-}文件信息存储在 stats 变量中，可以读取其中的需要的信息，常用的有以下：是否是文件或文件夹：stats.isFile()，stats.isDirectory()是否是一个链接文件：stats.isSymbolicLink()文件大小(单位为字节)：stats.sizeFile Path 文件路径每个文件在系统中都有一个路径。在 Linux 中路径格式如：/users/joe/file.txt，在 Windows 中路径格式如：C:\users\joe\file.txt。在程序中引用路径时需要特别注意路径的格式。node.js 中可以使用 path 模块来处理文件路径相关数据。如果给定一个路径，可以提取其相关数据，如：path.dirname: 获取文件的上级文件夹路径path.basename: 获取文件名部分path.extname: 获取文件扩展名const path = require('path')
-
-const file = '/home/marco/file.txt'
-console.log(path.dirname(file))
-console.log(path.basename(file))
-console.log(path.extname(file))
-
-//output:
-/home/marco
-file.txt
-.txt可以获取文件名不包含扩展名部分，通过给 path.basename() 设置第二个参数：console.log(path.basename(file, path.extname(file)))
-
-//output:
-file可以组合多个部分为一个 path：const dir = 'home/marco/'
-p = path.join('/' + dir + 'test.txt')
-console.log(p)
-
-//output:
-/home/marco/test.txt使用 path.resolve() 可以从一个相对路径获取到绝对路径：p = path.resolve('file.txt')
-console.log(p)
-p = path.resolve('./test/file.txt')
-console.log(p)
-
-//OUTPUT:
-/mnt/hgfs/Development/node.js/filesystem/file.txt
-/mnt/hgfs/Development/node.js/filesystem/test/file.txt以上示例中，会将程序当前执行路径作为绝对路径添加给后面定义的文件相对路径。也可以将文件的相对目录单独定义，会自动组合它们：p = path.resolve('tmp', 'file.txt')
-console.log(p)
-
-//output:
-/mnt/hgfs/Development/node.js/filesystem/tmp/file.txt如果在路径前加斜杠/ 表明这就是一个绝对路径：p = path.resolve('/tmp', 'file.txt')
-console.log(p)
-
-//output:
-/tmp/file.txt如果路径中包含相对关系标记符如: .., //等，可以使用 path.normalize() 得到常规形式的路径：p = path.normalize('/home/../test/file.txt')
-console.log(p)
-
-//output:
-/test/file.txtpath.resolve 和 path.normalize 都不会检查路径是否真实存在，它们仅仅是根据提供的数据计算路径结果。reading file 读取文件最简单的方式读取文件内容就是通过 fs.readFile() method，需要给它传入文件路径，编码格式，callback function:const fs = require('fs')
-
-fs.readFile('./test.txt', 'utf-8', (err, data) =&gt; {
-    if (err) {
-        console.log('read fail')
-        return
-    }
-    console.log(data)
-})或者也可以使用同步模式的 fs.readFileSync()：try {
-    data = fs.readFileSync('./test.txt', 'utf-8')
-    console.log(data)
-} catch (error) {
-    console.log('read error')
-}fs.readFile() 和 fs.readFileSync() 都会先将文件内容读取到内存中，然后返回数据。这就意味着读取大文件会影响系统内存的占用量，所以一个比较好的选择是使用 stream 流读取文件内容。后续章节会介绍 stream 模块。writing file 文件写入最简单的写入文件的方法就是使用 fs.writeFile() method。示例如下：const fs = require('fs')
-
-const content = 'some new words'
-fs.writeFile('./test.txt', content, err =&gt; {
-    if (err) {
-        console.log('write error')
-        return
-    }
-    console.log('write success')
-})或者使用同步模式的版本 fs.writeFileSync()：try {
-    fs.writeFileSync('./test.txt', content)
-    console.log('write success')
-} catch (error) {
-    console.log('write error')
-}默认情况下，如果这个文件已经存在，API 会替换掉这个文件中已有的内容。我们可以通过定义 flag 来修改这个设置：fs.writeFile('./test.txt', content, {flag: 'a+'}, err =&gt; {
-    if (err) {
-        console.log('write error')
-        return
-    }
-    console.log('write success')
-})flag 的定义和上面的 fs.open 中定义的 flag 一样，可以参考设置。append to a file 给文件添加内容给已有文件附加内容更加方便的方法是使用 fs.appendFile()和 fs.appendFileSync()，例如：const fs = require('fs')
-
-content = '\nnew line\n'
-fs.appendFile('./test.txt', content, err =&gt; {
-    if (err) {
-        console.log('write error')
-        return
-    }
-    console.log('write success')
-})上面了方法都会在将数据完全写入文件后在执行 callback，这种情况下使用 stream 是一个更好的方法。working with folder 文件夹操作node.js 的 fs 模块提供了很多实用的 method 来对文件夹进行操作。检查文件夹是否存在使用 fs.access() 可以检查文件夹是否存在，以及 node.js 是否有访问它的权限：const fs = require('fs')
-
-fs.access('./tmp', err =&gt; {
-    console.log(err ? 'not exist' : 'exist')
-})
-
-//output:
-//not exist创建新文件夹使用 fs.mkdir() 或 fs.mkdirSync() 创建新文件夹：const fs = require('fs')
-
-const fd = 'tmp'
-try {
-    if (!fs.existsSync(fd)) {
-        fs.mkdirSync(fd)
-        console.log('create success')
-    }
-} catch (error) {
-    console.log('create fail')
-}上面使用了同步模式 method 创建文件夹，看起来更加直观。read content of a directory 读取目录内容使用 fs.readdir() 或 fs.readdirSync() 可以读取某个目录中的内容，包括其中的文件和文件夹。返回值为一个数组：const fs = require('fs')
-
-const p = '/usr'
-const d = fs.readdirSync(p)
-console.log(d)输出为：[
-  'bin',     'games',
-  'include', 'lib',
-  'lib32',   'lib64',
-  'libexec', 'libx32',
-  'local',   'sbin',
-  'share',   'src'
-]通过 path 模块的 join 或 resolve method 可以输出每个元素的绝对路径，修改以上示例：const fs = require('fs')
-const path = require('path')
-
-const p = '/usr'
-const d = fs.readdirSync(p).map(f =&gt; {
-    return path.resolve(p, f)
-})
-console.log(d)输出如下：[
-  '/usr/bin',     '/usr/games',
-  '/usr/include', '/usr/lib',
-  '/usr/lib32',   '/usr/lib64',
-  '/usr/libexec', '/usr/libx32',
-  '/usr/local',   '/usr/sbin',
-  '/usr/share',   '/usr/src'
-]如果只想获取目录下的文件而不包含文件夹，可以定义一个 filter 过滤元素：const fs = require('fs')
-const path = require('path')
-
-const isFile = fileName =&gt; {
-    return fs.statSync(fileName).isFile()
-}
-const p = '/usr'
-const d = fs.readdirSync(p).map(f =&gt; {
-    return path.resolve(p, f)
-}).filter(isFile)
-
-console.log(d)rename folder 重命名文件夹使用 fs.rename() 或 fs.renameSync() 重命名文件夹。第一个参数定义当前路径，第二个参数定义新路径：const fs = require('fs')
-
-fs.rename('./tmp', './new', err =&gt; {
-    if (err) {
-        console.log('rename error')
-        return
-    }
-    console.log('rename success')
-})remove folder 删除文件夹使用 fs.rmdir() 或 fs.rmdirSync() 可以删除文件夹。但删除文件夹相比其他操作稍微复杂，用到的工具可能超出你需要的部分。所以最简单的方法就是使用第三方模块：fs-extra 来处理。它是 fs 的替代品，在 fs 模块的基础上提供了很多新功能。使用 fs-extra 的 remove() method 可以实现删除文件夹的功能：const fs = require('fs-extra')
-
-const p = './new'
-fs.remove(p, err =&gt; {
-    if (err) {
-        console.log('remove error')
-        return
-    }
-    console.log('remove success')
-})也可以使用 promise 模式：fs.remove(p)
-.then(() =&gt; console.log('remove success'))
-.catch((err) =&gt; console.log(err))还可以使用 async/await 模式：const rm = async (p) =&gt; {
-    if (!fs.existsSync(p)) {
-        console.log('folder does not exist')
-        return
-    }
-    try {
-        await fs.remove(p)
-        console.log('remove success')
-    } catch (error) {
-        console.log('remove error')
-    }
-}
-rm(p)下一章我们继续了解 fs 和 path 模块的详细内容。</description>
 </item>
 </rdf:RDF>
