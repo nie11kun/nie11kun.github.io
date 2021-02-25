@@ -11,18 +11,102 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/web/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Wed, 24 Feb 2021 17:17:52 +0800</lastBuildDate>
-<pubDate>Wed, 24 Feb 2021 17:17:52 +0800</pubDate>
+<lastBuildDate>Thu, 25 Feb 2021 17:23:00 +0800</lastBuildDate>
+<pubDate>Thu, 25 Feb 2021 17:23:00 +0800</pubDate>
 <item>
-<title>React 入门教程之四 -- 渲染</title>
+<title>React 入门教程之四 -- Event</title>
+<link>https://blog.niekun.net/archives/2189.html</link>
+<guid>https://blog.niekun.net/archives/2189.html</guid>
+<pubDate>Thu, 25 Feb 2021 17:23:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[events 处理处理 React elements events 和处理 DOM elements 很相似，但有一些语法区别：React events 命名使用 camelCase 规则，而不...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<h3>events 处理</h3><p>处理 React elements events 和处理 DOM elements 很相似，但有一些语法区别：</p><ul><li>React events 命名使用 camelCase 规则，而不是 lowercase</li><li>使用 JSX 传入 function 作为 events handler，而不是 string 字符串</li></ul><p>HMTL 中处理 events 示例如下：</p><pre><code>&lt;button onclick=&quot;activateLasers()&quot;&gt;
+  Activate Lasers
+&lt;/button&gt;</code></pre><p>React 中示例如下：</p><pre><code>&lt;button onClick={activateLasers}&gt;
+  Activate Lasers
+&lt;/button&gt;</code></pre><p>注意它们的区别之处一个是 event 名称，一个是 handler 定义方式。</p><!--more--><p>另一个区别是在 React 中不能通过 <strong>return false</strong> 的方式防止 events 的默认行为，需要明确的调用 <strong>preventDefault</strong> method 来实现。</p><p>例如在一个 html 页面中定义一个 <strong>a</strong> tag 并取消其默认打开新页面的行为，实现如下：</p><pre><code>&lt;a href=&quot;#&quot; onclick=&quot;console.log('The link was clicked.'); return false&quot;&gt;
+  Click me
+&lt;/a&gt;</code></pre><p>React 中实现同样功能代码如下：</p><pre><code>class Link extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleClick = this.handleClick.bind(this);
+    }
+    handleClick(e) {
+        e.preventDefault();
+        console.log('clicked me');
+    }
+    render() {
+        return (
+            &lt;a href='#' onClick={this.handleClick}&gt;click me&lt;/a&gt;
+        )
+    }
+}</code></pre><p><strong>e</strong> 表示 synthetic 综合的 event，当前哪个 event 触发了 <strong>e</strong> 就表示哪一个。使用 bind 绑定 的 method 在调用时会自动将 <strong>e</strong> 传入 method。下面会对 <strong>bind</strong> 是什么作出解释。</p><p>React events 同原生的 events 不完全相同，查看所有可用的 events 查看官方介绍：<a href="https://reactjs.org/docs/events.html">https://reactjs.org/docs/events.html</a></p><p>在 React 中一般情况下不需要通过调用 addEventListener 来给 element 添加 event listener。直接在 element 初始化时为其设置 event listener 即可。</p><p>当通过 class 来定义 component 时 event handler 一般是一个 class method，例如上面示例的 <strong>handleClick</strong>。</p><p>下面的示例我们构建一个 <strong>Toggle</strong> component 可以让用户通过一个 button 来切换 ON/OFF 状态：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+class Toggle extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { isToggleOn: true };
+        this.handleClick = this.handleClick.bind(this);
+    }
+    handleClick() {
+        this.setState({ isToggleOn: !this.state.isToggleOn });
+    }
+    render() {
+        return (&lt;button onClick={this.handleClick}&gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
+    }
+}
+
+ReactDOM.render(&lt;
+    Toggle /&gt;,
+    document.getElementById('root')
+);</code></pre><p>在 <strong>JSX callback</strong> 中使用 <strong>this</strong> 需要特别注意，JavaScript class 的 methods 默认是相互隔离的，如果没有主动 <strong>bind</strong> 捆绑 method 到 <strong>this</strong>，在另一个 method 中使用 <strong>this.method</strong> 会报错 <strong>undefined</strong>。</p><p>如果调用 method 时不写括号<code>()</code> 例如：<code>onClick={this.handleClick}</code> 则需要提前 <strong>bind</strong> 这个 method 到 this 中，如上面的示例，<strong>bind</strong> 语法如下：</p><pre><code>this.handleClick = this.handleClick.bind(this);
+</code></pre><p>一般将其放在 constructor 中，这样初始化中就会自动执行，当然也可以在调用时直接定义：</p><pre><code>&lt;button onClick={this.handleClick.bind(this)}&gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;
+</code></pre><p><strong>如果不想使用 bind 语法来处理，那么还有两种方式来处理 class 中 methods 互相隔离这个问题。</strong></p><p><strong>第一种</strong>叫做 <strong>class fields syntax</strong> 语法，通过使用 <strong>arrow function</strong> 的模式定义 method，这样就可以通过通过 this.method 的方法调用 method：</p><pre><code>    constructor(props) {
+        super(props);
+        this.state = { isToggleOn: true };
+    }
+    handleClick = () =&gt; {
+        this.setState({ isToggleOn: !this.state.isToggleOn });
+    }
+    render() {
+        return (&lt;button onClick={this.handleClick} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
+    }</code></pre><p>这样就不需要在 constructor 中定义 <strong>bind</strong> 同时可以在 callback 中直接调用 this.handleClick。</p><p>但是需要注意目前这只是 React 实验性的语法，不一定保证以后会一直可用。</p><p><strong>第二种</strong>是在 callback 中通过 <strong>arrow function</strong> 的模式调用 method：</p><pre><code>    handleClick() {
+        this.setState({ isToggleOn: !this.state.isToggleOn });
+    }
+    render() {
+        return (&lt;button onClick={() =&gt; this.handleClick()} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
+    }</code></pre><p>注意这种方法需要在 method 名称后加括号<code>()</code>。</p><p>这种方法的缺点是当每次重新 render 渲染时都会创建新的 callback。当这个 callback 包含传给其 child component 的 props 时，可能会导致 child 重新被渲染。通常情况下推荐使用 constructor 定义 <strong>bind</strong> 或者使用 <strong>class fields syntax</strong> 语法来避免这些性能问题。</p><h4>给 event handler 传入数据</h4><p>有时候需要给 event handler 传入附加的参数，如下面示例 button 点击时输出一个输入数据到终端：</p><pre><code>    handleClick(a, e) {
+        this.setState({ isToggleOn: !this.state.isToggleOn });
+        console.log(e._reactName);
+        console.log(a);
+    }
+    render() {
+        return (&lt;button onClick={this.handleClick.bind(this, 'aaa')} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
+    }</code></pre><p>上面的示例将字符串 <strong>aaa</strong> 作为 handleClick 的传入参数，并将 bind 绑定过程直接放在 callback 中，这样就不需要在 constructor 中进行 bind 定义了。</p><p>通过 bind 绑定后会自动将 <strong>e</strong>：synthetic 综合的 event 作为第二个参数传入 function，<strong>e._reactName</strong> 返回 event 名称。</p><p>上面的示例也可以通过 <strong>arrow function</strong> 在 callback 中定义实现：</p><pre><code>    handleClick(a, e) {
+        this.setState({ isToggleOn: !this.state.isToggleOn });
+        console.log(e._reactName);
+        console.log(a);
+    }
+    render() {
+        return (&lt;button onClick={(e) =&gt; this.handleClick('aaa', e)} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
+    }</code></pre><p>上面的示例中 e 依然表示 synthetic event。两种方法都会将 e 作为第二个参数传入。在 arrow function 中我们可以清晰地看到数据的位置，但是通过 <strong>bind</strong> 的方式会将有些参数自动转发过去。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2189.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2189.html</wfw:commentRss>
+</item>
+<item>
+<title>React 入门教程之四 -- rendering, components 和 state</title>
 <link>https://blog.niekun.net/archives/2184.html</link>
 <guid>https://blog.niekun.net/archives/2184.html</guid>
-<pubDate>Wed, 24 Feb 2021 17:17:52 +0800</pubDate>
+<pubDate>Wed, 24 Feb 2021 17:17:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[rendering elements 渲染元素一个 element 表示我们想要显示在屏幕上的内容：const element = &lt;h1&gt;Hello, world&lt;/h1&g...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <h3>rendering elements 渲染元素</h3><p>一个 element 表示我们想要显示在屏幕上的内容：</p><pre><code>const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
-</code></pre><p>不同于浏览器 DOM 中的 elements，React elements 是简单的 objects 且可以很方便的创建，React DOM 会严格的刷新 DOM 并匹配对应的 React elements。</p><p>容易混淆的概念是 component 和 element，区别是 component 是用来创建 element 的。在后续章节会介绍。</p><h4>在 DOM 中渲染元素</h4><p>我们的 html 页面中定义了一个 div 容器：</p><pre><code>&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
+</code></pre><p>不同于浏览器 DOM 中的 elements，React elements 是简单的 objects 且可以很方便的创建，React DOM 会严格的刷新 DOM 并匹配对应的 React elements。</p><p>容易混淆的概念是 component 和 element，区别是 component 是用来创建 element 的。在后续章节会介绍。</p><!--more--><h4>在 DOM 中渲染元素</h4><p>我们的 html 页面中定义了一个 div 容器：</p><pre><code>&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
 </code></pre><p>我们将其称作 <strong>root</strong> DOM 节点，因为它所有的内容都是被 React DOM 管理的。</p><p>通常情况下使用 React 创建的程序只有一个 <strong>root</strong> DOM 节点。如果你是将 React 整合到现有网站中，你可以有任意个独立的 <strong>root</strong> DOM 节点。</p><p>将 React elements 渲染到 <strong>root</strong> DOM 节点，需要通过调用 <code>ReactDOM.render()</code>，并将 React element 和 <strong>root</strong> DOM 节点作为传入参数：</p><pre><code>const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
 
 ReactDOM.render(
@@ -52,7 +136,7 @@ const element = &lt;Welcome name='marco' /&gt;;
 ReactDOM.render(
     element,
     document.getElementById('root')
-);</code></pre><p>以上示例过程如下：</p><ul><li>首先调用 <code>ReactDOM.render()</code> 渲染 <code>&lt;Welcome name=&quot;Sara&quot; /&gt;</code> 元素.</li><li>React 调用 <strong>Welcome</strong> component 使用 {name: 'Sara'} 作为 props.</li><li><strong>Welcome</strong> component 返回一个 <code>&lt;h1&gt;Hello, Sara&lt;/h1&gt;</code> 元素.</li><li><strong>React</strong> DOM 高效的更新 DOM 来匹配 <code>&lt;h1&gt;Hello, Sara&lt;/h1&gt;</code> 结果.</li></ul><h3>构建 component</h3><p>component 可以在其输出中引入关联其他 components。这可以让我们在一个 component 内抽象出一个多层的结构。一个 button，一个 form，一个 dialog 或者一个 screen，在 React app 中他们都统称为 components。</p><p>例如我们可以创建一个 App component 来渲染多个 Welcome component：</p><pre><code>const Welcome = (props) =&gt; {
+);</code></pre><p>以上示例过程如下：</p><ul><li>首先调用 <code>ReactDOM.render()</code> 渲染 <code>&lt;Welcome name=&quot;Sara&quot; /&gt;</code> 元素.</li><li>React 调用 <strong>Welcome</strong> component 使用 {name: 'Sara'} 作为 <strong>props</strong>.</li><li><strong>Welcome</strong> component 返回一个 <code>&lt;h1&gt;Hello, Sara&lt;/h1&gt;</code> 元素.</li><li><strong>React</strong> DOM 高效的更新 DOM 来匹配 <code>&lt;h1&gt;Hello, Sara&lt;/h1&gt;</code> 结果.</li></ul><h3>构建 component</h3><p>component 可以在其输出中引入关联其他 components。这可以让我们在一个 component 内抽象出一个多层的结构。一个 button，一个 form，一个 dialog 或者一个 screen，在 React app 中他们都统称为 components。</p><p>例如我们可以创建一个 App component 来渲染多个 Welcome component：</p><pre><code>const Welcome = (props) =&gt; {
     return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;;
 }
 
@@ -133,7 +217,179 @@ ReactDOM.render(
             &lt;/div&gt;
         &lt;/div&gt;
     );
-}</code></pre><p>拆解 component 在开始看起来使工作量变大了，但是在稍微复杂写的 app 中我们就能够利用这些可复用的 components。一条基本准则是：如果 UI 中的某一部分被多次使用，如 button，panel，Avatar等，或者其自身结构比较复杂，如：App, FeedStory, Comment 等，将他们拆解为独立 components 是一个好的选项。</p>
+}</code></pre><p>拆解 component 在开始看起来使工作量变大了，但是在稍微复杂写的 app 中我们就能够利用这些可复用的 components。一条基本准则是：如果 UI 中的某一部分被多次使用，如 button，panel，Avatar等，或者其自身结构比较复杂，如：App, FeedStory, Comment 等，将他们拆解为独立 components 是一个好的选项。</p><h4>props 是只读的</h4><p>当把一个 component 定义为 function 或 class 时，需要注意的是不可以修改 <strong>props</strong> 的值。</p><p>考虑下面的 function：</p><pre><code>function sum(a, b) {
+  return a + b;
+}</code></pre><p>以上的 function 被称作 pure 纯粹的，以为它没有尝试修改输入数据。</p><p>作为对比，下面的就是 impure 不纯粹的 function，因为会尝试修改它的输入数据：</p><pre><code>function sum(a, b) {
+  a = b;
+}</code></pre><p><strong>React</strong> 程序有一条限制条件：<strong>所有的 React components 都需要是 pure function 来对待 props 数据</strong>。</p><p>当然应用程序的 UI 是随时间动态变化的。下一节我们会介绍 state 的概念。通过 state 可以使 React components 在运行期间修改它们的输出 elements 来响应用户动作，网络响应等。同时不违反上面的那条规则。</p><h3>state 和 lifecycle</h3><p>这一节介绍 React components 中 state 和 lifecycle 的概念。</p><p>在前一章的示例中，我们通过一个 <strong>tick</strong> function 在指定时间间隔通过创建新 element 并渲染的方式刷新 UI：</p><pre><code>const tick = () =&gt; {
+    const element = (
+        &lt;div&gt;
+            &lt;h1&gt;hello world&lt;/h1&gt;
+            &lt;h2&gt;{new Date().toLocaleTimeString()}&lt;/h2&gt;
+        &lt;/div&gt;
+    );
+
+    ReactDOM.render(
+        element,
+        document.getElementById('root')
+    );
+}
+setInterval(tick, 1000);</code></pre><p>下面我们介绍通过创建一个封装好的 <strong>Clock</strong> component，设置定时器并更新其自身。</p><p>首先我们根据上面的示例创建 <strong>Clock</strong> component：</p><pre><code>const Clock = (props) =&gt; {
+    &lt;div&gt;
+        &lt;h1&gt;hello world&lt;/h1&gt;
+        &lt;h2&gt;{props.date.toLocaleTimeString()}&lt;/h2&gt;
+    &lt;/div&gt;
+}
+
+const tick = () =&gt; {
+    ReactDOM.render(
+        &lt;Clock date={new Date()} /&gt;,
+        document.getElementById('root')
+    );
+}
+setInterval(tick, 1000);</code></pre><p>在 <strong>tick</strong> 调用 <strong>Clock</strong> component 并定义 <strong>date</strong> prop 的数据供 Clock 使用。但是上面的实现缺乏一个基本需求，那就是 Clock 应该在其自身中定义定时器并每秒刷新数据的。</p><p>我们想要在渲染时达到如下效果调用 Clock：</p><pre><code>ReactDOM.render(
+  &lt;Clock /&gt;,
+  document.getElementById('root')
+);</code></pre><p>为了实现上述功能，需要为 <strong>Clock</strong> 添加 <strong>state</strong>。<strong>state</strong> 类似于 <strong>props</strong> 但是它是由 component 私有且完全控制的。</p><p>首先我们需要将 component 转换为 class 模式，转换过程如下：</p><ul><li>首先创建一个 ES6 class，且继承自 <strong>React.Component</strong>。</li><li>添加一个 <code>render()</code> function，将原 component function 的返回元素放入其返回值中</li><li>在 <code>render()</code> 中用 <strong>this.props</strong> 代替 <strong>props</strong></li></ul><pre><code>class Clock extends React.Component {
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;h1&gt;hello world&lt;/h1&gt;
+                &lt;h2&gt;{this.props.date.toLocaleTimeString()}&lt;/h2&gt;
+            &lt;/div&gt;
+        );
+    }
+}</code></pre><p>当 update 更新发生时会自动调用 <strong>render</strong> function。但当我们将 <code>&lt;Clock /&gt;</code> 放入 DOM 后，将只会有一个 <strong>Clock</strong> object 实例被使用，这就让我们可以使用 <strong>state</strong> 或 <strong>lifecycle</strong> 等功能。</p><h4>添加 state</h4><p>下面我们将 <strong>date</strong> 数据直接放入 <strong>CLock</strong> component 中。</p><p>首先将 render 中的 <strong>this.props.date</strong> 修改为 <strong>this.state.date</strong>：</p><pre><code>class Clock extends React.Component {
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;h1&gt;hello world&lt;/h1&gt;
+                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
+            &lt;/div&gt;
+        );
+    }
+}</code></pre><p>然后添加 class constructor 构造器给 <strong>this.state</strong> 赋初值：</p><pre><code>class Clock extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {date: new Date()}
+    }
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;h1&gt;hello world&lt;/h1&gt;
+                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
+            &lt;/div&gt;
+        );
+    }
+}</code></pre><p>注意 class component 总是应该使用 constructor 且初始化参数为 props。child class 有 constructor 时需要调用 super 来初始化 parent class，具体语法参考我的 JavaScript 教程：<a href="https://blog.niekun.net/archives/2011.html">https://blog.niekun.net/archives/2011.html</a></p><p>然后删除渲染到 DOM 中 <strong>Clock</strong> 的 <strong>date</strong> prop，以及我们设置的 <strong>setInterval</strong> 定时器：</p><pre><code>ReactDOM.render(
+    &lt;Clock /&gt;,
+    document.getElementById('root')
+);</code></pre><p>修改完成后的完整代码如下：</p><pre><code>class Clock extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {date: new Date()}
+    }
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;h1&gt;hello world&lt;/h1&gt;
+                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;Clock /&gt;,
+    document.getElementById('root')
+);</code></pre><p>下面我们实现 Clock 设置自己的定时器并每秒更新。</p><h4>添加 lifecycle method</h4><p>对于包含很多 components 的程序，但某个 component 不再需要是需要及时释放其占用的资源。</p><p>我们需要 <strong>Clock</strong> 第一次在 DOM 中渲染时设置一个 timer 定时器，在 React 中叫做 <strong>mounting</strong> 载入。同时我们需要当 <strong>Clock</strong> 在 DOM 中被删除时清除这个定时器，在 React 中叫做 <strong>unmounting</strong> 卸载。</p><p>我们可以在 components 载入或载出时通过定义特殊的 method 来运行特定指令：</p><pre><code>  componentDidMount() {
+  }
+
+  componentWillUnmount() {
+  }</code></pre><p>这些 methods 叫做 <strong>lifecycle methods</strong>。</p><p><strong>componentDidMount</strong> method 会在 component 第一次输出到 DOM 后被自动调用，我们可以将定时器定义在这里：</p><pre><code>    componentDidMount() {
+        this.timerID = setInterval(() =&gt; this.tick(), 1000);
+    }</code></pre><p>这样当 Clock 渲染到 UI 后会自动启动这个定时器。注意使用 this 定义的参数可以在 class 中任意地方被调用。</p><p>注意 <strong>setInterval</strong> 中定义的响应动作需要写在 callback 内 <code>() =&gt; {}</code> 中，不要直接写：<code>setInterval(this.tick, 1000)</code>。因为如果要在 callback 调用 method 需要在 constructor 中做如下定义：</p><pre><code>this.tick = this.tick.bind(this);
+</code></pre><p><strong>componentWillUnmount</strong> method 会在 component 将要被删除时自动调用，我们将定时器在这里取消：</p><pre><code>    componentWillUnmount() {
+        clearInterval(this.timerID);
+    }</code></pre><p>接下来我们定义每秒都会自动运行的 <strong>tick</strong> method，通过 <code>this.setState()</code> 来更新本地 state 中的设置：</p><pre><code>    tick() {
+        this.setState({ date: new Date() });
+    }</code></pre><p>最终的完整代码如下：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+class Clock extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { date: new Date() }
+    }
+
+    componentDidMount() {
+        this.timerID = setInterval(() =&gt; this.tick(), 1000);
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.timerID);
+    }
+
+    tick() {
+        this.setState({ date: new Date() });
+    }
+
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;h1&gt;hello world&lt;/h1&gt;
+                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;Clock /&gt;,
+    document.getElementById('root')
+);</code></pre><p>现在整个处理流程如下：</p><ul><li>当 <code>ReactDOM.render()</code> 传入 <code>&lt;Clock /&gt;</code> 后，React 调用 Clock 构造器初始化 state 为一个包含 date 的 object</li><li>然后 React 调用 Clock 的 <code>render()</code> 查询到需要显示的 UI 元素，然后更新 DOM 以匹配 Clock 的输出</li><li>当 Clock 的输出嵌入到 DOM 后会调用 <strong>componentDidMount</strong>，Clock 告诉浏览器设置一个定时器每秒调用 <code>tick()</code></li><li>每秒钟调用一次 <code>tick()</code>，这里面 Clock component 通过 <code>setState()</code> 配置了其 UI 更新任务，通过 <code>setState()</code> React 就知道了 state 发生了变化并再次调用 <code>render()</code> 监测需要显示的内容，此时的 <code>this.state.date</code> 和上一次的发生了变化，React 就会更新 DOM 到最新的状态。</li><li>当 Clock 从 DOM 中删除后，React 会调用 <strong>componentWillUnmount</strong> 并结束定时器</li></ul><h4>正确使用 state</h4><p>关于 state 的使用需要如下的几点要求。</p><p>第一点，<strong>不要直接修改 state</strong>。</p><p>下面的语法不会触发重新 render 渲染 component：</p><pre><code>this.state.comment = 'Hello';
+</code></pre><p>正确的语法为使用 <strong>setState()</strong>：</p><pre><code>this.setState({comment: 'Hello'});
+</code></pre><p>唯一可以对 state 赋值的是在 constructor 构造器中。</p><p>第二点，<strong>state 更新是异步的</strong>。</p><p>React 为了性能可能会在一次 component update 更新中捆绑多个 <strong>setState()</strong> 调用，由于 <strong>this.props</strong> 和 <strong>this.state</strong> 可能会被异步更新，所以不要依赖他们的数据来计算后续的 <strong>state</strong>。</p><p>如下示例可能会错误的更新 counter：</p><pre><code>this.setState({
+  counter: this.state.counter + this.props.increment,
+});</code></pre><p>为了实现是这个需求，使用 setState 的另一种格式：传入一个 function，第一个参数为当前 state，第二个参数为 props 然后内部计算 state 更新：</p><pre><code>this.setState(function (state, props) {
+    return {
+        counter: state.counter + props.increment
+    };
+});</code></pre><p>第三点，<strong>state 更新会合并</strong>。</p><p>当调用 <code>setState()</code> 后，会合并设置的 object 到当前 state 中。</p><p>如下示例，<strong>state</strong> 可能包含多个独立的变量：</p><pre><code>    constructor(props) {
+        super(props);
+        this.state = {
+            posts: [],
+            comments: []
+        };
+    }</code></pre><p>然后我们可以单独调用 <strong>setState()</strong> 来分别更新它们：</p><pre><code>    componentDidMount() {
+        fetchPosts().then(response =&gt; {
+            this.setState({
+                posts: response.posts
+            });
+        });
+
+        fetchComments().then(response =&gt; {
+            this.setState({
+                comments: response.comments
+            });
+        });
+    }</code></pre><p>合并过程是自动完成的，所以通过 <strong>setState</strong> 修改 comments 只会更新 comments 而不会改变 posts。</p><h4>数据向下传递</h4><p>一个 component 的 child 或 parent 都不会知道当前 component 是包含 state 还是不包含，且不关心是通过 function 还是 class 方式构建的 component。所以 state 被认为是封装的不能够被外界所访问。</p><p>component 的 state 可以作为 props 向它的 child component 传递：</p><pre><code>&lt;FormattedDate date={this.state.date} /&gt;
+</code></pre><p>如上所示 FormattedDate 可以接受 date prop，它并不知道数据来自 parent 的 state 还是 props：</p><pre><code>function FormattedDate(props) {
+  return &lt;h2&gt;It is {props.date.toLocaleTimeString()}.&lt;/h2&gt;;
+}</code></pre><p>通常这叫做 <strong>top-down</strong> 或 <strong>unidirectional</strong> 数据流。任何 state 都被某个特定 component 所有，state 的数据只能在其 component 的 child 中传递出去。</p><p>我们通过建立 <strong>App</strong> component 并构建三个 <strong>Clock</strong> component 来展示 component 之间是互相独立的：</p><pre><code>function App() {
+    return (
+        &lt;div&gt;
+            &lt;Clock /&gt;
+            &lt;Clock /&gt;
+            &lt;Clock /&gt;
+        &lt;/div&gt;
+    );
+}
+
+ReactDOM.render(
+    &lt;App /&gt;,
+    document.getElementById('root')
+);</code></pre><p>每个 Clock 都有个各自的定时器并独立更新。</p><p>在 React 中，components 定义为 stateful 还是 stateless 的取决于其在运行中可能的变化，可以在 stateful 的 component 中使用 stateless 的 component，反过来亦可。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2184.html#comments</comments>
@@ -777,72 +1033,6 @@ response.statusMessage = 'Internal Server Error'</code></pre><h4>http.IncomingMe
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2156.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2156.html</wfw:commentRss>
-</item>
-<item>
-<title>node.js 入门教程之九 -- events 模块</title>
-<link>https://blog.niekun.net/archives/2151.html</link>
-<guid>https://blog.niekun.net/archives/2151.html</guid>
-<pubDate>Mon, 08 Feb 2021 21:42:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[在之前介绍 event loop 的章节，我们简单介绍了 events 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。events 模块提供了 Ev...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>在之前介绍 <strong>event loop</strong> 的章节，我们简单介绍了 <strong>events</strong> 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。</p><p><strong>events</strong> 模块提供了 <strong>EventEmitter</strong> class 它是处理 events 的关键工具。</p><p>引入及初始化 events 模块如下：</p><pre><code>const EventEmitter = require('events')
-const eventEmitter = new EventEmitter()</code></pre><p>每个 event listener 事件监听器都是互相独立的，同时它们使用如下 events：</p><ul><li><strong>newListener</strong> 当一个 event 被添加</li><li><strong>removeListener</strong> 当一个 event 被删除</li></ul><p>下面介绍常用的一些 method。</p><!--more--><h3>eventEmitter.addListener()</h3><p><code>eventEmitter.addListener()</code> 和 <code>eventEmitter.on()</code> 功能相同。可以给某个 event 添加一个 listener，语法如下：</p><pre><code>eventEmitter.addListener('test', () =&gt; {})
-</code></pre><h3>eventEmitter.emit()</h3><p><code>eventEmitter.emit()</code> 用来触发一个信号，信号触发后，对应信号的 event listener 会响应 callback function：</p><pre><code>eventEmitter.addListener('test', () =&gt; { console.log('test emited') })
-eventEmitter.emit('test')
-
-//output:
-//test emited</code></pre><h3>eventEmitter.eventNames()</h3><p><code>eventEmitter.eventNames()</code> 会返回当前 <strong>EventEmitter</strong> object 内注册已的 events 为一个字符串数组：</p><pre><code>eventEmitter.addListener('test1', () =&gt; {})
-eventEmitter.addListener('test2', () =&gt; {})
-console.log(eventEmitter.eventNames())
-
-//output:
-//[ 'test1', 'test2' ]</code></pre><h3>eventEmitter.getMaxListeners()</h3><p><code>eventEmitter.getMaxListeners()</code> 返回当前 <strong>EventEmitter</strong> object 能添加的 event listener 最大数量。默认为 10 个，可以通过 <code>setMaxListeners()</code> 修改。</p><h3>eventEmitter.listenerCount()</h3><p><code>eventEmitter.listenerCount()</code> 返回某个 event 定义的 listeners 数量：</p><pre><code>eventEmitter.addListener('test4', () =&gt; { console.log('a') })
-eventEmitter.addListener('test4', () =&gt; { console.log('b') })
-console.log(eventEmitter.listenerCount('test4'))
-
-//output:
-//2</code></pre><h3>eventEmitter.listeners()</h3><p><code>eventEmitter.listeners()</code> 返回某个 event 所有的 listeners 为一个数组：</p><pre><code>const f1 = () =&gt; {}
-const f2 = () =&gt; {}
-eventEmitter.addListener('test5', f1)
-eventEmitter.addListener('test5', f2)
-console.log(eventEmitter.listeners('test5'))
-
-//output:
-//[ [Function: f1], [Function: f2] ]</code></pre><h3>eventEmitter.off()</h3><p><code>eventEmitter.off()</code> 和 <code>eventEmitter.removeListener()</code> 功能相同。可以删除一个 event 的某个 listener，需要指定 event 名称和 listener callback 名称：</p><pre><code>const f3 = () =&gt; {}
-eventEmitter.addListener('test6', f3)
-eventEmitter.off('test6', f3)</code></pre><h3>eventEmitter.on()</h3><p><code>eventEmitter.on()</code> 同 <code>eventEmitter.addListener()</code> 功能相同。可以给某个 event 添加一个 listener：</p><pre><code>eventEmitter.on('test6', () =&gt; {})</code></pre><h3>eventEmitter.once()</h3><p><code>eventEmitter.once()</code> 监听一个 event 且其 callback function 只能被执行一次：</p><pre><code>eventEmitter.once('test7', () =&gt; console.log('once show once'))
-eventEmitter.emit('test7')
-eventEmitter.emit('test7')
-
-//output:
-//once show once</code></pre><h3>eventEmitter.prependListener()</h3><p>当通过 <code>eventEmitter.on()</code> 添加 listener 时，会按照添加顺序排列在此 event 队列中，当对应 event 触发时，会按照排列顺序以此执行 callback。</p><p>使用 <code>eventEmitter.prependListener()</code> 添加的 listener 会添加到队列的最前面，触发时最先被执行：</p><pre><code>eventEmitter.on('test8', () =&gt; console.log('first listener'))
-eventEmitter.prependListener('test8', () =&gt; console.log('second listener'))
-eventEmitter.emit('test8')
-
-//output:
-//second listener
-//first listener</code></pre><h3>eventEmitter.prependOnceListener()</h3><p><code>eventEmitter.prependOnceListener()</code> 同 <code>eventEmitter.on()</code> 的区别和上面类似，会将 listener 添加到对应 event listeners 队列的最前面，然后最先被执行且只能响应一次：</p><pre><code>eventEmitter.once('test9', () =&gt; console.log('first listener'))
-eventEmitter.prependOnceListener('test9', () =&gt; console.log('second listener'))
-eventEmitter.emit('test9')
-eventEmitter.emit('test9')
-
-//output:
-//second listener
-//first listener</code></pre><h3>eventEmitter.removeAllListeners()</h3><p><code>eventEmitter.removeAllListeners()</code> 可以删除指定 event 的所有 listeners：</p><pre><code>eventEmitter.removeAllListeners('test9')</code></pre><h3>eventEmitter.removeListener()</h3><p><code>eventEmitter.removeListener()</code> 可以删除 event 的指定 listener。需要将 listener 的 callback function 定义为变量格式然后再调用，这样就可以在此 reference 它：</p><pre><code>const f1 = () =&gt; {}
-const f2 = () =&gt; {}
-eventEmitter.addListener('test5', f1)
-eventEmitter.addListener('test5', f2)
-
-eventEmitter.removeListener('test5', f1)</code></pre><h3>eventEmitter.setMaxListeners()</h3><p><code>eventEmitter.setMaxListeners()</code> 可以定义 <strong>EventEmitter</strong> object 最大可以添加的 listeners 数量：</p><pre><code>eventEmitter.setMaxListeners(20)
-console.log(eventEmitter.getMaxListeners())
-
-//output:
-//20</code></pre><p>以上就是 events 模块最常用功能的介绍。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2151.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2151.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

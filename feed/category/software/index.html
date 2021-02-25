@@ -11,8 +11,22 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/software/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Wed, 02 Dec 2020 11:52:00 +0800</lastBuildDate>
-<pubDate>Wed, 02 Dec 2020 11:52:00 +0800</pubDate>
+<lastBuildDate>Thu, 25 Feb 2021 20:46:37 +0800</lastBuildDate>
+<pubDate>Thu, 25 Feb 2021 20:46:37 +0800</pubDate>
+<item>
+<title>修复 vs code 下保存文件会自动 format 代码的问题</title>
+<link>https://blog.niekun.net/archives/2191.html</link>
+<guid>https://blog.niekun.net/archives/2191.html</guid>
+<pubDate>Thu, 25 Feb 2021 20:46:37 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/175565695.png" alt="2021-02-25T12:40:56.png" title="2021-02-25T12:40:56.png"></p><!--more--><p>经过查询发现时由于安装的 <strong>JS-CSS-HTML Formatter</strong> 插件默认会在保存文件时对文件格式进行处理。但是堆 React 代码的自动处理有问题导致无法正常进行开发。</p><p>只需要修改其配置文件将保存文件时自动处理关掉即可。</p><p>快捷键 <strong>cmd + shift + p</strong> 打开控制器，输入 formatter：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/1966900753.png" alt="2021-02-25T12:44:41.png" title="2021-02-25T12:44:41.png"></p><p>点击 formatter config 修改配置文件，将第一句 <strong>"onSave": true</strong> 改为 <strong>false</strong> 保存即可。</p><p>需要重启 vscode 才能生效。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2191.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2191.html</wfw:commentRss>
+</item>
 <item>
 <title>QT 添加第三方库</title>
 <link>https://blog.niekun.net/archives/1958.html</link>
@@ -494,27 +508,6 @@ find path/to/html -name '*.pdf' -exec mv {} pdf/ \;</code></pre><p>find 命令�
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1375.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1375.html</wfw:commentRss>
-</item>
-<item>
-<title>Nginx upstream timed out 问题的处理</title>
-<link>https://blog.niekun.net/archives/1280.html</link>
-<guid>https://blog.niekun.net/archives/1280.html</guid>
-<pubDate>Thu, 05 Mar 2020 08:53:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在转发到代理服务器 fastCGI 时超时了:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
-proxy_send_timeout 600;
-proxy_read_timeout 600;
-send_timeout 600;</code></pre><p>将上述内容加入 config 文件，reload nginx 测试页面加载是否正常：</p><pre><code>sudo service nginx configtest
-sudo service nginx reload
-
-
-</code></pre>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1280.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1280.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
