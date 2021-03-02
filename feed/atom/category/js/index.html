@@ -6,11 +6,165 @@ xml:base="https://blog.niekun.net/category/js/"
 >
 <title type="text">Marco Nie - javascript</title>
 <subtitle type="text"></subtitle>
-<updated>2021-02-25T17:23:00+08:00</updated>
+<updated>2021-03-02T23:10:22+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/js/" />
 <id>https://blog.niekun.net/feed/atom/category/js/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/js/" />
+<entry>
+<title type="html"><![CDATA[React 入门教程之六 -- Conditional Rendering]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2195.html" />
+<id>https://blog.niekun.net/archives/2195.html</id>
+<updated>2021-03-02T23:10:22+08:00</updated>
+<published>2021-03-02T23:10:22+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[在 React 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。和 JavaScript 的相同，React 中也可以使...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2195.html" xml:lang="zh-CN"><![CDATA[
+<p>在 <strong>React</strong> 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。</p><p>和 JavaScript 的相同，React 中也可以使用 conditions 语法来选择性的渲染内容。如使用 if 或 conditional operator 来根据不同 state 状态创建不同 elements 然后让 React 更新 UI 来匹配 DOM。</p><!--more--><p>考虑下面两个 components：</p><pre><code>const UserGreeting = (props) =&gt; {
+    return &lt;h1&gt;welcome back&lt;/h1&gt;
+}
+
+const GuestGreeting = (props) =&gt; {
+    return &lt;h1&gt;please sign up&lt;/h1&gt;
+}</code></pre><p>然后我们创建一个 <strong>Greeting</strong> component 来根据是否有用户登陆来显示以上两个中的一个：</p><pre><code>const Greeting = (props) =&gt; {
+    let isLoggedIn = props.isLoggedIn;
+    if (isLoggedIn)
+        return &lt;UserGreeting /&gt;;
+    else
+        return &lt;GuestGreeting /&gt;;
+}
+
+ReactDOM.render(
+    &lt;Greeting isLoggedIn={true} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>以上示例会根据 isLoggedIn 属性的值来渲染不同的内容。</p><h3>elements 变量</h3><p>可以使用变量存储 elements，这样可以方便的根据情况 render 部分的 component 而不需要改变输出的指令内容。</p><p>考虑下面两个 component 表示 login 和 logout：</p><pre><code>const LoginButton = (props) =&gt; {
+    return (
+        &lt;button onClick={props.onClick}&gt;
+            login
+        &lt;/button&gt;
+    );
+}
+
+const LogoutButton = (props) =&gt; {
+    return (
+        &lt;button onClick={props.onClick}&gt;
+            logout
+        &lt;/button&gt;
+    );
+}</code></pre><p>然后我们创建 <strong>LoginControl</strong> component，它将根据当前情况渲染 login 或 logout button 以及之前创建的 Greeting element：</p><pre><code>class LoginControl extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleLoginClick = this.handleLoginClick.bind(this);
+        this.handleLogoutClick = this.handleLogoutClick.bind(this);
+        this.state = {isLoggedIn: false};
+    }
+
+    handleLoginClick() {
+        this.setState({isLoggedIn: true});
+    }
+
+    handleLogoutClick() {
+        this.setState({isLoggedIn: false});
+    }
+
+    render() {
+        let isLoggedIn = this.state.isLoggedIn;
+        let button;
+        if (isLoggedIn)
+            button = &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
+        else
+            button = &lt;LoginButton onClick={this.handleLoginClick} /&gt;
+
+        return (
+            &lt;div&gt;
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+            &lt;/div&gt;
+        );
+    }
+
+}
+
+ReactDOM.render(
+    &lt;LoginControl /&gt;,
+    document.getElementById('root')
+);</code></pre><h3>inline condition 单语句判断</h3><p>使用 element 变量以及使用 if 语句根据条件渲染 component 是一种很好的方法。但是有时候可以使用简化语法。下面接收几种 inline condition 语法。</p><h4>inline if with && operator</h4><p>在 JSX 可以通过使用大括号<code>{}</code>来嵌入 JavaScript 表达式，包括逻辑符号：<code>&amp;&amp;</code>，在根据条件判断是否包含一个 element 时很有用。</p><p>请看下面示例：</p><pre><code>const InlineCom = (props) =&gt; {
+    return(
+        &lt;div&gt;
+            &lt;h1&gt;hello world&lt;/h1&gt;
+            {props.count &gt; 10 &amp;&amp;
+                &lt;h2&gt;count is: {props.count}&lt;/h2&gt;
+            }
+        &lt;/div&gt;
+    );
+}
+
+ReactDOM.render(
+    &lt;InlineCom count={20} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>如果 <code>props.count &gt; 10</code> 满足条件则后面的 element 就会成为 component 一部分。</p><p>在 JavaScript 中，<code>true &amp;&amp; expression</code> 将会评估为 <strong>expression</strong>，而 <code>false &amp;&amp; expression</code> 将会评估为 <strong>false</strong>。因此当 condition 为 true 时，<code>&amp;&amp;</code> 后的 element 将会输出，否则 React 将会忽略它。</p><h4>inline condition operator</h4><p>另一种根据情况通过 inline 单行判断来渲染 element 就是使用 JavaScript conditional operator：<code>condition ? true : false</code>。</p><p>给 LoginControl 的返回添加如下：</p><pre><code>        return (
+            &lt;div&gt;
+                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+            &lt;/div&gt;
+        );</code></pre><p>通过 inline conditional operator 来输出不同的信息。</p><p>也可以在较长的表达式中使用，例如可以将示例中 button 部分在 render 中这样处理：</p><pre><code>        return (
+            &lt;div&gt;
+                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+                {isLoggedIn 
+                    ? &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
+                    : &lt;LoginButton onClick={this.handleLoginClick} /&gt;
+                }
+            &lt;/div&gt;
+        );</code></pre><p>使用中根据实际情况选择最合适的方式处理 condition，最终目的是为了使结构更加清晰，代码易读。注意如果判断过复杂就需要考虑拆解 component 为多个个体了。</p><h3>阻止 component 渲染</h3><p>某些情况下我们可能需要将一个 component 隐藏起来，即使它在别的 component 中已经渲染了。可以通过 return <strong>null</strong> 来代替它的输出。</p><p>下面示例中 <strong>WarningBanner</strong> 会根据 <strong>warn</strong> 属性的值来选择性渲染：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const WarningBanner = (props) =&gt; {
+    if (!props.warn) {
+        return null;
+    }
+    return (
+        &lt;div className='warning'&gt;
+            warning!
+        &lt;/div&gt;
+    );
+}
+
+class Page extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {showWarning: true};
+        this.handelToggleClick = this.handelToggleClick.bind(this);
+    }
+    handelToggleClick() {
+        this.setState({showWarning: !this.state.showWarning});
+    }
+
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;WarningBanner warn={this.state.showWarning} /&gt;
+                &lt;button onClick={this.handelToggleClick}&gt;
+                    {this.state.showWarning ? 'hide' : 'show'}
+                &lt;/button&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;Page /&gt;,
+    document.getElementById('root')
+);</code></pre><p>在 <strong>render</strong> method 中 return <strong>null</strong> 不会影响到 component 的 lifecycle method。例如每次更新 <strong>componentDidUpdate</strong> 依然会被自动调用。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2195.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2195.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[React 入门教程之五 -- Event]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2189.html" />
@@ -908,158 +1062,5 @@ console.log(slice.toString())
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2157.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2157.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[node.js 入门教程之十 -- http 模块]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2156.html" />
-<id>https://blog.niekun.net/archives/2156.html</id>
-<updated>2021-02-15T14:01:00+08:00</updated>
-<published>2021-02-15T14:01:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[http 模块是 node.js 处理 networking 网络的关键模块。在之前的章节我介绍了使用 http 模块建立 server 以及发起 GET/POST 请求的方法，可以参考：htt...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2156.html" xml:lang="zh-CN"><![CDATA[
-<p><strong>http</strong> 模块是 node.js 处理 networking 网络的关键模块。在之前的章节我介绍了使用 <strong>http</strong> 模块建立 server 以及发起 GET/POST 请求的方法，可以参考：<a href="https://blog.niekun.net/archives/2137.html">https://blog.niekun.net/archives/2137.html</a></p><p>http 模块集成于 node.js 核心无需单独安装，使用下面命令引入模块：</p><pre><code>const http = require('http')
-</code></pre><p>模块提供了很多 <strong>properties</strong>，<strong>methods</strong> 和 <strong>classes</strong>。</p><!--more--><h3>Properties 属性</h3><h4>http.METHODS</h4><p><strong>http.METHODS</strong> property 返回 http 所有的可用 method 列表：</p><pre><code>&gt; console.log(require('http').METHODS)
-[
-  'ACL',        'BIND',        'CHECKOUT',
-  'CONNECT',    'COPY',        'DELETE',
-  'GET',        'HEAD',        'LINK',
-  'LOCK',       'M-SEARCH',    'MERGE',
-  'MKACTIVITY', 'MKCALENDAR',  'MKCOL',
-  'MOVE',       'NOTIFY',      'OPTIONS',
-  'PATCH',      'POST',        'PRI',
-  'PROPFIND',   'PROPPATCH',   'PURGE',
-  'PUT',        'REBIND',      'REPORT',
-  'SEARCH',     'SOURCE',      'SUBSCRIBE',
-  'TRACE',      'UNBIND',      'UNLINK',
-  'UNLOCK',     'UNSUBSCRIBE'
-]</code></pre><h4>http.STATUS_CODES</h4><p><strong>http.STATUS_CODES</strong> 返回所有的 http 状态码及描述的 list 列表：</p><pre><code>&gt; console.log(require('http').STATUS_CODES)
-{
-  '100': 'Continue',
-  '101': 'Switching Protocols',
-  '102': 'Processing',
-  '103': 'Early Hints',
-  '200': 'OK',
-  '201': 'Created',
-  '202': 'Accepted',
-  '203': 'Non-Authoritative Information',
-  '204': 'No Content',
-  '205': 'Reset Content',
-  '206': 'Partial Content',
-  '207': 'Multi-Status',
-  '208': 'Already Reported',
-  '226': 'IM Used',
-  '300': 'Multiple Choices',
-  '301': 'Moved Permanently',
-  '302': 'Found',
-  '303': 'See Other',
-  '304': 'Not Modified',
-  '305': 'Use Proxy',
-  '307': 'Temporary Redirect',
-  '308': 'Permanent Redirect',
-  '400': 'Bad Request',
-  '401': 'Unauthorized',
-  '402': 'Payment Required',
-  '403': 'Forbidden',
-  '404': 'Not Found',
-  '405': 'Method Not Allowed',
-  '406': 'Not Acceptable',
-  '407': 'Proxy Authentication Required',
-  '408': 'Request Timeout',
-  '409': 'Conflict',
-  '410': 'Gone',
-  '411': 'Length Required',
-  '412': 'Precondition Failed',
-  '413': 'Payload Too Large',
-  '414': 'URI Too Long',
-  '415': 'Unsupported Media Type',
-  '416': 'Range Not Satisfiable',
-  '417': 'Expectation Failed',
-  '418': &quot;I'm a Teapot&quot;,
-  '421': 'Misdirected Request',
-  '422': 'Unprocessable Entity',
-  '423': 'Locked',
-  '424': 'Failed Dependency',
-  '425': 'Too Early',
-  '426': 'Upgrade Required',
-  '428': 'Precondition Required',
-  '429': 'Too Many Requests',
-  '431': 'Request Header Fields Too Large',
-  '451': 'Unavailable For Legal Reasons',
-  '500': 'Internal Server Error',
-  '501': 'Not Implemented',
-  '502': 'Bad Gateway',
-  '503': 'Service Unavailable',
-  '504': 'Gateway Timeout',
-  '505': 'HTTP Version Not Supported',
-  '506': 'Variant Also Negotiates',
-  '507': 'Insufficient Storage',
-  '508': 'Loop Detected',
-  '509': 'Bandwidth Limit Exceeded',
-  '510': 'Not Extended',
-  '511': 'Network Authentication Required'
-}</code></pre><h4>http.globalAgent</h4><p><strong>http.globalAgent</strong> 指向 <strong>http.Agent</strong> class 的一个 instance 实例，也就是一个 <strong>Agent</strong> object。</p><p>这个 <strong>Agent</strong> object 用来管理 server 同 http 客户端链接的持续连接和链接复用，这也是 node.js 网络服务的关键点。</p><pre><code>&gt; console.log(require('http').globalAgent)
-Agent {
-  _events: [Object: null prototype] {
-    free: [Function (anonymous)],
-    newListener: [Function: maybeEnableKeylog]
-  },
-  _eventsCount: 2,
-  _maxListeners: undefined,
-  defaultPort: 80,
-  protocol: 'http:',
-  options: { path: null },
-  requests: {},
-  sockets: {},
-  freeSockets: {},
-  keepAliveMsecs: 1000,
-  keepAlive: false,
-  maxSockets: Infinity,
-  maxFreeSockets: 256,
-  scheduling: 'lifo',
-  maxTotalSockets: Infinity,
-  totalSocketCount: 0,
-  [Symbol(kCapture)]: false
-}</code></pre><h3>methods 功能</h3><h4>http.createServer()</h4><p><code>http.createServer()</code> 返回一个 <strong>http.Server</strong> class 实例。</p><pre><code>const server = http.createServer((req, res) =&gt; {
-  //handle every single request with this callback
-})</code></pre><h4>http.request()</h4><p><code>http.request()</code> 对服务器发起一个 http 请求。返回一个 <strong>http.ClientRequest</strong> class 实例。</p><pre><code>const options = {
-    hostname: 'localhost',
-    port: 3000,
-    path: '/',
-    method: 'GET'
-}
-
-const req = https.request(options, res =&gt; {
-    console.log(`statusCode is：${res.statusCode}`);
-    res.on('data', d =&gt; {
-        process.stdout.write(d)
-    })
-})
-
-req.on('error', err =&gt; console.log(err))
-req.end()</code></pre><h4>http.get()</h4><p><code>http.get()</code> 同 <code>http.request()</code> 类似，但会自动将 http method 设置为 GET，且自动调用 <code>req.end()</code>。</p><pre><code>const https = require('http')
-const options = {
-    hostname: 'localhost',
-    port: 3000,
-    path: '/'
-}
-
-const req = https.get(options, res =&gt; {
-    console.log(`statusCode is：${res.statusCode}`);
-    res.on('data', d =&gt; {
-        process.stdout.write(d)
-    })
-})
-
-req.on('error', err =&gt; console.log(err))</code></pre><h3>Classes 类</h3><p>http 模块提供 5 个 calsses：</p><ul><li>http.Agent</li><li>http.ClientRequest</li><li>http.Server</li><li>http.ServerResponse</li><li>http.IncomingMessage</li></ul><h4>http.Agent</h4><p>node.js 会创建一个全局的 <strong>http.Agent</strong> instance 实例来管理 server 同 http 客户端链接的持续连接和链接复用，这个 object 可以确保一个客户端对服务端发起的一系列请求是按队列排序的，且使用单独的 socket 接口。同样 agent object 管理着一个 sockets 池，这是影响性能的关键因素。</p><h4>http.ClientRequest</h4><p>当 <code>http.request()</code> 或 <code>http.get()</code> 被调用时会创建一个 <strong>http.ClientRequest</strong> object。</p><p>当收到来自服务器的 response 时，<strong>response</strong> event 会被触发，<code>http.request()</code> 内定义的 callback 会作为 <strong>response</strong> 的响应被调用，同时将 <strong>http.IncomingMessage</strong> 的实例作为传入参数，其中包含了 response 数据。</p><p>response 数据有两种方式读取，第一种是通过 <code>response.read()</code> method，第二种是在 response 的 callback function 中通过监听 <strong>data</strong> event 来获取 stream 中的数据。</p><h4>http.Server</h4><p>当通过 <code>http.createServer()</code> 创建一个 server 时会返回 <strong>http.Server</strong> 实例。 <strong>http.Server</strong> 实例需要使用它的以下 method：</p><ul><li><code>close()</code> 停止 server 接收新的链接</li><li><code>listen()</code> 启动 server 并开始监听请求</li></ul><p><code>http.createServer()</code> 的 callback 监听 <strong>request</strong> event 并响应。</p><h4>http.ServerResponse</h4><p>由 <strong>http.Server</strong> object 创建，作为 <strong>request</strong> event 的第二个参数传入，代码中作为 callback 的 res 参数使用：</p><pre><code>const server = http.createServer((req, res) =&gt; {
-  //res is an http.ServerResponse object
-})</code></pre><p><code>end()</code> 是 <strong>http.ServerResponse</strong> object 必须被使用的 method，用来表示 response 信息已经完整，可以结束这个 response，同时将 response 发送出去。</p><p>下面的 method 可以用来处理 http headers：</p><ul><li><strong>getHeaderNames()</strong> 获取当前 http headers 名称的列表</li><li><strong>getHeaders()</strong> 获取当前 http headers 副本</li><li><strong>setHeader('headername', value)</strong> 设置一个 http header</li><li><strong>getHeader('headername')</strong> 获取当前的一个 http header 的设置</li><li><strong>removeHeader('headername')</strong> 删除一个 http header</li><li><strong>hasHeader('headername')</strong> 如果某个 http header 有被设置则返回 true</li><li><strong>headersSent()</strong> 如果 http headers 已经发送给了客户端则返回 true</li></ul><p>服务端编辑好 headers 条目后可以通过 <code>response.writeHead()</code> method 发送给客户端，第一个参数是 statusCode。</p><p>通过 <code>response.write()</code> 在 response body 中发送数据给客户端，它会将缓冲区的数据发送到 http response stream。如果还没有使用 <code>response.writeHead()</code> 发送 headers 则会先发送 headers，包含 statusCode 和 message，它们可以通过下面语法设置：</p><pre><code>response.statusCode = 500
-response.statusMessage = 'Internal Server Error'</code></pre><h4>http.IncomingMessage</h4><p><strong>http.IncomingMessage</strong> 可以在以下两个地方创建：</p><ul><li><strong>http.Server</strong> 当监听 <strong>request</strong> event</li><li><strong>http.ClientRequest</strong> 当监听 <strong>response</strong> event</li></ul><p>它可以用来访问 response 数据：</p><ul><li>通过 <strong>statusCode</strong> 和 <strong>statusMessage</strong> 读取状态信息</li><li>通过 <strong>headers</strong> method 或 <strong>rawHeaders</strong> method 读取 headers 信息</li><li>通过 <strong>method</strong> method 获取可用 http method</li><li>通过 <strong>httpVersion</strong> method 获取 http 版本信息</li><li>通过 <strong>url</strong> method 获取 URL 信息</li><li>通过 <strong>socket</strong> method 获取底层 socket 信息</li></ul><p>在 <strong>http.IncomingMessage</strong> 生效一个可读的 stream 接口后，数据可在 stream 中读取。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2156.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2156.html" thr:count="0"/>
 </entry>
 </feed>

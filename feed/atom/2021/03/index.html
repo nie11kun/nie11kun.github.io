@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+xmlns:thr="http://purl.org/syndication/thread/1.0"
+xml:lang="zh-CN"
+xml:base="https://blog.niekun.net/2021/03/"
+>
+<title type="text">Marco Nie - 2021年3月</title>
+<subtitle type="text">you are the company you keep...</subtitle>
+<updated>2021-03-02T23:10:22+08:00</updated>
+<generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/2021/03/" />
+<id>https://blog.niekun.net/feed/atom/2021/03/</id>
+<link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/03/" />
+<entry>
+<title type="html"><![CDATA[React 入门教程之六 -- Conditional Rendering]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2195.html" />
+<id>https://blog.niekun.net/archives/2195.html</id>
+<updated>2021-03-02T23:10:22+08:00</updated>
+<published>2021-03-02T23:10:22+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[在 React 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。和 JavaScript 的相同，React 中也可以使...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2195.html" xml:lang="zh-CN"><![CDATA[
+<p>在 <strong>React</strong> 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。</p><p>和 JavaScript 的相同，React 中也可以使用 conditions 语法来选择性的渲染内容。如使用 if 或 conditional operator 来根据不同 state 状态创建不同 elements 然后让 React 更新 UI 来匹配 DOM。</p><!--more--><p>考虑下面两个 components：</p><pre><code>const UserGreeting = (props) =&gt; {
+    return &lt;h1&gt;welcome back&lt;/h1&gt;
+}
+
+const GuestGreeting = (props) =&gt; {
+    return &lt;h1&gt;please sign up&lt;/h1&gt;
+}</code></pre><p>然后我们创建一个 <strong>Greeting</strong> component 来根据是否有用户登陆来显示以上两个中的一个：</p><pre><code>const Greeting = (props) =&gt; {
+    let isLoggedIn = props.isLoggedIn;
+    if (isLoggedIn)
+        return &lt;UserGreeting /&gt;;
+    else
+        return &lt;GuestGreeting /&gt;;
+}
+
+ReactDOM.render(
+    &lt;Greeting isLoggedIn={true} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>以上示例会根据 isLoggedIn 属性的值来渲染不同的内容。</p><h3>elements 变量</h3><p>可以使用变量存储 elements，这样可以方便的根据情况 render 部分的 component 而不需要改变输出的指令内容。</p><p>考虑下面两个 component 表示 login 和 logout：</p><pre><code>const LoginButton = (props) =&gt; {
+    return (
+        &lt;button onClick={props.onClick}&gt;
+            login
+        &lt;/button&gt;
+    );
+}
+
+const LogoutButton = (props) =&gt; {
+    return (
+        &lt;button onClick={props.onClick}&gt;
+            logout
+        &lt;/button&gt;
+    );
+}</code></pre><p>然后我们创建 <strong>LoginControl</strong> component，它将根据当前情况渲染 login 或 logout button 以及之前创建的 Greeting element：</p><pre><code>class LoginControl extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleLoginClick = this.handleLoginClick.bind(this);
+        this.handleLogoutClick = this.handleLogoutClick.bind(this);
+        this.state = {isLoggedIn: false};
+    }
+
+    handleLoginClick() {
+        this.setState({isLoggedIn: true});
+    }
+
+    handleLogoutClick() {
+        this.setState({isLoggedIn: false});
+    }
+
+    render() {
+        let isLoggedIn = this.state.isLoggedIn;
+        let button;
+        if (isLoggedIn)
+            button = &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
+        else
+            button = &lt;LoginButton onClick={this.handleLoginClick} /&gt;
+
+        return (
+            &lt;div&gt;
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+            &lt;/div&gt;
+        );
+    }
+
+}
+
+ReactDOM.render(
+    &lt;LoginControl /&gt;,
+    document.getElementById('root')
+);</code></pre><h3>inline condition 单语句判断</h3><p>使用 element 变量以及使用 if 语句根据条件渲染 component 是一种很好的方法。但是有时候可以使用简化语法。下面接收几种 inline condition 语法。</p><h4>inline if with && operator</h4><p>在 JSX 可以通过使用大括号<code>{}</code>来嵌入 JavaScript 表达式，包括逻辑符号：<code>&amp;&amp;</code>，在根据条件判断是否包含一个 element 时很有用。</p><p>请看下面示例：</p><pre><code>const InlineCom = (props) =&gt; {
+    return(
+        &lt;div&gt;
+            &lt;h1&gt;hello world&lt;/h1&gt;
+            {props.count &gt; 10 &amp;&amp;
+                &lt;h2&gt;count is: {props.count}&lt;/h2&gt;
+            }
+        &lt;/div&gt;
+    );
+}
+
+ReactDOM.render(
+    &lt;InlineCom count={20} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>如果 <code>props.count &gt; 10</code> 满足条件则后面的 element 就会成为 component 一部分。</p><p>在 JavaScript 中，<code>true &amp;&amp; expression</code> 将会评估为 <strong>expression</strong>，而 <code>false &amp;&amp; expression</code> 将会评估为 <strong>false</strong>。因此当 condition 为 true 时，<code>&amp;&amp;</code> 后的 element 将会输出，否则 React 将会忽略它。</p><h4>inline condition operator</h4><p>另一种根据情况通过 inline 单行判断来渲染 element 就是使用 JavaScript conditional operator：<code>condition ? true : false</code>。</p><p>给 LoginControl 的返回添加如下：</p><pre><code>        return (
+            &lt;div&gt;
+                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+            &lt;/div&gt;
+        );</code></pre><p>通过 inline conditional operator 来输出不同的信息。</p><p>也可以在较长的表达式中使用，例如可以将示例中 button 部分在 render 中这样处理：</p><pre><code>        return (
+            &lt;div&gt;
+                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+                {isLoggedIn 
+                    ? &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
+                    : &lt;LoginButton onClick={this.handleLoginClick} /&gt;
+                }
+            &lt;/div&gt;
+        );</code></pre><p>使用中根据实际情况选择最合适的方式处理 condition，最终目的是为了使结构更加清晰，代码易读。注意如果判断过复杂就需要考虑拆解 component 为多个个体了。</p><h3>阻止 component 渲染</h3><p>某些情况下我们可能需要将一个 component 隐藏起来，即使它在别的 component 中已经渲染了。可以通过 return <strong>null</strong> 来代替它的输出。</p><p>下面示例中 <strong>WarningBanner</strong> 会根据 <strong>warn</strong> 属性的值来选择性渲染：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const WarningBanner = (props) =&gt; {
+    if (!props.warn) {
+        return null;
+    }
+    return (
+        &lt;div className='warning'&gt;
+            warning!
+        &lt;/div&gt;
+    );
+}
+
+class Page extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {showWarning: true};
+        this.handelToggleClick = this.handelToggleClick.bind(this);
+    }
+    handelToggleClick() {
+        this.setState({showWarning: !this.state.showWarning});
+    }
+
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;WarningBanner warn={this.state.showWarning} /&gt;
+                &lt;button onClick={this.handelToggleClick}&gt;
+                    {this.state.showWarning ? 'hide' : 'show'}
+                &lt;/button&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;Page /&gt;,
+    document.getElementById('root')
+);</code></pre><p>在 <strong>render</strong> method 中 return <strong>null</strong> 不会影响到 component 的 lifecycle method。例如每次更新 <strong>componentDidUpdate</strong> 依然会被自动调用。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2195.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2195.html" thr:count="0"/>
+</entry>
+</feed>

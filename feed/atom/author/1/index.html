@@ -6,11 +6,165 @@ xml:base="https://blog.niekun.net/author/1/"
 >
 <title type="text">Marco Nie - admin</title>
 <subtitle type="text">admin</subtitle>
-<updated>2021-02-25T20:46:37+08:00</updated>
+<updated>2021-03-02T23:10:22+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/author/1/" />
 <id>https://blog.niekun.net/feed/atom/author/1/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/author/1/" />
+<entry>
+<title type="html"><![CDATA[React 入门教程之六 -- Conditional Rendering]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2195.html" />
+<id>https://blog.niekun.net/archives/2195.html</id>
+<updated>2021-03-02T23:10:22+08:00</updated>
+<published>2021-03-02T23:10:22+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[在 React 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。和 JavaScript 的相同，React 中也可以使...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2195.html" xml:lang="zh-CN"><![CDATA[
+<p>在 <strong>React</strong> 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。</p><p>和 JavaScript 的相同，React 中也可以使用 conditions 语法来选择性的渲染内容。如使用 if 或 conditional operator 来根据不同 state 状态创建不同 elements 然后让 React 更新 UI 来匹配 DOM。</p><!--more--><p>考虑下面两个 components：</p><pre><code>const UserGreeting = (props) =&gt; {
+    return &lt;h1&gt;welcome back&lt;/h1&gt;
+}
+
+const GuestGreeting = (props) =&gt; {
+    return &lt;h1&gt;please sign up&lt;/h1&gt;
+}</code></pre><p>然后我们创建一个 <strong>Greeting</strong> component 来根据是否有用户登陆来显示以上两个中的一个：</p><pre><code>const Greeting = (props) =&gt; {
+    let isLoggedIn = props.isLoggedIn;
+    if (isLoggedIn)
+        return &lt;UserGreeting /&gt;;
+    else
+        return &lt;GuestGreeting /&gt;;
+}
+
+ReactDOM.render(
+    &lt;Greeting isLoggedIn={true} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>以上示例会根据 isLoggedIn 属性的值来渲染不同的内容。</p><h3>elements 变量</h3><p>可以使用变量存储 elements，这样可以方便的根据情况 render 部分的 component 而不需要改变输出的指令内容。</p><p>考虑下面两个 component 表示 login 和 logout：</p><pre><code>const LoginButton = (props) =&gt; {
+    return (
+        &lt;button onClick={props.onClick}&gt;
+            login
+        &lt;/button&gt;
+    );
+}
+
+const LogoutButton = (props) =&gt; {
+    return (
+        &lt;button onClick={props.onClick}&gt;
+            logout
+        &lt;/button&gt;
+    );
+}</code></pre><p>然后我们创建 <strong>LoginControl</strong> component，它将根据当前情况渲染 login 或 logout button 以及之前创建的 Greeting element：</p><pre><code>class LoginControl extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleLoginClick = this.handleLoginClick.bind(this);
+        this.handleLogoutClick = this.handleLogoutClick.bind(this);
+        this.state = {isLoggedIn: false};
+    }
+
+    handleLoginClick() {
+        this.setState({isLoggedIn: true});
+    }
+
+    handleLogoutClick() {
+        this.setState({isLoggedIn: false});
+    }
+
+    render() {
+        let isLoggedIn = this.state.isLoggedIn;
+        let button;
+        if (isLoggedIn)
+            button = &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
+        else
+            button = &lt;LoginButton onClick={this.handleLoginClick} /&gt;
+
+        return (
+            &lt;div&gt;
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+            &lt;/div&gt;
+        );
+    }
+
+}
+
+ReactDOM.render(
+    &lt;LoginControl /&gt;,
+    document.getElementById('root')
+);</code></pre><h3>inline condition 单语句判断</h3><p>使用 element 变量以及使用 if 语句根据条件渲染 component 是一种很好的方法。但是有时候可以使用简化语法。下面接收几种 inline condition 语法。</p><h4>inline if with && operator</h4><p>在 JSX 可以通过使用大括号<code>{}</code>来嵌入 JavaScript 表达式，包括逻辑符号：<code>&amp;&amp;</code>，在根据条件判断是否包含一个 element 时很有用。</p><p>请看下面示例：</p><pre><code>const InlineCom = (props) =&gt; {
+    return(
+        &lt;div&gt;
+            &lt;h1&gt;hello world&lt;/h1&gt;
+            {props.count &gt; 10 &amp;&amp;
+                &lt;h2&gt;count is: {props.count}&lt;/h2&gt;
+            }
+        &lt;/div&gt;
+    );
+}
+
+ReactDOM.render(
+    &lt;InlineCom count={20} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>如果 <code>props.count &gt; 10</code> 满足条件则后面的 element 就会成为 component 一部分。</p><p>在 JavaScript 中，<code>true &amp;&amp; expression</code> 将会评估为 <strong>expression</strong>，而 <code>false &amp;&amp; expression</code> 将会评估为 <strong>false</strong>。因此当 condition 为 true 时，<code>&amp;&amp;</code> 后的 element 将会输出，否则 React 将会忽略它。</p><h4>inline condition operator</h4><p>另一种根据情况通过 inline 单行判断来渲染 element 就是使用 JavaScript conditional operator：<code>condition ? true : false</code>。</p><p>给 LoginControl 的返回添加如下：</p><pre><code>        return (
+            &lt;div&gt;
+                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+            &lt;/div&gt;
+        );</code></pre><p>通过 inline conditional operator 来输出不同的信息。</p><p>也可以在较长的表达式中使用，例如可以将示例中 button 部分在 render 中这样处理：</p><pre><code>        return (
+            &lt;div&gt;
+                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+                {isLoggedIn 
+                    ? &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
+                    : &lt;LoginButton onClick={this.handleLoginClick} /&gt;
+                }
+            &lt;/div&gt;
+        );</code></pre><p>使用中根据实际情况选择最合适的方式处理 condition，最终目的是为了使结构更加清晰，代码易读。注意如果判断过复杂就需要考虑拆解 component 为多个个体了。</p><h3>阻止 component 渲染</h3><p>某些情况下我们可能需要将一个 component 隐藏起来，即使它在别的 component 中已经渲染了。可以通过 return <strong>null</strong> 来代替它的输出。</p><p>下面示例中 <strong>WarningBanner</strong> 会根据 <strong>warn</strong> 属性的值来选择性渲染：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const WarningBanner = (props) =&gt; {
+    if (!props.warn) {
+        return null;
+    }
+    return (
+        &lt;div className='warning'&gt;
+            warning!
+        &lt;/div&gt;
+    );
+}
+
+class Page extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {showWarning: true};
+        this.handelToggleClick = this.handelToggleClick.bind(this);
+    }
+    handelToggleClick() {
+        this.setState({showWarning: !this.state.showWarning});
+    }
+
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;WarningBanner warn={this.state.showWarning} /&gt;
+                &lt;button onClick={this.handelToggleClick}&gt;
+                    {this.state.showWarning ? 'hide' : 'show'}
+                &lt;/button&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;Page /&gt;,
+    document.getElementById('root')
+);</code></pre><p>在 <strong>render</strong> method 中 return <strong>null</strong> 不会影响到 component 的 lifecycle method。例如每次更新 <strong>componentDidUpdate</strong> 依然会被自动调用。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2195.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2195.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[修复 vs code 下保存文件会自动 format 代码的问题]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2191.html" />
@@ -852,78 +1006,5 @@ process.stdin.pipe(transformStream).pipe(writeableStream)</code></pre><p>在 <co
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2161.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2161.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[node.js 入门教程之十一 -- buffers 缓存]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2157.html" />
-<id>https://blog.niekun.net/archives/2157.html</id>
-<updated>2021-02-16T17:26:00+08:00</updated>
-<published>2021-02-16T17:26:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[一个 buffer 缓存就是一个内存空间。JavaScript 开发者相较于 c++/go 等语言的开发者对内存的理解比较少。它表示在 JavaScript V8 engine 之外的分配的一块...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2157.html" xml:lang="zh-CN"><![CDATA[
-<p>一个 buffer 缓存就是一个内存空间。JavaScript 开发者相较于 c++/go 等语言的开发者对内存的理解比较少。它表示在 JavaScript V8 engine 之外的分配的一块 fixed-size 固定大小的内存。可以想象 buffer 就是一个 integer 整型数组，每个元素代表一个 byte 的数据。</p><p>node.js 中 buffer 通过 <strong>Buffer</strong> class 实现。</p><!--more--><h3>为何需要 buffer</h3><p>引入 <strong>Buffer</strong> 是为了帮助开发者处理 binary 二进制数据。传统的 ecosystem 只可以处理 strings 字符串数据。<strong>Buffer</strong> 和 streams 是紧密关联的，当 stream processor 流处理器接收数据的速度大于其处理速度时，就会先将数据放在 buffer 中。</p><p>可以想象下，在我们看在线视频时，在网络较好的情况下进度条中可以看到视频下载的进度是超过当前播放进度的，此时浏览器就会先 buffer 缓存数据后续按时间顺序播放出来。</p><h3>创建 buffer</h3><p>可以通过 <code>Buffer.from()</code>, <code>Buffer.alloc()</code> 和 <code>Buffer.allocUnsafe()</code> methods 来创建一个 buffer，下面依次介绍。</p><p>使用 <strong>Buffer.from()</strong> 可以从 array 数组创建 buffer：</p><pre><code>const buf1 = Buffer.from('hey!')
-</code></pre><p>使用 <strong>Buffer.from(string[, encoding])</strong> 可以设置 string 的编码类型，Default: <strong>utf8</strong>：</p><pre><code>const buf2 = Buffer.from('7468697320697320612074c3a97374', 'hex')
-</code></pre><p>也可以根据另一个 buffer：</p><pre><code>const buf3 = Buffer.from(buf1)
-</code></pre><p>通过 <strong>Buffer.alloc()</strong> 或 <strong>Buffer.allocUnsafe()</strong> 来初始化一个指定大小的 buffer，单位为 byte 字节：</p><pre><code>const buf4 = Buffer.alloc(1024)
-const buf5 = Buffer.allocUnsafe(1024)
-</code></pre><p>以上会创建一个 1kb 大小的 buffer。</p><p>通过 <strong>alloc</strong> 创建的 buffer 会初始化其数据为 0，而 <strong>allocUnsafe</strong> 创建的 buffer 内的数据会是 uninitiated 未初始化的，这就表示使用 <strong>allocUnsafe</strong> 比 <strong>alloc</strong> 创建速度更快。但是通过 <strong>allocUnsafe</strong> 创建的 buffer 内存空间会包含有以前的数据可能引起潜在问题。</p><h3>使用 buffer</h3><p>我们可以像访问数组一样访问 buffer 数据：</p><pre><code>const buf1 = Buffer.from('hey!')
-
-console.log(buf1[0])
-console.log(buf1[1])
-console.log(buf1[2])
-
-//output:
-//104
-//101
-//121</code></pre><p>这些输出的数字就是代表 buffer 中每个字符的 Unicode Code，h =&gt; 104, e =&gt; 101, y =&gt; 121。</p><p>使用 <strong>toString()</strong> method 可以将 buffer 输出为字符：</p><pre><code>console.log(buf1)
-console.log(buf1.toString())
-
-//output:
-//&lt;Buffer 68 65 79 21&gt;
-//hey!</code></pre><p>buf1.length 可以读取 buffer 长度：</p><pre><code>console.log(buf1.length)
-
-//output:
-//4</code></pre><p>也可以使用循环 iterate buffer 的数据：</p><pre><code>for (const iterator of buf1) {
-    console.log(iterator)
-}
-
-//output:
-104
-101
-121
-33</code></pre><p>通过 <strong>write()</strong> method 可以给 buffer 写入数据：</p><pre><code>const buf6 = Buffer.alloc(5)
-buf6.write('hello')</code></pre><p>也可以像数组一样修改某个元素的数据：</p><pre><code>const buf6 = Buffer.alloc(5)
-buf6.write('hello')
-buf6[0] = 111
-console.log(buf6.toString())
-
-//output:
-//oello</code></pre><p>可以看到需要修改字符对应的 Unicode Code。</p><p>使用 <strong>copy()</strong> method 可以复制 buffer 数据到其他 buffer：</p><pre><code>const buf1 = Buffer.from('hey!')
-const buf7 = Buffer.alloc(4)
-buf1.copy(buf7)
-console.log(buf7.toString())
-
-//output:
-//hey!</code></pre><p>注意是源 buffer 掉用 <strong>copy</strong> method 来复制数据到目标 buffer。</p><p>默认情况下会复制 buffer 的整个数据， <strong>copy</strong> method 可以设置其他三个参数来自定义目标 buffer 起始接收数据位置，源 buffer 起始复制数据位置，以及复制的新 buffer 的长度：</p><pre><code>const buf8 = Buffer.alloc(2)
-buf1.copy(buf8, 0, 0, 2)
-console.log(buf8.toString())
-
-//output:
-//he</code></pre><p>可以使用 <strong>slice</strong> method 来选取 buffer 的一个片段，它和 copy 的不同是 slice 获取的 buffer 片段仍然和源 buffer 相关联，修改源 buffer 会改变片段中的 buffer 数据。</p><p>slice 的第一个参数定义起始位置，第二个参数是选项，可以定义终止位置：</p><pre><code>const buf1 = Buffer.from('hey!')
-const slice = buf1.slice(0, 2)
-console.log(slice.toString())
-buf1[0] = 111
-console.log(slice.toString())
-
-//output:
-//he
-//oe</code></pre><p>以上就是 <strong>Buffer</strong> 的简单使用方法。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2157.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2157.html" thr:count="0"/>
 </entry>
 </feed>
