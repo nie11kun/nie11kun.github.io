@@ -6,11 +6,178 @@ xml:base="https://blog.niekun.net/author/1/"
 >
 <title type="text">Marco Nie - admin</title>
 <subtitle type="text">admin</subtitle>
-<updated>2021-03-03T21:03:37+08:00</updated>
+<updated>2021-03-05T16:13:20+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/author/1/" />
 <id>https://blog.niekun.net/feed/atom/author/1/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/author/1/" />
+<entry>
+<title type="html"><![CDATA[React 入门教程之七 -- List 和 Form]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2201.html" />
+<id>https://blog.niekun.net/archives/2201.html</id>
+<updated>2021-03-05T16:13:20+08:00</updated>
+<published>2021-03-05T16:13:20+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[list 列表和 key在 JavaScript 中我们通常使用 map method 来对一个 list 的每个元素进行操作：const numbers = [1, 2, 3, 4, 5];c...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2201.html" xml:lang="zh-CN"><![CDATA[
+<h3>list 列表和 key</h3><p>在 JavaScript 中我们通常使用 <strong>map</strong> method 来对一个 list 的每个元素进行操作：</p><pre><code>const numbers = [1, 2, 3, 4, 5];
+const double = numbers.map((number) =&gt; { return number * 2});
+console.log(double)
+
+//output:
+//[ 2, 4, 6, 8, 10 ]</code></pre><p>在 React 中对一个 list 的元素进行操作方法类似。</p><!--more--><p>我们可以在 <strong>JSX</strong> 中通过大括号<code>{}</code> 来建立一个 elements 的集合，下面示例中我们将 <strong>map</strong> 的返回定义为 <code>&lt;li&gt;</code> 元素并赋值给 listItems：</p><pre><code>const numbers = [1, 2, 3, 4, 5];
+const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+
+ReactDOM.render(
+    &lt;ul&gt;{listItems}&lt;/ul&gt;,
+    document.getElementById('root')
+);</code></pre><p>注意在 <strong>render</strong> 中我们将 <strong>listItems</strong> 放在 <code>&lt;ul&gt;</code> 元素中。</p><p>通常情况下我们将 lists 放在一个 component 中：</p><pre><code>const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    )
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers}/&gt;,
+    document.getElementById('root')
+);</code></pre><p>当运行以上代码时，在浏览器终端会有一个 warning 警告信息：<strong>Each child in a list should have a unique "key" prop.</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2200488786.png" alt="2021-03-05T06:50:19.png" title="2021-03-05T06:50:19.png"></p><p><strong>Key</strong> 是一个特殊的 string 字符串属性需要给创建的 <strong>list</strong> element 添加的。它可以用来定位 list 中的每个元素。</p><p>下面我们给 list item 添加 <strong>Key</strong> 字符串属性：</p><pre><code>const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;li key={number.toString()}&gt;
+            {number}
+        &lt;/li&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}</code></pre><p>添加后报警就会消除。</p><h4>Keys</h4><p><strong>Key</strong> 可以帮助 React 识别哪个 item 修改过，被删除，被添加。以上示例中，我们在 map 中创建 item 时给其 key 属性，这样每个 item 可以有确切的属性值。</p><p>每个 list item 最好设置一个特殊的标识 <strong>key string</strong> 来区别于其他 items。最常用的就是使用数据中的 ID 作为 key：</p><pre><code>const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo) =&gt; 
+        &lt;li key={todo.id}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+const todos = [
+    {id: 1, text: '123'},
+    {id: 2, text: '456'}
+];
+ReactDOM.render(
+    &lt;TodoItems todos={todos} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>当没有特定的 ID 来作为标识时，作为最后的选择，可以使用 item 的 index 作为 key：</p><pre><code>const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo, index) =&gt; 
+        &lt;li key={index}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}</code></pre><p>如果 items 的顺序可能会发生变化的话，不推荐使用 index 作为 key 使用，因为可能对性能产生影响并且对 component 的 state 造成问题。<strong>如果没有定义确切的 key 给 items，React 默认会使用 index 作为 keys。</strong></p><h4>拆解 component 时 key 的处理</h4><p>keys 是对应与一个数组的内容而言的，它并不能单独存在。例如我们要拆解上面的 NumberList，提取出 <strong>ListItem</strong>，则需要将 key 定义在 <code>&lt;ListItem /&gt;</code> 元素中而不是 <strong>ListItem</strong> component 内部的 <code>&lt;li&gt;</code> 中：</p><pre><code>const ListItem = (props) =&gt; {
+    return (
+        &lt;li&gt;{props.value}&lt;/li&gt;
+    );
+}
+
+const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>如果写成下面模式就是<strong>错误</strong>的：</p><pre><code>function ListItem(props) {
+  const value = props.value;
+  return (
+    &lt;li key={value.toString()}&gt;
+      {value}
+    &lt;/li&gt;
+  );
+}</code></pre><h4>每个 item 的 key 必须是特定的</h4><p>数组中每个 items 使用的 <strong>key</strong> 必须是互相独立且不相同的，<strong>但并不需要在全局下互相独立</strong>。在两个单独的数组中可以，其元素可以使用相同的 key：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;li key={post.id}&gt;{post.title}&lt;/li&gt;
+            )}
+        &lt;/ul&gt;
+    );
+    const content = props.posts.map((post) =&gt;
+        &lt;div key={post.id}&gt;
+            &lt;h3&gt;{post.title}&lt;/h3&gt;
+            &lt;p&gt;{post.content}&lt;/p&gt;
+        &lt;/div&gt;
+    );
+    return (
+        &lt;div&gt;
+            {sideBar}
+            &lt;hr/&gt;
+            {content}
+        &lt;/div&gt;
+    );
+}
+
+const posts = [
+    {id: 1, title: 'Hello World', content: 'Welcome to learning React!'},
+    {id: 2, title: 'Installation', content: 'You can install React from npm.'}
+];
+
+ReactDOM.render(
+    &lt;Blog posts={posts} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>上面示例中，我们在 <strong>Blog</strong> component 中定义了两个 JSX，都创建了 list elements，每个元素的 key 使用了对应的 id 属性。在每个 list 内部 key 是互相独立的。可以看到不只是 <code>&lt;li&gt;</code> 元素可以加 key，只要通过 map 定义了一个 array 数组，就可以给每个元素加上 key 属性来互相独立识别。</p><p><strong>key</strong> 是为了给 <strong>React</strong> 识别用的。它本身并不作为一个普通 <strong>prop</strong> 传给 components，<strong>也就是在 component 内部并不能使用这个 key 数据</strong>，如果想要在 component 中使用这个数据则需要单独定义一个其他 prop 来传入 key 数据：</p><pre><code>const Post = (props) =&gt; {
+    return (
+        &lt;li&gt;
+            {props.id}: {props.title}
+        &lt;/li&gt;
+    )
+}
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;Post key={post.id} id={post.id} title={post.title} /&gt;
+            )}
+        &lt;/ul&gt;
+    );
+...
+...
+...
+}</code></pre><p>上面示例中，<strong>Post</strong> component 无法直接访问 <strong>key</strong> 的数据，所以我们在调用 <strong>Post</strong> 时单独定义一个 <strong>id</strong> 属性并赋值为 key 相同的数据，这样就间接的可以在 <strong>Post</strong> component 中通过 id 来读取 key 的数据。</p><p>在之前的 ListItem 示例中，我们声明了一个单独的 listItems 变量并在后续返回中将其放在 <code>&lt;ul&gt;</code> 中：</p><pre><code>const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}</code></pre><p>JSX 支持嵌入任何的 JavaScript 表达式，只需要使用大括号包围即可，所以上面的代码可以修改为以下模式：</p><pre><code>    return (
+        &lt;ul&gt;
+            {numbers.map((number) =&gt;
+                &lt;ListItem key={number.toString()} value={number} /&gt;);}
+        &lt;/ul&gt;
+    );</code></pre><p>使用哪种方式来定义 JSX 取决于对应的使用场景，总的原则是要方便与代码阅读，逻辑清晰。需要注意的是如果 <code>map()</code> method 中层级太复杂，可以考虑将其拆分为多个 components。</p><h3>Forms 表格</h3>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2201.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2201.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[升级 command line tool 后 QT 编译 boost 库报错问题]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2198.html" />
@@ -782,136 +949,5 @@ Found 1 error.</code></pre><p>可以看到 typescript 成功的防止将包含�
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2169.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2169.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[node.js 入门教程之十三 -- environment，error handler 和 log object]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2165.html" />
-<id>https://blog.niekun.net/archives/2165.html</id>
-<updated>2021-02-20T17:19:00+08:00</updated>
-<published>2021-02-20T17:19:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[environment 运行环境production environment 产品环境和 development environment 开发环境可以设置不同的配置。node.js 默认为 de...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2165.html" xml:lang="zh-CN"><![CDATA[
-<h3>environment 运行环境</h3><p><strong>production environment 产品环境</strong>和 <strong>development environment 开发环境</strong>可以设置不同的配置。</p><p>node.js 默认为 development env 开发环境。通过设置环境变量：<code>NODE_ENV=production</code> 可以告诉 node.js 当前为产品环境。Linux 中可以通过如下指令修改：</p><pre><code>export NODE_ENV=production
-</code></pre><p>这样在当前 shell 中就会以 production 模式运行 node 程序，如果要永久修改此环境变量可以将命令写入 <strong>~/.bashrc</strong> 文件。</p><p>也可以在运行 node 程序时定义 <strong>NODE_ENV</strong>：</p><pre><code>NODE_ENV=production node app.js
-
-</code></pre><!--more--><p>设置 <strong>NODE_ENV</strong> 为 <strong>production</strong> 有如下优势：</p><ul><li>日志记录保持在最小 level</li><li>更多的 caching 缓存级别来提高运行效率</li></ul><p>可以通过状态判读符来判断当前运行环境，执行不同指令：</p><pre><code>if (process.env.NODE_ENV === 'development') {
-    console.log('running on development environment')
-}
-if (process.env.NODE_ENV === 'production') {
-    console.log('running on production environment')
-}
-if (['production', 'staging'].indexOf(process.env.NODE_ENV) != -1) {
-    console.log('running on production environment')
-} else {
-    console.log('running on development environment')
-}</code></pre><p>上面第三个指令通过调用 array 的 <strong>indexOf</strong> 来获取某个字符串在数组中的索引号，如果不存在这个字符串则返回 <strong>-1</strong>。注意使用类型判断符<code>===</code> 是为了保证类型和数值都匹配。</p><h3>error handling 错误处理</h3><p>node.js 中通过 exceptions 来处理 error 情况。</p><p>可以通过 <strong>throw</strong> 创建一个 <strong>exception</strong>：</p><pre><code>const test = 123;
-throw test;</code></pre><p>当 JavaScript 执行到上面的 throw 时程序会立刻停止，然后控制权会交给最近的 exception handler 例外控制器。</p><p>JavaScript 中 test 可以是任意的字符串，数字或者 object。但在 node.js 中只用来 throw <strong>Error</strong> objects。</p><p>一个 error object 可以是 <strong>Error</strong> 的实例或者是 Error class 的 child class 的实例：</p><pre><code>throw new Error('error')
-
-class childError extends Error {
-}
-throw new childError('error')</code></pre><p>下面介绍几种 <strong>exception handler</strong> 处理器。</p><p><strong>第一种</strong>是通过 <strong>try/catch</strong> 声明来处理，在 try 中定义任意 exception 以及对应的 catch 块来响应：</p><pre><code>try {
-    const a = 1;
-    if (a == 0) {
-        throw 'abc'
-    } else {
-        throw 123
-    }
-} catch (e) {
-    console.log(e)
-}</code></pre><p>catch 的参数 e 就是对应 throw 的数据。</p><p>如果在程序执行中，如果某个 throw 的 exception 没有被 catch，程序就会立刻 crash。可以通过监听 <strong>process</strong> 的 <strong>uncaughtException</strong> event 事件来解决这个问题：</p><pre><code>process.on('uncaughtException', err =&gt; {
-    console.log('there was a uncaught error: ', err.message)
-    process.exit(1)
-})
-
-throw new Error('error')</code></pre><p><strong>第二种</strong>是 <strong>promise</strong> 中的 error handler。</p><p>使用 promise 可以将多个操作过程组合成链，在链的最后处理 error 情况，下面是一个简单示例：</p><pre><code>let a = 0;
-let b = 0;
-
-const doSomething1 = new Promise((resolve, reject) =&gt; {
-    if (a == 0)
-        resolve('resolve 1')
-    else
-        reject('reject 1')
-})
-
-const doSomething2 = (data) =&gt; {
-    return new Promise((resolve, reject) =&gt; {
-        if (b == 0)
-            resolve(data + ' : resolve 2')
-        else
-            reject('reject 2')
-
-    })
-}
-
-doSomething1
-    .then(doSomething2)
-    .then(res =&gt; console.log(res))
-    .catch(rej =&gt; console.log(rej))</code></pre><p>当 <strong>doSomething1</strong> 为 resolve 时会执行 <code>doSomething2()</code>，为 reject 时会直接进入 catch 块。同样的 <strong>doSomething2</strong> 返回的 promise 为 reject 时也会进入 catch 块。此时通过输出的信息可以知道是在哪一个 promise 链响应了 exception。</p><p><strong>第三种</strong>是 <strong>async/await</strong> 的 error handling。</p><p>使用 <strong>async/await</strong> 也是通过 <strong>try/catch</strong> 来处理 exception 情况的：</p><pre><code>let a = 1;
-const demo = new Promise((resolve, reject) =&gt; {
-    if (a == 0) {
-        setTimeout(resolve, 1000, 'resolve');
-    } else {
-        reject('reject')
-    }
-})
-
-const test = async() =&gt; {
-    try {
-        const data = await demo
-        console.log(data)
-    } catch (error) {
-        console.log(error)
-    }
-}
-test()
-
-//output:
-//reject</code></pre><p>当 <strong>demo</strong> promise 为 reject 时会响应 <code>test()</code> 中的 catch 块。</p><h3>日志输出 object</h3><p>当我们在浏览器中使用 <code>console.log()</code> 输出某个 object 时，会得到一个很好的效果：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2696578422.png" alt="2021-02-21T07:32:18.png" title="2021-02-21T07:32:18.png"></p><p>点击箭头可以展开日志，完整地展示 object 的 properties：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3439824675.png" alt="2021-02-21T07:33:15.png" title="2021-02-21T07:33:15.png"></p><p>在 node.js 中和浏览器有所不同，它是将 object 的内容以字符串的形式输出到终端或者日志文件中。</p><p>对于简单的 object 来说没有什么问题，但是对于包含超过 2 层嵌套以上的 object 来说 node.js 就会放弃输出所有内容而用一个 <strong>[Object]</strong> 占位符表示剩余内容：</p><pre><code>const obj = {
-    name: 'joe',
-    age: 35,
-    person1: {
-        name: 'Tony',
-        age: 50,
-        person2: {
-            name: 'Albert',
-            age: 21,
-            person3: {
-                name: 'Peter',
-                age: 23
-            }
-        }
-    }
-}
-console.log(obj)</code></pre><p>输出结果为：</p><pre><code>{
-  name: 'joe',
-  age: 35,
-  person1: {
-    name: 'Tony',
-    age: 50,
-    person2: { name: 'Albert', age: 21, person3: [Object] }
-  }
-}</code></pre><p>可以看到第三层的内容已经用 <strong>[Object]</strong> 取代。</p><p>强制要求输出 object 所有内容的最好的方法就是使用 <code>JSON.stringify()</code>：</p><pre><code>console.log(JSON.stringify(obj, undefined, 2))</code></pre><p>输出如下：</p><pre><code>{
-  &quot;name&quot;: &quot;joe&quot;,
-  &quot;age&quot;: 35,
-  &quot;person1&quot;: {
-    &quot;name&quot;: &quot;Tony&quot;,
-    &quot;age&quot;: 50,
-    &quot;person2&quot;: {
-      &quot;name&quot;: &quot;Albert&quot;,
-      &quot;age&quot;: 21,
-      &quot;person3&quot;: {
-        &quot;name&quot;: &quot;Peter&quot;,
-        &quot;age&quot;: 23
-      }
-    }
-  }
-}</code></pre><p>第一个参数定义需要输出的 object，第二个参数是定义一个 function 用来转换字符串内容也可以不定义，第三个是定义缩进量。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2165.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2165.html" thr:count="0"/>
 </entry>
 </feed>

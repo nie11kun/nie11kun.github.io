@@ -6,11 +6,178 @@ xml:base="https://blog.niekun.net/2021/03/"
 >
 <title type="text">Marco Nie - 2021年3月</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2021-03-03T21:03:37+08:00</updated>
+<updated>2021-03-05T16:13:20+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/2021/03/" />
 <id>https://blog.niekun.net/feed/atom/2021/03/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/03/" />
+<entry>
+<title type="html"><![CDATA[React 入门教程之七 -- List 和 Form]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2201.html" />
+<id>https://blog.niekun.net/archives/2201.html</id>
+<updated>2021-03-05T16:13:20+08:00</updated>
+<published>2021-03-05T16:13:20+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[list 列表和 key在 JavaScript 中我们通常使用 map method 来对一个 list 的每个元素进行操作：const numbers = [1, 2, 3, 4, 5];c...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2201.html" xml:lang="zh-CN"><![CDATA[
+<h3>list 列表和 key</h3><p>在 JavaScript 中我们通常使用 <strong>map</strong> method 来对一个 list 的每个元素进行操作：</p><pre><code>const numbers = [1, 2, 3, 4, 5];
+const double = numbers.map((number) =&gt; { return number * 2});
+console.log(double)
+
+//output:
+//[ 2, 4, 6, 8, 10 ]</code></pre><p>在 React 中对一个 list 的元素进行操作方法类似。</p><!--more--><p>我们可以在 <strong>JSX</strong> 中通过大括号<code>{}</code> 来建立一个 elements 的集合，下面示例中我们将 <strong>map</strong> 的返回定义为 <code>&lt;li&gt;</code> 元素并赋值给 listItems：</p><pre><code>const numbers = [1, 2, 3, 4, 5];
+const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+
+ReactDOM.render(
+    &lt;ul&gt;{listItems}&lt;/ul&gt;,
+    document.getElementById('root')
+);</code></pre><p>注意在 <strong>render</strong> 中我们将 <strong>listItems</strong> 放在 <code>&lt;ul&gt;</code> 元素中。</p><p>通常情况下我们将 lists 放在一个 component 中：</p><pre><code>const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    )
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers}/&gt;,
+    document.getElementById('root')
+);</code></pre><p>当运行以上代码时，在浏览器终端会有一个 warning 警告信息：<strong>Each child in a list should have a unique "key" prop.</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2200488786.png" alt="2021-03-05T06:50:19.png" title="2021-03-05T06:50:19.png"></p><p><strong>Key</strong> 是一个特殊的 string 字符串属性需要给创建的 <strong>list</strong> element 添加的。它可以用来定位 list 中的每个元素。</p><p>下面我们给 list item 添加 <strong>Key</strong> 字符串属性：</p><pre><code>const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;li key={number.toString()}&gt;
+            {number}
+        &lt;/li&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}</code></pre><p>添加后报警就会消除。</p><h4>Keys</h4><p><strong>Key</strong> 可以帮助 React 识别哪个 item 修改过，被删除，被添加。以上示例中，我们在 map 中创建 item 时给其 key 属性，这样每个 item 可以有确切的属性值。</p><p>每个 list item 最好设置一个特殊的标识 <strong>key string</strong> 来区别于其他 items。最常用的就是使用数据中的 ID 作为 key：</p><pre><code>const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo) =&gt; 
+        &lt;li key={todo.id}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+const todos = [
+    {id: 1, text: '123'},
+    {id: 2, text: '456'}
+];
+ReactDOM.render(
+    &lt;TodoItems todos={todos} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>当没有特定的 ID 来作为标识时，作为最后的选择，可以使用 item 的 index 作为 key：</p><pre><code>const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo, index) =&gt; 
+        &lt;li key={index}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}</code></pre><p>如果 items 的顺序可能会发生变化的话，不推荐使用 index 作为 key 使用，因为可能对性能产生影响并且对 component 的 state 造成问题。<strong>如果没有定义确切的 key 给 items，React 默认会使用 index 作为 keys。</strong></p><h4>拆解 component 时 key 的处理</h4><p>keys 是对应与一个数组的内容而言的，它并不能单独存在。例如我们要拆解上面的 NumberList，提取出 <strong>ListItem</strong>，则需要将 key 定义在 <code>&lt;ListItem /&gt;</code> 元素中而不是 <strong>ListItem</strong> component 内部的 <code>&lt;li&gt;</code> 中：</p><pre><code>const ListItem = (props) =&gt; {
+    return (
+        &lt;li&gt;{props.value}&lt;/li&gt;
+    );
+}
+
+const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>如果写成下面模式就是<strong>错误</strong>的：</p><pre><code>function ListItem(props) {
+  const value = props.value;
+  return (
+    &lt;li key={value.toString()}&gt;
+      {value}
+    &lt;/li&gt;
+  );
+}</code></pre><h4>每个 item 的 key 必须是特定的</h4><p>数组中每个 items 使用的 <strong>key</strong> 必须是互相独立且不相同的，<strong>但并不需要在全局下互相独立</strong>。在两个单独的数组中可以，其元素可以使用相同的 key：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;li key={post.id}&gt;{post.title}&lt;/li&gt;
+            )}
+        &lt;/ul&gt;
+    );
+    const content = props.posts.map((post) =&gt;
+        &lt;div key={post.id}&gt;
+            &lt;h3&gt;{post.title}&lt;/h3&gt;
+            &lt;p&gt;{post.content}&lt;/p&gt;
+        &lt;/div&gt;
+    );
+    return (
+        &lt;div&gt;
+            {sideBar}
+            &lt;hr/&gt;
+            {content}
+        &lt;/div&gt;
+    );
+}
+
+const posts = [
+    {id: 1, title: 'Hello World', content: 'Welcome to learning React!'},
+    {id: 2, title: 'Installation', content: 'You can install React from npm.'}
+];
+
+ReactDOM.render(
+    &lt;Blog posts={posts} /&gt;,
+    document.getElementById('root')
+);</code></pre><p>上面示例中，我们在 <strong>Blog</strong> component 中定义了两个 JSX，都创建了 list elements，每个元素的 key 使用了对应的 id 属性。在每个 list 内部 key 是互相独立的。可以看到不只是 <code>&lt;li&gt;</code> 元素可以加 key，只要通过 map 定义了一个 array 数组，就可以给每个元素加上 key 属性来互相独立识别。</p><p><strong>key</strong> 是为了给 <strong>React</strong> 识别用的。它本身并不作为一个普通 <strong>prop</strong> 传给 components，<strong>也就是在 component 内部并不能使用这个 key 数据</strong>，如果想要在 component 中使用这个数据则需要单独定义一个其他 prop 来传入 key 数据：</p><pre><code>const Post = (props) =&gt; {
+    return (
+        &lt;li&gt;
+            {props.id}: {props.title}
+        &lt;/li&gt;
+    )
+}
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;Post key={post.id} id={post.id} title={post.title} /&gt;
+            )}
+        &lt;/ul&gt;
+    );
+...
+...
+...
+}</code></pre><p>上面示例中，<strong>Post</strong> component 无法直接访问 <strong>key</strong> 的数据，所以我们在调用 <strong>Post</strong> 时单独定义一个 <strong>id</strong> 属性并赋值为 key 相同的数据，这样就间接的可以在 <strong>Post</strong> component 中通过 id 来读取 key 的数据。</p><p>在之前的 ListItem 示例中，我们声明了一个单独的 listItems 变量并在后续返回中将其放在 <code>&lt;ul&gt;</code> 中：</p><pre><code>const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}</code></pre><p>JSX 支持嵌入任何的 JavaScript 表达式，只需要使用大括号包围即可，所以上面的代码可以修改为以下模式：</p><pre><code>    return (
+        &lt;ul&gt;
+            {numbers.map((number) =&gt;
+                &lt;ListItem key={number.toString()} value={number} /&gt;);}
+        &lt;/ul&gt;
+    );</code></pre><p>使用哪种方式来定义 JSX 取决于对应的使用场景，总的原则是要方便与代码阅读，逻辑清晰。需要注意的是如果 <code>map()</code> method 中层级太复杂，可以考虑将其拆分为多个 components。</p><h3>Forms 表格</h3>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2201.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2201.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[升级 command line tool 后 QT 编译 boost 库报错问题]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2198.html" />

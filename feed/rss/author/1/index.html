@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>admin</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2201.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2198.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2195.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2191.html"/>
@@ -18,10 +19,165 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2176.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2175.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2169.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2165.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2201.html">
+<title>React 入门教程之七 -- List 和 Form</title>
+<link>https://blog.niekun.net/archives/2201.html</link>
+<dc:date>2021-03-05T16:13:20+08:00</dc:date>
+<description>list 列表和 key在 JavaScript 中我们通常使用 map method 来对一个 list 的每个元素进行操作：const numbers = [1, 2, 3, 4, 5];
+const double = numbers.map((number) =&gt; { return number * 2});
+console.log(double)
+
+//output:
+//[ 2, 4, 6, 8, 10 ]在 React 中对一个 list 的元素进行操作方法类似。我们可以在 JSX 中通过大括号{} 来建立一个 elements 的集合，下面示例中我们将 map 的返回定义为 &lt;li&gt; 元素并赋值给 listItems：const numbers = [1, 2, 3, 4, 5];
+const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+
+ReactDOM.render(
+    &lt;ul&gt;{listItems}&lt;/ul&gt;,
+    document.getElementById('root')
+);注意在 render 中我们将 listItems 放在 &lt;ul&gt; 元素中。通常情况下我们将 lists 放在一个 component 中：const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    )
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers}/&gt;,
+    document.getElementById('root')
+);当运行以上代码时，在浏览器终端会有一个 warning 警告信息：Each child in a list should have a unique "key" prop.：Key 是一个特殊的 string 字符串属性需要给创建的 list element 添加的。它可以用来定位 list 中的每个元素。下面我们给 list item 添加 Key 字符串属性：const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;li key={number.toString()}&gt;
+            {number}
+        &lt;/li&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}添加后报警就会消除。KeysKey 可以帮助 React 识别哪个 item 修改过，被删除，被添加。以上示例中，我们在 map 中创建 item 时给其 key 属性，这样每个 item 可以有确切的属性值。每个 list item 最好设置一个特殊的标识 key string 来区别于其他 items。最常用的就是使用数据中的 ID 作为 key：const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo) =&gt; 
+        &lt;li key={todo.id}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+const todos = [
+    {id: 1, text: '123'},
+    {id: 2, text: '456'}
+];
+ReactDOM.render(
+    &lt;TodoItems todos={todos} /&gt;,
+    document.getElementById('root')
+);当没有特定的 ID 来作为标识时，作为最后的选择，可以使用 item 的 index 作为 key：const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo, index) =&gt; 
+        &lt;li key={index}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}如果 items 的顺序可能会发生变化的话，不推荐使用 index 作为 key 使用，因为可能对性能产生影响并且对 component 的 state 造成问题。如果没有定义确切的 key 给 items，React 默认会使用 index 作为 keys。拆解 component 时 key 的处理keys 是对应与一个数组的内容而言的，它并不能单独存在。例如我们要拆解上面的 NumberList，提取出 ListItem，则需要将 key 定义在 &lt;ListItem /&gt; 元素中而不是 ListItem component 内部的 &lt;li&gt; 中：const ListItem = (props) =&gt; {
+    return (
+        &lt;li&gt;{props.value}&lt;/li&gt;
+    );
+}
+
+const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers} /&gt;,
+    document.getElementById('root')
+);如果写成下面模式就是错误的：function ListItem(props) {
+  const value = props.value;
+  return (
+    &lt;li key={value.toString()}&gt;
+      {value}
+    &lt;/li&gt;
+  );
+}每个 item 的 key 必须是特定的数组中每个 items 使用的 key 必须是互相独立且不相同的，但并不需要在全局下互相独立。在两个单独的数组中可以，其元素可以使用相同的 key：const React = require('react')
+const ReactDOM = require('react-dom')
+
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;li key={post.id}&gt;{post.title}&lt;/li&gt;
+            )}
+        &lt;/ul&gt;
+    );
+    const content = props.posts.map((post) =&gt;
+        &lt;div key={post.id}&gt;
+            &lt;h3&gt;{post.title}&lt;/h3&gt;
+            &lt;p&gt;{post.content}&lt;/p&gt;
+        &lt;/div&gt;
+    );
+    return (
+        &lt;div&gt;
+            {sideBar}
+            &lt;hr/&gt;
+            {content}
+        &lt;/div&gt;
+    );
+}
+
+const posts = [
+    {id: 1, title: 'Hello World', content: 'Welcome to learning React!'},
+    {id: 2, title: 'Installation', content: 'You can install React from npm.'}
+];
+
+ReactDOM.render(
+    &lt;Blog posts={posts} /&gt;,
+    document.getElementById('root')
+);上面示例中，我们在 Blog component 中定义了两个 JSX，都创建了 list elements，每个元素的 key 使用了对应的 id 属性。在每个 list 内部 key 是互相独立的。可以看到不只是 &lt;li&gt; 元素可以加 key，只要通过 map 定义了一个 array 数组，就可以给每个元素加上 key 属性来互相独立识别。key 是为了给 React 识别用的。它本身并不作为一个普通 prop 传给 components，也就是在 component 内部并不能使用这个 key 数据，如果想要在 component 中使用这个数据则需要单独定义一个其他 prop 来传入 key 数据：const Post = (props) =&gt; {
+    return (
+        &lt;li&gt;
+            {props.id}: {props.title}
+        &lt;/li&gt;
+    )
+}
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;Post key={post.id} id={post.id} title={post.title} /&gt;
+            )}
+        &lt;/ul&gt;
+    );
+...
+...
+...
+}上面示例中，Post component 无法直接访问 key 的数据，所以我们在调用 Post 时单独定义一个 id 属性并赋值为 key 相同的数据，这样就间接的可以在 Post component 中通过 id 来读取 key 的数据。在之前的 ListItem 示例中，我们声明了一个单独的 listItems 变量并在后续返回中将其放在 &lt;ul&gt; 中：const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}JSX 支持嵌入任何的 JavaScript 表达式，只需要使用大括号包围即可，所以上面的代码可以修改为以下模式：    return (
+        &lt;ul&gt;
+            {numbers.map((number) =&gt;
+                &lt;ListItem key={number.toString()} value={number} /&gt;);}
+        &lt;/ul&gt;
+    );使用哪种方式来定义 JSX 取决于对应的使用场景，总的原则是要方便与代码阅读，逻辑清晰。需要注意的是如果 map() method 中层级太复杂，可以考虑将其拆分为多个 components。Forms 表格</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2198.html">
 <title>升级 command line tool 后 QT 编译 boost 库报错问题</title>
 <link>https://blog.niekun.net/archives/2198.html</link>
@@ -694,125 +850,5 @@ demo.ts:12:5 - error TS2322: Type 'string' is not assignable to type 'number'.
 
 
 Found 1 error.可以看到 typescript 成功的防止将包含潜在错误代码的程序发布出去。更多介绍除此之外 typescript 也包含了很多其他很好的工具，如：interfaces, classes, utility types 等。更多使用方法参考 typescript 官方文档：https://www.typescriptlang.org/docs。typescript 在 node.js 生态中已经有了很好的发展，且被用于很多开源项目和框架中。以下是一些使用 typescript 的开源项目：NestJS - robust and fully-featured framework that makes creating scalable and well-architected systems easy and pleasantTypeORM - great ORM influenced by other well-known tools from other languages like Hibernate, Doctrine or Entity FrameworkPrisma - next-generation ORM featuring a declarative data model, generated migrations and fully type-safe database queriesRxJS - widely used library for reactive programming总结通过这 14 篇教程，我们介绍了 node.js 的基本语法和相关使用场景。后期可以在具体项目中进行更加详细的体验。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2165.html">
-<title>node.js 入门教程之十三 -- environment，error handler 和 log object</title>
-<link>https://blog.niekun.net/archives/2165.html</link>
-<dc:date>2021-02-20T17:19:00+08:00</dc:date>
-<description>environment 运行环境production environment 产品环境和 development environment 开发环境可以设置不同的配置。node.js 默认为 development env 开发环境。通过设置环境变量：NODE_ENV=production 可以告诉 node.js 当前为产品环境。Linux 中可以通过如下指令修改：export NODE_ENV=production
-这样在当前 shell 中就会以 production 模式运行 node 程序，如果要永久修改此环境变量可以将命令写入 ~/.bashrc 文件。也可以在运行 node 程序时定义 NODE_ENV：NODE_ENV=production node app.js
-
-设置 NODE_ENV 为 production 有如下优势：日志记录保持在最小 level更多的 caching 缓存级别来提高运行效率可以通过状态判读符来判断当前运行环境，执行不同指令：if (process.env.NODE_ENV === 'development') {
-    console.log('running on development environment')
-}
-if (process.env.NODE_ENV === 'production') {
-    console.log('running on production environment')
-}
-if (['production', 'staging'].indexOf(process.env.NODE_ENV) != -1) {
-    console.log('running on production environment')
-} else {
-    console.log('running on development environment')
-}上面第三个指令通过调用 array 的 indexOf 来获取某个字符串在数组中的索引号，如果不存在这个字符串则返回 -1。注意使用类型判断符=== 是为了保证类型和数值都匹配。error handling 错误处理node.js 中通过 exceptions 来处理 error 情况。可以通过 throw 创建一个 exception：const test = 123;
-throw test;当 JavaScript 执行到上面的 throw 时程序会立刻停止，然后控制权会交给最近的 exception handler 例外控制器。JavaScript 中 test 可以是任意的字符串，数字或者 object。但在 node.js 中只用来 throw Error objects。一个 error object 可以是 Error 的实例或者是 Error class 的 child class 的实例：throw new Error('error')
-
-class childError extends Error {
-}
-throw new childError('error')下面介绍几种 exception handler 处理器。第一种是通过 try/catch 声明来处理，在 try 中定义任意 exception 以及对应的 catch 块来响应：try {
-    const a = 1;
-    if (a == 0) {
-        throw 'abc'
-    } else {
-        throw 123
-    }
-} catch (e) {
-    console.log(e)
-}catch 的参数 e 就是对应 throw 的数据。如果在程序执行中，如果某个 throw 的 exception 没有被 catch，程序就会立刻 crash。可以通过监听 process 的 uncaughtException event 事件来解决这个问题：process.on('uncaughtException', err =&gt; {
-    console.log('there was a uncaught error: ', err.message)
-    process.exit(1)
-})
-
-throw new Error('error')第二种是 promise 中的 error handler。使用 promise 可以将多个操作过程组合成链，在链的最后处理 error 情况，下面是一个简单示例：let a = 0;
-let b = 0;
-
-const doSomething1 = new Promise((resolve, reject) =&gt; {
-    if (a == 0)
-        resolve('resolve 1')
-    else
-        reject('reject 1')
-})
-
-const doSomething2 = (data) =&gt; {
-    return new Promise((resolve, reject) =&gt; {
-        if (b == 0)
-            resolve(data + ' : resolve 2')
-        else
-            reject('reject 2')
-
-    })
-}
-
-doSomething1
-    .then(doSomething2)
-    .then(res =&gt; console.log(res))
-    .catch(rej =&gt; console.log(rej))当 doSomething1 为 resolve 时会执行 doSomething2()，为 reject 时会直接进入 catch 块。同样的 doSomething2 返回的 promise 为 reject 时也会进入 catch 块。此时通过输出的信息可以知道是在哪一个 promise 链响应了 exception。第三种是 async/await 的 error handling。使用 async/await 也是通过 try/catch 来处理 exception 情况的：let a = 1;
-const demo = new Promise((resolve, reject) =&gt; {
-    if (a == 0) {
-        setTimeout(resolve, 1000, 'resolve');
-    } else {
-        reject('reject')
-    }
-})
-
-const test = async() =&gt; {
-    try {
-        const data = await demo
-        console.log(data)
-    } catch (error) {
-        console.log(error)
-    }
-}
-test()
-
-//output:
-//reject当 demo promise 为 reject 时会响应 test() 中的 catch 块。日志输出 object当我们在浏览器中使用 console.log() 输出某个 object 时，会得到一个很好的效果：点击箭头可以展开日志，完整地展示 object 的 properties：在 node.js 中和浏览器有所不同，它是将 object 的内容以字符串的形式输出到终端或者日志文件中。对于简单的 object 来说没有什么问题，但是对于包含超过 2 层嵌套以上的 object 来说 node.js 就会放弃输出所有内容而用一个 [Object] 占位符表示剩余内容：const obj = {
-    name: 'joe',
-    age: 35,
-    person1: {
-        name: 'Tony',
-        age: 50,
-        person2: {
-            name: 'Albert',
-            age: 21,
-            person3: {
-                name: 'Peter',
-                age: 23
-            }
-        }
-    }
-}
-console.log(obj)输出结果为：{
-  name: 'joe',
-  age: 35,
-  person1: {
-    name: 'Tony',
-    age: 50,
-    person2: { name: 'Albert', age: 21, person3: [Object] }
-  }
-}可以看到第三层的内容已经用 [Object] 取代。强制要求输出 object 所有内容的最好的方法就是使用 JSON.stringify()：console.log(JSON.stringify(obj, undefined, 2))输出如下：{
-  &quot;name&quot;: &quot;joe&quot;,
-  &quot;age&quot;: 35,
-  &quot;person1&quot;: {
-    &quot;name&quot;: &quot;Tony&quot;,
-    &quot;age&quot;: 50,
-    &quot;person2&quot;: {
-      &quot;name&quot;: &quot;Albert&quot;,
-      &quot;age&quot;: 21,
-      &quot;person3&quot;: {
-        &quot;name&quot;: &quot;Peter&quot;,
-        &quot;age&quot;: 23
-      }
-    }
-  }
-}第一个参数定义需要输出的 object，第二个参数是定义一个 function 用来转换字符串内容也可以不定义，第三个是定义缩进量。</description>
 </item>
 </rdf:RDF>

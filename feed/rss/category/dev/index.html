@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2201.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2195.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2189.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2184.html"/>
@@ -18,10 +19,165 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2169.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2165.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2161.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2157.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2201.html">
+<title>React 入门教程之七 -- List 和 Form</title>
+<link>https://blog.niekun.net/archives/2201.html</link>
+<dc:date>2021-03-05T16:13:20+08:00</dc:date>
+<description>list 列表和 key在 JavaScript 中我们通常使用 map method 来对一个 list 的每个元素进行操作：const numbers = [1, 2, 3, 4, 5];
+const double = numbers.map((number) =&gt; { return number * 2});
+console.log(double)
+
+//output:
+//[ 2, 4, 6, 8, 10 ]在 React 中对一个 list 的元素进行操作方法类似。我们可以在 JSX 中通过大括号{} 来建立一个 elements 的集合，下面示例中我们将 map 的返回定义为 &lt;li&gt; 元素并赋值给 listItems：const numbers = [1, 2, 3, 4, 5];
+const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+
+ReactDOM.render(
+    &lt;ul&gt;{listItems}&lt;/ul&gt;,
+    document.getElementById('root')
+);注意在 render 中我们将 listItems 放在 &lt;ul&gt; 元素中。通常情况下我们将 lists 放在一个 component 中：const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    )
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers}/&gt;,
+    document.getElementById('root')
+);当运行以上代码时，在浏览器终端会有一个 warning 警告信息：Each child in a list should have a unique "key" prop.：Key 是一个特殊的 string 字符串属性需要给创建的 list element 添加的。它可以用来定位 list 中的每个元素。下面我们给 list item 添加 Key 字符串属性：const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;li key={number.toString()}&gt;
+            {number}
+        &lt;/li&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}添加后报警就会消除。KeysKey 可以帮助 React 识别哪个 item 修改过，被删除，被添加。以上示例中，我们在 map 中创建 item 时给其 key 属性，这样每个 item 可以有确切的属性值。每个 list item 最好设置一个特殊的标识 key string 来区别于其他 items。最常用的就是使用数据中的 ID 作为 key：const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo) =&gt; 
+        &lt;li key={todo.id}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+const todos = [
+    {id: 1, text: '123'},
+    {id: 2, text: '456'}
+];
+ReactDOM.render(
+    &lt;TodoItems todos={todos} /&gt;,
+    document.getElementById('root')
+);当没有特定的 ID 来作为标识时，作为最后的选择，可以使用 item 的 index 作为 key：const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo, index) =&gt; 
+        &lt;li key={index}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}如果 items 的顺序可能会发生变化的话，不推荐使用 index 作为 key 使用，因为可能对性能产生影响并且对 component 的 state 造成问题。如果没有定义确切的 key 给 items，React 默认会使用 index 作为 keys。拆解 component 时 key 的处理keys 是对应与一个数组的内容而言的，它并不能单独存在。例如我们要拆解上面的 NumberList，提取出 ListItem，则需要将 key 定义在 &lt;ListItem /&gt; 元素中而不是 ListItem component 内部的 &lt;li&gt; 中：const ListItem = (props) =&gt; {
+    return (
+        &lt;li&gt;{props.value}&lt;/li&gt;
+    );
+}
+
+const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers} /&gt;,
+    document.getElementById('root')
+);如果写成下面模式就是错误的：function ListItem(props) {
+  const value = props.value;
+  return (
+    &lt;li key={value.toString()}&gt;
+      {value}
+    &lt;/li&gt;
+  );
+}每个 item 的 key 必须是特定的数组中每个 items 使用的 key 必须是互相独立且不相同的，但并不需要在全局下互相独立。在两个单独的数组中可以，其元素可以使用相同的 key：const React = require('react')
+const ReactDOM = require('react-dom')
+
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;li key={post.id}&gt;{post.title}&lt;/li&gt;
+            )}
+        &lt;/ul&gt;
+    );
+    const content = props.posts.map((post) =&gt;
+        &lt;div key={post.id}&gt;
+            &lt;h3&gt;{post.title}&lt;/h3&gt;
+            &lt;p&gt;{post.content}&lt;/p&gt;
+        &lt;/div&gt;
+    );
+    return (
+        &lt;div&gt;
+            {sideBar}
+            &lt;hr/&gt;
+            {content}
+        &lt;/div&gt;
+    );
+}
+
+const posts = [
+    {id: 1, title: 'Hello World', content: 'Welcome to learning React!'},
+    {id: 2, title: 'Installation', content: 'You can install React from npm.'}
+];
+
+ReactDOM.render(
+    &lt;Blog posts={posts} /&gt;,
+    document.getElementById('root')
+);上面示例中，我们在 Blog component 中定义了两个 JSX，都创建了 list elements，每个元素的 key 使用了对应的 id 属性。在每个 list 内部 key 是互相独立的。可以看到不只是 &lt;li&gt; 元素可以加 key，只要通过 map 定义了一个 array 数组，就可以给每个元素加上 key 属性来互相独立识别。key 是为了给 React 识别用的。它本身并不作为一个普通 prop 传给 components，也就是在 component 内部并不能使用这个 key 数据，如果想要在 component 中使用这个数据则需要单独定义一个其他 prop 来传入 key 数据：const Post = (props) =&gt; {
+    return (
+        &lt;li&gt;
+            {props.id}: {props.title}
+        &lt;/li&gt;
+    )
+}
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;Post key={post.id} id={post.id} title={post.title} /&gt;
+            )}
+        &lt;/ul&gt;
+    );
+...
+...
+...
+}上面示例中，Post component 无法直接访问 key 的数据，所以我们在调用 Post 时单独定义一个 id 属性并赋值为 key 相同的数据，这样就间接的可以在 Post component 中通过 id 来读取 key 的数据。在之前的 ListItem 示例中，我们声明了一个单独的 listItems 变量并在后续返回中将其放在 &lt;ul&gt; 中：const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}JSX 支持嵌入任何的 JavaScript 表达式，只需要使用大括号包围即可，所以上面的代码可以修改为以下模式：    return (
+        &lt;ul&gt;
+            {numbers.map((number) =&gt;
+                &lt;ListItem key={number.toString()} value={number} /&gt;);}
+        &lt;/ul&gt;
+    );使用哪种方式来定义 JSX 取决于对应的使用场景，总的原则是要方便与代码阅读，逻辑清晰。需要注意的是如果 map() method 中层级太复杂，可以考虑将其拆分为多个 components。Forms 表格</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2195.html">
 <title>React 入门教程之六 -- Conditional Rendering</title>
 <link>https://blog.niekun.net/archives/2195.html</link>
@@ -901,67 +1057,5 @@ writeableStream._write = (chunk, encoding, callback) =&gt; {
 }
 
 process.stdin.pipe(transformStream).pipe(writeableStream)在 transformStream._transform 定义了当 transform stream 接收到数据后通过 transformStream.push 将数据发到 readable stream 中，这样其他 stream 就可以读取到它接收到的数据了。更多 stream 使用方法参考：https://nodejs.org/api/stream.html</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2157.html">
-<title>node.js 入门教程之十一 -- buffers 缓存</title>
-<link>https://blog.niekun.net/archives/2157.html</link>
-<dc:date>2021-02-16T17:26:00+08:00</dc:date>
-<description>一个 buffer 缓存就是一个内存空间。JavaScript 开发者相较于 c++/go 等语言的开发者对内存的理解比较少。它表示在 JavaScript V8 engine 之外的分配的一块 fixed-size 固定大小的内存。可以想象 buffer 就是一个 integer 整型数组，每个元素代表一个 byte 的数据。node.js 中 buffer 通过 Buffer class 实现。为何需要 buffer引入 Buffer 是为了帮助开发者处理 binary 二进制数据。传统的 ecosystem 只可以处理 strings 字符串数据。Buffer 和 streams 是紧密关联的，当 stream processor 流处理器接收数据的速度大于其处理速度时，就会先将数据放在 buffer 中。可以想象下，在我们看在线视频时，在网络较好的情况下进度条中可以看到视频下载的进度是超过当前播放进度的，此时浏览器就会先 buffer 缓存数据后续按时间顺序播放出来。创建 buffer可以通过 Buffer.from(), Buffer.alloc() 和 Buffer.allocUnsafe() methods 来创建一个 buffer，下面依次介绍。使用 Buffer.from() 可以从 array 数组创建 buffer：const buf1 = Buffer.from('hey!')
-使用 Buffer.from(string[, encoding]) 可以设置 string 的编码类型，Default: utf8：const buf2 = Buffer.from('7468697320697320612074c3a97374', 'hex')
-也可以根据另一个 buffer：const buf3 = Buffer.from(buf1)
-通过 Buffer.alloc() 或 Buffer.allocUnsafe() 来初始化一个指定大小的 buffer，单位为 byte 字节：const buf4 = Buffer.alloc(1024)
-const buf5 = Buffer.allocUnsafe(1024)
-以上会创建一个 1kb 大小的 buffer。通过 alloc 创建的 buffer 会初始化其数据为 0，而 allocUnsafe 创建的 buffer 内的数据会是 uninitiated 未初始化的，这就表示使用 allocUnsafe 比 alloc 创建速度更快。但是通过 allocUnsafe 创建的 buffer 内存空间会包含有以前的数据可能引起潜在问题。使用 buffer我们可以像访问数组一样访问 buffer 数据：const buf1 = Buffer.from('hey!')
-
-console.log(buf1[0])
-console.log(buf1[1])
-console.log(buf1[2])
-
-//output:
-//104
-//101
-//121这些输出的数字就是代表 buffer 中每个字符的 Unicode Code，h =&gt; 104, e =&gt; 101, y =&gt; 121。使用 toString() method 可以将 buffer 输出为字符：console.log(buf1)
-console.log(buf1.toString())
-
-//output:
-//&lt;Buffer 68 65 79 21&gt;
-//hey!buf1.length 可以读取 buffer 长度：console.log(buf1.length)
-
-//output:
-//4也可以使用循环 iterate buffer 的数据：for (const iterator of buf1) {
-    console.log(iterator)
-}
-
-//output:
-104
-101
-121
-33通过 write() method 可以给 buffer 写入数据：const buf6 = Buffer.alloc(5)
-buf6.write('hello')也可以像数组一样修改某个元素的数据：const buf6 = Buffer.alloc(5)
-buf6.write('hello')
-buf6[0] = 111
-console.log(buf6.toString())
-
-//output:
-//oello可以看到需要修改字符对应的 Unicode Code。使用 copy() method 可以复制 buffer 数据到其他 buffer：const buf1 = Buffer.from('hey!')
-const buf7 = Buffer.alloc(4)
-buf1.copy(buf7)
-console.log(buf7.toString())
-
-//output:
-//hey!注意是源 buffer 掉用 copy method 来复制数据到目标 buffer。默认情况下会复制 buffer 的整个数据， copy method 可以设置其他三个参数来自定义目标 buffer 起始接收数据位置，源 buffer 起始复制数据位置，以及复制的新 buffer 的长度：const buf8 = Buffer.alloc(2)
-buf1.copy(buf8, 0, 0, 2)
-console.log(buf8.toString())
-
-//output:
-//he可以使用 slice method 来选取 buffer 的一个片段，它和 copy 的不同是 slice 获取的 buffer 片段仍然和源 buffer 相关联，修改源 buffer 会改变片段中的 buffer 数据。slice 的第一个参数定义起始位置，第二个参数是选项，可以定义终止位置：const buf1 = Buffer.from('hey!')
-const slice = buf1.slice(0, 2)
-console.log(slice.toString())
-buf1[0] = 111
-console.log(slice.toString())
-
-//output:
-//he
-//oe以上就是 Buffer 的简单使用方法。</description>
 </item>
 </rdf:RDF>
