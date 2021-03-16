@@ -11,8 +11,44 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/Linux/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Thu, 28 Jan 2021 08:17:25 +0800</lastBuildDate>
-<pubDate>Thu, 28 Jan 2021 08:17:25 +0800</pubDate>
+<lastBuildDate>Tue, 16 Mar 2021 11:55:00 +0800</lastBuildDate>
+<pubDate>Tue, 16 Mar 2021 11:55:00 +0800</pubDate>
+<item>
+<title>使用 instaloader 下载 Instagram 图片-视频</title>
+<link>https://blog.niekun.net/archives/2205.html</link>
+<guid>https://blog.niekun.net/archives/2205.html</guid>
+<pubDate>Tue, 16 Mar 2021 11:55:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。关于配置自己的 bot 参考之前的文章：https://blog.niekun.net/arc...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。</p><p>关于配置自己的 bot 参考之前的文章：<a href="https://blog.niekun.net/archives/428.html">https://blog.niekun.net/archives/428.html</a></p><p>我的应用于 telegram bot 的 YouTube 下载器源码地址：<a href="https://github.com/nie11kun/telegram-bot-youtube-downloader">https://github.com/nie11kun/telegram-bot-youtube-downloader</a></p><p>最近想给我的 telegram bot 添加 Instagram 图片的下载功能，但是 youtube-dl 并不支持 Instagram。查询了下发现了 instaloader 这个开源软件可以完美实现我想要的功能。</p><p>instaloader 官网：<a href="https://instaloader.github.io/">https://instaloader.github.io/</a></p><p>GitHub：<a href="https://github.com/instaloader/instaloader">https://github.com/instaloader/instaloader</a></p><!--more--><h3>安装</h3><p>instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。</p><p>使用 pip3 安装：</p><pre><code>pip3 install instaloader --upgrade
+</code></pre><p><strong>注意必须通过 pip3 而不是 pip 安装，否则使用中会报错。</strong></p><h3>使用</h3><p>安装完成后就可以使用 <strong>instaloader</strong> 命令来下载了。注意如果 python 安装到了自定义目录，如 <code>/opt</code> 则需要手动链接 instaloader 可执行程序到 <code>/usr/local/bin</code> 目录。</p><h4>下载 post</h4><p>如果要下载一个 post 中的图片，提取链接中的 <strong>shortcode</strong> 来下载，如下是一个 Instagram post 的链接：<a href="https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link">https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link</a>，其中的 <code>CMcMZycLpbS</code> 就是 <strong>shortcode</strong> 代码。</p><p>需要通过 <code>-shortcode</code> 参数来下载对应的图片，且需要通过 <code>--</code> 告诉 instaloader 不要将 <code>-shortcode</code> 作为 option 对待，如：</p><pre><code>instaloader -- -CMcMZycLpbS
+</code></pre><p>关于命令中的特殊字符处理参考：<a href="https://blog.niekun.net/archives/2204.html">https://blog.niekun.net/archives/2204.html</a></p><p>默认会下载到当前目录下，并新建文件夹 <code>-shortcode</code>，媒体文件及相关文本文件就在其中，注意到文件夹是以特殊字符 <code>-</code> 开头的，所以访问目录需要加上 <code>--</code>，如：</p><pre><code>cd -- -CMcMZycLpbS
+</code></pre><h4>自定义下载目录</h4><p>通过 <code>--dirname-pattern</code> 参数可以指定下载目录，如：</p><pre><code>instaloader --dirname-pattern=/tmp/test -- -CMcMZycLpbS
+</code></pre><p>就会将对应 post 的媒体下载到 <code>/tmp/test</code> 目录内。</p><p><strong>instaloader</strong> 的功能很强大，可以下载一个用户的所有发布内容，可以下载一个 <code>#hashtag</code> 标签的所有内容等。具体可以参考官方文档：<a href="https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram">https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram</a></p><p>我将 instaloader 加入了 telegram bot 中，可以很方便的下载一个 post 的媒体内容，有兴趣的可以查看：<a href="https://github.com/nie11kun/telegram-bot-youtube-downloader">https://github.com/nie11kun/telegram-bot-youtube-downloader</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2205.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2205.html</wfw:commentRss>
+</item>
+<item>
+<title>cd 到以 '-' dash 开头的目录的方法</title>
+<link>https://blog.niekun.net/archives/2204.html</link>
+<guid>https://blog.niekun.net/archives/2204.html</guid>
+<pubDate>Tue, 16 Mar 2021 10:33:44 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[Linux 下，当文件或文件夹包含空格或其他特殊符号如 $，在引用时需要将其放在单引号 '' 或 &quot;&quot; 中，如：cd '$abc'cd &quot;abc de f&quot...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>Linux 下，当文件或文件夹包含空格或其他特殊符号如 <code>$</code>，在引用时需要将其放在单引号 <code>''</code> 或 <code>&quot;&quot;</code> 中，如：</p><pre><code>cd '$abc'
+cd &quot;abc de f&quot;
+</code></pre><p>当文件以 <code>-</code> dash 开头时，命令会将其作为 option 处理，如：</p><pre><code>ls -lh
+</code></pre><p>此时如果需要让命令将其识别为文件名称而不是 option 需要加入 <code>--</code> 作为参数：</p><pre><code>cd -- '-abc'
+</code></pre><p>这样命令就会将 <code>-</code> 开头的字符作为文件名称处理了。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2204.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2204.html</wfw:commentRss>
+</item>
 <item>
 <title>创建新文件 in Linux</title>
 <link>https://blog.niekun.net/archives/2086.html</link>
@@ -340,49 +376,6 @@ Packet Loss:     0.0%
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1903.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1903.html</wfw:commentRss>
-</item>
-<item>
-<title>MySQL 8.0 修改用户密码加密方式</title>
-<link>https://blog.niekun.net/archives/1900.html</link>
-<guid>https://blog.niekun.net/archives/1900.html</guid>
-<pubDate>Wed, 11 Nov 2020 09:41:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[MySQL 8.0 默认创建的用户密码加密方式为：caching_sha2_password，有些应用在连接时由于不兼容会导致报错，可以修改为 MySQL 5 使用的加密方式：sha256_pa...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>MySQL 8.0 默认创建的用户密码加密方式为：caching_sha2_password，有些应用在连接时由于不兼容会导致报错，可以修改为 MySQL 5 使用的加密方式：sha256_password。</p><p>创建用户：</p><pre><code>create user &quot;newuser&quot;@&quot;localhost&quot; identified by &quot;PASSWORD&quot;;
-</code></pre><p>授予全部数据库权限：</p><pre><code>grant all privileges on *.* to 'newuser'@'localhost';
-</code></pre><p>修改成原来的加密方式：</p><pre><code>alter user &quot;newuser&quot;@&quot;localhost&quot; identified with mysql_native_password by 'PASSWORD';
-</code></pre><p>刷新权限：</p><pre><code>    FLUSH PRIVILEGES;
-</code></pre><p>查看已建立的用户及加密方式：</p><pre><code>SELECT user,authentication_string,plugin,host FROM mysql.user;
-</code></pre><p>显示如下：</p><pre><code>+------------------+------------------------------------------------------------------------+---
-| user             | authentication_string                         | plugin                | host      |
-+------------------+------------------------------------------------------------------------+-----
-| marco            | *D51541FCBC8DD8E                              | mysql_native_password | localhost |
-| root             |                                               | auth_socket           | localhost |
-+------------------+------------------------------------------------------------------------+---------</code></pre><p>以上就是修改用户密码加密方式的方法。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1900.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1900.html</wfw:commentRss>
-</item>
-<item>
-<title>MySQL 5.7 升级 8.0</title>
-<link>https://blog.niekun.net/archives/1899.html</link>
-<guid>https://blog.niekun.net/archives/1899.html</guid>
-<pubDate>Tue, 10 Nov 2020 11:03:52 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[首先备份本地数据库，以防升级错误：mysqldump -uUSER -pPASSWORD --all-databases &gt; /path/to/backup.sql官网下载最新的 MySQ...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>首先备份本地数据库，以防升级错误：</p><pre><code>mysqldump -uUSER -pPASSWORD --all-databases &gt; /path/to/backup.sql
-</code></pre><p>官网下载最新的 MySQL apt 库：<a href="https://dev.mysql.com/downloads/repo/apt/">https://dev.mysql.com/downloads/repo/apt/</a></p><p>当前最新地址为：<a href="https://dev.mysql.com/get/mysql-apt-config_0.8.16-1_all.deb">https://dev.mysql.com/get/mysql-apt-config_0.8.16-1_all.deb</a></p><p>下载到本地后安装：</p><pre><code>dpkg -i mysql-apt-config_0.8.16-1_all.deb
-</code></pre><p>期间会提示选择安装的 MySQL 版本，第一步选择当前安装的 MySQL 5.7，然后下一步选择 MySQL server 8.0，然后再下一步切换到 ok 选项确认。</p><p>配置完成后更新 apt 库及安装新版 MySQL：</p><pre><code>apt update
-apt install mysql-server
-</code></pre><p>安装完成后验证当前安装版本：</p><pre><code>mysql -V
-</code></pre><p>以上就是简单的 MySQL 升级教程。</p><p>参考链接：<br><a href="https://dev.mysql.com/doc/mysql-apt-repo-quick-guide/en/#apt-repo-setup">https://dev.mysql.com/doc/mysql-apt-repo-quick-guide/en/#apt-repo-setup</a><br><a href="https://www.digitalocean.com/community/questions/upgrade-mysql-5-7-to-8-ubuntu-18-04">https://www.digitalocean.com/community/questions/upgrade-mysql-5-7-to-8-ubuntu-18-04</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1899.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1899.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

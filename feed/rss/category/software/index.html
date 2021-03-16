@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2205.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2191.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1958.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1553.html"/>
@@ -18,10 +19,19 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1378.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1443.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1379.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1375.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2205.html">
+<title>使用 instaloader 下载 Instagram 图片-视频</title>
+<link>https://blog.niekun.net/archives/2205.html</link>
+<dc:date>2021-03-16T11:55:00+08:00</dc:date>
+<description>一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。关于配置自己的 bot 参考之前的文章：https://blog.niekun.net/archives/428.html我的应用于 telegram bot 的 YouTube 下载器源码地址：https://github.com/nie11kun/telegram-bot-youtube-downloader最近想给我的 telegram bot 添加 Instagram 图片的下载功能，但是 youtube-dl 并不支持 Instagram。查询了下发现了 instaloader 这个开源软件可以完美实现我想要的功能。instaloader 官网：https://instaloader.github.io/GitHub：https://github.com/instaloader/instaloader安装instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。使用 pip3 安装：pip3 install instaloader --upgrade
+注意必须通过 pip3 而不是 pip 安装，否则使用中会报错。使用安装完成后就可以使用 instaloader 命令来下载了。注意如果 python 安装到了自定义目录，如 /opt 则需要手动链接 instaloader 可执行程序到 /usr/local/bin 目录。下载 post如果要下载一个 post 中的图片，提取链接中的 shortcode 来下载，如下是一个 Instagram post 的链接：https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link，其中的 CMcMZycLpbS 就是 shortcode 代码。需要通过 -shortcode 参数来下载对应的图片，且需要通过 -- 告诉 instaloader 不要将 -shortcode 作为 option 对待，如：instaloader -- -CMcMZycLpbS
+关于命令中的特殊字符处理参考：https://blog.niekun.net/archives/2204.html默认会下载到当前目录下，并新建文件夹 -shortcode，媒体文件及相关文本文件就在其中，注意到文件夹是以特殊字符 - 开头的，所以访问目录需要加上 --，如：cd -- -CMcMZycLpbS
+自定义下载目录通过 --dirname-pattern 参数可以指定下载目录，如：instaloader --dirname-pattern=/tmp/test -- -CMcMZycLpbS
+就会将对应 post 的媒体下载到 /tmp/test 目录内。instaloader 的功能很强大，可以下载一个用户的所有发布内容，可以下载一个 #hashtag 标签的所有内容等。具体可以参考官方文档：https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram我将 instaloader 加入了 telegram bot 中，可以很方便的下载一个 post 的媒体内容，有兴趣的可以查看：https://github.com/nie11kun/telegram-bot-youtube-downloader</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2191.html">
 <title>修复 vs code 下保存文件会自动 format 代码的问题</title>
 <link>https://blog.niekun.net/archives/2191.html</link>
@@ -424,18 +434,5 @@ if __name__ == '__main__':
 <link>https://blog.niekun.net/archives/1379.html</link>
 <dc:date>2020-03-23T10:39:00+08:00</dc:date>
 <description>当你需要给别人进行演示的时候，你在电脑上的操作流程，可能由于距离或者颜色让观看者无法很好的看清楚。当你正在进行 Photoshop 教学的时候，你需要录制你的屏幕记录你的操作过程，以及再进行相关操作时能够清晰地注释出点击方式。如果你有遇到以上场景，这篇教程就能够帮助到你。屏幕录制屏幕录制我使用的是 OBS Studio，一款开源的视频录制及流媒体传输的软件，支持 Windows macOS Linux。官网：https://obsproject.com/GitHub 主页：https://github.com/obsproject/obs-studio/wiki/Sources-Guide在官网下载最新版并安装，然后运行 OBS。第一次启动会有几个设置项，首先根据提示选择自动配置或手动配置，选择自动识别硬件并配置。然后选择要进行流媒体传输还是只进行视频录制，我选择只视频录制：设置录制分辨率及刷新率，默认即可：主界面如下，默认没有设置视频源输入，所以背景为黑色：界面中间为当前监听的视频源预览，界面下方有 5 个区域 senses，sources，audio mixer，senses transitions，control。senses可以创建多个 sense，每个 sense 都有单独的 sources 设置，可以通过切换 sense 快速切换不同的 sources。sourcessource 就是添加监听源，点击下方加号可以添加 source：可以添加多种不同的 source，如：音频，窗口，应用，监视器等，如果录制某个打开的应用窗口，点击 Windows capture：可以起个名字点击 ok：Windows 菜单下会列出当前打开的窗口，选择需要的即可：有时候我们需要录制的内容要在多个窗口下切换，这时候可以录制整个监视器，选择 display capture：这时就会录制当前屏幕显示的内容了：如果选择 display capture 后显示的是黑屏，需要设置 app 的 graphic setting，搜索并打开 graphic setting：点击 browse 找到 OBS 主程序：点击 option 选择 power saving：重新启动 OBS 应该就可以捕获到监视器了。官方对此的解释：https://obsproject.com/forum/threads/laptop-black-screen-when-capturing-read-here-first.5965/audio mixer默认会捕获输入输出的 audio，可以调节滑块了控制音量大小或者屏蔽某个音频。sense transitions当建立了多个 sense 时，可以设定在 sense 间切换时的过渡延时时间，时间越长过渡越慢。control我常用的就是 start recoding。可以设置快捷键来录制，点击 settings- hotkeys，在 start recoding 右侧设置快捷键，我设置的是 ctrl shift 9，stop recoding 默认也会使用这个快捷键：开始录制设置好 sense，source，audio 就可以开始录制了，点击 start recoding 或者快捷键开始录制，然后点击 stop recoding 结束录制，默认保存路径是用户目录下的 videos 文件夹，默认格式是 MKV。如果需要 mp4 格式，可以使用内置的 remux reroders 来转码，点击 file - remux recoders：在左侧输入录制的 MKV 文件，右侧就是要转码的 mp4 文件路径，点击 remux 即可。鼠标轨迹追踪使用 OBS 录制的视频默认会有鼠标，想要更多的功能，如：局部放大，聚光灯效果，轨迹绘制，按键提示等就需要其他 app 了。我这里使用的是 SwordSoft Mousetrack，可以实现这些功能，但是只支持 Windows。除了屏幕录制时使用，在给别人进行演示或者做报告的时候，使用 SwordSoft Mousetrack 也是很好的选择。官网：http://www.swordsoft.idv.tw/mousetrack/SwordSoft Mousetrack is a useful tool for presentations or demos. It can puts a spotlight on the area around the mouse pointer, show animation effect when you click your mouse and displays your keystrokes on the screen.SwordSoft Mousetrack 可以免费使用，但是如果想要保存设置项，就需要付费买授权了。下面介绍他的几个功能。聚光灯效果general 选项卡，在 show spotlight 前打勾，就开启了聚光灯模式，鼠标周围区域高亮，其他区域变暗：可以设置圆圈半径轮廓颜色，不透明度等。在 spotlight 选项卡进行设置：live drawlive draw 就是在当前屏幕用鼠标进行画线，在 show livedraw 前打勾即可激活：默认会有一行提示信息，可以使用鼠标进行绘制了：按 esc 退出 livedraw。在 livedraw 选项卡进行线条粗细/透明度/颜色的设置：zoomzoom 可以放大鼠标局部区域，在 show livezoom 前打勾即可激活：激活后，在鼠标附近或有当前区域放大图：在 zoom 选项卡可以进行放大倍率/放大区域宽高等设置项。mouse click点击鼠标位置效果，在 show mouse click 前打勾激活，当点击鼠标时，当前位置会显示一个动态效果：默认显示一个红色圆环，需要设定其他效果，可以到 mouse click 选项卡设置。keystroke在 show keystroke 前打勾激活。再按下键盘上的任意键后，会在屏幕下方提示栏显示按下的键：在 keystroke 选项卡可以设置提示栏位置/大小/透明度/颜色等信息。快捷键每次需要使用什么功能可以在 general 进行选择，也可以为每个功能设置快捷键，这样就可以快速的激活/关闭相关功能了。在 general 选项卡，每个功能右侧都可以定义快捷键，我设置的快捷键如下：设置好后只需要按下 ctrl shift 1 即可激活 聚光灯效果。截屏有时我们需要截取当前屏幕，并做一些标注。Windows 10 和 macOS 都有原生工具可供使用。macOS：shift command 3 截取全屏shift command 4 截取部分区域截屏后会在右下角显示预览，点击后可进行编辑。或者截屏会自动存储在桌面。Windows 10：shift win S 截屏总结使用 OBS 和 SwordSoft Mousetrack 可以很好的实现屏幕录制效果。先打开 SwordSoft Mousetrack 然后打开 OBS 开始录制即可。免费版的 SwordSoft Mousetrack，不能保存设置，重新启动后所有设置会恢复默认。默认激活的功能是 mouse click 和 keystroke。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1375.html">
-<title>wkhtmltopdf 将 html为 pdf</title>
-<link>https://blog.niekun.net/archives/1375.html</link>
-<dc:date>2020-03-18T12:58:56+08:00</dc:date>
-<description>一般浏览器都可以将当前页面输出为 pdf，但当有很多个 html 文件时一个一个转换就很麻烦了，可以使用 wkhtmltopdf 命令行工具来实现自动化批量转换。wkhtmltopdf and wkhtmltoimage are open source (LGPLv3) command line tools to render HTML into PDF and various image formats using the Qt WebKit rendering engine. These run entirely "headless" and do not require a display or display service.wkhtmltopdf 官网：https://wkhtmltopdf.org/GitHub 主页：https://github.com/wkhtmltopdf/wkhtmltopdf下载在 release 页面下载对应系统最新版：https://github.com/wkhtmltopdf/wkhtmltopdf/releases我要安装到 Ubuntu 18.04，所以下载：wkhtmltox_0.12.5-1.bionic_amd64.deb查看 Ubuntu 系统代号可以使用命令：lsb_release -c
-安装下载的 deb 包，用以下命令进行安装：dpkg -i wkhtmltox_0.12.5-1.bionic_amd64.deb
-使用支持 url 或 本地 html 转换：wkhtmltopdf http://bing.com bing.pdf
-wkhtmltopdf path/to/test.html index.pdf
-配合 find 命令可以实现批量转换：find path/to/html -name '*.html' -exec wkhtmltopdf {} {}.pdf \;
-mkdir pdf/
-find path/to/html -name '*.pdf' -exec mv {} pdf/ \;find 命令详细用法参考：https://blog.niekun.net/archives/543.html可以使用 wget 命令下载某个网站到本地，然后使用上面命令批量转换：wget -m -p -k URL
--m, –mirror 等价于 -r -N -l inf -nr-p：下载所有html文件适合显示的元素-k, –convert-links 转换非相对链接为相对链接,将文档链接都转换成本地的</description>
 </item>
 </rdf:RDF>

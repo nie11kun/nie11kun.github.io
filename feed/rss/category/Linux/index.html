@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2205.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2204.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2086.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2074.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2071.html"/>
@@ -17,11 +19,29 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1906.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1904.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1903.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1900.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1899.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2205.html">
+<title>使用 instaloader 下载 Instagram 图片-视频</title>
+<link>https://blog.niekun.net/archives/2205.html</link>
+<dc:date>2021-03-16T11:55:00+08:00</dc:date>
+<description>一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。关于配置自己的 bot 参考之前的文章：https://blog.niekun.net/archives/428.html我的应用于 telegram bot 的 YouTube 下载器源码地址：https://github.com/nie11kun/telegram-bot-youtube-downloader最近想给我的 telegram bot 添加 Instagram 图片的下载功能，但是 youtube-dl 并不支持 Instagram。查询了下发现了 instaloader 这个开源软件可以完美实现我想要的功能。instaloader 官网：https://instaloader.github.io/GitHub：https://github.com/instaloader/instaloader安装instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。使用 pip3 安装：pip3 install instaloader --upgrade
+注意必须通过 pip3 而不是 pip 安装，否则使用中会报错。使用安装完成后就可以使用 instaloader 命令来下载了。注意如果 python 安装到了自定义目录，如 /opt 则需要手动链接 instaloader 可执行程序到 /usr/local/bin 目录。下载 post如果要下载一个 post 中的图片，提取链接中的 shortcode 来下载，如下是一个 Instagram post 的链接：https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link，其中的 CMcMZycLpbS 就是 shortcode 代码。需要通过 -shortcode 参数来下载对应的图片，且需要通过 -- 告诉 instaloader 不要将 -shortcode 作为 option 对待，如：instaloader -- -CMcMZycLpbS
+关于命令中的特殊字符处理参考：https://blog.niekun.net/archives/2204.html默认会下载到当前目录下，并新建文件夹 -shortcode，媒体文件及相关文本文件就在其中，注意到文件夹是以特殊字符 - 开头的，所以访问目录需要加上 --，如：cd -- -CMcMZycLpbS
+自定义下载目录通过 --dirname-pattern 参数可以指定下载目录，如：instaloader --dirname-pattern=/tmp/test -- -CMcMZycLpbS
+就会将对应 post 的媒体下载到 /tmp/test 目录内。instaloader 的功能很强大，可以下载一个用户的所有发布内容，可以下载一个 #hashtag 标签的所有内容等。具体可以参考官方文档：https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram我将 instaloader 加入了 telegram bot 中，可以很方便的下载一个 post 的媒体内容，有兴趣的可以查看：https://github.com/nie11kun/telegram-bot-youtube-downloader</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2204.html">
+<title>cd 到以 '-' dash 开头的目录的方法</title>
+<link>https://blog.niekun.net/archives/2204.html</link>
+<dc:date>2021-03-16T10:33:44+08:00</dc:date>
+<description>Linux 下，当文件或文件夹包含空格或其他特殊符号如 $，在引用时需要将其放在单引号 '' 或 &quot;&quot; 中，如：cd '$abc'
+cd &quot;abc de f&quot;
+当文件以 - dash 开头时，命令会将其作为 option 处理，如：ls -lh
+此时如果需要让命令将其识别为文件名称而不是 option 需要加入 -- 作为参数：cd -- '-abc'
+这样命令就会将 - 开头的字符作为文件名称处理了。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2086.html">
 <title>创建新文件 in Linux</title>
 <link>https://blog.niekun.net/archives/2086.html</link>
@@ -285,32 +305,5 @@ Packet Loss:     0.0%
 +--------------------------------------+--------+
 7 rows in set (0.03 sec)其中 validate_password_length 是密码位数，validate_password_special_char_count 是密码包含特殊字符。可以通过命令修改参数值来改变密码规则，例如：取消特殊字符：SET GLOBAL validate_password_special_char_count= 0;
 修改后可以测试再次建立用户设置密码。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1900.html">
-<title>MySQL 8.0 修改用户密码加密方式</title>
-<link>https://blog.niekun.net/archives/1900.html</link>
-<dc:date>2020-11-11T09:41:00+08:00</dc:date>
-<description>MySQL 8.0 默认创建的用户密码加密方式为：caching_sha2_password，有些应用在连接时由于不兼容会导致报错，可以修改为 MySQL 5 使用的加密方式：sha256_password。创建用户：create user &quot;newuser&quot;@&quot;localhost&quot; identified by &quot;PASSWORD&quot;;
-授予全部数据库权限：grant all privileges on *.* to 'newuser'@'localhost';
-修改成原来的加密方式：alter user &quot;newuser&quot;@&quot;localhost&quot; identified with mysql_native_password by 'PASSWORD';
-刷新权限：    FLUSH PRIVILEGES;
-查看已建立的用户及加密方式：SELECT user,authentication_string,plugin,host FROM mysql.user;
-显示如下：+------------------+------------------------------------------------------------------------+---
-| user             | authentication_string                         | plugin                | host      |
-+------------------+------------------------------------------------------------------------+-----
-| marco            | *D51541FCBC8DD8E                              | mysql_native_password | localhost |
-| root             |                                               | auth_socket           | localhost |
-+------------------+------------------------------------------------------------------------+---------以上就是修改用户密码加密方式的方法。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1899.html">
-<title>MySQL 5.7 升级 8.0</title>
-<link>https://blog.niekun.net/archives/1899.html</link>
-<dc:date>2020-11-10T11:03:52+08:00</dc:date>
-<description>首先备份本地数据库，以防升级错误：mysqldump -uUSER -pPASSWORD --all-databases &gt; /path/to/backup.sql
-官网下载最新的 MySQL apt 库：https://dev.mysql.com/downloads/repo/apt/当前最新地址为：https://dev.mysql.com/get/mysql-apt-config_0.8.16-1_all.deb下载到本地后安装：dpkg -i mysql-apt-config_0.8.16-1_all.deb
-期间会提示选择安装的 MySQL 版本，第一步选择当前安装的 MySQL 5.7，然后下一步选择 MySQL server 8.0，然后再下一步切换到 ok 选项确认。配置完成后更新 apt 库及安装新版 MySQL：apt update
-apt install mysql-server
-安装完成后验证当前安装版本：mysql -V
-以上就是简单的 MySQL 升级教程。参考链接：https://dev.mysql.com/doc/mysql-apt-repo-quick-guide/en/#apt-repo-setuphttps://www.digitalocean.com/community/questions/upgrade-mysql-5-7-to-8-ubuntu-18-04</description>
 </item>
 </rdf:RDF>
