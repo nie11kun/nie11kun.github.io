@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>admin</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2278.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2277.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2213.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2208.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2205.html"/>
@@ -17,11 +19,80 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2198.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2195.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2191.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2189.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2184.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2278.html">
+<title>openwrt 配置 LuCI ssl 证书</title>
+<link>https://blog.niekun.net/archives/2278.html</link>
+<dc:date>2021-03-30T22:00:32+08:00</dc:date>
+<description>openwrt 提供了一个 luci 管理界面可以通过图形化的方式进行配置管理。我们通过 lan 网地址 http 访问 luci 界面，会有一个提示不安全的链接，一般浏览器提供了一个跳过选项可以忽略警告。但是当我们通过 wan 口地址访问 luci 界面时，新版的 chrome 会强制拒绝访问 http 不安全的链接，这样我们就无法通过外网访问 luci 界面了。注意如果想要从 wan 口访问 luci 界面，需要配置防火墙放行，具体参考：https://blog.niekun.net/archives/1818.html解决方法是我们给 luci 配置一个 ssl 证书，这样浏览器就会放行了。首先安装相关程序：opkg update &amp;&amp; opkg install openssl-util luci-app-uhttpd
+以上我们安装了 openssl 套件和 uhttpd 的 ui 配置接口，可以图形化的方式配置 uhttpd。下面我们来生成需要的 ssl 证书文件。首先创建文件 etc/ssl/myconfig.conf：[req]
+distinguished_name  = req_distinguished_name
+x509_extensions     = v3_req
+prompt              = no
+string_mask         = utf8only
+ 
+[req_distinguished_name]
+C                   = US
+ST                  = VA
+L                   = SomeCity
+O                   = OpenWrt
+OU                  = Home Router
+CN                  = luci.openwrt
+ 
+[v3_req]
+keyUsage            = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage    = serverAuth
+subjectAltName      = @alt_names
+ 
+[alt_names]
+DNS.1               = luci.openwrt
+IP.1                = 192.168.1.1可以修改 C (country), ST (state), L (location), O (organization), OU (organization unit) 为你想要的内容。CN 和 DNS.1 必须是一样的地址，它们表示此证书代表的域名，和 IP 是对应的。如果配置了 luci 界面地址的 hosts，这里就可以定义为对应的域名。之后我们就可以通过访问这个域名来访问 IP。IP.1 就是 luci web 地址，设置为对应的地址即可。配置文件保存后返回 ssl 目录：cd /etc/ssl
+执行下面的命令：openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout mycert.key -out mycert.crt -config myconfig.conf
+会自动在当前目录下创建 mycert.key 和 mycert.crt 文件。然后我们先通过 lan 内网访问 luci web 界面，在顶部我们可以看到多了一个 services 菜单，点击其中的 uhttpd 进入配置界面，在 HTTPS Certificate 和 HTTPS Private Key 中分别上传 crt 和 key 文件：然后点击 save and apply。重启 uhttpd 服务：/etc/init.d/uhttpd restart
+此时我们通过 wan 口地址访问 luci web 界面，应该就可以正常进入了。下面我们将刚才生成的 ssl 文件加入 backup 列表。默认情况下 /etc/config 下的文件会自动进行备份。我们进入 System → Backup/Flash Firmware，点击 configuration 栏，然后将 /etc/ssl/mycert.crt 和  /etc/ssl/mycert.key 加入列表中，点击 save 即可。之后我们生成的备份就会包含这些文件。参考链接How to get rid of LuCI HTTPS certificate warnings</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2277.html">
+<title>openwrt 自启动服务 init.d</title>
+<link>https://blog.niekun.net/archives/2277.html</link>
+<dc:date>2021-03-30T21:29:36+08:00</dc:date>
+<description>openwrt 是针对于嵌入式设备的精简版 Linux 系统。所以一些常规的 Linux 服务都没有，比如 systemd 等。openwrt 是通过 init.d 来管理服务的。所有的服务都在 /etc/init.d 目录下。对某个服务进行操作也很方便，例如对 network 服务：# 启动 network
+/etc/init.d/network start
+
+# 重启 network
+/etc/init.d/network restart
+
+# 停止 network
+/etc/init.d/network stop如果需要某个服务开机自启动，可以 enable：/etc/init.d/frp enable会自动在 /etc/rc.d/ 目录下建立一个链接指向 /etc/init.d 下的对应服务，如：S99frp。S99 表示此服务的启动顺序，下面会做介绍。我们在 /etc/init.d/ 下新建一个 test 文件。内容如下：#!/bin/sh /etc/rc.common
+START=99
+start() {
+    /root/test.sh
+}START=99 定义此服务如果定义开机自启动时，其启动顺序序号。最大为 99，数字越大启动排序越靠后。start function 内定义了通过启动时执行的指令，上面的示例中我们定义了一个脚本文件自动运行。我们也可以通过手动调用 start function执行其中指令：/etc/init.d/test start
+下面是一个更复杂的示例：#!/bin/sh /etc/rc.common
+START=99
+USE_PROCD=1
+boot() {
+    sleep 10
+    rc_procd start_service
+}
+start_instance() {
+    procd_open_instance &quot;frpc.frpc&quot;
+    procd_set_param command &quot;/usr/bin/frpc&quot;
+    procd_append_param command -c &quot;/etc/frp/frpc.ini&quot;
+    procd_set_param respawn
+    procd_set_param file &quot;/etc/frp/frpc.ini&quot;
+    procd_set_param user &quot;root&quot;
+    procd_close_instance
+}
+service_triggers() {
+    procd_add_reload_trigger &quot;frpc&quot;
+}
+start_service() {
+    config_load &quot;frpc&quot;
+    config_foreach start_instance &quot;frpc&quot;
+}sleep 10 表示自启动时延时 10 秒运行 start_service function。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2213.html">
 <title>ESXi 的安装与使用</title>
 <link>https://blog.niekun.net/archives/2213.html</link>
@@ -365,371 +436,5 @@ ReactDOM.render(
 <link>https://blog.niekun.net/archives/2191.html</link>
 <dc:date>2021-02-25T20:46:37+08:00</dc:date>
 <description>今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：经过查询发现时由于安装的 JS-CSS-HTML Formatter 插件默认会在保存文件时对文件格式进行处理。但是堆 React 代码的自动处理有问题导致无法正常进行开发。只需要修改其配置文件将保存文件时自动处理关掉即可。快捷键 cmd + shift + p 打开控制器，输入 formatter：点击 formatter config 修改配置文件，将第一句 "onSave": true 改为 false 保存即可。需要重启 vscode 才能生效。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2189.html">
-<title>React 入门教程之五 -- Event</title>
-<link>https://blog.niekun.net/archives/2189.html</link>
-<dc:date>2021-02-25T17:23:00+08:00</dc:date>
-<description>events 处理处理 React elements events 和处理 DOM elements 很相似，但有一些语法区别：React events 命名使用 camelCase 规则，而不是 lowercase使用 JSX 传入 function 作为 events handler，而不是 string 字符串HMTL 中处理 events 示例如下：&lt;button onclick=&quot;activateLasers()&quot;&gt;
-  Activate Lasers
-&lt;/button&gt;React 中示例如下：&lt;button onClick={activateLasers}&gt;
-  Activate Lasers
-&lt;/button&gt;注意它们的区别之处一个是 event 名称，一个是 handler 定义方式。另一个区别是在 React 中不能通过 return false 的方式防止 events 的默认行为，需要明确的调用 preventDefault method 来实现。例如在一个 html 页面中定义一个 a tag 并取消其默认打开新页面的行为，实现如下：&lt;a href=&quot;#&quot; onclick=&quot;console.log('The link was clicked.'); return false&quot;&gt;
-  Click me
-&lt;/a&gt;React 中实现同样功能代码如下：class Link extends React.Component {
-    constructor(props) {
-        super(props);
-        this.handleClick = this.handleClick.bind(this);
-    }
-    handleClick(e) {
-        e.preventDefault();
-        console.log('clicked me');
-    }
-    render() {
-        return (
-            &lt;a href='#' onClick={this.handleClick}&gt;click me&lt;/a&gt;
-        )
-    }
-}e 表示 synthetic 综合的 event，当前哪个 event 触发了 e 就表示哪一个。使用 bind 绑定 的 method 在调用时会自动将 e 传入 method。下面会对 bind 是什么作出解释。React events 同原生的 events 不完全相同，查看所有可用的 events 查看官方介绍：https://reactjs.org/docs/events.html在 React 中一般情况下不需要通过调用 addEventListener 来给 element 添加 event listener。直接在 element 初始化时为其设置 event listener 即可。当通过 class 来定义 component 时 event handler 一般是一个 class method，例如上面示例的 handleClick。下面的示例我们构建一个 Toggle component 可以让用户通过一个 button 来切换 ON/OFF 状态：const React = require('react')
-const ReactDOM = require('react-dom')
-
-class Toggle extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { isToggleOn: true };
-        this.handleClick = this.handleClick.bind(this);
-    }
-    handleClick() {
-        this.setState({ isToggleOn: !this.state.isToggleOn });
-    }
-    render() {
-        return (&lt;button onClick={this.handleClick}&gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }
-}
-
-ReactDOM.render(&lt;
-    Toggle /&gt;,
-    document.getElementById('root')
-);在 JSX callback 中使用 this 需要特别注意，JavaScript class 的 methods 默认是相互隔离的，如果没有主动 bind 捆绑 method 到 this，在另一个 method 中使用 this.method 会报错 undefined。如果调用 method 时不写括号() 例如：onClick={this.handleClick} 则需要提前 bind 这个 method 到 this 中，如上面的示例，bind 语法如下：this.handleClick = this.handleClick.bind(this);
-一般将其放在 constructor 中，这样初始化中就会自动执行，当然也可以在调用时直接定义：&lt;button onClick={this.handleClick.bind(this)}&gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;
-如果不想使用 bind 语法来处理，那么还有两种方式来处理 class 中 methods 互相隔离这个问题。第一种叫做 class fields syntax 语法，通过使用 arrow function 的模式定义 method，这样就可以通过通过 this.method 的方法调用 method：    constructor(props) {
-        super(props);
-        this.state = { isToggleOn: true };
-    }
-    handleClick = () =&gt; {
-        this.setState({ isToggleOn: !this.state.isToggleOn });
-    }
-    render() {
-        return (&lt;button onClick={this.handleClick} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }这样就不需要在 constructor 中定义 bind 同时可以在 callback 中直接调用 this.handleClick。但是需要注意目前这只是 React 实验性的语法，不一定保证以后会一直可用。第二种是在 callback 中通过 arrow function 的模式调用 method：    handleClick() {
-        this.setState({ isToggleOn: !this.state.isToggleOn });
-    }
-    render() {
-        return (&lt;button onClick={() =&gt; this.handleClick()} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }注意这种方法需要在 method 名称后加括号()。这种方法的缺点是当每次重新 render 渲染时都会创建新的 callback。当这个 callback 包含传给其 child component 的 props 时，可能会导致 child 重新被渲染。通常情况下推荐使用 constructor 定义 bind 或者使用 class fields syntax 语法来避免这些性能问题。给 event handler 传入数据有时候需要给 event handler 传入附加的参数，如下面示例 button 点击时输出一个输入数据到终端：    handleClick(a, e) {
-        this.setState({ isToggleOn: !this.state.isToggleOn });
-        console.log(e._reactName);
-        console.log(a);
-    }
-    render() {
-        return (&lt;button onClick={this.handleClick.bind(this, 'aaa')} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }上面的示例将字符串 aaa 作为 handleClick 的传入参数，并将 bind 绑定过程直接放在 callback 中，这样就不需要在 constructor 中进行 bind 定义了。通过 bind 绑定后会自动将 e：synthetic 综合的 event 作为第二个参数传入 function，e._reactName 返回 event 名称。上面的示例也可以通过 arrow function 在 callback 中定义实现：    handleClick(a, e) {
-        this.setState({ isToggleOn: !this.state.isToggleOn });
-        console.log(e._reactName);
-        console.log(a);
-    }
-    render() {
-        return (&lt;button onClick={(e) =&gt; this.handleClick('aaa', e)} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }上面的示例中 e 依然表示 synthetic event。两种方法都会将 e 作为第二个参数传入。在 arrow function 中我们可以清晰地看到数据的位置，但是通过 bind 的方式会将有些参数自动转发过去。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2184.html">
-<title>React 入门教程之四 -- rendering, components 和 state</title>
-<link>https://blog.niekun.net/archives/2184.html</link>
-<dc:date>2021-02-24T17:17:00+08:00</dc:date>
-<description>rendering elements 渲染元素一个 element 表示我们想要显示在屏幕上的内容：const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
-不同于浏览器 DOM 中的 elements，React elements 是简单的 objects 且可以很方便的创建，React DOM 会严格的刷新 DOM 并匹配对应的 React elements。容易混淆的概念是 component 和 element，区别是 component 是用来创建 element 的。在后续章节会介绍。在 DOM 中渲染元素我们的 html 页面中定义了一个 div 容器：&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
-我们将其称作 root DOM 节点，因为它所有的内容都是被 React DOM 管理的。通常情况下使用 React 创建的程序只有一个 root DOM 节点。如果你是将 React 整合到现有网站中，你可以有任意个独立的 root DOM 节点。将 React elements 渲染到 root DOM 节点，需要通过调用 ReactDOM.render()，并将 React element 和 root DOM 节点作为传入参数：const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
-
-ReactDOM.render(
-    element,
-    document.getElementById('root')
-);此时页面会显示 hello world。刷新渲染的元素React element 是 immutable 不可改变的，当创建了一个 element 后不可以修改其 children 或 attributes，一个 element 就好像一个视频的一帧，它表示了某一时间点的 UI。从我们目前学到的知识，唯一刷新 UI 的方法就是重新创建新的 elements 然后调用 ReactDOM.render()，通过设置 setInterval 来定时刷新：const tick = () =&gt; {
-    const element = &lt;h1&gt;{new Date().toLocaleTimeString()}&lt;/h1&gt;;
-
-    ReactDOM.render(
-        element,
-        document.getElementById('root')
-    );
-}
-setInterval(tick, 1000);这样就会每秒钟创建一个新的 element 并通过 ReactDOM.render() 渲染到界面。通常情况下大多数 React app 只会调用 ReactDOM.render() 一次。下一章节会介绍如何将封装到 component 中。React 只会更新必要的内容React DOM 会比较其当前和上一个状态的，然后只对有了变化的部分进行更新来达到最终期望的状态。我们打开上面示例的运行页面，通过chrome 的开发工具查看 elements 情况，可以看到只有时间元素每秒在刷新：![2021-02-24T07:44:17.png][即使我们每秒钟都新建并渲染 element，但是只有时间文本 node 是一直通过 React DOM 在刷新的。通过以上的实验，思考我们的 UI 在某个时间点应该是什么样的，而不是只想这着去修改它。components 和 propscomponents 将 UI 元素分割为独立的，可复用的片段，每个片段都是单独存在的。这一章节介绍 component 的概念，更多细节参考：React.Componentcomponents 类似于 JavaScript 的 functions，它可以接受抽象的输入数据(props)，然后返回 React elements 用来在界面上显示。Function 和 Class Components最简单的定义 component 方式就是定义一个 JavaScript function：const Welcome = (props) =&gt; {
-    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;
-}上面的 function 是一个有效的 React component，因为它接受一个单参数 props object 作为传入数据并返回一个 React element。我们称这种 component 为 function component。也可以使用 ES6 的 class 定义 component：class Welcome extends React.Component {
-    render() {
-        return &lt;h1&gt;hello, {this.props.name}&lt;/h1&gt;
-    }
-}以上两种定义方式是一致的。需要注意的是 components 名称必须是以大写字母开头，因为 React 会见以小写字母开头的 components 作为 DOM tags 标签，如：&lt;div /&gt; 表示一个 html div 标签。rendering a component上面的介绍中，我们只遇到了 DOM tags 标签类型的 React elements，例如：const element = &lt;div /&gt;;
-elements 也可以表示用户自定义的 components：const element = &lt;Welcome name='marco' /&gt;
-当 React 检测到使用了用户自定义的 components 它会将此 JSX 内的 attributes 或 children 作为一个 object 传入 component，这个 object 叫做 props。下面的示例会输出 hello, marco:const Welcome = (props) =&gt; {
-    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;;
-}
-
-const element = &lt;Welcome name='marco' /&gt;;
-ReactDOM.render(
-    element,
-    document.getElementById('root')
-);以上示例过程如下：首先调用 ReactDOM.render() 渲染 &lt;Welcome name=&quot;Sara&quot; /&gt; 元素.React 调用 Welcome component 使用 {name: 'Sara'} 作为 props.Welcome component 返回一个 &lt;h1&gt;Hello, Sara&lt;/h1&gt; 元素.React DOM 高效的更新 DOM 来匹配 &lt;h1&gt;Hello, Sara&lt;/h1&gt; 结果.构建 componentcomponent 可以在其输出中引入关联其他 components。这可以让我们在一个 component 内抽象出一个多层的结构。一个 button，一个 form，一个 dialog 或者一个 screen，在 React app 中他们都统称为 components。例如我们可以创建一个 App component 来渲染多个 Welcome component：const Welcome = (props) =&gt; {
-    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;;
-}
-
-const App = () =&gt; {
-    return (
-        &lt;div&gt;
-            &lt;Welcome name='marco' /&gt;
-            &lt;Welcome name='tim' /&gt;
-            &lt;Welcome name='jone' /&gt;
-        &lt;/div&gt;
-    )
-}
-ReactDOM.render(
-    &lt;App /&gt;,
-    document.getElementById('root')
-);以上示例中，没有定义 App 的 props，因为不需要给其传入数据，也是可以的。一般情况下，新建的 React app 只有一个顶层的 App component。拆解 component不要害怕将一个 component 拆解为多个小 components。例如下面这个 Comment component：function Comment(props) {
-  return (
-    &lt;div className=&quot;Comment&quot;&gt;
-      &lt;div className=&quot;UserInfo&quot;&gt;
-        &lt;img className=&quot;Avatar&quot;
-          src={props.author.avatarUrl}
-          alt={props.author.name}
-        /&gt;
-        &lt;div className=&quot;UserInfo-name&quot;&gt;
-          {props.author.name}
-        &lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div className=&quot;Comment-text&quot;&gt;
-        {props.text}
-      &lt;/div&gt;
-      &lt;div className=&quot;Comment-date&quot;&gt;
-        {formatDate(props.date)}
-      &lt;/div&gt;
-    &lt;/div&gt;
-  );
-}它的 props 包含一个 author object，一个 text，一个 data，描述了一个社交网站上一个 commit 的内容。修改这个 component 有点困难，因为它有很多的嵌套，同时也难以复用它的内部组件。下面我们尝试拆解这个 component。首先我们拆解出 Avatar：const Avatar = (props) =&gt; {
-    return (
-        &lt;img className=&quot;Avatar&quot;
-            src={props.user.avatarUrl}
-            alt={props.user.name}
-        /&gt;
-    );
-}Avatar 并不需要知道它被用于 commit 中，因此我们修改其 prop 名称为一个更加通用的：user。推荐从 component 本身为出发点命名 props，而不是考虑什么地方使用它。现在我们可以简化 Commit component：function Comment(props) {
-    return (
-        &lt;div className=&quot;Comment&quot;&gt;
-            &lt;div className=&quot;UserInfo&quot;&gt;
-                &lt;Avatar user={props.author} /&gt;
-                &lt;div className=&quot;UserInfo-name&quot;&gt;
-                    {props.author.name}
-                &lt;/div&gt;
-            &lt;/div&gt;
-            &lt;div className=&quot;Comment-text&quot;&gt;
-                {props.text}
-            &lt;/div&gt;
-            &lt;div className=&quot;Comment-date&quot;&gt;
-                {formatDate(props.date)}
-            &lt;/div&gt;
-        &lt;/div&gt;
-    );
-}我们将 props.author 作为 user 数据传入 Avatar component 中。下面我们拆解 UserInfo，其中包含一个 Avatar component：const UserInfo = (props) =&gt; {
-    return (
-        &lt;div className=&quot;UserInfo&quot;&gt;
-            &lt;Avatar user={props.user} /&gt;
-            &lt;div className=&quot;UserInfo-name&quot;&gt;
-                {props.user.name}
-            &lt;/div&gt;
-        &lt;/div&gt;
-    );
-}然后进一步简化 Commit：function Comment(props) {
-    return (
-        &lt;div className=&quot;Comment&quot;&gt;
-            &lt;UserInfo user={props.user} /&gt;
-            &lt;div className=&quot;Comment-text&quot;&gt;
-                {props.text}
-            &lt;/div&gt;
-            &lt;div className=&quot;Comment-date&quot;&gt;
-                {formatDate(props.date)}
-            &lt;/div&gt;
-        &lt;/div&gt;
-    );
-}拆解 component 在开始看起来使工作量变大了，但是在稍微复杂写的 app 中我们就能够利用这些可复用的 components。一条基本准则是：如果 UI 中的某一部分被多次使用，如 button，panel，Avatar等，或者其自身结构比较复杂，如：App, FeedStory, Comment 等，将他们拆解为独立 components 是一个好的选项。props 是只读的当把一个 component 定义为 function 或 class 时，需要注意的是不可以修改 props 的值。考虑下面的 function：function sum(a, b) {
-  return a + b;
-}以上的 function 被称作 pure 纯粹的，以为它没有尝试修改输入数据。作为对比，下面的就是 impure 不纯粹的 function，因为会尝试修改它的输入数据：function sum(a, b) {
-  a = b;
-}React 程序有一条限制条件：所有的 React components 都需要是 pure function 来对待 props 数据。当然应用程序的 UI 是随时间动态变化的。下一节我们会介绍 state 的概念。通过 state 可以使 React components 在运行期间修改它们的输出 elements 来响应用户动作，网络响应等。同时不违反上面的那条规则。state 和 lifecycle这一节介绍 React components 中 state 和 lifecycle 的概念。在前一章的示例中，我们通过一个 tick function 在指定时间间隔通过创建新 element 并渲染的方式刷新 UI：const tick = () =&gt; {
-    const element = (
-        &lt;div&gt;
-            &lt;h1&gt;hello world&lt;/h1&gt;
-            &lt;h2&gt;{new Date().toLocaleTimeString()}&lt;/h2&gt;
-        &lt;/div&gt;
-    );
-
-    ReactDOM.render(
-        element,
-        document.getElementById('root')
-    );
-}
-setInterval(tick, 1000);下面我们介绍通过创建一个封装好的 Clock component，设置定时器并更新其自身。首先我们根据上面的示例创建 Clock component：const Clock = (props) =&gt; {
-    &lt;div&gt;
-        &lt;h1&gt;hello world&lt;/h1&gt;
-        &lt;h2&gt;{props.date.toLocaleTimeString()}&lt;/h2&gt;
-    &lt;/div&gt;
-}
-
-const tick = () =&gt; {
-    ReactDOM.render(
-        &lt;Clock date={new Date()} /&gt;,
-        document.getElementById('root')
-    );
-}
-setInterval(tick, 1000);在 tick 调用 Clock component 并定义 date prop 的数据供 Clock 使用。但是上面的实现缺乏一个基本需求，那就是 Clock 应该在其自身中定义定时器并每秒刷新数据的。我们想要在渲染时达到如下效果调用 Clock：ReactDOM.render(
-  &lt;Clock /&gt;,
-  document.getElementById('root')
-);为了实现上述功能，需要为 Clock 添加 state。state 类似于 props 但是它是由 component 私有且完全控制的。首先我们需要将 component 转换为 class 模式，转换过程如下：首先创建一个 ES6 class，且继承自 React.Component。添加一个 render() function，将原 component function 的返回元素放入其返回值中在 render() 中用 this.props 代替 propsclass Clock extends React.Component {
-    render() {
-        return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.props.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
-        );
-    }
-}当 update 更新发生时会自动调用 render function。但当我们将 &lt;Clock /&gt; 放入 DOM 后，将只会有一个 Clock object 实例被使用，这就让我们可以使用 state 或 lifecycle 等功能。添加 state下面我们将 date 数据直接放入 CLock component 中。首先将 render 中的 this.props.date 修改为 this.state.date：class Clock extends React.Component {
-    render() {
-        return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
-        );
-    }
-}然后添加 class constructor 构造器给 this.state 赋初值：class Clock extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {date: new Date()}
-    }
-    render() {
-        return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
-        );
-    }
-}注意 class component 总是应该使用 constructor 且初始化参数为 props。child class 有 constructor 时需要调用 super 来初始化 parent class，具体语法参考我的 JavaScript 教程：https://blog.niekun.net/archives/2011.html然后删除渲染到 DOM 中 Clock 的 date prop，以及我们设置的 setInterval 定时器：ReactDOM.render(
-    &lt;Clock /&gt;,
-    document.getElementById('root')
-);修改完成后的完整代码如下：class Clock extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {date: new Date()}
-    }
-    render() {
-        return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
-        );
-    }
-}
-
-ReactDOM.render(
-    &lt;Clock /&gt;,
-    document.getElementById('root')
-);下面我们实现 Clock 设置自己的定时器并每秒更新。添加 lifecycle method对于包含很多 components 的程序，但某个 component 不再需要是需要及时释放其占用的资源。我们需要 Clock 第一次在 DOM 中渲染时设置一个 timer 定时器，在 React 中叫做 mounting 载入。同时我们需要当 Clock 在 DOM 中被删除时清除这个定时器，在 React 中叫做 unmounting 卸载。我们可以在 components 载入或载出时通过定义特殊的 method 来运行特定指令：  componentDidMount() {
-  }
-
-  componentWillUnmount() {
-  }这些 methods 叫做 lifecycle methods。componentDidMount method 会在 component 第一次输出到 DOM 后被自动调用，我们可以将定时器定义在这里：    componentDidMount() {
-        this.timerID = setInterval(() =&gt; this.tick(), 1000);
-    }这样当 Clock 渲染到 UI 后会自动启动这个定时器。注意使用 this 定义的参数可以在 class 中任意地方被调用。注意 setInterval 中定义的响应动作需要写在 callback 内 () =&gt; {} 中，不要直接写：setInterval(this.tick, 1000)。因为如果要在 callback 调用 method 需要在 constructor 中做如下定义：this.tick = this.tick.bind(this);
-componentWillUnmount method 会在 component 将要被删除时自动调用，我们将定时器在这里取消：    componentWillUnmount() {
-        clearInterval(this.timerID);
-    }接下来我们定义每秒都会自动运行的 tick method，通过 this.setState() 来更新本地 state 中的设置：    tick() {
-        this.setState({ date: new Date() });
-    }最终的完整代码如下：const React = require('react')
-const ReactDOM = require('react-dom')
-
-class Clock extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { date: new Date() }
-    }
-
-    componentDidMount() {
-        this.timerID = setInterval(() =&gt; this.tick(), 1000);
-    }
-
-    componentWillUnmount() {
-        clearInterval(this.timerID);
-    }
-
-    tick() {
-        this.setState({ date: new Date() });
-    }
-
-    render() {
-        return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
-        );
-    }
-}
-
-ReactDOM.render(
-    &lt;Clock /&gt;,
-    document.getElementById('root')
-);现在整个处理流程如下：当 ReactDOM.render() 传入 &lt;Clock /&gt; 后，React 调用 Clock 构造器初始化 state 为一个包含 date 的 object然后 React 调用 Clock 的 render() 查询到需要显示的 UI 元素，然后更新 DOM 以匹配 Clock 的输出当 Clock 的输出嵌入到 DOM 后会调用 componentDidMount，Clock 告诉浏览器设置一个定时器每秒调用 tick()每秒钟调用一次 tick()，这里面 Clock component 通过 setState() 配置了其 UI 更新任务，通过 setState() React 就知道了 state 发生了变化并再次调用 render() 监测需要显示的内容，此时的 this.state.date 和上一次的发生了变化，React 就会更新 DOM 到最新的状态。当 Clock 从 DOM 中删除后，React 会调用 componentWillUnmount 并结束定时器正确使用 state关于 state 的使用需要如下的几点要求。第一点，不要直接修改 state。下面的语法不会触发重新 render 渲染 component：this.state.comment = 'Hello';
-正确的语法为使用 setState()：this.setState({comment: 'Hello'});
-唯一可以对 state 赋值的是在 constructor 构造器中。第二点，state 更新是异步的。React 为了性能可能会在一次 component update 更新中捆绑多个 setState() 调用，由于 this.props 和 this.state 可能会被异步更新，所以不要依赖他们的数据来计算后续的 state。如下示例可能会错误的更新 counter：this.setState({
-  counter: this.state.counter + this.props.increment,
-});为了实现是这个需求，使用 setState 的另一种格式：传入一个 function，第一个参数为当前 state，第二个参数为 props 然后内部计算 state 更新：this.setState(function (state, props) {
-    return {
-        counter: state.counter + props.increment
-    };
-});第三点，state 更新会合并。当调用 setState() 后，会合并设置的 object 到当前 state 中。如下示例，state 可能包含多个独立的变量：    constructor(props) {
-        super(props);
-        this.state = {
-            posts: [],
-            comments: []
-        };
-    }然后我们可以单独调用 setState() 来分别更新它们：    componentDidMount() {
-        fetchPosts().then(response =&gt; {
-            this.setState({
-                posts: response.posts
-            });
-        });
-
-        fetchComments().then(response =&gt; {
-            this.setState({
-                comments: response.comments
-            });
-        });
-    }合并过程是自动完成的，所以通过 setState 修改 comments 只会更新 comments 而不会改变 posts。数据向下传递一个 component 的 child 或 parent 都不会知道当前 component 是包含 state 还是不包含，且不关心是通过 function 还是 class 方式构建的 component。所以 state 被认为是封装的不能够被外界所访问。component 的 state 可以作为 props 向它的 child component 传递：&lt;FormattedDate date={this.state.date} /&gt;
-如上所示 FormattedDate 可以接受 date prop，它并不知道数据来自 parent 的 state 还是 props：function FormattedDate(props) {
-  return &lt;h2&gt;It is {props.date.toLocaleTimeString()}.&lt;/h2&gt;;
-}通常这叫做 top-down 或 unidirectional 数据流。任何 state 都被某个特定 component 所有，state 的数据只能在其 component 的 child 中传递出去。我们通过建立 App component 并构建三个 Clock component 来展示 component 之间是互相独立的：function App() {
-    return (
-        &lt;div&gt;
-            &lt;Clock /&gt;
-            &lt;Clock /&gt;
-            &lt;Clock /&gt;
-        &lt;/div&gt;
-    );
-}
-
-ReactDOM.render(
-    &lt;App /&gt;,
-    document.getElementById('root')
-);每个 Clock 都有个各自的定时器并独立更新。在 React 中，components 定义为 stateful 还是 stateless 的取决于其在运行中可能的变化，可以在 stateful 的 component 中使用 stateless 的 component，反过来亦可。</description>
 </item>
 </rdf:RDF>

@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2278.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2277.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2213.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2208.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2205.html"/>
@@ -19,6 +21,77 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2278.html">
+<title>openwrt 配置 LuCI ssl 证书</title>
+<link>https://blog.niekun.net/archives/2278.html</link>
+<dc:date>2021-03-30T22:00:32+08:00</dc:date>
+<description>openwrt 提供了一个 luci 管理界面可以通过图形化的方式进行配置管理。我们通过 lan 网地址 http 访问 luci 界面，会有一个提示不安全的链接，一般浏览器提供了一个跳过选项可以忽略警告。但是当我们通过 wan 口地址访问 luci 界面时，新版的 chrome 会强制拒绝访问 http 不安全的链接，这样我们就无法通过外网访问 luci 界面了。注意如果想要从 wan 口访问 luci 界面，需要配置防火墙放行，具体参考：https://blog.niekun.net/archives/1818.html解决方法是我们给 luci 配置一个 ssl 证书，这样浏览器就会放行了。首先安装相关程序：opkg update &amp;&amp; opkg install openssl-util luci-app-uhttpd
+以上我们安装了 openssl 套件和 uhttpd 的 ui 配置接口，可以图形化的方式配置 uhttpd。下面我们来生成需要的 ssl 证书文件。首先创建文件 etc/ssl/myconfig.conf：[req]
+distinguished_name  = req_distinguished_name
+x509_extensions     = v3_req
+prompt              = no
+string_mask         = utf8only
+ 
+[req_distinguished_name]
+C                   = US
+ST                  = VA
+L                   = SomeCity
+O                   = OpenWrt
+OU                  = Home Router
+CN                  = luci.openwrt
+ 
+[v3_req]
+keyUsage            = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage    = serverAuth
+subjectAltName      = @alt_names
+ 
+[alt_names]
+DNS.1               = luci.openwrt
+IP.1                = 192.168.1.1可以修改 C (country), ST (state), L (location), O (organization), OU (organization unit) 为你想要的内容。CN 和 DNS.1 必须是一样的地址，它们表示此证书代表的域名，和 IP 是对应的。如果配置了 luci 界面地址的 hosts，这里就可以定义为对应的域名。之后我们就可以通过访问这个域名来访问 IP。IP.1 就是 luci web 地址，设置为对应的地址即可。配置文件保存后返回 ssl 目录：cd /etc/ssl
+执行下面的命令：openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout mycert.key -out mycert.crt -config myconfig.conf
+会自动在当前目录下创建 mycert.key 和 mycert.crt 文件。然后我们先通过 lan 内网访问 luci web 界面，在顶部我们可以看到多了一个 services 菜单，点击其中的 uhttpd 进入配置界面，在 HTTPS Certificate 和 HTTPS Private Key 中分别上传 crt 和 key 文件：然后点击 save and apply。重启 uhttpd 服务：/etc/init.d/uhttpd restart
+此时我们通过 wan 口地址访问 luci web 界面，应该就可以正常进入了。下面我们将刚才生成的 ssl 文件加入 backup 列表。默认情况下 /etc/config 下的文件会自动进行备份。我们进入 System → Backup/Flash Firmware，点击 configuration 栏，然后将 /etc/ssl/mycert.crt 和  /etc/ssl/mycert.key 加入列表中，点击 save 即可。之后我们生成的备份就会包含这些文件。参考链接How to get rid of LuCI HTTPS certificate warnings</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2277.html">
+<title>openwrt 自启动服务 init.d</title>
+<link>https://blog.niekun.net/archives/2277.html</link>
+<dc:date>2021-03-30T21:29:36+08:00</dc:date>
+<description>openwrt 是针对于嵌入式设备的精简版 Linux 系统。所以一些常规的 Linux 服务都没有，比如 systemd 等。openwrt 是通过 init.d 来管理服务的。所有的服务都在 /etc/init.d 目录下。对某个服务进行操作也很方便，例如对 network 服务：# 启动 network
+/etc/init.d/network start
+
+# 重启 network
+/etc/init.d/network restart
+
+# 停止 network
+/etc/init.d/network stop如果需要某个服务开机自启动，可以 enable：/etc/init.d/frp enable会自动在 /etc/rc.d/ 目录下建立一个链接指向 /etc/init.d 下的对应服务，如：S99frp。S99 表示此服务的启动顺序，下面会做介绍。我们在 /etc/init.d/ 下新建一个 test 文件。内容如下：#!/bin/sh /etc/rc.common
+START=99
+start() {
+    /root/test.sh
+}START=99 定义此服务如果定义开机自启动时，其启动顺序序号。最大为 99，数字越大启动排序越靠后。start function 内定义了通过启动时执行的指令，上面的示例中我们定义了一个脚本文件自动运行。我们也可以通过手动调用 start function执行其中指令：/etc/init.d/test start
+下面是一个更复杂的示例：#!/bin/sh /etc/rc.common
+START=99
+USE_PROCD=1
+boot() {
+    sleep 10
+    rc_procd start_service
+}
+start_instance() {
+    procd_open_instance &quot;frpc.frpc&quot;
+    procd_set_param command &quot;/usr/bin/frpc&quot;
+    procd_append_param command -c &quot;/etc/frp/frpc.ini&quot;
+    procd_set_param respawn
+    procd_set_param file &quot;/etc/frp/frpc.ini&quot;
+    procd_set_param user &quot;root&quot;
+    procd_close_instance
+}
+service_triggers() {
+    procd_add_reload_trigger &quot;frpc&quot;
+}
+start_service() {
+    config_load &quot;frpc&quot;
+    config_foreach start_instance &quot;frpc&quot;
+}sleep 10 表示自启动时延时 10 秒运行 start_service function。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2213.html">
 <title>ESXi 的安装与使用</title>
 <link>https://blog.niekun.net/archives/2213.html</link>

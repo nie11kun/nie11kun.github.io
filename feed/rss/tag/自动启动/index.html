@@ -83,6 +83,10 @@ protocol = kcp
 #加密连接服务端
 tls_enable = true
 
+#当第一次链接服务器失败是否退出程序，如果设置开机自启这里需要设置为 false，否则可能启动不成功
+#设置为 false 会在链接失败后再次尝试链接
+login_fail_exit = false
+
 # ssh 是自定义代理块标记，可以是任意的名称
 [ssh]
 # tcp | udp | http | https | stcp | xtcp, default is tcp
@@ -199,13 +203,26 @@ server {
         proxy_set_header    Connection        &quot;upgrade&quot;;
         proxy_http_version  1.1;
     }
-}我的 https 配置文件放在 my-server/ssl 文件内。第一个 server 配置了 frp.niekun.net 域名转发给 frps 控制面板端口 6004，这样访问：https://frp.niekun.net 就可以访问 frps 控制面板。第二个 server 配置了 web01.niekun.net 域名转发给 frps 监听的 http 端口 6002，访问：https://web01.niekun.net 就可以访问内网的 web01 页面了。proxy_set_header 设置转发给 frps 的请求头，有些网页如果缺少一些请求头信息会报错。更详细的 nginx 代理服务器的使用参考我的文章：NGINX Reverse Proxy 反向代理的使用注意：由于 rdp 是 tcp 协议，所以不能通过 nginx 代理使用域名进行访问。nginx 和 frp 的更多配合方式参考示例：https://github.com/raymond9zhou/frps-nginx-httpsWindows 运行脚本及自启动Windows 下可以写一个 bat 脚本，双击直接后台运行命令：@echo off
+}我的 https 配置文件放在 my-server/ssl 文件内。第一个 server 配置了 frp.niekun.net 域名转发给 frps 控制面板端口 6004，这样访问：https://frp.niekun.net 就可以访问 frps 控制面板。第二个 server 配置了 web01.niekun.net 域名转发给 frps 监听的 http 端口 6002，访问：https://web01.niekun.net 就可以访问内网的 web01 页面了。proxy_set_header 设置转发给 frps 的请求头，有些网页如果缺少一些请求头信息会报错。更详细的 nginx 代理服务器的使用参考我的文章：NGINX Reverse Proxy 反向代理的使用注意：由于 rdp 是 tcp 协议，所以不能通过 nginx 代理使用域名进行访问。nginx 和 frp 的更多配合方式参考示例：https://github.com/raymond9zhou/frps-nginx-https客户端 frpc Windows 运行脚本及自启动Windows 下可以写一个 bat 脚本，双击直接后台运行命令：@echo off
 if &quot;%1&quot; == &quot;h&quot; goto begin
 mshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;&quot;&quot;%~nx0&quot;&quot; h&quot;,0)(window.close)&amp;&amp;exit
 :begin
 REM
 cd C:\frp
 frpc -c frpc.ini
-exit上面的 frp 地址修改为实际地址，程序会在后台运行，想要关闭可以在任务管理器中结束进程： frpc.exe将脚本快捷方式放到开机启动文件夹可以实现开机自启动，Windows 10 自启文件夹地址是：%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup以上就是 frp 的简单使用，高级用法参考官方手册。详细配置文件：frps：https://gofrp.org/docs/reference/server-configures/frpc：https://gofrp.org/docs/reference/client-configures/可用代理类型：https://gofrp.org/docs/reference/proxy/可用插件：https://gofrp.org/docs/features/common/client-plugin/参考连接：https://www.anquanke.com/post/id/184855</description>
+exit上面的 frpc 地址修改为实际地址，程序会在后台运行，想要关闭可以在任务管理器中结束进程： frpc.exe将脚本快捷方式放到开机启动文件夹可以实现开机自启动，Windows 10 自启文件夹地址是：%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startuplinux systemd service 脚本通过 systemd service 脚本可以方便的启动，关闭 frp 服务，也可以设置开机自启。在 /usr/lib/systemd/system 目录下新建文件 frp.service 内容如下：[Unit]
+Description=frp Service
+After=network.target nss-lookup.target
+
+[Service]
+User=root
+ExecStart=/opt/frp/frps -c /opt/frp/frps.ini
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target注意如果是服务端需要启动 frps 程序，客户端启动 frpc 程序，根据实际修改其中的配置文件路径。重新加载配置文件：sudo systemctl daemon-reload
+启动 frp 服务：sudo systemctl start frp.service
+设置开机自启动：sudo systemctl enable frp.service
+以上就是 frp 的简单使用，高级用法参考官方手册。详细配置文件：frps：https://gofrp.org/docs/reference/server-configures/frpc：https://gofrp.org/docs/reference/client-configures/可用代理类型：https://gofrp.org/docs/reference/proxy/可用插件：https://gofrp.org/docs/features/common/client-plugin/参考连接：https://www.anquanke.com/post/id/184855</description>
 </item>
 </rdf:RDF>

@@ -87,6 +87,10 @@ protocol = kcp
 #加密连接服务端
 tls_enable = true
 
+#当第一次链接服务器失败是否退出程序，如果设置开机自启这里需要设置为 false，否则可能启动不成功
+#设置为 false 会在链接失败后再次尝试链接
+login_fail_exit = false
+
 # ssh 是自定义代理块标记，可以是任意的名称
 [ssh]
 # tcp | udp | http | https | stcp | xtcp, default is tcp
@@ -203,14 +207,27 @@ server {
         proxy_set_header    Connection        &quot;upgrade&quot;;
         proxy_http_version  1.1;
     }
-}</code></pre><p>我的 https 配置文件放在 my-server/ssl 文件内。</p><p>第一个 server 配置了 frp.niekun.net 域名转发给 frps 控制面板端口 6004，这样访问：<a href="https://frp.niekun.net">https://frp.niekun.net</a> 就可以访问 frps 控制面板。</p><p>第二个 server 配置了 web01.niekun.net 域名转发给 frps 监听的 http 端口 6002，访问：<a href="https://web01.niekun.net">https://web01.niekun.net</a> 就可以访问内网的 web01 页面了。proxy_set_header 设置转发给 frps 的请求头，有些网页如果缺少一些请求头信息会报错。</p><p>更详细的 nginx 代理服务器的使用参考我的文章：<a href="https://blog.niekun.net/archives/1378.html">NGINX Reverse Proxy 反向代理的使用</a></p><p><strong>注意：由于 rdp 是 tcp 协议，所以不能通过 nginx 代理使用域名进行访问。</strong></p><p>nginx 和 frp 的更多配合方式参考示例：<a href="https://github.com/raymond9zhou/frps-nginx-https">https://github.com/raymond9zhou/frps-nginx-https</a></p><h2>Windows 运行脚本及自启动</h2><p>Windows 下可以写一个 bat 脚本，双击直接后台运行命令：</p><pre><code>@echo off
+}</code></pre><p>我的 https 配置文件放在 my-server/ssl 文件内。</p><p>第一个 server 配置了 frp.niekun.net 域名转发给 frps 控制面板端口 6004，这样访问：<a href="https://frp.niekun.net">https://frp.niekun.net</a> 就可以访问 frps 控制面板。</p><p>第二个 server 配置了 web01.niekun.net 域名转发给 frps 监听的 http 端口 6002，访问：<a href="https://web01.niekun.net">https://web01.niekun.net</a> 就可以访问内网的 web01 页面了。proxy_set_header 设置转发给 frps 的请求头，有些网页如果缺少一些请求头信息会报错。</p><p>更详细的 nginx 代理服务器的使用参考我的文章：<a href="https://blog.niekun.net/archives/1378.html">NGINX Reverse Proxy 反向代理的使用</a></p><p><strong>注意：由于 rdp 是 tcp 协议，所以不能通过 nginx 代理使用域名进行访问。</strong></p><p>nginx 和 frp 的更多配合方式参考示例：<a href="https://github.com/raymond9zhou/frps-nginx-https">https://github.com/raymond9zhou/frps-nginx-https</a></p><h3>客户端 frpc Windows 运行脚本及自启动</h3><p>Windows 下可以写一个 bat 脚本，双击直接后台运行命令：</p><pre><code>@echo off
 if &quot;%1&quot; == &quot;h&quot; goto begin
 mshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;&quot;&quot;%~nx0&quot;&quot; h&quot;,0)(window.close)&amp;&amp;exit
 :begin
 REM
 cd C:\frp
 frpc -c frpc.ini
-exit</code></pre><p>上面的 frp 地址修改为实际地址，程序会在后台运行，想要关闭可以在任务管理器中结束进程： frpc.exe</p><p>将脚本快捷方式放到开机启动文件夹可以实现开机自启动，Windows 10 自启文件夹地址是：<code>%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup</code></p><p>以上就是 frp 的简单使用，高级用法参考官方手册。</p><p><strong>详细配置文件：</strong><br>frps：<br><a href="https://gofrp.org/docs/reference/server-configures/">https://gofrp.org/docs/reference/server-configures/</a></p><p>frpc：<br><a href="https://gofrp.org/docs/reference/client-configures/">https://gofrp.org/docs/reference/client-configures/</a></p><p>可用代理类型：<br><a href="https://gofrp.org/docs/reference/proxy/">https://gofrp.org/docs/reference/proxy/</a></p><p>可用插件：<br><a href="https://gofrp.org/docs/features/common/client-plugin/">https://gofrp.org/docs/features/common/client-plugin/</a></p><p>参考连接：<br><a href="https://www.anquanke.com/post/id/184855">https://www.anquanke.com/post/id/184855</a></p>
+exit</code></pre><p>上面的 frpc 地址修改为实际地址，程序会在后台运行，想要关闭可以在任务管理器中结束进程： frpc.exe</p><p>将脚本快捷方式放到开机启动文件夹可以实现开机自启动，Windows 10 自启文件夹地址是：<code>%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup</code></p><h3>linux systemd service 脚本</h3><p>通过 systemd service 脚本可以方便的启动，关闭 frp 服务，也可以设置开机自启。</p><p>在 <code>/usr/lib/systemd/system</code> 目录下新建文件 <strong>frp.service</strong> 内容如下：</p><pre><code>[Unit]
+Description=frp Service
+After=network.target nss-lookup.target
+
+[Service]
+User=root
+ExecStart=/opt/frp/frps -c /opt/frp/frps.ini
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target</code></pre><p><strong>注意如果是服务端需要启动 frps 程序，客户端启动 frpc 程序</strong>，根据实际修改其中的配置文件路径。</p><p>重新加载配置文件：</p><pre><code>sudo systemctl daemon-reload
+</code></pre><p>启动 frp 服务：</p><pre><code>sudo systemctl start frp.service
+</code></pre><p>设置开机自启动：</p><pre><code>sudo systemctl enable frp.service
+</code></pre><p>以上就是 frp 的简单使用，高级用法参考官方手册。</p><p><strong>详细配置文件：</strong><br>frps：<br><a href="https://gofrp.org/docs/reference/server-configures/">https://gofrp.org/docs/reference/server-configures/</a></p><p>frpc：<br><a href="https://gofrp.org/docs/reference/client-configures/">https://gofrp.org/docs/reference/client-configures/</a></p><p>可用代理类型：<br><a href="https://gofrp.org/docs/reference/proxy/">https://gofrp.org/docs/reference/proxy/</a></p><p>可用插件：<br><a href="https://gofrp.org/docs/features/common/client-plugin/">https://gofrp.org/docs/features/common/client-plugin/</a></p><p>参考连接：<br><a href="https://www.anquanke.com/post/id/184855">https://www.anquanke.com/post/id/184855</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/539.html#comments</comments>
