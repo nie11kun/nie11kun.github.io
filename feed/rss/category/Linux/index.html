@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2281.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2278.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2277.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2205.html"/>
@@ -18,10 +19,66 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2071.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2035.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1911.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1906.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2281.html">
+<title>Ubuntu desktop 配置 vnc server</title>
+<link>https://blog.niekun.net/archives/2281.html</link>
+<dc:date>2021-03-31T11:26:00+08:00</dc:date>
+<description>通过 VNC(Virtual Network Computing) 可以使用一个图形化的界面来访问远程服务器。这样对服务器的操作可以更加便捷直观。下面我们在 Ubuntu 上安装 TightVNC vnc server 并通过更加安全的 SSH tunnel 来连接服务器。环境需求：远程主机 Ubuntu desktop 20.04关闭 ufw 防火墙或配置允许 openssh 远程连接本地设备 vnc 客户端需要支持 SSH tunnels 连接，如： TightVNC, RealVNC, or UltraVNC.安装Ubuntu 本身没有安装 vnc 服务，下面我们通过安装 Xfce 桌面环境服务和 TightVNC 来实现，它们都很轻量及快速，很适合配置 vnc server。首先安装 xfce 及其增强包：sudo apt install xfce4 xfce4-goodies
+安装过程中会提示需要选择 xfce 的一个默认 display manager 显示管理器，它是用来在登录系统时的一个图像界面来输入用户及密码的，由于我们只是使用 xfce 来连接 vnc 客户端，且此时已经登陆了对应账户了，所以这里我们任意选择一个显示管理器即可。下面安装 TightVNC server：sudo apt install tightvncserver
+安装完成后，我们运行 vncserver 来设置一个 vnc 密码，并且初始化相关配置文件：vncserver
+此时会提示要求输入一个密码及 verify 验证密码：You will require a password to access your desktops.
+
+Password: 
+Verify:  然后会提示是否需要设置一个 view-only 密码，通过这个密码登录后，不可以使用鼠标或键盘操作服务器。不需要的话输入 n 不创建即可。然后就会创建相关的默认配置文件和显示相关连接信息，同时会启动一个运行在 5901 端口的 vnc 服务实例：Would you like to enter a view-only password (y/n)? n
+xauth:  file /home/sammy/.Xauthority does not exist
+
+New 'X' desktop is marco-virtual-machine:1
+
+Creating default startup script /home/marco/.vnc/xstartup
+Starting applications specified in /home/marco/.vnc/xstartup
+Log file is /home/marco/.vnc/marco-virtual-machine:1.log后期如果需要修改 vnc 密码可以输入 vncpasswd 设置：vncpasswd
+此时我们的 vnc server 就安装完成并且启动了，下面我们配置启动 xfce。配置vnc server 在启动时需要知道需要执行哪些命令，以及需要连接到哪个 graphical desktop environment 图形环境。vnc server 启动时所执行的命令是在 xstartup 文件中定义的。他在当前登录用户的 home 目录的 .vnc 文件夹内。这个文件在我们第一次启动 vncserver 时会自动创建。下面我们对它进行修改。由于我们上面已经启动了 vncserver，它启动了一个运行在 5901 端口的 vnc 实例。我们首先关闭这个服务：vncserver -kill :1
+输出信息如下：Killing Xtightvnc process ID 17648
+下面我们打开 ~/.vnc/xstartup 文件，修改为以下内容：#!/bin/sh
+
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+startxfce4 &amp;
+
+xrdb $HOME/.Xresources
+xsetroot -solid grey
+#x-terminal-emulator -geometry 80x24+10+10 -ls -title &quot;$VNCDESKTOP Desktop&quot; &amp;
+#x-window-manager &amp;
+# Fix to make GNOME work
+export XKL_XMODMAP_DISABLE=1
+/etc/X11/Xsession注意前三句是需要添加的，下面的是文件默认内容。否则远程连接会显示为灰屏。然后给配置文件添加执行权限：chmod +x ~/.vnc/xstartup
+然后我们重新启动 vncserver：vncserver -localhost
+注意这里我们添加了 -localhost 参数，意味着此 vnc 服务只可以在本机内被连接。如果不添加这个参数，则开放所有网络连接。我们这里只打开本地网络连接服务，然后通过 ssh tunnel 在远程和本地建立安全的连接并转发 vnc 本地端口。连接vnc 本身并不支持通过一些安全的协议进行连接，下面我们通过 ssh tunnel 隧道在本地和远程主机间建立一个安全的链接，然后告诉 vnc 客户端使用这个安全隧道连接远程服务器。上面我们已经启动了一个 vncserver 在 5901 端口，它可以在本地网络内被连接但无法被外部网络连接。首先我们通过 ssh 在本地和远程建立一个安全链接，并转发远程主机的 localhost 及端口到本地的特定端口：ssh -L 59000:localhost:5901 -C -N -l user xxx.xxx.xxx.xxx
+以上命令意义如下：-L 59000:localhost:5901：使用 -L 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。-C 参数用来启用传输数据压缩，可以提高传输效率-N 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用-l 定义远程主机的用户名和 IP 地址ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 localhost:59000：输入我们之前创建的 vnc 密码后就连接到远程服务器了：当然也可以不使用 ssh tunnel ，但是需要取消 -localhost 参数，就可以直接连接 vnc server。配置 vnc systemd 服务为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。在 /usr/lib/systemd/system 目录下新建文件 vncserver@.service，其中的 @ 可以让我们在操作此服务时添加传递参数，在配置文件中使用 %1 可以读取这个参数。内容如下：[Unit]
+Description=Start TightVNC server at startup
+After=syslog.target network.target
+
+[Service]
+Type=forking
+User=user
+Group=user
+WorkingDirectory=/home/user
+
+PIDFile=/home/user/.vnc/%H:%i.pid
+ExecStartPre=-/usr/bin/vncserver -kill :%i &gt; /dev/null 2&gt;&amp;1
+ExecStart=/usr/bin/vncserver -depth 24 -geometry 1280x800 -localhost :%i
+ExecStop=/usr/bin/vncserver -kill :%i
+
+[Install]
+WantedBy=multi-user.target注意上面的配置中，需要将 user 修改为你实际登录的用户名称，共有 4 个地方ExecStart 中我们定义了 24 位色深 1280x800 的 vnc 显示，可以根据需要自行修改使用了 -localhost 参数，所以只能使用 ssh tunnel 的方式访问然后重新加载配置：sudo systemctl daemon-reload
+启动一个 vncserver 使用参数 1 来定义 vnc 服务号：sudo systemctl start vncserver@1
+此时我们就启动了一个 vncserver 且其服务号为 :1。关闭启动的 :1 vncserver：systemctl stop vncserver@1
+开机自动启动 vncserver 服务：systemctl enable vncserver@1
+这样就可以实现开机自动部署 vncserver 服务了。参考链接How to Install and Configure VNC on Ubuntu 20.04VNC grey screen, x cursor, nothing helps</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2278.html">
 <title>openwrt 配置 LuCI ssl 证书</title>
 <link>https://blog.niekun.net/archives/2278.html</link>
@@ -344,11 +401,5 @@ Closest servers:
      Upload:     8.23 Mbps (data used: 11.3 MB)
 Packet Loss:     0.0%
  Result URL: https://www.speedtest.net/result/c/bee17d45-7b9c-44e6-8a6e-ef99d84ba441以上就是简单的用法，可以查看帮助了解更多的使用方法。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1906.html">
-<title>两个子网间网络互访的原理</title>
-<link>https://blog.niekun.net/archives/1906.html</link>
-<dc:date>2020-11-13T11:29:00+08:00</dc:date>
-<description>之前我介绍过子网，子网掩码，网关等基本概念解析，可以参考：https://blog.niekun.net/archives/1885.html在不同子网下的设备是不能直接访问的，因为他们在不同的网段内，比如：路由 A 下有子网 192.168.1.0/24路由 B 下有子网 192.168.3.0/24设备 james：192.168.1.10/24 网关：192.168.1.1设备 Johnny：192.168.3.10/24 网关：192.168.3.1两个路由的 wan 网口在同一网段：192.168.2.0/24 下正常情况下路由 A 下的设备无法访问路由 B 下的设备，因为他们在不同的子网网段下。路由 A 有两个网段：192.168.1.0 和 192.168.2.0，所以它可以同时看见这两个网段的设备，但是它并不知道 192.168.3.0 这一网段的存在。同样的道理，路由 B 并不知道 192.168.1.0 这一网段的存在。当你给一个设备添加一个路由表 route table，就可以告诉它有其他网段可以进行访问，同时需要告诉它一个可以访问到这个新网段的网关，这样就可以访问到其他网段了。例如让路由 A 访问到路由 B 的子网 192.168.3.0 可以通过给路由 A 添加新的路由表来实现，使用 ip route 命令：ip route add 192.168.3.0/24 via 192.168.2.2以上命令的意义是添加路由 B 子网的路由表 192.168.3.0/24，网关地址是路由 B 的 wan 地址 192.168.2.2。因为路由 B 可以访问到两个网络 192.168.2.0 和 192.168.3.0，而路由 A 和路由 B 通过 192.168.2.0 互访，所以通过给路由 A 添加以上路由表然后网关地址为路由 B 和外部通信的地址，这样路由 A 就可以访问到路由 B 的子网了。现在路由 A 可以访问到路由 B 的子网了，那么路由 A 下的设备如何访问路由 B 的子网设备呢？原理是相同的，可以通过给设备添加路由 B 子网的路由表，然后由于路由 A 已经可以访问 路由 B 子网了，所以将网关地址设置为路由 A 地址即可：ip route add 192.168.3.0/24 via 192.168.1.1在路由 A 下的 James 执行以上命令后，就可以访问到路由 B 下的 Johnny 了。同样的原理，在路由 B 上设置路由表及网关就可以实现子网互访了。参考链接：understand the 'ip route' command for cisco routers</description>
 </item>
 </rdf:RDF>
