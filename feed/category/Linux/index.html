@@ -11,8 +11,26 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/Linux/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Wed, 31 Mar 2021 11:26:00 +0800</lastBuildDate>
-<pubDate>Wed, 31 Mar 2021 11:26:00 +0800</pubDate>
+<lastBuildDate>Thu, 01 Apr 2021 16:22:46 +0800</lastBuildDate>
+<pubDate>Thu, 01 Apr 2021 16:22:46 +0800</pubDate>
+<item>
+<title>Linux 脚本中的 Shebang #!</title>
+<link>https://blog.niekun.net/archives/2287.html</link>
+<guid>https://blog.niekun.net/archives/2287.html</guid>
+<pubDate>Thu, 01 Apr 2021 16:22:46 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[在 Linux 中，当我们准备运行一个可执行文件时，execve 程序会建立一个新的进程替代当前的进程(如终端下的 bash)，同时决定如何完成这个执行任务。当我们执行一个文本文件时，execv...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>在 Linux 中，当我们准备运行一个可执行文件时，execve 程序会建立一个新的进程替代当前的进程(如终端下的 bash)，同时决定如何完成这个执行任务。</p><p>当我们执行一个文本文件时，execve 需要文本文件的开头两个字符为 <code>“#!</code> 读作：<strong>shebang</strong>，同时跟随一个解释器的路径用来解释后续的脚本文本内容。</p><p>下面我们举例说明。</p><!--more--><h3>shell 脚本</h3><p>最常用的就是在 shell 脚本中使用 shebang，下面是一个简单的示例：</p><pre><code>#!/bin/sh
+echo &quot;Hello, ${USER}&quot;</code></pre><p>我们定义了此脚本的解释器为 <code>/bin/sh</code>，后续的脚本内容会通过此解释器来运行。</p><p>实际上 <code>/bin/sh</code> 是当前系统可执行 shell 命令的程序的软链接，大多数情况下它表示 bash，但为了不同系统的兼容性和安全性，我们直接使用此软链接来表示当前系统支持的 shell 可执行程序。</p><p>同时需要注意的是，可执行文本文件必须有执行权限，当创建一个新的脚本文件时，需要对其设置执行权限：</p><pre><code>chmod +x test.sh
+</code></pre><h3>其他解释器</h3><p>当然我们可以根据需要定义其他的解释器，而不仅仅是 sh。下面的示例我们将 cat 作为解释器，这样就会输出脚本本身的内容：</p><pre><code>#!/bin/cat
+Hello World!</code></pre><h3>调用 PATH</h3><p>上面的示例中，我们定义的解释器的绝对路径，但是当我们不知道一个程序的明确的路径时，我们可以通过将解释器定义为 env 程序，并传递实际需要的解释器程序名称，env 会自动在当前用户 PATH 环境变量中查询程序的路径并作为解释器执行脚本。</p><p>下面我们通过 env 来查询 node 并作为解释器执行 node 脚本：</p><pre><code>#!/usr/bin/env node
+console.log('Hello world!');</code></pre><p>以上就是对 shebang 的简单解释。</p><h3>参考链接</h3><p><a href="https://www.baeldung.com/linux/shebang">Using Shebang #! in Linux Scripts</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2287.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2287.html</wfw:commentRss>
+</item>
 <item>
 <title>Ubuntu desktop 配置 vnc server</title>
 <link>https://blog.niekun.net/archives/2281.html</link>
@@ -392,86 +410,6 @@ gpgkey=http://mirrors.aliyun.com/centos-vault/RPM-GPG-KEY-CentOS-6</code></pre><
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2035.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2035.html</wfw:commentRss>
-</item>
-<item>
-<title>Speedtest CLI 命令行测速工具</title>
-<link>https://blog.niekun.net/archives/1911.html</link>
-<guid>https://blog.niekun.net/archives/1911.html</guid>
-<pubDate>Mon, 16 Nov 2020 13:08:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[speedtest 是国外很流行的测速平台，可以直接在其网站上测试本地上行下行带宽，最近看到其提供了本地命令行工具，使用起来更加方便了。官网：https://www.speedtest.net/]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>speedtest 是国外很流行的测速平台，可以直接在其网站上测试本地上行下行带宽，最近看到其提供了本地命令行工具，使用起来更加方便了。</p><p>官网：<a href="https://www.speedtest.net/">https://www.speedtest.net/</a></p><!--more--><h3>安装</h3><p>首先需要到官网安装对应平台的 CLI 工具：<a href="https://www.speedtest.net/apps/cli">https://www.speedtest.net/apps/cli</a></p><p>Linux 类系统可以直接在使用 apt/brew 等包管理工具方便的安装，Windows 下需要手动下载 exe 可执行文件使用。</p><p><strong>macOS:</strong></p><pre><code>brew tap teamookla/speedtest
-brew update
-brew install speedtest --force</code></pre><p><strong>ubuntu:</strong></p><pre><code>sudo apt-get install gnupg1 apt-transport-https dirmngr
-export INSTALL_KEY=379CE192D401AB61
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $INSTALL_KEY
-echo &quot;deb https://ookla.bintray.com/debian generic main&quot; | sudo tee  /etc/apt/sources.list.d/speedtest.list
-sudo apt-get update
-sudo apt-get install speedtest</code></pre><p><strong>windows:</strong><br>首先在网站上下载可执行文件，<a href="https://bintray.com/ookla/download/download_file?file_path=ookla-speedtest-1.0.0-win64.zip">点击下载 1.0.0 版</a>。</p><p>可执行文件为 <code>speedtest.exe</code>，需要将其目录加入系统 PATH 路径才可以直接在 terminal 调用，加入 PATH 方法参考我的教程：<a href="https://blog.niekun.net/archives/413.html">https://blog.niekun.net/archives/413.html</a></p><h3>使用</h3><p>在终端下使用 <code>speedtest -h</code> 命令查看帮助：</p><pre><code>Speedtest by Ookla is the official command line client for testing the speed and performance of your internet connection.
-
-Version: speedtest 1.0.0.2
-
-Usage: speedtest [&lt;options&gt;]
-  -h, --help                        Print usage information
-  -V, --version                     Print version number
-  -L, --servers                     List nearest servers
-  -s, --server-id=#                 Specify a server from the server list using its id
-  -I, --interface=ARG               Attempt to bind to the specified interface when connecting to servers
-  -i, --ip=ARG                      Attempt to bind to the specified IP address when connecting to servers
-  -o, --host=ARG                    Specify a server, from the server list, using its host's fully qualified domain name
-  -p, --progress=yes|no             Enable or disable progress bar (Note: only available for 'human-readable'
-                                    or 'json' and defaults to yes when interactive)
-  -P, --precision=#                 Number of decimals to use (0-8, default=2)
-  -f, --format=ARG                  Output format (see below for valid formats)
-  -u, --unit[=ARG]                  Output unit for displaying speeds (Note: this is only applicable
-                                    for ‘human-readable’ output format and the default unit is Mbps)
-  -a                                Shortcut for [-u auto-decimal-bits]
-  -A                                Shortcut for [-u auto-decimal-bytes]
-  -b                                Shortcut for [-u auto-binary-bits]
-  -B                                Shortcut for [-u auto-binary-bytes]
-      --selection-details           Show server selection details
-      --ca-certificate=ARG          CA Certificate bundle path
-  -v                                Logging verbosity. Specify multiple times for higher verbosity
-      --output-header               Show output header for CSV and TSV formats
-
- Valid output formats: human-readable (default), csv, tsv, json, jsonl, json-pretty
-
- Machine readable formats (csv, tsv, json, jsonl, json-pretty) use bytes as the unit of measure with max precision
-
- Valid units for [-u] flag:
-   Decimal prefix, bits per second:  bps, kbps, Mbps, Gbps
-   Decimal prefix, bytes per second: B/s, kB/s, MB/s, GB/s
-   Binary prefix, bits per second:   kibps, Mibps, Gibps
-   Binary prefix, bytes per second:  kiB/s, MiB/s, GiB/s
-   Auto-scaled prefix: auto-binary-bits, auto-binary-bytes, auto-decimal-bits, auto-decimal-bytes</code></pre><p>首先使用测试最近的测速节点 <code>testspeed -L</code>:</p><pre><code>root@Marco-vostro-14-wsl:~# speedtest -L
-Closest servers:
-
-    ID  Name                           Location             Country
-==============================================================================
- 29105  陕西移动5G                 Xi'an                China
-  2461  China Unicom                   Chengdu              China
-  4575  China Mobile Group Sichuan     Chengdu              China
- 24337  China Mobile Group Sichuan Co.,Ltd. Chengdu              China
- 35527  sccn                           Chengdu              China
- 31985  China Unicom                   Chongqing            China
- 17584  Chongqing Mobile Company       Chongqing            CN
-  5530  CCN                            Chongqing            China
- 16145  Lanzhou,China Mobile,Gansu     Lanzhou              China</code></pre><p>执行 <code>speedtest</code> 命令进行测速，默认使用上面测试的最近的节点：</p><pre><code>root@Marco-vostro-14-wsl:~# speedtest
-
-   Speedtest by Ookla
-
-     Server: Chongqing Mobile Company - Chongqing (id = 17584)
-        ISP: China Telecom
-    Latency:    31.45 ms   (25.47 ms jitter)
-   Download:    14.31 Mbps (data used: 17.5 MB)
-     Upload:     8.23 Mbps (data used: 11.3 MB)
-Packet Loss:     0.0%
- Result URL: https://www.speedtest.net/result/c/bee17d45-7b9c-44e6-8a6e-ef99d84ba441</code></pre><p>以上就是简单的用法，可以查看帮助了解更多的使用方法。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1911.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1911.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

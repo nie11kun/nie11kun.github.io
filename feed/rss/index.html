@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2287.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2281.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2278.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2277.html"/>
@@ -18,10 +19,19 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2204.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2201.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2198.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2195.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2287.html">
+<title>Linux 脚本中的 Shebang #!</title>
+<link>https://blog.niekun.net/archives/2287.html</link>
+<dc:date>2021-04-01T16:22:46+08:00</dc:date>
+<description>在 Linux 中，当我们准备运行一个可执行文件时，execve 程序会建立一个新的进程替代当前的进程(如终端下的 bash)，同时决定如何完成这个执行任务。当我们执行一个文本文件时，execve 需要文本文件的开头两个字符为 “#! 读作：shebang，同时跟随一个解释器的路径用来解释后续的脚本文本内容。下面我们举例说明。shell 脚本最常用的就是在 shell 脚本中使用 shebang，下面是一个简单的示例：#!/bin/sh
+echo &quot;Hello, ${USER}&quot;我们定义了此脚本的解释器为 /bin/sh，后续的脚本内容会通过此解释器来运行。实际上 /bin/sh 是当前系统可执行 shell 命令的程序的软链接，大多数情况下它表示 bash，但为了不同系统的兼容性和安全性，我们直接使用此软链接来表示当前系统支持的 shell 可执行程序。同时需要注意的是，可执行文本文件必须有执行权限，当创建一个新的脚本文件时，需要对其设置执行权限：chmod +x test.sh
+其他解释器当然我们可以根据需要定义其他的解释器，而不仅仅是 sh。下面的示例我们将 cat 作为解释器，这样就会输出脚本本身的内容：#!/bin/cat
+Hello World!调用 PATH上面的示例中，我们定义的解释器的绝对路径，但是当我们不知道一个程序的明确的路径时，我们可以通过将解释器定义为 env 程序，并传递实际需要的解释器程序名称，env 会自动在当前用户 PATH 环境变量中查询程序的路径并作为解释器执行脚本。下面我们通过 env 来查询 node 并作为解释器执行 node 脚本：#!/usr/bin/env node
+console.log('Hello world!');以上就是对 shebang 的简单解释。参考链接Using Shebang #! in Linux Scripts</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2281.html">
 <title>Ubuntu desktop 配置 vnc server</title>
 <link>https://blog.niekun.net/archives/2281.html</link>
@@ -344,148 +354,5 @@ const Blog = (props) =&gt; {
 <link>https://blog.niekun.net/archives/2198.html</link>
 <dc:date>2021-03-03T21:03:37+08:00</dc:date>
 <description>今天打开一个 QT 项目后进行编译发现报错了，查看了下什么都没有修改就比较奇怪了。根据日志是 boost 库出了问题，报错为：Undefined symbols for architecture x86_64，但是 boost 库是以前编译好的从来没动过。回想起来前几天重新安装了下 command line tool 会不会有关系。看了下 QT kit 配置里面发现 clang 的设置居然有叹号。重新识别了下系统编译器：然后重建下项目配置：重新编译项目依然有报错。最后就是 boost 库的确有问题了。于是我重新编译了一次。居然问题就解决了。原来真的是由于系统的 Clang 更新后原来编译的 boost 库不兼容了，在此使用当前系统的 Clang 编译一次就行了。boost 库编译方法参考：https://blog.niekun.net/archives/1174.html</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2195.html">
-<title>React 入门教程之六 -- Conditional Rendering</title>
-<link>https://blog.niekun.net/archives/2195.html</link>
-<dc:date>2021-03-02T23:10:22+08:00</dc:date>
-<description>在 React 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。和 JavaScript 的相同，React 中也可以使用 conditions 语法来选择性的渲染内容。如使用 if 或 conditional operator 来根据不同 state 状态创建不同 elements 然后让 React 更新 UI 来匹配 DOM。考虑下面两个 components：const UserGreeting = (props) =&gt; {
-    return &lt;h1&gt;welcome back&lt;/h1&gt;
-}
-
-const GuestGreeting = (props) =&gt; {
-    return &lt;h1&gt;please sign up&lt;/h1&gt;
-}然后我们创建一个 Greeting component 来根据是否有用户登陆来显示以上两个中的一个：const Greeting = (props) =&gt; {
-    let isLoggedIn = props.isLoggedIn;
-    if (isLoggedIn)
-        return &lt;UserGreeting /&gt;;
-    else
-        return &lt;GuestGreeting /&gt;;
-}
-
-ReactDOM.render(
-    &lt;Greeting isLoggedIn={true} /&gt;,
-    document.getElementById('root')
-);以上示例会根据 isLoggedIn 属性的值来渲染不同的内容。elements 变量可以使用变量存储 elements，这样可以方便的根据情况 render 部分的 component 而不需要改变输出的指令内容。考虑下面两个 component 表示 login 和 logout：const LoginButton = (props) =&gt; {
-    return (
-        &lt;button onClick={props.onClick}&gt;
-            login
-        &lt;/button&gt;
-    );
-}
-
-const LogoutButton = (props) =&gt; {
-    return (
-        &lt;button onClick={props.onClick}&gt;
-            logout
-        &lt;/button&gt;
-    );
-}然后我们创建 LoginControl component，它将根据当前情况渲染 login 或 logout button 以及之前创建的 Greeting element：class LoginControl extends React.Component {
-    constructor(props) {
-        super(props);
-        this.handleLoginClick = this.handleLoginClick.bind(this);
-        this.handleLogoutClick = this.handleLogoutClick.bind(this);
-        this.state = {isLoggedIn: false};
-    }
-
-    handleLoginClick() {
-        this.setState({isLoggedIn: true});
-    }
-
-    handleLogoutClick() {
-        this.setState({isLoggedIn: false});
-    }
-
-    render() {
-        let isLoggedIn = this.state.isLoggedIn;
-        let button;
-        if (isLoggedIn)
-            button = &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
-        else
-            button = &lt;LoginButton onClick={this.handleLoginClick} /&gt;
-
-        return (
-            &lt;div&gt;
-                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
-                {button}
-            &lt;/div&gt;
-        );
-    }
-
-}
-
-ReactDOM.render(
-    &lt;LoginControl /&gt;,
-    document.getElementById('root')
-);inline condition 单语句判断使用 element 变量以及使用 if 语句根据条件渲染 component 是一种很好的方法。但是有时候可以使用简化语法。下面接收几种 inline condition 语法。inline if with && operator在 JSX 可以通过使用大括号{}来嵌入 JavaScript 表达式，包括逻辑符号：&amp;&amp;，在根据条件判断是否包含一个 element 时很有用。请看下面示例：const InlineCom = (props) =&gt; {
-    return(
-        &lt;div&gt;
-            &lt;h1&gt;hello world&lt;/h1&gt;
-            {props.count &gt; 10 &amp;&amp;
-                &lt;h2&gt;count is: {props.count}&lt;/h2&gt;
-            }
-        &lt;/div&gt;
-    );
-}
-
-ReactDOM.render(
-    &lt;InlineCom count={20} /&gt;,
-    document.getElementById('root')
-);如果 props.count &gt; 10 满足条件则后面的 element 就会成为 component 一部分。在 JavaScript 中，true &amp;&amp; expression 将会评估为 expression，而 false &amp;&amp; expression 将会评估为 false。因此当 condition 为 true 时，&amp;&amp; 后的 element 将会输出，否则 React 将会忽略它。inline condition operator另一种根据情况通过 inline 单行判断来渲染 element 就是使用 JavaScript conditional operator：condition ? true : false。给 LoginControl 的返回添加如下：        return (
-            &lt;div&gt;
-                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
-                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
-                {button}
-            &lt;/div&gt;
-        );通过 inline conditional operator 来输出不同的信息。也可以在较长的表达式中使用，例如可以将示例中 button 部分在 render 中这样处理：        return (
-            &lt;div&gt;
-                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
-                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
-                {button}
-                {isLoggedIn 
-                    ? &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
-                    : &lt;LoginButton onClick={this.handleLoginClick} /&gt;
-                }
-            &lt;/div&gt;
-        );使用中根据实际情况选择最合适的方式处理 condition，最终目的是为了使结构更加清晰，代码易读。注意如果判断过复杂就需要考虑拆解 component 为多个个体了。阻止 component 渲染某些情况下我们可能需要将一个 component 隐藏起来，即使它在别的 component 中已经渲染了。可以通过 return null 来代替它的输出。下面示例中 WarningBanner 会根据 warn 属性的值来选择性渲染：const React = require('react')
-const ReactDOM = require('react-dom')
-
-const WarningBanner = (props) =&gt; {
-    if (!props.warn) {
-        return null;
-    }
-    return (
-        &lt;div className='warning'&gt;
-            warning!
-        &lt;/div&gt;
-    );
-}
-
-class Page extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {showWarning: true};
-        this.handelToggleClick = this.handelToggleClick.bind(this);
-    }
-    handelToggleClick() {
-        this.setState({showWarning: !this.state.showWarning});
-    }
-
-    render() {
-        return (
-            &lt;div&gt;
-                &lt;WarningBanner warn={this.state.showWarning} /&gt;
-                &lt;button onClick={this.handelToggleClick}&gt;
-                    {this.state.showWarning ? 'hide' : 'show'}
-                &lt;/button&gt;
-            &lt;/div&gt;
-        );
-    }
-}
-
-ReactDOM.render(
-    &lt;Page /&gt;,
-    document.getElementById('root')
-);在 render method 中 return null 不会影响到 component 的 lifecycle method。例如每次更新 componentDidUpdate 依然会被自动调用。</description>
 </item>
 </rdf:RDF>
