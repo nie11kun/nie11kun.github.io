@@ -11,8 +11,91 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Thu, 08 Apr 2021 09:44:00 +0800</lastBuildDate>
-<pubDate>Thu, 08 Apr 2021 09:44:00 +0800</pubDate>
+<lastBuildDate>Sat, 10 Apr 2021 13:24:55 +0800</lastBuildDate>
+<pubDate>Sat, 10 Apr 2021 13:24:55 +0800</pubDate>
+<item>
+<title> openwrt 时区设置</title>
+<link>https://blog.niekun.net/archives/2294.html</link>
+<guid>https://blog.niekun.net/archives/2294.html</guid>
+<pubDate>Sat, 10 Apr 2021 13:24:55 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。首...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。</p><p>首先在 web 端或直接修改配置文件：<code>/etc/config/system</code> 中的 zone 相关参数：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/2639787103.png" alt="2021-04-10T05:23:23.png" title="2021-04-10T05:23:23.png"></p><p>然后安装对应 zoneinfo：</p><pre><code>opkg update
+opkg install zoneinfo-asia
+</code></pre><p>重启 system 服务：</p><pre><code>/etc/init.d/system restart
+</code></pre><p>然后输出日志日期就正常了。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2294.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2294.html</wfw:commentRss>
+</item>
+<item>
+<title>openwrt network 配置</title>
+<link>https://blog.niekun.net/archives/2291.html</link>
+<guid>https://blog.niekun.net/archives/2291.html</guid>
+<pubDate>Sat, 10 Apr 2021 09:46:44 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。在默认的 network 配置文件...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。</p><p>在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。</p><!--more--><p>下面是一个默认的 <code>/etc/config/network</code> 文件内容：</p><pre><code>&quot;/etc/config/network&quot;
+
+config interface 'loopback'
+        option ifname 'lo'
+        option proto 'static'
+        option ipaddr '127.0.0.1'
+        option netmask '255.0.0.0'
+
+config globals 'globals'
+        option ula_prefix 'fd6e:929e:e9ab::/48'
+
+config interface 'lan'
+        option ifname 'eth0'
+        option proto 'static'
+        option ipaddr '192.168.85.1'
+        option netmask '255.255.255.0'
+        option ip6assign '60'
+        option gateway '27.168.1.1'
+
+config interface 'wan'
+        option ifname 'eth1'
+        option proto 'dhcp'
+
+config interface 'wan6'
+        option ifname 'eth1'
+        option proto 'dhcpv6'</code></pre><p>可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，<strong>注意 lan 的 downlink 下级链接会自动开启 dhcp 服务</strong>，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。</p><p>以上默认的 network 配置包含了 global 配置块和 <strong>loopback</strong>，<strong>lan</strong>，<strong>wan</strong> interface 的配置块。这也是最基本的需要配置的网络设置。</p><p>关于 network 配置文件的结构参考：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking">Network basics /etc/config/network</a></p><p>interfaces 配置块定义了对应 interface 具体连接的物理网卡名称和协议类型，通过 <strong>option</strong> 来定义这个 interface 具体参数。</p><p>一个最基本的 interface 配置项需要包含 <strong>proto 协议类型</strong>和 <strong>ifname 网卡名称</strong>，例如：</p><pre><code>config 'interface' 'wan'
+        option 'proto' 'dhcp'
+        option 'ifname' 'eth0.2'</code></pre><ul><li>wan 表示这个 interface 名称</li><li>dhcp 表示协议类型</li><li>eth0.2 表示绑定的物理网卡名称</li></ul><p>常用的 proto 协议类型有：</p><pre><code>static    Static configuration with fixed address and netmask    ip/ifconfig
+dhcp    Address and netmask are assigned by DHCP    udhcpc (Busybox)
+dhcpv6    Address and netmask are assigned by DHCPv6    odhcpc6c
+ppp    PPP protocol - dialup modem connections    pppd
+pppoe    PPP over Ethernet - DSL broadband connection    pppd + plugin rp-pppoe.so
+pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin …</code></pre><p>更多协议介绍：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a></p><p>配置了协议后需要定义详细的 option 选项参数，下面是常用的适用于所有类型协议的 option 可选项：</p><table><thead><tr><th align="center">Name</th><th align="center">Type</th><th>Default Description</th></tr></thead><tbody><tr><td align="center">ifname</td><td align="center">物理网卡名称</td><td>如eth0 eth1 eth2，当定义 type 为 bridge 桥接时，可以是一个集合</td></tr><tr><td align="center">type</td><td align="center">字符串</td><td>如果设置为 bridge，会桥接在 ifname 中定义的物理网卡名称集合</td></tr><tr><td align="center">stp</td><td align="center">boolean</td><td>Only valid for type bridge, enables the Spanning Tree Protocol</td></tr><tr><td align="center">bridge_empty</td><td align="center">boolean</td><td>Only valid for type bridge, enables creating empty bridges</td></tr><tr><td align="center">igmp_snooping</td><td align="center">boolean</td><td>Only valid for type bridge, sets the multicast_snooping kernel setting for a bridge</td></tr><tr><td align="center">macaddr</td><td align="center">mac地址</td><td>Override MAC address of this interface. Example: 62:11:22:aa:bb:cc</td></tr><tr><td align="center">mtu</td><td align="center">number</td><td>Override the default MTU on this interface</td></tr></tbody></table><p>具体到某个 proto 协议会有各自特殊需要定义的 option 参数，下面介绍 static 模式下需要定义的参数：</p><table><thead><tr><th align="center">名称</th><th align="center">类型</th><th>描述</th></tr></thead><tbody><tr><td align="center">ipaddr</td><td align="center">ip address</td><td>IP address</td></tr><tr><td align="center">netmask</td><td align="center">netmask</td><td>子网掩码</td></tr><tr><td align="center">gateway</td><td align="center">ip address</td><td>Default gateway</td></tr><tr><td align="center">broadcast</td><td align="center">ip address</td><td>Broadcast address (autogenerated if not set)</td></tr><tr><td align="center">dns</td><td align="center">list of ip addresses</td><td>DNS server(s)</td></tr><tr><td align="center">dns_search</td><td align="center">list of domain names</td><td>Search list for host-name lookup</td></tr><tr><td align="center">metric</td><td align="center">integer</td><td>Specifies the default route metric to use</td></tr></tbody></table><p>关于 proto 协议的配置项参考：<a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">openwrt IPv4</a></p><h3>示例</h3><p>下面通过示例来介绍一些典型配置模式。</p><p>lan 网络的 Downstream 下层流量配置：</p><pre><code>config interface 'lan'
+        option ifname 'eth1'
+        option proto 'static'
+        option ipaddr '192.168.85.1'
+        option netmask '255.255.255.0'
+        option ip6assign '60'
+        option gateway '27.168.1.1'</code></pre><p>lan 网络的下层链接会自动启用 dhcp 服务。</p><p>lan 网络配置多网卡桥接模式：</p><pre><code>config interface 'lan'
+        option type 'bridge'
+        option ifname 'eth1 eth2 eth3'
+        option proto 'static'
+        option ipaddr '192.168.85.1'
+        option netmask '255.255.255.0'
+        option ip6assign '60'
+        option gateway '27.168.1.1'
+        option dns '1.1.1.1'</code></pre><p>多 dns 配置：</p><pre><code>config interface 'example'
+        option proto     'static'
+        option ifname    'eth0'
+        option ipaddr    '192.168.1.200'
+        option netmask   '255.255.255.0'
+        list   dns       '192.168.1.1'
+        list   dns       '192.168.10.1'</code></pre><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a><br><a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">IPv4</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2291.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2291.html</wfw:commentRss>
+</item>
 <item>
 <title>通过 GitHub API 获取数据</title>
 <link>https://blog.niekun.net/archives/2290.html</link>
@@ -309,188 +392,6 @@ start_service() {
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2205.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2205.html</wfw:commentRss>
-</item>
-<item>
-<title>cd 到以 '-' dash 开头的目录的方法</title>
-<link>https://blog.niekun.net/archives/2204.html</link>
-<guid>https://blog.niekun.net/archives/2204.html</guid>
-<pubDate>Tue, 16 Mar 2021 10:33:44 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[Linux 下，当文件或文件夹包含空格或其他特殊符号如 $，在引用时需要将其放在单引号 '' 或 &quot;&quot; 中，如：cd '$abc'cd &quot;abc de f&quot...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>Linux 下，当文件或文件夹包含空格或其他特殊符号如 <code>$</code>，在引用时需要将其放在单引号 <code>''</code> 或 <code>&quot;&quot;</code> 中，如：</p><pre><code>cd '$abc'
-cd &quot;abc de f&quot;
-</code></pre><p>当文件以 <code>-</code> dash 开头时，命令会将其作为 option 处理，如：</p><pre><code>ls -lh
-</code></pre><p>此时如果需要让命令将其识别为文件名称而不是 option 需要加入 <code>--</code> 作为参数：</p><pre><code>cd -- '-abc'
-</code></pre><p>这样命令就会将 <code>-</code> 开头的字符作为文件名称处理了。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2204.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2204.html</wfw:commentRss>
-</item>
-<item>
-<title>React 入门教程之七 -- List 和 Form</title>
-<link>https://blog.niekun.net/archives/2201.html</link>
-<guid>https://blog.niekun.net/archives/2201.html</guid>
-<pubDate>Fri, 05 Mar 2021 16:13:20 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[list 列表和 key在 JavaScript 中我们通常使用 map method 来对一个 list 的每个元素进行操作：const numbers = [1, 2, 3, 4, 5];c...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<h3>list 列表和 key</h3><p>在 JavaScript 中我们通常使用 <strong>map</strong> method 来对一个 list 的每个元素进行操作：</p><pre><code>const numbers = [1, 2, 3, 4, 5];
-const double = numbers.map((number) =&gt; { return number * 2});
-console.log(double)
-
-//output:
-//[ 2, 4, 6, 8, 10 ]</code></pre><p>在 React 中对一个 list 的元素进行操作方法类似。</p><!--more--><p>我们可以在 <strong>JSX</strong> 中通过大括号<code>{}</code> 来建立一个 elements 的集合，下面示例中我们将 <strong>map</strong> 的返回定义为 <code>&lt;li&gt;</code> 元素并赋值给 listItems：</p><pre><code>const numbers = [1, 2, 3, 4, 5];
-const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
-
-ReactDOM.render(
-    &lt;ul&gt;{listItems}&lt;/ul&gt;,
-    document.getElementById('root')
-);</code></pre><p>注意在 <strong>render</strong> 中我们将 <strong>listItems</strong> 放在 <code>&lt;ul&gt;</code> 元素中。</p><p>通常情况下我们将 lists 放在一个 component 中：</p><pre><code>const NumberList = (props) =&gt; {
-    const numbers = props.numbers;
-    const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
-    return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
-    )
-}
-
-const numbers = [1, 2, 3, 4, 5];
-ReactDOM.render(
-    &lt;NumberList numbers={numbers}/&gt;,
-    document.getElementById('root')
-);</code></pre><p>当运行以上代码时，在浏览器终端会有一个 warning 警告信息：<strong>Each child in a list should have a unique "key" prop.</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2200488786.png" alt="2021-03-05T06:50:19.png" title="2021-03-05T06:50:19.png"></p><p><strong>Key</strong> 是一个特殊的 string 字符串属性需要给创建的 <strong>list</strong> element 添加的。它可以用来定位 list 中的每个元素。</p><p>下面我们给 list item 添加 <strong>Key</strong> 字符串属性：</p><pre><code>const NumberList = (props) =&gt; {
-    const numbers = props.numbers;
-    const listItems = numbers.map((number) =&gt;
-        &lt;li key={number.toString()}&gt;
-            {number}
-        &lt;/li&gt;);
-    return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
-    );
-}</code></pre><p>添加后报警就会消除。</p><h4>Keys</h4><p><strong>Key</strong> 可以帮助 React 识别哪个 item 修改过，被删除，被添加。以上示例中，我们在 map 中创建 item 时给其 key 属性，这样每个 item 可以有确切的属性值。</p><p>每个 list item 最好设置一个特殊的标识 <strong>key string</strong> 来区别于其他 items。最常用的就是使用数据中的 ID 作为 key：</p><pre><code>const TodoItems = (props) =&gt; {
-    const todos = props.todos;
-    const listItems = todos.map((todo) =&gt; 
-        &lt;li key={todo.id}&gt;
-            {todo.text}
-        &lt;/li&gt;
-    )
-    return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
-    );
-}
-const todos = [
-    {id: 1, text: '123'},
-    {id: 2, text: '456'}
-];
-ReactDOM.render(
-    &lt;TodoItems todos={todos} /&gt;,
-    document.getElementById('root')
-);</code></pre><p>当没有特定的 ID 来作为标识时，作为最后的选择，可以使用 item 的 index 作为 key：</p><pre><code>const TodoItems = (props) =&gt; {
-    const todos = props.todos;
-    const listItems = todos.map((todo, index) =&gt; 
-        &lt;li key={index}&gt;
-            {todo.text}
-        &lt;/li&gt;
-    )
-    return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
-    );
-}</code></pre><p>如果 items 的顺序可能会发生变化的话，不推荐使用 index 作为 key 使用，因为可能对性能产生影响并且对 component 的 state 造成问题。<strong>如果没有定义确切的 key 给 items，React 默认会使用 index 作为 keys。</strong></p><h4>拆解 component 时 key 的处理</h4><p>keys 是对应与一个数组的内容而言的，它并不能单独存在。例如我们要拆解上面的 NumberList，提取出 <strong>ListItem</strong>，则需要将 key 定义在 <code>&lt;ListItem /&gt;</code> 元素中而不是 <strong>ListItem</strong> component 内部的 <code>&lt;li&gt;</code> 中：</p><pre><code>const ListItem = (props) =&gt; {
-    return (
-        &lt;li&gt;{props.value}&lt;/li&gt;
-    );
-}
-
-const NumberList = (props) =&gt; {
-    const numbers = props.numbers;
-    const listItems = numbers.map((number) =&gt;
-        &lt;ListItem key={number.toString()} value={number}/&gt;);
-    return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
-    );
-}
-
-const numbers = [1, 2, 3, 4, 5];
-ReactDOM.render(
-    &lt;NumberList numbers={numbers} /&gt;,
-    document.getElementById('root')
-);</code></pre><p>如果写成下面模式就是<strong>错误</strong>的：</p><pre><code>function ListItem(props) {
-  const value = props.value;
-  return (
-    &lt;li key={value.toString()}&gt;
-      {value}
-    &lt;/li&gt;
-  );
-}</code></pre><h4>每个 item 的 key 必须是特定的</h4><p>数组中每个 items 使用的 <strong>key</strong> 必须是互相独立且不相同的，<strong>但并不需要在全局下互相独立</strong>。在两个单独的数组中可以，其元素可以使用相同的 key：</p><pre><code>const React = require('react')
-const ReactDOM = require('react-dom')
-
-const Blog = (props) =&gt; {
-    const sideBar = (
-        &lt;ul&gt;
-            {props.posts.map((post) =&gt;
-                &lt;li key={post.id}&gt;{post.title}&lt;/li&gt;
-            )}
-        &lt;/ul&gt;
-    );
-    const content = props.posts.map((post) =&gt;
-        &lt;div key={post.id}&gt;
-            &lt;h3&gt;{post.title}&lt;/h3&gt;
-            &lt;p&gt;{post.content}&lt;/p&gt;
-        &lt;/div&gt;
-    );
-    return (
-        &lt;div&gt;
-            {sideBar}
-            &lt;hr/&gt;
-            {content}
-        &lt;/div&gt;
-    );
-}
-
-const posts = [
-    {id: 1, title: 'Hello World', content: 'Welcome to learning React!'},
-    {id: 2, title: 'Installation', content: 'You can install React from npm.'}
-];
-
-ReactDOM.render(
-    &lt;Blog posts={posts} /&gt;,
-    document.getElementById('root')
-);</code></pre><p>上面示例中，我们在 <strong>Blog</strong> component 中定义了两个 JSX，都创建了 list elements，每个元素的 key 使用了对应的 id 属性。在每个 list 内部 key 是互相独立的。可以看到不只是 <code>&lt;li&gt;</code> 元素可以加 key，只要通过 map 定义了一个 array 数组，就可以给每个元素加上 key 属性来互相独立识别。</p><p><strong>key</strong> 是为了给 <strong>React</strong> 识别用的。它本身并不作为一个普通 <strong>prop</strong> 传给 components，<strong>也就是在 component 内部并不能使用这个 key 数据</strong>，如果想要在 component 中使用这个数据则需要单独定义一个其他 prop 来传入 key 数据：</p><pre><code>const Post = (props) =&gt; {
-    return (
-        &lt;li&gt;
-            {props.id}: {props.title}
-        &lt;/li&gt;
-    )
-}
-const Blog = (props) =&gt; {
-    const sideBar = (
-        &lt;ul&gt;
-            {props.posts.map((post) =&gt;
-                &lt;Post key={post.id} id={post.id} title={post.title} /&gt;
-            )}
-        &lt;/ul&gt;
-    );
-...
-...
-...
-}</code></pre><p>上面示例中，<strong>Post</strong> component 无法直接访问 <strong>key</strong> 的数据，所以我们在调用 <strong>Post</strong> 时单独定义一个 <strong>id</strong> 属性并赋值为 key 相同的数据，这样就间接的可以在 <strong>Post</strong> component 中通过 id 来读取 key 的数据。</p><p>在之前的 ListItem 示例中，我们声明了一个单独的 listItems 变量并在后续返回中将其放在 <code>&lt;ul&gt;</code> 中：</p><pre><code>const NumberList = (props) =&gt; {
-    const numbers = props.numbers;
-    const listItems = numbers.map((number) =&gt;
-        &lt;ListItem key={number.toString()} value={number}/&gt;);
-    return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
-    );
-}</code></pre><p>JSX 支持嵌入任何的 JavaScript 表达式，只需要使用大括号包围即可，所以上面的代码可以修改为以下模式：</p><pre><code>    return (
-        &lt;ul&gt;
-            {numbers.map((number) =&gt;
-                &lt;ListItem key={number.toString()} value={number} /&gt;);}
-        &lt;/ul&gt;
-    );</code></pre><p>使用哪种方式来定义 JSX 取决于对应的使用场景，总的原则是要方便与代码阅读，逻辑清晰。需要注意的是如果 <code>map()</code> method 中层级太复杂，可以考虑将其拆分为多个 components。</p><h3>Forms 表格</h3>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2201.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2201.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

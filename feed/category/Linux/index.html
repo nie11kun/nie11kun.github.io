@@ -11,8 +11,91 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/Linux/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Thu, 01 Apr 2021 16:22:46 +0800</lastBuildDate>
-<pubDate>Thu, 01 Apr 2021 16:22:46 +0800</pubDate>
+<lastBuildDate>Sat, 10 Apr 2021 13:24:55 +0800</lastBuildDate>
+<pubDate>Sat, 10 Apr 2021 13:24:55 +0800</pubDate>
+<item>
+<title> openwrt 时区设置</title>
+<link>https://blog.niekun.net/archives/2294.html</link>
+<guid>https://blog.niekun.net/archives/2294.html</guid>
+<pubDate>Sat, 10 Apr 2021 13:24:55 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。首...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。</p><p>首先在 web 端或直接修改配置文件：<code>/etc/config/system</code> 中的 zone 相关参数：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/2639787103.png" alt="2021-04-10T05:23:23.png" title="2021-04-10T05:23:23.png"></p><p>然后安装对应 zoneinfo：</p><pre><code>opkg update
+opkg install zoneinfo-asia
+</code></pre><p>重启 system 服务：</p><pre><code>/etc/init.d/system restart
+</code></pre><p>然后输出日志日期就正常了。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2294.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2294.html</wfw:commentRss>
+</item>
+<item>
+<title>openwrt network 配置</title>
+<link>https://blog.niekun.net/archives/2291.html</link>
+<guid>https://blog.niekun.net/archives/2291.html</guid>
+<pubDate>Sat, 10 Apr 2021 09:46:44 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。在默认的 network 配置文件...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。</p><p>在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。</p><!--more--><p>下面是一个默认的 <code>/etc/config/network</code> 文件内容：</p><pre><code>&quot;/etc/config/network&quot;
+
+config interface 'loopback'
+        option ifname 'lo'
+        option proto 'static'
+        option ipaddr '127.0.0.1'
+        option netmask '255.0.0.0'
+
+config globals 'globals'
+        option ula_prefix 'fd6e:929e:e9ab::/48'
+
+config interface 'lan'
+        option ifname 'eth0'
+        option proto 'static'
+        option ipaddr '192.168.85.1'
+        option netmask '255.255.255.0'
+        option ip6assign '60'
+        option gateway '27.168.1.1'
+
+config interface 'wan'
+        option ifname 'eth1'
+        option proto 'dhcp'
+
+config interface 'wan6'
+        option ifname 'eth1'
+        option proto 'dhcpv6'</code></pre><p>可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，<strong>注意 lan 的 downlink 下级链接会自动开启 dhcp 服务</strong>，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。</p><p>以上默认的 network 配置包含了 global 配置块和 <strong>loopback</strong>，<strong>lan</strong>，<strong>wan</strong> interface 的配置块。这也是最基本的需要配置的网络设置。</p><p>关于 network 配置文件的结构参考：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking">Network basics /etc/config/network</a></p><p>interfaces 配置块定义了对应 interface 具体连接的物理网卡名称和协议类型，通过 <strong>option</strong> 来定义这个 interface 具体参数。</p><p>一个最基本的 interface 配置项需要包含 <strong>proto 协议类型</strong>和 <strong>ifname 网卡名称</strong>，例如：</p><pre><code>config 'interface' 'wan'
+        option 'proto' 'dhcp'
+        option 'ifname' 'eth0.2'</code></pre><ul><li>wan 表示这个 interface 名称</li><li>dhcp 表示协议类型</li><li>eth0.2 表示绑定的物理网卡名称</li></ul><p>常用的 proto 协议类型有：</p><pre><code>static    Static configuration with fixed address and netmask    ip/ifconfig
+dhcp    Address and netmask are assigned by DHCP    udhcpc (Busybox)
+dhcpv6    Address and netmask are assigned by DHCPv6    odhcpc6c
+ppp    PPP protocol - dialup modem connections    pppd
+pppoe    PPP over Ethernet - DSL broadband connection    pppd + plugin rp-pppoe.so
+pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin …</code></pre><p>更多协议介绍：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a></p><p>配置了协议后需要定义详细的 option 选项参数，下面是常用的适用于所有类型协议的 option 可选项：</p><table><thead><tr><th align="center">Name</th><th align="center">Type</th><th>Default Description</th></tr></thead><tbody><tr><td align="center">ifname</td><td align="center">物理网卡名称</td><td>如eth0 eth1 eth2，当定义 type 为 bridge 桥接时，可以是一个集合</td></tr><tr><td align="center">type</td><td align="center">字符串</td><td>如果设置为 bridge，会桥接在 ifname 中定义的物理网卡名称集合</td></tr><tr><td align="center">stp</td><td align="center">boolean</td><td>Only valid for type bridge, enables the Spanning Tree Protocol</td></tr><tr><td align="center">bridge_empty</td><td align="center">boolean</td><td>Only valid for type bridge, enables creating empty bridges</td></tr><tr><td align="center">igmp_snooping</td><td align="center">boolean</td><td>Only valid for type bridge, sets the multicast_snooping kernel setting for a bridge</td></tr><tr><td align="center">macaddr</td><td align="center">mac地址</td><td>Override MAC address of this interface. Example: 62:11:22:aa:bb:cc</td></tr><tr><td align="center">mtu</td><td align="center">number</td><td>Override the default MTU on this interface</td></tr></tbody></table><p>具体到某个 proto 协议会有各自特殊需要定义的 option 参数，下面介绍 static 模式下需要定义的参数：</p><table><thead><tr><th align="center">名称</th><th align="center">类型</th><th>描述</th></tr></thead><tbody><tr><td align="center">ipaddr</td><td align="center">ip address</td><td>IP address</td></tr><tr><td align="center">netmask</td><td align="center">netmask</td><td>子网掩码</td></tr><tr><td align="center">gateway</td><td align="center">ip address</td><td>Default gateway</td></tr><tr><td align="center">broadcast</td><td align="center">ip address</td><td>Broadcast address (autogenerated if not set)</td></tr><tr><td align="center">dns</td><td align="center">list of ip addresses</td><td>DNS server(s)</td></tr><tr><td align="center">dns_search</td><td align="center">list of domain names</td><td>Search list for host-name lookup</td></tr><tr><td align="center">metric</td><td align="center">integer</td><td>Specifies the default route metric to use</td></tr></tbody></table><p>关于 proto 协议的配置项参考：<a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">openwrt IPv4</a></p><h3>示例</h3><p>下面通过示例来介绍一些典型配置模式。</p><p>lan 网络的 Downstream 下层流量配置：</p><pre><code>config interface 'lan'
+        option ifname 'eth1'
+        option proto 'static'
+        option ipaddr '192.168.85.1'
+        option netmask '255.255.255.0'
+        option ip6assign '60'
+        option gateway '27.168.1.1'</code></pre><p>lan 网络的下层链接会自动启用 dhcp 服务。</p><p>lan 网络配置多网卡桥接模式：</p><pre><code>config interface 'lan'
+        option type 'bridge'
+        option ifname 'eth1 eth2 eth3'
+        option proto 'static'
+        option ipaddr '192.168.85.1'
+        option netmask '255.255.255.0'
+        option ip6assign '60'
+        option gateway '27.168.1.1'
+        option dns '1.1.1.1'</code></pre><p>多 dns 配置：</p><pre><code>config interface 'example'
+        option proto     'static'
+        option ifname    'eth0'
+        option ipaddr    '192.168.1.200'
+        option netmask   '255.255.255.0'
+        list   dns       '192.168.1.1'
+        list   dns       '192.168.10.1'</code></pre><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a><br><a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">IPv4</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2291.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2291.html</wfw:commentRss>
+</item>
 <item>
 <title>Linux 脚本中的 Shebang #!</title>
 <link>https://blog.niekun.net/archives/2287.html</link>
@@ -325,91 +408,6 @@ server {
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2074.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2074.html</wfw:commentRss>
-</item>
-<item>
-<title>修复 ubuntu vmware 虚拟机无法访问主机共享目录</title>
-<link>https://blog.niekun.net/archives/2071.html</link>
-<guid>https://blog.niekun.net/archives/2071.html</guid>
-<pubDate>Fri, 15 Jan 2021 16:32:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[今天发现在 Ubuntu 20.04 虚拟机内无法访问设置的共享文件夹，在 /mnt/hgfs 目录下是空的，检查虚拟机设置并没有什么问题。最后发现是虚拟机没有自动挂载共享目录，命令行下进行挂载...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>今天发现在 Ubuntu 20.04 虚拟机内无法访问设置的共享文件夹，在 <code>/mnt/hgfs</code> 目录下是空的，检查虚拟机设置并没有什么问题。最后发现是虚拟机没有自动挂载共享目录，命令行下进行挂载即可。</p><p>首先查看当前设置的共享目录有哪些：</p><pre><code>$ vmware-hgfsclient 
-Development
-Downloads
-InstallationPackage</code></pre><p>挂载主机共享路径到虚拟机对应路径下，设置所有用户可访问：</p><pre><code>$ sudo vmhgfs-fuse .host:/ /mnt/hgfs -o allow_other
-</code></pre><p>执行以上命令后，发现共享文件夹出现了：</p><pre><code>$ ls /mnt/hgfs/
-Development  Downloads  InstallationPackage</code></pre><p>以上就是解决 VMware Linux 虚拟机没有自动挂载共享目录的方法。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2071.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2071.html</wfw:commentRss>
-</item>
-<item>
-<title>CentOS 6 可用源</title>
-<link>https://blog.niekun.net/archives/2035.html</link>
-<guid>https://blog.niekun.net/archives/2035.html</guid>
-<pubDate>Tue, 29 Dec 2020 13:58:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[最近在调试软件的时候需要用到 CentOS 6 系统，yum 命令无法更新包返回都是 404，查了下发现大多数主流的源地址都取消对 CentOS 6 的支持，找了半天才找到一个可用的地址，记录下...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>最近在调试软件的时候需要用到 CentOS 6 系统，yum 命令无法更新包返回都是 404，查了下发现大多数主流的源地址都取消对 CentOS 6 的支持，找了半天才找到一个可用的地址，记录下来备用。</p><p>CentOS 6 的包列表在：<code>/etc/yum.repos.d/CentOS-Base.repo</code> 文件中定义。</p><p>参考链接：<a href="https://blog.csdn.net/h952520296/article/details/110541018">https://blog.csdn.net/h952520296/article/details/110541018</a></p><pre><code># CentOS-Base.repo
-#
-# The mirror system uses the connecting IP address of the client and the
-# update status of each mirror to pick mirrors that are updated to and
-# geographically close to the client.  You should use this for CentOS updates
-# unless you are manually picking other mirrors.
-#
-# If the mirrorlist= does not work for you, as a fall back you can try the 
-# remarked out baseurl= line instead.
-#
-#
- 
-[base]
-name=CentOS-6.10 - Base - mirrors.aliyun.com
-failovermethod=priority
-baseurl=http://mirrors.aliyun.com/centos-vault/6.10/os/$basearch/
-gpgcheck=1
-gpgkey=http://mirrors.aliyun.com/centos-vault/RPM-GPG-KEY-CentOS-6
- 
-#released updates 
-[updates]
-name=CentOS-6.10 - Updates - mirrors.aliyun.com
-failovermethod=priority
-baseurl=http://mirrors.aliyun.com/centos-vault/6.10/updates/$basearch/
-gpgcheck=1
-gpgkey=http://mirrors.aliyun.com/centos-vault/RPM-GPG-KEY-CentOS-6
- 
-#additional packages that may be useful
-[extras]
-name=CentOS-6.10 - Extras - mirrors.aliyun.com
-failovermethod=priority
-baseurl=http://mirrors.aliyun.com/centos-vault/6.10/extras/$basearch/
-gpgcheck=1
-gpgkey=http://mirrors.aliyun.com/centos-vault/RPM-GPG-KEY-CentOS-6
- 
-#additional packages that extend functionality of existing packages
-[centosplus]
-name=CentOS-6.10 - Plus - mirrors.aliyun.com
-failovermethod=priority
-baseurl=http://mirrors.aliyun.com/centos-vault/6.10/centosplus/$basearch/
-gpgcheck=1
-enabled=0
-gpgkey=http://mirrors.aliyun.com/centos-vault/RPM-GPG-KEY-CentOS-6
- 
-#contrib - packages by Centos Users
-[contrib]
-name=CentOS-6.10 - Contrib - mirrors.aliyun.com
-failovermethod=priority
-baseurl=http://mirrors.aliyun.com/centos-vault/6.10/contrib/$basearch/
-gpgcheck=1
-enabled=0
-gpgkey=http://mirrors.aliyun.com/centos-vault/RPM-GPG-KEY-CentOS-6</code></pre><p>将以上内容替换到 <code>CentOS-Base.repo</code> 文件内，然后执行：</p><pre><code>yum clean all &amp;&amp; yum makecache
-</code></pre><p>更新缓存即可。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2035.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2035.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
