@@ -299,10 +299,10 @@ IP.1                = 192.168.1.1</code></pre><p>可以修改 C (country), ST (s
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2278.html</wfw:commentRss>
 </item>
 <item>
-<title>openwrt 自启动服务 init.d</title>
+<title>openwrt procd init script 自启动脚本服务</title>
 <link>https://blog.niekun.net/archives/2277.html</link>
 <guid>https://blog.niekun.net/archives/2277.html</guid>
-<pubDate>Tue, 30 Mar 2021 21:29:36 +0800</pubDate>
+<pubDate>Tue, 30 Mar 2021 21:29:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[openwrt 是针对于嵌入式设备的精简版 Linux 系统。所以一些常规的 Linux 服务都没有，比如 systemd 等。openwrt 是通过 init.d 来管理服务的。所有的服务都在...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -313,34 +313,51 @@ IP.1                = 192.168.1.1</code></pre><p>可以修改 C (country), ST (s
 /etc/init.d/network restart
 
 # 停止 network
-/etc/init.d/network stop</code></pre><!--more--><p>如果需要某个服务开机自启动，可以 enable：</p><pre><code>/etc/init.d/frp enable</code></pre><p>会自动在 <code>/etc/rc.d/</code> 目录下建立一个链接指向 <code>/etc/init.d</code> 下的对应服务，如：S99frp。</p><p>S99 表示此服务的启动顺序，下面会做介绍。</p><p>我们在 <code>/etc/init.d/</code> 下新建一个 test 文件。内容如下：</p><pre><code>#!/bin/sh /etc/rc.common
-START=99
-start() {
-    /root/test.sh
-}</code></pre><p>START=99 定义此服务如果定义开机自启动时，其启动顺序序号。最大为 99，数字越大启动排序越靠后。</p><p><strong>start</strong> function 内定义了通过启动时执行的指令，上面的示例中我们定义了一个脚本文件自动运行。</p><p>我们也可以通过手动调用 start function执行其中指令：</p><pre><code>/etc/init.d/test start
-</code></pre><p>下面是一个更复杂的示例：</p><pre><code>#!/bin/sh /etc/rc.common
-START=99
+/etc/init.d/network stop</code></pre><!--more--><p>如果需要某个服务开机自启动，可以 enable：</p><pre><code>/etc/init.d/frp enable</code></pre><p>会自动在 <code>/etc/rc.d/</code> 目录下建立一个链接指向 <code>/etc/init.d</code> 下的对应服务，如：S95frp。</p><p>S95 表示此服务的启动顺序，下面会做介绍。</p><h3>基本结构</h3><p>script 配置文件基本结构如下：</p><pre><code>#!/bin/sh /etc/rc.common
+
 USE_PROCD=1
-boot() {
-    sleep 10
-    rc_procd start_service
-}
-start_instance() {
-    procd_open_instance &quot;frpc.frpc&quot;
-    procd_set_param command &quot;/usr/bin/frpc&quot;
-    procd_append_param command -c &quot;/etc/frp/frpc.ini&quot;
-    procd_set_param respawn
-    procd_set_param file &quot;/etc/frp/frpc.ini&quot;
-    procd_set_param user &quot;root&quot;
-    procd_close_instance
+START=95
+STOP=15
+
+start_service() {
 }
 service_triggers() {
-    procd_add_reload_trigger &quot;frpc&quot;
 }
-start_service() {
-    config_load &quot;frpc&quot;
-    config_foreach start_instance &quot;frpc&quot;
-}</code></pre><p>sleep 10 表示自启动时延时 10 秒运行 start_service function。</p>
+stop_service() {
+}
+restart_service() {
+}</code></pre><p>首先定义 shebang，定义脚本执行的相关依赖。<br>然后通过 USE_PROCD 定义我们的脚本是新的 procd 脚本而不是老版本的 init 脚本。</p><p><strong>START=95</strong> 定义此服务开机启动时，其服务启动顺序序号。最大为 95，数字越大启动排序越靠后。<br><strong>STOP=15</strong> 定义此服务在关机时，其服务关闭顺序序号。数字越小关闭排序越靠前。</p><p>Init script 有两个主要任务：</p><ul><li>定义此服务的配置</li><li>定义何时重新配置此服务</li></ul><p>每个服务都有各自特定需要执行的指令，他们都存储在 procd 内部。需要在 <code>start_service()</code> 中定义服务配置内容。</p><h3>start_service</h3><p><code>start_service()</code> 的主要任务是：</p><ul><li>启动一个服务需要执行的命令</li><li>监测某些信息的变化，如：文件或网络的变化</li><li>配置 procd 需要的设定，如：auto respawning, logging stdout</li></ul><p>以上的任务作为一个服务实例状态存储在 procd 中。当特定的系统配置发生变化，会自动根据 trigger 的设定调用 <code>start_service()</code>。</p><p>需要通过设定参数来配置服务实例，常用的参数是直接在 start_service 中设定，如 command，一般我么通过 <code>procd_set_param()</code> 和 <code>procd_append_param()</code> 来设定参数。</p><p>下面列举了支持的参数，有些需要设定有些可以省略：</p><pre><code>start_service() {
+         procd_open_instance [instance_name] # 给服务实例定义一个名称
+         procd_set_param command /sbin/your_service_daemon -b -a --foo # 需要在前台被执行的服务
+         procd_append_param command -bar 42 # 给以上命令附加的指令参数
+
+         # 如果服务意外中止了，定义 redpawn 可以自动重启它，如果服务命令的确只需要运行一次，需要谨慎设定这里
+         # 如果进程在 respawn_threshold 定义的时间内结束了，则判定为进程崩溃并尝试重启它，尝试5次后会停止重启
+         procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
+
+         procd_set_param env SOME_VARIABLE=funtimes  # 给进程传递环境变量
+         procd_set_param limits core=&quot;unlimited&quot;  # If you need to set ulimit for your process
+         procd_set_param file /var/etc/your_service.conf # 如果此处定义的文件发生了变化，则会触发 /etc/init.d/your_service reload 重启进程
+         procd_set_param netdev dev # likewise, except if dev's ifindex changes.
+         procd_set_param data name=value ... # likewise, except if this data changes.
+         procd_set_param stdout 1 # 转发 stdout 输出到 logd
+         procd_set_param stderr 1 # same for stderr
+         procd_set_param user nobody # 以 nobody 用户运行服务
+         procd_set_param pidfile /var/run/somefile.pid # 在服务启动时写入一个 pid 文件，在停止服务时删除此 pid 文件
+         procd_close_instance # 结束服务实例配置
+}</code></pre><p>当我们通过 start 参数执行这个脚本时，会自动运行 <code>start_service()</code>：</p><pre><code>/etc/init.d/test start
+</code></pre><h3>stop_service</h3><p>如果需要在服务进程被终止时，执行特定的命令，可以在 <code>stop_service()</code> 中定义。如：</p><pre><code>stop_service() {
+        kill $(ps | grep v2ray | awk '/-confdir/ {print $1}')
+}</code></pre><p>通过 stop 参数可以直接调用此 method：</p><pre><code>/etc/init.d/test stop
+</code></pre><h3>restart_service</h3><p>当我们想要重启某个服务，可以通过单独执行 stop 和 start 来实现，也可以直接定义一个 <code>restart_service()</code> 来自动完成这个过程：</p><pre><code>restart_service() {
+        stop
+        start
+}</code></pre><p>注意，在脚本内部调用某个 function 只需要写它的前面的名称即可。</p><p>重启服务只需要运行以下命令即可：</p><pre><code>/etc/init.d/test restart
+</code></pre><h3>service_triggers</h3><p>可以定义当某个 event 被触发时，自动运行某个 function。</p><pre><code>service_triggers()
+{
+        procd_add_reload_trigger &quot;&lt;uci-file-name&gt;&quot; &quot;&lt;second-uci-file&gt;&quot;
+        procd_add_reload_interface_trigger &lt;interface&gt;
+}</code></pre><p>以上配置会在 luci 的配置文件发生修改时，自动触发 reload function。</p><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-developer/procd-init-scripts">https://openwrt.org/docs/guide-developer/procd-init-scripts</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-script-example">https://openwrt.org/docs/guide-developer/procd-init-script-example</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2277.html#comments</comments>

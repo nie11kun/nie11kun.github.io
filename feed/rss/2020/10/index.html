@@ -41,7 +41,7 @@ Binary   11000000    10101000    01011000     00000011理论上可以分配 2 �
 11111111    255以上就是子网系统的简单介绍。参考连接Use subnetting to get the most out of your networkWhat is a broadcast address and how does it work?IP地址，子网掩码计算子网地址，广播地址，子网划分</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1872.html">
-<title>使用 dnsmasq 和 iptables 控制域名流量</title>
+<title>通过 dnsmasq  ipset 和 iptables 对域名流量的控制</title>
 <link>https://blog.niekun.net/archives/1872.html</link>
 <dc:date>2020-10-26T22:29:00+08:00</dc:date>
 <description>dnsmasq 是处理 dns 请求的工具，实现域名请求解析到目标 IP 地址的过程。可以方便的管理本机或局域网设备的域名解析服务，使用教程参考：https://blog.niekun.net/archives/1869.htmliptables 是网络防火墙规则管理/修改工具，管理网络数据包的处理和转发。使用教程参考：https://blog.niekun.net/archives/1863.htmliptables 管理某个源地址或目标地址的流量时，只能识别 IP 地址，比如：# -s 匹配源地址流量,接收来自 192.168.1.230 发往本机的流量：
@@ -79,13 +79,15 @@ References: 0
 Number of entries: 2
 Members:
 36.110.213.45
-180.163.251.93可以看到域名对应的 IP 地址已经记录到了 block 表内。流量处理iptables 可以调用 ipset 表来对流量进行处理，使用 -I 参数将规则添加到链表最上方以确保顺利匹配，使用 -m set --match-set 列表名 dst 匹配目标地址，或 -m set --match-set 列表名 src 匹配原地址，下面举例说明：# 屏蔽 block 表地址的访问
+180.163.251.93可以看到域名对应的 IP 地址已经记录到了 block 表内。流量处理iptables 可以调用 ipset 表来对流量进行处理，使用 -I 参数将规则添加到链表最上方以确保顺利匹配，使用 -m set --match-set 列表名 dst 匹配目标地址，或 -m set --match-set 列表名 src 匹配原地址，下面举例说明：# 屏蔽 block 表中的地址对本机的访问
 iptables -t filter -I INPUT -m set --match-set block src -j DROP
 
-# 允许 allow 表地址的访问
-iptables -t filter -I INPUT -m set --match-set allow src -j RETURNiptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。查询路由表加入的规则：iptables -t filter -L -n
+# 允许本机对 allow 表中的地址的访问
+iptables -t filter -I OUTPUT -m set --match-set allow dst -j RETURNiptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。查询路由表加入的规则：iptables -t filter -L -n
 如果要删除 INPUT 路由链第一条规则，使用命令：iptables -t filter -D INPUT 1
-以上就是使用 dnsmasq 的 ipset 功能实现 iptables 对域名流量的控制。</description>
+或者直接删除指定规则：iptables -t filter -D INPUT -m set --match-set block src -j DROP
+删除一个 ipset：ipset -X mylist
+和 iptables 一样，ipset 的配置会在系统重启后失效。以上就是使用 dnsmasq 的 ipset 功能实现 iptables 对域名流量的控制。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1869.html">
 <title>dnsmasq 使用教程</title>
@@ -133,6 +135,9 @@ server=/.apple.com/223.6.6.6
 
 # 增加一个域名，强制解析到所指定的地址上，dns 欺骗
 address=/360.com/127.0.0.1
+
+# 加载外部配置文件，如：特定目录下的扩展名为 conf 的文件
+conf-dir=/etc/config/dnsmasq, *.conf
 
 # 设置DNS缓存大小(单位：DNS解析条数)
 cache-size=500
@@ -320,7 +325,7 @@ qemu-img convert -f raw -O vmdk openwrt-19.07.4-x86-64-combined-ext4.img openwrt
 3: eth1: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP qlen 1000
     link/ether 00:0c:29:c5:39:97 brd ff:ff:ff:ff:ff:ff可以看到除了 lo 本地网络外，有两个网卡 eth0 和 eth1，分别对应第一个网卡和第二个网卡。下面我们编辑 /etc/config/network 配置文件，默认配置文件如下：这里我们需要关闭网桥模式(用 #井号 屏蔽)，然后修改 lan 段里的 ipaddr 地址为虚拟网卡网段。我们这里修改为 192.168.111.2:修改完成后 reboot 系统。重启完成后使用 ip addr 查看系统网络配置，可以看到 wan 口 eth1 分配到主机网络所在局域网 IP 地址，lan 口 eth0 是虚拟网卡 IP 地址：使用 ping 查看是否可以连接外网：如果无法 ping 通，则需要检查配置问题。主机网络适配器里找到 vnet 2 虚拟网卡：查看信息，ip 地址是否正确，注意如果 openwrt 里的 IP 设置为了 192.168.111.1，则这里的IPv4 地址就需要修改为其他地址了，不然就冲突了：这时候使用主机访问 192.168.111.2 应该就可以进入 LuCl 界面了：默认没有密码，可以使用 passwd 设置登录密码。我们先给 openWrt 设置一个静态 wan 口 Ip，这样局域网设备就可以方便访问了。点击 network - interface：wan 口配置点击 edit：protocol 选择 static address，点击 switch protocol：设置本地局域网内的 IP 地址，网关地址和 DNS 地址，点击保存：点击 save：更换国内源由于虚拟机内不方便复制粘贴文本，我们使用 ssh 连接虚拟机：类似于 Debian，openWrt 也有包管理系统 opkg。默认都是国外源地址访问比较慢，可以替换为国内镜像地址，这里使用清华园镜像：https://mirrors.tuna.tsinghua.edu.cn/help/openwrt/列表路径是：/etc/opkg/，有两个 conf 文件：distfeeds.conf, customfeeds.conf一键替换命令：sed -i 's_downloads.openwrt.org_mirrors.tuna.tsinghua.edu.cn/openwrt_' /etc/opkg/distfeeds.conf
 更新列表：opkg update
-安装常用工具：opkg install git vim-full curl ca-certificates libopenssl luci-ssl-openssl lsof wget
+安装常用工具：opkg install git vim-full curl ca-certificates ca-bundle libopenssl luci-ssl-openssl lsof wget ipset
 虚拟机下可以安装 vmtools 来开启虚拟机管理等功能：opkg install open-vm-tools
 可以安装中文 luci 语言包：opkg luci-i18n-base-zh-cn
 自带的 dnsmasq 是精简版的不支持一些高级语法，可以参考我的文章升级为 dnsmasq-full：https://blog.niekun.net/archives/1869.html如果需要进行透明代理，需要安装 iptables 的 tproxy 扩展：opkg install iptables-mod-tproxy iptables-mod-extra

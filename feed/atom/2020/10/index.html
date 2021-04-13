@@ -41,7 +41,7 @@ Binary   11000000    10101000    01011000     00000011</code></pre><p>理论上�
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1885.html" thr:count="1"/>
 </entry>
 <entry>
-<title type="html"><![CDATA[使用 dnsmasq 和 iptables 控制域名流量]]></title>
+<title type="html"><![CDATA[通过 dnsmasq  ipset 和 iptables 对域名流量的控制]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1872.html" />
 <id>https://blog.niekun.net/archives/1872.html</id>
 <updated>2020-10-26T22:29:00+08:00</updated>
@@ -87,13 +87,15 @@ References: 0
 Number of entries: 2
 Members:
 36.110.213.45
-180.163.251.93</code></pre><p>可以看到域名对应的 IP 地址已经记录到了 block 表内。</p><h3>流量处理</h3><p>iptables 可以调用 ipset 表来对流量进行处理，使用 <code>-I</code> 参数将规则添加到链表最上方以确保顺利匹配，使用 <code>-m set --match-set 列表名 dst</code> 匹配目标地址，或 <code>-m set --match-set 列表名 src</code> 匹配原地址，下面举例说明：</p><pre><code># 屏蔽 block 表地址的访问
+180.163.251.93</code></pre><p>可以看到域名对应的 IP 地址已经记录到了 block 表内。</p><h3>流量处理</h3><p>iptables 可以调用 ipset 表来对流量进行处理，使用 <code>-I</code> 参数将规则添加到链表最上方以确保顺利匹配，使用 <code>-m set --match-set 列表名 dst</code> 匹配目标地址，或 <code>-m set --match-set 列表名 src</code> 匹配原地址，下面举例说明：</p><pre><code># 屏蔽 block 表中的地址对本机的访问
 iptables -t filter -I INPUT -m set --match-set block src -j DROP
 
-# 允许 allow 表地址的访问
-iptables -t filter -I INPUT -m set --match-set allow src -j RETURN</code></pre><p>iptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。</p><p>查询路由表加入的规则：</p><pre><code>iptables -t filter -L -n
+# 允许本机对 allow 表中的地址的访问
+iptables -t filter -I OUTPUT -m set --match-set allow dst -j RETURN</code></pre><p>iptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。</p><p>查询路由表加入的规则：</p><pre><code>iptables -t filter -L -n
 </code></pre><p>如果要删除 INPUT 路由链第一条规则，使用命令：</p><pre><code>iptables -t filter -D INPUT 1
-</code></pre><p>以上就是使用 dnsmasq 的 ipset 功能实现 iptables 对域名流量的控制。</p>
+</code></pre><p>或者直接删除指定规则：</p><pre><code>iptables -t filter -D INPUT -m set --match-set block src -j DROP
+</code></pre><p>删除一个 ipset：</p><pre><code>ipset -X mylist
+</code></pre><p>和 iptables 一样，ipset 的配置会在系统重启后失效。</p><p>以上就是使用 dnsmasq 的 ipset 功能实现 iptables 对域名流量的控制。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1872.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1872.html" thr:count="0"/>
@@ -152,6 +154,9 @@ server=/.apple.com/223.6.6.6
 
 # 增加一个域名，强制解析到所指定的地址上，dns 欺骗
 address=/360.com/127.0.0.1
+
+# 加载外部配置文件，如：特定目录下的扩展名为 conf 的文件
+conf-dir=/etc/config/dnsmasq, *.conf
 
 # 设置DNS缓存大小(单位：DNS解析条数)
 cache-size=500
@@ -361,7 +366,7 @@ qemu-img convert -f raw -O vmdk openwrt-19.07.4-x86-64-combined-ext4.img openwrt
 3: eth1: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP qlen 1000
     link/ether 00:0c:29:c5:39:97 brd ff:ff:ff:ff:ff:ff</code></pre><p>可以看到除了 lo 本地网络外，有两个网卡 eth0 和 eth1，分别对应第一个网卡和第二个网卡。</p><p>下面我们编辑 <code>/etc/config/network</code> 配置文件，默认配置文件如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/3506271504.jpg" alt="25.jpg" title="25.jpg"></p><p>这里我们需要关闭网桥模式(用 #井号 屏蔽)，然后修改 lan 段里的 ipaddr 地址为虚拟网卡网段。我们这里修改为 <code>192.168.111.2</code>:<br><img src="https://blog.niekun.net/usr/uploads/2020/10/265255040.jpg" alt="40.jpg" title="40.jpg"></p><p>修改完成后 reboot 系统。</p><p>重启完成后使用 <code>ip addr</code> 查看系统网络配置，可以看到 wan 口 eth1 分配到主机网络所在局域网 IP 地址，lan 口 eth0 是虚拟网卡 IP 地址：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2989248495.jpg" alt="39.jpg" title="39.jpg"></p><p>使用 ping 查看是否可以连接外网：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/3233271645.jpg" alt="31.jpg" title="31.jpg"></p><p>如果无法 ping 通，则需要检查配置问题。</p><p>主机网络适配器里找到 vnet 2 虚拟网卡：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/133092593.jpg" alt="29.jpg" title="29.jpg"></p><p>查看信息，ip 地址是否正确，<strong>注意</strong>如果 openwrt 里的 IP 设置为了 <code>192.168.111.1</code>，则这里的IPv4 地址就需要修改为其他地址了，不然就冲突了：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/43426789.jpg" alt="30.jpg" title="30.jpg"></p><p>这时候使用主机访问 <code>192.168.111.2</code> 应该就可以进入 LuCl 界面了：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/811268622.jpg" alt="28.jpg" title="28.jpg"></p><p>默认没有密码，可以使用 <code>passwd</code> 设置登录密码。</p><p>我们先给 openWrt 设置一个静态 wan 口 Ip，这样局域网设备就可以方便访问了。点击 network - interface：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1641305336.jpg" alt="32.jpg" title="32.jpg"></p><p>wan 口配置点击 edit：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2975940019.jpg" alt="33.jpg" title="33.jpg"></p><p>protocol 选择 static address，点击 switch protocol：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2765529412.jpg" alt="34.jpg" title="34.jpg"></p><p>设置本地局域网内的 IP 地址，网关地址和 DNS 地址，点击保存：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2870937409.jpg" alt="38.jpg" title="38.jpg"></p><p>点击 save：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/366895487.jpg" alt="36.jpg" title="36.jpg"></p><h3>更换国内源</h3><p>由于虚拟机内不方便复制粘贴文本，我们使用 ssh 连接虚拟机：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2079947691.jpg" alt="37.jpg" title="37.jpg"></p><p>类似于 Debian，openWrt 也有包管理系统 <code>opkg</code>。默认都是国外源地址访问比较慢，可以替换为国内镜像地址，这里使用清华园镜像：<a href="https://mirrors.tuna.tsinghua.edu.cn/help/openwrt/">https://mirrors.tuna.tsinghua.edu.cn/help/openwrt/</a></p><p>列表路径是：<code>/etc/opkg/</code>，有两个 conf 文件：<code>distfeeds.conf</code>, <code>customfeeds.conf</code></p><p>一键替换命令：</p><pre><code>sed -i 's_downloads.openwrt.org_mirrors.tuna.tsinghua.edu.cn/openwrt_' /etc/opkg/distfeeds.conf
 </code></pre><p>更新列表：</p><pre><code>opkg update
-</code></pre><p>安装常用工具：</p><pre><code>opkg install git vim-full curl ca-certificates libopenssl luci-ssl-openssl lsof wget
+</code></pre><p>安装常用工具：</p><pre><code>opkg install git vim-full curl ca-certificates ca-bundle libopenssl luci-ssl-openssl lsof wget ipset
 </code></pre><p>虚拟机下可以安装 vmtools 来开启虚拟机管理等功能：</p><pre><code>opkg install open-vm-tools
 </code></pre><p>可以安装中文 luci 语言包：</p><pre><code>opkg luci-i18n-base-zh-cn
 </code></pre><p>自带的 dnsmasq 是精简版的不支持一些高级语法，可以参考我的文章升级为 dnsmasq-full：<a href="https://blog.niekun.net/archives/1869.html">https://blog.niekun.net/archives/1869.html</a></p><p>如果需要进行透明代理，需要安装 iptables 的 tproxy 扩展：</p><pre><code>opkg install iptables-mod-tproxy iptables-mod-extra
