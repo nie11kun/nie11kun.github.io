@@ -210,7 +210,7 @@ qemu-img convert -f raw -O vmdk openwrt-19.07.4-x86-64-combined-ext4.img openwrt
 3: eth1: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP qlen 1000
     link/ether 00:0c:29:c5:39:97 brd ff:ff:ff:ff:ff:ff可以看到除了 lo 本地网络外，有两个网卡 eth0 和 eth1，分别对应第一个网卡和第二个网卡。下面我们编辑 /etc/config/network 配置文件，默认配置文件如下：这里我们需要关闭网桥模式(用 #井号 屏蔽)，然后修改 lan 段里的 ipaddr 地址为虚拟网卡网段。我们这里修改为 192.168.111.2:修改完成后 reboot 系统。重启完成后使用 ip addr 查看系统网络配置，可以看到 wan 口 eth1 分配到主机网络所在局域网 IP 地址，lan 口 eth0 是虚拟网卡 IP 地址：使用 ping 查看是否可以连接外网：如果无法 ping 通，则需要检查配置问题。主机网络适配器里找到 vnet 2 虚拟网卡：查看信息，ip 地址是否正确，注意如果 openwrt 里的 IP 设置为了 192.168.111.1，则这里的IPv4 地址就需要修改为其他地址了，不然就冲突了：这时候使用主机访问 192.168.111.2 应该就可以进入 LuCl 界面了：默认没有密码，可以使用 passwd 设置登录密码。我们先给 openWrt 设置一个静态 wan 口 Ip，这样局域网设备就可以方便访问了。点击 network - interface：wan 口配置点击 edit：protocol 选择 static address，点击 switch protocol：设置本地局域网内的 IP 地址，网关地址和 DNS 地址，点击保存：点击 save：更换国内源由于虚拟机内不方便复制粘贴文本，我们使用 ssh 连接虚拟机：类似于 Debian，openWrt 也有包管理系统 opkg。默认都是国外源地址访问比较慢，可以替换为国内镜像地址，这里使用清华园镜像：https://mirrors.tuna.tsinghua.edu.cn/help/openwrt/列表路径是：/etc/opkg/，有两个 conf 文件：distfeeds.conf, customfeeds.conf一键替换命令：sed -i 's_downloads.openwrt.org_mirrors.tuna.tsinghua.edu.cn/openwrt_' /etc/opkg/distfeeds.conf
 更新列表：opkg update
-安装常用工具：opkg install git vim-full curl ca-certificates ca-bundle libopenssl luci-ssl-openssl lsof wget ipset
+安装常用工具：opkg install git-http vim-full curl ca-certificates ca-bundle libopenssl luci-ssl-openssl lsof wget ipset
 虚拟机下可以安装 vmtools 来开启虚拟机管理等功能：opkg install open-vm-tools
 可以安装中文 luci 语言包：opkg luci-i18n-base-zh-cn
 自带的 dnsmasq 是精简版的不支持一些高级语法，可以参考我的文章升级为 dnsmasq-full：https://blog.niekun.net/archives/1869.html如果需要进行透明代理，需要安装 iptables 的 tproxy 扩展：opkg install iptables-mod-tproxy iptables-mod-extra
