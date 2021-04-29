@@ -11,8 +11,31 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/Linux/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Sat, 10 Apr 2021 13:24:55 +0800</lastBuildDate>
-<pubDate>Sat, 10 Apr 2021 13:24:55 +0800</pubDate>
+<lastBuildDate>Thu, 29 Apr 2021 10:15:00 +0800</lastBuildDate>
+<pubDate>Thu, 29 Apr 2021 10:15:00 +0800</pubDate>
+<item>
+<title>在 Ubuntu 中加载 smb 共享目录为本地路径</title>
+<link>https://blog.niekun.net/archives/2303.html</link>
+<guid>https://blog.niekun.net/archives/2303.html</guid>
+<pubDate>Thu, 29 Apr 2021 10:15:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。访问 smb 共享目录的方法是通过：smb...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。</p><p>访问 smb 共享目录的方法是通过：<code>smb://xxx.xxx.xxx.xxx</code> 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。</p><p>但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。</p><p>下面介绍在 Ubuntu 中配置。</p><!--more--><p>在 Linux 中，可以通过 <strong>mount</strong> 命令的 <strong>cifs</strong> 选项将 smb 共享加载到本地驱动器的某个地方。<strong>Common Internet File System (CIFS)</strong> 是一个网络文件共享协议，它是 smb 的一种格式。</p><h3>安装</h3><p>首先我们安装 CIFS 工具：</p><pre><code>sudo apt install cifs-utils
+</code></pre><h3>加载</h3><p>加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：</p><pre><code>sudo mkdir /mnt/h99_share
+</code></pre><p>通过下面命令加载某个 smb 共享：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。</p><p>默认情况下加载的共享目录所有者为 <strong>root</strong> 且权限为 777。通过 <strong>dir_mode</strong> 和 <strong>file_mode</strong> 参数可以自定义挂载的目录权限：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>如果当前登录用户不是 root 用户，则可能你无法修改共享目录下的内容，可以在挂载时指定用户和用户组：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>以上示例中，我们设置用户和用户组为 <strong>marco</strong>，这样当本地用户登录为 <strong>marco</strong> 时就可以读写共享目录的内容了。</p><h3>自动挂载</h3><p>以上命令挂载的目录在系统重启后会取消。</p><p>在 <code>/etc/fstab</code> 文件中可以定义指定的路径及文件系统在系统启动时自动挂载。下面我们在此文件中定义自动挂载配置，需要指定远程地址，共享目录以及本地映射地址：</p><pre><code># &lt;file system&gt;             &lt;dir&gt;          &lt;type&gt; &lt;options&gt;                                                                                           &lt;dump&gt;  &lt;pass&gt;                             
+//xxx.xxx.xxx.xxx/usbshare  /mnt/h99_share  cifs  username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755  0       0</code></pre><p>配置好 fatab 文件后，我们就可以使用以下命令直接挂载对应远程目录了：</p><pre><code>sudo mount /mnt/h99_share
+</code></pre><p>mount 命令会自动读取 <code>/etc/fstab</code> 文件并挂载对应远程地址目录。并且下次系统重启会自动挂载此目录。</p><h3>卸载目录</h3><p>通过 <strong>umount</strong> 命令可以下载已经加载的文件系统：</p><pre><code>sudo umount /mnt/h99_share
+</code></pre><p>如果当前加载的文件正在被其他进程使用，则 umount 卸载会失败，提示文件正忙。查询当前加载目录正在被那个进程使用，可以通过 fuser 命令实现：</p><pre><code>fuser -m /mnt/h99_share
+</code></pre><p>可以根据输出信息使用 kill 结束对应进程，然后就可以正常卸载了。</p><h3>参考链接</h3><p><a href="https://linuxize.com/post/how-to-mount-cifs-windows-share-on-linux/">How to Mount Windows Share on Linux using CIFS</a><br><a href="https://www.systutorials.com/force-linux-unmount-filesystem-reporting-device-busy/">Forcing Linux to Unmount a Filesystem Reporting “device is busy”</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2303.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2303.html</wfw:commentRss>
+</item>
 <item>
 <title> openwrt 时区设置</title>
 <link>https://blog.niekun.net/archives/2294.html</link>
@@ -338,93 +361,6 @@ cd &quot;abc de f&quot;
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2086.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2086.html</wfw:commentRss>
-</item>
-<item>
-<title>服务器部署 WebDAV 服务</title>
-<link>https://blog.niekun.net/archives/2074.html</link>
-<guid>https://blog.niekun.net/archives/2074.html</guid>
-<pubDate>Fri, 22 Jan 2021 11:16:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[WebDAV(Web-based Distributed Authoring and Versioning) 一种基于 HTTP 1.1协议的通信协议。它扩展了HTTP 1.1在 GET、POS...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>WebDAV(Web-based Distributed Authoring and Versioning) 一种基于 HTTP 1.1协议的通信协议。它扩展了HTTP 1.1在 <strong>GET</strong>、<strong>POST</strong>、<strong>HEAD</strong>等几个HTTP标准方法以外添加了一些新的方法，使应用程序可对Web Server直接读写，并支持写文件锁定(Locking)及解锁(Unlock)，还可以支持文件的版本控制。</p><p>简单说 webdav 就像一个网盘，可以远程访问他的目录名对其文件进行读写操作。</p><p><strong>WebDAV 允许客户端进行下列操作：</strong></p><ul><li>处理服务器上 WebDAV 发布目录中的资源</li><li>具有正确权限的用户可以在 WebDAV目录中复制和移动文件</li><li>修改与某些资源相关联的属性。例如，用户可写入并检索文件的属性信息</li><li>锁定并解锁资源以便多个用户可同时读取一个文件。但每次只能有一个人修改文件</li><li>搜索 WebDAV 目录中的文件的内容和属性</li></ul><!--more--><p>下面介绍如何在服务器上部署 WebDAV 服务。这里通过 nginx 来代理。</p><h3>编译 nginx</h3><p>我们通过 nginx 来代理 webdav 服务，nginx 自带有 ngx_http_dav_module 模块，但是其不支持一些 webdav 的 method 如：PROPFIND, OPTIONS, LOCK, UNLOCK。可以通过第三方模块来完整支持 webdav 的特性。</p><p>下载以下两个第三方模块：<br><strong>nginx-dav-ext-module</strong>：<a href="https://github.com/arut/nginx-dav-ext-module">https://github.com/arut/nginx-dav-ext-module</a><br><strong>headers-more-nginx-module</strong>：<a href="https://github.com/openresty/headers-more-nginx-module">https://github.com/openresty/headers-more-nginx-module</a></p><p>以上两个模块需要在编译时通过 <strong>--add-module</strong> 参数来引入模块，同时需要包含 <strong>--with-http_dav_module</strong> 模块，否则编译会报错。</p><p>从源码编译 nginx 参考我之前的教程：<a href="https://blog.niekun.net/archives/30.html">https://blog.niekun.net/archives/30.html</a></p><p>我使用的完整的编译参数如下：</p><pre><code>./configure --prefix=/opt/nginx-1.19.6 \
---user=nginx --group=nginx \
---with-compat --with-file-aio --with-threads \
---with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module \
---with-mail --with-mail_ssl_module \
---with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module \
---add-module=../echo-nginx-module \
---add-module=../ngx-fancyindex \
---add-module=../headers-more-nginx-module \
---add-module=../nginx-dav-ext-module</code></pre><h3>配置文件</h3><p>nginx 编译安装完成后，需要配置 conf 文件来使 webdav 生效。我提前已经设置了一个单独的子域名来访问 webdav 服务，且使用 ssl 加密。</p><p>首先建立 webdav 文件夹并设置正确的权限，否则在读写时会提示权限不足：</p><pre><code>mkdir /home/www/webdav
-chown -R www-data:www-data /home/www/webdav</code></pre><p>如果想要限制用户访问，可以使用 <strong>ngx_http_auth_basic_module</strong> 模块来建立账号访问，具体参考：<a href="https://blog.niekun.net/archives/730.html">https://blog.niekun.net/archives/730.html</a></p><p>完整配置文件如下：</p><pre><code>dav_ext_lock_zone zone=foo:10m;
-server {
-    listen        443 ssl http2;
-    listen        [::]:443 ssl http2;
-    server_name   webdav.xxx.xxx;
-    include       my-server/ssl;
-
-    # 限制访问
-    auth_basic           &quot;Restricted Access&quot;;
-    auth_basic_user_file ../users/.adminpasswd;
-
-    # webdav 目录
-    root /home/www/webdav;
-    client_body_temp_path /opt/nginx/client_body_temp;
-
-    # webdav 设置
-    dav_access      user:rw  group:rw  all:r;
-    dav_methods PUT DELETE MKCOL COPY MOVE;
-    dav_ext_methods PROPFIND OPTIONS LOCK UNLOCK;
-    dav_ext_lock zone=foo;
-    create_full_put_path on;
-
-    # 优化大文件上传
-    send_timeout 3600;
-    client_body_timeout 3600;
-    keepalive_timeout 3600;
-    lingering_timeout 3600;
-    client_max_body_size 2G;
-
-    location / {
-        # 创建文件夹操作时结尾添加斜杠
-        if ($request_method = MKCOL) {
-            rewrite ^(.*[^/])$ $1/ break;
-        }
-
-        # 移动文件夹操作时结尾添加斜杠
-        if (-d $request_filename) {
-            rewrite ^(.*[^/])$ $1/;
-            set $md /;
-        }
-
-        set $x $http_destination$request_method;
-        if ($x ~ [^/]MOVE) {
-            more_set_input_headers -r &quot;Destination: ${http_destination}${md}&quot;;
-        }
-    }
-
-    # 拒绝 Windows 或 macos 多余文件上传到 webdav 路径
-    location ~ \.(_.*|DS_Store|Spotlight-V100|TemporaryItems|Trashes|hidden|localized)$ {
-        access_log  off;
-        error_log   off;
-
-        if ($request_method = PUT) {
-            return 403;
-        }
-        return 404;
-    }
-
-    location ~ \.metadata_never_index$ {
-        return 200 &quot;Don't index this drive, Finder!&quot;;
-    }
-}</code></pre><p>注意第一句 <strong>dav_ext_lock_zone</strong> 要放在 http 块内。否则会报错。</p><p>配置文件修改好后，使用下面指令测试配置是否正确：</p><pre><code>nginx -t
-</code></pre><p>如果返回 ok 重启服务即可：</p><pre><code>systemctl restart nginx
-</code></pre><h3>客户端连接</h3><p>nginx 配置好 webdav 模块并启动后，可以尝试在客户端访问。</p><p>Windows 的 file explorer 和 macos 的 finder 都可以直接连接 webdav。</p><h3>Windows 端</h3><p>在 file explorer 中点击 home - easy access - map as drive：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/797689005.jpg" alt="1.jpg" title="1.jpg"></p><p>在弹出窗口中点击 connect to a web site：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/1204074620.jpg" alt="2.jpg" title="2.jpg"></p><p>点击 next 在地址栏输入服务器 nginx 定义的 webdav 访问地址：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/3507948553.jpg" alt="3.jpg" title="3.jpg"></p><p>点击 next 后如果设置了 <strong>auth_basic</strong> 会提示要求输入账户和密码，输入账户密码后就进入了 webdav 目录了，下面就可以测试新建文件，修改文件等操作。</p><p><strong>注意 Windows 中默认只有 https 方式访问的地址才可以设置 auth，否则不会弹出输入账户和密码的提示框，而是直接提示无法访问此地址。</strong>如果想要开放 http 方式的 auth 验证，需要修改注册表 <code>HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WebClient\Parameters\BasicAuthLevel</code> 的值为 2，然后重启系统即可，此键值定义为：</p><ul><li>0 - Basic authentication disabled</li><li>1 - Basic authentication enabled for SSL shares only</li><li>2 or greater - Basic authentication enabled for SSL shares and for non-SSL shares</li></ul><h3>macos 端</h3><h3>参考链接：</h3><p><a href="https://www.robpeck.com/2020/06/making-webdav-actually-work-on-nginx/">Making Native WebDAV Actually Work on nginx with Finder and Explorer</a><br><a href="https://www.codetd.com/en/article/9724623">Nginx repair of WebDAV functionality</a><br><a href="http://nginx.org/en/docs/http/ngx_http_dav_module.html">Module ngx_http_dav_module</a><br><a href="https://www.webdavsystem.com/server/prev/v2/documentation/authentication/basic_auth_vista/">Using Basic Authentication with Windows 7 and Windows Vista WebDAV Client</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2074.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2074.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
