@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2305.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2198.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2040.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1977.html"/>
@@ -18,10 +19,21 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1640.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1629.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1622.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1575.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2305.html">
+<title>配置外部网络存储器作为 Time Machine 备份</title>
+<link>https://blog.niekun.net/archives/2305.html</link>
+<dc:date>2021-04-30T08:59:42+08:00</dc:date>
+<description>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？研究了下果然有解决方案的，基本原理就是通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘就可以正常进行备份及还原了。创建虚拟磁盘打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：点击 存储 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。也可以通过命令行的方式直接生成镜像文件：hdiutil create -size 1024g -type SPARSEBUNDLE -fs &quot;HFS+J&quot; TimeMachine.sparsebundle
+这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。配置 Time Machine镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 TimeMachine.sparsebundle 文件到合适的目录。然后我们在 finder 中双击网络驱动器中的 TimeMachine.sparsebundle 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。然后我们就可以设置 TimeMachine 绑定到这个磁盘：sudo tmutil setdestination /Volumes/TimeMachine
+注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。备份与还原备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。自动挂载如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：try
+    mount volume &quot;smb://xxx.xxx.xxx.xxx/&quot;
+end try
+
+do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle&quot;脚本另存为 application 格式并 system preference 中加入开机自启动项即可。参考链接添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）自建Mac TimeMachine局域网无线备份环境How to restore system from network drive</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2198.html">
 <title>升级 command line tool 后 QT 编译 boost 库报错问题</title>
 <link>https://blog.niekun.net/archives/2198.html</link>
@@ -531,11 +543,5 @@ FILES
      fies.
 
 Darwin                         November 9, 2012                         Darwin参考链接https://en.wikipedia.org/wiki/Pmsethttps://www.dssw.co.uk/reference/pmset.html</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1575.html">
-<title>VMware Workstation 虚拟机导入 VMware Fusion</title>
-<link>https://blog.niekun.net/archives/1575.html</link>
-<dc:date>2020-07-02T22:28:00+08:00</dc:date>
-<description>在 Windows 下我一直在使用 vmware workstation pro 虚拟机，最近需要在 mac 上使用 Windows 软件，所以尝试安装虚拟机，vmware 同样有 mac 下的产品 vmware fusion，最便捷的方法就是直接导入 workstation 的到 fusion，这样就不需要重新安装系统和软件了。官网：https://www.vmware.com/products/fusion.html下载首先到官网下载最新版 vmware fusion，目前版本为 11.5：https://www.vmware.com/products/fusion/fusion-evaluation.html安装安装下载的 dmg 文件，安装过程中会要求输入序列号，请自行查找。运行 vmware fusion 需要系统 accessibility 的权限，安装完成后请到 system preference - security &amp; privacy 里打开对应权限：复制虚拟机把 Windows 下 workstation 的虚拟机文件夹复制到 mac 端，虚拟机文件夹默认在用户目录 document - Virtual Machines 文件夹内，找到需要复制的虚拟机文件夹如：windows 7,然后拷贝到 mac。复制到 mac 后给文件夹名添加后缀：.vmwarevm，如：Windows 7.vmwarevm，会自动识别为 fusion 可打开的类型。运行 vmware fusion，选择 file - open and run：在打开的对话框找到重命名后的文件夹，选择 open，会启动虚拟机，如果无法启动提示：Could not open /dev/vmmon: Broken pipe，则是由于 accessibility 权限未打开。请根据上面的方法打开权限，然后重新运行 fusion。启动后可以点击上方的设置，进行具体设置：usb 连接如果无法将 usb 挂在到虚拟机，提示不可识别的设备，则可能是由于没有打开 usb 3.0 兼容。首先关闭虚拟机，打开设置 - usb &amp; Bluetooth - advanced usb options，将下方的 usb capability 切换到 usb 3.1：重新启动虚拟机测试是否可以正常识别 usb。如果还是无法识别这可能是 windows usb 3.0 驱动没有安装，可以到 intel 官网下载驱动：下载地址进入虚拟机安装以上驱动，如果安装出错，则可能需要打 KB2533623 系统补丁，可以到微软官网下载补丁：点我下载安装好补丁后重启系统，然后安装 usb 驱动，完成后再次将 usb 设备切换到虚拟机测试是否可以正常识别到了：以上就是 Windows 下 vmware workstation 虚拟机迁移到 mac 下 vmware fusion 的方法。</description>
 </item>
 </rdf:RDF>

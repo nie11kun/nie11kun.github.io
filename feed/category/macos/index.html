@@ -11,8 +11,28 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/macos/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Wed, 03 Mar 2021 21:03:37 +0800</lastBuildDate>
-<pubDate>Wed, 03 Mar 2021 21:03:37 +0800</pubDate>
+<lastBuildDate>Fri, 30 Apr 2021 08:59:42 +0800</lastBuildDate>
+<pubDate>Fri, 30 Apr 2021 08:59:42 +0800</pubDate>
+<item>
+<title>配置外部网络存储器作为 Time Machine 备份</title>
+<link>https://blog.niekun.net/archives/2305.html</link>
+<guid>https://blog.niekun.net/archives/2305.html</guid>
+<pubDate>Fri, 30 Apr 2021 08:59:42 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。之前我的 MacBook 是通过 ...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。</p><p>之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？</p><p>研究了下果然有解决方案的，基本原理就是<strong>通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘</strong>就可以正常进行备份及还原了。</p><!--more--><h3>创建虚拟磁盘</h3><p>打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/3390003757.png" alt="2021-04-30T00:36:06.png" title="2021-04-30T00:36:06.png"></p><p>设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/4157435921.png" alt="2021-04-30T00:38:02.png" title="2021-04-30T00:38:02.png"></p><p>点击 <strong>存储</strong> 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。</p><p>也可以通过命令行的方式直接生成镜像文件：</p><pre><code>hdiutil create -size 1024g -type SPARSEBUNDLE -fs &quot;HFS+J&quot; TimeMachine.sparsebundle
+</code></pre><p>这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。</p><h3>配置 Time Machine</h3><p>镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 <strong>TimeMachine.sparsebundle</strong> 文件到合适的目录。</p><p>然后我们在 finder 中双击网络驱动器中的 <strong>TimeMachine.sparsebundle</strong> 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。</p><p>然后我们就可以设置 <strong>TimeMachine</strong> 绑定到这个磁盘：</p><pre><code>sudo tmutil setdestination /Volumes/TimeMachine
+</code></pre><p>注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。</p><p>此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/2641215091.png" alt="2021-04-30T00:49:26.png" title="2021-04-30T00:49:26.png"></p><p>我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。</p><h3>备份与还原</h3><p>备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。</p><p>我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。</p><h3>自动挂载</h3><p>如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：</p><pre><code>try
+    mount volume &quot;smb://xxx.xxx.xxx.xxx/&quot;
+end try
+
+do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle&quot;</code></pre><p>脚本另存为 application 格式并 system preference 中加入开机自启动项即可。</p><h3>参考链接</h3><p><a href="https://www.douban.com/note/614980869/">添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）</a><br><a href="https://yanke.info/?id=78">自建Mac TimeMachine局域网无线备份环境</a><br><a href="https://apple.stackexchange.com/questions/162544/how-to-restore-system-from-network-drive">How to restore system from network drive</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2305.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2305.html</wfw:commentRss>
+</item>
 <item>
 <title>升级 command line tool 后 QT 编译 boost 库报错问题</title>
 <link>https://blog.niekun.net/archives/2198.html</link>
@@ -594,20 +614,6 @@ Darwin                         November 9, 2012                         Darwin</
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1622.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/1622.html</wfw:commentRss>
-</item>
-<item>
-<title>VMware Workstation 虚拟机导入 VMware Fusion</title>
-<link>https://blog.niekun.net/archives/1575.html</link>
-<guid>https://blog.niekun.net/archives/1575.html</guid>
-<pubDate>Thu, 02 Jul 2020 22:28:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[在 Windows 下我一直在使用 vmware workstation pro 虚拟机，最近需要在 mac 上使用 Windows 软件，所以尝试安装虚拟机，vmware 同样有 mac 下的...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2020/07/2900570012.png" alt="2020-07-03T13:43:03.png" title="2020-07-03T13:43:03.png"><br>在 Windows 下我一直在使用 vmware workstation pro 虚拟机，最近需要在 mac 上使用 Windows 软件，所以尝试安装虚拟机，vmware 同样有 mac 下的产品 vmware fusion，最便捷的方法就是直接导入 workstation 的到 fusion，这样就不需要重新安装系统和软件了。</p><p>官网：<a href="https://www.vmware.com/products/fusion.html">https://www.vmware.com/products/fusion.html</a></p><!--more--><h3>下载</h3><p>首先到官网下载最新版 vmware fusion，目前版本为 11.5：<a href="https://www.vmware.com/products/fusion/fusion-evaluation.html">https://www.vmware.com/products/fusion/fusion-evaluation.html</a></p><h3>安装</h3><p>安装下载的 dmg 文件，安装过程中会要求输入序列号，请自行查找。</p><p>运行 vmware fusion 需要系统 accessibility 的权限，安装完成后请到 <code>system preference - security &amp; privacy</code> 里打开对应权限：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/4104120793.png" alt="2020-07-03T13:35:03.png" title="2020-07-03T13:35:03.png"></p><h3>复制虚拟机</h3><p>把 Windows 下 workstation 的虚拟机文件夹复制到 mac 端，虚拟机文件夹默认在用户目录 document - Virtual Machines 文件夹内，找到需要复制的虚拟机文件夹如：<code>windows 7</code>,然后拷贝到 mac。</p><p>复制到 mac 后给文件夹名添加后缀：<code>.vmwarevm</code>，如：<code>Windows 7.vmwarevm</code>，会自动识别为 fusion 可打开的类型。</p><p>运行 vmware fusion，选择 file - open and run：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/2165730683.png" alt="2020-07-03T13:44:20.png" title="2020-07-03T13:44:20.png"></p><p>在打开的对话框找到重命名后的文件夹，选择 open，会启动虚拟机，如果无法启动提示：<code>Could not open /dev/vmmon: Broken pipe</code>，则是由于 accessibility 权限未打开。请根据上面的方法打开权限，然后重新运行 fusion。</p><p>启动后可以点击上方的设置，进行具体设置：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/514672474.png" alt="2020-07-03T13:49:54.png" title="2020-07-03T13:49:54.png"></p><h3>usb 连接</h3><p>如果无法将 usb 挂在到虚拟机，提示不可识别的设备，则可能是由于没有打开 usb 3.0 兼容。首先关闭虚拟机，打开<code>设置 - usb &amp; Bluetooth - advanced usb options</code>，将下方的 usb capability 切换到 <code>usb 3.1</code>：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/1422211913.png" alt="2020-07-03T13:53:44.png" title="2020-07-03T13:53:44.png"></p><p>重新启动虚拟机测试是否可以正常识别 usb。如果还是无法识别这可能是 windows usb 3.0 驱动没有安装，可以到 intel 官网下载驱动：<a href="https://downloadcenter.intel.com/download/22824/USB-3-0-Driver-Intel-USB-3-0-eXtensible-Host-Controller-Driver-for-Intel-8-9-100-Series-and-C220-C610-Chipset-Family">下载地址</a></p><p>进入虚拟机安装以上驱动，如果安装出错，则可能需要打 KB2533623 系统补丁，可以到微软官网下载补丁：<a href="https://www.microsoft.com/zh-CN/download/details.aspx?id=26767">点我下载</a></p><p>安装好补丁后重启系统，然后安装 usb 驱动，完成后再次将 usb 设备切换到虚拟机测试是否可以正常识别到了：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/3689437433.png" alt="2020-07-03T14:00:01.png" title="2020-07-03T14:00:01.png"></p><p>以上就是 Windows 下 vmware workstation 虚拟机迁移到 mac 下 vmware fusion 的方法。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1575.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/1575.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

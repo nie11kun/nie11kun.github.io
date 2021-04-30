@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2305.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2303.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2294.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2291.html"/>
@@ -17,11 +18,23 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2305.html">
+<title>配置外部网络存储器作为 Time Machine 备份</title>
+<link>https://blog.niekun.net/archives/2305.html</link>
+<dc:date>2021-04-30T08:59:42+08:00</dc:date>
+<description>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？研究了下果然有解决方案的，基本原理就是通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘就可以正常进行备份及还原了。创建虚拟磁盘打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：点击 存储 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。也可以通过命令行的方式直接生成镜像文件：hdiutil create -size 1024g -type SPARSEBUNDLE -fs &quot;HFS+J&quot; TimeMachine.sparsebundle
+这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。配置 Time Machine镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 TimeMachine.sparsebundle 文件到合适的目录。然后我们在 finder 中双击网络驱动器中的 TimeMachine.sparsebundle 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。然后我们就可以设置 TimeMachine 绑定到这个磁盘：sudo tmutil setdestination /Volumes/TimeMachine
+注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。备份与还原备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。自动挂载如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：try
+    mount volume &quot;smb://xxx.xxx.xxx.xxx/&quot;
+end try
+
+do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle&quot;脚本另存为 application 格式并 system preference 中加入开机自启动项即可。参考链接添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）自建Mac TimeMachine局域网无线备份环境How to restore system from network drive</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2303.html">
 <title>在 Ubuntu 中加载 smb 共享目录为本地路径</title>
 <link>https://blog.niekun.net/archives/2303.html</link>
 <dc:date>2021-04-29T10:15:00+08:00</dc:date>
-<description>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。访问 smb 共享目录的方法是通过：smb://xxx.xxx.xxx.xxx 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。下面介绍在 Ubuntu 中配置。在 Linux 中，可以通过 mount 命令的 cifs 选项将 smb 共享加载到本地驱动器的某个地方。Common Internet File System (CIFS) 是一个网络文件共享协议，它是 smb 的一种格式。安装首先我们安装 CIFS 工具：sudo apt install cifs-utils
+<description>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。访问 smb 共享目录的方法是在文件浏览器中通过：smb://xxx.xxx.xxx.xxx 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。下面介绍在 Ubuntu 中配置。在 Linux 中，可以通过 mount 命令的 cifs 选项将 smb 共享加载到本地驱动器的某个地方。Common Internet File System (CIFS) 是一个网络文件共享协议，它是 smb 的一种格式。安装首先我们安装 CIFS 工具：sudo apt install cifs-utils
 加载加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：sudo mkdir /mnt/h99_share
 通过下面命令加载某个 smb 共享：sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
 其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。默认情况下加载的共享目录所有者为 root 且权限为 777。通过 dir_mode 和 file_mode 参数可以自定义挂载的目录权限：sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share

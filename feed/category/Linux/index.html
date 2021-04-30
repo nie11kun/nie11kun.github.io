@@ -19,9 +19,9 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <guid>https://blog.niekun.net/archives/2303.html</guid>
 <pubDate>Thu, 29 Apr 2021 10:15:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
-<description><![CDATA[最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。访问 smb 共享目录的方法是通过：smb...]]></description>
+<description><![CDATA[最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。访问 smb 共享目录的方法是在文件浏览器...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。</p><p>访问 smb 共享目录的方法是通过：<code>smb://xxx.xxx.xxx.xxx</code> 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。</p><p>但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。</p><p>下面介绍在 Ubuntu 中配置。</p><!--more--><p>在 Linux 中，可以通过 <strong>mount</strong> 命令的 <strong>cifs</strong> 选项将 smb 共享加载到本地驱动器的某个地方。<strong>Common Internet File System (CIFS)</strong> 是一个网络文件共享协议，它是 smb 的一种格式。</p><h3>安装</h3><p>首先我们安装 CIFS 工具：</p><pre><code>sudo apt install cifs-utils
+<p>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。</p><p>访问 smb 共享目录的方法是在文件浏览器中通过：<code>smb://xxx.xxx.xxx.xxx</code> 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。</p><p>但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。</p><p>下面介绍在 Ubuntu 中配置。</p><!--more--><p>在 Linux 中，可以通过 <strong>mount</strong> 命令的 <strong>cifs</strong> 选项将 smb 共享加载到本地驱动器的某个地方。<strong>Common Internet File System (CIFS)</strong> 是一个网络文件共享协议，它是 smb 的一种格式。</p><h3>安装</h3><p>首先我们安装 CIFS 工具：</p><pre><code>sudo apt install cifs-utils
 </code></pre><h3>加载</h3><p>加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：</p><pre><code>sudo mkdir /mnt/h99_share
 </code></pre><p>通过下面命令加载某个 smb 共享：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
 </code></pre><p>其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。</p><p>默认情况下加载的共享目录所有者为 <strong>root</strong> 且权限为 777。通过 <strong>dir_mode</strong> 和 <strong>file_mode</strong> 参数可以自定义挂载的目录权限：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
