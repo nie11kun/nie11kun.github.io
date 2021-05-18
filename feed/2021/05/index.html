@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+xmlns:content="http://purl.org/rss/1.0/modules/content/"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+xmlns:atom="http://www.w3.org/2005/Atom"
+xmlns:wfw="http://wellformedweb.org/CommentAPI/">
+<channel>
+<title>Marco Nie - 2021年5月</title>
+<link>https://blog.niekun.net/2021/05/</link>
+<atom:link href="https://blog.niekun.net/feed/2021/05/" rel="self" type="application/rss+xml" />
+<language>zh-CN</language>
+<description>you are the company you keep...</description>
+<lastBuildDate>Tue, 18 May 2021 20:08:00 +0800</lastBuildDate>
+<pubDate>Tue, 18 May 2021 20:08:00 +0800</pubDate>
+<item>
+<title>通过 telegram-cli 命令行发送 telegram 消息</title>
+<link>https://blog.niekun.net/archives/2310.html</link>
+<guid>https://blog.niekun.net/archives/2310.html</guid>
+<pubDate>Tue, 18 May 2021 20:08:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。GitHub 主页：htt...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。</p><p>GitHub 主页：<a href="https://github.com/vysheng/tg">https://github.com/vysheng/tg</a></p><p>测试平台为 Ubuntu 18.04</p><!--more--><h3>安装</h3><p>有两种方法安装，第一种是通过 snap 应用商店来安装，第二种是从源码安装。</p><p>snap 安装需要首先安装 snap 环境：</p><pre><code>sudo apt install snapd
+</code></pre><p>然后就可以安装 telegram-cli：</p><pre><code>sudo snap install telegram-cli
+</code></pre><p>从源码编译稍微有些麻烦，因为 GitHub 上的源码最近更新是 2016 年，经过我的测试在 make 时会报错，查询后需要修改源码及安装相关库后才能正常编译。</p><p>首先安装依赖：</p><pre><code> sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev libpython-dev make libgcrypt20-dev
+</code></pre><p>然后配置 configure：</p><pre><code>mkdir /opt/tg
+./configure --disable-openssl --prefix=/opt/tg
+</code></pre><p>最后编译：</p><pre><code>make
+</code></pre><h3>使用</h3><p>安装完成后需要配置账户信息，输入 telegram-cli 命令：</p><pre><code>telegram-cli
+</code></pre><p>会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。</p><p>这时候通过 <code>msg USERNAME message</code> 的模式来给某个对话发送消息了：</p><pre><code>msg my_bot test
+</code></pre><p>USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过<code>@username</code>的方式定义会话对象。</p><p>经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：<strong>error FAIL: 38: can not parse arg #1</strong>，但是我的用户名写的是没问题的。这时候需要首先执行一下 <code>dialog_list</code> 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 <code>@username</code> 来发送消息了。</p><p>以上的操作都是在登录到 telegram-cli 中进行的，可以通过 <strong>quit</strong> 命令退出 telegram-cli 程序：</p><pre><code>quit
+</code></pre><p>我们也可以直接通过 telegram-cli 命令发送给某个对象消息，例如：</p><pre><code>telegram-cli -W -e &quot;msg @username message&quot;
+</code></pre><p>以上命令中 <code>-W</code> 参数等同于 <code>dialog_list</code> 命令，通过 <code>-e</code> 定义需要执行的 telegram-cli 命令。</p><h3>参考链接</h3><p><a href="https://snapcraft.io/install/telegram-cli/ubuntu">How to install telegram-clion Ubuntu</a><br><a href="https://www.91yun.co/archives/5691">使用telegram-cli命令行发送信息</a><br><a href="https://www.orzlee.com/toss/2021/02/24/lxk0301-jingdong-signin-scriptautomatic-submission-of-mutual-aid-codes.html">LXK0301京东签到脚本-自动提交互助码</a><br><a href="https://github.com/vysheng/tg/issues/548#issuecomment-169776227">FAIL: 38: can not parse arg #1</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2310.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2310.html</wfw:commentRss>
+</item>
+</channel>
+</rss>

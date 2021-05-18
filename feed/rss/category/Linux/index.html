@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2310.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2303.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2294.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2291.html"/>
@@ -18,10 +19,25 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2277.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2205.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2204.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2086.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2310.html">
+<title>通过 telegram-cli 命令行发送 telegram 消息</title>
+<link>https://blog.niekun.net/archives/2310.html</link>
+<dc:date>2021-05-18T20:08:00+08:00</dc:date>
+<description>最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。GitHub 主页：https://github.com/vysheng/tg测试平台为 Ubuntu 18.04安装有两种方法安装，第一种是通过 snap 应用商店来安装，第二种是从源码安装。snap 安装需要首先安装 snap 环境：sudo apt install snapd
+然后就可以安装 telegram-cli：sudo snap install telegram-cli
+从源码编译稍微有些麻烦，因为 GitHub 上的源码最近更新是 2016 年，经过我的测试在 make 时会报错，查询后需要修改源码及安装相关库后才能正常编译。首先安装依赖： sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev libpython-dev make libgcrypt20-dev
+然后配置 configure：mkdir /opt/tg
+./configure --disable-openssl --prefix=/opt/tg
+最后编译：make
+使用安装完成后需要配置账户信息，输入 telegram-cli 命令：telegram-cli
+会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。这时候通过 msg USERNAME message 的模式来给某个对话发送消息了：msg my_bot test
+USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过@username的方式定义会话对象。经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：error FAIL: 38: can not parse arg #1，但是我的用户名写的是没问题的。这时候需要首先执行一下 dialog_list 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 @username 来发送消息了。以上的操作都是在登录到 telegram-cli 中进行的，可以通过 quit 命令退出 telegram-cli 程序：quit
+我们也可以直接通过 telegram-cli 命令发送给某个对象消息，例如：telegram-cli -W -e &quot;msg @username message&quot;
+以上命令中 -W 参数等同于 dialog_list 命令，通过 -e 定义需要执行的 telegram-cli 命令。参考链接How to install telegram-clion Ubuntu使用telegram-cli命令行发送信息LXK0301京东签到脚本-自动提交互助码FAIL: 38: can not parse arg #1</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2303.html">
 <title>在 Ubuntu 中加载 smb 共享目录为本地路径</title>
 <link>https://blog.niekun.net/archives/2303.html</link>
@@ -278,17 +294,5 @@ cd &quot;abc de f&quot;
 当文件以 - dash 开头时，命令会将其作为 option 处理，如：ls -lh
 此时如果需要让命令将其识别为文件名称而不是 option 需要加入 -- 作为参数：cd -- '-abc'
 这样命令就会将 - 开头的字符作为文件名称处理了。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2086.html">
-<title>创建新文件 in Linux</title>
-<link>https://blog.niekun.net/archives/2086.html</link>
-<dc:date>2021-01-28T08:17:25+08:00</dc:date>
-<description>下面介绍几种常用的命令行创建新文件的方法。touch：touch test1.txt
-&gt;:&gt; test2.txt
-cat:cat /dev/null &gt; test3.txt
-echo:echo &gt; test4.txt
-vim:vim test5.txt
-:wq
-使用中选择最简单的方式即可。</description>
 </item>
 </rdf:RDF>
