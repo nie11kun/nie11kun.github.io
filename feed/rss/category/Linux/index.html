@@ -33,13 +33,46 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 ./configure --disable-openssl --prefix=/opt/tg
 最后编译：make
 使用安装完成后需要配置账户信息，输入 telegram-cli 命令：telegram-cli
-会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。这时候通过 msg USERNAME message 的模式来给某个对话发送消息了：msg my_bot test
-USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过@username的方式定义会话对象。经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：error FAIL: 38: can not parse arg #1，但是我的用户名写的是没问题的。这时候需要首先执行一下 dialog_list 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 @username 来发送消息了。以上的操作都是在登录到 telegram-cli 中进行的，可以通过 quit 命令退出 telegram-cli 程序：quit
-我们也可以直接通过 telegram-cli 命令发送给某个对象消息，例如：telegram-cli -W -e &quot;msg @username message&quot;
-以上命令中 -W 参数等同于 dialog_list 命令，通过 -e 定义需要执行的 telegram-cli 命令。crontab 定时任务可以通过 crontab 设置定时自动发送消息。首先编辑执行脚本，将如下示例代码保存在 test.sh 中：#!/bin/sh
+会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。这时候通过 msg USERNAME message 的模式来给某个对话发送消息了：&gt; msg my_bot test
+USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过@username的方式定义会话对象。经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：error FAIL: 38: can not parse arg #1，但是我的用户名写的是没问题的。这时候需要首先执行一下 dialog_list 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 @username 来发送消息了。以上的操作都是在登录到 telegram-cli 中进行的，可以通过 quit 或 safe_quit 命令退出 telegram-cli 程序：&gt; quit
+我们也可以直接通过 telegram-cli 命令发送给某个对象消息，需要 -e 参数加执行的命令，例如：telegram-cli -e &quot;msg @username message&quot;
+建议执行时加上 -W参数以加载 dialog 列表，放置不能正确识别用户名称：telegram-cli -W -e &quot;msg @username message&quot;
+使用 -D 参数可以关闭输出信息。使用 -U 参数可以自定义命令执行的用户。更多 telegram-cli 可用参数如下：# telegram-cli -h
+telegram-cli Usage
+  --phone/-u                           specify username (would not be asked during authorization)
+  --rsa-key/-k                         specify location of public key (possible multiple entries)
+  --verbosity/-v                       increase verbosity (0-ERROR 1-WARNIN 2-NOTICE 3+-DEBUG-levels)
+  --enable-msg-id/-N                   message num mode
+  --config/-c                          config file name
+  --profile/-p                         use specified profile
+  --log-level/-l                       log level
+  --sync-from-start/-f                 during authorization fetch all messages since registration
+  --disable-auto-accept/-E             disable auto accept of encrypted chats
+  --lua-script/-s                      lua script file
+  --wait-dialog-list/-W                send dialog_list query and wait for answer before reading input
+  --disable-colors/-C                  disable color output
+  --disable-readline/-R                disable readline
+  --alert/-A                           enable bell notifications
+  --daemonize/-d                       daemon mode
+  --logname/-L &lt;log-name&gt;              log file name
+  --username/-U &lt;user-name&gt;            change uid after start
+  --groupname/-G &lt;group-name&gt;          change gid after start
+  --disable-output/-D                  disable output
+  --tcp-port/-P &lt;port&gt;                 port to listen for input commands
+  --udp-socket/-S &lt;socket-name&gt;        unix socket to create
+  --exec/-e &lt;commands&gt;                 make commands end exit
+  --disable-names/-I                   use user and chat IDs in updates instead of names
+  --enable-ipv6/-6                     use ipv6 (may be unstable)
+  --help/-h                            prints this help
+  --accept-any-tcp                     accepts tcp connections from any src (only loopback by default)
+  --disable-link-preview               disables server-side previews to links
+  --bot/-b                             bot mode
+  --json                               prints answers and values in json format
+  --permanent-msg-ids                  use permanent msg ids
+  --permanent-peer-ids                 use permanent peer idscrontab 定时任务可以通过 crontab 设置定时自动发送消息。首先编辑执行脚本，将如下示例代码保存在 test.sh 中：#!/bin/sh
 LOGFILE=&quot;/home/log/submit_code.log&quot;
 
-telegram-cli -U root -W -e &quot;msg USERNAME test&quot; &gt;&gt; ${LOGFILE}脚本中我配置了将发送信息保存在 log 文件中，也可以不保存日志，去掉最后的 &gt;&gt; ${LOGFILE} 即可。然后配置 crontab 定时任务，可以参考我的教程：https://blog.niekun.net/archives/461.html需要注意的是通过 snap 安装的 telegram-cli 可执行程序目录默认在 /snap/bin 目录下。需要将路径定义到 crontab 配置文件中才可以正常识别到脚本中的 telegram-cli 命令。编辑 /etc/crontab 文件：SHELL=/bin/sh
+telegram-cli -U root -W -e &quot;msg USERNAME test&quot; &gt;&gt; ${LOGFILE}以上脚本通过 root 用户执行发送消息，会首先加载 dialog list 然后发送消息，最后退出会话。脚本中我配置了将发送信息保存在 log 文件中，也可以不保存日志，去掉最后的 &gt;&gt; ${LOGFILE} 即可。然后配置 crontab 定时任务，可以参考我的教程：https://blog.niekun.net/archives/461.html需要注意的是通过 snap 安装的 telegram-cli 可执行程序目录默认在 /snap/bin 目录下。需要将路径定义到 crontab 配置文件中才可以正常识别到脚本中的 telegram-cli 命令。编辑 /etc/crontab 文件：SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/snap/bin
 HOME=/root
 
