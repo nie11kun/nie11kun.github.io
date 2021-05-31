@@ -1,0 +1,348 @@
+<!DOCTYPE HTML>
+<html class="no-js">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="renderer" content="webkit">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>理解 Linux shell 脚本的 2&gt;&amp;1 - Marco Nie</title>
+
+<link rel="stylesheet" href="https://niekun.net/webcdn/bootstrap-4.4.1-dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="../usr/themes/TypechoAwesome/normalize.css">
+<link rel="stylesheet" href="../usr/themes/TypechoAwesome/style.css">
+<!--[if lt IE 9]>
+    <script src="//cdnjscn.b0.upaiyun.com/libs/html5shiv/r29/html5.min.js"></script>
+    <script src="//cdnjscn.b0.upaiyun.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+<meta name="description" content="我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 2&amp;gt;&amp;amp;1，例如：ls foo &amp;gt; /dev/null 2&amp;..." />
+<meta name="generator" content="Typecho 1.2/18.10.23" />
+<meta name="template" content="TypechoAwesome" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="理解 Linux shell 脚本的 2&gt;&amp;1 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2320.html" />
+<link rel="alternate" type="application/rdf+xml" title="理解 Linux shell 脚本的 2&gt;&amp;1 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2320.html" />
+<link rel="alternate" type="application/atom+xml" title="理解 Linux shell 脚本的 2&gt;&amp;1 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2320.html" />
+<script type="6af4153b89148e33c67d8bd0-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (id) {
+            return document.getElementById(id);
+        },
+    
+        create : function (tag, attr) {
+            var el = document.createElement(tag);
+        
+            for (var key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+
+        reply : function (cid, coid) {
+            var comment = this.dom(cid), parent = comment.parentNode,
+                response = this.dom('respond-post-2320'), input = this.dom('comment-parent'),
+                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
+                textarea = response.getElementsByTagName('textarea')[0];
+
+            if (null == input) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent',
+                    'id'   : 'comment-parent'
+                });
+
+                form.appendChild(input);
+            }
+
+            input.setAttribute('value', coid);
+
+            if (null == this.dom('comment-form-place-holder')) {
+                var holder = this.create('div', {
+                    'id' : 'comment-form-place-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+
+            comment.appendChild(response);
+            this.dom('cancel-comment-reply-link').style.display = '';
+
+            if (null != textarea && 'text' == textarea.name) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            var response = this.dom('respond-post-2320'),
+            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+
+            if (null != input) {
+                input.parentNode.removeChild(input);
+            }
+
+            if (null == holder) {
+                return true;
+            }
+
+            this.dom('cancel-comment-reply-link').style.display = 'none';
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script>
+<script type="6af4153b89148e33c67d8bd0-text/javascript">
+(function () {
+    var event = document.addEventListener ? {
+        add: 'addEventListener',
+        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
+        load: 'DOMContentLoaded'
+    } : {
+        add: 'attachEvent',
+        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
+        load: 'onload'
+    }, added = false;
+
+    document[event.add](event.load, function () {
+        var r = document.getElementById('respond-post-2320'),
+            input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = '_';
+        input.value = (function () {
+    var _rD5GC9 = 'e'//'N'
++'8f'//'po'
++'9hv'//'9hv'
++//'2'
+'6'+'3'//'R'
++'3'//'C5s'
++'ede'//'pf'
++'5c4'//'fP'
++/* 'KWR'//'KWR' */''+'c'//'nDn'
++'0b'//'AS'
++'fe'//'7f'
++//'W'
+'c0'+//'XFQ'
+'XFQ'+//'Rje'
+'95'+'qj'//'qj'
++//'ctj'
+'4b'+//'DRQ'
+'7'+//'Vv'
+'938'+//'lU'
+'3'+''///*'k'*/'k'
++//'0'
+'9'+'fkh'//'fkh'
++//'f'
+'0'+//'o'
+'a4', _JBH = [[3,6],[19,22],[21,23],[29,32]];
+    
+    for (var i = 0; i < _JBH.length; i ++) {
+        _rD5GC9 = _rD5GC9.substring(0, _JBH[i][0]) + _rD5GC9.substring(_JBH[i][1]);
+    }
+
+    return _rD5GC9;
+})();
+
+        if (null != r) {
+            var forms = r.getElementsByTagName('form');
+            if (forms.length > 0) {
+                function append() {
+                    if (!added) {
+                        forms[0].appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (var i = 0; i < event.triggers.length; i ++) {
+                    var trigger = event.triggers[i];
+                    document[event.add](trigger, append);
+                    window[event.add](trigger, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+<body>
+<!--[if lt IE 8]
+    <div class="browsehappy" role="dialog">当前网页 <strong>不支持</strong> 你正在使用的浏览器. 为了正常的访问, 请 <a href="http://browsehappy.com/">升级你的浏览器</a>.</div>
+<![endif]-->
+<div class="container-fluid">
+<nav class="navbar navbar-expand-md navbar-light bg-light d-md-none">
+<a class="navbar-brand text-dark" href="../index.html">Marco Nie</a>
+<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+<span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse" id="navbarSupportedContent">
+<form class="form-inline" id="search" method="post" action="../index.html" role="search">
+<label for="s" class="sr-only">搜索关键字</label>
+<input type="text" id="s" name="s" class="text form-control" placeholder="输入关键字搜索" />
+<button type="submit" class="submit my-auto">搜索</button>
+</form>
+<div class="dropdown-divider"></div>
+<p class="text-info nav-title">分类</p>
+<ul class="widget-list nav-item-style"><li class="category-level-0 category-parent"><a href="../category/Linux/index.html">Linux</a><ul class="widget-list nav-item-style"><li class="category-level-1 category-child category-level-odd"><a href="../category/ubuntu/index.html">ubuntu</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/photo/index.html">Photograph</a></li><li class="category-level-0 category-parent"><a href="../category/media/index.html">media process</a><ul class="widget-list nav-item-style"><li class="category-level-1 category-child category-level-odd"><a href="../category/ps/index.html">photoshop</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/fxp/index.html">final cut pro</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/lr/index.html">lightroom</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/c4d/index.html">cinema 4D</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/Windows/index.html">Windows</a></li><li class="category-level-0 category-parent"><a href="../category/macos/index.html">macOS</a></li><li class="category-level-0 category-parent"><a href="../category/hardware/index.html">hardware</a><ul class="widget-list nav-item-style"><li class="category-level-1 category-child category-level-odd"><a href="../category/router/index.html">router</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/a73/index.html">SONY A7M3</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/essay/index.html">essay</a></li><li class="category-level-0 category-parent"><a href="../category/other/index.html">other</a></li><li class="category-level-0 category-parent"><a href="../category/dev/index.html">Development</a><ul class="widget-list nav-item-style"><li class="category-level-1 category-child category-level-odd"><a href="../category/cpp/index.html">c++</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/py/index.html">python</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/go/index.html">go</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/siemens/index.html">siemens</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/web/index.html">web</a><ul class="widget-list nav-item-style"><li class="category-level-2 category-child category-level-even"><a href="../category/html/index.html">html</a></li><li class="category-level-2 category-child category-level-even"><a href="../category/css/index.html">css</a></li><li class="category-level-2 category-child category-level-even"><a href="../category/js/index.html">javascript</a><ul class="widget-list nav-item-style"><li class="category-level-3 category-child category-level-odd"><a href="../category/node/index.html">node.js</a></li><li class="category-level-3 category-child category-level-odd"><a href="../category/react/index.html">react</a></li></ul></li></ul></li></ul></li><li class="category-level-0 category-parent"><a href="../category/software/index.html">software</a></li></ul>
+<div class="dropdown-divider"></div>
+<p class="text-info nav-title">归档</p>
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link nav-title" href="../2021/05/index.html">May 2021</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2021/04/index.html">April 2021</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2021/03/index.html">March 2021</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2021/02/index.html">February 2021</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2021/01/index.html">January 2021</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/12/index.html">December 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/11/index.html">November 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/10/index.html">October 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/09/index.html">September 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/08/index.html">August 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/07/index.html">July 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/06/index.html">June 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/05/index.html">May 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/04/index.html">April 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/03/index.html">March 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/02/index.html">February 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2020/01/index.html">January 2020</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/12/index.html">December 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/11/index.html">November 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/10/index.html">October 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/09/index.html">September 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/08/index.html">August 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/07/index.html">July 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/04/index.html">April 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/03/index.html">March 2019</a></li><li class="nav-item"><a class="nav-link nav-title" href="../2019/02/index.html">February 2019</a></li> </ul>
+</div>
+</nav>
+</div>
+<header id="header" class="clearfix">
+<div class="container">
+<div class="row">
+<div class="site-name col-md-9 col-12 d-none d-md-block">
+<a id="logo" class="text-decoration-none" href="../index.html">Marco Nie</a>
+<p class="description mb-2">you are the company you keep...</p>
+</div>
+<div class="site-search col-md-3 d-none d-md-block">
+<form id="search" method="post" action="../index.html" role="search">
+<label for="s" class="sr-only">搜索关键字</label>
+<input type="text" id="s" name="s" class="text" placeholder="输入关键字搜索" />
+<button type="submit" class="submit my-auto">搜索</button>
+</form>
+</div>
+<div class="col-12">
+<ul class="nav nav-tabs clearfix" role="navigation">
+<li class="nav-item">
+<a class="nav-link" href="../index.html">Article</a>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="../start-page.html" title="About me">About me</a>
+</li>
+</ul>
+</div>
+</div>
+</header>
+</div>
+<div id="body">
+<div class="container">
+<div class="row">
+<div class="col-md-9 col-12" id="main" role="main">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<h1 class="post-title" itemprop="name headline"><a itemprop="url" href="2320.html">理解 Linux shell 脚本的 2&gt;&amp;1</a></h1>
+<ul class="post-meta">
+<li itemprop="author" itemscope itemtype="http://schema.org/Person">作者: <a itemprop="name" href="../author/1/index.html" rel="author">admin</a></li>
+<li>时间: <time datetime="2021-05-31T18:33:51+08:00" itemprop="datePublished">2021-05-31</time></li>
+<li>分类: <a href="../category/Linux/index.html">Linux</a></li>
+</ul>
+<div class="post-content" itemprop="articleBody">
+<p>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 <code>2&gt;&amp;1</code>，例如：</p><pre><code>ls foo &gt; /dev/null 2&gt;&amp;1
+</code></pre><p>下面我们一步步了解下这种结构的含义。</p><h3>I/O redirection 重定向</h3><p>简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 <code>cat</code> 命令打印一个文件的内容到屏幕：</p><pre><code>$ cat foo.txt
+foo
+bar
+baz</code></pre><p>我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:</p><pre><code>$ cat foo.txt &gt; output.txt
+
+$ cat output.txt
+foo
+bar
+baz</code></pre><p>执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 <strong>standard output (stdout)标准输出</strong>到一个文件，所以它就不会输出到屏幕了。</p><p>需要注意的是还有另一个地方：<strong>standard error (stderr)标准错误</strong>，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：</p><pre><code>$ cat nop.txt &gt; output.txt
+cat: nop.txt: No such file or directory</code></pre><p>以上示例中即使我们将 <strong>stdout</strong> 重定向到一个文件了，由于 output.txt 不存在，<strong>stderr</strong> 依然会输出错误信息到屏幕。因为我们重定向的只是 <strong>stdout</strong> 而不包括 <strong>stderr</strong>。</p><h3>file descriptors 文件描述器</h3><p>一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 <strong>stdout</strong> 和 <strong>stderr</strong> 有其各自的文件描述器 id 定义了它们各自的地址。</p><p><strong>stdout</strong> 是 <strong>1</strong>，<strong>stderr</strong> 是 <strong>2</strong>。</p><p>在之前的示例中，我们可以修改命令为如下结构：</p><pre><code>cat foo.txt 1&gt; output.txt
+</code></pre><p>这里的 <strong>1</strong> 就是 <strong>stdout</strong> 的文件描述器，通过重定向语法 <code>[FILE_DESCRIPTOR]&gt;</code> 将 <strong>stdout</strong> 重定向到另一个文件。注意 <code>1&gt;</code> 可以简写为 <code>&gt;</code>。</p><p>类似的，可以将 stderr 重定向到指定的目的地：</p><pre><code>$ cat nop.txt 2&gt; error.txt
+
+$ cat error.txt
+cat: nop.txt: No such file or directory</code></pre><p>这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。</p><p>下面我们理解下 <code>2&gt;&amp;1</code> 的意义。我们使用 <code>&amp;1</code> 来指向 <strong>stdout</strong> 的重定向地址，所以 <code>2&gt;&amp;1</code> 表示重定向 <strong>stderr</strong> 到和 <strong>stdout</strong> 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 <strong>stdout</strong> 和 <strong>stderr</strong> 重定向到同一个文件中：</p><pre><code>$ cat foo.txt &gt; output.txt 2&gt;&amp;1
+
+$ cat output.txt
+foo
+bar
+baz
+
+$ cat nop.txt &gt; output.txt 2&gt;&amp;1
+
+$ cat output.txt
+cat: nop.txt: No such file or directory</code></pre><h3>总结</h3><ul><li>有两个地方用来让程序发送输出内容：<strong>stdout</strong>，<strong>stderr</strong></li><li>可以单独定义两个输出的重定向目的地</li><li>文件描述器用来识别 <strong>stdout (1)</strong> 和 <strong>stderr (2)</strong></li><li><code>command &gt; output</code> 是 <code>command 1&gt; output</code> 的简写</li><li>通过 <code>&amp;[FILE_DESCRIPTOR]</code> 指向一个文件描述器的重定向目标地址上</li><li><code>2&gt;&amp;1</code> 可以将 <strong>stderr</strong> 重定向到 <strong>stdout</strong> 同样的重定向地址上。反之亦然。</li></ul><h3>参考链接</h3><p><a href="https://www.brianstorti.com/understanding-shell-script-idiom-redirect/">Understanding Shell Script's idiom: 2&gt;&1</a><br><a href="https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean">In the shell, what does “ 2&gt;&1 ” mean?</a></p> </div>
+<p itemprop="keywords" class="tags">标签: none</p>
+</article>
+<div id="comments">
+<div id="respond-post-2320" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="2320.html#respond-post-2320" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-6af4153b89148e33c67d8bd0-="">取消回复</a> </div>
+<h3 id="response">添加新评论</h3>
+<form method="post" action="https://blog.niekun.net/archives/2320.html/comment" id="comment-form" role="form">
+<p>
+<label for="author" class="required">称呼</label>
+<input type="text" name="author" id="author" class="text" value="" required />
+</p>
+<p>
+<label for="mail" class="required">Email</label>
+<input type="email" name="mail" id="mail" class="text" value="" required />
+</p>
+<p>
+<label for="url">网站</label>
+<input type="url" name="url" id="url" class="text" placeholder="http://" value="" />
+</p>
+<p>
+<label for="textarea" class="required">内容</label>
+<textarea rows="8" cols="50" name="text" id="textarea" class="textarea" required></textarea>
+</p>
+<p>
+<button type="submit" class="submit">提交评论</button>
+</p>
+</form>
+</div>
+</div>
+<ul class="post-near">
+<li>上一篇: <a href="2310.html" title="通过 telegram-cli 命令行发送 telegram 消息">通过 telegram-cli 命令行发送 telegram 消息</a></li>
+<li>下一篇: 没有了</li>
+</ul>
+</div>
+<div class="col-md-3 d-none d-md-block" id="secondary" role="complementary">
+<section class="widget">
+<h4 class="Display 2">最新文章</h4>
+<ul class="widget-list">
+<li><a href="2320.html">理解 Linux shell 脚本的 2&gt;&amp;1</a></li><li><a href="2310.html">通过 telegram-cli 命令行发送 telegram 消息</a></li><li><a href="2305.html">配置外部网络存储器作为 Time Machine 备份</a></li><li><a href="2303.html">在 Ubuntu 中加载 smb 共享目录为本地路径</a></li><li><a href="2294.html"> openwrt 时区设置</a></li><li><a href="2291.html">openwrt network 配置</a></li><li><a href="2290.html">通过 GitHub API 获取数据</a></li><li><a href="2287.html">Linux 脚本中的 Shebang #!</a></li><li><a href="2281.html">Ubuntu desktop 配置 vnc server</a></li><li><a href="2278.html">openwrt 配置 LuCI ssl 证书</a></li> </ul>
+</section>
+<section class="widget">
+<h4 class="Display 2">最近回复</h4>
+<ul class="widget-list">
+<li><a href="97.html#pingback-30">macOS设置系统代理 R11; Mr. Wen的学习记录！</a>: [...]如果需要频繁的打开/关闭代理，每次都需要输入以上命令比...</li>
+<li><a href="1258.html#comment-29">marco nie</a>: 换到 wsl2 吧，可以完美解决的：https://blog.n...</li>
+<li><a href="1258.html#comment-28">hm</a>: 小瑕疵：WSL(即WSL1)这样并不能解决
+看了下 https:...</li>
+<li><a href="2191.html#comment-27">ahxinny</a>: 编程会随时出现报错，与环境关系很大。有时软件升级会造成系统不兼容...</li>
+<li><a href="2011.html#comment-26">ahxinny</a>: let相当于局域变量，但 和局域变量还是不同。局域变量在函数体内...</li>
+<li><a href="1918.html#comment-25">ahxinny</a>: 有点云里雾里的。</li>
+<li><a href="1895.html#comment-24">ahxinny</a>: 前面的易懂，指针之后有点登天。</li>
+<li><a href="1885.html#comment-23">ahxinny</a>: 学习了。哈哈哈！</li>
+<li><a href="1906.html#comment-22">ahxinny</a>: 可以偷看你的手机内容了。</li>
+<li><a href="1869.html#comment-21">ahxinny</a>: 打错了不能撤销消息?</li>
+</ul>
+</section>
+<section class="widget">
+<h4 class="Display 2">分类</h4>
+<ul class="widget-list"><li class="category-level-0 category-parent"><a href="../category/Linux/index.html">Linux</a><ul class="widget-list"><li class="category-level-1 category-child category-level-odd"><a href="../category/ubuntu/index.html">ubuntu</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/photo/index.html">Photograph</a></li><li class="category-level-0 category-parent"><a href="../category/media/index.html">media process</a><ul class="widget-list"><li class="category-level-1 category-child category-level-odd"><a href="../category/ps/index.html">photoshop</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/fxp/index.html">final cut pro</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/lr/index.html">lightroom</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/c4d/index.html">cinema 4D</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/Windows/index.html">Windows</a></li><li class="category-level-0 category-parent"><a href="../category/macos/index.html">macOS</a></li><li class="category-level-0 category-parent"><a href="../category/hardware/index.html">hardware</a><ul class="widget-list"><li class="category-level-1 category-child category-level-odd"><a href="../category/router/index.html">router</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/a73/index.html">SONY A7M3</a></li></ul></li><li class="category-level-0 category-parent"><a href="../category/essay/index.html">essay</a></li><li class="category-level-0 category-parent"><a href="../category/other/index.html">other</a></li><li class="category-level-0 category-parent"><a href="../category/dev/index.html">Development</a><ul class="widget-list"><li class="category-level-1 category-child category-level-odd"><a href="../category/cpp/index.html">c++</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/py/index.html">python</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/go/index.html">go</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/siemens/index.html">siemens</a></li><li class="category-level-1 category-child category-level-odd"><a href="../category/web/index.html">web</a><ul class="widget-list"><li class="category-level-2 category-child category-level-even"><a href="../category/html/index.html">html</a></li><li class="category-level-2 category-child category-level-even"><a href="../category/css/index.html">css</a></li><li class="category-level-2 category-child category-level-even"><a href="../category/js/index.html">javascript</a><ul class="widget-list"><li class="category-level-3 category-child category-level-odd"><a href="../category/node/index.html">node.js</a></li><li class="category-level-3 category-child category-level-odd"><a href="../category/react/index.html">react</a></li></ul></li></ul></li></ul></li><li class="category-level-0 category-parent"><a href="../category/software/index.html">software</a></li></ul> </section>
+<section class="widget">
+<h4 class="Display 2">归档</h4>
+<ul class="widget-list">
+<li><a href="../2021/05/index.html">May 2021</a></li><li><a href="../2021/04/index.html">April 2021</a></li><li><a href="../2021/03/index.html">March 2021</a></li><li><a href="../2021/02/index.html">February 2021</a></li><li><a href="../2021/01/index.html">January 2021</a></li><li><a href="../2020/12/index.html">December 2020</a></li><li><a href="../2020/11/index.html">November 2020</a></li><li><a href="../2020/10/index.html">October 2020</a></li><li><a href="../2020/09/index.html">September 2020</a></li><li><a href="../2020/08/index.html">August 2020</a></li><li><a href="../2020/07/index.html">July 2020</a></li><li><a href="../2020/06/index.html">June 2020</a></li><li><a href="../2020/05/index.html">May 2020</a></li><li><a href="../2020/04/index.html">April 2020</a></li><li><a href="../2020/03/index.html">March 2020</a></li><li><a href="../2020/02/index.html">February 2020</a></li><li><a href="../2020/01/index.html">January 2020</a></li><li><a href="../2019/12/index.html">December 2019</a></li><li><a href="../2019/11/index.html">November 2019</a></li><li><a href="../2019/10/index.html">October 2019</a></li><li><a href="../2019/09/index.html">September 2019</a></li><li><a href="../2019/08/index.html">August 2019</a></li><li><a href="../2019/07/index.html">July 2019</a></li><li><a href="../2019/04/index.html">April 2019</a></li><li><a href="../2019/03/index.html">March 2019</a></li><li><a href="../2019/02/index.html">February 2019</a></li> </ul>
+</section>
+<section class="widget">
+<h4 class="Display 2">其它</h4>
+<ul class="widget-list">
+<li><a href="../feed/index.html">文章 RSS</a></li>
+<li><a href="../feed/comments/index.html">评论 RSS</a></li>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</div>
+<footer id="footer" role="contentinfo">
+&copy; 2021 <a href="../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
+</footer>
+<script type="6af4153b89148e33c67d8bd0-text/javascript">
+    navItemSytle();
+</script>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="6af4153b89148e33c67d8bd0-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="6af4153b89148e33c67d8bd0-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="6af4153b89148e33c67d8bd0-text/javascript"></script>
+<script src="../usr/themes/TypechoAwesome/navItem.js" type="6af4153b89148e33c67d8bd0-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="6af4153b89148e33c67d8bd0-|49" defer=""></script><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"rayId":"658245bfbd643643","r":1,"version":"2021.5.2","si":10}'></script>
+</body>
+</html>

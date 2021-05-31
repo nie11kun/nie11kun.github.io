@@ -11,8 +11,46 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/author/1/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>admin</description>
-<lastBuildDate>Tue, 18 May 2021 20:08:00 +0800</lastBuildDate>
-<pubDate>Tue, 18 May 2021 20:08:00 +0800</pubDate>
+<lastBuildDate>Mon, 31 May 2021 18:33:51 +0800</lastBuildDate>
+<pubDate>Mon, 31 May 2021 18:33:51 +0800</pubDate>
+<item>
+<title>理解 Linux shell 脚本的 2&amp;gt;&amp;amp;1</title>
+<link>https://blog.niekun.net/archives/2320.html</link>
+<guid>https://blog.niekun.net/archives/2320.html</guid>
+<pubDate>Mon, 31 May 2021 18:33:51 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 2&gt;&amp;1，例如：ls foo &gt; /dev/null 2&...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 <code>2&gt;&amp;1</code>，例如：</p><pre><code>ls foo &gt; /dev/null 2&gt;&amp;1
+</code></pre><p>下面我们一步步了解下这种结构的含义。</p><!--more--><h3>I/O redirection 重定向</h3><p>简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 <code>cat</code> 命令打印一个文件的内容到屏幕：</p><pre><code>$ cat foo.txt
+foo
+bar
+baz</code></pre><p>我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:</p><pre><code>$ cat foo.txt &gt; output.txt
+
+$ cat output.txt
+foo
+bar
+baz</code></pre><p>执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 <strong>standard output (stdout)标准输出</strong>到一个文件，所以它就不会输出到屏幕了。</p><p>需要注意的是还有另一个地方：<strong>standard error (stderr)标准错误</strong>，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：</p><pre><code>$ cat nop.txt &gt; output.txt
+cat: nop.txt: No such file or directory</code></pre><p>以上示例中即使我们将 <strong>stdout</strong> 重定向到一个文件了，由于 output.txt 不存在，<strong>stderr</strong> 依然会输出错误信息到屏幕。因为我们重定向的只是 <strong>stdout</strong> 而不包括 <strong>stderr</strong>。</p><h3>file descriptors 文件描述器</h3><p>一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 <strong>stdout</strong> 和 <strong>stderr</strong> 有其各自的文件描述器 id 定义了它们各自的地址。</p><p><strong>stdout</strong> 是 <strong>1</strong>，<strong>stderr</strong> 是 <strong>2</strong>。</p><p>在之前的示例中，我们可以修改命令为如下结构：</p><pre><code>cat foo.txt 1&gt; output.txt
+</code></pre><p>这里的 <strong>1</strong> 就是 <strong>stdout</strong> 的文件描述器，通过重定向语法 <code>[FILE_DESCRIPTOR]&gt;</code> 将 <strong>stdout</strong> 重定向到另一个文件。注意 <code>1&gt;</code> 可以简写为 <code>&gt;</code>。</p><p>类似的，可以将 stderr 重定向到指定的目的地：</p><pre><code>$ cat nop.txt 2&gt; error.txt
+
+$ cat error.txt
+cat: nop.txt: No such file or directory</code></pre><p>这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。</p><p>下面我们理解下 <code>2&gt;&amp;1</code> 的意义。我们使用 <code>&amp;1</code> 来指向 <strong>stdout</strong> 的重定向地址，所以 <code>2&gt;&amp;1</code> 表示重定向 <strong>stderr</strong> 到和 <strong>stdout</strong> 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 <strong>stdout</strong> 和 <strong>stderr</strong> 重定向到同一个文件中：</p><pre><code>$ cat foo.txt &gt; output.txt 2&gt;&amp;1
+
+$ cat output.txt
+foo
+bar
+baz
+
+$ cat nop.txt &gt; output.txt 2&gt;&amp;1
+
+$ cat output.txt
+cat: nop.txt: No such file or directory</code></pre><h3>总结</h3><ul><li>有两个地方用来让程序发送输出内容：<strong>stdout</strong>，<strong>stderr</strong></li><li>可以单独定义两个输出的重定向目的地</li><li>文件描述器用来识别 <strong>stdout (1)</strong> 和 <strong>stderr (2)</strong></li><li><code>command &gt; output</code> 是 <code>command 1&gt; output</code> 的简写</li><li>通过 <code>&amp;[FILE_DESCRIPTOR]</code> 指向一个文件描述器的重定向目标地址上</li><li><code>2&gt;&amp;1</code> 可以将 <strong>stderr</strong> 重定向到 <strong>stdout</strong> 同样的重定向地址上。反之亦然。</li></ul><h3>参考链接</h3><p><a href="https://www.brianstorti.com/understanding-shell-script-idiom-redirect/">Understanding Shell Script's idiom: 2&gt;&1</a><br><a href="https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean">In the shell, what does “ 2&gt;&1 ” mean?</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2320.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2320.html</wfw:commentRss>
+</item>
 <item>
 <title>通过 telegram-cli 命令行发送 telegram 消息</title>
 <link>https://blog.niekun.net/archives/2310.html</link>
@@ -244,7 +282,7 @@ pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin �
   &quot;user_organizations_url&quot;: &quot;https://api.github.com/user/orgs&quot;,
   &quot;user_repositories_url&quot;: &quot;https://api.github.com/users/{user}/repos{?type,page,per_page,sort}&quot;,
   &quot;user_search_url&quot;: &quot;https://api.github.com/search/users?q={query}{&amp;page,per_page,sort,order}&quot;
-}</code></pre><p>可以通过它里面给的使用方法来获取到相应的内容，例如可以通过：<a href="https://api.github.com/users/">https://api.github.com/users/</a>{user} 获取到某个用户相关数据，如下是我的个人相关数据：</p><pre><code>{
+}</code></pre><p>可以通过它里面给的使用方法来获取到相应的内容，例如可以通过：<a href="https://api.github.com/users/{user}">https://api.github.com/users/{user}</a> 获取到某个用户相关数据，如下是我的个人相关数据：</p><pre><code>{
   &quot;login&quot;: &quot;nie11kun&quot;,
   &quot;id&quot;: 11830603,
   &quot;node_id&quot;: &quot;MDQ6VXNlcjExODMwNjAz&quot;,
@@ -404,71 +442,6 @@ IP.1                = 192.168.1.1</code></pre><p>可以修改 C (country), ST (s
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2278.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2278.html</wfw:commentRss>
-</item>
-<item>
-<title>openwrt procd init script 自启动脚本服务</title>
-<link>https://blog.niekun.net/archives/2277.html</link>
-<guid>https://blog.niekun.net/archives/2277.html</guid>
-<pubDate>Tue, 30 Mar 2021 21:29:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[openwrt 是针对于嵌入式设备的精简版 Linux 系统。所以一些常规的 Linux 服务都没有，比如 systemd 等。openwrt 是通过 init.d 来管理服务的。所有的服务都在...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>openwrt 是针对于嵌入式设备的精简版 Linux 系统。所以一些常规的 Linux 服务都没有，比如 systemd 等。</p><p>openwrt 是通过 init.d 来管理服务的。所有的服务都在 <code>/etc/init.d</code> 目录下。</p><p>对某个服务进行操作也很方便，例如对 network 服务：</p><pre><code># 启动 network
-/etc/init.d/network start
-
-# 重启 network
-/etc/init.d/network restart
-
-# 停止 network
-/etc/init.d/network stop</code></pre><!--more--><p>如果需要某个服务开机自启动，可以 enable：</p><pre><code>/etc/init.d/frp enable</code></pre><p>会自动在 <code>/etc/rc.d/</code> 目录下建立一个链接指向 <code>/etc/init.d</code> 下的对应服务，如：S95frp。</p><p>S95 表示此服务的启动顺序，下面会做介绍。</p><h3>基本结构</h3><p>script 配置文件基本结构如下：</p><pre><code>#!/bin/sh /etc/rc.common
-
-USE_PROCD=1
-START=95
-STOP=15
-
-start_service() {
-}
-service_triggers() {
-}
-stop_service() {
-}
-restart_service() {
-}</code></pre><p>首先定义 shebang，定义脚本执行的相关依赖。<br>然后通过 USE_PROCD 定义我们的脚本是新的 procd 脚本而不是老版本的 init 脚本。</p><p><strong>START=95</strong> 定义此服务开机启动时，其服务启动顺序序号。最大为 95，数字越大启动排序越靠后。<br><strong>STOP=15</strong> 定义此服务在关机时，其服务关闭顺序序号。数字越小关闭排序越靠前。</p><p>Init script 有两个主要任务：</p><ul><li>定义此服务的配置</li><li>定义何时重新配置此服务</li></ul><p>每个服务都有各自特定需要执行的指令，他们都存储在 procd 内部。需要在 <code>start_service()</code> 中定义服务配置内容。</p><h3>start_service</h3><p><code>start_service()</code> 的主要任务是：</p><ul><li>启动一个服务需要执行的命令</li><li>监测某些信息的变化，如：文件或网络的变化</li><li>配置 procd 需要的设定，如：auto respawning, logging stdout</li></ul><p>以上的任务作为一个服务实例状态存储在 procd 中。当特定的系统配置发生变化，会自动根据 trigger 的设定调用 <code>start_service()</code>。</p><p>需要通过设定参数来配置服务实例，常用的参数是直接在 start_service 中设定，如 command，一般我么通过 <code>procd_set_param()</code> 和 <code>procd_append_param()</code> 来设定参数。</p><p>下面列举了支持的参数，有些需要设定有些可以省略：</p><pre><code>start_service() {
-         procd_open_instance [instance_name] # 给服务实例定义一个名称
-         procd_set_param command /sbin/your_service_daemon -b -a --foo # 需要在前台被执行的服务
-         procd_append_param command -bar 42 # 给以上命令附加的指令参数
-
-         # 如果服务意外中止了，定义 redpawn 可以自动重启它，如果服务命令的确只需要运行一次，需要谨慎设定这里
-         # 如果进程在 respawn_threshold 定义的时间内结束了，则判定为进程崩溃并尝试重启它，尝试5次后会停止重启
-         procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
-
-         procd_set_param env SOME_VARIABLE=funtimes  # 给进程传递环境变量
-         procd_set_param limits core=&quot;unlimited&quot;  # If you need to set ulimit for your process
-         procd_set_param file /var/etc/your_service.conf # 如果此处定义的文件发生了变化，则会触发 /etc/init.d/your_service reload 重启进程
-         procd_set_param netdev dev # likewise, except if dev's ifindex changes.
-         procd_set_param data name=value ... # likewise, except if this data changes.
-         procd_set_param stdout 1 # 转发 stdout 输出到 logd
-         procd_set_param stderr 1 # same for stderr
-         procd_set_param user nobody # 以 nobody 用户运行服务
-         procd_set_param pidfile /var/run/somefile.pid # 在服务启动时写入一个 pid 文件，在停止服务时删除此 pid 文件
-         procd_close_instance # 结束服务实例配置
-}</code></pre><p>当我们通过 start 参数执行这个脚本时，会自动运行 <code>start_service()</code>：</p><pre><code>/etc/init.d/test start
-</code></pre><h3>stop_service</h3><p>如果需要在服务进程被终止时，执行特定的命令，可以在 <code>stop_service()</code> 中定义。如：</p><pre><code>stop_service() {
-        kill $(ps | grep v2ray | awk '/-confdir/ {print $1}')
-}</code></pre><p>通过 stop 参数可以直接调用此 method：</p><pre><code>/etc/init.d/test stop
-</code></pre><h3>restart_service</h3><p>当我们想要重启某个服务，可以通过单独执行 stop 和 start 来实现，也可以直接定义一个 <code>restart_service()</code> 来自动完成这个过程：</p><pre><code>restart_service() {
-        stop
-        start
-}</code></pre><p>注意，在脚本内部调用某个 function 只需要写它的前面的名称即可。</p><p>重启服务只需要运行以下命令即可：</p><pre><code>/etc/init.d/test restart
-</code></pre><h3>service_triggers</h3><p>可以定义当某个 event 被触发时，自动运行某个 function。</p><pre><code>service_triggers()
-{
-        procd_add_reload_trigger &quot;&lt;uci-file-name&gt;&quot; &quot;&lt;second-uci-file&gt;&quot;
-        procd_add_reload_interface_trigger &lt;interface&gt;
-}</code></pre><p>以上配置会在 luci 的配置文件发生修改时，自动触发 reload function。</p><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-developer/procd-init-scripts">https://openwrt.org/docs/guide-developer/procd-init-scripts</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-script-example">https://openwrt.org/docs/guide-developer/procd-init-script-example</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2277.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2277.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>admin</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2320.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2310.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2305.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2303.html"/>
@@ -18,10 +19,39 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2287.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2281.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2278.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2277.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2320.html">
+<title>理解 Linux shell 脚本的 2&amp;gt;&amp;amp;1</title>
+<link>https://blog.niekun.net/archives/2320.html</link>
+<dc:date>2021-05-31T18:33:51+08:00</dc:date>
+<description>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 2&gt;&amp;1，例如：ls foo &gt; /dev/null 2&gt;&amp;1
+下面我们一步步了解下这种结构的含义。I/O redirection 重定向简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 cat 命令打印一个文件的内容到屏幕：$ cat foo.txt
+foo
+bar
+baz我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:$ cat foo.txt &gt; output.txt
+
+$ cat output.txt
+foo
+bar
+baz执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 standard output (stdout)标准输出到一个文件，所以它就不会输出到屏幕了。需要注意的是还有另一个地方：standard error (stderr)标准错误，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：$ cat nop.txt &gt; output.txt
+cat: nop.txt: No such file or directory以上示例中即使我们将 stdout 重定向到一个文件了，由于 output.txt 不存在，stderr 依然会输出错误信息到屏幕。因为我们重定向的只是 stdout 而不包括 stderr。file descriptors 文件描述器一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 stdout 和 stderr 有其各自的文件描述器 id 定义了它们各自的地址。stdout 是 1，stderr 是 2。在之前的示例中，我们可以修改命令为如下结构：cat foo.txt 1&gt; output.txt
+这里的 1 就是 stdout 的文件描述器，通过重定向语法 [FILE_DESCRIPTOR]&gt; 将 stdout 重定向到另一个文件。注意 1&gt; 可以简写为 &gt;。类似的，可以将 stderr 重定向到指定的目的地：$ cat nop.txt 2&gt; error.txt
+
+$ cat error.txt
+cat: nop.txt: No such file or directory这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。下面我们理解下 2&gt;&amp;1 的意义。我们使用 &amp;1 来指向 stdout 的重定向地址，所以 2&gt;&amp;1 表示重定向 stderr 到和 stdout 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 stdout 和 stderr 重定向到同一个文件中：$ cat foo.txt &gt; output.txt 2&gt;&amp;1
+
+$ cat output.txt
+foo
+bar
+baz
+
+$ cat nop.txt &gt; output.txt 2&gt;&amp;1
+
+$ cat output.txt
+cat: nop.txt: No such file or directory总结有两个地方用来让程序发送输出内容：stdout，stderr可以单独定义两个输出的重定向目的地文件描述器用来识别 stdout (1) 和 stderr (2)command &gt; output 是 command 1&gt; output 的简写通过 &amp;[FILE_DESCRIPTOR] 指向一个文件描述器的重定向目标地址上2&gt;&amp;1 可以将 stderr 重定向到 stdout 同样的重定向地址上。反之亦然。参考链接Understanding Shell Script's idiom: 2&gt;&1In the shell, what does “ 2&gt;&1 ” mean?</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2310.html">
 <title>通过 telegram-cli 命令行发送 telegram 消息</title>
 <link>https://blog.niekun.net/archives/2310.html</link>
@@ -341,62 +371,5 @@ IP.1                = 192.168.1.1可以修改 C (country), ST (state), L (locati
 执行下面的命令：openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout mycert.key -out mycert.crt -config myconfig.conf
 会自动在当前目录下创建 mycert.key 和 mycert.crt 文件。然后我们先通过 lan 内网访问 luci web 界面，在顶部我们可以看到多了一个 services 菜单，点击其中的 uhttpd 进入配置界面，在 HTTPS Certificate 和 HTTPS Private Key 中分别上传 crt 和 key 文件：然后点击 save and apply。重启 uhttpd 服务：/etc/init.d/uhttpd restart
 此时我们通过 wan 口地址访问 luci web 界面，应该就可以正常进入了。下面我们将刚才生成的 ssl 文件加入 backup 列表。默认情况下 /etc/config 下的文件会自动进行备份。我们进入 System → Backup/Flash Firmware，点击 configuration 栏，然后将 /etc/ssl/mycert.crt 和  /etc/ssl/mycert.key 加入列表中，点击 save 即可。之后我们生成的备份就会包含这些文件。参考链接How to get rid of LuCI HTTPS certificate warnings</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2277.html">
-<title>openwrt procd init script 自启动脚本服务</title>
-<link>https://blog.niekun.net/archives/2277.html</link>
-<dc:date>2021-03-30T21:29:00+08:00</dc:date>
-<description>openwrt 是针对于嵌入式设备的精简版 Linux 系统。所以一些常规的 Linux 服务都没有，比如 systemd 等。openwrt 是通过 init.d 来管理服务的。所有的服务都在 /etc/init.d 目录下。对某个服务进行操作也很方便，例如对 network 服务：# 启动 network
-/etc/init.d/network start
-
-# 重启 network
-/etc/init.d/network restart
-
-# 停止 network
-/etc/init.d/network stop如果需要某个服务开机自启动，可以 enable：/etc/init.d/frp enable会自动在 /etc/rc.d/ 目录下建立一个链接指向 /etc/init.d 下的对应服务，如：S95frp。S95 表示此服务的启动顺序，下面会做介绍。基本结构script 配置文件基本结构如下：#!/bin/sh /etc/rc.common
-
-USE_PROCD=1
-START=95
-STOP=15
-
-start_service() {
-}
-service_triggers() {
-}
-stop_service() {
-}
-restart_service() {
-}首先定义 shebang，定义脚本执行的相关依赖。然后通过 USE_PROCD 定义我们的脚本是新的 procd 脚本而不是老版本的 init 脚本。START=95 定义此服务开机启动时，其服务启动顺序序号。最大为 95，数字越大启动排序越靠后。STOP=15 定义此服务在关机时，其服务关闭顺序序号。数字越小关闭排序越靠前。Init script 有两个主要任务：定义此服务的配置定义何时重新配置此服务每个服务都有各自特定需要执行的指令，他们都存储在 procd 内部。需要在 start_service() 中定义服务配置内容。start_servicestart_service() 的主要任务是：启动一个服务需要执行的命令监测某些信息的变化，如：文件或网络的变化配置 procd 需要的设定，如：auto respawning, logging stdout以上的任务作为一个服务实例状态存储在 procd 中。当特定的系统配置发生变化，会自动根据 trigger 的设定调用 start_service()。需要通过设定参数来配置服务实例，常用的参数是直接在 start_service 中设定，如 command，一般我么通过 procd_set_param() 和 procd_append_param() 来设定参数。下面列举了支持的参数，有些需要设定有些可以省略：start_service() {
-         procd_open_instance [instance_name] # 给服务实例定义一个名称
-         procd_set_param command /sbin/your_service_daemon -b -a --foo # 需要在前台被执行的服务
-         procd_append_param command -bar 42 # 给以上命令附加的指令参数
-
-         # 如果服务意外中止了，定义 redpawn 可以自动重启它，如果服务命令的确只需要运行一次，需要谨慎设定这里
-         # 如果进程在 respawn_threshold 定义的时间内结束了，则判定为进程崩溃并尝试重启它，尝试5次后会停止重启
-         procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
-
-         procd_set_param env SOME_VARIABLE=funtimes  # 给进程传递环境变量
-         procd_set_param limits core=&quot;unlimited&quot;  # If you need to set ulimit for your process
-         procd_set_param file /var/etc/your_service.conf # 如果此处定义的文件发生了变化，则会触发 /etc/init.d/your_service reload 重启进程
-         procd_set_param netdev dev # likewise, except if dev's ifindex changes.
-         procd_set_param data name=value ... # likewise, except if this data changes.
-         procd_set_param stdout 1 # 转发 stdout 输出到 logd
-         procd_set_param stderr 1 # same for stderr
-         procd_set_param user nobody # 以 nobody 用户运行服务
-         procd_set_param pidfile /var/run/somefile.pid # 在服务启动时写入一个 pid 文件，在停止服务时删除此 pid 文件
-         procd_close_instance # 结束服务实例配置
-}当我们通过 start 参数执行这个脚本时，会自动运行 start_service()：/etc/init.d/test start
-stop_service如果需要在服务进程被终止时，执行特定的命令，可以在 stop_service() 中定义。如：stop_service() {
-        kill $(ps | grep v2ray | awk '/-confdir/ {print $1}')
-}通过 stop 参数可以直接调用此 method：/etc/init.d/test stop
-restart_service当我们想要重启某个服务，可以通过单独执行 stop 和 start 来实现，也可以直接定义一个 restart_service() 来自动完成这个过程：restart_service() {
-        stop
-        start
-}注意，在脚本内部调用某个 function 只需要写它的前面的名称即可。重启服务只需要运行以下命令即可：/etc/init.d/test restart
-service_triggers可以定义当某个 event 被触发时，自动运行某个 function。service_triggers()
-{
-        procd_add_reload_trigger &quot;&lt;uci-file-name&gt;&quot; &quot;&lt;second-uci-file&gt;&quot;
-        procd_add_reload_interface_trigger &lt;interface&gt;
-}以上配置会在 luci 的配置文件发生修改时，自动触发 reload function。参考链接https://openwrt.org/docs/guide-developer/procd-init-scriptshttps://openwrt.org/docs/guide-developer/procd-init-script-example</description>
 </item>
 </rdf:RDF>

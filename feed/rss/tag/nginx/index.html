@@ -97,11 +97,11 @@ return 执行后，在浏览器中会看到跳转到新的链接。rewrite此指
   # rewrite ^(.*)$  /echo permanent;
     rewrite ^(.*)$  https://niekun.net last;
 }上面三个示例：第一个跳转到 /echo 路径下。客户端看到的依然是 /rewrite 路径第二个跳转到 /echo 路径下。客户端看到的是新的 /echo 路径第三个跳转到 https://niekun.net。客户端看到的是：https://niekun.net用 regex 时，使用小括号()来设置 group，按照顺序 group 用 $1,$2...表示。以下是一个例子，进行了如下处理：以 /download 为起始然后包含 /media/ 或 /audio/ 段的 url 替换成包含 /mp3/ 段然后添加后缀 .mp3 或 .ra。例如：/download/cdn-west/media/file1 会修改为：/download/cdn-west/mp3/file1.mp3。last：表示当处理完当前 rewrite 后跳过当前 server 或 location内其他的 rewrite 模块，为处理后的 url 寻找到合适的匹配的 location。如果没有匹配到，则返回状态码：402。server {
-    # ...
-    rewrite ^(/download/.*)/media/(\w+)\.?.*$ $1/mp3/$2.mp3 last;
-    rewrite ^(/download/.*)/audio/(\w+)\.?.*$ $1/mp3/$2.ra  last;
-    return  403;
-    # ...
+  # ...
+  rewrite ^(/download/.*)/media/(\w+)\.?.*$ $1/mp3/$2.mp3 last;
+  rewrite ^(/download/.*)/audio/(\w+)\.?.*$ $1/mp3/$2.ra  last;
+  return  403;
+  # ...
 }try_files此指令的参数为一个或多个文件或目录，以及一个最终内部 url。语法：try_files file ... uri;
 处理过程为：nginx 检查列出的文件或文件夹地址是否存在，如果没有存在的话就内部重定向到指定的 url。为了让其工作，需要再定义一个 location 块捕获内部重定向的地址。try_files 指令常用的变量为 $uri, 代表域名后的 url 部分。以下例子进行了如下处理：放置一个 default.gif 文件来处理请求的图片不存在的情况如果请求 url 为：http://www.domain.com/images/image1.gif，nginx 首先寻找此 location 下 root 目录的 image1.gif 文件，如果没找到则再次寻找 image1.gif/ 目录，如果还是没有则重定向到 /images/default.gif，这次请求就完成了，此文件会缓存 30slocation /images/ {
     try_files $uri $uri/ /images/default.gif;

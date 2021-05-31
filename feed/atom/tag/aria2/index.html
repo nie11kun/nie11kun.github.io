@@ -182,13 +182,13 @@ bt-force-encryption=true
 # 添加自定义的 bt tracker 地址，从 https://github.com/ngosang/trackerslist 找最新的链接
 bt-tracker=udp://tracker.coppersurfer.tk:6969/announce,udp://tracker.leechers-paradise.org:6969/announce,udp://tracker.opentrackr.org:1337/announce,udp://p4p.arenabg.com:1337/announce,udp://9.rarbg.to:2710/announce,udp://9.rarbg.me:2710/announce,udp://tracker.internetwarriors.net:1337/announce,udp://exodus.desync.com:6969/announce,udp://tracker.tiny-vps.com:6969/announce,udp://tracker.torrent.eu.org:451/announce,udp://tracker.cyberia.is:6969/announce,udp://open.stealth.si:80/announce,udp://open.demonii.si:1337/announce,udp://denis.stalker.upeer.me:6969/announce,udp://tracker.sbsub.com:2710/announce,udp://tracker.moeking.me:6969/announce,udp://retracker.lanta-net.ru:2710/announce,udp://ipv4.tracker.harry.lu:80/announce,udp://explodie.org:6969/announce,udp://zephir.monocul.us:6969/announce</code></pre><h3>启动 aria2</h3><p>上述文件设置完毕后，就可以启动 aria2 了，在终端执行如下命令：</p><pre><code>cd /to/aria2/path
 aria2c --conf-path=aria2.conf
-</code></pre><p>然后启动 webui-aria2 的 index.html 网页，根据 aria2.conf 配置文件情况设置 setting - connection 内容，就可以正常使用了。</p><p>我将 webui-aria2 托管到了我的网站：<a href="https://webui-aria2.niekun.net">https://webui-aria2.niekun.net</a>。但是发现如果 webui 是 https 的就无法连接上 aria2 了，查了下好像是 web 加密问题，所以还是把 webui-aria2 放在本地使用吧。</p><h3>外网远程控制</h3><p>如果服务器在内网，可能需要进行内网穿透，可以参考我的 frp 教程，建立 http 转发：<a href="https://niekun.net/archives/539.html">https://niekun.net/archives/539.html</a></p><p>frpc 配置示例片段：</p><pre><code>[aria2]
+</code></pre><p>然后启动 webui-aria2 的 index.html 网页，根据 aria2.conf 配置文件情况设置 setting - connection 内容，就可以正常使用了。</p><p>我将 webui-aria2 托管到了我的网站：<a href="https://webui-aria2.niekun.net。但是发现如果">https://webui-aria2.niekun.net。但是发现如果</a> webui 是 https 的就无法连接上 aria2 了，查了下好像是 web 加密问题，所以还是把 webui-aria2 放在本地使用吧。</p><h3>外网远程控制</h3><p>如果服务器在内网，可能需要进行内网穿透，可以参考我的 frp 教程，建立 http 转发：<a href="https://niekun.net/archives/539.html">https://niekun.net/archives/539.html</a></p><p>frpc 配置示例片段：</p><pre><code>[aria2]
 type = http
 local_ip = 127.0.0.1
 local_port = 6800
 subdomain = aria2
 use_encryption = true
-use_compression = true</code></pre><p>如果按照我 frp 教程配置 nginx 代理 frp 的话，完成后就可以通过：<a href="https://aria2.youdomain.net">https://aria2.youdomain.net</a>:443 来控制 aria2 了。</p><h3>开机自启动</h3><p>可以建立脚本来实现开机自启动。</p><h4>Windows</h4><p>在 aria2 目录新建 bat 文件，内容如下：</p><pre><code>@echo off
+use_compression = true</code></pre><p>如果按照我 frp 教程配置 nginx 代理 frp 的话，完成后就可以通过：<a href="https://aria2.youdomain.net:443">https://aria2.youdomain.net:443</a> 来控制 aria2 了。</p><h3>开机自启动</h3><p>可以建立脚本来实现开机自启动。</p><h4>Windows</h4><p>在 aria2 目录新建 bat 文件，内容如下：</p><pre><code>@echo off
 if &quot;%1&quot; == &quot;h&quot; goto begin
 mshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;&quot;&quot;%~nx0&quot;&quot; h&quot;,0)(window.close)&amp;&amp;exit
 :begin

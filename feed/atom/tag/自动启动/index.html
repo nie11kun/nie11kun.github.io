@@ -179,7 +179,7 @@ plugin_http_passwd = admin</code></pre><p>执行以下命令启动：</p><pre><c
 </code></pre><p>如果设置有用户名密码，会提示口令，然后进入 web 页面。</p><h3>frps 控制面板</h3><pre><code>http://xxx.xxx.xxx.xxx:6004
 </code></pre><h3>文件服务器</h3><p>通过浏览器访问 <code>http://xxx.xxx.xxx.xxx:6020/static/</code> 来查看位于 <code>/tmp/file</code> 目录下的文件，会要求输入已设置好的用户名和密码。</p><h3>转发 DNS 查询请求</h3><p>通过 dig 测试 UDP 包转发是否成功，预期会返回 www.baidu.com 域名的解析结果:</p><pre><code>dig @xxx.xxx.xxx.xxx -p 6033 www.baidu.com
 </code></pre><h3>代理服务器</h3><p>可以将内网设备作为 http 或 socks 代理服务器，这样外网设备就可以通过这个代理服务器访问到这台内网服务器能够访问到的服务了，如打印机等。</p><p>如果内网设备可以访问内部网页：<a href="http://10.10.1.100">http://10.10.1.100</a></p><p>测试将外网设备设置 http 代理：</p><pre><code>http_proxy=http://xxx.xxx.xxx.xxx:6034
-</code></pre><p>设置完成后外网设备测试在浏览器直接访问这个内部网页：<a href="http://10.10.1.100">http://10.10.1.100</a></p><h2>服务端 nginx 代理 frp</h2><p>我服务器上使用 nginx 管理 http 请求，可以使用 nginx 代理 frp 的 http 服务。这样可以实现不带端口访问 frp 和使用 nginx 上已经设置的 https 加密而不需要单独给 frp 配置 https。</p><p>客户端和服务端使用上面示例的配置，web01 页面可通过：<a href="http://web01.niekun.net">http://web01.niekun.net</a>:6002 访问。下面我们设置 nginx 代理服务：</p><pre><code>server {
+</code></pre><p>设置完成后外网设备测试在浏览器直接访问这个内部网页：<a href="http://10.10.1.100">http://10.10.1.100</a></p><h2>服务端 nginx 代理 frp</h2><p>我服务器上使用 nginx 管理 http 请求，可以使用 nginx 代理 frp 的 http 服务。这样可以实现不带端口访问 frp 和使用 nginx 上已经设置的 https 加密而不需要单独给 frp 配置 https。</p><p>客户端和服务端使用上面示例的配置，web01 页面可通过：<a href="http://web01.niekun.net:6002">http://web01.niekun.net:6002</a> 访问。下面我们设置 nginx 代理服务：</p><pre><code>server {
     listen        443 ssl http2;
     listen        [::]:443 ssl http2;
     server_name   frp.niekun.net;

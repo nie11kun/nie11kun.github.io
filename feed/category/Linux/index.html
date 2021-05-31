@@ -11,8 +11,46 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/Linux/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Tue, 18 May 2021 20:08:00 +0800</lastBuildDate>
-<pubDate>Tue, 18 May 2021 20:08:00 +0800</pubDate>
+<lastBuildDate>Mon, 31 May 2021 18:33:51 +0800</lastBuildDate>
+<pubDate>Mon, 31 May 2021 18:33:51 +0800</pubDate>
+<item>
+<title>理解 Linux shell 脚本的 2&amp;gt;&amp;amp;1</title>
+<link>https://blog.niekun.net/archives/2320.html</link>
+<guid>https://blog.niekun.net/archives/2320.html</guid>
+<pubDate>Mon, 31 May 2021 18:33:51 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 2&gt;&amp;1，例如：ls foo &gt; /dev/null 2&...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 <code>2&gt;&amp;1</code>，例如：</p><pre><code>ls foo &gt; /dev/null 2&gt;&amp;1
+</code></pre><p>下面我们一步步了解下这种结构的含义。</p><!--more--><h3>I/O redirection 重定向</h3><p>简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 <code>cat</code> 命令打印一个文件的内容到屏幕：</p><pre><code>$ cat foo.txt
+foo
+bar
+baz</code></pre><p>我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:</p><pre><code>$ cat foo.txt &gt; output.txt
+
+$ cat output.txt
+foo
+bar
+baz</code></pre><p>执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 <strong>standard output (stdout)标准输出</strong>到一个文件，所以它就不会输出到屏幕了。</p><p>需要注意的是还有另一个地方：<strong>standard error (stderr)标准错误</strong>，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：</p><pre><code>$ cat nop.txt &gt; output.txt
+cat: nop.txt: No such file or directory</code></pre><p>以上示例中即使我们将 <strong>stdout</strong> 重定向到一个文件了，由于 output.txt 不存在，<strong>stderr</strong> 依然会输出错误信息到屏幕。因为我们重定向的只是 <strong>stdout</strong> 而不包括 <strong>stderr</strong>。</p><h3>file descriptors 文件描述器</h3><p>一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 <strong>stdout</strong> 和 <strong>stderr</strong> 有其各自的文件描述器 id 定义了它们各自的地址。</p><p><strong>stdout</strong> 是 <strong>1</strong>，<strong>stderr</strong> 是 <strong>2</strong>。</p><p>在之前的示例中，我们可以修改命令为如下结构：</p><pre><code>cat foo.txt 1&gt; output.txt
+</code></pre><p>这里的 <strong>1</strong> 就是 <strong>stdout</strong> 的文件描述器，通过重定向语法 <code>[FILE_DESCRIPTOR]&gt;</code> 将 <strong>stdout</strong> 重定向到另一个文件。注意 <code>1&gt;</code> 可以简写为 <code>&gt;</code>。</p><p>类似的，可以将 stderr 重定向到指定的目的地：</p><pre><code>$ cat nop.txt 2&gt; error.txt
+
+$ cat error.txt
+cat: nop.txt: No such file or directory</code></pre><p>这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。</p><p>下面我们理解下 <code>2&gt;&amp;1</code> 的意义。我们使用 <code>&amp;1</code> 来指向 <strong>stdout</strong> 的重定向地址，所以 <code>2&gt;&amp;1</code> 表示重定向 <strong>stderr</strong> 到和 <strong>stdout</strong> 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 <strong>stdout</strong> 和 <strong>stderr</strong> 重定向到同一个文件中：</p><pre><code>$ cat foo.txt &gt; output.txt 2&gt;&amp;1
+
+$ cat output.txt
+foo
+bar
+baz
+
+$ cat nop.txt &gt; output.txt 2&gt;&amp;1
+
+$ cat output.txt
+cat: nop.txt: No such file or directory</code></pre><h3>总结</h3><ul><li>有两个地方用来让程序发送输出内容：<strong>stdout</strong>，<strong>stderr</strong></li><li>可以单独定义两个输出的重定向目的地</li><li>文件描述器用来识别 <strong>stdout (1)</strong> 和 <strong>stderr (2)</strong></li><li><code>command &gt; output</code> 是 <code>command 1&gt; output</code> 的简写</li><li>通过 <code>&amp;[FILE_DESCRIPTOR]</code> 指向一个文件描述器的重定向目标地址上</li><li><code>2&gt;&amp;1</code> 可以将 <strong>stderr</strong> 重定向到 <strong>stdout</strong> 同样的重定向地址上。反之亦然。</li></ul><h3>参考链接</h3><p><a href="https://www.brianstorti.com/understanding-shell-script-idiom-redirect/">Understanding Shell Script's idiom: 2&gt;&1</a><br><a href="https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean">In the shell, what does “ 2&gt;&1 ” mean?</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2320.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2320.html</wfw:commentRss>
+</item>
 <item>
 <title>通过 telegram-cli 命令行发送 telegram 消息</title>
 <link>https://blog.niekun.net/archives/2310.html</link>
@@ -379,7 +417,7 @@ restart_service() {
 <description><![CDATA[一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。关于配置自己的 bot 参考之前的文章：https://blog.niekun.net/arc...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。</p><p>关于配置自己的 bot 参考之前的文章：<a href="https://blog.niekun.net/archives/428.html">https://blog.niekun.net/archives/428.html</a></p><p>我的应用于 telegram bot 的 YouTube 下载器源码地址：<a href="https://github.com/nie11kun/telegram-bot-youtube-downloader">https://github.com/nie11kun/telegram-bot-youtube-downloader</a></p><p>最近想给我的 telegram bot 添加 Instagram 图片的下载功能，但是 youtube-dl 并不支持 Instagram。查询了下发现了 instaloader 这个开源软件可以完美实现我想要的功能。</p><p>instaloader 官网：<a href="https://instaloader.github.io/">https://instaloader.github.io/</a></p><p>GitHub：<a href="https://github.com/instaloader/instaloader">https://github.com/instaloader/instaloader</a></p><!--more--><h3>安装</h3><p>instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。</p><p>使用 pip3 安装：</p><pre><code>pip3 install instaloader --upgrade
-</code></pre><p><strong>注意必须通过 pip3 而不是 pip 安装，否则使用中会报错。</strong></p><h3>使用</h3><p>安装完成后就可以使用 <strong>instaloader</strong> 命令来下载了。注意如果 python 安装到了自定义目录，如 <code>/opt</code> 则需要手动链接 instaloader 可执行程序到 <code>/usr/local/bin</code> 目录。</p><h4>下载 post</h4><p>如果要下载一个 post 中的图片，提取链接中的 <strong>shortcode</strong> 来下载，如下是一个 Instagram post 的链接：<a href="https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link">https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link</a>，其中的 <code>CMcMZycLpbS</code> 就是 <strong>shortcode</strong> 代码。</p><p>需要通过 <code>-shortcode</code> 参数来下载对应的图片，且需要通过 <code>--</code> 告诉 instaloader 不要将 <code>-shortcode</code> 作为 option 对待，如：</p><pre><code>instaloader -- -CMcMZycLpbS
+</code></pre><p><strong>注意必须通过 pip3 而不是 pip 安装，否则使用中会报错。</strong></p><h3>使用</h3><p>安装完成后就可以使用 <strong>instaloader</strong> 命令来下载了。注意如果 python 安装到了自定义目录，如 <code>/opt</code> 则需要手动链接 instaloader 可执行程序到 <code>/usr/local/bin</code> 目录。</p><h4>下载 post</h4><p>如果要下载一个 post 中的图片，提取链接中的 <strong>shortcode</strong> 来下载，如下是一个 Instagram post 的链接：<a href="https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link，其中的">https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link，其中的</a> <code>CMcMZycLpbS</code> 就是 <strong>shortcode</strong> 代码。</p><p>需要通过 <code>-shortcode</code> 参数来下载对应的图片，且需要通过 <code>--</code> 告诉 instaloader 不要将 <code>-shortcode</code> 作为 option 对待，如：</p><pre><code>instaloader -- -CMcMZycLpbS
 </code></pre><p>关于命令中的特殊字符处理参考：<a href="https://blog.niekun.net/archives/2204.html">https://blog.niekun.net/archives/2204.html</a></p><p>默认会下载到当前目录下，并新建文件夹 <code>-shortcode</code>，媒体文件及相关文本文件就在其中，注意到文件夹是以特殊字符 <code>-</code> 开头的，所以访问目录需要加上 <code>--</code>，如：</p><pre><code>cd -- -CMcMZycLpbS
 </code></pre><h4>自定义下载目录</h4><p>通过 <code>--dirname-pattern</code> 参数可以指定下载目录，如：</p><pre><code>instaloader --dirname-pattern=/tmp/test -- -CMcMZycLpbS
 </code></pre><p>就会将对应 post 的媒体下载到 <code>/tmp/test</code> 目录内。</p><p><strong>instaloader</strong> 的功能很强大，可以下载一个用户的所有发布内容，可以下载一个 <code>#hashtag</code> 标签的所有内容等。具体可以参考官方文档：<a href="https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram">https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram</a></p><p>我将 instaloader 加入了 telegram bot 中，可以很方便的下载一个 post 的媒体内容，有兴趣的可以查看：<a href="https://github.com/nie11kun/telegram-bot-youtube-downloader">https://github.com/nie11kun/telegram-bot-youtube-downloader</a></p>
@@ -387,24 +425,6 @@ restart_service() {
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2205.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2205.html</wfw:commentRss>
-</item>
-<item>
-<title>cd 到以 '-' dash 开头的目录的方法</title>
-<link>https://blog.niekun.net/archives/2204.html</link>
-<guid>https://blog.niekun.net/archives/2204.html</guid>
-<pubDate>Tue, 16 Mar 2021 10:33:44 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[Linux 下，当文件或文件夹包含空格或其他特殊符号如 $，在引用时需要将其放在单引号 '' 或 &quot;&quot; 中，如：cd '$abc'cd &quot;abc de f&quot...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>Linux 下，当文件或文件夹包含空格或其他特殊符号如 <code>$</code>，在引用时需要将其放在单引号 <code>''</code> 或 <code>&quot;&quot;</code> 中，如：</p><pre><code>cd '$abc'
-cd &quot;abc de f&quot;
-</code></pre><p>当文件以 <code>-</code> dash 开头时，命令会将其作为 option 处理，如：</p><pre><code>ls -lh
-</code></pre><p>此时如果需要让命令将其识别为文件名称而不是 option 需要加入 <code>--</code> 作为参数：</p><pre><code>cd -- '-abc'
-</code></pre><p>这样命令就会将 <code>-</code> 开头的字符作为文件名称处理了。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2204.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2204.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

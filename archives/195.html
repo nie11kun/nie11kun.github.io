@@ -25,7 +25,7 @@
 <link rel="alternate" type="application/rss+xml" title="NGINX rewrite 模块的应用 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/195.html" />
 <link rel="alternate" type="application/rdf+xml" title="NGINX rewrite 模块的应用 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/195.html" />
 <link rel="alternate" type="application/atom+xml" title="NGINX rewrite 模块的应用 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/195.html" />
-<script type="628a1c44ac298191b897887d-text/javascript">
+<script type="5493b5321963568daf72d425-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -97,7 +97,7 @@
     };
 })();
 </script>
-<script type="628a1c44ac298191b897887d-text/javascript">
+<script type="5493b5321963568daf72d425-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -115,32 +115,35 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _SceSBq = //'Uu'
-'79'+//'Z'
-'98'+'a'//'SRS'
-+//'Bj1'
-'0'+//'Zf'
-'fd'+//'QU'
-'eb4'+'06'//'8'
-+//'k3z'
-'4e1'+//'5'
-'f'+//'g'
-'eb7'+'b4'//'b'
-+//'Ayv'
-'8f'+'a'//'p9'
-+''///*'7N'*/'7N'
-+'9'//'m'
-+'538'//'jQ'
-+'vCL'//'vCL'
-+//'BBC'
-'5'+/* 's'//'s' */''+'ff'//'bw'
-, _53zSJ = [[29,32]];
+    var _bbSSC = '799'//'wHN'
++'k'//'k'
++//'Ch'
+'8a'+'0fd'//'HZ'
++//'SS'
+'eb'+'406'//'i'
++'4'//'Ct'
++//'2d'
+'e'+'1fe'//'Zlh'
++'s3'//'s3'
++'b'//'ox'
++//'G'
+'7b4'+'8f'//'13'
++'a9'//'4Wm'
++//'TY'
+'5'+'Zf'//'Zf'
++//'39'
+'39'+'38'//'UTH'
++/* '7le'//'7le' */''+'5'//'BQR'
++'f'//'N'
++//'4H8'
+'4H8'+//'b'
+'f', _7VT8 = [[3,4],[18,20],[27,29],[27,29],[31,34]];
     
-    for (var i = 0; i < _53zSJ.length; i ++) {
-        _SceSBq = _SceSBq.substring(0, _53zSJ[i][0]) + _SceSBq.substring(_53zSJ[i][1]);
+    for (var i = 0; i < _7VT8.length; i ++) {
+        _bbSSC = _bbSSC.substring(0, _7VT8[i][0]) + _bbSSC.substring(_7VT8[i][1]);
     }
 
-    return _SceSBq;
+    return _bbSSC;
 })();
 
         if (null != r) {
@@ -213,7 +216,7 @@
 </li>
 </ul>
 </div>
-</div>
+ </div>
 </header>
 </div>
 <div id="body">
@@ -241,14 +244,14 @@
     rewrite ^(.*)$  /echo last;
   # rewrite ^(.*)$  /echo permanent;
     rewrite ^(.*)$  https://niekun.net last;
-}</code></pre><p>上面三个示例：</p><ul><li>第一个跳转到 /echo 路径下。客户端看到的依然是 /rewrite 路径</li><li>第二个跳转到 /echo 路径下。客户端看到的是新的 /echo 路径</li><li>第三个跳转到 <a href="https://niekun.net">https://niekun.net</a>。客户端看到的是：<a href="https://niekun.net">https://niekun.net</a></li></ul><p>用 regex 时，使用小括号()来设置 group，按照顺序 group 用 $1,$2...表示。</p><p><strong>以下是一个例子，进行了如下处理：</strong></p><ul><li>以 /download 为起始然后包含 /media/ 或 /audio/ 段的 url 替换成包含 /mp3/ 段然后添加后缀 .mp3 或 .ra。</li><li>例如：/download/cdn-west/media/file1 会修改为：/download/cdn-west/mp3/file1.mp3。</li><li>last：表示当处理完当前 rewrite 后跳过当前 server 或 location内其他的 rewrite 模块，为处理后的 url 寻找到合适的匹配的 location。</li><li>如果没有匹配到，则返回状态码：402。</li></ul><pre><code>server {
-    # ...
-    rewrite ^(/download/.*)/media/(\w+)\.?.*$ $1/mp3/$2.mp3 last;
-    rewrite ^(/download/.*)/audio/(\w+)\.?.*$ $1/mp3/$2.ra  last;
-    return  403;
-    # ...
-}</code></pre><h2>try_files</h2><p>此指令的参数为一个或多个文件或目录，以及一个最终内部 url。</p><p>语法：</p><pre><code>try_files file ... uri;
-</code></pre><p>处理过程为：nginx 检查列出的文件或文件夹地址是否存在，如果没有存在的话就内部重定向到指定的 url。为了让其工作，需要再定义一个 location 块捕获内部重定向的地址。</p><p>try_files 指令常用的变量为 $uri, 代表域名后的 url 部分。</p><p>以下例子进行了如下处理：</p><ul><li>放置一个 default.gif 文件来处理请求的图片不存在的情况</li><li>如果请求 url 为：<a href="https://www.domain.com/images/image1.gif">http://www.domain.com/images/image1.gif</a>，nginx 首先寻找此 location 下 root 目录的 image1.gif 文件，如果没找到则再次寻找 image1.gif/ 目录，如果还是没有则重定向到 /images/default.gif，这次请求就完成了，此文件会缓存 30s</li></ul><pre><code>location /images/ {
+}</code></pre><p>上面三个示例：</p><ul><li>第一个跳转到 /echo 路径下。客户端看到的依然是 /rewrite 路径</li><li>第二个跳转到 /echo 路径下。客户端看到的是新的 /echo 路径</li><li>第三个跳转到 <a href="https://niekun.net。客户端看到的是：https://niekun.net">https://niekun.net。客户端看到的是：https://niekun.net</a></li></ul><p>用 regex 时，使用小括号()来设置 group，按照顺序 group 用 $1,$2...表示。</p><p><strong>以下是一个例子，进行了如下处理：</strong></p><ul><li>以 /download 为起始然后包含 /media/ 或 /audio/ 段的 url 替换成包含 /mp3/ 段然后添加后缀 .mp3 或 .ra。</li><li>例如：/download/cdn-west/media/file1 会修改为：/download/cdn-west/mp3/file1.mp3。</li><li>last：表示当处理完当前 rewrite 后跳过当前 server 或 location内其他的 rewrite 模块，为处理后的 url 寻找到合适的匹配的 location。</li><li><p>如果没有匹配到，则返回状态码：402。</p><pre><code>server {
+  # ...
+  rewrite ^(/download/.*)/media/(\w+)\.?.*$ $1/mp3/$2.mp3 last;
+  rewrite ^(/download/.*)/audio/(\w+)\.?.*$ $1/mp3/$2.ra  last;
+  return  403;
+  # ...
+}</code></pre></li></ul><h2>try_files</h2><p>此指令的参数为一个或多个文件或目录，以及一个最终内部 url。</p><p>语法：</p><pre><code>try_files file ... uri;
+</code></pre><p>处理过程为：nginx 检查列出的文件或文件夹地址是否存在，如果没有存在的话就内部重定向到指定的 url。为了让其工作，需要再定义一个 location 块捕获内部重定向的地址。</p><p>try_files 指令常用的变量为 $uri, 代表域名后的 url 部分。</p><p>以下例子进行了如下处理：</p><ul><li>放置一个 default.gif 文件来处理请求的图片不存在的情况</li><li>如果请求 url 为：<a href="https://www.domain.com/images/image1.gif，nginx">http://www.domain.com/images/image1.gif，nginx</a> 首先寻找此 location 下 root 目录的 image1.gif 文件，如果没找到则再次寻找 image1.gif/ 目录，如果还是没有则重定向到 /images/default.gif，这次请求就完成了，此文件会缓存 30s</li></ul><pre><code>location /images/ {
     try_files $uri $uri/ /images/default.gif;
 }
 
@@ -260,7 +263,7 @@ location = /images/default.gif {
 <div id="comments">
 <div id="respond-post-194" class="respond">
 <div class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="195.html#respond-post-194" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-628a1c44ac298191b897887d-="">取消回复</a> </div>
+<a id="cancel-comment-reply-link" href="195.html#respond-post-194" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-5493b5321963568daf72d425-="">取消回复</a> </div>
 <h3 id="response">添加新评论</h3>
 <form method="post" action="https://blog.niekun.net/archives/195.html/comment" id="comment-form" role="form">
 <p>
@@ -294,7 +297,7 @@ location = /images/default.gif {
 <section class="widget">
 <h4 class="Display 2">最新文章</h4>
 <ul class="widget-list">
-<li><a href="2310.html">通过 telegram-cli 命令行发送 telegram 消息</a></li><li><a href="2305.html">配置外部网络存储器作为 Time Machine 备份</a></li><li><a href="2303.html">在 Ubuntu 中加载 smb 共享目录为本地路径</a></li><li><a href="2294.html"> openwrt 时区设置</a></li><li><a href="2291.html">openwrt network 配置</a></li><li><a href="2290.html">通过 GitHub API 获取数据</a></li><li><a href="2287.html">Linux 脚本中的 Shebang #!</a></li><li><a href="2281.html">Ubuntu desktop 配置 vnc server</a></li><li><a href="2278.html">openwrt 配置 LuCI ssl 证书</a></li><li><a href="2277.html">openwrt procd init script 自启动脚本服务</a></li> </ul>
+<li><a href="2320.html">理解 Linux shell 脚本的 2&gt;&amp;1</a></li><li><a href="2310.html">通过 telegram-cli 命令行发送 telegram 消息</a></li><li><a href="2305.html">配置外部网络存储器作为 Time Machine 备份</a></li><li><a href="2303.html">在 Ubuntu 中加载 smb 共享目录为本地路径</a></li><li><a href="2294.html"> openwrt 时区设置</a></li><li><a href="2291.html">openwrt network 配置</a></li><li><a href="2290.html">通过 GitHub API 获取数据</a></li><li><a href="2287.html">Linux 脚本中的 Shebang #!</a></li><li><a href="2281.html">Ubuntu desktop 配置 vnc server</a></li><li><a href="2278.html">openwrt 配置 LuCI ssl 证书</a></li> </ul>
 </section>
 <section class="widget">
 <h4 class="Display 2">最近回复</h4>
@@ -334,12 +337,12 @@ location = /images/default.gif {
 <footer id="footer" role="contentinfo">
 &copy; 2021 <a href="../index.html">Marco Nie</a>. All rights reserved. Power by <a href="http://typecho.org">Typecho.</a> Theme designed by <a href="https://niekun.net">Marco Nie.</a>
 </footer>
-<script type="628a1c44ac298191b897887d-text/javascript">
+<script type="5493b5321963568daf72d425-text/javascript">
     navItemSytle();
 </script>
-<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="628a1c44ac298191b897887d-text/javascript"></script>
-<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="628a1c44ac298191b897887d-text/javascript"></script>
-<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="628a1c44ac298191b897887d-text/javascript"></script>
-<script src="../usr/themes/TypechoAwesome/navItem.js" type="628a1c44ac298191b897887d-text/javascript"></script>
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="628a1c44ac298191b897887d-|49" defer=""></script></body>
+<script src="https://niekun.net/webcdn/jquery-3.4.1/jquery.min.js" type="5493b5321963568daf72d425-text/javascript"></script>
+<script src="https://niekun.net/webcdn//popper.js-1.16.0/popper.min.js" type="5493b5321963568daf72d425-text/javascript"></script>
+<script src="https://niekun.net/webcdn/bootstrap-4.4.1-dist/js/bootstrap.min.js" type="5493b5321963568daf72d425-text/javascript"></script>
+<script src="../usr/themes/TypechoAwesome/navItem.js" type="5493b5321963568daf72d425-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="5493b5321963568daf72d425-|49" defer=""></script></body>
 </html>
