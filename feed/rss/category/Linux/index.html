@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2321.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2320.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2310.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2303.html"/>
@@ -18,10 +19,66 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2281.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2278.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2277.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2205.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2321.html">
+<title>openwrt 扩展根目录空间</title>
+<link>https://blog.niekun.net/archives/2321.html</link>
+<dc:date>2021-06-22T21:40:00+08:00</dc:date>
+<description>我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：root@OpenWrt:~# df -h
+Filesystem                Size      Used Available Use% Mounted on
+/dev/root               252.0M    241.4M      5.5M  98% /rom
+tmpfs                   496.5M     68.0K    496.4M   0% /tmp
+/dev/sda1                15.7M      3.8M     11.6M  25% /boot
+/dev/sda1                15.7M      3.8M     11.6M  25% /boot
+tmpfs                   512.0K         0    512.0K   0% /dev其中 /dev/root 是系统固件目录，不用考虑。/dev/sda* 就是系统实际可用的硬盘空间。我明明分配了 5 GB 空间给 openwrt 但是由于系统分区是在下载的固件中定义好的，所以其余空间就没有被识别。由于默认存储空间过小，当安装了过多的插件后，会提示空间不足导致无法安装更多插件：verify_pkg_installable: Only have 0kb available on filesystem /overlay, pkg luci-app-openvpn needs 9
+opkg_install_cmd: Cannot install package luci-app-openvpn下面介绍如何将剩余空间挂在到 openwrt 中。首先安装需要的插件，注意顺序不能错：opkg update
+opkg install block-mount e2fsprogs
+opkg update
+opkg install fdisk blkid然后配置存储空间，注意 fdisk 指令后的几个选项：fdisk -l
+
+fdisk /dev/sda
+m
+n
+p
+&lt;默认,回车&gt; //–&gt;分区号为3
+&lt;默认,回车&gt;
+&lt;默认,回车&gt;
+w
+
+reboot重启后，格式化刚才建立的分区：mkfs.ext4 /dev/sda3
+reboot重启后配置 fstab：uci add fstab mount
+
+# 将下面第一行命令输出的 UUID 替换第二行命令后的 UUID
+blkid -s UUID /dev/sda3 | cut -d\&quot; -f2
+uci set fstab.@mount[-1].uuid=UUID
+
+uci set fstab.@mount[-1].options=rw,sync,noatime
+uci set fstab.@mount[-1].fstype=ext4
+uci set fstab.@mount[-1].enabled_fsck=1
+uci set fstab.@mount[-1].enabled=1
+uci set fstab.@mount[-1].target=/
+uci set fstab.@mount[-1].device=/dev/sda3
+uci commit fstab然后根目录复制到新的分区下：mkdir /mnt/sda3
+mount /dev/sda3 /mnt/sda3
+mkdir -p /tmp/cproot
+mount --bind / /tmp/cproot
+tar -C /tmp/cproot -cvf - . | tar -C /mnt/sda3 -xf -
+
+umount /tmp/cproot
+umount /mnt/sda3然后启用引导：/etc/init.d/fstab enable
+/etc/init.d/fstab start
+
+reboot重启后再次查看系统分区信息：root@OpenWrt:~# df -h
+Filesystem                Size      Used Available Use% Mounted on
+/dev/root               252.0M    241.4M      5.5M  98% /rom
+tmpfs                   496.5M      1.0M    495.5M   0% /tmp
+/dev/sda3                 4.6G    257.2M      4.1G   6% /
+/dev/sda1                15.7M      3.8M     11.6M  25% /boot
+/dev/sda1                15.7M      3.8M     11.6M  25% /boot
+tmpfs                   512.0K         0    512.0K   0% /dev可以看到 sda3 分区已经正常挂载了，后续可以继续安装需要的各种插件了。参考链接Vmware下openwrt虚拟机扩展根目录大小</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2320.html">
 <title>理解 Linux shell 脚本的 2&amp;gt;&amp;amp;1</title>
 <link>https://blog.niekun.net/archives/2320.html</link>
@@ -344,15 +401,5 @@ service_triggers可以定义当某个 event 被触发时，自动运行某个 fu
         procd_add_reload_trigger &quot;&lt;uci-file-name&gt;&quot; &quot;&lt;second-uci-file&gt;&quot;
         procd_add_reload_interface_trigger &lt;interface&gt;
 }以上配置会在 luci 的配置文件发生修改时，自动触发 reload function。参考链接https://openwrt.org/docs/guide-developer/procd-init-scriptshttps://openwrt.org/docs/guide-developer/procd-init-script-example</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2205.html">
-<title>使用 instaloader 下载 Instagram 图片-视频</title>
-<link>https://blog.niekun.net/archives/2205.html</link>
-<dc:date>2021-03-16T11:55:00+08:00</dc:date>
-<description>一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。关于配置自己的 bot 参考之前的文章：https://blog.niekun.net/archives/428.html我的应用于 telegram bot 的 YouTube 下载器源码地址：https://github.com/nie11kun/telegram-bot-youtube-downloader最近想给我的 telegram bot 添加 Instagram 图片的下载功能，但是 youtube-dl 并不支持 Instagram。查询了下发现了 instaloader 这个开源软件可以完美实现我想要的功能。instaloader 官网：https://instaloader.github.io/GitHub：https://github.com/instaloader/instaloader安装instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。使用 pip3 安装：pip3 install instaloader --upgrade
-注意必须通过 pip3 而不是 pip 安装，否则使用中会报错。使用安装完成后就可以使用 instaloader 命令来下载了。注意如果 python 安装到了自定义目录，如 /opt 则需要手动链接 instaloader 可执行程序到 /usr/local/bin 目录。下载 post如果要下载一个 post 中的图片，提取链接中的 shortcode 来下载，如下是一个 Instagram post 的链接：https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link，其中的 CMcMZycLpbS 就是 shortcode 代码。需要通过 -shortcode 参数来下载对应的图片，且需要通过 -- 告诉 instaloader 不要将 -shortcode 作为 option 对待，如：instaloader -- -CMcMZycLpbS
-关于命令中的特殊字符处理参考：https://blog.niekun.net/archives/2204.html默认会下载到当前目录下，并新建文件夹 -shortcode，媒体文件及相关文本文件就在其中，注意到文件夹是以特殊字符 - 开头的，所以访问目录需要加上 --，如：cd -- -CMcMZycLpbS
-自定义下载目录通过 --dirname-pattern 参数可以指定下载目录，如：instaloader --dirname-pattern=/tmp/test -- -CMcMZycLpbS
-就会将对应 post 的媒体下载到 /tmp/test 目录内。instaloader 的功能很强大，可以下载一个用户的所有发布内容，可以下载一个 #hashtag 标签的所有内容等。具体可以参考官方文档：https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram我将 instaloader 加入了 telegram bot 中，可以很方便的下载一个 post 的媒体内容，有兴趣的可以查看：https://github.com/nie11kun/telegram-bot-youtube-downloader</description>
 </item>
 </rdf:RDF>

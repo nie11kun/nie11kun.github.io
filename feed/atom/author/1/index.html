@@ -6,11 +6,79 @@ xml:base="https://blog.niekun.net/author/1/"
 >
 <title type="text">Marco Nie - admin</title>
 <subtitle type="text">admin</subtitle>
-<updated>2021-05-31T18:33:51+08:00</updated>
+<updated>2021-06-22T21:40:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/author/1/" />
 <id>https://blog.niekun.net/feed/atom/author/1/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/author/1/" />
+<entry>
+<title type="html"><![CDATA[openwrt 扩展根目录空间]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2321.html" />
+<id>https://blog.niekun.net/archives/2321.html</id>
+<updated>2021-06-22T21:40:00+08:00</updated>
+<published>2021-06-22T21:40:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：root@OpenWrt:~# d...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2321.html" xml:lang="zh-CN"><![CDATA[
+<p>我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：</p><pre><code>root@OpenWrt:~# df -h
+Filesystem                Size      Used Available Use% Mounted on
+/dev/root               252.0M    241.4M      5.5M  98% /rom
+tmpfs                   496.5M     68.0K    496.4M   0% /tmp
+/dev/sda1                15.7M      3.8M     11.6M  25% /boot
+/dev/sda1                15.7M      3.8M     11.6M  25% /boot
+tmpfs                   512.0K         0    512.0K   0% /dev</code></pre><p>其中 <code>/dev/root</code> 是系统固件目录，不用考虑。<code>/dev/sda*</code> 就是系统实际可用的硬盘空间。我明明分配了 5 GB 空间给 openwrt 但是由于系统分区是在下载的固件中定义好的，所以其余空间就没有被识别。由于默认存储空间过小，当安装了过多的插件后，会提示空间不足导致无法安装更多插件：</p><pre><code>verify_pkg_installable: Only have 0kb available on filesystem /overlay, pkg luci-app-openvpn needs 9
+opkg_install_cmd: Cannot install package luci-app-openvpn</code></pre><p>下面介绍如何将剩余空间挂在到 openwrt 中。</p><!--more--><p>首先安装需要的插件，注意顺序不能错：</p><pre><code>opkg update
+opkg install block-mount e2fsprogs
+opkg update
+opkg install fdisk blkid</code></pre><p>然后配置存储空间，注意 fdisk 指令后的几个选项：</p><pre><code>fdisk -l
+
+fdisk /dev/sda
+m
+n
+p
+&lt;默认,回车&gt; //–&gt;分区号为3
+&lt;默认,回车&gt;
+&lt;默认,回车&gt;
+w
+
+reboot</code></pre><p>重启后，格式化刚才建立的分区：</p><pre><code>mkfs.ext4 /dev/sda3
+reboot</code></pre><p>重启后配置 fstab：</p><pre><code>uci add fstab mount
+
+# 将下面第一行命令输出的 UUID 替换第二行命令后的 UUID
+blkid -s UUID /dev/sda3 | cut -d\&quot; -f2
+uci set fstab.@mount[-1].uuid=UUID
+
+uci set fstab.@mount[-1].options=rw,sync,noatime
+uci set fstab.@mount[-1].fstype=ext4
+uci set fstab.@mount[-1].enabled_fsck=1
+uci set fstab.@mount[-1].enabled=1
+uci set fstab.@mount[-1].target=/
+uci set fstab.@mount[-1].device=/dev/sda3
+uci commit fstab</code></pre><p>然后根目录复制到新的分区下：</p><pre><code>mkdir /mnt/sda3
+mount /dev/sda3 /mnt/sda3
+mkdir -p /tmp/cproot
+mount --bind / /tmp/cproot
+tar -C /tmp/cproot -cvf - . | tar -C /mnt/sda3 -xf -
+
+umount /tmp/cproot
+umount /mnt/sda3</code></pre><p>然后启用引导：</p><pre><code>/etc/init.d/fstab enable
+/etc/init.d/fstab start
+
+reboot</code></pre><p>重启后再次查看系统分区信息：</p><pre><code>root@OpenWrt:~# df -h
+Filesystem                Size      Used Available Use% Mounted on
+/dev/root               252.0M    241.4M      5.5M  98% /rom
+tmpfs                   496.5M      1.0M    495.5M   0% /tmp
+/dev/sda3                 4.6G    257.2M      4.1G   6% /
+/dev/sda1                15.7M      3.8M     11.6M  25% /boot
+/dev/sda1                15.7M      3.8M     11.6M  25% /boot
+tmpfs                   512.0K         0    512.0K   0% /dev</code></pre><p>可以看到 sda3 分区已经正常挂载了，后续可以继续安装需要的各种插件了。</p><h3>参考链接</h3><p><a href="https://blog.csdn.net/duandao123/article/details/99689383">Vmware下openwrt虚拟机扩展根目录大小</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2321.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2321.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[理解 Linux shell 脚本的 2&gt;&amp;1]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2320.html" />
@@ -428,47 +496,5 @@ WantedBy=multi-user.target</code></pre><ul><li>注意上面的配置中，需要
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2281.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2281.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[openwrt 配置 LuCI ssl 证书]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2278.html" />
-<id>https://blog.niekun.net/archives/2278.html</id>
-<updated>2021-03-30T22:00:32+08:00</updated>
-<published>2021-03-30T22:00:32+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[openwrt 提供了一个 luci 管理界面可以通过图形化的方式进行配置管理。我们通过 lan 网地址 http 访问 luci 界面，会有一个提示不安全的链接，一般浏览器提供了一个跳过选项可...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2278.html" xml:lang="zh-CN"><![CDATA[
-<p>openwrt 提供了一个 luci 管理界面可以通过图形化的方式进行配置管理。我们通过 lan 网地址 http 访问 luci 界面，会有一个提示不安全的链接，一般浏览器提供了一个跳过选项可以忽略警告。</p><p>但是当我们通过 wan 口地址访问 luci 界面时，新版的 chrome 会强制拒绝访问 http 不安全的链接，这样我们就无法通过外网访问 luci 界面了。</p><p>注意如果想要从 wan 口访问 luci 界面，需要配置防火墙放行，具体参考：<a href="https://blog.niekun.net/archives/1818.html">https://blog.niekun.net/archives/1818.html</a></p><p>解决方法是我们给 luci 配置一个 ssl 证书，这样浏览器就会放行了。</p><!--more--><p>首先安装相关程序：</p><pre><code>opkg update &amp;&amp; opkg install openssl-util luci-app-uhttpd
-</code></pre><p>以上我们安装了 openssl 套件和 uhttpd 的 ui 配置接口，可以图形化的方式配置 uhttpd。</p><p>下面我们来生成需要的 ssl 证书文件。</p><p>首先创建文件 <code>etc/ssl/myconfig.conf</code>：</p><pre><code>[req]
-distinguished_name  = req_distinguished_name
-x509_extensions     = v3_req
-prompt              = no
-string_mask         = utf8only
- 
-[req_distinguished_name]
-C                   = US
-ST                  = VA
-L                   = SomeCity
-O                   = OpenWrt
-OU                  = Home Router
-CN                  = luci.openwrt
- 
-[v3_req]
-keyUsage            = nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage    = serverAuth
-subjectAltName      = @alt_names
- 
-[alt_names]
-DNS.1               = luci.openwrt
-IP.1                = 192.168.1.1</code></pre><p>可以修改 C (country), ST (state), L (location), O (organization), OU (organization unit) 为你想要的内容。</p><p>CN 和 DNS.1 必须是一样的地址，它们表示此证书代表的域名，和 IP 是对应的。如果配置了 luci 界面地址的 hosts，这里就可以定义为对应的域名。之后我们就可以通过访问这个域名来访问 IP。</p><p>IP.1 就是 luci web 地址，设置为对应的地址即可。</p><p>配置文件保存后返回 ssl 目录：</p><pre><code>cd /etc/ssl
-</code></pre><p>执行下面的命令：</p><pre><code>openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout mycert.key -out mycert.crt -config myconfig.conf
-</code></pre><p>会自动在当前目录下创建 mycert.key 和 mycert.crt 文件。</p><p>然后我们先通过 lan 内网访问 luci web 界面，在顶部我们可以看到多了一个 services 菜单，点击其中的 uhttpd 进入配置界面，在 <strong>HTTPS Certificate</strong> 和 <strong>HTTPS Private Key</strong> 中分别上传 crt 和 key 文件：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4104361265.png" alt="2021-03-30T13:52:17.png" title="2021-03-30T13:52:17.png"></p><p>然后点击 save and apply。</p><p>重启 uhttpd 服务：</p><pre><code>/etc/init.d/uhttpd restart
-</code></pre><p>此时我们通过 wan 口地址访问 luci web 界面，应该就可以正常进入了。</p><p>下面我们将刚才生成的 ssl 文件加入 backup 列表。默认情况下 <code>/etc/config</code> 下的文件会自动进行备份。</p><p>我们进入 System → Backup/Flash Firmware，点击 configuration 栏，然后将 <code>/etc/ssl/mycert.crt</code> 和 <br> <code>/etc/ssl/mycert.key</code> 加入列表中，点击 save 即可。</p><p>之后我们生成的备份就会包含这些文件。</p><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/luci/getting_rid_of_luci_https_certificate_warnings">How to get rid of LuCI HTTPS certificate warnings</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2278.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2278.html" thr:count="0"/>
 </entry>
 </feed>
