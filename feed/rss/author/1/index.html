@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>admin</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2324.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2321.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2320.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2310.html"/>
@@ -18,10 +19,252 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2291.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2290.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2287.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2281.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2324.html">
+<title>React 入门教程之八 -- Lifting State Up 提升 state 层级</title>
+<link>https://blog.niekun.net/archives/2324.html</link>
+<dc:date>2021-08-28T23:38:17+08:00</dc:date>
+<description>大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，下面详细介绍如何实现这一 function。下面创建一个 temperature calculator 温度计算器来判断在一个给定的温度下，水是否会沸腾。首先我们创建一个 BoilingVerdict component作为沸腾裁决器，它接受 celsius 摄氏温度作为一个 prop，然后输出是否足够使水沸腾：const BoilingVerdict = (props) =&gt; {
+    if (props.celsius &gt;= 100) {
+        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+    }
+    return &lt;p&gt;The water would not boil.&lt;/p&gt;
+} 然后我们创建一个 Calculator compenent，它会渲染一个 input 元素用来输入温度数据，且将数据存储在 this.state.temprature 中：const React = require('react')
+const ReactDOM = require('react-dom')
+
+const BoilingVerdict = (props) =&gt; {
+    if (props.celsius &gt;= 100) {
+        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+    }
+    return &lt;p&gt;The water would not boil.&lt;/p&gt;
+} 
+
+class Calculator extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {temperature: ''};
+
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(e) {
+        this.setState({temperature: e.target.value});
+    }
+
+    render() {
+        const temperature = this.state.temperature;
+        return (
+            &lt;fieldset&gt;
+                &lt;legend&gt;Enter temperature in celsius&lt;/legend&gt;
+                &lt;input
+                    value={temperature}
+                    onChange={this.handleChange}
+                /&gt;
+                &lt;BoilingVerdict celsius={parseFloat(temperature)} /&gt;
+            &lt;/fieldset&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;Calculator /&gt;,
+    document.getElementById('root')
+);上面的示例中使用了一个 fieldset 来定义一个块，legend 定义了这个块的抬头信息，效果如下：上一章节中我们详细介绍了如何构建一个 controlled component 可以参考。现在我们有一个新的需求，在原有 celsius 摄氏输入的同时增加一个 Fahrenheit 华氏输入栏，同时让它们两者保持数据同步。首先我们从 Calculator 中拆解出一个 TempratureInput component，将会给其增加一个 scale props，它可以是 "c" 或 "f" 来区分摄氏和华氏：const scaleNames = {
+    c: 'Celsius',
+    f: 'Fahrenheit'
+}
+
+class TemperatureInput extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {temperature: ''};
+
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(e) {
+        this.setState({temperature: e.target.value});
+    }
+
+    render() {
+        const temperature = this.state.temperature;
+        const scale = this.props.scale;
+        return (
+            &lt;fieldset&gt;
+                &lt;legend&gt;Enter temperature in {scaleNames[scale]}:&lt;/legend&gt;
+                &lt;input
+                    value={temperature}
+                    onChange={this.handleChange}
+                /&gt;
+            &lt;/fieldset&gt;
+        );
+    } 
+}
+
+class Calculator extends React.Component {
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;TemperatureInput scale='c' /&gt;
+                &lt;TemperatureInput scale='f' /&gt;
+            &lt;/div&gt;
+        );
+    }
+}修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称。但此时两个 input 是相互隔离的，它们的数据不能相互访问。下面我们实现两个 component 之间的数据互通。首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
+const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;这里我使用了 ES6 的简化写法，省略了 return 等符号。下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：const tryConvert = (temperature, convert) =&gt; {
+    const input = parseFloat(temperature);
+    if (Number.isNaN(input)) {
+        return '';
+    }
+    const output = convert(input);
+    const rounded = Math.round(output * 1000) / 1000;
+    return rounded.toString();
+}使用上面的 function 如果执行 tryConvert('abc', toCelsius) 会返回空字符串，如果执行 tryConvert('10.22', toFahrenheit) 会返回 &quot;50.396&quot;。下面我们将 TempratureInput 中的 state 提升到 parent component。当前的代码中，每个 TempratureInput component 各自控制它们的 state 且相互隔离，但是我们希望这两个 inputs 能够共享数据且同步更新，例如当我修改了 celsius input 后 Fahrenheit input 会自动更改为对应 celsius input 的结果。在 react 中，共享 state 通过将其移动到这些 components 最近层级中的 parent component 中，叫做 lifting state up，下面我们将 TempratureInput 中的本地 state 移动到 Calculator 中。如果 Calculator 含有 shared state，它就成为了其下级 components 的 source of truth 可信来源，它可以管理他的下级 components 保持数据一致性，因此两个 TempratureInput 的 props 都来自于同一个 Calculator，所以他们的 inputs 将会保持一致同步.下面我们逐步实现这个过程，首先替换 TemperatureInput component 中的 this.state.temperature 为 this.props.temperature，稍后我们将在 Calculator 中定义它：  render() {
+    // Before: const temperature = this.state.temperature;
+    const temperature = this.props.temperature;
+    // ...我们知道 props 是只读的，在之前我们的 temperature 存储在本地的 state 中，然后通过 setState 来修改它，现在 temperature 来自 parent component，所以 TemperatureInput 无法直接控制它。在 react 中，通常的解决方法是使 component 为 controlled，就像 &lt;input&gt; 元素可以接受 value 和 onChange props 属性，我们可以自定义使 TempratureInput 接受 temperature 和 onTemperatureChange 属性。从而当它需要更新他的 temperature 数据时，就可以通过调用 this.props.onTemperatureChange:    handleChange(e) {
+        this.props.onTemperatureChange(e.target.value);
+    }注意这里的命名时自定义的，我们可以定义任意的名称作为 component 的 props 属性名称。onTemperatureChange 属性将会在 Calculator 中通 temperature 相关联起来，它将会修改 Calculator 中的 state 同时重新渲染两个 inputs 元素.下面我们专注于 Calculator component，我们需要存储当前 input 的 temperate 和 scale 数据到其 state 中，这里的 state 来自于之前从 TemperatureInput 中 lifting up 的，同时它将会同时作为两个 inputs 的可信来源，这两个 state 可以同时提供足够的数据来同时 render 两个 inputs，例如我们在 celsius input 中输入了 37，则 Calculator 的 state 应该是这样的：{
+  temperature: '37',
+  scale: 'c'
+}如果我们在 Fahrenheit input 中输入了 212，则 state 应该是这样的：{
+  temperature: '212',
+  scale: 'f'
+}我们不需要同时单独存储两个 input 的数据，只需要存储最后一个 input 的数据即可，scale 中记录了具体是哪个 input 的来源。最后两个 inputs 中的数据是同步的，因为他们的值都是来自于同一个 state：class Calculator extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleCelsiusChange = this.handleCelsiusChange.bind(this);
+        this.handleFahrenheitChange = this.handleFahrenheitChange.bind(this);
+        this.state = {temperature: '', scale: 'c'};
+    }
+
+    handleCelsiusChange(temperature) {
+        this.setState({temperature: temperature, scale: 'c'});
+    }
+
+    handleFahrenheitChange(temperature) {
+        this.setState({temperature: temperature, scale: 'f'});
+    }
+
+    render() {
+        const scale = this.state.scale;
+        const temperature = this.state.temperature;
+        const celsius = scale === 'f' ? tryConvert(temperature, toCelsius) : temperature;
+        const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
+
+        return (
+            &lt;div&gt;
+                &lt;TemperatureInput
+                    scale='c'
+                    temperature={celsius}
+                    onTemperatureChange={this.handleCelsiusChange} /&gt;
+                &lt;TemperatureInput
+                    scale='f'
+                    temperature={fahrenheit}
+                    onTemperatureChange={this.handleFahrenheitChange} /&gt;
+                &lt;BoilingVerdict celsius={parseFloat(celsius)} /&gt;
+            &lt;/div&gt;
+        );
+    }
+}此时无论我们在 celsius 或 Fahrenheit 中输入数据都会同时更新两个 input 的值。此示例完整代码如下：const React = require('react')
+const ReactDOM = require('react-dom')
+
+const BoilingVerdict = (props) =&gt; {
+    if (props.celsius &gt;= 100) {
+        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+    }
+    return &lt;p&gt;The water would not boil.&lt;/p&gt;
+} 
+
+const scaleNames = {
+    c: 'Celsius',
+    f: 'Fahrenheit'
+}
+
+const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
+const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;
+
+const tryConvert = (temperature, convert) =&gt; {
+    const input = parseFloat(temperature);
+    if (Number.isNaN(input)) {
+        return '';
+    }
+    const output = convert(input);
+    const rounded = Math.round(output * 1000) / 1000;
+    return rounded.toString();
+}
+
+class TemperatureInput extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(e) {
+        this.props.onTemperatureChange(e.target.value);
+    }
+
+    render() {
+        const temperature = this.props.temperature;
+        const scale = this.props.scale;
+        return (
+            &lt;fieldset&gt;
+                &lt;legend&gt;Enter temperature in {scaleNames[scale]}:&lt;/legend&gt;
+                &lt;input
+                    value={temperature}
+                    onChange={this.handleChange}
+                /&gt;
+            &lt;/fieldset&gt;
+        );
+    } 
+}
+
+class Calculator extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleCelsiusChange = this.handleCelsiusChange.bind(this);
+        this.handleFahrenheitChange = this.handleFahrenheitChange.bind(this);
+        this.state = {temperature: '', scale: 'c'};
+    }
+
+    handleCelsiusChange(temperature) {
+        this.setState({temperature: temperature, scale: 'c'});
+    }
+
+    handleFahrenheitChange(temperature) {
+        this.setState({temperature: temperature, scale: 'f'});
+    }
+
+    render() {
+        const scale = this.state.scale;
+        const temperature = this.state.temperature;
+        const celsius = scale === 'f' ? tryConvert(temperature, toCelsius) : temperature;
+        const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
+
+        return (
+            &lt;div&gt;
+                &lt;TemperatureInput
+                    scale='c'
+                    temperature={celsius}
+                    onTemperatureChange={this.handleCelsiusChange} /&gt;
+                &lt;TemperatureInput
+                    scale='f'
+                    temperature={fahrenheit}
+                    onTemperatureChange={this.handleFahrenheitChange} /&gt;
+                &lt;BoilingVerdict celsius={parseFloat(celsius)} /&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;Calculator /&gt;,
+    document.getElementById('root')
+);处理流程为：用户输入在任意一个 input 中输入数值后，触发 onChange 并调用 handleChange然后触发了 Calculator 的 onTemperatureChange 并将 input 的数据作为传入参数根据不同的 input 最终触发了 Calculator 中的 handleChange function 并对 state 进行了修改state 改变后会触发 render，并计算最新的 celsius 和 Fahrenheit 数值最后根据计算的结果重新渲染 Temperature 的 input value</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2321.html">
 <title>openwrt 扩展根目录空间</title>
 <link>https://blog.niekun.net/archives/2321.html</link>
@@ -340,62 +583,5 @@ echo &quot;Hello, ${USER}&quot;我们定义了此脚本的解释器为 /bin/sh�
 其他解释器当然我们可以根据需要定义其他的解释器，而不仅仅是 sh。下面的示例我们将 cat 作为解释器，这样就会输出脚本本身的内容：#!/bin/cat
 Hello World!调用 PATH上面的示例中，我们定义的解释器的绝对路径，但是当我们不知道一个程序的明确的路径时，我们可以通过将解释器定义为 env 程序，并传递实际需要的解释器程序名称，env 会自动在当前用户 PATH 环境变量中查询程序的路径并作为解释器执行脚本。下面我们通过 env 来查询 node 并作为解释器执行 node 脚本：#!/usr/bin/env node
 console.log('Hello world!');以上就是对 shebang 的简单解释。参考链接Using Shebang #! in Linux Scripts</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2281.html">
-<title>Ubuntu desktop 配置 vnc server</title>
-<link>https://blog.niekun.net/archives/2281.html</link>
-<dc:date>2021-03-31T11:26:00+08:00</dc:date>
-<description>通过 VNC(Virtual Network Computing) 可以使用一个图形化的界面来访问远程服务器。这样对服务器的操作可以更加便捷直观。下面我们在 Ubuntu 上安装 TightVNC vnc server 并通过更加安全的 SSH tunnel 来连接服务器。环境需求：远程主机 Ubuntu desktop 20.04关闭 ufw 防火墙或配置允许 openssh 远程连接本地设备 vnc 客户端需要支持 SSH tunnels 连接，如： TightVNC, RealVNC, or UltraVNC.安装Ubuntu 本身没有安装 vnc 服务，下面我们通过安装 Xfce 桌面环境服务和 TightVNC 来实现，它们都很轻量及快速，很适合配置 vnc server。首先安装 xfce 及其增强包：sudo apt install xfce4 xfce4-goodies
-安装过程中会提示需要选择 xfce 的一个默认 display manager 显示管理器，它是用来在登录系统时的一个图像界面来输入用户及密码的，由于我们只是使用 xfce 来连接 vnc 客户端，且此时已经登陆了对应账户了，所以这里我们任意选择一个显示管理器即可。下面安装 TightVNC server：sudo apt install tightvncserver
-安装完成后，我们运行 vncserver 来设置一个 vnc 密码，并且初始化相关配置文件：vncserver
-此时会提示要求输入一个密码及 verify 验证密码：You will require a password to access your desktops.
-
-Password: 
-Verify:  然后会提示是否需要设置一个 view-only 密码，通过这个密码登录后，不可以使用鼠标或键盘操作服务器。不需要的话输入 n 不创建即可。然后就会创建相关的默认配置文件和显示相关连接信息，同时会启动一个运行在 5901 端口的 vnc 服务实例：Would you like to enter a view-only password (y/n)? n
-xauth:  file /home/sammy/.Xauthority does not exist
-
-New 'X' desktop is marco-virtual-machine:1
-
-Creating default startup script /home/marco/.vnc/xstartup
-Starting applications specified in /home/marco/.vnc/xstartup
-Log file is /home/marco/.vnc/marco-virtual-machine:1.log后期如果需要修改 vnc 密码可以输入 vncpasswd 设置：vncpasswd
-此时我们的 vnc server 就安装完成并且启动了，下面我们配置启动 xfce。配置vnc server 在启动时需要知道需要执行哪些命令，以及需要连接到哪个 graphical desktop environment 图形环境。vnc server 启动时所执行的命令是在 xstartup 文件中定义的。他在当前登录用户的 home 目录的 .vnc 文件夹内。这个文件在我们第一次启动 vncserver 时会自动创建。下面我们对它进行修改。由于我们上面已经启动了 vncserver，它启动了一个运行在 5901 端口的 vnc 实例。我们首先关闭这个服务：vncserver -kill :1
-输出信息如下：Killing Xtightvnc process ID 17648
-下面我们打开 ~/.vnc/xstartup 文件，修改为以下内容：#!/bin/sh
-
-unset SESSION_MANAGER
-unset DBUS_SESSION_BUS_ADDRESS
-startxfce4 &amp;
-
-xrdb $HOME/.Xresources
-xsetroot -solid grey
-#x-terminal-emulator -geometry 80x24+10+10 -ls -title &quot;$VNCDESKTOP Desktop&quot; &amp;
-#x-window-manager &amp;
-# Fix to make GNOME work
-export XKL_XMODMAP_DISABLE=1
-/etc/X11/Xsession注意前三句是需要添加的，下面的是文件默认内容。否则远程连接会显示为灰屏。然后给配置文件添加执行权限：chmod +x ~/.vnc/xstartup
-然后我们重新启动 vncserver：vncserver -localhost
-注意这里我们添加了 -localhost 参数，意味着此 vnc 服务只可以在本机内被连接。如果不添加这个参数，则开放所有网络连接。我们这里只打开本地网络连接服务，然后通过 ssh tunnel 在远程和本地建立安全的连接并转发 vnc 本地端口。连接vnc 本身并不支持通过一些安全的协议进行连接，下面我们通过 ssh tunnel 隧道在本地和远程主机间建立一个安全的链接，然后告诉 vnc 客户端使用这个安全隧道连接远程服务器。上面我们已经启动了一个 vncserver 在 5901 端口，它可以在本地网络内被连接但无法被外部网络连接。首先我们通过 ssh 在本地和远程建立一个安全链接，并转发远程主机的 localhost 及端口到本地的特定端口：ssh -L 59000:localhost:5901 -C -N -l user xxx.xxx.xxx.xxx
-以上命令意义如下：-L 59000:localhost:5901：使用 -L 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。-C 参数用来启用传输数据压缩，可以提高传输效率-N 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用-l 定义远程主机的用户名和 IP 地址ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 localhost:59000：输入我们之前创建的 vnc 密码后就连接到远程服务器了：当然也可以不使用 ssh tunnel ，但是需要取消 -localhost 参数，就可以直接连接 vnc server。配置 vnc systemd 服务为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。在 /usr/lib/systemd/system 目录下新建文件 vncserver@.service，其中的 @ 可以让我们在操作此服务时添加传递参数，在配置文件中使用 %1 可以读取这个参数。内容如下：[Unit]
-Description=Start TightVNC server at startup
-After=syslog.target network.target
-
-[Service]
-Type=forking
-User=user
-Group=user
-WorkingDirectory=/home/user
-
-PIDFile=/home/user/.vnc/%H:%i.pid
-ExecStartPre=-/usr/bin/vncserver -kill :%i &gt; /dev/null 2&gt;&amp;1
-ExecStart=/usr/bin/vncserver -depth 24 -geometry 1280x800 -localhost :%i
-ExecStop=/usr/bin/vncserver -kill :%i
-
-[Install]
-WantedBy=multi-user.target注意上面的配置中，需要将 user 修改为你实际登录的用户名称，共有 4 个地方ExecStart 中我们定义了 24 位色深 1280x800 的 vnc 显示，可以根据需要自行修改使用了 -localhost 参数，所以只能使用 ssh tunnel 的方式访问然后重新加载配置：sudo systemctl daemon-reload
-启动一个 vncserver 使用参数 1 来定义 vnc 服务号：sudo systemctl start vncserver@1
-此时我们就启动了一个 vncserver 且其服务号为 :1。关闭启动的 :1 vncserver：systemctl stop vncserver@1
-开机自动启动 vncserver 服务：systemctl enable vncserver@1
-这样就可以实现开机自动部署 vncserver 服务了。参考链接How to Install and Configure VNC on Ubuntu 20.04VNC grey screen, x cursor, nothing helps</description>
 </item>
 </rdf:RDF>

@@ -11,8 +11,259 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/web/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Thu, 08 Apr 2021 09:44:00 +0800</lastBuildDate>
-<pubDate>Thu, 08 Apr 2021 09:44:00 +0800</pubDate>
+<lastBuildDate>Sat, 28 Aug 2021 23:38:17 +0800</lastBuildDate>
+<pubDate>Sat, 28 Aug 2021 23:38:17 +0800</pubDate>
+<item>
+<title>React 入门教程之八 -- Lifting State Up 提升 state 层级</title>
+<link>https://blog.niekun.net/archives/2324.html</link>
+<guid>https://blog.niekun.net/archives/2324.html</guid>
+<pubDate>Sat, 28 Aug 2021 23:38:17 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，下面详细介绍如何实现这一 function。</p><p>下面创建一个 <strong>temperature calculator</strong> 温度计算器来判断在一个给定的温度下，水是否会沸腾。</p><!--more--><p>首先我们创建一个 <code>BoilingVerdict</code> component作为沸腾裁决器，它接受 celsius 摄氏温度作为一个 prop，然后输出是否足够使水沸腾：</p><pre><code>const BoilingVerdict = (props) =&gt; {
+    if (props.celsius &gt;= 100) {
+        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+    }
+    return &lt;p&gt;The water would not boil.&lt;/p&gt;
+} </code></pre><p>然后我们创建一个 <code>Calculator</code> compenent，它会渲染一个 input 元素用来输入温度数据，且将数据存储在 <code>this.state.temprature</code> 中：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const BoilingVerdict = (props) =&gt; {
+    if (props.celsius &gt;= 100) {
+        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+    }
+    return &lt;p&gt;The water would not boil.&lt;/p&gt;
+} 
+
+class Calculator extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {temperature: ''};
+
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(e) {
+        this.setState({temperature: e.target.value});
+    }
+
+    render() {
+        const temperature = this.state.temperature;
+        return (
+            &lt;fieldset&gt;
+                &lt;legend&gt;Enter temperature in celsius&lt;/legend&gt;
+                &lt;input
+                    value={temperature}
+                    onChange={this.handleChange}
+                /&gt;
+                &lt;BoilingVerdict celsius={parseFloat(temperature)} /&gt;
+            &lt;/fieldset&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;Calculator /&gt;,
+    document.getElementById('root')
+);</code></pre><p>上面的示例中使用了一个 fieldset 来定义一个块，legend 定义了这个块的抬头信息，效果如下：</p><p><img src="https://blog.niekun.net/usr/uploads/2021/08/2134840666.png" alt="2021-08-28T13:36:45.png" title="2021-08-28T13:36:45.png"></p><p>上一章节中我们详细介绍了如何构建一个 controlled component 可以参考。</p><p>现在我们有一个新的需求，在原有 celsius 摄氏输入的同时增加一个 Fahrenheit 华氏输入栏，同时让它们两者保持数据同步。</p><p>首先我们从 <code>Calculator</code> 中拆解出一个 <code>TempratureInput</code> component，将会给其增加一个 <strong>scale</strong> props，它可以是 "c" 或 "f" 来区分摄氏和华氏：</p><pre><code>const scaleNames = {
+    c: 'Celsius',
+    f: 'Fahrenheit'
+}
+
+class TemperatureInput extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {temperature: ''};
+
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(e) {
+        this.setState({temperature: e.target.value});
+    }
+
+    render() {
+        const temperature = this.state.temperature;
+        const scale = this.props.scale;
+        return (
+            &lt;fieldset&gt;
+                &lt;legend&gt;Enter temperature in {scaleNames[scale]}:&lt;/legend&gt;
+                &lt;input
+                    value={temperature}
+                    onChange={this.handleChange}
+                /&gt;
+            &lt;/fieldset&gt;
+        );
+    } 
+}
+
+class Calculator extends React.Component {
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;TemperatureInput scale='c' /&gt;
+                &lt;TemperatureInput scale='f' /&gt;
+            &lt;/div&gt;
+        );
+    }
+}</code></pre><p>修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称。但此时两个 input 是相互隔离的，它们的数据不能相互访问。</p><p>下面我们实现两个 component 之间的数据互通。</p><p>首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：</p><pre><code>const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
+const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;</code></pre><p>这里我使用了 ES6 的简化写法，省略了 return 等符号。</p><p>下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：</p><pre><code>const tryConvert = (temperature, convert) =&gt; {
+    const input = parseFloat(temperature);
+    if (Number.isNaN(input)) {
+        return '';
+    }
+    const output = convert(input);
+    const rounded = Math.round(output * 1000) / 1000;
+    return rounded.toString();
+}</code></pre><p>使用上面的 function 如果执行 <code>tryConvert('abc', toCelsius)</code> 会返回空字符串，如果执行 <code>tryConvert('10.22', toFahrenheit)</code> 会返回 <code>&quot;50.396&quot;</code>。</p><p>下面我们将 <strong>TempratureInput</strong> 中的 state 提升到 parent component。</p><p>当前的代码中，每个 <strong>TempratureInput</strong> component 各自控制它们的 state 且相互隔离，但是我们希望这两个 inputs 能够共享数据且同步更新，例如当我修改了 celsius input 后 Fahrenheit input 会自动更改为对应 celsius input 的结果。</p><p>在 react 中，共享 state 通过将其移动到这些 components 最近层级中的 parent component 中，叫做 lifting state up，下面我们将 TempratureInput 中的本地 state 移动到 Calculator 中。如果 Calculator 含有 shared state，它就成为了其下级 components 的 source of truth 可信来源，它可以管理他的下级 components 保持数据一致性，因此两个 TempratureInput 的 props 都来自于同一个 Calculator，所以他们的 inputs 将会保持一致同步.</p><p>下面我们逐步实现这个过程，首先替换 <strong>TemperatureInput</strong> component 中的 <code>this.state.temperature</code> 为 <code>this.props.temperature</code>，稍后我们将在 Calculator 中定义它：</p><pre><code>  render() {
+    // Before: const temperature = this.state.temperature;
+    const temperature = this.props.temperature;
+    // ...</code></pre><p>我们知道 props 是只读的，在之前我们的 temperature 存储在本地的 state 中，然后通过 setState 来修改它，现在 temperature 来自 parent component，所以 TemperatureInput 无法直接控制它。</p><p>在 react 中，通常的解决方法是使 component 为 controlled，就像 <code>&lt;input&gt;</code> 元素可以接受 <strong>value</strong> 和 <strong>onChange</strong> props 属性，我们可以自定义使 TempratureInput 接受 temperature 和 onTemperatureChange 属性。从而当它需要更新他的 temperature 数据时，就可以通过调用 <code>this.props.onTemperatureChange</code>:</p><pre><code>    handleChange(e) {
+        this.props.onTemperatureChange(e.target.value);
+    }</code></pre><p>注意这里的命名时自定义的，我们可以定义任意的名称作为 component 的 props 属性名称。</p><p>onTemperatureChange 属性将会在 Calculator 中通 temperature 相关联起来，它将会修改 Calculator 中的 state 同时重新渲染两个 inputs 元素.</p><p>下面我们专注于 Calculator component，我们需要存储当前 input 的 <strong>temperate</strong> 和 <strong>scale</strong> 数据到其 state 中，这里的 state 来自于之前从 TemperatureInput 中 lifting up 的，同时它将会同时作为两个 inputs 的可信来源，这两个 state 可以同时提供足够的数据来同时 render 两个 inputs，例如我们在 celsius input 中输入了 37，则 Calculator 的 state 应该是这样的：</p><pre><code>{
+  temperature: '37',
+  scale: 'c'
+}</code></pre><p>如果我们在 Fahrenheit input 中输入了 212，则 state 应该是这样的：</p><pre><code>{
+  temperature: '212',
+  scale: 'f'
+}</code></pre><p>我们不需要同时单独存储两个 input 的数据，只需要存储最后一个 input 的数据即可，scale 中记录了具体是哪个 input 的来源。最后两个 inputs 中的数据是同步的，因为他们的值都是来自于同一个 state：</p><pre><code>class Calculator extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleCelsiusChange = this.handleCelsiusChange.bind(this);
+        this.handleFahrenheitChange = this.handleFahrenheitChange.bind(this);
+        this.state = {temperature: '', scale: 'c'};
+    }
+
+    handleCelsiusChange(temperature) {
+        this.setState({temperature: temperature, scale: 'c'});
+    }
+
+    handleFahrenheitChange(temperature) {
+        this.setState({temperature: temperature, scale: 'f'});
+    }
+
+    render() {
+        const scale = this.state.scale;
+        const temperature = this.state.temperature;
+        const celsius = scale === 'f' ? tryConvert(temperature, toCelsius) : temperature;
+        const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
+
+        return (
+            &lt;div&gt;
+                &lt;TemperatureInput
+                    scale='c'
+                    temperature={celsius}
+                    onTemperatureChange={this.handleCelsiusChange} /&gt;
+                &lt;TemperatureInput
+                    scale='f'
+                    temperature={fahrenheit}
+                    onTemperatureChange={this.handleFahrenheitChange} /&gt;
+                &lt;BoilingVerdict celsius={parseFloat(celsius)} /&gt;
+            &lt;/div&gt;
+        );
+    }
+}</code></pre><p>此时无论我们在 celsius 或 Fahrenheit 中输入数据都会同时更新两个 input 的值。</p><p>此示例完整代码如下：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const BoilingVerdict = (props) =&gt; {
+    if (props.celsius &gt;= 100) {
+        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+    }
+    return &lt;p&gt;The water would not boil.&lt;/p&gt;
+} 
+
+const scaleNames = {
+    c: 'Celsius',
+    f: 'Fahrenheit'
+}
+
+const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
+const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;
+
+const tryConvert = (temperature, convert) =&gt; {
+    const input = parseFloat(temperature);
+    if (Number.isNaN(input)) {
+        return '';
+    }
+    const output = convert(input);
+    const rounded = Math.round(output * 1000) / 1000;
+    return rounded.toString();
+}
+
+class TemperatureInput extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(e) {
+        this.props.onTemperatureChange(e.target.value);
+    }
+
+    render() {
+        const temperature = this.props.temperature;
+        const scale = this.props.scale;
+        return (
+            &lt;fieldset&gt;
+                &lt;legend&gt;Enter temperature in {scaleNames[scale]}:&lt;/legend&gt;
+                &lt;input
+                    value={temperature}
+                    onChange={this.handleChange}
+                /&gt;
+            &lt;/fieldset&gt;
+        );
+    } 
+}
+
+class Calculator extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleCelsiusChange = this.handleCelsiusChange.bind(this);
+        this.handleFahrenheitChange = this.handleFahrenheitChange.bind(this);
+        this.state = {temperature: '', scale: 'c'};
+    }
+
+    handleCelsiusChange(temperature) {
+        this.setState({temperature: temperature, scale: 'c'});
+    }
+
+    handleFahrenheitChange(temperature) {
+        this.setState({temperature: temperature, scale: 'f'});
+    }
+
+    render() {
+        const scale = this.state.scale;
+        const temperature = this.state.temperature;
+        const celsius = scale === 'f' ? tryConvert(temperature, toCelsius) : temperature;
+        const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
+
+        return (
+            &lt;div&gt;
+                &lt;TemperatureInput
+                    scale='c'
+                    temperature={celsius}
+                    onTemperatureChange={this.handleCelsiusChange} /&gt;
+                &lt;TemperatureInput
+                    scale='f'
+                    temperature={fahrenheit}
+                    onTemperatureChange={this.handleFahrenheitChange} /&gt;
+                &lt;BoilingVerdict celsius={parseFloat(celsius)} /&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;Calculator /&gt;,
+    document.getElementById('root')
+);</code></pre><p><img src="https://blog.niekun.net/usr/uploads/2021/08/3952262804.png" alt="2021-08-28T15:30:35.png" title="2021-08-28T15:30:35.png"></p><p>处理流程为：</p><ul><li>用户输入在任意一个 input 中输入数值后，触发 onChange 并调用 handleChange</li><li>然后触发了 Calculator 的 onTemperatureChange 并将 input 的数据作为传入参数</li><li>根据不同的 input 最终触发了 Calculator 中的 handleChange function 并对 state 进行了修改</li><li>state 改变后会触发 render，并计算最新的 celsius 和 Fahrenheit 数值</li><li>最后根据计算的结果重新渲染 Temperature 的 input value</li></ul>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2324.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2324.html</wfw:commentRss>
+</item>
 <item>
 <title>通过 GitHub API 获取数据</title>
 <link>https://blog.niekun.net/archives/2290.html</link>
@@ -257,7 +508,200 @@ const Blog = (props) =&gt; {
         &lt;input type=&quot;text&quot; name=&quot;name&quot;&gt;
     &lt;/label&gt;
     &lt;input type=&quot;submit&quot; value=&quot;Submit&quot;&gt;
-&lt;/form&gt;</code></pre><p>以上示例中的 form 表格会有一个默认的 behavior 动作，那就是当用户点击 submit 按钮时会打开一个新页面。如果你不需要这个默认行为，同时需要提取 input 的信息时，需要在 submit event 事件发生时对其使用 <code>preventDefault()</code> method，标准的实现方法是通过 <strong>controlled components 可控构件</strong> 来处理。</p><h3>controlled components</h3><p>在 html 中，form 的元素如：<code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code>, 和 <code>&lt;select&gt;</code> 都有他们自己的 state 且随着用户输入信息而自动更新。在 react 中，可变的 state 存储在 component 的 state property 中且只能通过 <code>setState()</code> 更新。</p><p>我们可以将 from 元素的 state 和 component 的 state 合并起来作为唯一的数据来源，这样 component 既可以渲染 form 也可以控制 form 中的输入信息。一个 input 输入信息受 react component 控制的 form element 叫做 <strong>controlled component</strong>。</p><p>如下示例中，我们构建一个 controlled component 来记录用户 input 的内容：</p>
+&lt;/form&gt;</code></pre><p>以上示例中的 form 表格会有一个默认的 behavior 动作，那就是当用户点击 submit 按钮时会打开一个新页面。如果你不需要这个默认行为，同时需要提取 input 的信息时，需要在 submit event 事件发生时对其使用 <code>preventDefault()</code> method，标准的实现方法是通过 <strong>controlled components 可控构件</strong> 来处理。</p><h3>controlled components</h3><p>在 html 中，form 的元素如：<code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code>, 和 <code>&lt;select&gt;</code> 都有他们自己的 state 且随着用户输入信息而自动更新。在 react 中，可变的 state 存储在 component 的 state property 中且只能通过 <code>setState()</code> 更新。</p><p>我们可以将 from 元素的 state 和 component 的 state 合并起来作为唯一的数据来源，这样 component 既可以渲染 form 也可以控制 form 中的输入信息。一个 input 输入信息受 react component 控制的 form element 叫做 <strong>controlled component</strong>。</p><p>如下示例中，我们构建一个 controlled component 来记录用户 input 的内容：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: ''};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`a name has been submited: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    Name:
+                    &lt;input type=&quot;text&quot; value={this.state.value} onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);</code></pre><p>我们将 input 的 value 属性定义为 <code>this.state.value</code> 的值，这里显示的永远是当前 state value 的值。当 handleChange 被触发时，会将当前用户输入的内容更新到 state value 中，然后触发 render 更新 form。</p><p>通过 controlled component 可以使 form 中 input 的内容受控于 state，这样我们就可以操作输入的数据用于其他任何地方了。</p><h4>textarea 标签</h4><p>在 html 中我们使用 textarea 来定义一段文本区域：</p><pre><code>&lt;textarea&gt;
+  Hello there, this is some text in a text area
+&lt;/textarea&gt;</code></pre><p>在 react 中，类似于上面的 input 标签，我们将文本内容放在 value 属性中，如下示例：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: 'please write some words to discribe yourself'};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`a discribe has been submited: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    TextArea:
+                    &lt;textarea type=&quot;text&quot; value={this.state.value} onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);</code></pre><p>注意我们在构造器中给他 state value 定义了初始值，这样在第一次访问页面时就会有一段默认文字了。</p><h4>select 标签</h4><p>在 html 中 select 标签可以创建一个下拉菜单控件：</p><pre><code>&lt;select&gt;
+  &lt;option value=&quot;grapefruit&quot;&gt;Grapefruit&lt;/option&gt;
+  &lt;option value=&quot;lime&quot;&gt;Lime&lt;/option&gt;
+  &lt;option selected value=&quot;coconut&quot;&gt;Coconut&lt;/option&gt;
+  &lt;option value=&quot;mango&quot;&gt;Mango&lt;/option&gt;
+&lt;/select&gt;</code></pre><p>注意上面的示例中，Coconut 选项会默认选中，因为其定义了 selected 属性。在 react 中我们可以在 select 根标签中直接定义 value 属性来定义当前选中的是哪一个 option。这在 controlled component 中可以很方便的管理及更新 select element 的 value：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: 'sports'};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`you favorite is: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    your favorite:
+                    &lt;select value={this.state.value} onChange={this.handleChange}&gt;
+                        &lt;option value=&quot;sleep&quot;&gt;Sleep&lt;/option&gt;
+                        &lt;option value=&quot;sports&quot;&gt;Sports&lt;/option&gt;
+                        &lt;option value=&quot;takePhoto&quot;&gt;Take Photo&lt;/option&gt;
+                        &lt;option value=&quot;work&quot;&gt;Work&lt;/option&gt;
+                    &lt;/select&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);</code></pre><p>以上示例中，我们将 state 的 value 赋值给 select 的 value 这样 select 当前选中项总是 state 中的值，在 handleChange 触发时会更新 state 中的 value 并 render 页面。</p><p>注意我们可以给 value 赋值一个数组，这样就可以同时选中多个 option：</p><pre><code>&lt;select multiple={true} value={['B', 'C']}&gt;</code></pre><p>以上几种 form 控件起始基本结构都类似，他们都核心概念就是将元素的 value 属性和 state 挂钩，从而使 controlled component 生效。</p><h3>处理多个 input 输入源</h3><p>当我们需要在 component 中同时处理多个 input 元素时，可以给每个 input 添加 name 属性，然后再对应的 handle function 中通过 event.target.name 来区分他们：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isGoing: true,
+            numberOfGuests: 2
+        };
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        const target = event.target;
+        const value = target.type === 'checkbox' ? target.checked : target.value;
+        const name = target.name;
+        this.setState({[name]: value});
+    }
+
+    handleSubmit(event) {
+        alert(`Is Going: ${this.state.isGoing}, Number Of Guests: ${this.state.numberOfGuests}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    Is Going:
+                    &lt;input
+                    name=&quot;isGoing&quot;
+                    type=&quot;checkbox&quot;
+                    checked={this.state.isGoing}
+                    onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;br /&gt;
+                &lt;label&gt;
+                    Number of Guests:
+                    &lt;input
+                    name=&quot;numberOfGuests&quot;
+                    type=&quot;number&quot;
+                    value={this.state.numberOfGuests}
+                    onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;br /&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);</code></pre><p>以上示例中我们使用了 ES6 中新加入的特性: <code>this.setState({[name]: value});</code> 再 object 中使用方括号 <code>[]</code> 来调用变量。<code>setState()</code> 会自动合并更新到 <strong>state</strong> 中。</p><h4>input Null value</h4><p>我们可以给一个 input 元素定义初值，默认情况下在页面加载完成后，input 框就可以立刻被用户进行编辑，有时候我们不希望再一开始就让用户修改 input 中的数据，此时可以临时给 input 的 value 属性赋值为 null 或 undefined 就可以了：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+ReactDOM.render(
+    &lt;input value=&quot;hi&quot; /&gt;,
+    document.getElementById('root')
+);
+
+setTimeout(() =&gt; {
+    ReactDOM.render(
+        &lt;input value={null} /&gt;,
+        document.getElementById('root')
+    );
+}, 2000);</code></pre><p>以上示例中，在页面刚加载的前 2 秒，用户无法修改默认的 <code>hi</code> 字符串。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2203.html#comments</comments>
@@ -979,134 +1423,6 @@ Found 1 error.</code></pre><p>可以看到 typescript 成功的防止将包含�
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2169.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2169.html</wfw:commentRss>
-</item>
-<item>
-<title>node.js 入门教程之十三 -- environment，error handler 和 log object</title>
-<link>https://blog.niekun.net/archives/2165.html</link>
-<guid>https://blog.niekun.net/archives/2165.html</guid>
-<pubDate>Sat, 20 Feb 2021 17:19:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[environment 运行环境production environment 产品环境和 development environment 开发环境可以设置不同的配置。node.js 默认为 de...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<h3>environment 运行环境</h3><p><strong>production environment 产品环境</strong>和 <strong>development environment 开发环境</strong>可以设置不同的配置。</p><p>node.js 默认为 development env 开发环境。通过设置环境变量：<code>NODE_ENV=production</code> 可以告诉 node.js 当前为产品环境。Linux 中可以通过如下指令修改：</p><pre><code>export NODE_ENV=production
-</code></pre><p>这样在当前 shell 中就会以 production 模式运行 node 程序，如果要永久修改此环境变量可以将命令写入 <strong>~/.bashrc</strong> 文件。</p><p>也可以在运行 node 程序时定义 <strong>NODE_ENV</strong>：</p><pre><code>NODE_ENV=production node app.js
-
-</code></pre><!--more--><p>设置 <strong>NODE_ENV</strong> 为 <strong>production</strong> 有如下优势：</p><ul><li>日志记录保持在最小 level</li><li>更多的 caching 缓存级别来提高运行效率</li></ul><p>可以通过状态判读符来判断当前运行环境，执行不同指令：</p><pre><code>if (process.env.NODE_ENV === 'development') {
-    console.log('running on development environment')
-}
-if (process.env.NODE_ENV === 'production') {
-    console.log('running on production environment')
-}
-if (['production', 'staging'].indexOf(process.env.NODE_ENV) != -1) {
-    console.log('running on production environment')
-} else {
-    console.log('running on development environment')
-}</code></pre><p>上面第三个指令通过调用 array 的 <strong>indexOf</strong> 来获取某个字符串在数组中的索引号，如果不存在这个字符串则返回 <strong>-1</strong>。注意使用类型判断符<code>===</code> 是为了保证类型和数值都匹配。</p><h3>error handling 错误处理</h3><p>node.js 中通过 exceptions 来处理 error 情况。</p><p>可以通过 <strong>throw</strong> 创建一个 <strong>exception</strong>：</p><pre><code>const test = 123;
-throw test;</code></pre><p>当 JavaScript 执行到上面的 throw 时程序会立刻停止，然后控制权会交给最近的 exception handler 例外控制器。</p><p>JavaScript 中 test 可以是任意的字符串，数字或者 object。但在 node.js 中只用来 throw <strong>Error</strong> objects。</p><p>一个 error object 可以是 <strong>Error</strong> 的实例或者是 Error class 的 child class 的实例：</p><pre><code>throw new Error('error')
-
-class childError extends Error {
-}
-throw new childError('error')</code></pre><p>下面介绍几种 <strong>exception handler</strong> 处理器。</p><p><strong>第一种</strong>是通过 <strong>try/catch</strong> 声明来处理，在 try 中定义任意 exception 以及对应的 catch 块来响应：</p><pre><code>try {
-    const a = 1;
-    if (a == 0) {
-        throw 'abc'
-    } else {
-        throw 123
-    }
-} catch (e) {
-    console.log(e)
-}</code></pre><p>catch 的参数 e 就是对应 throw 的数据。</p><p>如果在程序执行中，如果某个 throw 的 exception 没有被 catch，程序就会立刻 crash。可以通过监听 <strong>process</strong> 的 <strong>uncaughtException</strong> event 事件来解决这个问题：</p><pre><code>process.on('uncaughtException', err =&gt; {
-    console.log('there was a uncaught error: ', err.message)
-    process.exit(1)
-})
-
-throw new Error('error')</code></pre><p><strong>第二种</strong>是 <strong>promise</strong> 中的 error handler。</p><p>使用 promise 可以将多个操作过程组合成链，在链的最后处理 error 情况，下面是一个简单示例：</p><pre><code>let a = 0;
-let b = 0;
-
-const doSomething1 = new Promise((resolve, reject) =&gt; {
-    if (a == 0)
-        resolve('resolve 1')
-    else
-        reject('reject 1')
-})
-
-const doSomething2 = (data) =&gt; {
-    return new Promise((resolve, reject) =&gt; {
-        if (b == 0)
-            resolve(data + ' : resolve 2')
-        else
-            reject('reject 2')
-
-    })
-}
-
-doSomething1
-    .then(doSomething2)
-    .then(res =&gt; console.log(res))
-    .catch(rej =&gt; console.log(rej))</code></pre><p>当 <strong>doSomething1</strong> 为 resolve 时会执行 <code>doSomething2()</code>，为 reject 时会直接进入 catch 块。同样的 <strong>doSomething2</strong> 返回的 promise 为 reject 时也会进入 catch 块。此时通过输出的信息可以知道是在哪一个 promise 链响应了 exception。</p><p><strong>第三种</strong>是 <strong>async/await</strong> 的 error handling。</p><p>使用 <strong>async/await</strong> 也是通过 <strong>try/catch</strong> 来处理 exception 情况的：</p><pre><code>let a = 1;
-const demo = new Promise((resolve, reject) =&gt; {
-    if (a == 0) {
-        setTimeout(resolve, 1000, 'resolve');
-    } else {
-        reject('reject')
-    }
-})
-
-const test = async() =&gt; {
-    try {
-        const data = await demo
-        console.log(data)
-    } catch (error) {
-        console.log(error)
-    }
-}
-test()
-
-//output:
-//reject</code></pre><p>当 <strong>demo</strong> promise 为 reject 时会响应 <code>test()</code> 中的 catch 块。</p><h3>日志输出 object</h3><p>当我们在浏览器中使用 <code>console.log()</code> 输出某个 object 时，会得到一个很好的效果：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2696578422.png" alt="2021-02-21T07:32:18.png" title="2021-02-21T07:32:18.png"></p><p>点击箭头可以展开日志，完整地展示 object 的 properties：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3439824675.png" alt="2021-02-21T07:33:15.png" title="2021-02-21T07:33:15.png"></p><p>在 node.js 中和浏览器有所不同，它是将 object 的内容以字符串的形式输出到终端或者日志文件中。</p><p>对于简单的 object 来说没有什么问题，但是对于包含超过 2 层嵌套以上的 object 来说 node.js 就会放弃输出所有内容而用一个 <strong>[Object]</strong> 占位符表示剩余内容：</p><pre><code>const obj = {
-    name: 'joe',
-    age: 35,
-    person1: {
-        name: 'Tony',
-        age: 50,
-        person2: {
-            name: 'Albert',
-            age: 21,
-            person3: {
-                name: 'Peter',
-                age: 23
-            }
-        }
-    }
-}
-console.log(obj)</code></pre><p>输出结果为：</p><pre><code>{
-  name: 'joe',
-  age: 35,
-  person1: {
-    name: 'Tony',
-    age: 50,
-    person2: { name: 'Albert', age: 21, person3: [Object] }
-  }
-}</code></pre><p>可以看到第三层的内容已经用 <strong>[Object]</strong> 取代。</p><p>强制要求输出 object 所有内容的最好的方法就是使用 <code>JSON.stringify()</code>：</p><pre><code>console.log(JSON.stringify(obj, undefined, 2))</code></pre><p>输出如下：</p><pre><code>{
-  &quot;name&quot;: &quot;joe&quot;,
-  &quot;age&quot;: 35,
-  &quot;person1&quot;: {
-    &quot;name&quot;: &quot;Tony&quot;,
-    &quot;age&quot;: 50,
-    &quot;person2&quot;: {
-      &quot;name&quot;: &quot;Albert&quot;,
-      &quot;age&quot;: 21,
-      &quot;person3&quot;: {
-        &quot;name&quot;: &quot;Peter&quot;,
-        &quot;age&quot;: 23
-      }
-    }
-  }
-}</code></pre><p>第一个参数定义需要输出的 object，第二个参数是定义一个 function 用来转换字符串内容也可以不定义，第三个是定义缩进量。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2165.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2165.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

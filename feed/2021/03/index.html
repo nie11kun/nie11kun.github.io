@@ -411,7 +411,200 @@ const Blog = (props) =&gt; {
         &lt;input type=&quot;text&quot; name=&quot;name&quot;&gt;
     &lt;/label&gt;
     &lt;input type=&quot;submit&quot; value=&quot;Submit&quot;&gt;
-&lt;/form&gt;</code></pre><p>以上示例中的 form 表格会有一个默认的 behavior 动作，那就是当用户点击 submit 按钮时会打开一个新页面。如果你不需要这个默认行为，同时需要提取 input 的信息时，需要在 submit event 事件发生时对其使用 <code>preventDefault()</code> method，标准的实现方法是通过 <strong>controlled components 可控构件</strong> 来处理。</p><h3>controlled components</h3><p>在 html 中，form 的元素如：<code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code>, 和 <code>&lt;select&gt;</code> 都有他们自己的 state 且随着用户输入信息而自动更新。在 react 中，可变的 state 存储在 component 的 state property 中且只能通过 <code>setState()</code> 更新。</p><p>我们可以将 from 元素的 state 和 component 的 state 合并起来作为唯一的数据来源，这样 component 既可以渲染 form 也可以控制 form 中的输入信息。一个 input 输入信息受 react component 控制的 form element 叫做 <strong>controlled component</strong>。</p><p>如下示例中，我们构建一个 controlled component 来记录用户 input 的内容：</p>
+&lt;/form&gt;</code></pre><p>以上示例中的 form 表格会有一个默认的 behavior 动作，那就是当用户点击 submit 按钮时会打开一个新页面。如果你不需要这个默认行为，同时需要提取 input 的信息时，需要在 submit event 事件发生时对其使用 <code>preventDefault()</code> method，标准的实现方法是通过 <strong>controlled components 可控构件</strong> 来处理。</p><h3>controlled components</h3><p>在 html 中，form 的元素如：<code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code>, 和 <code>&lt;select&gt;</code> 都有他们自己的 state 且随着用户输入信息而自动更新。在 react 中，可变的 state 存储在 component 的 state property 中且只能通过 <code>setState()</code> 更新。</p><p>我们可以将 from 元素的 state 和 component 的 state 合并起来作为唯一的数据来源，这样 component 既可以渲染 form 也可以控制 form 中的输入信息。一个 input 输入信息受 react component 控制的 form element 叫做 <strong>controlled component</strong>。</p><p>如下示例中，我们构建一个 controlled component 来记录用户 input 的内容：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: ''};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`a name has been submited: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    Name:
+                    &lt;input type=&quot;text&quot; value={this.state.value} onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);</code></pre><p>我们将 input 的 value 属性定义为 <code>this.state.value</code> 的值，这里显示的永远是当前 state value 的值。当 handleChange 被触发时，会将当前用户输入的内容更新到 state value 中，然后触发 render 更新 form。</p><p>通过 controlled component 可以使 form 中 input 的内容受控于 state，这样我们就可以操作输入的数据用于其他任何地方了。</p><h4>textarea 标签</h4><p>在 html 中我们使用 textarea 来定义一段文本区域：</p><pre><code>&lt;textarea&gt;
+  Hello there, this is some text in a text area
+&lt;/textarea&gt;</code></pre><p>在 react 中，类似于上面的 input 标签，我们将文本内容放在 value 属性中，如下示例：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: 'please write some words to discribe yourself'};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`a discribe has been submited: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    TextArea:
+                    &lt;textarea type=&quot;text&quot; value={this.state.value} onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);</code></pre><p>注意我们在构造器中给他 state value 定义了初始值，这样在第一次访问页面时就会有一段默认文字了。</p><h4>select 标签</h4><p>在 html 中 select 标签可以创建一个下拉菜单控件：</p><pre><code>&lt;select&gt;
+  &lt;option value=&quot;grapefruit&quot;&gt;Grapefruit&lt;/option&gt;
+  &lt;option value=&quot;lime&quot;&gt;Lime&lt;/option&gt;
+  &lt;option selected value=&quot;coconut&quot;&gt;Coconut&lt;/option&gt;
+  &lt;option value=&quot;mango&quot;&gt;Mango&lt;/option&gt;
+&lt;/select&gt;</code></pre><p>注意上面的示例中，Coconut 选项会默认选中，因为其定义了 selected 属性。在 react 中我们可以在 select 根标签中直接定义 value 属性来定义当前选中的是哪一个 option。这在 controlled component 中可以很方便的管理及更新 select element 的 value：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: 'sports'};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`you favorite is: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    your favorite:
+                    &lt;select value={this.state.value} onChange={this.handleChange}&gt;
+                        &lt;option value=&quot;sleep&quot;&gt;Sleep&lt;/option&gt;
+                        &lt;option value=&quot;sports&quot;&gt;Sports&lt;/option&gt;
+                        &lt;option value=&quot;takePhoto&quot;&gt;Take Photo&lt;/option&gt;
+                        &lt;option value=&quot;work&quot;&gt;Work&lt;/option&gt;
+                    &lt;/select&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);</code></pre><p>以上示例中，我们将 state 的 value 赋值给 select 的 value 这样 select 当前选中项总是 state 中的值，在 handleChange 触发时会更新 state 中的 value 并 render 页面。</p><p>注意我们可以给 value 赋值一个数组，这样就可以同时选中多个 option：</p><pre><code>&lt;select multiple={true} value={['B', 'C']}&gt;</code></pre><p>以上几种 form 控件起始基本结构都类似，他们都核心概念就是将元素的 value 属性和 state 挂钩，从而使 controlled component 生效。</p><h3>处理多个 input 输入源</h3><p>当我们需要在 component 中同时处理多个 input 元素时，可以给每个 input 添加 name 属性，然后再对应的 handle function 中通过 event.target.name 来区分他们：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isGoing: true,
+            numberOfGuests: 2
+        };
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        const target = event.target;
+        const value = target.type === 'checkbox' ? target.checked : target.value;
+        const name = target.name;
+        this.setState({[name]: value});
+    }
+
+    handleSubmit(event) {
+        alert(`Is Going: ${this.state.isGoing}, Number Of Guests: ${this.state.numberOfGuests}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    Is Going:
+                    &lt;input
+                    name=&quot;isGoing&quot;
+                    type=&quot;checkbox&quot;
+                    checked={this.state.isGoing}
+                    onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;br /&gt;
+                &lt;label&gt;
+                    Number of Guests:
+                    &lt;input
+                    name=&quot;numberOfGuests&quot;
+                    type=&quot;number&quot;
+                    value={this.state.numberOfGuests}
+                    onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;br /&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);</code></pre><p>以上示例中我们使用了 ES6 中新加入的特性: <code>this.setState({[name]: value});</code> 再 object 中使用方括号 <code>[]</code> 来调用变量。<code>setState()</code> 会自动合并更新到 <strong>state</strong> 中。</p><h4>input Null value</h4><p>我们可以给一个 input 元素定义初值，默认情况下在页面加载完成后，input 框就可以立刻被用户进行编辑，有时候我们不希望再一开始就让用户修改 input 中的数据，此时可以临时给 input 的 value 属性赋值为 null 或 undefined 就可以了：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+ReactDOM.render(
+    &lt;input value=&quot;hi&quot; /&gt;,
+    document.getElementById('root')
+);
+
+setTimeout(() =&gt; {
+    ReactDOM.render(
+        &lt;input value={null} /&gt;,
+        document.getElementById('root')
+    );
+}, 2000);</code></pre><p>以上示例中，在页面刚加载的前 2 秒，用户无法修改默认的 <code>hi</code> 字符串。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2203.html#comments</comments>
