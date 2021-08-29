@@ -11,13 +11,182 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/author/1/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>admin</description>
-<lastBuildDate>Sat, 28 Aug 2021 23:38:17 +0800</lastBuildDate>
-<pubDate>Sat, 28 Aug 2021 23:38:17 +0800</pubDate>
+<lastBuildDate>Sun, 29 Aug 2021 13:35:29 +0800</lastBuildDate>
+<pubDate>Sun, 29 Aug 2021 13:35:29 +0800</pubDate>
+<item>
+<title>React 入门教程之九 -- composition 模块化 和 inheritance 继承</title>
+<link>https://blog.niekun.net/archives/2329.html</link>
+<guid>https://blog.niekun.net/archives/2329.html</guid>
+<pubDate>Sun, 29 Aug 2021 13:35:29 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。</p><h3>containment 包含</h3><p>一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。</p><!--more--><p>这一类的 components 推荐直接使用 <strong>children</strong> props 来直接表示 parent 传递给他们的 elements：</p><pre><code>const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}</code></pre><p><code>props.children</code> 表示所有在调用此 component 时放在其元素中的内容。</p><p>然后我们创建一个 component 来调用上面的 FancyBorder：</p><pre><code>const WelcomeDialog = () =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;Welcome&lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                thank you for check this page.
+            &lt;/p&gt;
+        &lt;/FancyBorder&gt;
+    )
+}</code></pre><p>任何在 <strong>FancyBorder</strong> 标签中的内容都会作为 <strong>children</strong> prop 传入 <strong>FancyBorder</strong> 中，然后通过 props.children 进行渲染。</p><p>但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const SplitPane = (props) =&gt; {
+    return (
+        &lt;div className='SplitPane'&gt;
+            &lt;div className='Splitpane-left'&gt;
+                {props.left}
+            &lt;/div&gt;
+            &lt;div className='Splitpane-right'&gt;
+                {props.right}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    )
+}
+
+const Contacts = () =&gt; {
+    return (
+        &lt;div&gt;
+            &lt;h1&gt;marco&lt;/h1&gt;
+        &lt;/div&gt;
+    )
+}
+
+const Chat = () =&gt; {
+    return (
+        &lt;div&gt;
+            &lt;p&gt;this is a test&lt;/p&gt;
+        &lt;/div&gt;
+    )
+}
+
+const App = () =&gt; {
+    return (
+        &lt;SplitPane
+            left={
+                &lt;Contacts /&gt;
+            }
+            right={
+                &lt;Chat /&gt;
+            }
+        /&gt;
+    )
+}
+
+ReactDOM.render(
+    &lt;App /&gt;,
+    document.getElementById('root')
+);</code></pre><p>可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。</p><h3>specialization 特殊化</h3><p>一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}
+
+const Dialog = props =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;
+                {props.title}
+            &lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                {props.message}
+            &lt;/p&gt;
+        &lt;/FancyBorder&gt;
+    )
+}
+const WelcomeDialog = () =&gt; {
+    return (
+        &lt;Dialog 
+            title='Welcome'
+            message='welcome to this party'
+        /&gt;
+    )
+}
+
+ReactDOM.render(
+    &lt;WelcomeDialog /&gt;,
+    document.getElementById('root')
+);</code></pre><p>我们也可以通过 class 的方式定义 component：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}
+
+const Dialog = props =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;
+                {props.title}
+            &lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                {props.message}
+            &lt;/p&gt;
+            {props.children}
+        &lt;/FancyBorder&gt;
+    )
+}
+
+class SignUpDialog extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleChangle = this.handleChangle.bind(this);
+        this.handleSignup = this.handleSignup.bind(this);
+        this.state = {login: ''};
+    }
+
+    handleChangle(e) {
+        this.setState({login: e.target.value});
+    }
+
+    handleSignup() {
+        alert(`welcome guys, ${this.state.login}`)
+    }
+
+    render () {
+        return (
+            &lt;Dialog
+                title='Sport game'
+                message='welcome to this game'
+            &gt;
+                &lt;input value={this.state.login} onChange={this.handleChangle} /&gt;
+                &lt;button onClick={this.handleSignup}&gt;Sign me up&lt;/button&gt;
+            &lt;/Dialog&gt;
+        )
+    }
+}
+
+ReactDOM.render(
+    &lt;SignUpDialog /&gt;,
+    document.getElementById('root')
+);</code></pre><p>这里我们使用了自定义 props 和 <strong>children</strong> props 来构建了 <strong>SignUpDialog</strong> component，根据实际场景灵活使用。</p><p>props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始<strong>二进制数据/elements/functions</strong> 等。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2329.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2329.html</wfw:commentRss>
+</item>
 <item>
 <title>React 入门教程之八 -- Lifting State Up 提升 state 层级</title>
 <link>https://blog.niekun.net/archives/2324.html</link>
 <guid>https://blog.niekun.net/archives/2324.html</guid>
-<pubDate>Sat, 28 Aug 2021 23:38:17 +0800</pubDate>
+<pubDate>Sat, 28 Aug 2021 23:38:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -107,7 +276,7 @@ class Calculator extends React.Component {
             &lt;/div&gt;
         );
     }
-}</code></pre><p>修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称。但此时两个 input 是相互隔离的，它们的数据不能相互访问。</p><p>下面我们实现两个 component 之间的数据互通。</p><p>首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：</p><pre><code>const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
+}</code></pre><p>修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称，这里使用了 ES6 的 Computed Property Names 预定义属性名，通过 <code>scaleNames[scale]</code> 动态调用其属性。此时两个 input 是相互隔离的，它们的数据不能相互访问。</p><p>下面我们实现两个 component 之间的数据互通。</p><p>首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：</p><pre><code>const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
 const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;</code></pre><p>这里我使用了 ES6 的简化写法，省略了 return 等符号。</p><p>下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：</p><pre><code>const tryConvert = (temperature, convert) =&gt; {
     const input = parseFloat(temperature);
     if (Number.isNaN(input)) {
@@ -636,24 +805,6 @@ pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin �
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2290.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2290.html</wfw:commentRss>
-</item>
-<item>
-<title>Linux 脚本中的 Shebang #!</title>
-<link>https://blog.niekun.net/archives/2287.html</link>
-<guid>https://blog.niekun.net/archives/2287.html</guid>
-<pubDate>Thu, 01 Apr 2021 16:22:46 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[在 Linux 中，当我们准备运行一个可执行文件时，execve 程序会建立一个新的进程替代当前的进程(如终端下的 bash)，同时决定如何完成这个执行任务。当我们执行一个文本文件时，execv...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>在 Linux 中，当我们准备运行一个可执行文件时，execve 程序会建立一个新的进程替代当前的进程(如终端下的 bash)，同时决定如何完成这个执行任务。</p><p>当我们执行一个文本文件时，execve 需要文本文件的开头两个字符为 <code>“#!</code> 读作：<strong>shebang</strong>，同时跟随一个解释器的路径用来解释后续的脚本文本内容。</p><p>下面我们举例说明。</p><!--more--><h3>shell 脚本</h3><p>最常用的就是在 shell 脚本中使用 shebang，下面是一个简单的示例：</p><pre><code>#!/bin/sh
-echo &quot;Hello, ${USER}&quot;</code></pre><p>我们定义了此脚本的解释器为 <code>/bin/sh</code>，后续的脚本内容会通过此解释器来运行。</p><p>实际上 <code>/bin/sh</code> 是当前系统可执行 shell 命令的程序的软链接，大多数情况下它表示 bash，但为了不同系统的兼容性和安全性，我们直接使用此软链接来表示当前系统支持的 shell 可执行程序。</p><p>同时需要注意的是，可执行文本文件必须有执行权限，当创建一个新的脚本文件时，需要对其设置执行权限：</p><pre><code>chmod +x test.sh
-</code></pre><h3>其他解释器</h3><p>当然我们可以根据需要定义其他的解释器，而不仅仅是 sh。下面的示例我们将 cat 作为解释器，这样就会输出脚本本身的内容：</p><pre><code>#!/bin/cat
-Hello World!</code></pre><h3>调用 PATH</h3><p>上面的示例中，我们定义的解释器的绝对路径，但是当我们不知道一个程序的明确的路径时，我们可以通过将解释器定义为 env 程序，并传递实际需要的解释器程序名称，env 会自动在当前用户 PATH 环境变量中查询程序的路径并作为解释器执行脚本。</p><p>下面我们通过 env 来查询 node 并作为解释器执行 node 脚本：</p><pre><code>#!/usr/bin/env node
-console.log('Hello world!');</code></pre><p>以上就是对 shebang 的简单解释。</p><h3>参考链接</h3><p><a href="https://www.baeldung.com/linux/shebang">Using Shebang #! in Linux Scripts</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2287.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2287.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

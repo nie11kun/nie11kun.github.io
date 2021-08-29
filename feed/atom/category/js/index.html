@@ -6,17 +6,189 @@ xml:base="https://blog.niekun.net/category/js/"
 >
 <title type="text">Marco Nie - javascript</title>
 <subtitle type="text"></subtitle>
-<updated>2021-08-28T23:38:17+08:00</updated>
+<updated>2021-08-29T13:35:29+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/js/" />
 <id>https://blog.niekun.net/feed/atom/category/js/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/js/" />
 <entry>
+<title type="html"><![CDATA[React 入门教程之九 -- composition 模块化 和 inheritance 继承]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2329.html" />
+<id>https://blog.niekun.net/archives/2329.html</id>
+<updated>2021-08-29T13:35:29+08:00</updated>
+<published>2021-08-29T13:35:29+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2329.html" xml:lang="zh-CN"><![CDATA[
+<p>react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。</p><h3>containment 包含</h3><p>一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。</p><!--more--><p>这一类的 components 推荐直接使用 <strong>children</strong> props 来直接表示 parent 传递给他们的 elements：</p><pre><code>const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}</code></pre><p><code>props.children</code> 表示所有在调用此 component 时放在其元素中的内容。</p><p>然后我们创建一个 component 来调用上面的 FancyBorder：</p><pre><code>const WelcomeDialog = () =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;Welcome&lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                thank you for check this page.
+            &lt;/p&gt;
+        &lt;/FancyBorder&gt;
+    )
+}</code></pre><p>任何在 <strong>FancyBorder</strong> 标签中的内容都会作为 <strong>children</strong> prop 传入 <strong>FancyBorder</strong> 中，然后通过 props.children 进行渲染。</p><p>但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const SplitPane = (props) =&gt; {
+    return (
+        &lt;div className='SplitPane'&gt;
+            &lt;div className='Splitpane-left'&gt;
+                {props.left}
+            &lt;/div&gt;
+            &lt;div className='Splitpane-right'&gt;
+                {props.right}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    )
+}
+
+const Contacts = () =&gt; {
+    return (
+        &lt;div&gt;
+            &lt;h1&gt;marco&lt;/h1&gt;
+        &lt;/div&gt;
+    )
+}
+
+const Chat = () =&gt; {
+    return (
+        &lt;div&gt;
+            &lt;p&gt;this is a test&lt;/p&gt;
+        &lt;/div&gt;
+    )
+}
+
+const App = () =&gt; {
+    return (
+        &lt;SplitPane
+            left={
+                &lt;Contacts /&gt;
+            }
+            right={
+                &lt;Chat /&gt;
+            }
+        /&gt;
+    )
+}
+
+ReactDOM.render(
+    &lt;App /&gt;,
+    document.getElementById('root')
+);</code></pre><p>可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。</p><h3>specialization 特殊化</h3><p>一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}
+
+const Dialog = props =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;
+                {props.title}
+            &lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                {props.message}
+            &lt;/p&gt;
+        &lt;/FancyBorder&gt;
+    )
+}
+const WelcomeDialog = () =&gt; {
+    return (
+        &lt;Dialog 
+            title='Welcome'
+            message='welcome to this party'
+        /&gt;
+    )
+}
+
+ReactDOM.render(
+    &lt;WelcomeDialog /&gt;,
+    document.getElementById('root')
+);</code></pre><p>我们也可以通过 class 的方式定义 component：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}
+
+const Dialog = props =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;
+                {props.title}
+            &lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                {props.message}
+            &lt;/p&gt;
+            {props.children}
+        &lt;/FancyBorder&gt;
+    )
+}
+
+class SignUpDialog extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleChangle = this.handleChangle.bind(this);
+        this.handleSignup = this.handleSignup.bind(this);
+        this.state = {login: ''};
+    }
+
+    handleChangle(e) {
+        this.setState({login: e.target.value});
+    }
+
+    handleSignup() {
+        alert(`welcome guys, ${this.state.login}`)
+    }
+
+    render () {
+        return (
+            &lt;Dialog
+                title='Sport game'
+                message='welcome to this game'
+            &gt;
+                &lt;input value={this.state.login} onChange={this.handleChangle} /&gt;
+                &lt;button onClick={this.handleSignup}&gt;Sign me up&lt;/button&gt;
+            &lt;/Dialog&gt;
+        )
+    }
+}
+
+ReactDOM.render(
+    &lt;SignUpDialog /&gt;,
+    document.getElementById('root')
+);</code></pre><p>这里我们使用了自定义 props 和 <strong>children</strong> props 来构建了 <strong>SignUpDialog</strong> component，根据实际场景灵活使用。</p><p>props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始<strong>二进制数据/elements/functions</strong> 等。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2329.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2329.html" thr:count="0"/>
+</entry>
+<entry>
 <title type="html"><![CDATA[React 入门教程之八 -- Lifting State Up 提升 state 层级]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2324.html" />
 <id>https://blog.niekun.net/archives/2324.html</id>
-<updated>2021-08-28T23:38:17+08:00</updated>
-<published>2021-08-28T23:38:17+08:00</published>
+<updated>2021-08-28T23:38:00+08:00</updated>
+<published>2021-08-28T23:38:00+08:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
@@ -109,7 +281,7 @@ class Calculator extends React.Component {
             &lt;/div&gt;
         );
     }
-}</code></pre><p>修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称。但此时两个 input 是相互隔离的，它们的数据不能相互访问。</p><p>下面我们实现两个 component 之间的数据互通。</p><p>首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：</p><pre><code>const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
+}</code></pre><p>修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称，这里使用了 ES6 的 Computed Property Names 预定义属性名，通过 <code>scaleNames[scale]</code> 动态调用其属性。此时两个 input 是相互隔离的，它们的数据不能相互访问。</p><p>下面我们实现两个 component 之间的数据互通。</p><p>首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：</p><pre><code>const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
 const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;</code></pre><p>这里我使用了 ES6 的简化写法，省略了 return 等符号。</p><p>下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：</p><pre><code>const tryConvert = (temperature, convert) =&gt; {
     const input = parseFloat(temperature);
     if (Number.isNaN(input)) {
@@ -1368,136 +1540,5 @@ Found 1 error.</code></pre><p>可以看到 typescript 成功的防止将包含�
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2169.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2169.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[node.js 入门教程之十三 -- environment，error handler 和 log object]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2165.html" />
-<id>https://blog.niekun.net/archives/2165.html</id>
-<updated>2021-02-20T17:19:00+08:00</updated>
-<published>2021-02-20T17:19:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[environment 运行环境production environment 产品环境和 development environment 开发环境可以设置不同的配置。node.js 默认为 de...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2165.html" xml:lang="zh-CN"><![CDATA[
-<h3>environment 运行环境</h3><p><strong>production environment 产品环境</strong>和 <strong>development environment 开发环境</strong>可以设置不同的配置。</p><p>node.js 默认为 development env 开发环境。通过设置环境变量：<code>NODE_ENV=production</code> 可以告诉 node.js 当前为产品环境。Linux 中可以通过如下指令修改：</p><pre><code>export NODE_ENV=production
-</code></pre><p>这样在当前 shell 中就会以 production 模式运行 node 程序，如果要永久修改此环境变量可以将命令写入 <strong>~/.bashrc</strong> 文件。</p><p>也可以在运行 node 程序时定义 <strong>NODE_ENV</strong>：</p><pre><code>NODE_ENV=production node app.js
-
-</code></pre><!--more--><p>设置 <strong>NODE_ENV</strong> 为 <strong>production</strong> 有如下优势：</p><ul><li>日志记录保持在最小 level</li><li>更多的 caching 缓存级别来提高运行效率</li></ul><p>可以通过状态判读符来判断当前运行环境，执行不同指令：</p><pre><code>if (process.env.NODE_ENV === 'development') {
-    console.log('running on development environment')
-}
-if (process.env.NODE_ENV === 'production') {
-    console.log('running on production environment')
-}
-if (['production', 'staging'].indexOf(process.env.NODE_ENV) != -1) {
-    console.log('running on production environment')
-} else {
-    console.log('running on development environment')
-}</code></pre><p>上面第三个指令通过调用 array 的 <strong>indexOf</strong> 来获取某个字符串在数组中的索引号，如果不存在这个字符串则返回 <strong>-1</strong>。注意使用类型判断符<code>===</code> 是为了保证类型和数值都匹配。</p><h3>error handling 错误处理</h3><p>node.js 中通过 exceptions 来处理 error 情况。</p><p>可以通过 <strong>throw</strong> 创建一个 <strong>exception</strong>：</p><pre><code>const test = 123;
-throw test;</code></pre><p>当 JavaScript 执行到上面的 throw 时程序会立刻停止，然后控制权会交给最近的 exception handler 例外控制器。</p><p>JavaScript 中 test 可以是任意的字符串，数字或者 object。但在 node.js 中只用来 throw <strong>Error</strong> objects。</p><p>一个 error object 可以是 <strong>Error</strong> 的实例或者是 Error class 的 child class 的实例：</p><pre><code>throw new Error('error')
-
-class childError extends Error {
-}
-throw new childError('error')</code></pre><p>下面介绍几种 <strong>exception handler</strong> 处理器。</p><p><strong>第一种</strong>是通过 <strong>try/catch</strong> 声明来处理，在 try 中定义任意 exception 以及对应的 catch 块来响应：</p><pre><code>try {
-    const a = 1;
-    if (a == 0) {
-        throw 'abc'
-    } else {
-        throw 123
-    }
-} catch (e) {
-    console.log(e)
-}</code></pre><p>catch 的参数 e 就是对应 throw 的数据。</p><p>如果在程序执行中，如果某个 throw 的 exception 没有被 catch，程序就会立刻 crash。可以通过监听 <strong>process</strong> 的 <strong>uncaughtException</strong> event 事件来解决这个问题：</p><pre><code>process.on('uncaughtException', err =&gt; {
-    console.log('there was a uncaught error: ', err.message)
-    process.exit(1)
-})
-
-throw new Error('error')</code></pre><p><strong>第二种</strong>是 <strong>promise</strong> 中的 error handler。</p><p>使用 promise 可以将多个操作过程组合成链，在链的最后处理 error 情况，下面是一个简单示例：</p><pre><code>let a = 0;
-let b = 0;
-
-const doSomething1 = new Promise((resolve, reject) =&gt; {
-    if (a == 0)
-        resolve('resolve 1')
-    else
-        reject('reject 1')
-})
-
-const doSomething2 = (data) =&gt; {
-    return new Promise((resolve, reject) =&gt; {
-        if (b == 0)
-            resolve(data + ' : resolve 2')
-        else
-            reject('reject 2')
-
-    })
-}
-
-doSomething1
-    .then(doSomething2)
-    .then(res =&gt; console.log(res))
-    .catch(rej =&gt; console.log(rej))</code></pre><p>当 <strong>doSomething1</strong> 为 resolve 时会执行 <code>doSomething2()</code>，为 reject 时会直接进入 catch 块。同样的 <strong>doSomething2</strong> 返回的 promise 为 reject 时也会进入 catch 块。此时通过输出的信息可以知道是在哪一个 promise 链响应了 exception。</p><p><strong>第三种</strong>是 <strong>async/await</strong> 的 error handling。</p><p>使用 <strong>async/await</strong> 也是通过 <strong>try/catch</strong> 来处理 exception 情况的：</p><pre><code>let a = 1;
-const demo = new Promise((resolve, reject) =&gt; {
-    if (a == 0) {
-        setTimeout(resolve, 1000, 'resolve');
-    } else {
-        reject('reject')
-    }
-})
-
-const test = async() =&gt; {
-    try {
-        const data = await demo
-        console.log(data)
-    } catch (error) {
-        console.log(error)
-    }
-}
-test()
-
-//output:
-//reject</code></pre><p>当 <strong>demo</strong> promise 为 reject 时会响应 <code>test()</code> 中的 catch 块。</p><h3>日志输出 object</h3><p>当我们在浏览器中使用 <code>console.log()</code> 输出某个 object 时，会得到一个很好的效果：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/2696578422.png" alt="2021-02-21T07:32:18.png" title="2021-02-21T07:32:18.png"></p><p>点击箭头可以展开日志，完整地展示 object 的 properties：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3439824675.png" alt="2021-02-21T07:33:15.png" title="2021-02-21T07:33:15.png"></p><p>在 node.js 中和浏览器有所不同，它是将 object 的内容以字符串的形式输出到终端或者日志文件中。</p><p>对于简单的 object 来说没有什么问题，但是对于包含超过 2 层嵌套以上的 object 来说 node.js 就会放弃输出所有内容而用一个 <strong>[Object]</strong> 占位符表示剩余内容：</p><pre><code>const obj = {
-    name: 'joe',
-    age: 35,
-    person1: {
-        name: 'Tony',
-        age: 50,
-        person2: {
-            name: 'Albert',
-            age: 21,
-            person3: {
-                name: 'Peter',
-                age: 23
-            }
-        }
-    }
-}
-console.log(obj)</code></pre><p>输出结果为：</p><pre><code>{
-  name: 'joe',
-  age: 35,
-  person1: {
-    name: 'Tony',
-    age: 50,
-    person2: { name: 'Albert', age: 21, person3: [Object] }
-  }
-}</code></pre><p>可以看到第三层的内容已经用 <strong>[Object]</strong> 取代。</p><p>强制要求输出 object 所有内容的最好的方法就是使用 <code>JSON.stringify()</code>：</p><pre><code>console.log(JSON.stringify(obj, undefined, 2))</code></pre><p>输出如下：</p><pre><code>{
-  &quot;name&quot;: &quot;joe&quot;,
-  &quot;age&quot;: 35,
-  &quot;person1&quot;: {
-    &quot;name&quot;: &quot;Tony&quot;,
-    &quot;age&quot;: 50,
-    &quot;person2&quot;: {
-      &quot;name&quot;: &quot;Albert&quot;,
-      &quot;age&quot;: 21,
-      &quot;person3&quot;: {
-        &quot;name&quot;: &quot;Peter&quot;,
-        &quot;age&quot;: 23
-      }
-    }
-  }
-}</code></pre><p>第一个参数定义需要输出的 object，第二个参数是定义一个 function 用来转换字符串内容也可以不定义，第三个是定义缩进量。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2165.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2165.html" thr:count="0"/>
 </entry>
 </feed>

@@ -11,13 +11,182 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/web/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Sat, 28 Aug 2021 23:38:17 +0800</lastBuildDate>
-<pubDate>Sat, 28 Aug 2021 23:38:17 +0800</pubDate>
+<lastBuildDate>Sun, 29 Aug 2021 13:35:29 +0800</lastBuildDate>
+<pubDate>Sun, 29 Aug 2021 13:35:29 +0800</pubDate>
+<item>
+<title>React 入门教程之九 -- composition 模块化 和 inheritance 继承</title>
+<link>https://blog.niekun.net/archives/2329.html</link>
+<guid>https://blog.niekun.net/archives/2329.html</guid>
+<pubDate>Sun, 29 Aug 2021 13:35:29 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。</p><h3>containment 包含</h3><p>一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。</p><!--more--><p>这一类的 components 推荐直接使用 <strong>children</strong> props 来直接表示 parent 传递给他们的 elements：</p><pre><code>const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}</code></pre><p><code>props.children</code> 表示所有在调用此 component 时放在其元素中的内容。</p><p>然后我们创建一个 component 来调用上面的 FancyBorder：</p><pre><code>const WelcomeDialog = () =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;Welcome&lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                thank you for check this page.
+            &lt;/p&gt;
+        &lt;/FancyBorder&gt;
+    )
+}</code></pre><p>任何在 <strong>FancyBorder</strong> 标签中的内容都会作为 <strong>children</strong> prop 传入 <strong>FancyBorder</strong> 中，然后通过 props.children 进行渲染。</p><p>但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const SplitPane = (props) =&gt; {
+    return (
+        &lt;div className='SplitPane'&gt;
+            &lt;div className='Splitpane-left'&gt;
+                {props.left}
+            &lt;/div&gt;
+            &lt;div className='Splitpane-right'&gt;
+                {props.right}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    )
+}
+
+const Contacts = () =&gt; {
+    return (
+        &lt;div&gt;
+            &lt;h1&gt;marco&lt;/h1&gt;
+        &lt;/div&gt;
+    )
+}
+
+const Chat = () =&gt; {
+    return (
+        &lt;div&gt;
+            &lt;p&gt;this is a test&lt;/p&gt;
+        &lt;/div&gt;
+    )
+}
+
+const App = () =&gt; {
+    return (
+        &lt;SplitPane
+            left={
+                &lt;Contacts /&gt;
+            }
+            right={
+                &lt;Chat /&gt;
+            }
+        /&gt;
+    )
+}
+
+ReactDOM.render(
+    &lt;App /&gt;,
+    document.getElementById('root')
+);</code></pre><p>可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。</p><h3>specialization 特殊化</h3><p>一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}
+
+const Dialog = props =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;
+                {props.title}
+            &lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                {props.message}
+            &lt;/p&gt;
+        &lt;/FancyBorder&gt;
+    )
+}
+const WelcomeDialog = () =&gt; {
+    return (
+        &lt;Dialog 
+            title='Welcome'
+            message='welcome to this party'
+        /&gt;
+    )
+}
+
+ReactDOM.render(
+    &lt;WelcomeDialog /&gt;,
+    document.getElementById('root')
+);</code></pre><p>我们也可以通过 class 的方式定义 component：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}
+
+const Dialog = props =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;
+                {props.title}
+            &lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                {props.message}
+            &lt;/p&gt;
+            {props.children}
+        &lt;/FancyBorder&gt;
+    )
+}
+
+class SignUpDialog extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleChangle = this.handleChangle.bind(this);
+        this.handleSignup = this.handleSignup.bind(this);
+        this.state = {login: ''};
+    }
+
+    handleChangle(e) {
+        this.setState({login: e.target.value});
+    }
+
+    handleSignup() {
+        alert(`welcome guys, ${this.state.login}`)
+    }
+
+    render () {
+        return (
+            &lt;Dialog
+                title='Sport game'
+                message='welcome to this game'
+            &gt;
+                &lt;input value={this.state.login} onChange={this.handleChangle} /&gt;
+                &lt;button onClick={this.handleSignup}&gt;Sign me up&lt;/button&gt;
+            &lt;/Dialog&gt;
+        )
+    }
+}
+
+ReactDOM.render(
+    &lt;SignUpDialog /&gt;,
+    document.getElementById('root')
+);</code></pre><p>这里我们使用了自定义 props 和 <strong>children</strong> props 来构建了 <strong>SignUpDialog</strong> component，根据实际场景灵活使用。</p><p>props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始<strong>二进制数据/elements/functions</strong> 等。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2329.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2329.html</wfw:commentRss>
+</item>
 <item>
 <title>React 入门教程之八 -- Lifting State Up 提升 state 层级</title>
 <link>https://blog.niekun.net/archives/2324.html</link>
 <guid>https://blog.niekun.net/archives/2324.html</guid>
-<pubDate>Sat, 28 Aug 2021 23:38:17 +0800</pubDate>
+<pubDate>Sat, 28 Aug 2021 23:38:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -107,7 +276,7 @@ class Calculator extends React.Component {
             &lt;/div&gt;
         );
     }
-}</code></pre><p>修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称。但此时两个 input 是相互隔离的，它们的数据不能相互访问。</p><p>下面我们实现两个 component 之间的数据互通。</p><p>首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：</p><pre><code>const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
+}</code></pre><p>修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称，这里使用了 ES6 的 Computed Property Names 预定义属性名，通过 <code>scaleNames[scale]</code> 动态调用其属性。此时两个 input 是相互隔离的，它们的数据不能相互访问。</p><p>下面我们实现两个 component 之间的数据互通。</p><p>首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：</p><pre><code>const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
 const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;</code></pre><p>这里我使用了 ES6 的简化写法，省略了 return 等符号。</p><p>下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：</p><pre><code>const tryConvert = (temperature, convert) =&gt; {
     const input = parseFloat(temperature);
     if (Number.isNaN(input)) {
@@ -1374,55 +1543,6 @@ npm cache clean -f
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2175.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2175.html</wfw:commentRss>
-</item>
-<item>
-<title>node.js 入门教程之十四 -- TypeScript</title>
-<link>https://blog.niekun.net/archives/2169.html</link>
-<guid>https://blog.niekun.net/archives/2169.html</guid>
-<pubDate>Sun, 21 Feb 2021 22:02:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[TypeScript 是微软开发的开源编程语言，在全世界的开发者中流行。本质上来说 typescript 是 JavaScript 的超集，为其添加了很多功能。标志性的就是添加了 static ...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p><strong>TypeScript</strong> 是微软开发的开源编程语言，在全世界的开发者中流行。</p><p>本质上来说 <strong>typescript</strong> 是 <strong>JavaScript</strong> 的超集，为其添加了很多功能。标志性的就是添加了 <strong>static type</strong> 静态类型定义，它可以声明期待的数据类型，例如：声明 function 中的期待的传入数据类型，期望的返回值的类型，object 的结构及 property 的数据类型等。</p><p>typescript 是一个强大的工具，给 JavaScript 项目开启了新的世界。它使我们的代码更加的安全有力，在程序发布前就可以防止很多的 bug 出现。在编写代码期间就能够及时反映出问题点，并且它已经被整合在现代的编译器中，如 VS code。</p><!--more--><h3>语法说明</h3><p>下面是一个 typescript 代码示例：</p><pre><code>type User = {
-    name: string;
-    age: number;
-};
-
-function isAdult(user: User): boolean {
-    return user.age &gt;= 18;
-}
-
-const justine: User = {
-    name: 'Justine',
-    age: 23,
-};
-
-const isJustineAnAdult: boolean = isAdult(justine);</code></pre><ul><li>首先我们通过 <strong>type</strong> 关键词定义一个自定义的 object 类型 <strong>User</strong>，其中定义了 <strong>User</strong> 的两个 properties 及其数据类型。</li><li>然后在定义的 function <strong>isAudlt</strong> 中接收一个参数，此参数类型为 <strong>User</strong> 类型，然后返回值类型为 <strong>boolean</strong> 类型。</li><li>然后我们定义了 <strong>justine</strong> object 且其类型为 <strong>User</strong>。在其中定义的两个 properties 也符合 User 中的类型。</li><li>最后定义了变量 <strong>isJustineAnAdult</strong> 且其数据类型为 <strong>boolean</strong>，将 <strong>isAudlt</strong> 的返回值赋给它。</li></ul><p>如果我们在编程中没有使用指定的数据类型，typescript 将会给出警告提醒我们错误的地方，比如上面的示例中修改 justine 的 age 为一个字符串：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/3878778226.png" alt="2021-02-21T13:39:09.png" title="2021-02-21T13:39:09.png"></p><p>在 vs code 中会提示此处有错误。</p><p>另一方面也并不需要将所有地方的数据类型都做出声明，typescript 会自动推断出需要的类型。例如：即使我们不给 <strong>isJustineAnAdult</strong> 声明 boolean 类型，typescript 也会自动推断它是 boolean 类型的。</p><p>那么如何运行 typescript 代码呢？首先需要通过 npm 安装 typescript，它会安装我们需要的一些可执行程序：</p><pre><code>npm install typescript
-</code></pre><p>下面我们可以通过 <strong>tsc</strong> 命令将 typescript 代码转换为标准 JavaScript 代码。</p><p>我们将上面示例中的代码保存为 demo.ts 文件，然后通过 npx 调用 tsc 命令(如果以 global 方式安装 typescript 则可以直接运行命令)：</p><pre><code>npx tsc demo.ts
-</code></pre><p>以上命令会转换 JavaScript 代码并自动创建一个 demo.js 文件，此文件可以在 node.js 运行:</p><pre><code>function isAdult(user) {
-    return user.age &gt;= 18;
-}
-var justine = {
-    name: 'Justine',
-    age: 23
-};
-var isJustineAnAdult = isAdult(justine);</code></pre><p>如果 typescript 代码中包含错误，则使用上面的转换命令会出现报错信息：</p><pre><code>% npx tsc demo.ts
-demo.ts:12:5 - error TS2322: Type 'string' is not assignable to type 'number'.
-
-12     age: '23',
-       ~~
-
-  demo.ts:3:5
-    3     age: number;
-          ~~
-    The expected type comes from property 'age' which is declared here on type 'User'
-
-
-Found 1 error.</code></pre><p>可以看到 typescript 成功的防止将包含潜在错误代码的程序发布出去。</p><h3>更多介绍</h3><p>除此之外 typescript 也包含了很多其他很好的工具，如：<strong>interfaces</strong>, <strong>classes</strong>, <strong>utility types</strong> 等。更多使用方法参考 typescript 官方文档：<a href="https://www.typescriptlang.org/docs。">https://www.typescriptlang.org/docs。</a></p><p>typescript 在 node.js 生态中已经有了很好的发展，且被用于很多开源项目和框架中。以下是一些使用 typescript 的开源项目：</p><ul><li><strong>NestJS</strong> - robust and fully-featured framework that makes creating scalable and well-architected systems easy and pleasant</li><li><strong>TypeORM</strong> - great ORM influenced by other well-known tools from other languages like Hibernate, Doctrine or Entity Framework</li><li><strong>Prisma</strong> - next-generation ORM featuring a declarative data model, generated migrations and fully type-safe database queries</li><li><strong>RxJS</strong> - widely used library for reactive programming</li></ul><h3>总结</h3><p>通过这 14 篇教程，我们介绍了 node.js 的基本语法和相关使用场景。后期可以在具体项目中进行更加详细的体验。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2169.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2169.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

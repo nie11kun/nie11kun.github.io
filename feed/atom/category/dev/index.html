@@ -6,17 +6,189 @@ xml:base="https://blog.niekun.net/category/dev/"
 >
 <title type="text">Marco Nie - Development</title>
 <subtitle type="text"></subtitle>
-<updated>2021-08-28T23:38:17+08:00</updated>
+<updated>2021-08-29T13:35:29+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/dev/" />
 <id>https://blog.niekun.net/feed/atom/category/dev/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/dev/" />
 <entry>
+<title type="html"><![CDATA[React 入门教程之九 -- composition 模块化 和 inheritance 继承]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2329.html" />
+<id>https://blog.niekun.net/archives/2329.html</id>
+<updated>2021-08-29T13:35:29+08:00</updated>
+<published>2021-08-29T13:35:29+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2329.html" xml:lang="zh-CN"><![CDATA[
+<p>react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。</p><h3>containment 包含</h3><p>一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。</p><!--more--><p>这一类的 components 推荐直接使用 <strong>children</strong> props 来直接表示 parent 传递给他们的 elements：</p><pre><code>const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}</code></pre><p><code>props.children</code> 表示所有在调用此 component 时放在其元素中的内容。</p><p>然后我们创建一个 component 来调用上面的 FancyBorder：</p><pre><code>const WelcomeDialog = () =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;Welcome&lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                thank you for check this page.
+            &lt;/p&gt;
+        &lt;/FancyBorder&gt;
+    )
+}</code></pre><p>任何在 <strong>FancyBorder</strong> 标签中的内容都会作为 <strong>children</strong> prop 传入 <strong>FancyBorder</strong> 中，然后通过 props.children 进行渲染。</p><p>但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const SplitPane = (props) =&gt; {
+    return (
+        &lt;div className='SplitPane'&gt;
+            &lt;div className='Splitpane-left'&gt;
+                {props.left}
+            &lt;/div&gt;
+            &lt;div className='Splitpane-right'&gt;
+                {props.right}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    )
+}
+
+const Contacts = () =&gt; {
+    return (
+        &lt;div&gt;
+            &lt;h1&gt;marco&lt;/h1&gt;
+        &lt;/div&gt;
+    )
+}
+
+const Chat = () =&gt; {
+    return (
+        &lt;div&gt;
+            &lt;p&gt;this is a test&lt;/p&gt;
+        &lt;/div&gt;
+    )
+}
+
+const App = () =&gt; {
+    return (
+        &lt;SplitPane
+            left={
+                &lt;Contacts /&gt;
+            }
+            right={
+                &lt;Chat /&gt;
+            }
+        /&gt;
+    )
+}
+
+ReactDOM.render(
+    &lt;App /&gt;,
+    document.getElementById('root')
+);</code></pre><p>可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。</p><h3>specialization 特殊化</h3><p>一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}
+
+const Dialog = props =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;
+                {props.title}
+            &lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                {props.message}
+            &lt;/p&gt;
+        &lt;/FancyBorder&gt;
+    )
+}
+const WelcomeDialog = () =&gt; {
+    return (
+        &lt;Dialog 
+            title='Welcome'
+            message='welcome to this party'
+        /&gt;
+    )
+}
+
+ReactDOM.render(
+    &lt;WelcomeDialog /&gt;,
+    document.getElementById('root')
+);</code></pre><p>我们也可以通过 class 的方式定义 component：</p><pre><code>const React = require('react')
+const ReactDOM = require('react-dom')
+
+const FancyBorder = props =&gt; {
+    return (
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+            {props.children}
+        &lt;/div&gt;
+    );
+}
+
+const Dialog = props =&gt; {
+    return (
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;
+                {props.title}
+            &lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
+                {props.message}
+            &lt;/p&gt;
+            {props.children}
+        &lt;/FancyBorder&gt;
+    )
+}
+
+class SignUpDialog extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleChangle = this.handleChangle.bind(this);
+        this.handleSignup = this.handleSignup.bind(this);
+        this.state = {login: ''};
+    }
+
+    handleChangle(e) {
+        this.setState({login: e.target.value});
+    }
+
+    handleSignup() {
+        alert(`welcome guys, ${this.state.login}`)
+    }
+
+    render () {
+        return (
+            &lt;Dialog
+                title='Sport game'
+                message='welcome to this game'
+            &gt;
+                &lt;input value={this.state.login} onChange={this.handleChangle} /&gt;
+                &lt;button onClick={this.handleSignup}&gt;Sign me up&lt;/button&gt;
+            &lt;/Dialog&gt;
+        )
+    }
+}
+
+ReactDOM.render(
+    &lt;SignUpDialog /&gt;,
+    document.getElementById('root')
+);</code></pre><p>这里我们使用了自定义 props 和 <strong>children</strong> props 来构建了 <strong>SignUpDialog</strong> component，根据实际场景灵活使用。</p><p>props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始<strong>二进制数据/elements/functions</strong> 等。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2329.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2329.html" thr:count="0"/>
+</entry>
+<entry>
 <title type="html"><![CDATA[React 入门教程之八 -- Lifting State Up 提升 state 层级]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2324.html" />
 <id>https://blog.niekun.net/archives/2324.html</id>
-<updated>2021-08-28T23:38:17+08:00</updated>
-<published>2021-08-28T23:38:17+08:00</published>
+<updated>2021-08-28T23:38:00+08:00</updated>
+<published>2021-08-28T23:38:00+08:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
@@ -109,7 +281,7 @@ class Calculator extends React.Component {
             &lt;/div&gt;
         );
     }
-}</code></pre><p>修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称。但此时两个 input 是相互隔离的，它们的数据不能相互访问。</p><p>下面我们实现两个 component 之间的数据互通。</p><p>首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：</p><pre><code>const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
+}</code></pre><p>修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称，这里使用了 ES6 的 Computed Property Names 预定义属性名，通过 <code>scaleNames[scale]</code> 动态调用其属性。此时两个 input 是相互隔离的，它们的数据不能相互访问。</p><p>下面我们实现两个 component 之间的数据互通。</p><p>首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：</p><pre><code>const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
 const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;</code></pre><p>这里我使用了 ES6 的简化写法，省略了 return 等符号。</p><p>下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：</p><pre><code>const tryConvert = (temperature, convert) =&gt; {
     const input = parseFloat(temperature);
     if (Number.isNaN(input)) {
@@ -1379,43 +1551,5 @@ ReactDOM.render(
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2176.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2176.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[React 入门教程之一 -- 简介]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2175.html" />
-<id>https://blog.niekun.net/archives/2175.html</id>
-<updated>2021-02-23T15:39:00+08:00</updated>
-<published>2021-02-23T15:39:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[React 是一个用来创建用户界面的 JavaScript 库。它从一开始就被设计为 gradual adoption 渐进式融入的模式，你可以根据需求使用 React 到你的项目中，无论是使用...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2175.html" xml:lang="zh-CN"><![CDATA[
-<p><strong>React</strong> 是一个用来创建用户界面的 JavaScript 库。</p><p>它从一开始就被设计为 gradual adoption 渐进式融入的模式，你可以根据需求使用 React 到你的项目中，无论是使用 React 对你的 html 页面做简单交互，或者完全使用 React 搭建程序。</p><!--more--><h3>对现有网页加入 React 支持</h3><p>当你需要对现有的网页做一些简单的交互动作时，React 也可以方便的加入进来。下面的示例中我们介绍如何通过 React 给页面添加一个 component 元素。</p><p>首先给 html 页面添加一个 DOM 元素：</p><pre><code>&lt;!-- ... existing HTML ... --&gt;
-&lt;div id=&quot;like_button_container&quot;&gt;&lt;/div&gt;
-&lt;!-- ... existing HTML ... --&gt;</code></pre><p>然后在 body 块结尾添加 React 模块的 script 脚本标签：</p><pre><code>  &lt;!-- ... other HTML ... --&gt;
-
-  &lt;!-- Load React. --&gt;
-  &lt;!-- Note: when deploying, replace &quot;development.js&quot; with &quot;production.min.js&quot;. --&gt;
-  &lt;script src=&quot;https://unpkg.com/react@17/umd/react.development.js&quot; crossorigin&gt;&lt;/script&gt;
-  &lt;script src=&quot;https://unpkg.com/react-dom@17/umd/react-dom.development.js&quot; crossorigin&gt;&lt;/script&gt;
-
-  &lt;!-- Load our React component. --&gt;
-  &lt;script src=&quot;like_button.js&quot;&gt;&lt;/script&gt;
-
-&lt;/body&gt;</code></pre><p>前两个 script 加载 React，最后一个是我们加载自定义 component 的代码。</p><p>如果 script 部署在 CDN 上，推荐加上 <strong>crossorigin</strong> 属性可以提高加载速度。</p><p>然后我们使用 React 编写 like_button.js，详细的实现代码我们在后续介绍，最后我们通过下面指令将 React component 加入 html 容器：</p><pre><code>// ... the starter code you pasted ...
-
-const domContainer = document.querySelector('#like_button_container');
-ReactDOM.render(e(LikeButton), domContainer);</code></pre><p>以上就是将 React component 加入现有网页的过程。</p><h3>缩小 JavaScript 文件尺寸</h3><p>在部署我们的网站前，要注意没有经过缩小化处理的 JavaScript 脚本会导致页面加载缓慢。</p><p>首先我们将加载 React 的脚本使用缩小化的版本链接：</p><pre><code>&lt;script src=&quot;https://unpkg.com/react@17/umd/react.production.min.js&quot; crossorigin&gt;&lt;/script&gt;
-&lt;script src=&quot;https://unpkg.com/react-dom@17/umd/react-dom.production.min.js&quot; crossorigin&gt;&lt;/script&gt;</code></pre><p>对于我们自己编写的 React 脚本可以通过工具得到缩小后的版本，这里介绍通过 <strong>node.js</strong> 的 <strong>terser</strong> 库来实现：</p><ul><li>首先安装 node.js</li><li>在项目目录下运行 <code>npm init -y</code></li><li>运行 <code>npm install terser</code></li></ul><p>例如需要缩小 <strong>like_button.js</strong>，在终端运行：</p><pre><code>npx terser -c -m -o like_button.min.js -- like_button.js
-</code></pre><p>就会在当前目录下得到缩小后的脚本文件 <strong>like_button.min.js</strong>。</p><h3>创建一个新的 React 程序</h3><p>以上介绍了如何将 React 添加到现有的 html 中，但是通过一套整合的工具链可以得到更好的用户和开发体验。</p><p><strong>React</strong> 团队推荐下面几种解决方案：</p><ul><li>如果你要学习 React 或者要创建一个单页面 app，推荐使用 <strong>Create React App</strong></li><li>如果你要使用 node.js 创建一个 server-rendered 服务器端渲染的网站，推荐使用 <strong>Next.js</strong></li><li>如果你要建立一个静态内容的网站，推荐使用 <strong>Gatsby</strong></li></ul><h3>Create React App</h3><p><strong>Create React App</strong> 是学习 React 很好的环境，也是建立单页面 React 应用程序最好的方式。</p><p>官方网站：<a href="https://create-react-app.dev/">https://create-react-app.dev/</a></p><p>它会自动设置开发环境是我们可以使用最新的 JavaScript 功能，提供很好的开发体验以及对发布时对程序进行优化。</p><p>使用下面指令创建并运行一个新项目：</p><pre><code>npx create-react-app my-app
-cd my-app
-npm start</code></pre><p>注意如果你之前使用 <code>npm install -g create-react-app</code>全局安装过 <strong>create-react-app</strong>，推荐先卸载它 <code>npm uninstall -g create-react-app</code> 从而确保 npx 能够安装最新的版本。</p><p>node.js 会自动安装 <strong>react</strong>, <strong>react-dom</strong>, 和 <strong>react-scripts</strong> with <strong>cra-template</strong>。</p><p>通过 <code>--template</code> 选项可以自定义使用什么模板创建新程序，默认为：cra-template，模板可以在官网搜索：<a href="https://www.npmjs.com/search?q=cra-template-*">cra-template-*</a></p><p>如果安装中报错，可以尝试更新 npm 以及清除缓存，然后再次尝试安装：</p><pre><code>npm i -g npm@latest
-npm cache clean -f
-</code></pre><p>如果在本地开发推荐替换 npm 国内源可以提高下载速度，参考：<a href="https://blog.niekun.net/archives/2085.html">https://blog.niekun.net/archives/2085.html</a></p><p>创建 React App 不会处理后端的数据和逻辑，它只建立前端通道。所以你可以使用任何后端服务。</p><p>通过 <code>npm start</code> 运行程序后，打开 <a href="http://localhost:3000/">http://localhost:3000/</a> 可以查看程序运行效果。</p><p>当程序需要进行部署时，运行 <code>npm run build</code> 会在 <strong>build</strong> 目录下创建一个经过最小化代码优化处理的项目包，可以将其部署到服务器。</p><h3>Next.js</h3><p>Next.js 是一个流行的 React framework 来创建 static 和 server‑rendered 程序。</p><p>官网：<a href="https://nextjs.org/">https://nextjs.org/</a></p><h3>Gatsby</h3><p>Gatsby 是通过 React 创建静态网站的最好的工具。它使我们可以使用 React components 但输出预渲染的 html 和 css 以确保页面加载速度。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2175.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2175.html" thr:count="0"/>
 </entry>
 </feed>
