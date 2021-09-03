@@ -11,8 +11,30 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/dev/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Sun, 29 Aug 2021 13:35:29 +0800</lastBuildDate>
-<pubDate>Sun, 29 Aug 2021 13:35:29 +0800</pubDate>
+<lastBuildDate>Fri, 03 Sep 2021 09:38:14 +0800</lastBuildDate>
+<pubDate>Fri, 03 Sep 2021 09:38:14 +0800</pubDate>
+<item>
+<title>828D 执行程序提示：等待插补缓冲</title>
+<link>https://blog.niekun.net/archives/2330.html</link>
+<guid>https://blog.niekun.net/archives/2330.html</guid>
+<pubDate>Fri, 03 Sep 2021 09:38:14 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：<br><img src="https://blog.niekun.net/usr/uploads/2021/09/577513986.png" alt="2021-09-03T01:27:34.png" title="2021-09-03T01:27:34.png"></p><!--more--><p>程序代码如下：</p><pre><code>WHILE((R0&gt;=360) OR (R0&lt;0))
+    IF R0&gt;=360
+        R0=R0-360
+    ELSE
+        IF R0&lt;0
+            R0=360+R0
+        ENDIF
+    ENDIF
+ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大于等于 0 小于 360 之间。理论上无论给 R0 赋予任何初值，执行以上代码后都可以将其自动计算为需要的结果。</p><p>在分析后发现，出现以上报警的原因是程序在此 while 循环中无法跳出。随即从这里下手寻找问题点。</p><p>在经过给 R0 赋予一些特殊的初值，然后执行程序后发现，当初值为 -0.0000000001 或 359.999999999 时无法跳出循环，R0 的值一直在这两者之间跳动，猜测应该是数控系统精度判断 359.999999999 等于 360，导致 <code>F R0&gt;=360</code> 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。</p><p>找到了问题点解决就很简单了，只需要将 <code>R0=R0-360</code> 修改为 <code>R0=R0-360.00001</code> 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。</p><p>出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。</p>
+]]></content:encoded>
+<slash:comments>1</slash:comments>
+<comments>https://blog.niekun.net/archives/2330.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/2330.html</wfw:commentRss>
+</item>
 <item>
 <title>React 入门教程之九 -- composition 模块化 和 inheritance 继承</title>
 <link>https://blog.niekun.net/archives/2329.html</link>
@@ -1479,50 +1501,6 @@ const element = &lt;h1&gt;{title}&lt;/h1&gt;;</code></pre><p>默认情况下 Rea
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2183.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/2183.html</wfw:commentRss>
-</item>
-<item>
-<title>React 入门教程之二 -- hello world</title>
-<link>https://blog.niekun.net/archives/2176.html</link>
-<guid>https://blog.niekun.net/archives/2176.html</guid>
-<pubDate>Wed, 24 Feb 2021 12:40:18 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[下面我们通过创建 Create React App 介绍 React 的基本语法。通过上一节介绍的方法创建一个新程序 my-app-1:npx create-react-app my-app-1...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>下面我们通过创建 <strong>Create React App</strong> 介绍 React 的基本语法。</p><p>通过上一节介绍的方法创建一个新程序 <strong>my-app-1</strong>:</p><pre><code>npx create-react-app my-app-1
-cd my-app-1</code></pre><p>关于创建新项目及可能出现的问题参考上一篇：<a href="https://blog.niekun.net/archives/2175.html">https://blog.niekun.net/archives/2175.html</a></p><p><strong>Create React App</strong> 官方教程：<a href="https://create-react-app.dev/docs/documentation-intro">https://create-react-app.dev/docs/documentation-intro</a></p><!--more--><h3>项目结构</h3><p>程序目录结构如下：</p><pre><code>my-app-1
-├── README.md
-├── node_modules
-├── package.json
-├── .gitignore
-├── public
-│   ├── favicon.ico
-│   ├── index.html
-│   ├── logo192.png
-│   ├── logo512.png
-│   ├── manifest.json
-│   └── robots.txt
-└── src
-    ├── App.css
-    ├── App.js
-    ├── App.test.js
-    ├── index.css
-    ├── index.js
-    ├── logo.svg
-    ├── serviceWorker.js
-    └── setupTests.js</code></pre><p>对于一个项目而言，下面两个文件是必须的:</p><ul><li><strong>public/index.html</strong> 是页面的模板文件;</li><li><strong>src/index.js</strong> 是 JavaScript 入口文件.</li></ul><p>其他文件可以根据需要添加，删除或重命名。</p><p>可以在 src 目录下建立子目录，为了加快 build 编译项目的速度，只有在 src 目录下的文件才会被 webpack 处理。所以需要将所有的 js 和 css 文件放在 src 目录下，否则 webpack 打包器不会识别到它们。</p><p>只有在 public 目录下的文件才会被 <strong>public/index.html</strong> 文件识别到。</p><p>所以所有的项目文件都需要放在 public 和 src 目录下，与项目无关的文件可以放在上级路径内，例如项目说明文件等。</p><h3>可用脚本指令</h3><p>在项目目录下，可以执行如下命令。</p><h4>npm start</h4><p>开发模式下运行 app：</p><pre><code>npm start
-</code></pre><p>打开 <a href="http://localhost:3000">http://localhost:3000</a> 可以查看效果。对代码作出修改后页面会自动重新加载。</p><h4>npm test</h4><p>交互模式下运行 test 运行器。更多介绍参考：<a href="https://create-react-app.dev/docs/running-tests">https://create-react-app.dev/docs/running-tests</a></p><h4>npm run build</h4><p>编译项目程序到 build 目录下，会自动将 React 转换为产品模式，并优化项目结构以提高性能。代码是经过 minified 最小化处理过的，文件名都包含 hashes 以在客户端能够及时识别更新。</p><p>更多 build 参考：<a href="https://create-react-app.dev/docs/production-build">https://create-react-app.dev/docs/production-build</a></p><h3>清理项目</h3><p>默认使用的模板是 cra-template，包含一个基本的页面和 React component，我们先将项目清理掉不需要的内容。</p><p>打开 public 目录下的 index.html 可以看到 body 块内定义了：</p><pre><code>&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
-</code></pre><p>index.html 内可以使用 <strong>%PUBLIC_URL%</strong> 表示 public 目录地址。</p><p>删除 src 目录内所有文件，并新建 index.js 文件。</p><p>运行程序：</p><pre><code>npm start
-</code></pre><p>会自动在浏览器打开项目。</p><h3>hello world</h3><p>最简单的 <strong>React</strong> 示例如下，将代码加入 <strong>index.js</strong> 文件：</p><pre><code>const React = require('react')
-const ReactDOM = require('react-dom')
-
-ReactDOM.render(
-    &lt;h1&gt;hello world&lt;/h1&gt;,
-    document.getElementById('root')
-);</code></pre><p>保存文件后刷新浏览器页面查看效果。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2176.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/2176.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

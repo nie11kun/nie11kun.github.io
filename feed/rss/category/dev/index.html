@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2330.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2329.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2324.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2290.html"/>
@@ -18,10 +19,23 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2189.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2184.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2183.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2176.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2330.html">
+<title>828D 执行程序提示：等待插补缓冲</title>
+<link>https://blog.niekun.net/archives/2330.html</link>
+<dc:date>2021-09-03T09:38:14+08:00</dc:date>
+<description>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：程序代码如下：WHILE((R0&gt;=360) OR (R0&lt;0))
+    IF R0&gt;=360
+        R0=R0-360
+    ELSE
+        IF R0&lt;0
+            R0=360+R0
+        ENDIF
+    ENDIF
+ENDWHILE以上程序实现的功能是将 R0 的值控制在大于等于 0 小于 360 之间。理论上无论给 R0 赋予任何初值，执行以上代码后都可以将其自动计算为需要的结果。在分析后发现，出现以上报警的原因是程序在此 while 循环中无法跳出。随即从这里下手寻找问题点。在经过给 R0 赋予一些特殊的初值，然后执行程序后发现，当初值为 -0.0000000001 或 359.999999999 时无法跳出循环，R0 的值一直在这两者之间跳动，猜测应该是数控系统精度判断 359.999999999 等于 360，导致 F R0&gt;=360 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。找到了问题点解决就很简单了，只需要将 R0=R0-360 修改为 R0=R0-360.00001 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2329.html">
 <title>React 入门教程之九 -- composition 模块化 和 inheritance 继承</title>
 <link>https://blog.niekun.net/archives/2329.html</link>
@@ -1416,41 +1430,5 @@ const element = &lt;h1&gt;{title}&lt;/h1&gt;;默认情况下 React 在渲染前�
         children: 'hello world'
     }
 }以上方式创建的 object 叫做 React elements。React 使用这些 objects 来构建 DOM 并及时更新。推荐代码编辑器使用 Babel 语法定义环境，这样可以同时支持 ES6 和 JSX 语法结构。设置方法参考：https://babeljs.io/docs/en/editors</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2176.html">
-<title>React 入门教程之二 -- hello world</title>
-<link>https://blog.niekun.net/archives/2176.html</link>
-<dc:date>2021-02-24T12:40:18+08:00</dc:date>
-<description>下面我们通过创建 Create React App 介绍 React 的基本语法。通过上一节介绍的方法创建一个新程序 my-app-1:npx create-react-app my-app-1
-cd my-app-1关于创建新项目及可能出现的问题参考上一篇：https://blog.niekun.net/archives/2175.htmlCreate React App 官方教程：https://create-react-app.dev/docs/documentation-intro项目结构程序目录结构如下：my-app-1
-├── README.md
-├── node_modules
-├── package.json
-├── .gitignore
-├── public
-│   ├── favicon.ico
-│   ├── index.html
-│   ├── logo192.png
-│   ├── logo512.png
-│   ├── manifest.json
-│   └── robots.txt
-└── src
-    ├── App.css
-    ├── App.js
-    ├── App.test.js
-    ├── index.css
-    ├── index.js
-    ├── logo.svg
-    ├── serviceWorker.js
-    └── setupTests.js对于一个项目而言，下面两个文件是必须的:public/index.html 是页面的模板文件;src/index.js 是 JavaScript 入口文件.其他文件可以根据需要添加，删除或重命名。可以在 src 目录下建立子目录，为了加快 build 编译项目的速度，只有在 src 目录下的文件才会被 webpack 处理。所以需要将所有的 js 和 css 文件放在 src 目录下，否则 webpack 打包器不会识别到它们。只有在 public 目录下的文件才会被 public/index.html 文件识别到。所以所有的项目文件都需要放在 public 和 src 目录下，与项目无关的文件可以放在上级路径内，例如项目说明文件等。可用脚本指令在项目目录下，可以执行如下命令。npm start开发模式下运行 app：npm start
-打开 http://localhost:3000 可以查看效果。对代码作出修改后页面会自动重新加载。npm test交互模式下运行 test 运行器。更多介绍参考：https://create-react-app.dev/docs/running-testsnpm run build编译项目程序到 build 目录下，会自动将 React 转换为产品模式，并优化项目结构以提高性能。代码是经过 minified 最小化处理过的，文件名都包含 hashes 以在客户端能够及时识别更新。更多 build 参考：https://create-react-app.dev/docs/production-build清理项目默认使用的模板是 cra-template，包含一个基本的页面和 React component，我们先将项目清理掉不需要的内容。打开 public 目录下的 index.html 可以看到 body 块内定义了：&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
-index.html 内可以使用 %PUBLIC_URL% 表示 public 目录地址。删除 src 目录内所有文件，并新建 index.js 文件。运行程序：npm start
-会自动在浏览器打开项目。hello world最简单的 React 示例如下，将代码加入 index.js 文件：const React = require('react')
-const ReactDOM = require('react-dom')
-
-ReactDOM.render(
-    &lt;h1&gt;hello world&lt;/h1&gt;,
-    document.getElementById('root')
-);保存文件后刷新浏览器页面查看效果。</description>
 </item>
 </rdf:RDF>
