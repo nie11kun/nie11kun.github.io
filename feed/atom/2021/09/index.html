@@ -7,7 +7,7 @@ xml:base="https://blog.niekun.net/2021/09/"
 <title type="text">Marco Nie - 2021年9月</title>
 <subtitle type="text">you are the company you keep...</subtitle>
 <updated>2021-09-03T09:38:00+08:00</updated>
-<generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
+<generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/2021/09/" />
 <id>https://blog.niekun.net/feed/atom/2021/09/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/09/" />
@@ -21,19 +21,41 @@ xml:base="https://blog.niekun.net/2021/09/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：]]></summary>
+<summary type="html"><![CDATA[you are the company you keep...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2330.html" xml:lang="zh-CN"><![CDATA[
-<p>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：<br><img src="https://blog.niekun.net/usr/uploads/2021/09/577513986.png" alt="2021-09-03T01:27:34.png" title="2021-09-03T01:27:34.png"></p><!--more--><p>程序代码如下：</p><pre><code>WHILE((R0&gt;=360) OR (R0&lt;0))
-    IF R0&gt;=360
-        R0=R0-360
-    ELSE
-        IF R0&lt;0
-            R0=360+R0
-        ENDIF
-    ENDIF
-ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大于等于 0 小于 360 之间。理论上无论给 R0 赋予任何初值，执行以上代码后都可以将其自动计算为需要的结果。</p><p>在分析后发现，出现以上报警的原因是程序在此 while 循环中无法跳出。随即从这里下手寻找问题点。</p><p>在经过给 R0 赋予一些特殊的初值，然后执行程序后发现，当初值为 -0.0000000001 或 359.999999999 时无法跳出循环，R0 的值一直在这两者之间跳动，猜测应该是数控系统精度判断 359.999999999 等于 360，导致 <code>IF R0&gt;=360</code> 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。</p><p>找到了问题点解决就很简单了，只需要将 <code>R0=R0-360</code> 修改为 <code>R0=R0-360.00001</code> 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。</p><p>出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。</p>
+<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：
+![2021-09-03T01:27:34.png][1]
+
+
+<!--more-->
+
+程序代码如下：
+```
+WHILE((R0>=360) OR (R0<0))
+	IF R0>=360
+		R0=R0-360
+	ELSE
+		IF R0<0
+			R0=360+R0
+		ENDIF
+	ENDIF
+ENDWHILE
+```
+
+以上程序实现的功能是将 R0 的值控制在大于等于 0 小于 360 之间。理论上无论给 R0 赋予任何初值，执行以上代码后都可以将其自动计算为需要的结果。
+
+在分析后发现，出现以上报警的原因是程序在此 while 循环中无法跳出。随即从这里下手寻找问题点。
+
+在经过给 R0 赋予一些特殊的初值，然后执行程序后发现，当初值为 -0.0000000001 或 359.999999999 时无法跳出循环，R0 的值一直在这两者之间跳动，猜测应该是数控系统精度判断 359.999999999 等于 360，导致 `IF R0>=360` 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。
+
+找到了问题点解决就很简单了，只需要将 `R0=R0-360` 修改为 `R0=R0-360.00001` 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。
+
+出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。
+
+
+  [1]: https://blog.niekun.net/usr/uploads/2021/09/577513986.png</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2330.html#comments" thr:count="7" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2330.html" thr:count="7"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/09/" thr:count="7"/>
 </entry>
 </feed>

@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2340.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2330.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2329.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2324.html"/>
@@ -18,148 +19,218 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2305.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2303.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2294.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2291.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2340.html">
+<title>解除 Windows 11 TPM 或 CPU 限制</title>
+<link>https://blog.niekun.net/archives/2340.html</link>
+<dc:date>2021-10-08T11:58:00+08:00</dc:date>
+<description>最近微软发布了 Windows 11 正式版。但是对设备硬件有一些限制，可以通过修改注册表的方式解除限制。
+
+首先打开注册表，快捷键 `win + R`，输入 regedit：
+![2021-10-08T03:51:00.png][1]
+
+
+
+
+
+通过左侧层级菜单找到：`Computer\HKEY_LOCAL_MACHINE\SYSTEM\Setup\MoSetup`:
+![2021-10-08T03:52:28.png][2]
+
+选中 Mosetup，菜单栏选择 **edit** - **New** - **DWORD** 添加新键，重命名为：`AllowUpgradesWithUnsupportedTPMOrCPU`：
+![2021-10-08T03:54:27.png][3]
+
+双击此键设置值为 1，然后确认：
+![2021-10-08T03:55:45.png][4]
+
+然后就可以下载镜像安装了，期间会提示硬件不符合要求，但多了个**接受**选项安装 Windows 11：
+![2021-10-08T03:57:47.png][5]
+
+  [1]: https://blog.niekun.net/usr/uploads/2021/10/2068741883.png
+  [2]: https://blog.niekun.net/usr/uploads/2021/10/3148204400.png
+  [3]: https://blog.niekun.net/usr/uploads/2021/10/2409459988.png
+  [4]: https://blog.niekun.net/usr/uploads/2021/10/401781102.png
+  [5]: https://blog.niekun.net/usr/uploads/2021/10/2409503880.png</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2330.html">
 <title>828D 执行程序提示：等待插补缓冲</title>
 <link>https://blog.niekun.net/archives/2330.html</link>
 <dc:date>2021-09-03T09:38:00+08:00</dc:date>
-<description>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：程序代码如下：WHILE((R0&gt;=360) OR (R0&lt;0))
-    IF R0&gt;=360
-        R0=R0-360
-    ELSE
-        IF R0&lt;0
-            R0=360+R0
-        ENDIF
-    ENDIF
-ENDWHILE以上程序实现的功能是将 R0 的值控制在大于等于 0 小于 360 之间。理论上无论给 R0 赋予任何初值，执行以上代码后都可以将其自动计算为需要的结果。在分析后发现，出现以上报警的原因是程序在此 while 循环中无法跳出。随即从这里下手寻找问题点。在经过给 R0 赋予一些特殊的初值，然后执行程序后发现，当初值为 -0.0000000001 或 359.999999999 时无法跳出循环，R0 的值一直在这两者之间跳动，猜测应该是数控系统精度判断 359.999999999 等于 360，导致 IF R0&gt;=360 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。找到了问题点解决就很简单了，只需要将 R0=R0-360 修改为 R0=R0-360.00001 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。</description>
+<description>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：
+![2021-09-03T01:27:34.png][1]
+
+
+
+
+程序代码如下：
+```
+WHILE((R0>=360) OR (R0=360
+		R0=R0-360
+	ELSE
+		IF R0=360` 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。
+
+找到了问题点解决就很简单了，只需要将 `R0=R0-360` 修改为 `R0=R0-360.00001` 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。
+
+出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。
+
+
+  [1]: https://blog.niekun.net/usr/uploads/2021/09/577513986.png</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2329.html">
 <title>React 入门教程之九 -- composition 模块化 和 inheritance 继承</title>
 <link>https://blog.niekun.net/archives/2329.html</link>
 <dc:date>2021-08-29T13:35:29+08:00</dc:date>
-<description>react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。containment 包含一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。这一类的 components 推荐直接使用 children props 来直接表示 parent 传递给他们的 elements：const FancyBorder = props =&gt; {
+<description>react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。
+
+### containment 包含
+
+一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。
+
+
+
+
+
+这一类的 components 推荐直接使用 **children** props 来直接表示 parent 传递给他们的 elements：
+```
+const FancyBorder = props => {
     return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+        
             {props.children}
-        &lt;/div&gt;
+        
     );
-}props.children 表示所有在调用此 component 时放在其元素中的内容。然后我们创建一个 component 来调用上面的 FancyBorder：const WelcomeDialog = () =&gt; {
+}
+```
+
+`props.children` 表示所有在调用此 component 时放在其元素中的内容。
+
+然后我们创建一个 component 来调用上面的 FancyBorder：
+```
+const WelcomeDialog = () => {
     return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;Welcome&lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
+        
+            Welcome
+            
                 thank you for check this page.
-            &lt;/p&gt;
-        &lt;/FancyBorder&gt;
+            
+        
     )
-}任何在 FancyBorder 标签中的内容都会作为 children prop 传入 FancyBorder 中，然后通过 props.children 进行渲染。但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：const React = require('react')
+}
+```
+
+任何在 **FancyBorder** 标签中的内容都会作为 **children** prop 传入 **FancyBorder** 中，然后通过 props.children 进行渲染。
+
+但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const SplitPane = (props) =&gt; {
+const SplitPane = (props) => {
     return (
-        &lt;div className='SplitPane'&gt;
-            &lt;div className='Splitpane-left'&gt;
+        
+            
                 {props.left}
-            &lt;/div&gt;
-            &lt;div className='Splitpane-right'&gt;
+            
+            
                 {props.right}
-            &lt;/div&gt;
-        &lt;/div&gt;
+            
+        
     )
 }
 
-const Contacts = () =&gt; {
+const Contacts = () => {
     return (
-        &lt;div&gt;
-            &lt;h1&gt;marco&lt;/h1&gt;
-        &lt;/div&gt;
+        
+            marco
+        
     )
 }
 
-const Chat = () =&gt; {
+const Chat = () => {
     return (
-        &lt;div&gt;
-            &lt;p&gt;this is a test&lt;/p&gt;
-        &lt;/div&gt;
+        
+            this is a test
+        
     )
 }
 
-const App = () =&gt; {
+const App = () => {
     return (
-        &lt;SplitPane
-            left={
-                &lt;Contacts /&gt;
-            }
-            right={
-                &lt;Chat /&gt;
-            }
-        /&gt;
+        
     )
 }
 
 ReactDOM.render(
-    &lt;App /&gt;,
+    ,
     document.getElementById('root')
-);可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。specialization 特殊化一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：const React = require('react')
+);
+```
+
+可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。
+
+### specialization 特殊化
+
+一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const FancyBorder = props =&gt; {
+const FancyBorder = props => {
     return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+        
             {props.children}
-        &lt;/div&gt;
+        
     );
 }
 
-const Dialog = props =&gt; {
+const Dialog = props => {
     return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;
+        
+            
                 {props.title}
-            &lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
+            
+            
                 {props.message}
-            &lt;/p&gt;
-        &lt;/FancyBorder&gt;
+            
+        
     )
 }
-const WelcomeDialog = () =&gt; {
+const WelcomeDialog = () => {
     return (
-        &lt;Dialog 
-            title='Welcome'
-            message='welcome to this party'
-        /&gt;
+        
     )
 }
 
 ReactDOM.render(
-    &lt;WelcomeDialog /&gt;,
+    ,
     document.getElementById('root')
-);我们也可以通过 class 的方式定义 component：const React = require('react')
+);
+```
+
+我们也可以通过 class 的方式定义 component：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const FancyBorder = props =&gt; {
+const FancyBorder = props => {
     return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+        
             {props.children}
-        &lt;/div&gt;
+        
     );
 }
 
-const Dialog = props =&gt; {
+const Dialog = props => {
     return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;
+        
+            
                 {props.title}
-            &lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
+            
+            
                 {props.message}
-            &lt;/p&gt;
+            
             {props.children}
-        &lt;/FancyBorder&gt;
+        
     )
 }
 
@@ -181,39 +252,57 @@ class SignUpDialog extends React.Component {
 
     render () {
         return (
-            &lt;Dialog
-                title='Sport game'
-                message='welcome to this game'
-            &gt;
-                &lt;input value={this.state.login} onChange={this.handleChangle} /&gt;
-                &lt;button onClick={this.handleSignup}&gt;Sign me up&lt;/button&gt;
-            &lt;/Dialog&gt;
+            
+                
+                Sign me up
+            
         )
     }
 }
 
 ReactDOM.render(
-    &lt;SignUpDialog /&gt;,
+    ,
     document.getElementById('root')
-);这里我们使用了自定义 props 和 children props 来构建了 SignUpDialog component，根据实际场景灵活使用。props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始二进制数据/elements/functions 等。</description>
+);
+```
+
+这里我们使用了自定义 props 和 **children** props 来构建了 **SignUpDialog** component，根据实际场景灵活使用。
+
+props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始**二进制数据/elements/functions** 等。
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2324.html">
 <title>React 入门教程之八 -- Lifting State Up 提升 state 层级</title>
 <link>https://blog.niekun.net/archives/2324.html</link>
 <dc:date>2021-08-28T23:38:00+08:00</dc:date>
-<description>大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，下面详细介绍如何实现这一 function。下面创建一个 temperature calculator 温度计算器来判断在一个给定的温度下，水是否会沸腾。首先我们创建一个 BoilingVerdict component作为沸腾裁决器，它接受 celsius 摄氏温度作为一个 prop，然后输出是否足够使水沸腾：const BoilingVerdict = (props) =&gt; {
-    if (props.celsius &gt;= 100) {
-        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+<description>大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，下面详细介绍如何实现这一 function。
+
+下面创建一个 **temperature calculator** 温度计算器来判断在一个给定的温度下，水是否会沸腾。
+
+
+
+
+
+首先我们创建一个 `BoilingVerdict` component作为沸腾裁决器，它接受 celsius 摄氏温度作为一个 prop，然后输出是否足够使水沸腾：
+```
+const BoilingVerdict = (props) => {
+    if (props.celsius >= 100) {
+        return The Water would boil.
     }
-    return &lt;p&gt;The water would not boil.&lt;/p&gt;
-} 然后我们创建一个 Calculator compenent，它会渲染一个 input 元素用来输入温度数据，且将数据存储在 this.state.temprature 中：const React = require('react')
+    return The water would not boil.
+} 
+```
+
+然后我们创建一个 `Calculator` compenent，它会渲染一个 input 元素用来输入温度数据，且将数据存储在 `this.state.temprature` 中：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const BoilingVerdict = (props) =&gt; {
-    if (props.celsius &gt;= 100) {
-        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+const BoilingVerdict = (props) => {
+    if (props.celsius >= 100) {
+        return The Water would boil.
     }
-    return &lt;p&gt;The water would not boil.&lt;/p&gt;
+    return The water would not boil.
 } 
 
 class Calculator extends React.Component {
@@ -231,22 +320,32 @@ class Calculator extends React.Component {
     render() {
         const temperature = this.state.temperature;
         return (
-            &lt;fieldset&gt;
-                &lt;legend&gt;Enter temperature in celsius&lt;/legend&gt;
-                &lt;input
-                    value={temperature}
-                    onChange={this.handleChange}
-                /&gt;
-                &lt;BoilingVerdict celsius={parseFloat(temperature)} /&gt;
-            &lt;/fieldset&gt;
+            
+                Enter temperature in celsius
+                
+                
+            
         );
     }
 }
 
 ReactDOM.render(
-    &lt;Calculator /&gt;,
+    ,
     document.getElementById('root')
-);上面的示例中使用了一个 fieldset 来定义一个块，legend 定义了这个块的抬头信息，效果如下：上一章节中我们详细介绍了如何构建一个 controlled component 可以参考。现在我们有一个新的需求，在原有 celsius 摄氏输入的同时增加一个 Fahrenheit 华氏输入栏，同时让它们两者保持数据同步。首先我们从 Calculator 中拆解出一个 TempratureInput component，将会给其增加一个 scale props，它可以是 "c" 或 "f" 来区分摄氏和华氏：const scaleNames = {
+);
+```
+
+上面的示例中使用了一个 fieldset 来定义一个块，legend 定义了这个块的抬头信息，效果如下：
+
+![2021-08-28T13:36:45.png][1]
+
+上一章节中我们详细介绍了如何构建一个 controlled component 可以参考。
+
+现在我们有一个新的需求，在原有 celsius 摄氏输入的同时增加一个 Fahrenheit 华氏输入栏，同时让它们两者保持数据同步。
+
+首先我们从 `Calculator` 中拆解出一个 `TempratureInput` component，将会给其增加一个 **scale** props，它可以是 "c" 或 "f" 来区分摄氏和华氏：
+```
+const scaleNames = {
     c: 'Celsius',
     f: 'Fahrenheit'
 }
@@ -267,13 +366,10 @@ class TemperatureInput extends React.Component {
         const temperature = this.state.temperature;
         const scale = this.props.scale;
         return (
-            &lt;fieldset&gt;
-                &lt;legend&gt;Enter temperature in {scaleNames[scale]}:&lt;/legend&gt;
-                &lt;input
-                    value={temperature}
-                    onChange={this.handleChange}
-                /&gt;
-            &lt;/fieldset&gt;
+            
+                Enter temperature in {scaleNames[scale]}:
+                
+            
         );
     } 
 }
@@ -281,14 +377,30 @@ class TemperatureInput extends React.Component {
 class Calculator extends React.Component {
     render() {
         return (
-            &lt;div&gt;
-                &lt;TemperatureInput scale='c' /&gt;
-                &lt;TemperatureInput scale='f' /&gt;
-            &lt;/div&gt;
+            
+                
+                
+            
         );
     }
-}修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称，这里使用了 ES6 的 Computed Property Names 预定义属性名，通过 scaleNames[scale] 动态调用其属性。此时两个 input 是相互隔离的，它们的数据不能相互访问。下面我们实现两个 component 之间的数据互通。首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
-const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;这里我使用了 ES6 的简化写法，省略了 return 等符号。下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：const tryConvert = (temperature, convert) =&gt; {
+}
+```
+
+修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称，这里使用了 ES6 的 Computed Property Names 预定义属性名，通过 `scaleNames[scale]` 动态调用其属性。此时两个 input 是相互隔离的，它们的数据不能相互访问。
+
+下面我们实现两个 component 之间的数据互通。
+
+首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：
+```
+const toCelsius = fahrenheit => (fahrenheit - 32) * 5 / 9;
+const toFahrenheit = celsius => (celsius * 9 / 5) + 32;
+```
+
+这里我使用了 ES6 的简化写法，省略了 return 等符号。
+
+下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：
+```
+const tryConvert = (temperature, convert) => {
     const input = parseFloat(temperature);
     if (Number.isNaN(input)) {
         return '';
@@ -296,18 +408,57 @@ const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;这里我使用了 ES6
     const output = convert(input);
     const rounded = Math.round(output * 1000) / 1000;
     return rounded.toString();
-}使用上面的 function 如果执行 tryConvert('abc', toCelsius) 会返回空字符串，如果执行 tryConvert('10.22', toFahrenheit) 会返回 &quot;50.396&quot;。下面我们将 TempratureInput 中的 state 提升到 parent component。当前的代码中，每个 TempratureInput component 各自控制它们的 state 且相互隔离，但是我们希望这两个 inputs 能够共享数据且同步更新，例如当我修改了 celsius input 后 Fahrenheit input 会自动更改为对应 celsius input 的结果。在 react 中，共享 state 通过将其移动到这些 components 最近层级中的 parent component 中，叫做 lifting state up，下面我们将 TempratureInput 中的本地 state 移动到 Calculator 中。如果 Calculator 含有 shared state，它就成为了其下级 components 的 source of truth 可信来源，它可以管理他的下级 components 保持数据一致性，因此两个 TempratureInput 的 props 都来自于同一个 Calculator，所以他们的 inputs 将会保持一致同步.下面我们逐步实现这个过程，首先替换 TemperatureInput component 中的 this.state.temperature 为 this.props.temperature，稍后我们将在 Calculator 中定义它：  render() {
+}
+```
+
+使用上面的 function 如果执行 `tryConvert('abc', toCelsius)` 会返回空字符串，如果执行 `tryConvert('10.22', toFahrenheit)` 会返回 `"50.396"`。
+
+下面我们将 **TempratureInput** 中的 state 提升到 parent component。
+
+当前的代码中，每个 **TempratureInput** component 各自控制它们的 state 且相互隔离，但是我们希望这两个 inputs 能够共享数据且同步更新，例如当我修改了 celsius input 后 Fahrenheit input 会自动更改为对应 celsius input 的结果。
+
+在 react 中，共享 state 通过将其移动到这些 components 最近层级中的 parent component 中，叫做 lifting state up，下面我们将 TempratureInput 中的本地 state 移动到 Calculator 中。如果 Calculator 含有 shared state，它就成为了其下级 components 的 source of truth 可信来源，它可以管理他的下级 components 保持数据一致性，因此两个 TempratureInput 的 props 都来自于同一个 Calculator，所以他们的 inputs 将会保持一致同步.
+
+下面我们逐步实现这个过程，首先替换 **TemperatureInput** component 中的 `this.state.temperature` 为 `this.props.temperature`，稍后我们将在 Calculator 中定义它：
+```
+  render() {
     // Before: const temperature = this.state.temperature;
     const temperature = this.props.temperature;
-    // ...我们知道 props 是只读的，在之前我们的 temperature 存储在本地的 state 中，然后通过 setState 来修改它，现在 temperature 来自 parent component，所以 TemperatureInput 无法直接控制它。在 react 中，通常的解决方法是使 component 为 controlled，就像 &lt;input&gt; 元素可以接受 value 和 onChange props 属性，我们可以自定义使 TempratureInput 接受 temperature 和 onTemperatureChange 属性。从而当它需要更新他的 temperature 数据时，就可以通过调用 this.props.onTemperatureChange:    handleChange(e) {
+    // ...
+```
+
+我们知道 props 是只读的，在之前我们的 temperature 存储在本地的 state 中，然后通过 setState 来修改它，现在 temperature 来自 parent component，所以 TemperatureInput 无法直接控制它。
+
+在 react 中，通常的解决方法是使 component 为 controlled，就像 `` 元素可以接受 **value** 和 **onChange** props 属性，我们可以自定义使 TempratureInput 接受 temperature 和 onTemperatureChange 属性。从而当它需要更新他的 temperature 数据时，就可以通过调用 `this.props.onTemperatureChange`:
+```
+    handleChange(e) {
         this.props.onTemperatureChange(e.target.value);
-    }注意这里的命名时自定义的，我们可以定义任意的名称作为 component 的 props 属性名称。onTemperatureChange 属性将会在 Calculator 中通 temperature 相关联起来，它将会修改 Calculator 中的 state 同时重新渲染两个 inputs 元素.下面我们专注于 Calculator component，我们需要存储当前 input 的 temperate 和 scale 数据到其 state 中，这里的 state 来自于之前从 TemperatureInput 中 lifting up 的，同时它将会同时作为两个 inputs 的可信来源，这两个 state 可以同时提供足够的数据来同时 render 两个 inputs，例如我们在 celsius input 中输入了 37，则 Calculator 的 state 应该是这样的：{
+    }
+```
+
+注意这里的命名时自定义的，我们可以定义任意的名称作为 component 的 props 属性名称。
+
+onTemperatureChange 属性将会在 Calculator 中通 temperature 相关联起来，它将会修改 Calculator 中的 state 同时重新渲染两个 inputs 元素.
+
+下面我们专注于 Calculator component，我们需要存储当前 input 的 **temperate** 和 **scale** 数据到其 state 中，这里的 state 来自于之前从 TemperatureInput 中 lifting up 的，同时它将会同时作为两个 inputs 的可信来源，这两个 state 可以同时提供足够的数据来同时 render 两个 inputs，例如我们在 celsius input 中输入了 37，则 Calculator 的 state 应该是这样的：
+```
+{
   temperature: '37',
   scale: 'c'
-}如果我们在 Fahrenheit input 中输入了 212，则 state 应该是这样的：{
+}
+```
+
+如果我们在 Fahrenheit input 中输入了 212，则 state 应该是这样的：
+```
+{
   temperature: '212',
   scale: 'f'
-}我们不需要同时单独存储两个 input 的数据，只需要存储最后一个 input 的数据即可，scale 中记录了具体是哪个 input 的来源。最后两个 inputs 中的数据是同步的，因为他们的值都是来自于同一个 state：class Calculator extends React.Component {
+}
+```
+
+我们不需要同时单独存储两个 input 的数据，只需要存储最后一个 input 的数据即可，scale 中记录了具体是哪个 input 的来源。最后两个 inputs 中的数据是同步的，因为他们的值都是来自于同一个 state：
+```
+class Calculator extends React.Component {
     constructor(props) {
         super(props);
         this.handleCelsiusChange = this.handleCelsiusChange.bind(this);
@@ -330,27 +481,28 @@ const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;这里我使用了 ES6
         const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
 
         return (
-            &lt;div&gt;
-                &lt;TemperatureInput
-                    scale='c'
-                    temperature={celsius}
-                    onTemperatureChange={this.handleCelsiusChange} /&gt;
-                &lt;TemperatureInput
-                    scale='f'
-                    temperature={fahrenheit}
-                    onTemperatureChange={this.handleFahrenheitChange} /&gt;
-                &lt;BoilingVerdict celsius={parseFloat(celsius)} /&gt;
-            &lt;/div&gt;
+            
+                
+                
+                
+            
         );
     }
-}此时无论我们在 celsius 或 Fahrenheit 中输入数据都会同时更新两个 input 的值。此示例完整代码如下：const React = require('react')
+}
+```
+
+此时无论我们在 celsius 或 Fahrenheit 中输入数据都会同时更新两个 input 的值。
+
+此示例完整代码如下：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const BoilingVerdict = (props) =&gt; {
-    if (props.celsius &gt;= 100) {
-        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+const BoilingVerdict = (props) => {
+    if (props.celsius >= 100) {
+        return The Water would boil.
     }
-    return &lt;p&gt;The water would not boil.&lt;/p&gt;
+    return The water would not boil.
 } 
 
 const scaleNames = {
@@ -358,10 +510,10 @@ const scaleNames = {
     f: 'Fahrenheit'
 }
 
-const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
-const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;
+const toCelsius = fahrenheit => (fahrenheit - 32) * 5 / 9;
+const toFahrenheit = celsius => (celsius * 9 / 5) + 32;
 
-const tryConvert = (temperature, convert) =&gt; {
+const tryConvert = (temperature, convert) => {
     const input = parseFloat(temperature);
     if (Number.isNaN(input)) {
         return '';
@@ -386,13 +538,10 @@ class TemperatureInput extends React.Component {
         const temperature = this.props.temperature;
         const scale = this.props.scale;
         return (
-            &lt;fieldset&gt;
-                &lt;legend&gt;Enter temperature in {scaleNames[scale]}:&lt;/legend&gt;
-                &lt;input
-                    value={temperature}
-                    onChange={this.handleChange}
-                /&gt;
-            &lt;/fieldset&gt;
+            
+                Enter temperature in {scaleNames[scale]}:
+                
+            
         );
     } 
 }
@@ -420,56 +569,95 @@ class Calculator extends React.Component {
         const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
 
         return (
-            &lt;div&gt;
-                &lt;TemperatureInput
-                    scale='c'
-                    temperature={celsius}
-                    onTemperatureChange={this.handleCelsiusChange} /&gt;
-                &lt;TemperatureInput
-                    scale='f'
-                    temperature={fahrenheit}
-                    onTemperatureChange={this.handleFahrenheitChange} /&gt;
-                &lt;BoilingVerdict celsius={parseFloat(celsius)} /&gt;
-            &lt;/div&gt;
+            
+                
+                
+                
+            
         );
     }
 }
 
 ReactDOM.render(
-    &lt;Calculator /&gt;,
+    ,
     document.getElementById('root')
-);处理流程为：用户输入在任意一个 input 中输入数值后，触发 onChange 并调用 handleChange然后触发了 Calculator 的 onTemperatureChange 并将 input 的数据作为传入参数根据不同的 input 最终触发了 Calculator 中的 handleChange function 并对 state 进行了修改state 改变后会触发 render，并计算最新的 celsius 和 Fahrenheit 数值最后根据计算的结果重新渲染 Temperature 的 input value</description>
+);
+```
+
+![2021-08-28T15:30:35.png][2]
+
+处理流程为：
+- 用户输入在任意一个 input 中输入数值后，触发 onChange 并调用 handleChange
+- 然后触发了 Calculator 的 onTemperatureChange 并将 input 的数据作为传入参数
+- 根据不同的 input 最终触发了 Calculator 中的 handleChange function 并对 state 进行了修改
+- state 改变后会触发 render，并计算最新的 celsius 和 Fahrenheit 数值
+- 最后根据计算的结果重新渲染 Temperature 的 input value
+
+  [1]: https://blog.niekun.net/usr/uploads/2021/08/2134840666.png
+  [2]: https://blog.niekun.net/usr/uploads/2021/08/3952262804.png</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2321.html">
 <title>openwrt 扩展根目录空间</title>
 <link>https://blog.niekun.net/archives/2321.html</link>
 <dc:date>2021-06-22T21:40:00+08:00</dc:date>
-<description>我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：root@OpenWrt:~# df -h
+<description>我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：
+```
+root@OpenWrt:~# df -h
 Filesystem                Size      Used Available Use% Mounted on
 /dev/root               252.0M    241.4M      5.5M  98% /rom
 tmpfs                   496.5M     68.0K    496.4M   0% /tmp
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
-tmpfs                   512.0K         0    512.0K   0% /dev其中 /dev/root 是系统固件目录，不用考虑。/dev/sda* 就是系统实际可用的硬盘空间。我明明分配了 5 GB 空间给 openwrt 但是由于系统分区是在下载的固件中定义好的，所以其余空间就没有被识别。由于默认存储空间过小，当安装了过多的插件后，会提示空间不足导致无法安装更多插件：verify_pkg_installable: Only have 0kb available on filesystem /overlay, pkg luci-app-openvpn needs 9
-opkg_install_cmd: Cannot install package luci-app-openvpn下面介绍如何将剩余空间挂在到 openwrt 中。首先安装需要的插件，注意顺序不能错：opkg update
+tmpfs                   512.0K         0    512.0K   0% /dev
+```
+
+其中 `/dev/root` 是系统固件目录，不用考虑。`/dev/sda*` 就是系统实际可用的硬盘空间。我明明分配了 5 GB 空间给 openwrt 但是由于系统分区是在下载的固件中定义好的，所以其余空间就没有被识别。由于默认存储空间过小，当安装了过多的插件后，会提示空间不足导致无法安装更多插件：
+```
+verify_pkg_installable: Only have 0kb available on filesystem /overlay, pkg luci-app-openvpn needs 9
+opkg_install_cmd: Cannot install package luci-app-openvpn
+```
+
+下面介绍如何将剩余空间挂在到 openwrt 中。
+
+
+
+
+首先安装需要的插件，注意顺序不能错：
+```
+opkg update
 opkg install block-mount e2fsprogs
 opkg update
-opkg install fdisk blkid然后配置存储空间，注意 fdisk 指令后的几个选项：fdisk -l
+opkg install fdisk blkid
+```
+
+然后配置存储空间，注意 fdisk 指令后的几个选项：
+```
+fdisk -l
 
 fdisk /dev/sda
 m
 n
 p
-&lt;默认,回车&gt; //–&gt;分区号为3
-&lt;默认,回车&gt;
-&lt;默认,回车&gt;
+ //–>分区号为3
+
+
 w
 
-reboot重启后，格式化刚才建立的分区：mkfs.ext4 /dev/sda3
-reboot重启后配置 fstab：uci add fstab mount
+reboot
+```
+
+重启后，格式化刚才建立的分区：
+```
+mkfs.ext4 /dev/sda3
+reboot
+```
+
+重启后配置 fstab：
+```
+uci add fstab mount
 
 # 将下面第一行命令输出的 UUID 替换第二行命令后的 UUID
-blkid -s UUID /dev/sda3 | cut -d\&quot; -f2
+blkid -s UUID /dev/sda3 | cut -d\" -f2
 uci set fstab.@mount[-1].uuid=UUID
 
 uci set fstab.@mount[-1].options=rw,sync,noatime
@@ -478,71 +666,209 @@ uci set fstab.@mount[-1].enabled_fsck=1
 uci set fstab.@mount[-1].enabled=1
 uci set fstab.@mount[-1].target=/
 uci set fstab.@mount[-1].device=/dev/sda3
-uci commit fstab然后根目录复制到新的分区下：mkdir /mnt/sda3
+uci commit fstab
+```
+
+然后根目录复制到新的分区下：
+```
+mkdir /mnt/sda3
 mount /dev/sda3 /mnt/sda3
 mkdir -p /tmp/cproot
 mount --bind / /tmp/cproot
 tar -C /tmp/cproot -cvf - . | tar -C /mnt/sda3 -xf -
 
 umount /tmp/cproot
-umount /mnt/sda3然后启用引导：/etc/init.d/fstab enable
+umount /mnt/sda3
+```
+
+然后启用引导：
+```
+/etc/init.d/fstab enable
 /etc/init.d/fstab start
 
-reboot重启后再次查看系统分区信息：root@OpenWrt:~# df -h
+reboot
+```
+
+重启后再次查看系统分区信息：
+```
+root@OpenWrt:~# df -h
 Filesystem                Size      Used Available Use% Mounted on
 /dev/root               252.0M    241.4M      5.5M  98% /rom
 tmpfs                   496.5M      1.0M    495.5M   0% /tmp
 /dev/sda3                 4.6G    257.2M      4.1G   6% /
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
-tmpfs                   512.0K         0    512.0K   0% /dev可以看到 sda3 分区已经正常挂载了，后续可以继续安装需要的各种插件了。参考链接Vmware下openwrt虚拟机扩展根目录大小</description>
+tmpfs                   512.0K         0    512.0K   0% /dev
+```
+
+可以看到 sda3 分区已经正常挂载了，后续可以继续安装需要的各种插件了。
+
+### 参考链接
+
+[Vmware下openwrt虚拟机扩展根目录大小](https://blog.csdn.net/duandao123/article/details/99689383)
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2320.html">
 <title>理解 Linux shell 脚本的 2&amp;gt;&amp;amp;1</title>
 <link>https://blog.niekun.net/archives/2320.html</link>
 <dc:date>2021-05-31T18:33:51+08:00</dc:date>
-<description>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 2&gt;&amp;1，例如：ls foo &gt; /dev/null 2&gt;&amp;1
-下面我们一步步了解下这种结构的含义。I/O redirection 重定向简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 cat 命令打印一个文件的内容到屏幕：$ cat foo.txt
+<description>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 `2>&1`，例如：
+    ls foo > /dev/null 2>&1
+
+下面我们一步步了解下这种结构的含义。
+
+
+
+
+### I/O redirection 重定向
+
+简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 `cat` 命令打印一个文件的内容到屏幕：
+```
+$ cat foo.txt
 foo
 bar
-baz我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:$ cat foo.txt &gt; output.txt
+baz
+```
+
+我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:
+```
+$ cat foo.txt > output.txt
 
 $ cat output.txt
 foo
 bar
-baz执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 standard output (stdout)标准输出到一个文件，所以它就不会输出到屏幕了。需要注意的是还有另一个地方：standard error (stderr)标准错误，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：$ cat nop.txt &gt; output.txt
-cat: nop.txt: No such file or directory以上示例中即使我们将 stdout 重定向到一个文件了，由于 output.txt 不存在，stderr 依然会输出错误信息到屏幕。因为我们重定向的只是 stdout 而不包括 stderr。file descriptors 文件描述器一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 stdout 和 stderr 有其各自的文件描述器 id 定义了它们各自的地址。stdout 是 1，stderr 是 2。在之前的示例中，我们可以修改命令为如下结构：cat foo.txt 1&gt; output.txt
-这里的 1 就是 stdout 的文件描述器，通过重定向语法 [FILE_DESCRIPTOR]&gt; 将 stdout 重定向到另一个文件。注意 1&gt; 可以简写为 &gt;。类似的，可以将 stderr 重定向到指定的目的地：$ cat nop.txt 2&gt; error.txt
+baz
+```
+
+执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 **standard output (stdout)标准输出**到一个文件，所以它就不会输出到屏幕了。
+
+需要注意的是还有另一个地方：**standard error (stderr)标准错误**，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：
+```
+$ cat nop.txt > output.txt
+cat: nop.txt: No such file or directory
+```
+
+以上示例中即使我们将 **stdout** 重定向到一个文件了，由于 output.txt 不存在，**stderr** 依然会输出错误信息到屏幕。因为我们重定向的只是 **stdout** 而不包括 **stderr**。
+
+### file descriptors 文件描述器
+
+一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 **stdout** 和 **stderr** 有其各自的文件描述器 id 定义了它们各自的地址。
+
+**stdout** 是 **1**，**stderr** 是 **2**。
+
+在之前的示例中，我们可以修改命令为如下结构：
+    cat foo.txt 1> output.txt
+
+这里的 **1** 就是 **stdout** 的文件描述器，通过重定向语法 `[FILE_DESCRIPTOR]>` 将 **stdout** 重定向到另一个文件。注意 `1>` 可以简写为 `>`。
+
+类似的，可以将 stderr 重定向到指定的目的地：
+```
+$ cat nop.txt 2> error.txt
 
 $ cat error.txt
-cat: nop.txt: No such file or directory这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。下面我们理解下 2&gt;&amp;1 的意义。我们使用 &amp;1 来指向 stdout 的重定向地址，所以 2&gt;&amp;1 表示重定向 stderr 到和 stdout 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 stdout 和 stderr 重定向到同一个文件中：$ cat foo.txt &gt; output.txt 2&gt;&amp;1
+cat: nop.txt: No such file or directory
+```
+
+这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。
+
+下面我们理解下 `2>&1` 的意义。我们使用 `&1` 来指向 **stdout** 的重定向地址，所以 `2>&1` 表示重定向 **stderr** 到和 **stdout** 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 **stdout** 和 **stderr** 重定向到同一个文件中：
+```
+$ cat foo.txt > output.txt 2>&1
 
 $ cat output.txt
 foo
 bar
 baz
 
-$ cat nop.txt &gt; output.txt 2&gt;&amp;1
+$ cat nop.txt > output.txt 2>&1
 
 $ cat output.txt
-cat: nop.txt: No such file or directory总结有两个地方用来让程序发送输出内容：stdout，stderr可以单独定义两个输出的重定向目的地文件描述器用来识别 stdout (1) 和 stderr (2)command &gt; output 是 command 1&gt; output 的简写通过 &amp;[FILE_DESCRIPTOR] 指向一个文件描述器的重定向目标地址上2&gt;&amp;1 可以将 stderr 重定向到 stdout 同样的重定向地址上。反之亦然。参考链接Understanding Shell Script's idiom: 2&gt;&1In the shell, what does “ 2&gt;&1 ” mean?</description>
+cat: nop.txt: No such file or directory
+```
+
+### 总结
+
+- 有两个地方用来让程序发送输出内容：**stdout**，**stderr**
+- 可以单独定义两个输出的重定向目的地
+- 文件描述器用来识别 **stdout (1)** 和 **stderr (2)**
+- `command > output` 是 `command 1> output` 的简写
+- 通过 `&[FILE_DESCRIPTOR]` 指向一个文件描述器的重定向目标地址上
+- `2>&1` 可以将 **stderr** 重定向到 **stdout** 同样的重定向地址上。反之亦然。
+
+### 参考链接
+
+[Understanding Shell Script's idiom: 2>&1](https://www.brianstorti.com/understanding-shell-script-idiom-redirect/)
+[In the shell, what does “ 2>&1 ” mean?](https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean)
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2310.html">
 <title>通过 telegram-cli 命令行发送 telegram 消息</title>
 <link>https://blog.niekun.net/archives/2310.html</link>
 <dc:date>2021-05-18T20:08:00+08:00</dc:date>
-<description>最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。GitHub 主页：https://github.com/vysheng/tg测试平台为 Ubuntu 18.04安装有两种方法安装，第一种是通过 snap 应用商店来安装，第二种是从源码安装。snap 安装需要首先安装 snap 环境：sudo apt install snapd
-然后就可以安装 telegram-cli：sudo snap install telegram-cli
-默认安装路径为：/snap/bin/telegram-cli从源码编译稍微有些麻烦，因为 GitHub 上的源码最近更新是 2016 年，经过我的测试在 make 时会报错，查询后需要增加安装相关依赖库及调整配置选项后才能正常编译。首先安装依赖： sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev libpython-dev zlib1g-dev libgcrypt20-dev make
-下载仓库源码：git clone --recursive https://github.com/vysheng/tg.git &amp;&amp; cd tg
-然后配置 configure：./configure --disable-openssl
-最后编译：make
-编译完成后可执行文件在项目源码的 bin 文件夹内。使用安装完成后需要配置账户信息，输入 telegram-cli 命令：telegram-cli
-会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。这时候通过 msg USERNAME message 的模式来给某个对话发送消息了：&gt; msg my_bot test
-USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过@username的方式定义会话对象。经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：error FAIL: 38: can not parse arg #1，但是我的用户名写的是没问题的。这时候需要首先执行一下 dialog_list 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 @username 来发送消息了。以上的操作都是在登录到 telegram-cli 中进行的，可以通过 quit 或 safe_quit 命令退出 telegram-cli 程序：&gt; quit
-我们也可以直接通过 telegram-cli 命令发送给某个对象消息，需要 -e 参数加执行的命令，例如：telegram-cli -e &quot;msg @username message&quot;
-建议执行时加上 -W参数以加载 dialog 列表，否则可能出现报警：error FAIL: 38: can not parse arg #1：telegram-cli -W -e &quot;msg @username message&quot;
-使用 -D 参数可以关闭输出信息。使用 -U 参数可以自定义命令执行的用户。更多 telegram-cli 可用参数如下：# telegram-cli -h
+<description>最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。
+
+GitHub 主页：https://github.com/vysheng/tg
+
+测试平台为 Ubuntu 18.04
+
+
+
+### 安装
+
+有两种方法安装，第一种是通过 snap 应用商店来安装，第二种是从源码安装。
+
+snap 安装需要首先安装 snap 环境：
+    sudo apt install snapd
+
+然后就可以安装 telegram-cli：
+    sudo snap install telegram-cli
+
+默认安装路径为：`/snap/bin/telegram-cli`
+
+从源码编译稍微有些麻烦，因为 GitHub 上的源码最近更新是 2016 年，经过我的测试在 make 时会报错，查询后需要增加安装相关依赖库及调整配置选项后才能正常编译。
+
+首先安装依赖：
+     sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev libpython-dev zlib1g-dev libgcrypt20-dev make
+
+下载仓库源码：
+    git clone --recursive https://github.com/vysheng/tg.git && cd tg
+
+然后配置 configure：
+    ./configure --disable-openssl
+
+最后编译：
+    make
+
+编译完成后可执行文件在项目源码的 **bin** 文件夹内。
+
+### 使用
+
+安装完成后需要配置账户信息，输入 telegram-cli 命令：
+    telegram-cli
+
+会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。
+
+这时候通过 `msg USERNAME message` 的模式来给某个对话发送消息了：
+    > msg my_bot test
+
+USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过`@username`的方式定义会话对象。
+
+经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：**error FAIL: 38: can not parse arg #1**，但是我的用户名写的是没问题的。这时候需要首先执行一下 `dialog_list` 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 `@username` 来发送消息了。
+
+以上的操作都是在登录到 telegram-cli 中进行的，可以通过 **quit** 或 **safe_quit** 命令退出 telegram-cli 程序：
+    > quit
+
+我们也可以直接通过 telegram-cli 命令发送给某个对象消息，需要 `-e` 参数加执行的命令，例如：
+    telegram-cli -e "msg @username message"
+
+建议执行时加上 `-W`参数以加载 dialog 列表，否则可能出现报警：**error FAIL: 38: can not parse arg #1**：
+    telegram-cli -W -e "msg @username message"
+
+使用 `-D` 参数可以关闭输出信息。使用 `-U` 参数可以自定义命令执行的用户。
+
+更多 telegram-cli 可用参数如下：
+```
+# telegram-cli -h
 telegram-cli Usage
   --phone/-u                           specify username (would not be asked during authorization)
   --rsa-key/-k                         specify location of public key (possible multiple entries)
@@ -559,13 +885,13 @@ telegram-cli Usage
   --disable-readline/-R                disable readline
   --alert/-A                           enable bell notifications
   --daemonize/-d                       daemon mode
-  --logname/-L &lt;log-name&gt;              log file name
-  --username/-U &lt;user-name&gt;            change uid after start
-  --groupname/-G &lt;group-name&gt;          change gid after start
+  --logname/-L               log file name
+  --username/-U             change uid after start
+  --groupname/-G           change gid after start
   --disable-output/-D                  disable output
-  --tcp-port/-P &lt;port&gt;                 port to listen for input commands
-  --udp-socket/-S &lt;socket-name&gt;        unix socket to create
-  --exec/-e &lt;commands&gt;                 make commands end exit
+  --tcp-port/-P                  port to listen for input commands
+  --udp-socket/-S         unix socket to create
+  --exec/-e                  make commands end exit
   --disable-names/-I                   use user and chat IDs in updates instead of names
   --enable-ipv6/-6                     use ipv6 (may be unstable)
   --help/-h                            prints this help
@@ -574,107 +900,212 @@ telegram-cli Usage
   --bot/-b                             bot mode
   --json                               prints answers and values in json format
   --permanent-msg-ids                  use permanent msg ids
-  --permanent-peer-ids                 use permanent peer idscrontab 定时任务可以通过 crontab 设置定时自动发送消息。首先编辑执行脚本，将如下示例代码保存在 test.sh 中：#!/bin/sh
-LOGFILE=&quot;/home/log/submit_code.log&quot;
+  --permanent-peer-ids                 use permanent peer ids
+```
 
-telegram-cli -U root -W -e &quot;msg USERNAME test&quot; &gt;&gt; ${LOGFILE}以上脚本通过 root 用户执行发送消息，会首先加载 dialog list 然后发送消息，最后退出会话。脚本中我配置了将发送信息保存在 log 文件中，也可以不保存日志，去掉最后的 &gt;&gt; ${LOGFILE} 即可。然后配置 crontab 定时任务，可以参考我的教程：https://blog.niekun.net/archives/461.html需要注意的是通过 snap 安装的 telegram-cli 可执行程序目录默认在 /snap/bin 目录下。需要将路径定义到 crontab 配置文件中才可以正常识别到脚本中的 telegram-cli 命令。编辑 /etc/crontab 文件：SHELL=/bin/sh
+### crontab 定时任务
+
+可以通过 crontab 设置定时自动发送消息。
+
+首先编辑执行脚本，将如下示例代码保存在 **test.sh** 中：
+```
+#!/bin/sh
+LOGFILE="/home/log/submit_code.log"
+
+telegram-cli -U root -W -e "msg USERNAME test" >> ${LOGFILE}
+```
+
+以上脚本通过 root 用户执行发送消息，会首先加载 dialog list 然后发送消息，最后退出会话。
+
+脚本中我配置了将发送信息保存在 log 文件中，也可以不保存日志，去掉最后的 `>> ${LOGFILE}` 即可。
+
+然后配置 crontab 定时任务，可以参考我的教程：https://blog.niekun.net/archives/461.html
+
+需要注意的是通过 snap 安装的 telegram-cli 可执行程序目录默认在 `/snap/bin` 目录下。需要将路径定义到 crontab 配置文件中才可以正常识别到脚本中的 telegram-cli 命令。
+
+编辑 `/etc/crontab` 文件：
+```
+SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/snap/bin
 HOME=/root
 
-10  9  *  *  * root bash   /path/to/test.sh注意 PATH 参数最后添加的 /snap/bin，如果是通过其他方式安装的 telegram-cli，需要根据实际情况定义可执行程序路径。保存文件后，会自动在 9 点 10 分自动执行 test.sh 脚本。参考链接How to install telegram-clion Ubuntu使用telegram-cli命令行发送信息LXK0301京东签到脚本-自动提交互助码FAIL: 38: can not parse arg #1</description>
+10  9  *  *  * root bash   /path/to/test.sh
+```
+
+注意 **PATH** 参数最后添加的 `/snap/bin`，如果是通过其他方式安装的 telegram-cli，需要根据实际情况定义可执行程序路径。
+
+保存文件后，会自动在 9 点 10 分自动执行 **test.sh** 脚本。
+
+### 参考链接
+
+[How to install telegram-clion Ubuntu](https://snapcraft.io/install/telegram-cli/ubuntu)
+[使用telegram-cli命令行发送信息](https://www.91yun.co/archives/5691)
+[LXK0301京东签到脚本-自动提交互助码](https://www.orzlee.com/toss/2021/02/24/lxk0301-jingdong-signin-scriptautomatic-submission-of-mutual-aid-codes.html)
+[FAIL: 38: can not parse arg #1](https://github.com/vysheng/tg/issues/548#issuecomment-169776227)</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2305.html">
 <title>配置外部网络存储器作为 Time Machine 备份</title>
 <link>https://blog.niekun.net/archives/2305.html</link>
 <dc:date>2021-04-30T08:59:42+08:00</dc:date>
-<description>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？研究了下果然有解决方案的，基本原理就是通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘就可以正常进行备份及还原了。创建虚拟磁盘打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：点击 存储 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。也可以通过命令行的方式直接生成镜像文件：hdiutil create -size 1024g -type SPARSEBUNDLE -fs &quot;HFS+J&quot; TimeMachine.sparsebundle
-这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。配置 Time Machine镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 TimeMachine.sparsebundle 文件到合适的目录。然后我们在 finder 中双击网络驱动器中的 TimeMachine.sparsebundle 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。然后我们就可以设置 TimeMachine 绑定到这个磁盘：sudo tmutil setdestination /Volumes/TimeMachine
-注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。备份与还原备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。自动挂载如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：try
-    mount volume &quot;smb://xxx.xxx.xxx.xxx/&quot;
+<description>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。
+
+之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？
+
+研究了下果然有解决方案的，基本原理就是**通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘**就可以正常进行备份及还原了。
+
+
+
+
+### 创建虚拟磁盘
+
+打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：
+![2021-04-30T00:36:06.png][1]
+
+设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：
+![2021-04-30T00:38:02.png][2]
+
+点击 **存储** 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。
+
+也可以通过命令行的方式直接生成镜像文件：
+    hdiutil create -size 1024g -type SPARSEBUNDLE -fs "HFS+J" TimeMachine.sparsebundle
+
+这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。
+
+### 配置 Time Machine
+
+镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 **TimeMachine.sparsebundle** 文件到合适的目录。
+
+然后我们在 finder 中双击网络驱动器中的 **TimeMachine.sparsebundle** 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。
+
+然后我们就可以设置 **TimeMachine** 绑定到这个磁盘：
+    sudo tmutil setdestination /Volumes/TimeMachine
+
+注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。
+
+此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：
+![2021-04-30T00:49:26.png][3]
+
+我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。
+
+### 备份与还原
+
+备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。
+
+我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。
+
+### 自动挂载
+
+如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：
+```
+try
+	mount volume "smb://xxx.xxx.xxx.xxx/"
 end try
 
-do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle&quot;脚本另存为 application 格式并 system preference 中加入开机自启动项即可。参考链接添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）自建Mac TimeMachine局域网无线备份环境How to restore system from network drive</description>
+do shell script "hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle"
+```
+
+脚本另存为 application 格式并 system preference 中加入开机自启动项即可。
+
+### 参考链接
+
+[添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）](https://www.douban.com/note/614980869/)
+[自建Mac TimeMachine局域网无线备份环境](https://yanke.info/?id=78)
+[How to restore system from network drive](https://apple.stackexchange.com/questions/162544/how-to-restore-system-from-network-drive)
+
+
+  [1]: https://blog.niekun.net/usr/uploads/2021/04/3390003757.png
+  [2]: https://blog.niekun.net/usr/uploads/2021/04/4157435921.png
+  [3]: https://blog.niekun.net/usr/uploads/2021/04/2641215091.png</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2303.html">
 <title>在 Ubuntu 中加载 smb 共享目录为本地路径</title>
 <link>https://blog.niekun.net/archives/2303.html</link>
 <dc:date>2021-04-29T10:15:00+08:00</dc:date>
-<description>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。访问 smb 共享目录的方法是在文件浏览器中通过：smb://xxx.xxx.xxx.xxx 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。下面介绍在 Ubuntu 中配置。在 Linux 中，可以通过 mount 命令的 cifs 选项将 smb 共享加载到本地驱动器的某个地方。Common Internet File System (CIFS) 是一个网络文件共享协议，它是 smb 的一种格式。安装首先我们安装 CIFS 工具：sudo apt install cifs-utils
-加载加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：sudo mkdir /mnt/h99_share
-通过下面命令加载某个 smb 共享：sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。默认情况下加载的共享目录所有者为 root 且权限为 777。通过 dir_mode 和 file_mode 参数可以自定义挂载的目录权限：sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-如果当前登录用户不是 root 用户，则可能你无法修改共享目录下的内容，可以在挂载时指定用户和用户组：sudo mount -t cifs -o username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-以上示例中，我们设置用户和用户组为 marco，这样当本地用户登录为 marco 时就可以读写共享目录的内容了。自动挂载以上命令挂载的目录在系统重启后会取消。在 /etc/fstab 文件中可以定义指定的路径及文件系统在系统启动时自动挂载。下面我们在此文件中定义自动挂载配置，需要指定远程地址，共享目录以及本地映射地址：# &lt;file system&gt;             &lt;dir&gt;          &lt;type&gt; &lt;options&gt;                                                                                           &lt;dump&gt;  &lt;pass&gt;                             
-//xxx.xxx.xxx.xxx/usbshare  /mnt/h99_share  cifs  username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755  0       0配置好 fatab 文件后，我们就可以使用以下命令直接挂载对应远程目录了：sudo mount /mnt/h99_share
-mount 命令会自动读取 /etc/fstab 文件并挂载对应远程地址目录。并且下次系统重启会自动挂载此目录。卸载目录通过 umount 命令可以下载已经加载的文件系统：sudo umount /mnt/h99_share
-如果当前加载的文件正在被其他进程使用，则 umount 卸载会失败，提示文件正忙。查询当前加载目录正在被那个进程使用，可以通过 fuser 命令实现：fuser -m /mnt/h99_share
-可以根据输出信息使用 kill 结束对应进程，然后就可以正常卸载了。参考链接How to Mount Windows Share on Linux using CIFSForcing Linux to Unmount a Filesystem Reporting “device is busy”</description>
+<description>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。
+
+访问 smb 共享目录的方法是在文件浏览器中通过：`smb://xxx.xxx.xxx.xxx` 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。
+
+但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。
+
+下面介绍在 Ubuntu 中配置。
+
+
+
+
+在 Linux 中，可以通过 **mount** 命令的 **cifs** 选项将 smb 共享加载到本地驱动器的某个地方。**Common Internet File System (CIFS)** 是一个网络文件共享协议，它是 smb 的一种格式。
+
+### 安装
+
+首先我们安装 CIFS 工具：
+    sudo apt install cifs-utils
+
+### 加载
+
+加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：
+    sudo mkdir /mnt/h99_share
+
+通过下面命令加载某个 smb 共享：
+    sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+
+其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。
+
+默认情况下加载的共享目录所有者为 **root** 且权限为 777。通过 **dir_mode** 和 **file_mode** 参数可以自定义挂载的目录权限：
+    sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+
+如果当前登录用户不是 root 用户，则可能你无法修改共享目录下的内容，可以在挂载时指定用户和用户组：
+    sudo mount -t cifs -o username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+
+以上示例中，我们设置用户和用户组为 **marco**，这样当本地用户登录为 **marco** 时就可以读写共享目录的内容了。
+
+### 自动挂载
+
+以上命令挂载的目录在系统重启后会取消。
+
+在 `/etc/fstab` 文件中可以定义指定的路径及文件系统在系统启动时自动挂载。下面我们在此文件中定义自动挂载配置，需要指定远程地址，共享目录以及本地映射地址：
+```
+#                                                                                                                                                   
+//xxx.xxx.xxx.xxx/usbshare  /mnt/h99_share  cifs  username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755  0       0
+```
+
+配置好 fatab 文件后，我们就可以使用以下命令直接挂载对应远程目录了：
+    sudo mount /mnt/h99_share
+
+mount 命令会自动读取 `/etc/fstab` 文件并挂载对应远程地址目录。并且下次系统重启会自动挂载此目录。
+
+### 卸载目录
+
+通过 **umount** 命令可以下载已经加载的文件系统：
+    sudo umount /mnt/h99_share
+
+如果当前加载的文件正在被其他进程使用，则 umount 卸载会失败，提示文件正忙。查询当前加载目录正在被那个进程使用，可以通过 fuser 命令实现：
+    fuser -m /mnt/h99_share
+
+可以根据输出信息使用 kill 结束对应进程，然后就可以正常卸载了。
+
+### 参考链接
+
+[How to Mount Windows Share on Linux using CIFS](https://linuxize.com/post/how-to-mount-cifs-windows-share-on-linux/)
+[Forcing Linux to Unmount a Filesystem Reporting “device is busy”](https://www.systutorials.com/force-linux-unmount-filesystem-reporting-device-busy/)
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2294.html">
 <title> openwrt 时区设置</title>
 <link>https://blog.niekun.net/archives/2294.html</link>
 <dc:date>2021-04-10T13:24:55+08:00</dc:date>
-<description>最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。首先在 web 端或直接修改配置文件：/etc/config/system 中的 zone 相关参数：然后安装对应 zoneinfo：opkg update
-opkg install zoneinfo-asia
-重启 system 服务：/etc/init.d/system restart
-然后输出日志日期就正常了。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2291.html">
-<title>openwrt network 配置</title>
-<link>https://blog.niekun.net/archives/2291.html</link>
-<dc:date>2021-04-10T09:46:44+08:00</dc:date>
-<description>openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。下面是一个默认的 /etc/config/network 文件内容：&quot;/etc/config/network&quot;
+<description>最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。
 
-config interface 'loopback'
-        option ifname 'lo'
-        option proto 'static'
-        option ipaddr '127.0.0.1'
-        option netmask '255.0.0.0'
+首先在 web 端或直接修改配置文件：`/etc/config/system` 中的 zone 相关参数：
+![2021-04-10T05:23:23.png][1]
 
-config globals 'globals'
-        option ula_prefix 'fd6e:929e:e9ab::/48'
+然后安装对应 zoneinfo：
+    opkg update
+    opkg install zoneinfo-asia
 
-config interface 'lan'
-        option ifname 'eth0'
-        option proto 'static'
-        option ipaddr '192.168.85.1'
-        option netmask '255.255.255.0'
-        option ip6assign '60'
-        option gateway '27.168.1.1'
+重启 system 服务：
+    /etc/init.d/system restart
 
-config interface 'wan'
-        option ifname 'eth1'
-        option proto 'dhcp'
+然后输出日志日期就正常了。
 
-config interface 'wan6'
-        option ifname 'eth1'
-        option proto 'dhcpv6'可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，注意 lan 的 downlink 下级链接会自动开启 dhcp 服务，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。以上默认的 network 配置包含了 global 配置块和 loopback，lan，wan interface 的配置块。这也是最基本的需要配置的网络设置。关于 network 配置文件的结构参考：Network basics /etc/config/networkinterfaces 配置块定义了对应 interface 具体连接的物理网卡名称和协议类型，通过 option 来定义这个 interface 具体参数。一个最基本的 interface 配置项需要包含 proto 协议类型和 ifname 网卡名称，例如：config 'interface' 'wan'
-        option 'proto' 'dhcp'
-        option 'ifname' 'eth0.2'wan 表示这个 interface 名称dhcp 表示协议类型eth0.2 表示绑定的物理网卡名称常用的 proto 协议类型有：static    Static configuration with fixed address and netmask    ip/ifconfig
-dhcp    Address and netmask are assigned by DHCP    udhcpc (Busybox)
-dhcpv6    Address and netmask are assigned by DHCPv6    odhcpc6c
-ppp    PPP protocol - dialup modem connections    pppd
-pppoe    PPP over Ethernet - DSL broadband connection    pppd + plugin rp-pppoe.so
-pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin …更多协议介绍：interface配置了协议后需要定义详细的 option 选项参数，下面是常用的适用于所有类型协议的 option 可选项：NameTypeDefault Descriptionifname物理网卡名称如eth0 eth1 eth2，当定义 type 为 bridge 桥接时，可以是一个集合type字符串如果设置为 bridge，会桥接在 ifname 中定义的物理网卡名称集合stpbooleanOnly valid for type bridge, enables the Spanning Tree Protocolbridge_emptybooleanOnly valid for type bridge, enables creating empty bridgesigmp_snoopingbooleanOnly valid for type bridge, sets the multicast_snooping kernel setting for a bridgemacaddrmac地址Override MAC address of this interface. Example: 62:11:22:aa:bb:ccmtunumberOverride the default MTU on this interface具体到某个 proto 协议会有各自特殊需要定义的 option 参数，下面介绍 static 模式下需要定义的参数：名称类型描述ipaddrip addressIP addressnetmasknetmask子网掩码gatewayip addressDefault gatewaybroadcastip addressBroadcast address (autogenerated if not set)dnslist of ip addressesDNS server(s)dns_searchlist of domain namesSearch list for host-name lookupmetricintegerSpecifies the default route metric to use关于 proto 协议的配置项参考：openwrt IPv4示例下面通过示例来介绍一些典型配置模式。lan 网络的 Downstream 下层流量配置：config interface 'lan'
-        option ifname 'eth1'
-        option proto 'static'
-        option ipaddr '192.168.85.1'
-        option netmask '255.255.255.0'
-        option ip6assign '60'
-        option gateway '27.168.1.1'lan 网络的下层链接会自动启用 dhcp 服务。lan 网络配置多网卡桥接模式：config interface 'lan'
-        option type 'bridge'
-        option ifname 'eth1 eth2 eth3'
-        option proto 'static'
-        option ipaddr '192.168.85.1'
-        option netmask '255.255.255.0'
-        option ip6assign '60'
-        option gateway '27.168.1.1'
-        option dns '1.1.1.1'多 dns 配置：config interface 'example'
-        option proto     'static'
-        option ifname    'eth0'
-        option ipaddr    '192.168.1.200'
-        option netmask   '255.255.255.0'
-        list   dns       '192.168.1.1'
-        list   dns       '192.168.10.1'参考链接interfaceIPv4</description>
+  [1]: https://blog.niekun.net/usr/uploads/2021/04/2639787103.png</description>
 </item>
 </rdf:RDF>

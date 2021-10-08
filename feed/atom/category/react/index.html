@@ -7,7 +7,7 @@ xml:base="https://blog.niekun.net/category/react/"
 <title type="text">Marco Nie - react</title>
 <subtitle type="text"></subtitle>
 <updated>2021-08-29T13:35:29+08:00</updated>
-<generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
+<generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/react/" />
 <id>https://blog.niekun.net/feed/atom/category/react/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/react/" />
@@ -21,128 +21,167 @@ xml:base="https://blog.niekun.net/category/react/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2329.html" xml:lang="zh-CN"><![CDATA[
-<p>react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。</p><h3>containment 包含</h3><p>一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。</p><!--more--><p>这一类的 components 推荐直接使用 <strong>children</strong> props 来直接表示 parent 传递给他们的 elements：</p><pre><code>const FancyBorder = props =&gt; {
+<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。
+
+### containment 包含
+
+一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。
+
+
+<!--more-->
+
+
+这一类的 components 推荐直接使用 **children** props 来直接表示 parent 传递给他们的 elements：
+```
+const FancyBorder = props => {
     return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+        <div className={`FancyBorder FancyBorder-${props.color}`}>
             {props.children}
-        &lt;/div&gt;
+        </div>
     );
-}</code></pre><p><code>props.children</code> 表示所有在调用此 component 时放在其元素中的内容。</p><p>然后我们创建一个 component 来调用上面的 FancyBorder：</p><pre><code>const WelcomeDialog = () =&gt; {
+}
+```
+
+`props.children` 表示所有在调用此 component 时放在其元素中的内容。
+
+然后我们创建一个 component 来调用上面的 FancyBorder：
+```
+const WelcomeDialog = () => {
     return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;Welcome&lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
+        <FancyBorder color='red'>
+            <h1 className='Dialog-title'>Welcome</h1>
+            <p className='Dialog-message'>
                 thank you for check this page.
-            &lt;/p&gt;
-        &lt;/FancyBorder&gt;
+            </p>
+        </FancyBorder>
     )
-}</code></pre><p>任何在 <strong>FancyBorder</strong> 标签中的内容都会作为 <strong>children</strong> prop 传入 <strong>FancyBorder</strong> 中，然后通过 props.children 进行渲染。</p><p>但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：</p><pre><code>const React = require('react')
+}
+```
+
+任何在 **FancyBorder** 标签中的内容都会作为 **children** prop 传入 **FancyBorder** 中，然后通过 props.children 进行渲染。
+
+但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const SplitPane = (props) =&gt; {
+const SplitPane = (props) => {
     return (
-        &lt;div className='SplitPane'&gt;
-            &lt;div className='Splitpane-left'&gt;
+        <div className='SplitPane'>
+            <div className='Splitpane-left'>
                 {props.left}
-            &lt;/div&gt;
-            &lt;div className='Splitpane-right'&gt;
+            </div>
+            <div className='Splitpane-right'>
                 {props.right}
-            &lt;/div&gt;
-        &lt;/div&gt;
+            </div>
+        </div>
     )
 }
 
-const Contacts = () =&gt; {
+const Contacts = () => {
     return (
-        &lt;div&gt;
-            &lt;h1&gt;marco&lt;/h1&gt;
-        &lt;/div&gt;
+        <div>
+            <h1>marco</h1>
+        </div>
     )
 }
 
-const Chat = () =&gt; {
+const Chat = () => {
     return (
-        &lt;div&gt;
-            &lt;p&gt;this is a test&lt;/p&gt;
-        &lt;/div&gt;
+        <div>
+            <p>this is a test</p>
+        </div>
     )
 }
 
-const App = () =&gt; {
+const App = () => {
     return (
-        &lt;SplitPane
+        <SplitPane
             left={
-                &lt;Contacts /&gt;
+                <Contacts />
             }
             right={
-                &lt;Chat /&gt;
+                <Chat />
             }
-        /&gt;
+        />
     )
 }
 
 ReactDOM.render(
-    &lt;App /&gt;,
+    <App />,
     document.getElementById('root')
-);</code></pre><p>可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。</p><h3>specialization 特殊化</h3><p>一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：</p><pre><code>const React = require('react')
+);
+```
+
+可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。
+
+### specialization 特殊化
+
+一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const FancyBorder = props =&gt; {
+const FancyBorder = props => {
     return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+        <div className={`FancyBorder FancyBorder-${props.color}`}>
             {props.children}
-        &lt;/div&gt;
+        </div>
     );
 }
 
-const Dialog = props =&gt; {
+const Dialog = props => {
     return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;
+        <FancyBorder color='red'>
+            <h1 className='Dialog-title'>
                 {props.title}
-            &lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
+            </h1>
+            <p className='Dialog-message'>
                 {props.message}
-            &lt;/p&gt;
-        &lt;/FancyBorder&gt;
+            </p>
+        </FancyBorder>
     )
 }
-const WelcomeDialog = () =&gt; {
+const WelcomeDialog = () => {
     return (
-        &lt;Dialog 
+        <Dialog 
             title='Welcome'
             message='welcome to this party'
-        /&gt;
+        />
     )
 }
 
 ReactDOM.render(
-    &lt;WelcomeDialog /&gt;,
+    <WelcomeDialog />,
     document.getElementById('root')
-);</code></pre><p>我们也可以通过 class 的方式定义 component：</p><pre><code>const React = require('react')
+);
+```
+
+我们也可以通过 class 的方式定义 component：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const FancyBorder = props =&gt; {
+const FancyBorder = props => {
     return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
+        <div className={`FancyBorder FancyBorder-${props.color}`}>
             {props.children}
-        &lt;/div&gt;
+        </div>
     );
 }
 
-const Dialog = props =&gt; {
+const Dialog = props => {
     return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;
+        <FancyBorder color='red'>
+            <h1 className='Dialog-title'>
                 {props.title}
-            &lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
+            </h1>
+            <p className='Dialog-message'>
                 {props.message}
-            &lt;/p&gt;
+            </p>
             {props.children}
-        &lt;/FancyBorder&gt;
+        </FancyBorder>
     )
 }
 
@@ -164,24 +203,30 @@ class SignUpDialog extends React.Component {
 
     render () {
         return (
-            &lt;Dialog
+            <Dialog
                 title='Sport game'
                 message='welcome to this game'
-            &gt;
-                &lt;input value={this.state.login} onChange={this.handleChangle} /&gt;
-                &lt;button onClick={this.handleSignup}&gt;Sign me up&lt;/button&gt;
-            &lt;/Dialog&gt;
+            >
+                <input value={this.state.login} onChange={this.handleChangle} />
+                <button onClick={this.handleSignup}>Sign me up</button>
+            </Dialog>
         )
     }
 }
 
 ReactDOM.render(
-    &lt;SignUpDialog /&gt;,
+    <SignUpDialog />,
     document.getElementById('root')
-);</code></pre><p>这里我们使用了自定义 props 和 <strong>children</strong> props 来构建了 <strong>SignUpDialog</strong> component，根据实际场景灵活使用。</p><p>props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始<strong>二进制数据/elements/functions</strong> 等。</p>
+);
+```
+
+这里我们使用了自定义 props 和 **children** props 来构建了 **SignUpDialog** component，根据实际场景灵活使用。
+
+props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始**二进制数据/elements/functions** 等。
+</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2329.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2329.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/react/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[React 入门教程之八 -- Lifting State Up 提升 state 层级]]></title>
@@ -193,21 +238,35 @@ ReactDOM.render(
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2324.html" xml:lang="zh-CN"><![CDATA[
-<p>大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，下面详细介绍如何实现这一 function。</p><p>下面创建一个 <strong>temperature calculator</strong> 温度计算器来判断在一个给定的温度下，水是否会沸腾。</p><!--more--><p>首先我们创建一个 <code>BoilingVerdict</code> component作为沸腾裁决器，它接受 celsius 摄氏温度作为一个 prop，然后输出是否足够使水沸腾：</p><pre><code>const BoilingVerdict = (props) =&gt; {
-    if (props.celsius &gt;= 100) {
-        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，下面详细介绍如何实现这一 function。
+
+下面创建一个 **temperature calculator** 温度计算器来判断在一个给定的温度下，水是否会沸腾。
+
+
+<!--more-->
+
+
+首先我们创建一个 `BoilingVerdict` component作为沸腾裁决器，它接受 celsius 摄氏温度作为一个 prop，然后输出是否足够使水沸腾：
+```
+const BoilingVerdict = (props) => {
+    if (props.celsius >= 100) {
+        return <p>The Water would boil.</p>
     }
-    return &lt;p&gt;The water would not boil.&lt;/p&gt;
-} </code></pre><p>然后我们创建一个 <code>Calculator</code> compenent，它会渲染一个 input 元素用来输入温度数据，且将数据存储在 <code>this.state.temprature</code> 中：</p><pre><code>const React = require('react')
+    return <p>The water would not boil.</p>
+} 
+```
+
+然后我们创建一个 `Calculator` compenent，它会渲染一个 input 元素用来输入温度数据，且将数据存储在 `this.state.temprature` 中：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const BoilingVerdict = (props) =&gt; {
-    if (props.celsius &gt;= 100) {
-        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+const BoilingVerdict = (props) => {
+    if (props.celsius >= 100) {
+        return <p>The Water would boil.</p>
     }
-    return &lt;p&gt;The water would not boil.&lt;/p&gt;
+    return <p>The water would not boil.</p>
 } 
 
 class Calculator extends React.Component {
@@ -225,22 +284,35 @@ class Calculator extends React.Component {
     render() {
         const temperature = this.state.temperature;
         return (
-            &lt;fieldset&gt;
-                &lt;legend&gt;Enter temperature in celsius&lt;/legend&gt;
-                &lt;input
+            <fieldset>
+                <legend>Enter temperature in celsius</legend>
+                <input
                     value={temperature}
                     onChange={this.handleChange}
-                /&gt;
-                &lt;BoilingVerdict celsius={parseFloat(temperature)} /&gt;
-            &lt;/fieldset&gt;
+                />
+                <BoilingVerdict celsius={parseFloat(temperature)} />
+            </fieldset>
         );
     }
 }
 
 ReactDOM.render(
-    &lt;Calculator /&gt;,
+    <Calculator />,
     document.getElementById('root')
-);</code></pre><p>上面的示例中使用了一个 fieldset 来定义一个块，legend 定义了这个块的抬头信息，效果如下：</p><p><img src="https://blog.niekun.net/usr/uploads/2021/08/2134840666.png" alt="2021-08-28T13:36:45.png" title="2021-08-28T13:36:45.png"></p><p>上一章节中我们详细介绍了如何构建一个 controlled component 可以参考。</p><p>现在我们有一个新的需求，在原有 celsius 摄氏输入的同时增加一个 Fahrenheit 华氏输入栏，同时让它们两者保持数据同步。</p><p>首先我们从 <code>Calculator</code> 中拆解出一个 <code>TempratureInput</code> component，将会给其增加一个 <strong>scale</strong> props，它可以是 "c" 或 "f" 来区分摄氏和华氏：</p><pre><code>const scaleNames = {
+);
+```
+
+上面的示例中使用了一个 fieldset 来定义一个块，legend 定义了这个块的抬头信息，效果如下：
+
+![2021-08-28T13:36:45.png][1]
+
+上一章节中我们详细介绍了如何构建一个 controlled component 可以参考。
+
+现在我们有一个新的需求，在原有 celsius 摄氏输入的同时增加一个 Fahrenheit 华氏输入栏，同时让它们两者保持数据同步。
+
+首先我们从 `Calculator` 中拆解出一个 `TempratureInput` component，将会给其增加一个 **scale** props，它可以是 "c" 或 "f" 来区分摄氏和华氏：
+```
+const scaleNames = {
     c: 'Celsius',
     f: 'Fahrenheit'
 }
@@ -261,13 +333,13 @@ class TemperatureInput extends React.Component {
         const temperature = this.state.temperature;
         const scale = this.props.scale;
         return (
-            &lt;fieldset&gt;
-                &lt;legend&gt;Enter temperature in {scaleNames[scale]}:&lt;/legend&gt;
-                &lt;input
+            <fieldset>
+                <legend>Enter temperature in {scaleNames[scale]}:</legend>
+                <input
                     value={temperature}
                     onChange={this.handleChange}
-                /&gt;
-            &lt;/fieldset&gt;
+                />
+            </fieldset>
         );
     } 
 }
@@ -275,14 +347,30 @@ class TemperatureInput extends React.Component {
 class Calculator extends React.Component {
     render() {
         return (
-            &lt;div&gt;
-                &lt;TemperatureInput scale='c' /&gt;
-                &lt;TemperatureInput scale='f' /&gt;
-            &lt;/div&gt;
+            <div>
+                <TemperatureInput scale='c' />
+                <TemperatureInput scale='f' />
+            </div>
         );
     }
-}</code></pre><p>修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称，这里使用了 ES6 的 Computed Property Names 预定义属性名，通过 <code>scaleNames[scale]</code> 动态调用其属性。此时两个 input 是相互隔离的，它们的数据不能相互访问。</p><p>下面我们实现两个 component 之间的数据互通。</p><p>首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：</p><pre><code>const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
-const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;</code></pre><p>这里我使用了 ES6 的简化写法，省略了 return 等符号。</p><p>下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：</p><pre><code>const tryConvert = (temperature, convert) =&gt; {
+}
+```
+
+修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称，这里使用了 ES6 的 Computed Property Names 预定义属性名，通过 `scaleNames[scale]` 动态调用其属性。此时两个 input 是相互隔离的，它们的数据不能相互访问。
+
+下面我们实现两个 component 之间的数据互通。
+
+首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：
+```
+const toCelsius = fahrenheit => (fahrenheit - 32) * 5 / 9;
+const toFahrenheit = celsius => (celsius * 9 / 5) + 32;
+```
+
+这里我使用了 ES6 的简化写法，省略了 return 等符号。
+
+下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：
+```
+const tryConvert = (temperature, convert) => {
     const input = parseFloat(temperature);
     if (Number.isNaN(input)) {
         return '';
@@ -290,18 +378,57 @@ const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;</code></pre><p>这里
     const output = convert(input);
     const rounded = Math.round(output * 1000) / 1000;
     return rounded.toString();
-}</code></pre><p>使用上面的 function 如果执行 <code>tryConvert('abc', toCelsius)</code> 会返回空字符串，如果执行 <code>tryConvert('10.22', toFahrenheit)</code> 会返回 <code>&quot;50.396&quot;</code>。</p><p>下面我们将 <strong>TempratureInput</strong> 中的 state 提升到 parent component。</p><p>当前的代码中，每个 <strong>TempratureInput</strong> component 各自控制它们的 state 且相互隔离，但是我们希望这两个 inputs 能够共享数据且同步更新，例如当我修改了 celsius input 后 Fahrenheit input 会自动更改为对应 celsius input 的结果。</p><p>在 react 中，共享 state 通过将其移动到这些 components 最近层级中的 parent component 中，叫做 lifting state up，下面我们将 TempratureInput 中的本地 state 移动到 Calculator 中。如果 Calculator 含有 shared state，它就成为了其下级 components 的 source of truth 可信来源，它可以管理他的下级 components 保持数据一致性，因此两个 TempratureInput 的 props 都来自于同一个 Calculator，所以他们的 inputs 将会保持一致同步.</p><p>下面我们逐步实现这个过程，首先替换 <strong>TemperatureInput</strong> component 中的 <code>this.state.temperature</code> 为 <code>this.props.temperature</code>，稍后我们将在 Calculator 中定义它：</p><pre><code>  render() {
+}
+```
+
+使用上面的 function 如果执行 `tryConvert('abc', toCelsius)` 会返回空字符串，如果执行 `tryConvert('10.22', toFahrenheit)` 会返回 `"50.396"`。
+
+下面我们将 **TempratureInput** 中的 state 提升到 parent component。
+
+当前的代码中，每个 **TempratureInput** component 各自控制它们的 state 且相互隔离，但是我们希望这两个 inputs 能够共享数据且同步更新，例如当我修改了 celsius input 后 Fahrenheit input 会自动更改为对应 celsius input 的结果。
+
+在 react 中，共享 state 通过将其移动到这些 components 最近层级中的 parent component 中，叫做 lifting state up，下面我们将 TempratureInput 中的本地 state 移动到 Calculator 中。如果 Calculator 含有 shared state，它就成为了其下级 components 的 source of truth 可信来源，它可以管理他的下级 components 保持数据一致性，因此两个 TempratureInput 的 props 都来自于同一个 Calculator，所以他们的 inputs 将会保持一致同步.
+
+下面我们逐步实现这个过程，首先替换 **TemperatureInput** component 中的 `this.state.temperature` 为 `this.props.temperature`，稍后我们将在 Calculator 中定义它：
+```
+  render() {
     // Before: const temperature = this.state.temperature;
     const temperature = this.props.temperature;
-    // ...</code></pre><p>我们知道 props 是只读的，在之前我们的 temperature 存储在本地的 state 中，然后通过 setState 来修改它，现在 temperature 来自 parent component，所以 TemperatureInput 无法直接控制它。</p><p>在 react 中，通常的解决方法是使 component 为 controlled，就像 <code>&lt;input&gt;</code> 元素可以接受 <strong>value</strong> 和 <strong>onChange</strong> props 属性，我们可以自定义使 TempratureInput 接受 temperature 和 onTemperatureChange 属性。从而当它需要更新他的 temperature 数据时，就可以通过调用 <code>this.props.onTemperatureChange</code>:</p><pre><code>    handleChange(e) {
+    // ...
+```
+
+我们知道 props 是只读的，在之前我们的 temperature 存储在本地的 state 中，然后通过 setState 来修改它，现在 temperature 来自 parent component，所以 TemperatureInput 无法直接控制它。
+
+在 react 中，通常的解决方法是使 component 为 controlled，就像 `<input>` 元素可以接受 **value** 和 **onChange** props 属性，我们可以自定义使 TempratureInput 接受 temperature 和 onTemperatureChange 属性。从而当它需要更新他的 temperature 数据时，就可以通过调用 `this.props.onTemperatureChange`:
+```
+    handleChange(e) {
         this.props.onTemperatureChange(e.target.value);
-    }</code></pre><p>注意这里的命名时自定义的，我们可以定义任意的名称作为 component 的 props 属性名称。</p><p>onTemperatureChange 属性将会在 Calculator 中通 temperature 相关联起来，它将会修改 Calculator 中的 state 同时重新渲染两个 inputs 元素.</p><p>下面我们专注于 Calculator component，我们需要存储当前 input 的 <strong>temperate</strong> 和 <strong>scale</strong> 数据到其 state 中，这里的 state 来自于之前从 TemperatureInput 中 lifting up 的，同时它将会同时作为两个 inputs 的可信来源，这两个 state 可以同时提供足够的数据来同时 render 两个 inputs，例如我们在 celsius input 中输入了 37，则 Calculator 的 state 应该是这样的：</p><pre><code>{
+    }
+```
+
+注意这里的命名时自定义的，我们可以定义任意的名称作为 component 的 props 属性名称。
+
+onTemperatureChange 属性将会在 Calculator 中通 temperature 相关联起来，它将会修改 Calculator 中的 state 同时重新渲染两个 inputs 元素.
+
+下面我们专注于 Calculator component，我们需要存储当前 input 的 **temperate** 和 **scale** 数据到其 state 中，这里的 state 来自于之前从 TemperatureInput 中 lifting up 的，同时它将会同时作为两个 inputs 的可信来源，这两个 state 可以同时提供足够的数据来同时 render 两个 inputs，例如我们在 celsius input 中输入了 37，则 Calculator 的 state 应该是这样的：
+```
+{
   temperature: '37',
   scale: 'c'
-}</code></pre><p>如果我们在 Fahrenheit input 中输入了 212，则 state 应该是这样的：</p><pre><code>{
+}
+```
+
+如果我们在 Fahrenheit input 中输入了 212，则 state 应该是这样的：
+```
+{
   temperature: '212',
   scale: 'f'
-}</code></pre><p>我们不需要同时单独存储两个 input 的数据，只需要存储最后一个 input 的数据即可，scale 中记录了具体是哪个 input 的来源。最后两个 inputs 中的数据是同步的，因为他们的值都是来自于同一个 state：</p><pre><code>class Calculator extends React.Component {
+}
+```
+
+我们不需要同时单独存储两个 input 的数据，只需要存储最后一个 input 的数据即可，scale 中记录了具体是哪个 input 的来源。最后两个 inputs 中的数据是同步的，因为他们的值都是来自于同一个 state：
+```
+class Calculator extends React.Component {
     constructor(props) {
         super(props);
         this.handleCelsiusChange = this.handleCelsiusChange.bind(this);
@@ -324,27 +451,34 @@ const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;</code></pre><p>这里
         const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
 
         return (
-            &lt;div&gt;
-                &lt;TemperatureInput
+            <div>
+                <TemperatureInput
                     scale='c'
                     temperature={celsius}
-                    onTemperatureChange={this.handleCelsiusChange} /&gt;
-                &lt;TemperatureInput
+                    onTemperatureChange={this.handleCelsiusChange} />
+                <TemperatureInput
                     scale='f'
                     temperature={fahrenheit}
-                    onTemperatureChange={this.handleFahrenheitChange} /&gt;
-                &lt;BoilingVerdict celsius={parseFloat(celsius)} /&gt;
-            &lt;/div&gt;
+                    onTemperatureChange={this.handleFahrenheitChange} />
+                <BoilingVerdict celsius={parseFloat(celsius)} />
+            </div>
         );
     }
-}</code></pre><p>此时无论我们在 celsius 或 Fahrenheit 中输入数据都会同时更新两个 input 的值。</p><p>此示例完整代码如下：</p><pre><code>const React = require('react')
+}
+```
+
+此时无论我们在 celsius 或 Fahrenheit 中输入数据都会同时更新两个 input 的值。
+
+此示例完整代码如下：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const BoilingVerdict = (props) =&gt; {
-    if (props.celsius &gt;= 100) {
-        return &lt;p&gt;The Water would boil.&lt;/p&gt;
+const BoilingVerdict = (props) => {
+    if (props.celsius >= 100) {
+        return <p>The Water would boil.</p>
     }
-    return &lt;p&gt;The water would not boil.&lt;/p&gt;
+    return <p>The water would not boil.</p>
 } 
 
 const scaleNames = {
@@ -352,10 +486,10 @@ const scaleNames = {
     f: 'Fahrenheit'
 }
 
-const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
-const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;
+const toCelsius = fahrenheit => (fahrenheit - 32) * 5 / 9;
+const toFahrenheit = celsius => (celsius * 9 / 5) + 32;
 
-const tryConvert = (temperature, convert) =&gt; {
+const tryConvert = (temperature, convert) => {
     const input = parseFloat(temperature);
     if (Number.isNaN(input)) {
         return '';
@@ -380,13 +514,13 @@ class TemperatureInput extends React.Component {
         const temperature = this.props.temperature;
         const scale = this.props.scale;
         return (
-            &lt;fieldset&gt;
-                &lt;legend&gt;Enter temperature in {scaleNames[scale]}:&lt;/legend&gt;
-                &lt;input
+            <fieldset>
+                <legend>Enter temperature in {scaleNames[scale]}:</legend>
+                <input
                     value={temperature}
                     onChange={this.handleChange}
-                /&gt;
-            &lt;/fieldset&gt;
+                />
+            </fieldset>
         );
     } 
 }
@@ -414,28 +548,41 @@ class Calculator extends React.Component {
         const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
 
         return (
-            &lt;div&gt;
-                &lt;TemperatureInput
+            <div>
+                <TemperatureInput
                     scale='c'
                     temperature={celsius}
-                    onTemperatureChange={this.handleCelsiusChange} /&gt;
-                &lt;TemperatureInput
+                    onTemperatureChange={this.handleCelsiusChange} />
+                <TemperatureInput
                     scale='f'
                     temperature={fahrenheit}
-                    onTemperatureChange={this.handleFahrenheitChange} /&gt;
-                &lt;BoilingVerdict celsius={parseFloat(celsius)} /&gt;
-            &lt;/div&gt;
+                    onTemperatureChange={this.handleFahrenheitChange} />
+                <BoilingVerdict celsius={parseFloat(celsius)} />
+            </div>
         );
     }
 }
 
 ReactDOM.render(
-    &lt;Calculator /&gt;,
+    <Calculator />,
     document.getElementById('root')
-);</code></pre><p><img src="https://blog.niekun.net/usr/uploads/2021/08/3952262804.png" alt="2021-08-28T15:30:35.png" title="2021-08-28T15:30:35.png"></p><p>处理流程为：</p><ul><li>用户输入在任意一个 input 中输入数值后，触发 onChange 并调用 handleChange</li><li>然后触发了 Calculator 的 onTemperatureChange 并将 input 的数据作为传入参数</li><li>根据不同的 input 最终触发了 Calculator 中的 handleChange function 并对 state 进行了修改</li><li>state 改变后会触发 render，并计算最新的 celsius 和 Fahrenheit 数值</li><li>最后根据计算的结果重新渲染 Temperature 的 input value</li></ul>
+);
+```
+
+![2021-08-28T15:30:35.png][2]
+
+处理流程为：
+- 用户输入在任意一个 input 中输入数值后，触发 onChange 并调用 handleChange
+- 然后触发了 Calculator 的 onTemperatureChange 并将 input 的数据作为传入参数
+- 根据不同的 input 最终触发了 Calculator 中的 handleChange function 并对 state 进行了修改
+- state 改变后会触发 render，并计算最新的 celsius 和 Fahrenheit 数值
+- 最后根据计算的结果重新渲染 Temperature 的 input value
+
+  [1]: https://blog.niekun.net/usr/uploads/2021/08/2134840666.png
+  [2]: https://blog.niekun.net/usr/uploads/2021/08/3952262804.png</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2324.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2324.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/react/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[React 入门教程之七 -- List 和 Form]]></title>
@@ -447,49 +594,90 @@ ReactDOM.render(
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[list 列表和 key在 JavaScript 中我们通常使用 map method 来对一个 list 的每个元素进行操作：const numbers = [1, 2, 3, 4, 5];c...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2203.html" xml:lang="zh-CN"><![CDATA[
-<h3>list 列表和 key</h3><p>在 JavaScript 中我们通常使用 <strong>map</strong> method 来对一个 list 的每个元素进行操作：</p><pre><code>const numbers = [1, 2, 3, 4, 5];
-const double = numbers.map((number) =&gt; { return number * 2});
+<div id="md_content_3" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">### list 列表和 key
+
+在 JavaScript 中我们通常使用 **map** method 来对一个 list 的每个元素进行操作：
+```
+const numbers = [1, 2, 3, 4, 5];
+const double = numbers.map((number) => { return number * 2});
 console.log(double)
 
 //output:
-//[ 2, 4, 6, 8, 10 ]</code></pre><p>在 React 中对一个 list 的元素进行操作方法类似。</p><!--more--><p>我们可以在 <strong>JSX</strong> 中通过大括号<code>{}</code> 来建立一个 elements 的集合，下面示例中我们将 <strong>map</strong> 的返回定义为 <code>&lt;li&gt;</code> 元素并赋值给 listItems：</p><pre><code>const numbers = [1, 2, 3, 4, 5];
-const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+//[ 2, 4, 6, 8, 10 ]
+```
+
+在 React 中对一个 list 的元素进行操作方法类似。
+
+
+<!--more-->
+
+我们可以在 **JSX** 中通过大括号`{}` 来建立一个 elements 的集合，下面示例中我们将 **map** 的返回定义为 `<li>` 元素并赋值给 listItems：
+```
+const numbers = [1, 2, 3, 4, 5];
+const listItems = numbers.map((number) => <li>{number}</li>)
 
 ReactDOM.render(
-    &lt;ul&gt;{listItems}&lt;/ul&gt;,
+    <ul>{listItems}</ul>,
     document.getElementById('root')
-);</code></pre><p>注意在 <strong>render</strong> 中我们将 <strong>listItems</strong> 放在 <code>&lt;ul&gt;</code> 元素中。</p><p>通常情况下我们将 lists 放在一个 component 中：</p><pre><code>const NumberList = (props) =&gt; {
+);
+```
+
+注意在 **render** 中我们将 **listItems** 放在 `<ul>` 元素中。
+
+通常情况下我们将 lists 放在一个 component 中：
+```
+const NumberList = (props) => {
     const numbers = props.numbers;
-    const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+    const listItems = numbers.map((number) => <li>{number}</li>)
     return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
+        <ul>{listItems}</ul>
     )
 }
 
 const numbers = [1, 2, 3, 4, 5];
 ReactDOM.render(
-    &lt;NumberList numbers={numbers}/&gt;,
+    <NumberList numbers={numbers}/>,
     document.getElementById('root')
-);</code></pre><p>当运行以上代码时，在浏览器终端会有一个 warning 警告信息：<strong>Each child in a list should have a unique "key" prop.</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2200488786.png" alt="2021-03-05T06:50:19.png" title="2021-03-05T06:50:19.png"></p><p><strong>Key</strong> 是一个特殊的 string 字符串属性需要给创建的 <strong>list</strong> element 添加的。它可以用来定位 list 中的每个元素。</p><p>下面我们给 list item 添加 <strong>Key</strong> 字符串属性：</p><pre><code>const NumberList = (props) =&gt; {
+);
+```
+
+当运行以上代码时，在浏览器终端会有一个 warning 警告信息：**Each child in a list should have a unique "key" prop.**：
+![2021-03-05T06:50:19.png][1]
+
+**Key** 是一个特殊的 string 字符串属性需要给创建的 **list** element 添加的。它可以用来定位 list 中的每个元素。
+
+下面我们给 list item 添加 **Key** 字符串属性：
+```
+const NumberList = (props) => {
     const numbers = props.numbers;
-    const listItems = numbers.map((number) =&gt;
-        &lt;li key={number.toString()}&gt;
+    const listItems = numbers.map((number) =>
+        <li key={number.toString()}>
             {number}
-        &lt;/li&gt;);
+        </li>);
     return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
+        <ul>{listItems}</ul>
     );
-}</code></pre><p>添加后报警就会消除。</p><h4>Keys</h4><p><strong>Key</strong> 可以帮助 React 识别哪个 item 修改过，被删除，被添加。以上示例中，我们在 map 中创建 item 时给其 key 属性，这样每个 item 可以有确切的属性值。</p><p>每个 list item 最好设置一个特殊的标识 <strong>key string</strong> 来区别于其他 items。最常用的就是使用数据中的 ID 作为 key：</p><pre><code>const TodoItems = (props) =&gt; {
+}
+```
+
+添加后报警就会消除。
+
+#### Keys
+
+**Key** 可以帮助 React 识别哪个 item 修改过，被删除，被添加。以上示例中，我们在 map 中创建 item 时给其 key 属性，这样每个 item 可以有确切的属性值。
+
+每个 list item 最好设置一个特殊的标识 **key string** 来区别于其他 items。最常用的就是使用数据中的 ID 作为 key：
+```
+const TodoItems = (props) => {
     const todos = props.todos;
-    const listItems = todos.map((todo) =&gt; 
-        &lt;li key={todo.id}&gt;
+    const listItems = todos.map((todo) => 
+        <li key={todo.id}>
             {todo.text}
-        &lt;/li&gt;
+        </li>
     )
     return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
+        <ul>{listItems}</ul>
     );
 }
 const todos = [
@@ -497,67 +685,93 @@ const todos = [
     {id: 2, text: '456'}
 ];
 ReactDOM.render(
-    &lt;TodoItems todos={todos} /&gt;,
+    <TodoItems todos={todos} />,
     document.getElementById('root')
-);</code></pre><p>当没有特定的 ID 来作为标识时，作为最后的选择，可以使用 item 的 index 作为 key：</p><pre><code>const TodoItems = (props) =&gt; {
+);
+```
+
+当没有特定的 ID 来作为标识时，作为最后的选择，可以使用 item 的 index 作为 key：
+```
+const TodoItems = (props) => {
     const todos = props.todos;
-    const listItems = todos.map((todo, index) =&gt; 
-        &lt;li key={index}&gt;
+    const listItems = todos.map((todo, index) => 
+        <li key={index}>
             {todo.text}
-        &lt;/li&gt;
+        </li>
     )
     return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
+        <ul>{listItems}</ul>
     );
-}</code></pre><p>如果 items 的顺序可能会发生变化的话，不推荐使用 index 作为 key 使用，因为可能对性能产生影响并且对 component 的 state 造成问题。<strong>如果没有定义确切的 key 给 items，React 默认会使用 index 作为 keys。</strong></p><h4>拆解 component 时 key 的处理</h4><p>keys 是对应与一个数组的内容而言的，它并不能单独存在。例如我们要拆解上面的 NumberList，提取出 <strong>ListItem</strong>，则需要将 key 定义在 <code>&lt;ListItem /&gt;</code> 元素中而不是 <strong>ListItem</strong> component 内部的 <code>&lt;li&gt;</code> 中：</p><pre><code>const ListItem = (props) =&gt; {
+}
+```
+
+如果 items 的顺序可能会发生变化的话，不推荐使用 index 作为 key 使用，因为可能对性能产生影响并且对 component 的 state 造成问题。**如果没有定义确切的 key 给 items，React 默认会使用 index 作为 keys。**
+
+#### 拆解 component 时 key 的处理
+
+keys 是对应与一个数组的内容而言的，它并不能单独存在。例如我们要拆解上面的 NumberList，提取出 **ListItem**，则需要将 key 定义在 `<ListItem />` 元素中而不是 **ListItem** component 内部的 `<li>` 中：
+```
+const ListItem = (props) => {
     return (
-        &lt;li&gt;{props.value}&lt;/li&gt;
+        <li>{props.value}</li>
     );
 }
 
-const NumberList = (props) =&gt; {
+const NumberList = (props) => {
     const numbers = props.numbers;
-    const listItems = numbers.map((number) =&gt;
-        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    const listItems = numbers.map((number) =>
+        <ListItem key={number.toString()} value={number}/>);
     return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
+        <ul>{listItems}</ul>
     );
 }
 
 const numbers = [1, 2, 3, 4, 5];
 ReactDOM.render(
-    &lt;NumberList numbers={numbers} /&gt;,
+    <NumberList numbers={numbers} />,
     document.getElementById('root')
-);</code></pre><p>如果写成下面模式就是<strong>错误</strong>的：</p><pre><code>function ListItem(props) {
+);
+```
+
+如果写成下面模式就是**错误**的：
+```
+function ListItem(props) {
   const value = props.value;
   return (
-    &lt;li key={value.toString()}&gt;
+    <li key={value.toString()}>
       {value}
-    &lt;/li&gt;
+    </li>
   );
-}</code></pre><h4>每个 item 的 key 必须是特定的</h4><p>数组中每个 items 使用的 <strong>key</strong> 必须是互相独立且不相同的，<strong>但并不需要在全局下互相独立</strong>。在两个单独的数组中可以，其元素可以使用相同的 key：</p><pre><code>const React = require('react')
+}
+```
+
+#### 每个 item 的 key 必须是特定的
+
+数组中每个 items 使用的 **key** 必须是互相独立且不相同的，**但并不需要在全局下互相独立**。在两个单独的数组中可以，其元素可以使用相同的 key：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const Blog = (props) =&gt; {
+const Blog = (props) => {
     const sideBar = (
-        &lt;ul&gt;
-            {props.posts.map((post) =&gt;
-                &lt;li key={post.id}&gt;{post.title}&lt;/li&gt;
+        <ul>
+            {props.posts.map((post) =>
+                <li key={post.id}>{post.title}</li>
             )}
-        &lt;/ul&gt;
+        </ul>
     );
-    const content = props.posts.map((post) =&gt;
-        &lt;div key={post.id}&gt;
-            &lt;h3&gt;{post.title}&lt;/h3&gt;
-            &lt;p&gt;{post.content}&lt;/p&gt;
-        &lt;/div&gt;
+    const content = props.posts.map((post) =>
+        <div key={post.id}>
+            <h3>{post.title}</h3>
+            <p>{post.content}</p>
+        </div>
     );
     return (
-        &lt;div&gt;
+        <div>
             {sideBar}
-            &lt;hr/&gt;
+            <hr/>
             {content}
-        &lt;/div&gt;
+        </div>
     );
 }
 
@@ -567,45 +781,86 @@ const posts = [
 ];
 
 ReactDOM.render(
-    &lt;Blog posts={posts} /&gt;,
+    <Blog posts={posts} />,
     document.getElementById('root')
-);</code></pre><p>上面示例中，我们在 <strong>Blog</strong> component 中定义了两个 JSX，都创建了 list elements，每个元素的 key 使用了对应的 id 属性。在每个 list 内部 key 是互相独立的。可以看到不只是 <code>&lt;li&gt;</code> 元素可以加 key，只要通过 map 定义了一个 array 数组，就可以给每个元素加上 key 属性来互相独立识别。</p><p><strong>key</strong> 是为了给 <strong>React</strong> 识别用的。它本身并不作为一个普通 <strong>prop</strong> 传给 components，<strong>也就是在 component 内部并不能使用这个 key 数据</strong>，如果想要在 component 中使用这个数据则需要单独定义一个其他 prop 来传入 key 数据：</p><pre><code>const Post = (props) =&gt; {
+);
+```
+
+上面示例中，我们在 **Blog** component 中定义了两个 JSX，都创建了 list elements，每个元素的 key 使用了对应的 id 属性。在每个 list 内部 key 是互相独立的。可以看到不只是 `<li>` 元素可以加 key，只要通过 map 定义了一个 array 数组，就可以给每个元素加上 key 属性来互相独立识别。
+
+**key** 是为了给 **React** 识别用的。它本身并不作为一个普通 **prop** 传给 components，**也就是在 component 内部并不能使用这个 key 数据**，如果想要在 component 中使用这个数据则需要单独定义一个其他 prop 来传入 key 数据：
+```
+const Post = (props) => {
     return (
-        &lt;li&gt;
+        <li>
             {props.id}: {props.title}
-        &lt;/li&gt;
+        </li>
     )
 }
-const Blog = (props) =&gt; {
+const Blog = (props) => {
     const sideBar = (
-        &lt;ul&gt;
-            {props.posts.map((post) =&gt;
-                &lt;Post key={post.id} id={post.id} title={post.title} /&gt;
+        <ul>
+            {props.posts.map((post) =>
+                <Post key={post.id} id={post.id} title={post.title} />
             )}
-        &lt;/ul&gt;
+        </ul>
     );
 ...
 ...
 ...
-}</code></pre><p>上面示例中，<strong>Post</strong> component 无法直接访问 <strong>key</strong> 的数据，所以我们在调用 <strong>Post</strong> 时单独定义一个 <strong>id</strong> 属性并赋值为 key 相同的数据，这样就间接的可以在 <strong>Post</strong> component 中通过 id 来读取 key 的数据。</p><p>在之前的 ListItem 示例中，我们声明了一个单独的 listItems 变量并在后续返回中将其放在 <code>&lt;ul&gt;</code> 中：</p><pre><code>const NumberList = (props) =&gt; {
+}
+```
+
+上面示例中，**Post** component 无法直接访问 **key** 的数据，所以我们在调用 **Post** 时单独定义一个 **id** 属性并赋值为 key 相同的数据，这样就间接的可以在 **Post** component 中通过 id 来读取 key 的数据。
+
+在之前的 ListItem 示例中，我们声明了一个单独的 listItems 变量并在后续返回中将其放在 `<ul>` 中：
+```
+const NumberList = (props) => {
     const numbers = props.numbers;
-    const listItems = numbers.map((number) =&gt;
-        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    const listItems = numbers.map((number) =>
+        <ListItem key={number.toString()} value={number}/>);
     return (
-        &lt;ul&gt;{listItems}&lt;/ul&gt;
+        <ul>{listItems}</ul>
     );
-}</code></pre><p>JSX 支持嵌入任何的 JavaScript 表达式，只需要使用大括号包围即可，所以上面的代码可以修改为以下模式：</p><pre><code>    return (
-        &lt;ul&gt;
-            {numbers.map((number) =&gt;
-                &lt;ListItem key={number.toString()} value={number} /&gt;);}
-        &lt;/ul&gt;
-    );</code></pre><p>使用哪种方式来定义 JSX 取决于对应的使用场景，总的原则是要方便与代码阅读，逻辑清晰。需要注意的是如果 <code>map()</code> method 中层级太复杂，可以考虑将其拆分为多个 components。</p><h3>Forms 表格</h3><p>HTML 的 form element 和其他 DOM elements 有点区别，因为 form element 包含有一些内部 state 数据，例如下面的 html 示例包含一个 from 表格：</p><pre><code>&lt;form&gt;
-    &lt;label&gt;
+}
+```
+
+JSX 支持嵌入任何的 JavaScript 表达式，只需要使用大括号包围即可，所以上面的代码可以修改为以下模式：
+```
+    return (
+        <ul>
+            {numbers.map((number) =>
+                <ListItem key={number.toString()} value={number} />);}
+        </ul>
+    );
+```
+
+使用哪种方式来定义 JSX 取决于对应的使用场景，总的原则是要方便与代码阅读，逻辑清晰。需要注意的是如果 `map()` method 中层级太复杂，可以考虑将其拆分为多个 components。
+
+### Forms 表格
+
+HTML 的 form element 和其他 DOM elements 有点区别，因为 form element 包含有一些内部 state 数据，例如下面的 html 示例包含一个 from 表格：
+```
+<form>
+    <label>
         Name:
-        &lt;input type=&quot;text&quot; name=&quot;name&quot;&gt;
-    &lt;/label&gt;
-    &lt;input type=&quot;submit&quot; value=&quot;Submit&quot;&gt;
-&lt;/form&gt;</code></pre><p>以上示例中的 form 表格会有一个默认的 behavior 动作，那就是当用户点击 submit 按钮时会打开一个新页面。如果你不需要这个默认行为，同时需要提取 input 的信息时，需要在 submit event 事件发生时对其使用 <code>preventDefault()</code> method，标准的实现方法是通过 <strong>controlled components 可控构件</strong> 来处理。</p><h3>controlled components</h3><p>在 html 中，form 的元素如：<code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code>, 和 <code>&lt;select&gt;</code> 都有他们自己的 state 且随着用户输入信息而自动更新。在 react 中，可变的 state 存储在 component 的 state property 中且只能通过 <code>setState()</code> 更新。</p><p>我们可以将 from 元素的 state 和 component 的 state 合并起来作为唯一的数据来源，这样 component 既可以渲染 form 也可以控制 form 中的输入信息。一个 input 输入信息受 react component 控制的 form element 叫做 <strong>controlled component</strong>。</p><p>如下示例中，我们构建一个 controlled component 来记录用户 input 的内容：</p><pre><code>const React = require('react')
+        <input type="text" name="name">
+    </label>
+    <input type="submit" value="Submit">
+</form>
+```
+
+以上示例中的 form 表格会有一个默认的 behavior 动作，那就是当用户点击 submit 按钮时会打开一个新页面。如果你不需要这个默认行为，同时需要提取 input 的信息时，需要在 submit event 事件发生时对其使用 `preventDefault()` method，标准的实现方法是通过 **controlled components 可控构件** 来处理。
+
+### controlled components
+
+在 html 中，form 的元素如：`<input>`, `<textarea>`, 和 `<select>` 都有他们自己的 state 且随着用户输入信息而自动更新。在 react 中，可变的 state 存储在 component 的 state property 中且只能通过 `setState()` 更新。
+
+我们可以将 from 元素的 state 和 component 的 state 合并起来作为唯一的数据来源，这样 component 既可以渲染 form 也可以控制 form 中的输入信息。一个 input 输入信息受 react component 控制的 form element 叫做 **controlled component**。
+
+如下示例中，我们构建一个 controlled component 来记录用户 input 的内容：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
 class NameForm extends React.Component {
@@ -628,23 +883,39 @@ class NameForm extends React.Component {
 
     render() {
         return (
-            &lt;form onSubmit={this.handleSubmit}&gt;
-                &lt;label&gt;
+            <form onSubmit={this.handleSubmit}>
+                <label>
                     Name:
-                    &lt;input type=&quot;text&quot; value={this.state.value} onChange={this.handleChange} /&gt;
-                &lt;/label&gt;
-                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
-            &lt;/form&gt;
+                    <input type="text" value={this.state.value} onChange={this.handleChange} />
+                </label>
+                <input type="submit" value="Submit" />
+            </form>
         );
     }
 }
 
 ReactDOM.render(
-    &lt;NameForm /&gt;,
+    <NameForm />,
     document.getElementById('root')
-);</code></pre><p>我们将 input 的 value 属性定义为 <code>this.state.value</code> 的值，这里显示的永远是当前 state value 的值。当 handleChange 被触发时，会将当前用户输入的内容更新到 state value 中，然后触发 render 更新 form。</p><p>通过 controlled component 可以使 form 中 input 的内容受控于 state，这样我们就可以操作输入的数据用于其他任何地方了。</p><h4>textarea 标签</h4><p>在 html 中我们使用 textarea 来定义一段文本区域：</p><pre><code>&lt;textarea&gt;
+);
+```
+
+我们将 input 的 value 属性定义为 `this.state.value` 的值，这里显示的永远是当前 state value 的值。当 handleChange 被触发时，会将当前用户输入的内容更新到 state value 中，然后触发 render 更新 form。
+
+通过 controlled component 可以使 form 中 input 的内容受控于 state，这样我们就可以操作输入的数据用于其他任何地方了。
+
+#### textarea 标签
+
+在 html 中我们使用 textarea 来定义一段文本区域：
+```
+<textarea>
   Hello there, this is some text in a text area
-&lt;/textarea&gt;</code></pre><p>在 react 中，类似于上面的 input 标签，我们将文本内容放在 value 属性中，如下示例：</p><pre><code>const React = require('react')
+</textarea>
+```
+
+在 react 中，类似于上面的 input 标签，我们将文本内容放在 value 属性中，如下示例：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
 class NameForm extends React.Component {
@@ -667,26 +938,40 @@ class NameForm extends React.Component {
 
     render() {
         return (
-            &lt;form onSubmit={this.handleSubmit}&gt;
-                &lt;label&gt;
+            <form onSubmit={this.handleSubmit}>
+                <label>
                     TextArea:
-                    &lt;textarea type=&quot;text&quot; value={this.state.value} onChange={this.handleChange} /&gt;
-                &lt;/label&gt;
-                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
-            &lt;/form&gt;
+                    <textarea type="text" value={this.state.value} onChange={this.handleChange} />
+                </label>
+                <input type="submit" value="Submit" />
+            </form>
         );
     }
 }
 
 ReactDOM.render(
-    &lt;NameForm /&gt;,
+    <NameForm />,
     document.getElementById('root')
-);</code></pre><p>注意我们在构造器中给他 state value 定义了初始值，这样在第一次访问页面时就会有一段默认文字了。</p><h4>select 标签</h4><p>在 html 中 select 标签可以创建一个下拉菜单控件：</p><pre><code>&lt;select&gt;
-  &lt;option value=&quot;grapefruit&quot;&gt;Grapefruit&lt;/option&gt;
-  &lt;option value=&quot;lime&quot;&gt;Lime&lt;/option&gt;
-  &lt;option selected value=&quot;coconut&quot;&gt;Coconut&lt;/option&gt;
-  &lt;option value=&quot;mango&quot;&gt;Mango&lt;/option&gt;
-&lt;/select&gt;</code></pre><p>注意上面的示例中，Coconut 选项会默认选中，因为其定义了 selected 属性。在 react 中我们可以在 select 根标签中直接定义 value 属性来定义当前选中的是哪一个 option。这在 controlled component 中可以很方便的管理及更新 select element 的 value：</p><pre><code>const React = require('react')
+);
+```
+
+注意我们在构造器中给他 state value 定义了初始值，这样在第一次访问页面时就会有一段默认文字了。
+
+#### select 标签
+
+在 html 中 select 标签可以创建一个下拉菜单控件：
+```
+<select>
+  <option value="grapefruit">Grapefruit</option>
+  <option value="lime">Lime</option>
+  <option selected value="coconut">Coconut</option>
+  <option value="mango">Mango</option>
+</select>
+```
+
+注意上面的示例中，Coconut 选项会默认选中，因为其定义了 selected 属性。在 react 中我们可以在 select 根标签中直接定义 value 属性来定义当前选中的是哪一个 option。这在 controlled component 中可以很方便的管理及更新 select element 的 value：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
 class NameForm extends React.Component {
@@ -709,26 +994,43 @@ class NameForm extends React.Component {
 
     render() {
         return (
-            &lt;form onSubmit={this.handleSubmit}&gt;
-                &lt;label&gt;
+            <form onSubmit={this.handleSubmit}>
+                <label>
                     your favorite:
-                    &lt;select value={this.state.value} onChange={this.handleChange}&gt;
-                        &lt;option value=&quot;sleep&quot;&gt;Sleep&lt;/option&gt;
-                        &lt;option value=&quot;sports&quot;&gt;Sports&lt;/option&gt;
-                        &lt;option value=&quot;takePhoto&quot;&gt;Take Photo&lt;/option&gt;
-                        &lt;option value=&quot;work&quot;&gt;Work&lt;/option&gt;
-                    &lt;/select&gt;
-                &lt;/label&gt;
-                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
-            &lt;/form&gt;
+                    <select value={this.state.value} onChange={this.handleChange}>
+                        <option value="sleep">Sleep</option>
+                        <option value="sports">Sports</option>
+                        <option value="takePhoto">Take Photo</option>
+                        <option value="work">Work</option>
+                    </select>
+                </label>
+                <input type="submit" value="Submit" />
+            </form>
         );
     }
 }
 
 ReactDOM.render(
-    &lt;NameForm /&gt;,
+    <NameForm />,
     document.getElementById('root')
-);</code></pre><p>以上示例中，我们将 state 的 value 赋值给 select 的 value 这样 select 当前选中项总是 state 中的值，在 handleChange 触发时会更新 state 中的 value 并 render 页面。</p><p>注意我们可以给 value 赋值一个数组，这样就可以同时选中多个 option：</p><pre><code>&lt;select multiple={true} value={['B', 'C']}&gt;</code></pre><p>以上几种 form 控件起始基本结构都类似，他们都核心概念就是将元素的 value 属性和 state 挂钩，从而使 controlled component 生效。</p><h3>处理多个 input 输入源</h3><p>当我们需要在 component 中同时处理多个 input 元素时，可以给每个 input 添加 name 属性，然后再对应的 handle function 中通过 event.target.name 来区分他们：</p><pre><code>const React = require('react')
+);
+```
+
+以上示例中，我们将 state 的 value 赋值给 select 的 value 这样 select 当前选中项总是 state 中的值，在 handleChange 触发时会更新 state 中的 value 并 render 页面。
+
+注意我们可以给 value 赋值一个数组，这样就可以同时选中多个 option：
+```
+<select multiple={true} value={['B', 'C']}>
+```
+
+以上几种 form 控件起始基本结构都类似，他们都核心概念就是将元素的 value 属性和 state 挂钩，从而使 controlled component 生效。
+
+
+### 处理多个 input 输入源
+
+当我们需要在 component 中同时处理多个 input 元素时，可以给每个 input 添加 name 属性，然后再对应的 handle function 中通过 event.target.name 来区分他们：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
 class NameForm extends React.Component {
@@ -757,51 +1059,66 @@ class NameForm extends React.Component {
 
     render() {
         return (
-            &lt;form onSubmit={this.handleSubmit}&gt;
-                &lt;label&gt;
+            <form onSubmit={this.handleSubmit}>
+                <label>
                     Is Going:
-                    &lt;input
-                    name=&quot;isGoing&quot;
-                    type=&quot;checkbox&quot;
+                    <input
+                    name="isGoing"
+                    type="checkbox"
                     checked={this.state.isGoing}
-                    onChange={this.handleChange} /&gt;
-                &lt;/label&gt;
-                &lt;br /&gt;
-                &lt;label&gt;
+                    onChange={this.handleChange} />
+                </label>
+                <br />
+                <label>
                     Number of Guests:
-                    &lt;input
-                    name=&quot;numberOfGuests&quot;
-                    type=&quot;number&quot;
+                    <input
+                    name="numberOfGuests"
+                    type="number"
                     value={this.state.numberOfGuests}
-                    onChange={this.handleChange} /&gt;
-                &lt;/label&gt;
-                &lt;br /&gt;
-                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
-            &lt;/form&gt;
+                    onChange={this.handleChange} />
+                </label>
+                <br />
+                <input type="submit" value="Submit" />
+            </form>
         );
     }
 }
 
 ReactDOM.render(
-    &lt;NameForm /&gt;,
+    <NameForm />,
     document.getElementById('root')
-);</code></pre><p>以上示例中我们使用了 ES6 中新加入的特性: <code>this.setState({[name]: value});</code> 再 object 中使用方括号 <code>[]</code> 来调用变量。<code>setState()</code> 会自动合并更新到 <strong>state</strong> 中。</p><h4>input Null value</h4><p>我们可以给一个 input 元素定义初值，默认情况下在页面加载完成后，input 框就可以立刻被用户进行编辑，有时候我们不希望再一开始就让用户修改 input 中的数据，此时可以临时给 input 的 value 属性赋值为 null 或 undefined 就可以了：</p><pre><code>const React = require('react')
+);
+```
+
+以上示例中我们使用了 ES6 中新加入的特性: `this.setState({[name]: value});` 再 object 中使用方括号 `[]` 来调用变量。`setState()` 会自动合并更新到 **state** 中。
+
+#### input Null value
+
+我们可以给一个 input 元素定义初值，默认情况下在页面加载完成后，input 框就可以立刻被用户进行编辑，有时候我们不希望再一开始就让用户修改 input 中的数据，此时可以临时给 input 的 value 属性赋值为 null 或 undefined 就可以了：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
 ReactDOM.render(
-    &lt;input value=&quot;hi&quot; /&gt;,
+    <input value="hi" />,
     document.getElementById('root')
 );
 
-setTimeout(() =&gt; {
+setTimeout(() => {
     ReactDOM.render(
-        &lt;input value={null} /&gt;,
+        <input value={null} />,
         document.getElementById('root')
     );
-}, 2000);</code></pre><p>以上示例中，在页面刚加载的前 2 秒，用户无法修改默认的 <code>hi</code> 字符串。</p>
+}, 2000);
+```
+
+以上示例中，在页面刚加载的前 2 秒，用户无法修改默认的 `hi` 字符串。
+
+
+  [1]: https://blog.niekun.net/usr/uploads/2021/03/2200488786.png</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2203.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2203.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/react/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[React 入门教程之六 -- Conditional Rendering]]></title>
@@ -813,40 +1130,69 @@ setTimeout(() =&gt; {
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[在 React 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。和 JavaScript 的相同，React 中也可以使...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2195.html" xml:lang="zh-CN"><![CDATA[
-<p>在 <strong>React</strong> 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。</p><p>和 JavaScript 的相同，React 中也可以使用 conditions 语法来选择性的渲染内容。如使用 if 或 conditional operator 来根据不同 state 状态创建不同 elements 然后让 React 更新 UI 来匹配 DOM。</p><!--more--><p>考虑下面两个 components：</p><pre><code>const UserGreeting = (props) =&gt; {
-    return &lt;h1&gt;welcome back&lt;/h1&gt;
+<div id="md_content_4" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">在 **React** 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。
+
+和 JavaScript 的相同，React 中也可以使用 conditions 语法来选择性的渲染内容。如使用 if 或 conditional operator 来根据不同 state 状态创建不同 elements 然后让 React 更新 UI 来匹配 DOM。
+
+
+<!--more-->
+
+考虑下面两个 components：
+```
+const UserGreeting = (props) => {
+    return <h1>welcome back</h1>
 }
 
-const GuestGreeting = (props) =&gt; {
-    return &lt;h1&gt;please sign up&lt;/h1&gt;
-}</code></pre><p>然后我们创建一个 <strong>Greeting</strong> component 来根据是否有用户登陆来显示以上两个中的一个：</p><pre><code>const Greeting = (props) =&gt; {
+const GuestGreeting = (props) => {
+    return <h1>please sign up</h1>
+}
+```
+
+然后我们创建一个 **Greeting** component 来根据是否有用户登陆来显示以上两个中的一个：
+```
+const Greeting = (props) => {
     let isLoggedIn = props.isLoggedIn;
     if (isLoggedIn)
-        return &lt;UserGreeting /&gt;;
+        return <UserGreeting />;
     else
-        return &lt;GuestGreeting /&gt;;
+        return <GuestGreeting />;
 }
 
 ReactDOM.render(
-    &lt;Greeting isLoggedIn={true} /&gt;,
+    <Greeting isLoggedIn={true} />,
     document.getElementById('root')
-);</code></pre><p>以上示例会根据 isLoggedIn 属性的值来渲染不同的内容。</p><h3>elements 变量</h3><p>可以使用变量存储 elements，这样可以方便的根据情况 render 部分的 component 而不需要改变输出的指令内容。</p><p>考虑下面两个 component 表示 login 和 logout：</p><pre><code>const LoginButton = (props) =&gt; {
+);
+```
+
+以上示例会根据 isLoggedIn 属性的值来渲染不同的内容。
+
+### elements 变量
+
+可以使用变量存储 elements，这样可以方便的根据情况 render 部分的 component 而不需要改变输出的指令内容。
+
+考虑下面两个 component 表示 login 和 logout：
+```
+const LoginButton = (props) => {
     return (
-        &lt;button onClick={props.onClick}&gt;
+        <button onClick={props.onClick}>
             login
-        &lt;/button&gt;
+        </button>
     );
 }
 
-const LogoutButton = (props) =&gt; {
+const LogoutButton = (props) => {
     return (
-        &lt;button onClick={props.onClick}&gt;
+        <button onClick={props.onClick}>
             logout
-        &lt;/button&gt;
+        </button>
     );
-}</code></pre><p>然后我们创建 <strong>LoginControl</strong> component，它将根据当前情况渲染 login 或 logout button 以及之前创建的 Greeting element：</p><pre><code>class LoginControl extends React.Component {
+}
+```
+
+然后我们创建 **LoginControl** component，它将根据当前情况渲染 login 或 logout button 以及之前创建的 Greeting element：
+```
+class LoginControl extends React.Component {
     constructor(props) {
         super(props);
         this.handleLoginClick = this.handleLoginClick.bind(this);
@@ -866,64 +1212,108 @@ const LogoutButton = (props) =&gt; {
         let isLoggedIn = this.state.isLoggedIn;
         let button;
         if (isLoggedIn)
-            button = &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
+            button = <LogoutButton onClick={this.handleLogoutClick} />
         else
-            button = &lt;LoginButton onClick={this.handleLoginClick} /&gt;
+            button = <LoginButton onClick={this.handleLoginClick} />
 
         return (
-            &lt;div&gt;
-                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+            <div>
+                <Greeting isLoggedIn={isLoggedIn} />
                 {button}
-            &lt;/div&gt;
+            </div>
         );
     }
 
 }
 
 ReactDOM.render(
-    &lt;LoginControl /&gt;,
+    <LoginControl />,
     document.getElementById('root')
-);</code></pre><h3>inline condition 单语句判断</h3><p>使用 element 变量以及使用 if 语句根据条件渲染 component 是一种很好的方法。但是有时候可以使用简化语法。下面接收几种 inline condition 语法。</p><h4>inline if with && operator</h4><p>在 JSX 可以通过使用大括号<code>{}</code>来嵌入 JavaScript 表达式，包括逻辑符号：<code>&amp;&amp;</code>，在根据条件判断是否包含一个 element 时很有用。</p><p>请看下面示例：</p><pre><code>const InlineCom = (props) =&gt; {
+);
+```
+
+### inline condition 单语句判断
+
+使用 element 变量以及使用 if 语句根据条件渲染 component 是一种很好的方法。但是有时候可以使用简化语法。下面接收几种 inline condition 语法。
+
+#### inline if with && operator
+
+在 JSX 可以通过使用大括号`{}`来嵌入 JavaScript 表达式，包括逻辑符号：`&&`，在根据条件判断是否包含一个 element 时很有用。
+
+请看下面示例：
+```
+const InlineCom = (props) => {
     return(
-        &lt;div&gt;
-            &lt;h1&gt;hello world&lt;/h1&gt;
-            {props.count &gt; 10 &amp;&amp;
-                &lt;h2&gt;count is: {props.count}&lt;/h2&gt;
+        <div>
+            <h1>hello world</h1>
+            {props.count > 10 &&
+                <h2>count is: {props.count}</h2>
             }
-        &lt;/div&gt;
+        </div>
     );
 }
 
 ReactDOM.render(
-    &lt;InlineCom count={20} /&gt;,
+    <InlineCom count={20} />,
     document.getElementById('root')
-);</code></pre><p>如果 <code>props.count &gt; 10</code> 满足条件则后面的 element 就会成为 component 一部分。</p><p>在 JavaScript 中，<code>true &amp;&amp; expression</code> 将会评估为 <strong>expression</strong>，而 <code>false &amp;&amp; expression</code> 将会评估为 <strong>false</strong>。因此当 condition 为 true 时，<code>&amp;&amp;</code> 后的 element 将会输出，否则 React 将会忽略它。</p><h4>inline condition operator</h4><p>另一种根据情况通过 inline 单行判断来渲染 element 就是使用 JavaScript conditional operator：<code>condition ? true : false</code>。</p><p>给 LoginControl 的返回添加如下：</p><pre><code>        return (
-            &lt;div&gt;
-                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
-                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+);
+```
+
+如果 `props.count > 10` 满足条件则后面的 element 就会成为 component 一部分。
+
+在 JavaScript 中，`true && expression` 将会评估为 **expression**，而 `false && expression` 将会评估为 **false**。因此当 condition 为 true 时，`&&` 后的 element 将会输出，否则 React 将会忽略它。
+
+#### inline condition operator
+
+另一种根据情况通过 inline 单行判断来渲染 element 就是使用 JavaScript conditional operator：`condition ? true : false`。
+
+给 LoginControl 的返回添加如下：
+```
+        return (
+            <div>
+                the user is <b>{isLoggedIn ? 'currenty' : 'not'}</b> logged in.
+                <Greeting isLoggedIn={isLoggedIn} />
                 {button}
-            &lt;/div&gt;
-        );</code></pre><p>通过 inline conditional operator 来输出不同的信息。</p><p>也可以在较长的表达式中使用，例如可以将示例中 button 部分在 render 中这样处理：</p><pre><code>        return (
-            &lt;div&gt;
-                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
-                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+            </div>
+        );
+```
+
+通过 inline conditional operator 来输出不同的信息。
+
+也可以在较长的表达式中使用，例如可以将示例中 button 部分在 render 中这样处理：
+```
+        return (
+            <div>
+                the user is <b>{isLoggedIn ? 'currenty' : 'not'}</b> logged in.
+                <Greeting isLoggedIn={isLoggedIn} />
                 {button}
                 {isLoggedIn 
-                    ? &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
-                    : &lt;LoginButton onClick={this.handleLoginClick} /&gt;
+                    ? <LogoutButton onClick={this.handleLogoutClick} />
+                    : <LoginButton onClick={this.handleLoginClick} />
                 }
-            &lt;/div&gt;
-        );</code></pre><p>使用中根据实际情况选择最合适的方式处理 condition，最终目的是为了使结构更加清晰，代码易读。注意如果判断过复杂就需要考虑拆解 component 为多个个体了。</p><h3>阻止 component 渲染</h3><p>某些情况下我们可能需要将一个 component 隐藏起来，即使它在别的 component 中已经渲染了。可以通过 return <strong>null</strong> 来代替它的输出。</p><p>下面示例中 <strong>WarningBanner</strong> 会根据 <strong>warn</strong> 属性的值来选择性渲染：</p><pre><code>const React = require('react')
+            </div>
+        );
+```
+
+使用中根据实际情况选择最合适的方式处理 condition，最终目的是为了使结构更加清晰，代码易读。注意如果判断过复杂就需要考虑拆解 component 为多个个体了。
+
+### 阻止 component 渲染
+
+某些情况下我们可能需要将一个 component 隐藏起来，即使它在别的 component 中已经渲染了。可以通过 return **null** 来代替它的输出。
+
+下面示例中 **WarningBanner** 会根据 **warn** 属性的值来选择性渲染：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
-const WarningBanner = (props) =&gt; {
+const WarningBanner = (props) => {
     if (!props.warn) {
         return null;
     }
     return (
-        &lt;div className='warning'&gt;
+        <div className='warning'>
             warning!
-        &lt;/div&gt;
+        </div>
     );
 }
 
@@ -939,23 +1329,27 @@ class Page extends React.Component {
 
     render() {
         return (
-            &lt;div&gt;
-                &lt;WarningBanner warn={this.state.showWarning} /&gt;
-                &lt;button onClick={this.handelToggleClick}&gt;
+            <div>
+                <WarningBanner warn={this.state.showWarning} />
+                <button onClick={this.handelToggleClick}>
                     {this.state.showWarning ? 'hide' : 'show'}
-                &lt;/button&gt;
-            &lt;/div&gt;
+                </button>
+            </div>
         );
     }
 }
 
 ReactDOM.render(
-    &lt;Page /&gt;,
+    <Page />,
     document.getElementById('root')
-);</code></pre><p>在 <strong>render</strong> method 中 return <strong>null</strong> 不会影响到 component 的 lifecycle method。例如每次更新 <strong>componentDidUpdate</strong> 依然会被自动调用。</p>
+);
+```
+
+在 **render** method 中 return **null** 不会影响到 component 的 lifecycle method。例如每次更新 **componentDidUpdate** 依然会被自动调用。
+</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2195.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2195.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/react/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[React 入门教程之五 -- Event]]></title>
@@ -967,15 +1361,45 @@ ReactDOM.render(
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[events 处理处理 React elements events 和处理 DOM elements 很相似，但有一些语法区别：React events 命名使用 camelCase 规则，而不...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2189.html" xml:lang="zh-CN"><![CDATA[
-<h3>events 处理</h3><p>处理 React elements events 和处理 DOM elements 很相似，但有一些语法区别：</p><ul><li>React events 命名使用 camelCase 规则，而不是 lowercase</li><li>使用 JSX 传入 function 作为 events handler，而不是 string 字符串</li></ul><p>HMTL 中处理 events 示例如下：</p><pre><code>&lt;button onclick=&quot;activateLasers()&quot;&gt;
+<div id="md_content_5" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">### events 处理
+
+处理 React elements events 和处理 DOM elements 很相似，但有一些语法区别：
+- React events 命名使用 camelCase 规则，而不是 lowercase
+- 使用 JSX 传入 function 作为 events handler，而不是 string 字符串
+
+HMTL 中处理 events 示例如下：
+```
+<button onclick="activateLasers()">
   Activate Lasers
-&lt;/button&gt;</code></pre><p>React 中示例如下：</p><pre><code>&lt;button onClick={activateLasers}&gt;
+</button>
+```
+
+React 中示例如下：
+```
+<button onClick={activateLasers}>
   Activate Lasers
-&lt;/button&gt;</code></pre><p>注意它们的区别之处一个是 event 名称，一个是 handler 定义方式。</p><!--more--><p>另一个区别是在 React 中不能通过 <strong>return false</strong> 的方式防止 events 的默认行为，需要明确的调用 <strong>preventDefault</strong> method 来实现。</p><p>例如在一个 html 页面中定义一个 <strong>a</strong> tag 并取消其默认打开新页面的行为，实现如下：</p><pre><code>&lt;a href=&quot;#&quot; onclick=&quot;console.log('The link was clicked.'); return false&quot;&gt;
+</button>
+```
+
+注意它们的区别之处一个是 event 名称，一个是 handler 定义方式。
+
+
+<!--more-->
+
+
+另一个区别是在 React 中不能通过 **return false** 的方式防止 events 的默认行为，需要明确的调用 **preventDefault** method 来实现。
+
+例如在一个 html 页面中定义一个 **a** tag 并取消其默认打开新页面的行为，实现如下：
+```
+<a href="#" onclick="console.log('The link was clicked.'); return false">
   Click me
-&lt;/a&gt;</code></pre><p>React 中实现同样功能代码如下：</p><pre><code>class Link extends React.Component {
+</a>
+```
+
+React 中实现同样功能代码如下：
+```
+class Link extends React.Component {
     constructor(props) {
         super(props);
         this.handleClick = this.handleClick.bind(this);
@@ -986,10 +1410,23 @@ ReactDOM.render(
     }
     render() {
         return (
-            &lt;a href='#' onClick={this.handleClick}&gt;click me&lt;/a&gt;
+            <a href='#' onClick={this.handleClick}>click me</a>
         )
     }
-}</code></pre><p><strong>e</strong> 表示 synthetic 综合的 event，当前哪个 event 触发了 <strong>e</strong> 就表示哪一个。使用 bind 绑定 的 method 在调用时会自动将 <strong>e</strong> 传入 method。下面会对 <strong>bind</strong> 是什么作出解释。</p><p>React events 同原生的 events 不完全相同，查看所有可用的 events 查看官方介绍：<a href="https://reactjs.org/docs/events.html">https://reactjs.org/docs/events.html</a></p><p>在 React 中一般情况下不需要通过调用 addEventListener 来给 element 添加 event listener。直接在 element 初始化时为其设置 event listener 即可。</p><p>当通过 class 来定义 component 时 event handler 一般是一个 class method，例如上面示例的 <strong>handleClick</strong>。</p><p>下面的示例我们构建一个 <strong>Toggle</strong> component 可以让用户通过一个 button 来切换 ON/OFF 状态：</p><pre><code>const React = require('react')
+}
+```
+
+**e** 表示 synthetic 综合的 event，当前哪个 event 触发了 **e** 就表示哪一个。使用 bind 绑定 的 method 在调用时会自动将 **e** 传入 method。下面会对 **bind** 是什么作出解释。
+
+React events 同原生的 events 不完全相同，查看所有可用的 events 查看官方介绍：https://reactjs.org/docs/events.html
+
+在 React 中一般情况下不需要通过调用 addEventListener 来给 element 添加 event listener。直接在 element 初始化时为其设置 event listener 即可。
+
+当通过 class 来定义 component 时 event handler 一般是一个 class method，例如上面示例的 **handleClick**。
+
+下面的示例我们构建一个 **Toggle** component 可以让用户通过一个 button 来切换 ON/OFF 状态：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
 class Toggle extends React.Component {
@@ -1002,47 +1439,93 @@ class Toggle extends React.Component {
         this.setState({ isToggleOn: !this.state.isToggleOn });
     }
     render() {
-        return (&lt;button onClick={this.handleClick}&gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
+        return (<button onClick={this.handleClick}> { this.state.isToggleOn ? 'ON' : 'OFF'} </button>);
     }
 }
 
-ReactDOM.render(&lt;
-    Toggle /&gt;,
+ReactDOM.render(<
+    Toggle />,
     document.getElementById('root')
-);</code></pre><p>在 <strong>JSX callback</strong> 中使用 <strong>this</strong> 需要特别注意，JavaScript class 的 methods 默认是相互隔离的，如果没有主动 <strong>bind</strong> 捆绑 method 到 <strong>this</strong>，在另一个 method 中使用 <strong>this.method</strong> 会报错 <strong>undefined</strong>。</p><p>如果调用 method 时不写括号<code>()</code> 例如：<code>onClick={this.handleClick}</code> 则需要提前 <strong>bind</strong> 这个 method 到 this 中，如上面的示例，<strong>bind</strong> 语法如下：</p><pre><code>this.handleClick = this.handleClick.bind(this);
-</code></pre><p>一般将其放在 constructor 中，这样初始化中就会自动执行，当然也可以在调用时直接定义：</p><pre><code>&lt;button onClick={this.handleClick.bind(this)}&gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;
-</code></pre><p><strong>如果不想使用 bind 语法来处理，那么还有两种方式来处理 class 中 methods 互相隔离这个问题。</strong></p><p><strong>第一种</strong>叫做 <strong>class fields syntax</strong> 语法，通过使用 <strong>arrow function</strong> 的模式定义 method，这样就可以通过通过 this.method 的方法调用 method：</p><pre><code>    constructor(props) {
+);
+```
+
+在 **JSX callback** 中使用 **this** 需要特别注意，JavaScript class 的 methods 默认是相互隔离的，如果没有主动 **bind** 捆绑 method 到 **this**，在另一个 method 中使用 **this.method** 会报错 **undefined**。
+
+如果调用 method 时不写括号`()` 例如：`onClick={this.handleClick}` 则需要提前 **bind** 这个 method 到 this 中，如上面的示例，**bind** 语法如下：
+    this.handleClick = this.handleClick.bind(this);
+
+一般将其放在 constructor 中，这样初始化中就会自动执行，当然也可以在调用时直接定义：
+    <button onClick={this.handleClick.bind(this)}> { this.state.isToggleOn ? 'ON' : 'OFF'} </button>
+
+**如果不想使用 bind 语法来处理，那么还有两种方式来处理 class 中 methods 互相隔离这个问题。**
+
+**第一种**叫做 **class fields syntax** 语法，通过使用 **arrow function** 的模式定义 method，这样就可以通过通过 this.method 的方法调用 method：
+```
+    constructor(props) {
         super(props);
         this.state = { isToggleOn: true };
     }
-    handleClick = () =&gt; {
+    handleClick = () => {
         this.setState({ isToggleOn: !this.state.isToggleOn });
     }
     render() {
-        return (&lt;button onClick={this.handleClick} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }</code></pre><p>这样就不需要在 constructor 中定义 <strong>bind</strong> 同时可以在 callback 中直接调用 this.handleClick。</p><p>但是需要注意目前这只是 React 实验性的语法，不一定保证以后会一直可用。</p><p><strong>第二种</strong>是在 callback 中通过 <strong>arrow function</strong> 的模式调用 method：</p><pre><code>    handleClick() {
+        return (<button onClick={this.handleClick} > { this.state.isToggleOn ? 'ON' : 'OFF'} </button>);
+    }
+```
+
+这样就不需要在 constructor 中定义 **bind** 同时可以在 callback 中直接调用 this.handleClick。
+
+但是需要注意目前这只是 React 实验性的语法，不一定保证以后会一直可用。
+
+**第二种**是在 callback 中通过 **arrow function** 的模式调用 method：
+```
+    handleClick() {
         this.setState({ isToggleOn: !this.state.isToggleOn });
     }
     render() {
-        return (&lt;button onClick={() =&gt; this.handleClick()} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }</code></pre><p>注意这种方法需要在 method 名称后加括号<code>()</code>。</p><p>这种方法的缺点是当每次重新 render 渲染时都会创建新的 callback。当这个 callback 包含传给其 child component 的 props 时，可能会导致 child 重新被渲染。通常情况下推荐使用 constructor 定义 <strong>bind</strong> 或者使用 <strong>class fields syntax</strong> 语法来避免这些性能问题。</p><h4>给 event handler 传入数据</h4><p>有时候需要给 event handler 传入附加的参数，如下面示例 button 点击时输出一个输入数据到终端：</p><pre><code>    handleClick(a, e) {
+        return (<button onClick={() => this.handleClick()} > { this.state.isToggleOn ? 'ON' : 'OFF'} </button>);
+    }
+```
+
+注意这种方法需要在 method 名称后加括号`()`。
+
+这种方法的缺点是当每次重新 render 渲染时都会创建新的 callback。当这个 callback 包含传给其 child component 的 props 时，可能会导致 child 重新被渲染。通常情况下推荐使用 constructor 定义 **bind** 或者使用 **class fields syntax** 语法来避免这些性能问题。
+
+#### 给 event handler 传入数据
+
+有时候需要给 event handler 传入附加的参数，如下面示例 button 点击时输出一个输入数据到终端：
+```
+    handleClick(a, e) {
         this.setState({ isToggleOn: !this.state.isToggleOn });
         console.log(e._reactName);
         console.log(a);
     }
     render() {
-        return (&lt;button onClick={this.handleClick.bind(this, 'aaa')} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }</code></pre><p>上面的示例将字符串 <strong>aaa</strong> 作为 handleClick 的传入参数，并将 bind 绑定过程直接放在 callback 中，这样就不需要在 constructor 中进行 bind 定义了。</p><p>通过 bind 绑定后会自动将 <strong>e</strong>：synthetic 综合的 event 作为第二个参数传入 function，<strong>e._reactName</strong> 返回 event 名称。</p><p>上面的示例也可以通过 <strong>arrow function</strong> 在 callback 中定义实现：</p><pre><code>    handleClick(a, e) {
+        return (<button onClick={this.handleClick.bind(this, 'aaa')} > { this.state.isToggleOn ? 'ON' : 'OFF'} </button>);
+    }
+```
+
+上面的示例将字符串 **aaa** 作为 handleClick 的传入参数，并将 bind 绑定过程直接放在 callback 中，这样就不需要在 constructor 中进行 bind 定义了。
+
+通过 bind 绑定后会自动将 **e**：synthetic 综合的 event 作为第二个参数传入 function，**e._reactName** 返回 event 名称。
+
+上面的示例也可以通过 **arrow function** 在 callback 中定义实现：
+```
+    handleClick(a, e) {
         this.setState({ isToggleOn: !this.state.isToggleOn });
         console.log(e._reactName);
         console.log(a);
     }
     render() {
-        return (&lt;button onClick={(e) =&gt; this.handleClick('aaa', e)} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }</code></pre><p>上面的示例中 e 依然表示 synthetic event。两种方法都会将 e 作为第二个参数传入。在 arrow function 中我们可以清晰地看到数据的位置，但是通过 <strong>bind</strong> 的方式会将有些参数自动转发过去。</p>
+        return (<button onClick={(e) => this.handleClick('aaa', e)} > { this.state.isToggleOn ? 'ON' : 'OFF'} </button>);
+    }
+```
+
+上面的示例中 e 依然表示 synthetic event。两种方法都会将 e 作为第二个参数传入。在 arrow function 中我们可以清晰地看到数据的位置，但是通过 **bind** 的方式会将有些参数自动转发过去。
+</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2189.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2189.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/react/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[React 入门教程之四 -- rendering, components 和 state]]></title>
@@ -1054,130 +1537,296 @@ ReactDOM.render(&lt;
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[rendering elements 渲染元素一个 element 表示我们想要显示在屏幕上的内容：const element = &amp;lt;h1&amp;gt;Hello, world&amp;lt;/h1&amp;g...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2184.html" xml:lang="zh-CN"><![CDATA[
-<h3>rendering elements 渲染元素</h3><p>一个 element 表示我们想要显示在屏幕上的内容：</p><pre><code>const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
-</code></pre><p>不同于浏览器 DOM 中的 elements，React elements 是简单的 objects 且可以很方便的创建，React DOM 会严格的刷新 DOM 并匹配对应的 React elements。</p><p>容易混淆的概念是 component 和 element，区别是 component 是用来创建 element 的。在后续章节会介绍。</p><!--more--><h4>在 DOM 中渲染元素</h4><p>我们的 html 页面中定义了一个 div 容器：</p><pre><code>&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
-</code></pre><p>我们将其称作 <strong>root</strong> DOM 节点，因为它所有的内容都是被 React DOM 管理的。</p><p>通常情况下使用 React 创建的程序只有一个 <strong>root</strong> DOM 节点。如果你是将 React 整合到现有网站中，你可以有任意个独立的 <strong>root</strong> DOM 节点。</p><p>将 React elements 渲染到 <strong>root</strong> DOM 节点，需要通过调用 <code>ReactDOM.render()</code>，并将 React element 和 <strong>root</strong> DOM 节点作为传入参数：</p><pre><code>const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
+<div id="md_content_6" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">### rendering elements 渲染元素
+
+一个 element 表示我们想要显示在屏幕上的内容：
+    const element = <h1>Hello, world</h1>;
+
+不同于浏览器 DOM 中的 elements，React elements 是简单的 objects 且可以很方便的创建，React DOM 会严格的刷新 DOM 并匹配对应的 React elements。
+
+容易混淆的概念是 component 和 element，区别是 component 是用来创建 element 的。在后续章节会介绍。
+
+
+<!--more-->
+
+
+#### 在 DOM 中渲染元素
+
+我们的 html 页面中定义了一个 div 容器：
+    <div id="root"></div>
+
+我们将其称作 **root** DOM 节点，因为它所有的内容都是被 React DOM 管理的。
+
+通常情况下使用 React 创建的程序只有一个 **root** DOM 节点。如果你是将 React 整合到现有网站中，你可以有任意个独立的 **root** DOM 节点。
+
+将 React elements 渲染到 **root** DOM 节点，需要通过调用 `ReactDOM.render()`，并将 React element 和 **root** DOM 节点作为传入参数：
+```
+const element = <h1>Hello, world</h1>;
 
 ReactDOM.render(
     element,
     document.getElementById('root')
-);</code></pre><p>此时页面会显示 hello world。</p><h4>刷新渲染的元素</h4><p>React element 是 immutable 不可改变的，当创建了一个 element 后不可以修改其 children 或 attributes，一个 element 就好像一个视频的一帧，它表示了某一时间点的 UI。</p><p>从我们目前学到的知识，唯一刷新 UI 的方法就是重新创建新的 elements 然后调用 <code>ReactDOM.render()</code>，通过设置 setInterval 来定时刷新：</p><pre><code>const tick = () =&gt; {
-    const element = &lt;h1&gt;{new Date().toLocaleTimeString()}&lt;/h1&gt;;
+);
+```
+
+此时页面会显示 hello world。
+
+#### 刷新渲染的元素
+
+React element 是 immutable 不可改变的，当创建了一个 element 后不可以修改其 children 或 attributes，一个 element 就好像一个视频的一帧，它表示了某一时间点的 UI。
+
+从我们目前学到的知识，唯一刷新 UI 的方法就是重新创建新的 elements 然后调用 `ReactDOM.render()`，通过设置 setInterval 来定时刷新：
+```
+const tick = () => {
+    const element = <h1>{new Date().toLocaleTimeString()}</h1>;
 
     ReactDOM.render(
         element,
         document.getElementById('root')
     );
 }
-setInterval(tick, 1000);</code></pre><p>这样就会每秒钟创建一个新的 element 并通过 <code>ReactDOM.render()</code> 渲染到界面。</p><p>通常情况下大多数 React app 只会调用 <code>ReactDOM.render()</code> 一次。下一章节会介绍如何将封装到 component 中。</p><h3>React 只会更新必要的内容</h3><p>React DOM 会比较其当前和上一个状态的，然后只对有了变化的部分进行更新来达到最终期望的状态。</p><p>我们打开上面示例的运行页面，通过chrome 的开发工具查看 elements 情况，可以看到只有时间元素每秒在刷新：<br>![2021-02-24T07:44:17.png][<br>即使我们每秒钟都新建并渲染 element，但是只有时间文本 node 是一直通过 React DOM 在刷新的。通过以上的实验，思考我们的 UI 在某个时间点应该是什么样的，而不是只想这着去修改它。</p><h3>components 和 props</h3><p><strong>components</strong> 将 UI 元素分割为独立的，可复用的片段，每个片段都是单独存在的。这一章节介绍 component 的概念，更多细节参考：<a href="https://reactjs.org/docs/react-component.html">React.Component</a></p><p><strong>components</strong> 类似于 JavaScript 的 functions，它可以接受抽象的输入数据(<strong>props</strong>)，然后返回 React elements 用来在界面上显示。</p><h4>Function 和 Class Components</h4><p>最简单的定义 component 方式就是定义一个 JavaScript function：</p><pre><code>const Welcome = (props) =&gt; {
-    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;
-}</code></pre><p>上面的 function 是一个有效的 React component，因为它接受一个单参数 <strong>props</strong> object 作为传入数据并返回一个 React element。我们称这种 component 为 function component。</p><p>也可以使用 ES6 的 class 定义 component：</p><pre><code>class Welcome extends React.Component {
+setInterval(tick, 1000);
+```
+
+这样就会每秒钟创建一个新的 element 并通过 `ReactDOM.render()` 渲染到界面。
+
+通常情况下大多数 React app 只会调用 `ReactDOM.render()` 一次。下一章节会介绍如何将封装到 component 中。
+
+### React 只会更新必要的内容
+
+React DOM 会比较其当前和上一个状态的，然后只对有了变化的部分进行更新来达到最终期望的状态。
+
+我们打开上面示例的运行页面，通过chrome 的开发工具查看 elements 情况，可以看到只有时间元素每秒在刷新：
+![2021-02-24T07:44:17.png][
+即使我们每秒钟都新建并渲染 element，但是只有时间文本 node 是一直通过 React DOM 在刷新的。通过以上的实验，思考我们的 UI 在某个时间点应该是什么样的，而不是只想这着去修改它。
+
+### components 和 props
+
+**components** 将 UI 元素分割为独立的，可复用的片段，每个片段都是单独存在的。这一章节介绍 component 的概念，更多细节参考：[React.Component](https://reactjs.org/docs/react-component.html)
+
+**components** 类似于 JavaScript 的 functions，它可以接受抽象的输入数据(**props**)，然后返回 React elements 用来在界面上显示。
+
+#### Function 和 Class Components
+
+最简单的定义 component 方式就是定义一个 JavaScript function：
+```
+const Welcome = (props) => {
+    return <h1> hello, {props.name}</h1>
+}
+```
+
+上面的 function 是一个有效的 React component，因为它接受一个单参数 **props** object 作为传入数据并返回一个 React element。我们称这种 component 为 function component。
+
+也可以使用 ES6 的 class 定义 component：
+```
+class Welcome extends React.Component {
     render() {
-        return &lt;h1&gt;hello, {this.props.name}&lt;/h1&gt;
+        return <h1>hello, {this.props.name}</h1>
     }
-}</code></pre><p>以上两种定义方式是一致的。</p><p>需要注意的是 <strong>components</strong> 名称<strong>必须是以大写字母开头</strong>，因为 React 会见以小写字母开头的 components 作为 DOM tags 标签，如：<code>&lt;div /&gt;</code> 表示一个 html div 标签。</p><h4>rendering a component</h4><p>上面的介绍中，我们只遇到了 DOM tags 标签类型的 React elements，例如：</p><pre><code>const element = &lt;div /&gt;;
-</code></pre><p>elements 也可以表示用户自定义的 components：</p><pre><code>const element = &lt;Welcome name='marco' /&gt;
-</code></pre><p>当 React 检测到使用了用户自定义的 components 它会将此 JSX 内的 attributes 或 children 作为一个 object 传入 component，这个 object 叫做 <strong>props</strong>。</p><p>下面的示例会输出 <strong>hello, marco</strong>:</p><pre><code>const Welcome = (props) =&gt; {
-    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;;
+}
+```
+
+以上两种定义方式是一致的。
+
+需要注意的是 **components** 名称**必须是以大写字母开头**，因为 React 会见以小写字母开头的 components 作为 DOM tags 标签，如：`<div />` 表示一个 html div 标签。
+
+#### rendering a component
+
+上面的介绍中，我们只遇到了 DOM tags 标签类型的 React elements，例如：
+    const element = <div />;
+
+elements 也可以表示用户自定义的 components：
+    const element = <Welcome name='marco' />
+
+当 React 检测到使用了用户自定义的 components 它会将此 JSX 内的 attributes 或 children 作为一个 object 传入 component，这个 object 叫做 **props**。
+
+下面的示例会输出 **hello, marco**:
+```
+const Welcome = (props) => {
+    return <h1> hello, {props.name}</h1>;
 }
 
-const element = &lt;Welcome name='marco' /&gt;;
+const element = <Welcome name='marco' />;
 ReactDOM.render(
     element,
     document.getElementById('root')
-);</code></pre><p>以上示例过程如下：</p><ul><li>首先调用 <code>ReactDOM.render()</code> 渲染 <code>&lt;Welcome name=&quot;Sara&quot; /&gt;</code> 元素.</li><li>React 调用 <strong>Welcome</strong> component 使用 {name: 'Sara'} 作为 <strong>props</strong>.</li><li><strong>Welcome</strong> component 返回一个 <code>&lt;h1&gt;Hello, Sara&lt;/h1&gt;</code> 元素.</li><li><strong>React</strong> DOM 高效的更新 DOM 来匹配 <code>&lt;h1&gt;Hello, Sara&lt;/h1&gt;</code> 结果.</li></ul><h3>构建 component</h3><p>component 可以在其输出中引入关联其他 components。这可以让我们在一个 component 内抽象出一个多层的结构。一个 button，一个 form，一个 dialog 或者一个 screen，在 React app 中他们都统称为 components。</p><p>例如我们可以创建一个 App component 来渲染多个 Welcome component：</p><pre><code>const Welcome = (props) =&gt; {
-    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;;
+);
+```
+
+以上示例过程如下：
+- 首先调用 `ReactDOM.render()` 渲染 `<Welcome name="Sara" />` 元素.
+- React 调用 **Welcome** component 使用 {name: 'Sara'} 作为 **props**.
+- **Welcome** component 返回一个 `<h1>Hello, Sara</h1>` 元素.
+- **React** DOM 高效的更新 DOM 来匹配 `<h1>Hello, Sara</h1>` 结果.
+
+### 构建 component
+
+component 可以在其输出中引入关联其他 components。这可以让我们在一个 component 内抽象出一个多层的结构。一个 button，一个 form，一个 dialog 或者一个 screen，在 React app 中他们都统称为 components。
+
+例如我们可以创建一个 App component 来渲染多个 Welcome component：
+```
+const Welcome = (props) => {
+    return <h1> hello, {props.name}</h1>;
 }
 
-const App = () =&gt; {
+const App = () => {
     return (
-        &lt;div&gt;
-            &lt;Welcome name='marco' /&gt;
-            &lt;Welcome name='tim' /&gt;
-            &lt;Welcome name='jone' /&gt;
-        &lt;/div&gt;
+        <div>
+            <Welcome name='marco' />
+            <Welcome name='tim' />
+            <Welcome name='jone' />
+        </div>
     )
 }
 ReactDOM.render(
-    &lt;App /&gt;,
+    <App />,
     document.getElementById('root')
-);</code></pre><p>以上示例中，没有定义 App 的 props，因为不需要给其传入数据，也是可以的。</p><p>一般情况下，新建的 React app 只有一个顶层的 <strong>App</strong> component。</p><h4>拆解 component</h4><p>不要害怕将一个 component 拆解为多个小 components。例如下面这个 <strong>Comment</strong> component：</p><pre><code>function Comment(props) {
+);
+```
+
+以上示例中，没有定义 App 的 props，因为不需要给其传入数据，也是可以的。
+
+一般情况下，新建的 React app 只有一个顶层的 **App** component。
+
+#### 拆解 component
+
+不要害怕将一个 component 拆解为多个小 components。例如下面这个 **Comment** component：
+```
+function Comment(props) {
   return (
-    &lt;div className=&quot;Comment&quot;&gt;
-      &lt;div className=&quot;UserInfo&quot;&gt;
-        &lt;img className=&quot;Avatar&quot;
+    <div className="Comment">
+      <div className="UserInfo">
+        <img className="Avatar"
           src={props.author.avatarUrl}
           alt={props.author.name}
-        /&gt;
-        &lt;div className=&quot;UserInfo-name&quot;&gt;
+        />
+        <div className="UserInfo-name">
           {props.author.name}
-        &lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div className=&quot;Comment-text&quot;&gt;
+        </div>
+      </div>
+      <div className="Comment-text">
         {props.text}
-      &lt;/div&gt;
-      &lt;div className=&quot;Comment-date&quot;&gt;
+      </div>
+      <div className="Comment-date">
         {formatDate(props.date)}
-      &lt;/div&gt;
-    &lt;/div&gt;
+      </div>
+    </div>
   );
-}</code></pre><p>它的 props 包含一个 <strong>author</strong> object，一个 <strong>text</strong>，一个 <strong>data</strong>，描述了一个社交网站上一个 commit 的内容。</p><p>修改这个 component 有点困难，因为它有很多的嵌套，同时也难以复用它的内部组件。下面我们尝试拆解这个 component。</p><p>首先我们拆解出 <strong>Avatar</strong>：</p><pre><code>const Avatar = (props) =&gt; {
+}
+```
+
+它的 props 包含一个 **author** object，一个 **text**，一个 **data**，描述了一个社交网站上一个 commit 的内容。
+
+修改这个 component 有点困难，因为它有很多的嵌套，同时也难以复用它的内部组件。下面我们尝试拆解这个 component。
+
+首先我们拆解出 **Avatar**：
+```
+const Avatar = (props) => {
     return (
-        &lt;img className=&quot;Avatar&quot;
+        <img className="Avatar"
             src={props.user.avatarUrl}
             alt={props.user.name}
-        /&gt;
+        />
     );
-}</code></pre><p><strong>Avatar</strong> 并不需要知道它被用于 <strong>commit</strong> 中，因此我们修改其 <strong>prop</strong> 名称为一个更加通用的：<strong>user</strong>。推荐从 component 本身为出发点命名 props，而不是考虑什么地方使用它。</p><p>现在我们可以简化 Commit component：</p><pre><code>function Comment(props) {
+}
+```
+
+**Avatar** 并不需要知道它被用于 **commit** 中，因此我们修改其 **prop** 名称为一个更加通用的：**user**。推荐从 component 本身为出发点命名 props，而不是考虑什么地方使用它。
+
+现在我们可以简化 Commit component：
+```
+function Comment(props) {
     return (
-        &lt;div className=&quot;Comment&quot;&gt;
-            &lt;div className=&quot;UserInfo&quot;&gt;
-                &lt;Avatar user={props.author} /&gt;
-                &lt;div className=&quot;UserInfo-name&quot;&gt;
+        <div className="Comment">
+            <div className="UserInfo">
+                <Avatar user={props.author} />
+                <div className="UserInfo-name">
                     {props.author.name}
-                &lt;/div&gt;
-            &lt;/div&gt;
-            &lt;div className=&quot;Comment-text&quot;&gt;
+                </div>
+            </div>
+            <div className="Comment-text">
                 {props.text}
-            &lt;/div&gt;
-            &lt;div className=&quot;Comment-date&quot;&gt;
+            </div>
+            <div className="Comment-date">
                 {formatDate(props.date)}
-            &lt;/div&gt;
-        &lt;/div&gt;
+            </div>
+        </div>
     );
-}</code></pre><p>我们将 <strong>props.author</strong> 作为 <strong>user</strong> 数据传入 <strong>Avatar</strong> component 中。</p><p>下面我们拆解 <strong>UserInfo</strong>，其中包含一个 <strong>Avatar</strong> component：</p><pre><code>const UserInfo = (props) =&gt; {
+}
+```
+
+我们将 **props.author** 作为 **user** 数据传入 **Avatar** component 中。
+
+下面我们拆解 **UserInfo**，其中包含一个 **Avatar** component：
+```
+const UserInfo = (props) => {
     return (
-        &lt;div className=&quot;UserInfo&quot;&gt;
-            &lt;Avatar user={props.user} /&gt;
-            &lt;div className=&quot;UserInfo-name&quot;&gt;
+        <div className="UserInfo">
+            <Avatar user={props.user} />
+            <div className="UserInfo-name">
                 {props.user.name}
-            &lt;/div&gt;
-        &lt;/div&gt;
+            </div>
+        </div>
     );
-}</code></pre><p>然后进一步简化 Commit：</p><pre><code>function Comment(props) {
+}
+```
+
+然后进一步简化 Commit：
+```
+function Comment(props) {
     return (
-        &lt;div className=&quot;Comment&quot;&gt;
-            &lt;UserInfo user={props.user} /&gt;
-            &lt;div className=&quot;Comment-text&quot;&gt;
+        <div className="Comment">
+            <UserInfo user={props.user} />
+            <div className="Comment-text">
                 {props.text}
-            &lt;/div&gt;
-            &lt;div className=&quot;Comment-date&quot;&gt;
+            </div>
+            <div className="Comment-date">
                 {formatDate(props.date)}
-            &lt;/div&gt;
-        &lt;/div&gt;
+            </div>
+        </div>
     );
-}</code></pre><p>拆解 component 在开始看起来使工作量变大了，但是在稍微复杂写的 app 中我们就能够利用这些可复用的 components。一条基本准则是：如果 UI 中的某一部分被多次使用，如 button，panel，Avatar等，或者其自身结构比较复杂，如：App, FeedStory, Comment 等，将他们拆解为独立 components 是一个好的选项。</p><h4>props 是只读的</h4><p>当把一个 component 定义为 function 或 class 时，需要注意的是不可以修改 <strong>props</strong> 的值。</p><p>考虑下面的 function：</p><pre><code>function sum(a, b) {
+}
+```
+
+拆解 component 在开始看起来使工作量变大了，但是在稍微复杂写的 app 中我们就能够利用这些可复用的 components。一条基本准则是：如果 UI 中的某一部分被多次使用，如 button，panel，Avatar等，或者其自身结构比较复杂，如：App, FeedStory, Comment 等，将他们拆解为独立 components 是一个好的选项。
+
+#### props 是只读的
+
+当把一个 component 定义为 function 或 class 时，需要注意的是不可以修改 **props** 的值。
+
+考虑下面的 function：
+```
+function sum(a, b) {
   return a + b;
-}</code></pre><p>以上的 function 被称作 pure 纯粹的，以为它没有尝试修改输入数据。</p><p>作为对比，下面的就是 impure 不纯粹的 function，因为会尝试修改它的输入数据：</p><pre><code>function sum(a, b) {
+}
+```
+
+以上的 function 被称作 pure 纯粹的，以为它没有尝试修改输入数据。
+
+作为对比，下面的就是 impure 不纯粹的 function，因为会尝试修改它的输入数据：
+```
+function sum(a, b) {
   a = b;
-}</code></pre><p><strong>React</strong> 程序有一条限制条件：<strong>所有的 React components 都需要是 pure function 来对待 props 数据</strong>。</p><p>当然应用程序的 UI 是随时间动态变化的。下一节我们会介绍 state 的概念。通过 state 可以使 React components 在运行期间修改它们的输出 elements 来响应用户动作，网络响应等。同时不违反上面的那条规则。</p><h3>state 和 lifecycle</h3><p>这一节介绍 React components 中 state 和 lifecycle 的概念。</p><p>在前一章的示例中，我们通过一个 <strong>tick</strong> function 在指定时间间隔通过创建新 element 并渲染的方式刷新 UI：</p><pre><code>const tick = () =&gt; {
+}
+```
+
+**React** 程序有一条限制条件：**所有的 React components 都需要是 pure function 来对待 props 数据**。
+
+当然应用程序的 UI 是随时间动态变化的。下一节我们会介绍 state 的概念。通过 state 可以使 React components 在运行期间修改它们的输出 elements 来响应用户动作，网络响应等。同时不违反上面的那条规则。
+
+### state 和 lifecycle
+
+这一节介绍 React components 中 state 和 lifecycle 的概念。
+
+在前一章的示例中，我们通过一个 **tick** function 在指定时间间隔通过创建新 element 并渲染的方式刷新 UI：
+```
+const tick = () => {
     const element = (
-        &lt;div&gt;
-            &lt;h1&gt;hello world&lt;/h1&gt;
-            &lt;h2&gt;{new Date().toLocaleTimeString()}&lt;/h2&gt;
-        &lt;/div&gt;
+        <div>
+            <h1>hello world</h1>
+            <h2>{new Date().toLocaleTimeString()}</h2>
+        </div>
     );
 
     ReactDOM.render(
@@ -1185,86 +1834,178 @@ ReactDOM.render(
         document.getElementById('root')
     );
 }
-setInterval(tick, 1000);</code></pre><p>下面我们介绍通过创建一个封装好的 <strong>Clock</strong> component，设置定时器并更新其自身。</p><p>首先我们根据上面的示例创建 <strong>Clock</strong> component：</p><pre><code>const Clock = (props) =&gt; {
-    &lt;div&gt;
-        &lt;h1&gt;hello world&lt;/h1&gt;
-        &lt;h2&gt;{props.date.toLocaleTimeString()}&lt;/h2&gt;
-    &lt;/div&gt;
+setInterval(tick, 1000);
+```
+
+下面我们介绍通过创建一个封装好的 **Clock** component，设置定时器并更新其自身。
+
+首先我们根据上面的示例创建 **Clock** component：
+```
+const Clock = (props) => {
+    <div>
+        <h1>hello world</h1>
+        <h2>{props.date.toLocaleTimeString()}</h2>
+    </div>
 }
 
-const tick = () =&gt; {
+const tick = () => {
     ReactDOM.render(
-        &lt;Clock date={new Date()} /&gt;,
+        <Clock date={new Date()} />,
         document.getElementById('root')
     );
 }
-setInterval(tick, 1000);</code></pre><p>在 <strong>tick</strong> 调用 <strong>Clock</strong> component 并定义 <strong>date</strong> prop 的数据供 Clock 使用。但是上面的实现缺乏一个基本需求，那就是 Clock 应该在其自身中定义定时器并每秒刷新数据的。</p><p>我们想要在渲染时达到如下效果调用 Clock：</p><pre><code>ReactDOM.render(
-  &lt;Clock /&gt;,
+setInterval(tick, 1000);
+```
+
+在 **tick** 调用 **Clock** component 并定义 **date** prop 的数据供 Clock 使用。但是上面的实现缺乏一个基本需求，那就是 Clock 应该在其自身中定义定时器并每秒刷新数据的。
+
+我们想要在渲染时达到如下效果调用 Clock：
+```
+ReactDOM.render(
+  <Clock />,
   document.getElementById('root')
-);</code></pre><p>为了实现上述功能，需要为 <strong>Clock</strong> 添加 <strong>state</strong>。<strong>state</strong> 类似于 <strong>props</strong> 但是它是由 component 私有且完全控制的。</p><p>首先我们需要将 component 转换为 class 模式，转换过程如下：</p><ul><li>首先创建一个 ES6 class，且继承自 <strong>React.Component</strong>。</li><li>添加一个 <code>render()</code> function，将原 component function 的返回元素放入其返回值中</li><li>在 <code>render()</code> 中用 <strong>this.props</strong> 代替 <strong>props</strong></li></ul><pre><code>class Clock extends React.Component {
+);
+```
+
+为了实现上述功能，需要为 **Clock** 添加 **state**。**state** 类似于 **props** 但是它是由 component 私有且完全控制的。
+
+首先我们需要将 component 转换为 class 模式，转换过程如下：
+- 首先创建一个 ES6 class，且继承自 **React.Component**。
+- 添加一个 `render()` function，将原 component function 的返回元素放入其返回值中
+- 在 `render()` 中用 **this.props** 代替 **props**
+
+```
+class Clock extends React.Component {
     render() {
         return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.props.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
+            <div>
+                <h1>hello world</h1>
+                <h2>{this.props.date.toLocaleTimeString()}</h2>
+            </div>
         );
     }
-}</code></pre><p>当 update 更新发生时会自动调用 <strong>render</strong> function。但当我们将 <code>&lt;Clock /&gt;</code> 放入 DOM 后，将只会有一个 <strong>Clock</strong> object 实例被使用，这就让我们可以使用 <strong>state</strong> 或 <strong>lifecycle</strong> 等功能。</p><h4>添加 state</h4><p>下面我们将 <strong>date</strong> 数据直接放入 <strong>CLock</strong> component 中。</p><p>首先将 render 中的 <strong>this.props.date</strong> 修改为 <strong>this.state.date</strong>：</p><pre><code>class Clock extends React.Component {
+}
+```
+
+当 update 更新发生时会自动调用 **render** function。但当我们将 `<Clock />` 放入 DOM 后，将只会有一个 **Clock** object 实例被使用，这就让我们可以使用 **state** 或 **lifecycle** 等功能。
+
+#### 添加 state
+
+下面我们将 **date** 数据直接放入 **CLock** component 中。
+
+首先将 render 中的 **this.props.date** 修改为 **this.state.date**：
+```
+class Clock extends React.Component {
     render() {
         return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
+            <div>
+                <h1>hello world</h1>
+                <h2>{this.state.date.toLocaleTimeString()}</h2>
+            </div>
         );
     }
-}</code></pre><p>然后添加 class constructor 构造器给 <strong>this.state</strong> 赋初值：</p><pre><code>class Clock extends React.Component {
+}
+```
+
+然后添加 class constructor 构造器给 **this.state** 赋初值：
+```
+class Clock extends React.Component {
     constructor(props) {
         super(props);
         this.state = {date: new Date()}
     }
     render() {
         return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
+            <div>
+                <h1>hello world</h1>
+                <h2>{this.state.date.toLocaleTimeString()}</h2>
+            </div>
         );
     }
-}</code></pre><p>注意 class component 总是应该使用 constructor 且初始化参数为 props。child class 有 constructor 时需要调用 super 来初始化 parent class，具体语法参考我的 JavaScript 教程：<a href="https://blog.niekun.net/archives/2011.html">https://blog.niekun.net/archives/2011.html</a></p><p>然后删除渲染到 DOM 中 <strong>Clock</strong> 的 <strong>date</strong> prop，以及我们设置的 <strong>setInterval</strong> 定时器：</p><pre><code>ReactDOM.render(
-    &lt;Clock /&gt;,
+}
+```
+
+注意 class component 总是应该使用 constructor 且初始化参数为 props。child class 有 constructor 时需要调用 super 来初始化 parent class，具体语法参考我的 JavaScript 教程：https://blog.niekun.net/archives/2011.html
+
+然后删除渲染到 DOM 中 **Clock** 的 **date** prop，以及我们设置的 **setInterval** 定时器：
+```
+ReactDOM.render(
+    <Clock />,
     document.getElementById('root')
-);</code></pre><p>修改完成后的完整代码如下：</p><pre><code>class Clock extends React.Component {
+);
+```
+
+修改完成后的完整代码如下：
+```
+class Clock extends React.Component {
     constructor(props) {
         super(props);
         this.state = {date: new Date()}
     }
     render() {
         return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
+            <div>
+                <h1>hello world</h1>
+                <h2>{this.state.date.toLocaleTimeString()}</h2>
+            </div>
         );
     }
 }
 
 ReactDOM.render(
-    &lt;Clock /&gt;,
+    <Clock />,
     document.getElementById('root')
-);</code></pre><p>下面我们实现 Clock 设置自己的定时器并每秒更新。</p><h4>添加 lifecycle method</h4><p>对于包含很多 components 的程序，但某个 component 不再需要是需要及时释放其占用的资源。</p><p>我们需要 <strong>Clock</strong> 第一次在 DOM 中渲染时设置一个 timer 定时器，在 React 中叫做 <strong>mounting</strong> 载入。同时我们需要当 <strong>Clock</strong> 在 DOM 中被删除时清除这个定时器，在 React 中叫做 <strong>unmounting</strong> 卸载。</p><p>我们可以在 components 载入或载出时通过定义特殊的 method 来运行特定指令：</p><pre><code>  componentDidMount() {
+);
+```
+
+下面我们实现 Clock 设置自己的定时器并每秒更新。
+
+#### 添加 lifecycle method
+
+对于包含很多 components 的程序，但某个 component 不再需要是需要及时释放其占用的资源。
+
+我们需要 **Clock** 第一次在 DOM 中渲染时设置一个 timer 定时器，在 React 中叫做 **mounting** 载入。同时我们需要当 **Clock** 在 DOM 中被删除时清除这个定时器，在 React 中叫做 **unmounting** 卸载。
+
+我们可以在 components 载入或载出时通过定义特殊的 method 来运行特定指令：
+```
+  componentDidMount() {
   }
 
   componentWillUnmount() {
-  }</code></pre><p>这些 methods 叫做 <strong>lifecycle methods</strong>。</p><p><strong>componentDidMount</strong> method 会在 component 第一次输出到 DOM 后被自动调用，我们可以将定时器定义在这里：</p><pre><code>    componentDidMount() {
-        this.timerID = setInterval(() =&gt; this.tick(), 1000);
-    }</code></pre><p>这样当 Clock 渲染到 UI 后会自动启动这个定时器。注意使用 this 定义的参数可以在 class 中任意地方被调用。</p><p>注意 <strong>setInterval</strong> 中定义的响应动作需要写在 callback 内 <code>() =&gt; {}</code> 中，不要直接写：<code>setInterval(this.tick, 1000)</code>。因为如果要在 callback 调用 method 需要在 constructor 中做如下定义：</p><pre><code>this.tick = this.tick.bind(this);
-</code></pre><p><strong>componentWillUnmount</strong> method 会在 component 将要被删除时自动调用，我们将定时器在这里取消：</p><pre><code>    componentWillUnmount() {
+  }
+```
+
+这些 methods 叫做 **lifecycle methods**。
+
+**componentDidMount** method 会在 component 第一次输出到 DOM 后被自动调用，我们可以将定时器定义在这里：
+```
+    componentDidMount() {
+        this.timerID = setInterval(() => this.tick(), 1000);
+    }
+```
+
+这样当 Clock 渲染到 UI 后会自动启动这个定时器。注意使用 this 定义的参数可以在 class 中任意地方被调用。
+
+注意 **setInterval** 中定义的响应动作需要写在 callback 内 `() => {}` 中，不要直接写：`setInterval(this.tick, 1000)`。因为如果要在 callback 调用 method 需要在 constructor 中做如下定义：
+    this.tick = this.tick.bind(this);
+
+**componentWillUnmount** method 会在 component 将要被删除时自动调用，我们将定时器在这里取消：
+```
+    componentWillUnmount() {
         clearInterval(this.timerID);
-    }</code></pre><p>接下来我们定义每秒都会自动运行的 <strong>tick</strong> method，通过 <code>this.setState()</code> 来更新本地 state 中的设置：</p><pre><code>    tick() {
+    }
+```
+
+接下来我们定义每秒都会自动运行的 **tick** method，通过 `this.setState()` 来更新本地 state 中的设置：
+```
+    tick() {
         this.setState({ date: new Date() });
-    }</code></pre><p>最终的完整代码如下：</p><pre><code>const React = require('react')
+    }
+```
+
+最终的完整代码如下：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
 class Clock extends React.Component {
@@ -1274,7 +2015,7 @@ class Clock extends React.Component {
     }
 
     componentDidMount() {
-        this.timerID = setInterval(() =&gt; this.tick(), 1000);
+        this.timerID = setInterval(() => this.tick(), 1000);
     }
 
     componentWillUnmount() {
@@ -1287,63 +2028,137 @@ class Clock extends React.Component {
 
     render() {
         return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
+            <div>
+                <h1>hello world</h1>
+                <h2>{this.state.date.toLocaleTimeString()}</h2>
+            </div>
         );
     }
 }
 
 ReactDOM.render(
-    &lt;Clock /&gt;,
+    <Clock />,
     document.getElementById('root')
-);</code></pre><p>现在整个处理流程如下：</p><ul><li>当 <code>ReactDOM.render()</code> 传入 <code>&lt;Clock /&gt;</code> 后，React 调用 Clock 构造器初始化 state 为一个包含 date 的 object</li><li>然后 React 调用 Clock 的 <code>render()</code> 查询到需要显示的 UI 元素，然后更新 DOM 以匹配 Clock 的输出</li><li>当 Clock 的输出嵌入到 DOM 后会调用 <strong>componentDidMount</strong>，Clock 告诉浏览器设置一个定时器每秒调用 <code>tick()</code></li><li>每秒钟调用一次 <code>tick()</code>，这里面 Clock component 通过 <code>setState()</code> 配置了其 UI 更新任务，通过 <code>setState()</code> React 就知道了 state 发生了变化并再次调用 <code>render()</code> 监测需要显示的内容，此时的 <code>this.state.date</code> 和上一次的发生了变化，React 就会更新 DOM 到最新的状态。</li><li>当 Clock 从 DOM 中删除后，React 会调用 <strong>componentWillUnmount</strong> 并结束定时器</li></ul><h4>正确使用 state</h4><p>关于 state 的使用需要如下的几点要求。</p><p>第一点，<strong>不要直接修改 state</strong>。</p><p>下面的语法不会触发重新 render 渲染 component：</p><pre><code>this.state.comment = 'Hello';
-</code></pre><p>正确的语法为使用 <strong>setState()</strong>：</p><pre><code>this.setState({comment: 'Hello'});
-</code></pre><p>唯一可以对 state 赋值的是在 constructor 构造器中。</p><p>第二点，<strong>state 更新是异步的</strong>。</p><p>React 为了性能可能会在一次 component update 更新中捆绑多个 <strong>setState()</strong> 调用，由于 <strong>this.props</strong> 和 <strong>this.state</strong> 可能会被异步更新，所以不要依赖他们的数据来计算后续的 <strong>state</strong>。</p><p>如下示例可能会错误的更新 counter：</p><pre><code>this.setState({
+);
+```
+
+现在整个处理流程如下：
+- 当 `ReactDOM.render()` 传入 `<Clock />` 后，React 调用 Clock 构造器初始化 state 为一个包含 date 的 object
+- 然后 React 调用 Clock 的 `render()` 查询到需要显示的 UI 元素，然后更新 DOM 以匹配 Clock 的输出
+- 当 Clock 的输出嵌入到 DOM 后会调用 **componentDidMount**，Clock 告诉浏览器设置一个定时器每秒调用 `tick()`
+- 每秒钟调用一次 `tick()`，这里面 Clock component 通过 `setState()` 配置了其 UI 更新任务，通过 `setState()` React 就知道了 state 发生了变化并再次调用 `render()` 监测需要显示的内容，此时的 `this.state.date` 和上一次的发生了变化，React 就会更新 DOM 到最新的状态。
+- 当 Clock 从 DOM 中删除后，React 会调用 **componentWillUnmount** 并结束定时器
+
+#### 正确使用 state
+
+关于 state 的使用需要如下的几点要求。
+
+第一点，**不要直接修改 state**。
+
+下面的语法不会触发重新 render 渲染 component：
+    this.state.comment = 'Hello';
+
+正确的语法为使用 **setState()**：
+    this.setState({comment: 'Hello'});
+
+唯一可以对 state 赋值的是在 constructor 构造器中。
+
+第二点，**state 更新是异步的**。
+
+React 为了性能可能会在一次 component update 更新中捆绑多个 **setState()** 调用，由于 **this.props** 和 **this.state** 可能会被异步更新，所以不要依赖他们的数据来计算后续的 **state**。
+
+如下示例可能会错误的更新 counter：
+```
+this.setState({
   counter: this.state.counter + this.props.increment,
-});</code></pre><p>为了实现是这个需求，使用 setState 的另一种格式：传入一个 function，第一个参数为当前 state，第二个参数为 props 然后内部计算 state 更新：</p><pre><code>this.setState(function (state, props) {
+});
+```
+
+为了实现是这个需求，使用 setState 的另一种格式：传入一个 function，第一个参数为当前 state，第二个参数为 props 然后内部计算 state 更新：
+```
+this.setState(function (state, props) {
     return {
         counter: state.counter + props.increment
     };
-});</code></pre><p>第三点，<strong>state 更新会合并</strong>。</p><p>当调用 <code>setState()</code> 后，会合并设置的 object 到当前 state 中。</p><p>如下示例，<strong>state</strong> 可能包含多个独立的变量：</p><pre><code>    constructor(props) {
+});
+```
+
+第三点，**state 更新会合并**。
+
+当调用 `setState()` 后，会合并设置的 object 到当前 state 中。
+
+如下示例，**state** 可能包含多个独立的变量：
+```
+    constructor(props) {
         super(props);
         this.state = {
             posts: [],
             comments: []
         };
-    }</code></pre><p>然后我们可以单独调用 <strong>setState()</strong> 来分别更新它们：</p><pre><code>    componentDidMount() {
-        fetchPosts().then(response =&gt; {
+    }
+```
+
+然后我们可以单独调用 **setState()** 来分别更新它们：
+```
+    componentDidMount() {
+        fetchPosts().then(response => {
             this.setState({
                 posts: response.posts
             });
         });
 
-        fetchComments().then(response =&gt; {
+        fetchComments().then(response => {
             this.setState({
                 comments: response.comments
             });
         });
-    }</code></pre><p>合并过程是自动完成的，所以通过 <strong>setState</strong> 修改 comments 只会更新 comments 而不会改变 posts。</p><h4>数据向下传递</h4><p>一个 component 的 child 或 parent 都不会知道当前 component 是包含 state 还是不包含，且不关心是通过 function 还是 class 方式构建的 component。所以 state 被认为是封装的不能够被外界所访问。</p><p>component 的 state 可以作为 props 向它的 child component 传递：</p><pre><code>&lt;FormattedDate date={this.state.date} /&gt;
-</code></pre><p>如上所示 FormattedDate 可以接受 date prop，它并不知道数据来自 parent 的 state 还是 props：</p><pre><code>function FormattedDate(props) {
-  return &lt;h2&gt;It is {props.date.toLocaleTimeString()}.&lt;/h2&gt;;
-}</code></pre><p>通常这叫做 <strong>top-down</strong> 或 <strong>unidirectional</strong> 数据流。任何 state 都被某个特定 component 所有，state 的数据只能在其 component 的 child 中传递出去。</p><p>我们通过建立 <strong>App</strong> component 并构建三个 <strong>Clock</strong> component 来展示 component 之间是互相独立的：</p><pre><code>function App() {
+    }
+```
+
+合并过程是自动完成的，所以通过 **setState** 修改 comments 只会更新 comments 而不会改变 posts。
+
+#### 数据向下传递
+
+一个 component 的 child 或 parent 都不会知道当前 component 是包含 state 还是不包含，且不关心是通过 function 还是 class 方式构建的 component。所以 state 被认为是封装的不能够被外界所访问。
+
+component 的 state 可以作为 props 向它的 child component 传递：
+    <FormattedDate date={this.state.date} />
+
+如上所示 FormattedDate 可以接受 date prop，它并不知道数据来自 parent 的 state 还是 props：
+```
+function FormattedDate(props) {
+  return <h2>It is {props.date.toLocaleTimeString()}.</h2>;
+}
+```
+
+通常这叫做 **top-down** 或 **unidirectional** 数据流。任何 state 都被某个特定 component 所有，state 的数据只能在其 component 的 child 中传递出去。
+
+我们通过建立 **App** component 并构建三个 **Clock** component 来展示 component 之间是互相独立的：
+```
+function App() {
     return (
-        &lt;div&gt;
-            &lt;Clock /&gt;
-            &lt;Clock /&gt;
-            &lt;Clock /&gt;
-        &lt;/div&gt;
+        <div>
+            <Clock />
+            <Clock />
+            <Clock />
+        </div>
     );
 }
 
 ReactDOM.render(
-    &lt;App /&gt;,
+    <App />,
     document.getElementById('root')
-);</code></pre><p>每个 Clock 都有个各自的定时器并独立更新。</p><p>在 React 中，components 定义为 stateful 还是 stateless 的取决于其在运行中可能的变化，可以在 stateful 的 component 中使用 stateless 的 component，反过来亦可。</p>
+);
+```
+
+每个 Clock 都有个各自的定时器并独立更新。
+
+在 React 中，components 定义为 stateful 还是 stateless 的取决于其在运行中可能的变化，可以在 stateful 的 component 中使用 stateless 的 component，反过来亦可。
+
+  [1]: https://blog.niekun.net/usr/uploads/2021/02/1222105931.png</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2184.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2184.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/react/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[React 入门教程之三 -- 介绍  JSX]]></title>
@@ -1355,54 +2170,140 @@ ReactDOM.render(
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[请看下面的一个定义：const element = &amp;lt;h1&amp;gt;Hello, world!&amp;lt;/h1&amp;gt;;它既不是一个 string 也不是 html。它叫做 JSX，是一种对 ...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2183.html" xml:lang="zh-CN"><![CDATA[
-<p>请看下面的一个定义：</p><pre><code>const element = &lt;h1&gt;Hello, world!&lt;/h1&gt;;
-</code></pre><p>它既不是一个 string 也不是 html。它叫做 <strong>JSX</strong>，是一种对 JavaScript 语法的扩展。推荐在 React 中使用 JSX 来描述 UI，它用来创建 React 类型的 elements 然后将其在 DOM 中渲染。</p><p>下面对 JSX 做一些基本介绍。</p><!--more--><h3>使用 JSX 的原因</h3><p>React 认同这种观点：渲染逻辑结构和 UI 逻辑结构是原生相互耦合的，events 的处理，状态的变化，数据何时显示等。不同于人为的将 markup 部分和 logic 逻辑部分放在单独的文件，React 的耦合单元叫做 components 可以同时包含 markup 和 logic 部分。</p><p>React 并不强制要求使用 JSX，但是大部分开发者认为它可以帮助在 JavaScript 中处理 UI 的问题。它也可以帮助 React 显示更多的 error 或 warning 信息。</p><h3>JSX 中使用 JavaScript 表达式</h3><p>下面的示例中，我们声明一个变量并在 JSX 中通过大括号<code>{}</code> 调用变量：</p><pre><code>const name = 'marco nie';
-const element = &lt;h1&gt;hello, {name}&lt;/h1&gt;
+<div id="md_content_7" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">请看下面的一个定义：
+    const element = <h1>Hello, world!</h1>;
+
+它既不是一个 string 也不是 html。它叫做 **JSX**，是一种对 JavaScript 语法的扩展。推荐在 React 中使用 JSX 来描述 UI，它用来创建 React 类型的 elements 然后将其在 DOM 中渲染。
+
+下面对 JSX 做一些基本介绍。
+
+
+<!--more-->
+
+
+### 使用 JSX 的原因
+
+React 认同这种观点：渲染逻辑结构和 UI 逻辑结构是原生相互耦合的，events 的处理，状态的变化，数据何时显示等。不同于人为的将 markup 部分和 logic 逻辑部分放在单独的文件，React 的耦合单元叫做 components 可以同时包含 markup 和 logic 部分。
+
+React 并不强制要求使用 JSX，但是大部分开发者认为它可以帮助在 JavaScript 中处理 UI 的问题。它也可以帮助 React 显示更多的 error 或 warning 信息。
+
+### JSX 中使用 JavaScript 表达式
+
+下面的示例中，我们声明一个变量并在 JSX 中通过大括号`{}` 调用变量：
+```
+const name = 'marco nie';
+const element = <h1>hello, {name}</h1>
 
 ReactDOM.render(
     element,
     document.getElementById('root')
-);</code></pre><p>我们可以将任意的 JavaScript 表达式通过大括号<code>{}</code>放如 JSX 中。例如：<code>1 + 1</code>，<code>user.name</code> 都是有效的 JavaScript 表达式：</p><pre><code>const city = 'han zhong';
+);
+```
+
+我们可以将任意的 JavaScript 表达式通过大括号`{}`放如 JSX 中。例如：`1 + 1`，`user.name` 都是有效的 JavaScript 表达式：
+```
+const city = 'han zhong';
 const user = {
     name: 'marco',
     age: 20
 }
-const element = &lt;h1&gt;hello, {user.name}, from {city}, time: {1 + 20}&lt;/h1&gt;</code></pre><p>可以将 JSX 分割成多行以提高代码可读性，需要使用小括号包围起来，防止编译器错误的自动添加分行符：</p><pre><code>const element = (
-    &lt;h1&gt;
+const element = <h1>hello, {user.name}, from {city}, time: {1 + 20}</h1>
+```
+
+可以将 JSX 分割成多行以提高代码可读性，需要使用小括号包围起来，防止编译器错误的自动添加分行符：
+```
+const element = (
+    <h1>
         hello, {user.name}, from {city}, time: {1 + 20}
-    &lt;/h1&gt;
-);</code></pre><p>编译后 JSX 表达式会转换为通用的 JavaScript function 或 objects。这就意味着我们可以在 if 或 for 表达式中，传入数据中或者 返回值中使用 JSX：</p><pre><code>const testFuc = () =&gt; {
-    return &lt;h1&gt;hello, {user.name}&lt;/h1&gt;
-}</code></pre><h3>JSX 中定义属性</h3><p>可以使用引号 <code>&quot;&quot;</code> 将一个字符串作为属性：</p><pre><code>const el1 = &lt;div tabIndex=&quot;0&quot;&gt;&lt;/div&gt;
-</code></pre><p>可以以通过大括号<code>{}</code> 将一个 JavaScript 表达式嵌入属性：</p><pre><code>const el2 = &lt;img src={user.name}&gt;&lt;/img&gt;
-</code></pre><p>当使用 JavaScript 嵌入属性时不能在大括号中使用引号，同一个属性中只能使用<strong>引号嵌入字符串</strong>或者<strong>大括号嵌入 JavaScript 表达式</strong>中的一种。</p><p>由于 JSX 更加接近于 JavaScript 而不是 html，所以 React 中的 DOM 使用 camelCase 属性命名规范代替 html 中的属性名称，例如 html 元素的 class 属性在 JSX 中定义为 className，tabindex 在 JSX 中为 tabIndex。</p><h3>定义子元素</h3><p>如果一个 tag 元素内容是空的则可以使用 <code>/&gt;</code> 立刻结束定义：</p><pre><code>const el3 = &lt;img src=''/&gt;
-</code></pre><p>JSX tag 标签内也可以有子元素：</p><pre><code>const el4 = (
-    &lt;div&gt;
-        &lt;h1&gt;hello,&lt;/h1&gt;
-        &lt;h2&gt;i am your friend&lt;/h2&gt;
-    &lt;/div&gt;
-);</code></pre><p>注意只能在一个元素内定义子元素，不能直接定义两个同级的元素否则会报错。</p><h3>防止 injection 注入攻击</h3><p>在 JSX 中嵌入用户输入是安全的：</p><pre><code>const title = response.potentiallyMaliciousInput;
+    </h1>
+);
+```
+
+编译后 JSX 表达式会转换为通用的 JavaScript function 或 objects。这就意味着我们可以在 if 或 for 表达式中，传入数据中或者 返回值中使用 JSX：
+```
+const testFuc = () => {
+    return <h1>hello, {user.name}</h1>
+}
+```
+
+### JSX 中定义属性
+
+可以使用引号 `""` 将一个字符串作为属性：
+    const el1 = <div tabIndex="0"></div>
+
+可以以通过大括号`{}` 将一个 JavaScript 表达式嵌入属性：
+    const el2 = <img src={user.name}></img>
+
+当使用 JavaScript 嵌入属性时不能在大括号中使用引号，同一个属性中只能使用**引号嵌入字符串**或者**大括号嵌入 JavaScript 表达式**中的一种。
+
+由于 JSX 更加接近于 JavaScript 而不是 html，所以 React 中的 DOM 使用 camelCase 属性命名规范代替 html 中的属性名称，例如 html 元素的 class 属性在 JSX 中定义为 className，tabindex 在 JSX 中为 tabIndex。
+
+### 定义子元素
+
+如果一个 tag 元素内容是空的则可以使用 `/>` 立刻结束定义：
+    const el3 = <img src=''/>
+
+JSX tag 标签内也可以有子元素：
+```
+const el4 = (
+    <div>
+        <h1>hello,</h1>
+        <h2>i am your friend</h2>
+    </div>
+);
+```
+
+注意只能在一个元素内定义子元素，不能直接定义两个同级的元素否则会报错。
+
+### 防止 injection 注入攻击
+
+在 JSX 中嵌入用户输入是安全的：
+```
+const title = response.potentiallyMaliciousInput;
 // This is safe:
-const element = &lt;h1&gt;{title}&lt;/h1&gt;;</code></pre><p>默认情况下 React 在渲染前会将脱开所有嵌入 JSX 中的数据，因此可以确保不会注入任何没有明确定义在应用中的数据。渲染前所有的所有内容都会转换为 string 字符串形式。则能够防止 XSS (cross-site-scripting) 攻击。</p><h3>JSX 表达 objects</h3><p>Babel 会将 JSX 向下编译为对 React.createElement() 的调用，以下两种定义方法是相同的：</p><pre><code>const el5 = (
-    &lt;h1 className='test'&gt;
+const element = <h1>{title}</h1>;
+```
+
+默认情况下 React 在渲染前会将脱开所有嵌入 JSX 中的数据，因此可以确保不会注入任何没有明确定义在应用中的数据。渲染前所有的所有内容都会转换为 string 字符串形式。则能够防止 XSS (cross-site-scripting) 攻击。
+
+### JSX 表达 objects
+
+Babel 会将 JSX 向下编译为对 React.createElement() 的调用，以下两种定义方法是相同的：
+```
+const el5 = (
+    <h1 className='test'>
         hello world
-    &lt;/h1&gt;
-);</code></pre><pre><code>const el6 = React.createElement(
+    </h1>
+);
+```
+
+```
+const el6 = React.createElement(
     'h1',
     {className: 'test'},
     'hello world'
-)</code></pre><p>通过 <code>React.createElement()</code> 创建元素会额外做一些语法检查来防止错误代码。但通常我们使用下面语法创建一个 object：</p><pre><code>const el7 = {
+)
+```
+
+通过 `React.createElement()` 创建元素会额外做一些语法检查来防止错误代码。但通常我们使用下面语法创建一个 object：
+```
+const el7 = {
     type: 'h1',
     props: {
         className: 'test',
         children: 'hello world'
     }
-}</code></pre><p>以上方式创建的 object 叫做 <strong>React elements</strong>。React 使用这些 objects 来构建 DOM 并及时更新。</p><p>推荐代码编辑器使用 <strong>Babel</strong> 语法定义环境，这样可以同时支持 ES6 和 JSX 语法结构。设置方法参考：<a href="https://babeljs.io/docs/en/editors">https://babeljs.io/docs/en/editors</a></p>
+}
+```
+
+以上方式创建的 object 叫做 **React elements**。React 使用这些 objects 来构建 DOM 并及时更新。
+
+推荐代码编辑器使用 **Babel** 语法定义环境，这样可以同时支持 ES6 和 JSX 语法结构。设置方法参考：https://babeljs.io/docs/en/editors
+</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2183.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2183.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/react/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[React 入门教程之二 -- hello world]]></title>
@@ -1414,10 +2315,26 @@ const element = &lt;h1&gt;{title}&lt;/h1&gt;;</code></pre><p>默认情况下 Rea
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[下面我们通过创建 Create React App 介绍 React 的基本语法。通过上一节介绍的方法创建一个新程序 my-app-1:npx create-react-app my-app-1...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2176.html" xml:lang="zh-CN"><![CDATA[
-<p>下面我们通过创建 <strong>Create React App</strong> 介绍 React 的基本语法。</p><p>通过上一节介绍的方法创建一个新程序 <strong>my-app-1</strong>:</p><pre><code>npx create-react-app my-app-1
-cd my-app-1</code></pre><p>关于创建新项目及可能出现的问题参考上一篇：<a href="https://blog.niekun.net/archives/2175.html">https://blog.niekun.net/archives/2175.html</a></p><p><strong>Create React App</strong> 官方教程：<a href="https://create-react-app.dev/docs/documentation-intro">https://create-react-app.dev/docs/documentation-intro</a></p><!--more--><h3>项目结构</h3><p>程序目录结构如下：</p><pre><code>my-app-1
+<div id="md_content_8" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">下面我们通过创建 **Create React App** 介绍 React 的基本语法。
+
+通过上一节介绍的方法创建一个新程序 **my-app-1**:
+```
+npx create-react-app my-app-1
+cd my-app-1
+```
+
+关于创建新项目及可能出现的问题参考上一篇：https://blog.niekun.net/archives/2175.html
+
+**Create React App** 官方教程：https://create-react-app.dev/docs/documentation-intro
+
+<!--more-->
+
+### 项目结构
+
+程序目录结构如下：
+```
+my-app-1
 ├── README.md
 ├── node_modules
 ├── package.json
@@ -1437,19 +2354,76 @@ cd my-app-1</code></pre><p>关于创建新项目及可能出现的问题参考�
     ├── index.js
     ├── logo.svg
     ├── serviceWorker.js
-    └── setupTests.js</code></pre><p>对于一个项目而言，下面两个文件是必须的:</p><ul><li><strong>public/index.html</strong> 是页面的模板文件;</li><li><strong>src/index.js</strong> 是 JavaScript 入口文件.</li></ul><p>其他文件可以根据需要添加，删除或重命名。</p><p>可以在 src 目录下建立子目录，为了加快 build 编译项目的速度，只有在 src 目录下的文件才会被 webpack 处理。所以需要将所有的 js 和 css 文件放在 src 目录下，否则 webpack 打包器不会识别到它们。</p><p>只有在 public 目录下的文件才会被 <strong>public/index.html</strong> 文件识别到。</p><p>所以所有的项目文件都需要放在 public 和 src 目录下，与项目无关的文件可以放在上级路径内，例如项目说明文件等。</p><h3>可用脚本指令</h3><p>在项目目录下，可以执行如下命令。</p><h4>npm start</h4><p>开发模式下运行 app：</p><pre><code>npm start
-</code></pre><p>打开 <a href="http://localhost:3000">http://localhost:3000</a> 可以查看效果。对代码作出修改后页面会自动重新加载。</p><h4>npm test</h4><p>交互模式下运行 test 运行器。更多介绍参考：<a href="https://create-react-app.dev/docs/running-tests">https://create-react-app.dev/docs/running-tests</a></p><h4>npm run build</h4><p>编译项目程序到 build 目录下，会自动将 React 转换为产品模式，并优化项目结构以提高性能。代码是经过 minified 最小化处理过的，文件名都包含 hashes 以在客户端能够及时识别更新。</p><p>更多 build 参考：<a href="https://create-react-app.dev/docs/production-build">https://create-react-app.dev/docs/production-build</a></p><h3>清理项目</h3><p>默认使用的模板是 cra-template，包含一个基本的页面和 React component，我们先将项目清理掉不需要的内容。</p><p>打开 public 目录下的 index.html 可以看到 body 块内定义了：</p><pre><code>&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
-</code></pre><p>index.html 内可以使用 <strong>%PUBLIC_URL%</strong> 表示 public 目录地址。</p><p>删除 src 目录内所有文件，并新建 index.js 文件。</p><p>运行程序：</p><pre><code>npm start
-</code></pre><p>会自动在浏览器打开项目。</p><h3>hello world</h3><p>最简单的 <strong>React</strong> 示例如下，将代码加入 <strong>index.js</strong> 文件：</p><pre><code>const React = require('react')
+    └── setupTests.js
+```
+
+对于一个项目而言，下面两个文件是必须的:
+- **public/index.html** 是页面的模板文件;
+- **src/index.js** 是 JavaScript 入口文件.
+
+其他文件可以根据需要添加，删除或重命名。
+
+可以在 src 目录下建立子目录，为了加快 build 编译项目的速度，只有在 src 目录下的文件才会被 webpack 处理。所以需要将所有的 js 和 css 文件放在 src 目录下，否则 webpack 打包器不会识别到它们。
+
+只有在 public 目录下的文件才会被 **public/index.html** 文件识别到。
+
+所以所有的项目文件都需要放在 public 和 src 目录下，与项目无关的文件可以放在上级路径内，例如项目说明文件等。
+
+### 可用脚本指令
+
+在项目目录下，可以执行如下命令。
+
+#### npm start
+
+开发模式下运行 app：
+    npm start
+
+打开 http://localhost:3000 可以查看效果。对代码作出修改后页面会自动重新加载。
+
+#### npm test
+
+交互模式下运行 test 运行器。更多介绍参考：https://create-react-app.dev/docs/running-tests
+
+#### npm run build
+
+编译项目程序到 build 目录下，会自动将 React 转换为产品模式，并优化项目结构以提高性能。代码是经过 minified 最小化处理过的，文件名都包含 hashes 以在客户端能够及时识别更新。
+
+更多 build 参考：https://create-react-app.dev/docs/production-build
+
+### 清理项目
+
+默认使用的模板是 cra-template，包含一个基本的页面和 React component，我们先将项目清理掉不需要的内容。
+
+打开 public 目录下的 index.html 可以看到 body 块内定义了：
+    <div id="root"></div>
+
+index.html 内可以使用 **%PUBLIC_URL%** 表示 public 目录地址。
+
+删除 src 目录内所有文件，并新建 index.js 文件。
+
+运行程序：
+    npm start
+
+会自动在浏览器打开项目。
+
+### hello world
+
+最简单的 **React** 示例如下，将代码加入 **index.js** 文件：
+```
+const React = require('react')
 const ReactDOM = require('react-dom')
 
 ReactDOM.render(
-    &lt;h1&gt;hello world&lt;/h1&gt;,
+    <h1>hello world</h1>,
     document.getElementById('root')
-);</code></pre><p>保存文件后刷新浏览器页面查看效果。</p>
+);
+```
+
+保存文件后刷新浏览器页面查看效果。
+</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2176.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2176.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/react/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[React 入门教程之一 -- 简介]]></title>
@@ -1461,32 +2435,131 @@ ReactDOM.render(
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[React 是一个用来创建用户界面的 JavaScript 库。它从一开始就被设计为 gradual adoption 渐进式融入的模式，你可以根据需求使用 React 到你的项目中，无论是使用...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2175.html" xml:lang="zh-CN"><![CDATA[
-<p><strong>React</strong> 是一个用来创建用户界面的 JavaScript 库。</p><p>它从一开始就被设计为 gradual adoption 渐进式融入的模式，你可以根据需求使用 React 到你的项目中，无论是使用 React 对你的 html 页面做简单交互，或者完全使用 React 搭建程序。</p><!--more--><h3>对现有网页加入 React 支持</h3><p>当你需要对现有的网页做一些简单的交互动作时，React 也可以方便的加入进来。下面的示例中我们介绍如何通过 React 给页面添加一个 component 元素。</p><p>首先给 html 页面添加一个 DOM 元素：</p><pre><code>&lt;!-- ... existing HTML ... --&gt;
-&lt;div id=&quot;like_button_container&quot;&gt;&lt;/div&gt;
-&lt;!-- ... existing HTML ... --&gt;</code></pre><p>然后在 body 块结尾添加 React 模块的 script 脚本标签：</p><pre><code>  &lt;!-- ... other HTML ... --&gt;
+<div id="md_content_9" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">**React** 是一个用来创建用户界面的 JavaScript 库。
 
-  &lt;!-- Load React. --&gt;
-  &lt;!-- Note: when deploying, replace &quot;development.js&quot; with &quot;production.min.js&quot;. --&gt;
-  &lt;script src=&quot;https://unpkg.com/react@17/umd/react.development.js&quot; crossorigin&gt;&lt;/script&gt;
-  &lt;script src=&quot;https://unpkg.com/react-dom@17/umd/react-dom.development.js&quot; crossorigin&gt;&lt;/script&gt;
+它从一开始就被设计为 gradual adoption 渐进式融入的模式，你可以根据需求使用 React 到你的项目中，无论是使用 React 对你的 html 页面做简单交互，或者完全使用 React 搭建程序。
 
-  &lt;!-- Load our React component. --&gt;
-  &lt;script src=&quot;like_button.js&quot;&gt;&lt;/script&gt;
 
-&lt;/body&gt;</code></pre><p>前两个 script 加载 React，最后一个是我们加载自定义 component 的代码。</p><p>如果 script 部署在 CDN 上，推荐加上 <strong>crossorigin</strong> 属性可以提高加载速度。</p><p>然后我们使用 React 编写 like_button.js，详细的实现代码我们在后续介绍，最后我们通过下面指令将 React component 加入 html 容器：</p><pre><code>// ... the starter code you pasted ...
+<!--more-->
+
+
+### 对现有网页加入 React 支持
+
+当你需要对现有的网页做一些简单的交互动作时，React 也可以方便的加入进来。下面的示例中我们介绍如何通过 React 给页面添加一个 component 元素。
+
+首先给 html 页面添加一个 DOM 元素：
+```
+<!-- ... existing HTML ... -->
+<div id="like_button_container"></div>
+<!-- ... existing HTML ... -->
+```
+
+然后在 body 块结尾添加 React 模块的 script 脚本标签：
+```
+  <!-- ... other HTML ... -->
+
+  <!-- Load React. -->
+  <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+
+  <!-- Load our React component. -->
+  <script src="like_button.js"></script>
+
+</body>
+```
+
+前两个 script 加载 React，最后一个是我们加载自定义 component 的代码。
+
+如果 script 部署在 CDN 上，推荐加上 **crossorigin** 属性可以提高加载速度。
+
+然后我们使用 React 编写 like_button.js，详细的实现代码我们在后续介绍，最后我们通过下面指令将 React component 加入 html 容器：
+```
+// ... the starter code you pasted ...
 
 const domContainer = document.querySelector('#like_button_container');
-ReactDOM.render(e(LikeButton), domContainer);</code></pre><p>以上就是将 React component 加入现有网页的过程。</p><h3>缩小 JavaScript 文件尺寸</h3><p>在部署我们的网站前，要注意没有经过缩小化处理的 JavaScript 脚本会导致页面加载缓慢。</p><p>首先我们将加载 React 的脚本使用缩小化的版本链接：</p><pre><code>&lt;script src=&quot;https://unpkg.com/react@17/umd/react.production.min.js&quot; crossorigin&gt;&lt;/script&gt;
-&lt;script src=&quot;https://unpkg.com/react-dom@17/umd/react-dom.production.min.js&quot; crossorigin&gt;&lt;/script&gt;</code></pre><p>对于我们自己编写的 React 脚本可以通过工具得到缩小后的版本，这里介绍通过 <strong>node.js</strong> 的 <strong>terser</strong> 库来实现：</p><ul><li>首先安装 node.js</li><li>在项目目录下运行 <code>npm init -y</code></li><li>运行 <code>npm install terser</code></li></ul><p>例如需要缩小 <strong>like_button.js</strong>，在终端运行：</p><pre><code>npx terser -c -m -o like_button.min.js -- like_button.js
-</code></pre><p>就会在当前目录下得到缩小后的脚本文件 <strong>like_button.min.js</strong>。</p><h3>创建一个新的 React 程序</h3><p>以上介绍了如何将 React 添加到现有的 html 中，但是通过一套整合的工具链可以得到更好的用户和开发体验。</p><p><strong>React</strong> 团队推荐下面几种解决方案：</p><ul><li>如果你要学习 React 或者要创建一个单页面 app，推荐使用 <strong>Create React App</strong></li><li>如果你要使用 node.js 创建一个 server-rendered 服务器端渲染的网站，推荐使用 <strong>Next.js</strong></li><li>如果你要建立一个静态内容的网站，推荐使用 <strong>Gatsby</strong></li></ul><h3>Create React App</h3><p><strong>Create React App</strong> 是学习 React 很好的环境，也是建立单页面 React 应用程序最好的方式。</p><p>官方网站：<a href="https://create-react-app.dev/">https://create-react-app.dev/</a></p><p>它会自动设置开发环境是我们可以使用最新的 JavaScript 功能，提供很好的开发体验以及对发布时对程序进行优化。</p><p>使用下面指令创建并运行一个新项目：</p><pre><code>npx create-react-app my-app
+ReactDOM.render(e(LikeButton), domContainer);
+```
+
+以上就是将 React component 加入现有网页的过程。
+
+### 缩小 JavaScript 文件尺寸
+
+在部署我们的网站前，要注意没有经过缩小化处理的 JavaScript 脚本会导致页面加载缓慢。
+
+首先我们将加载 React 的脚本使用缩小化的版本链接：
+```
+<script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script>
+```
+
+对于我们自己编写的 React 脚本可以通过工具得到缩小后的版本，这里介绍通过 **node.js** 的 **terser** 库来实现：
+- 首先安装 node.js
+- 在项目目录下运行 `npm init -y`
+- 运行 `npm install terser`
+
+例如需要缩小 **like_button.js**，在终端运行：
+    npx terser -c -m -o like_button.min.js -- like_button.js
+
+就会在当前目录下得到缩小后的脚本文件 **like_button.min.js**。
+
+### 创建一个新的 React 程序
+
+以上介绍了如何将 React 添加到现有的 html 中，但是通过一套整合的工具链可以得到更好的用户和开发体验。
+
+**React** 团队推荐下面几种解决方案：
+- 如果你要学习 React 或者要创建一个单页面 app，推荐使用 **Create React App**
+- 如果你要使用 node.js 创建一个 server-rendered 服务器端渲染的网站，推荐使用 **Next.js**
+- 如果你要建立一个静态内容的网站，推荐使用 **Gatsby**
+
+### Create React App
+
+**Create React App** 是学习 React 很好的环境，也是建立单页面 React 应用程序最好的方式。
+
+官方网站：https://create-react-app.dev/
+
+它会自动设置开发环境是我们可以使用最新的 JavaScript 功能，提供很好的开发体验以及对发布时对程序进行优化。
+
+使用下面指令创建并运行一个新项目：
+```
+npx create-react-app my-app
 cd my-app
-npm start</code></pre><p>注意如果你之前使用 <code>npm install -g create-react-app</code>全局安装过 <strong>create-react-app</strong>，推荐先卸载它 <code>npm uninstall -g create-react-app</code> 从而确保 npx 能够安装最新的版本。</p><p>node.js 会自动安装 <strong>react</strong>, <strong>react-dom</strong>, 和 <strong>react-scripts</strong> with <strong>cra-template</strong>。</p><p>通过 <code>--template</code> 选项可以自定义使用什么模板创建新程序，默认为：cra-template，模板可以在官网搜索：<a href="https://www.npmjs.com/search?q=cra-template-*">cra-template-*</a></p><p>如果安装中报错，可以尝试更新 npm 以及清除缓存，然后再次尝试安装：</p><pre><code>npm i -g npm@latest
-npm cache clean -f
-</code></pre><p>如果在本地开发推荐替换 npm 国内源可以提高下载速度，参考：<a href="https://blog.niekun.net/archives/2085.html">https://blog.niekun.net/archives/2085.html</a></p><p>创建 React App 不会处理后端的数据和逻辑，它只建立前端通道。所以你可以使用任何后端服务。</p><p>通过 <code>npm start</code> 运行程序后，打开 <a href="http://localhost:3000/">http://localhost:3000/</a> 可以查看程序运行效果。</p><p>当程序需要进行部署时，运行 <code>npm run build</code> 会在 <strong>build</strong> 目录下创建一个经过最小化代码优化处理的项目包，可以将其部署到服务器。</p><h3>Next.js</h3><p>Next.js 是一个流行的 React framework 来创建 static 和 server‑rendered 程序。</p><p>官网：<a href="https://nextjs.org/">https://nextjs.org/</a></p><h3>Gatsby</h3><p>Gatsby 是通过 React 创建静态网站的最好的工具。它使我们可以使用 React components 但输出预渲染的 html 和 css 以确保页面加载速度。</p>
+npm start
+```
+
+注意如果你之前使用 `npm install -g create-react-app`全局安装过 **create-react-app**，推荐先卸载它 `npm uninstall -g create-react-app` 从而确保 npx 能够安装最新的版本。
+
+node.js 会自动安装 **react**, **react-dom**, 和 **react-scripts** with **cra-template**。
+
+通过 `--template` 选项可以自定义使用什么模板创建新程序，默认为：cra-template，模板可以在官网搜索：[cra-template-*][1]
+
+如果安装中报错，可以尝试更新 npm 以及清除缓存，然后再次尝试安装：
+    npm i -g npm@latest
+    npm cache clean -f
+
+如果在本地开发推荐替换 npm 国内源可以提高下载速度，参考：https://blog.niekun.net/archives/2085.html
+
+创建 React App 不会处理后端的数据和逻辑，它只建立前端通道。所以你可以使用任何后端服务。
+
+通过 `npm start` 运行程序后，打开 http://localhost:3000/ 可以查看程序运行效果。
+
+当程序需要进行部署时，运行 `npm run build` 会在 **build** 目录下创建一个经过最小化代码优化处理的项目包，可以将其部署到服务器。
+
+### Next.js
+
+Next.js 是一个流行的 React framework 来创建 static 和 server‑rendered 程序。
+
+官网：https://nextjs.org/
+
+### Gatsby
+
+Gatsby 是通过 React 创建静态网站的最好的工具。它使我们可以使用 React components 但输出预渲染的 html 和 css 以确保页面加载速度。
+
+
+  [1]: https://www.npmjs.com/search?q=cra-template-*</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2175.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2175.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/react/" thr:count="0"/>
 </entry>
 </feed>

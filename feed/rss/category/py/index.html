@@ -26,63 +26,163 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <title>从源码编译安装 python</title>
 <link>https://blog.niekun.net/archives/1758.html</link>
 <dc:date>2020-09-21T16:35:00+08:00</dc:date>
-<description>从源码编译程序的好处是可以使用最新版本，下面介绍如何在 Linux 下编译安装 python 和 pip 环境。下载源码包python 官网：https://www.python.org/当前最新版是 3.8.5，在这个页面找到地址：https://www.python.org/downloads/release/python-385/下载 tgz 压缩包到本地并解压：cd /tmp
+<description>从源码编译程序的好处是可以使用最新版本，下面介绍如何在 Linux 下编译安装 python 和 pip 环境。
+
+### 下载源码包
+
+python 官网：https://www.python.org/
+
+当前最新版是 3.8.5，在这个页面找到地址：https://www.python.org/downloads/release/python-385/
+
+![1.jpg][1]
+
+
+
+
+
+下载 tgz 压缩包到本地并解压：
+```
+cd /tmp
 wget https://www.python.org/ftp/python/3.8.5/Python-3.8.5.tgz
-tar xvf Python-3.8.5.tgz环境安装编译需要安装一些依赖：apt install libffi-dev libgdbm-dev libsqlite3-dev libssl-dev zlib1g-dev
-编译python 源码使用标准 GNU 编译系统，详细说明参考：https://blog.niekun.net/archives/883.html将 python 安装到 /opt 目录，先创建文件夹：mkdir /opt/python3.8.5
-然后配置 configure：cd /tmp/Python-3.8.5
+tar xvf Python-3.8.5.tgz
+```
+
+### 环境安装
+
+编译需要安装一些依赖：
+    apt install libffi-dev libgdbm-dev libsqlite3-dev libssl-dev zlib1g-dev
+
+### 编译
+
+python 源码使用标准 GNU 编译系统，详细说明参考：https://blog.niekun.net/archives/883.html
+
+将 python 安装到 `/opt` 目录，先创建文件夹：
+    mkdir /opt/python3.8.5
+
+然后配置 configure：
+```
+cd /tmp/Python-3.8.5
 
 ./configure \
 --prefix=/opt/python3.8.5 \
---enable-optimizations \没有错误提示的话就开始编译和安装：make
-make install
-安装完成后测试执行：/opt/python3.8.5/bin/python3 --version
-返回版本信息则安装完成。下面将可执行文件加入系统路径，创建软连接：ln -s /opt/python3.8.5/bin/python3 /usr/bin/python
-测试运行：python --version
-安装 pip源码编译安装的 python 不自带 pip，需要自己安装，可以使用 get-pip.py 脚本来安装。官网：https://pip.pypa.io/en/stable/installing/下载脚本到本地：curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py使用刚才安装的 python 执行脚本：/opt/python3.8.5/bin/python3 get-pip.py
-pip 的安装路径是 /opt/python3.8.5/bin/，测试命令：/opt/python3.8.5/bin/pip3 --version
-返回版本信息则安装完成。添加软连接到系统路径：ln -s /opt/python3.8.5/bin/pip3 /usr/bin/pip
-测试命令：pip --version
-参考链接https://docs.rstudio.com/resources/install-python-source/</description>
+--enable-optimizations \
+```
+
+没有错误提示的话就开始编译和安装：
+    make
+    make install
+
+安装完成后测试执行：
+    /opt/python3.8.5/bin/python3 --version
+
+返回版本信息则安装完成。
+
+下面将可执行文件加入系统路径，创建软连接：
+    ln -s /opt/python3.8.5/bin/python3 /usr/bin/python
+
+测试运行：
+    python --version
+
+### 安装 pip
+
+源码编译安装的 python 不自带 pip，需要自己安装，可以使用 get-pip.py 脚本来安装。
+
+官网：https://pip.pypa.io/en/stable/installing/
+
+下载脚本到本地：
+```
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+```
+
+使用刚才安装的 python 执行脚本：
+    /opt/python3.8.5/bin/python3 get-pip.py
+
+pip 的安装路径是 `/opt/python3.8.5/bin/`，测试命令：
+    /opt/python3.8.5/bin/pip3 --version
+
+返回版本信息则安装完成。
+
+添加软连接到系统路径：
+    ln -s /opt/python3.8.5/bin/pip3 /usr/bin/pip
+
+测试命令：
+    pip --version
+
+### 参考链接
+https://docs.rstudio.com/resources/install-python-source/
+
+
+  [1]: https://blog.niekun.net/usr/uploads/2020/09/3204471917.jpg</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1753.html">
 <title>使用 subprocess.check_output 执行cmd命令并返回结果到字符串</title>
 <link>https://blog.niekun.net/archives/1753.html</link>
 <dc:date>2020-09-18T15:13:51+08:00</dc:date>
-<description>语法：subprocess.check_output(args, *, stdin=None, stderr=None, shell=False, universal_newlines=False)
-执行cmd命令并返回结果到字符串。用法：import subprocess
+<description>语法：
+    subprocess.check_output(args, *, stdin=None, stderr=None, shell=False, universal_newlines=False)
 
-output = check_output([&quot;cat&quot;, &quot;/etc/hostname&quot;]).strip()
-print(output)以上脚本会执行 cat /etc/hostname 命令然后将结果赋值给 output 变量。strip() 可以将 string 的前后空格去掉。</description>
+执行cmd命令并返回结果到字符串。
+
+用法：
+```
+import subprocess
+
+output = check_output(["cat", "/etc/hostname"]).strip()
+print(output)
+```
+
+以上脚本会执行 `cat /etc/hostname` 命令然后将结果赋值给 `output` 变量。
+`strip()` 可以将 string 的前后空格去掉。
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1718.html">
 <title>argparse and struct in python</title>
 <link>https://blog.niekun.net/archives/1718.html</link>
 <dc:date>2020-08-14T11:20:39+08:00</dc:date>
-<description>https://docs.python.org/3/library/argparse.htmlhttps://docs.python.org/3/library/struct.html</description>
+<description>https://docs.python.org/3/library/argparse.html
+https://docs.python.org/3/library/struct.html
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1688.html">
 <title>string &amp;lt;-&amp;gt; byte in python</title>
 <link>https://blog.niekun.net/archives/1688.html</link>
 <dc:date>2020-08-12T14:08:00+08:00</dc:date>
-<description>To transform a unicode string to a byte string in Python do this:&gt;&gt;&gt; 'foo'.encode('utf_8')
-b'foo'
-To transform a byte string to a unicode string:&gt;&gt;&gt; b'foo'.decode('utf_8')
-'foo'
+<description>To transform a unicode string to a byte string in Python do this:
 
-To convert a string to bytes.data = &quot;&quot;               #string
-data = &quot;&quot;.encode()      #bytes
-data = b&quot;&quot;              #bytesTo convert bytes to a String.data = b&quot;&quot;              #bytes
-data = b&quot;&quot;.decode()     #string
-data = str(b&quot;&quot;)         #string</description>
+    >>> 'foo'.encode('utf_8')
+    b'foo'
+
+To transform a byte string to a unicode string:
+
+    >>> b'foo'.decode('utf_8')
+    'foo'
+
+
+1. To convert a string to bytes.
+```
+data = ""               #string
+data = "".encode()      #bytes
+data = b""              #bytes
+```
+2. To convert bytes to a String.
+```
+data = b""              #bytes
+data = b"".decode()     #string
+data = str(b"")         #string
+```
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1685.html">
 <title>winreg 操作 Windows 注册表 in python</title>
 <link>https://blog.niekun.net/archives/1685.html</link>
 <dc:date>2020-08-12T13:56:00+08:00</dc:date>
-<description>https://docs.python.org/3/library/winreg.html#https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registryimport winreg
+<description>https://docs.python.org/3/library/winreg.html#
+https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registry
 
-REG_PATH = r&quot;Control Panel\Mouse&quot;
+```
+import winreg
+
+REG_PATH = r"Control Panel\Mouse"
 
 def set_reg(name, value):
     try:
@@ -113,78 +213,317 @@ print (get_reg('MouseSensitivity'))
 set_reg('MouseSensitivity', str(10))
 
 #*For instant apply of SystemParameters like the mouse speed on-write, you can use win32gui/SPI
-#http://docs.activestate.com/activepython/3.4/pywin32/win32gui__SystemParametersInfo_meth.html</description>
+#http://docs.activestate.com/activepython/3.4/pywin32/win32gui__SystemParametersInfo_meth.html
+```
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1684.html">
 <title>使用 opencv 处理图像</title>
 <link>https://blog.niekun.net/archives/1684.html</link>
 <dc:date>2020-08-07T11:37:51+08:00</dc:date>
-<description>安装：https://pypi.org/project/opencv-python/使用：https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_setup/py_table_of_contents_setup/py_table_of_contents_setup.html示例：https://www.askaswiss.com/2016/01/how-to-create-pencil-sketch-opencv-python.html打包 exe：https://pypi.org/project/auto-py-to-exe/</description>
+<description>安装：https://pypi.org/project/opencv-python/
+使用：https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_setup/py_table_of_contents_setup/py_table_of_contents_setup.html
+示例：https://www.askaswiss.com/2016/01/how-to-create-pencil-sketch-opencv-python.html
+打包 exe：https://pypi.org/project/auto-py-to-exe/</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/880.html">
 <title>使用 TelegramBot 键盘 InlineKeyboardButton 提示 BUTTON_DATA_INVALID 报错原因分析</title>
 <link>https://blog.niekun.net/archives/880.html</link>
 <dc:date>2020-02-01T18:06:06+08:00</dc:date>
-<description>今天在测试 telegram Bot 的时候，发现 keyboard 不能正确弹出来，后台查看发现报错了，提示 Bad Request: BUTTON_DATA_INVALID反复检查代码没有发现语法错误，查找之后了解到 InlineKeyboardButton 响应后返回的 Callback Data 有大小限制，最大64位：的确我想返回的内容长度的确超过了大小限制，优化源码后问题解决了。参考链接：https://core.telegram.org/bots/api#inlinekeyboardbuttonhttps://stackoverflow.com/questions/46389040/inlinekeyboardbutton-are-limited-in-inlinekeyboardmarkup-telegram-bot-c-sharp</description>
+<description>今天在测试 telegram Bot 的时候，发现 keyboard 不能正确弹出来，后台查看发现报错了，提示 `Bad Request: BUTTON_DATA_INVALID`
+
+反复检查代码没有发现语法错误，查找之后了解到 **InlineKeyboardButton** 响应后返回的 **Callback Data** 有大小限制，最大64位：
+
+![2020-02-01T10:02:48.png][1]
+
+的确我想返回的内容长度的确超过了大小限制，优化源码后问题解决了。
+
+参考链接：
+https://core.telegram.org/bots/api#inlinekeyboardbutton
+https://stackoverflow.com/questions/46389040/inlinekeyboardbutton-are-limited-in-inlinekeyboardmarkup-telegram-bot-c-sharp
+
+  [1]: https://niekun.net/usr/uploads/2020/02/2328405825.png</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/438.html">
 <title>python 常用语法收集</title>
 <link>https://blog.niekun.net/archives/438.html</link>
 <dc:date>2019-10-17T14:52:00+08:00</dc:date>
-<description>在我使用过程中遇到的常用语法，这里做一些记录。os.system()可以用来运行终端命令：import os
+<description>在我使用过程中遇到的常用语法，这里做一些记录。
+
+
+
+
+# os.system()
+
+可以用来运行终端命令：
+```
+import os
 os.system('date')
 -----------------------
-The current date is: 10/17/2019 Thu glob用来将匹配的文件放入数组：import glob
+The current date is: 10/17/2019 Thu 
+```
+
+# glob
+
+用来将匹配的文件放入数组：
+```
+import glob
 import os
 CWD = os.getcwd()#当前目录路径
 for name in glob.glob(CWD+'/*'):
-    print(name)以上输出当前目录下所有文件的文件名。for name in glob.glob(CWD+'/file?.txt'):
-    print(name)以上输出  filea.txt, fileb.txt filec.txt 等文件名。可以使用类似正则表达式的方式匹配文件名：glob.glob(CWD+'/*[12].*')
-从python3.5开始，支持使用一下方法进行递归搜索目录内文件及文件夹：for name in glob.glob(CWD+'/**/*', recursive=True):
-    print(name)以上会输出目录内文件及子文件夹内文件。split()字符串分割：按空格分割，注意两个部分之间的空格可以是1个或多个，不影响分割效果：txt = &quot;welcome to the jungle&quot;
-x = txt.split()将 txt 字符串按空格来分成4个部分，x 是数组。分割成设定的个数：txt = &quot;welcome to the jungle&quot;
-x = txt.split(' ', 1)输出结果：x = ['welcome', 'to the jungle']按特定字符分割：txt = &quot;apple#banana#cherry#orange&quot;
-x = txt.split(&quot;#&quot;, 1)输出结果：x = ['apple', 'banana#cherry#orange']next()用于 iterator 的顺序提取。mylist = iter([&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;])
+    print(name)
+```
+以上输出当前目录下所有文件的文件名。
+```
+for name in glob.glob(CWD+'/file?.txt'):
+    print(name)
+```
+以上输出  filea.txt, fileb.txt filec.txt 等文件名。
+
+可以使用类似正则表达式的方式匹配文件名：
+    glob.glob(CWD+'/*[12].*')
+
+从python3.5开始，支持使用一下方法进行递归搜索目录内文件及文件夹：
+```
+for name in glob.glob(CWD+'/**/*', recursive=True):
+    print(name)
+```
+以上会输出目录内文件及子文件夹内文件。
+
+# split()
+
+字符串分割：
+
+**按空格分割，注意两个部分之间的空格可以是1个或多个，不影响分割效果：**
+```
+txt = "welcome to the jungle"
+x = txt.split()
+```
+将 txt 字符串按空格来分成4个部分，x 是数组。
+
+**分割成设定的个数：**
+```
+txt = "welcome to the jungle"
+x = txt.split(' ', 1)
+```
+输出结果：x = ['welcome', 'to the jungle']
+
+**按特定字符分割：**
+```
+txt = "apple#banana#cherry#orange"
+x = txt.split("#", 1)
+```
+输出结果：x = ['apple', 'banana#cherry#orange']
+
+# next()
+
+用于 iterator 的顺序提取。
+
+```
+mylist = iter(["apple", "banana", "cherry"])
 x = next(mylist)
 print(x)
 y = next(mylist)
 print(x)
 z = next(mylist)
-print(x)输出结果：x = 'apple' y = 'banana' z = 'cherry'format()用于字符串内的赋值：print (&quot;{}, A computer science portal for geeks&quot;.format(&quot;GeeksforGeeks&quot;))输出：GeeksforGeeks, A computer science portal for geeks多个输入参数：print (&quot;Hi ! My name is {} and I am {} years old&quot;
-                            .format(&quot;User&quot;, 19)) 带索引的多参数输入：print(&quot;Every {3} should know the use of {2} {1} programming and {0}&quot;
-        .format(&quot;programmer&quot;, &quot;Open&quot;, &quot;Source&quot;, &quot;Operating Systems&quot;)) 输出结果：Every Operating Systems should know the use of Source Open programming and programmerstrip()删除字符串前和后的空格：txt = &quot;     banana     &quot;
-x = txt.strip()输出：x = 'banana'删除字符串前和后的自定义字符：txt = &quot;,,,,,rrttgg.....banana....rrr&quot;
-x = txt.strip(&quot;,.grt&quot;)输出： x = 'banana'</description>
+print(x)
+```
+输出结果：x = 'apple' y = 'banana' z = 'cherry'
+
+# format()
+
+**用于字符串内的赋值：**
+    print ("{}, A computer science portal for geeks".format("GeeksforGeeks"))
+输出：GeeksforGeeks, A computer science portal for geeks
+
+**多个输入参数：**
+```
+print ("Hi ! My name is {} and I am {} years old"
+                            .format("User", 19)) 
+```
+
+带索引的多参数输入：
+```
+print("Every {3} should know the use of {2} {1} programming and {0}"
+        .format("programmer", "Open", "Source", "Operating Systems")) 
+```
+输出结果：Every Operating Systems should know the use of Source Open programming and programmer
+
+# strip()
+
+**删除字符串前和后的空格：**
+```
+txt = "     banana     "
+x = txt.strip()
+```
+输出：x = 'banana'
+
+删除字符串前和后的自定义字符：
+```
+txt = ",,,,,rrttgg.....banana....rrr"
+x = txt.strip(",.grt")
+```
+输出： x = 'banana'
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/428.html">
 <title>使用 telegram bot 做一个 YouTube 下载器</title>
 <link>https://blog.niekun.net/archives/428.html</link>
 <dc:date>2019-10-16T15:56:00+08:00</dc:date>
-<description>需要环境：Linuxpython3python-telegram-botyoutube-dlpython我是用的是 python3.4，使用系统包管理器安装：apt-get install python3.4
-如果系统内安装了多个版本的 python，修改 /usr/bin/python 的默认链接，具体修改方法查看此教程：https://niekun.net/index.php/archives/413.htmlpython-telegram-bot安装或升级： pip install python-telegram-bot --upgrade
-youtube-dlGitHub：https://github.com/ytdl-org/youtube-dl安装最新版库：sudo curl -L -k https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
-sudo chmod a+rx /usr/local/bin/youtube-dl如果运行 youtube-dl 报错，可以新建链接到系统程序目录：ln -s /usr/local/bin/youtube-dl /usr/bin/youtube-dl
-升级 youtube-dl 也可以使用 pip 完成：pip install --upgrade youtube-dl
-升级后的可执行文件默认在 pip 目录下，如果使用的 python 是自己编译安装的那需要手动去 python 的 bin 目录下找到 youtube-dl 文件创建软连接到 /usr/local/bin 目录。可能运行报错问题及解决执行脚本后，出现类似如下错误：from tornado.httpserver import HTTPServer from tornado.httpserver import HTTPServer 
-syntaxError: invalid syntax可能是 tornado 版本过高，需要进行降级：pip install tornado==4.5.3
-telegram bot首先在 telegram 客户端内添加 BotFatherCreating a new botUse the /newbot command to create a new bot. The BotFather will ask you for a name and username, then generate an authorization token for your new bot.The name of your bot is displayed in contact details and elsewhere.The Username is a short name, to be used in mentions and telegram.me links. Usernames are 5-32 characters long and are case insensitive, but may only include Latin characters, numbers, and underscores. Your bot's username must end in ‘bot’, e.g. ‘tetris_bot’ or ‘TetrisBot’.The token is a string along the lines of 110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw that is required to authorize the bot and send requests to the Bot API. Keep your token secure and store it safely, it can be used by anyone to control your bot.Generating an authorization tokenIf your existing token is compromised or you lost it for some reason, use the /token command to generate a new one.源码地址https://github.com/nie11kun/telegram-bot-youtube-downloader开机自动运行脚本较新的 Linux 发行版可以使用 systemd 来实现自动启动，参考：https://blog.niekun.net/archives/1334.html以下方式适合 Ubuntu 14.04 以下。打开 rc.localvim /etc/init.d/rc.local
-在最后添加：sudo python /your/script/path.py &amp;
-最后使用 "&" 符号功能是让脚本在后台运行，如果要停止脚本需要kill 它的 PID。查看当前脚本的 PID：ps -aux |grep &quot;your.py&quot;
-然后停止脚本：kill %PID
-windows 下可以使用自带的Linux子系统打开 cmd，输入命令：bash，即可打开Linux系统。访问Windows路径：/mnt/your/folder/path注意如果文件夹有空格 " " 在命令行中需要在空格前加转义符 "\"</description>
+<description>需要环境：
+Linux
+python3
+python-telegram-bot
+youtube-dl
+
+
+
+
+### python
+
+我是用的是 python3.4，使用系统包管理器安装：
+    apt-get install python3.4
+
+如果系统内安装了多个版本的 python，修改 /usr/bin/python 的默认链接，具体修改方法查看此教程：
+https://niekun.net/index.php/archives/413.html
+
+###  python-telegram-bot
+
+安装或升级：
+     pip install python-telegram-bot --upgrade
+
+### youtube-dl
+
+GitHub：https://github.com/ytdl-org/youtube-dl
+
+安装最新版库：
+```
+sudo curl -L -k https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
+sudo chmod a+rx /usr/local/bin/youtube-dl
+```
+
+如果运行 youtube-dl 报错，可以新建链接到系统程序目录：
+    ln -s /usr/local/bin/youtube-dl /usr/bin/youtube-dl
+
+升级 youtube-dl 也可以使用 pip 完成：
+    pip install --upgrade youtube-dl
+
+升级后的可执行文件默认在 pip 目录下，如果使用的 python 是自己编译安装的那需要手动去 python 的 bin 目录下找到 youtube-dl 文件创建软连接到 `/usr/local/bin` 目录。
+
+### 可能运行报错问题及解决
+
+#### 执行脚本后，出现类似如下错误：
+```
+from tornado.httpserver import HTTPServer from tornado.httpserver import HTTPServer 
+syntaxError: invalid syntax
+```
+可能是 tornado 版本过高，需要进行降级：
+    pip install tornado==4.5.3
+
+### telegram bot
+
+首先在 telegram 客户端内添加 [BotFather](https://telegram.me/botfather)
+
+**Creating a new bot**
+Use the `/newbot` command to create a new bot. The BotFather will ask you for a name and username, then generate an authorization token for your new bot.
+
+The `name` of your bot is displayed in contact details and elsewhere.
+
+The `Username` is a short name, to be used in mentions and telegram.me links. Usernames are 5-32 characters long and are case insensitive, but may only include Latin characters, numbers, and underscores. Your bot's username must end in ‘bot’, e.g. ‘tetris_bot’ or ‘TetrisBot’.
+
+The `token` is a string along the lines of `110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw` that is required to authorize the bot and send requests to the Bot API. Keep your token secure and store it safely, it can be used by anyone to control your bot.
+
+Generating an authorization token
+If your existing token is compromised or you lost it for some reason, use the `/token` command to generate a new one.
+
+### 源码地址
+
+https://github.com/nie11kun/telegram-bot-youtube-downloader
+
+### 开机自动运行脚本
+
+**较新的 Linux 发行版可以使用 systemd 来实现自动启动**，参考：https://blog.niekun.net/archives/1334.html
+
+以下方式适合 Ubuntu 14.04 以下。
+
+打开 rc.local
+    vim /etc/init.d/rc.local
+
+在最后添加：
+    sudo python /your/script/path.py &
+
+最后使用 "&" 符号功能是让脚本在后台运行，如果要停止脚本需要kill 它的 PID。
+
+查看当前脚本的 PID：
+    ps -aux |grep "your.py"
+
+然后停止脚本：
+    kill %PID
+
+### windows 下可以使用自带的Linux子系统
+
+打开 cmd，输入命令：bash，即可打开Linux系统。
+
+访问Windows路径：`/mnt/your/folder/path`
+
+注意如果文件夹有空格 " " 在命令行中需要在空格前加转义符 "\\"</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/413.html">
 <title>Linux / windows 设置默认 python 版本</title>
 <link>https://blog.niekun.net/archives/413.html</link>
 <dc:date>2019-10-15T10:51:00+08:00</dc:date>
-<description>windows搜索 path 点击系统环境变量：打开环境变量设置：系统变量里找到 path 点击编辑：将想要默认版本的 python 路径移动到其他版本前：注意有两个目录，一个是python 程序目录，还有一个 pip 目录。也可以使用命令切换使用不同版本的 python。python 2.x 版：py -2 xxx.py
-py -2 -m pip install xxxxpython 3.x 版：py -3 xxx.py
-py -3 -m pip install xxxx
-Linux先查看系统中有那些Python版本：ls /usr/bin/python*再查看系统默认的Python版本：python --version
-Python 2.7.12
-先删除默认的Python软链接：rm /usr/bin/python
-然后创建一个新的软链接指向需要的Python版本：ln -s /usr/bin/python3.4 /usr/bin/python
+<description>## windows
 
-</description>
+搜索 `path` 点击**系统环境变量**：
+![1.jpg][1]
+
+
+
+
+
+打开环境变量设置：
+![2019-10-15T02:49:56.png][2]
+
+系统变量里找到 path 点击编辑：
+![2019-10-15T02:51:05.png][3]
+
+将想要默认版本的 python 路径移动到其他版本前：
+![2019-10-15T02:58:54.png][4]
+
+**注意有两个目录，一个是python 程序目录，还有一个 pip 目录。**
+
+也可以使用命令切换使用不同版本的 python。
+
+python 2.x 版：
+    py -2 xxx.py
+    py -2 -m pip install xxxx
+python 3.x 版：
+    py -3 xxx.py
+    py -3 -m pip install xxxx
+
+## Linux
+
+先查看系统中有那些Python版本：
+    ls /usr/bin/python*
+![2019-10-15T06:17:12.png][5]
+
+再查看系统默认的Python版本：
+    python --version
+    Python 2.7.12
+
+先删除默认的Python软链接：
+
+    rm /usr/bin/python
+
+然后创建一个新的软链接指向需要的Python版本：
+
+    ln -s /usr/bin/python3.4 /usr/bin/python
+
+
+  [1]: https://blog.niekun.net/usr/uploads/2020/10/548978365.jpg
+  [2]: https://niekun.net/usr/uploads/2019/10/74431480.png
+  [3]: https://niekun.net/usr/uploads/2019/10/1452836558.png
+  [4]: https://niekun.net/usr/uploads/2019/10/3779938395.png
+  [5]: https://niekun.net/usr/uploads/2019/10/1994649197.png</description>
 </item>
 </rdf:RDF>

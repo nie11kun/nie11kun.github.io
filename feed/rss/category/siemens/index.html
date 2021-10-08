@@ -19,38 +19,106 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <title>828D 执行程序提示：等待插补缓冲</title>
 <link>https://blog.niekun.net/archives/2330.html</link>
 <dc:date>2021-09-03T09:38:00+08:00</dc:date>
-<description>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：程序代码如下：WHILE((R0&gt;=360) OR (R0&lt;0))
-    IF R0&gt;=360
-        R0=R0-360
-    ELSE
-        IF R0&lt;0
-            R0=360+R0
-        ENDIF
-    ENDIF
-ENDWHILE以上程序实现的功能是将 R0 的值控制在大于等于 0 小于 360 之间。理论上无论给 R0 赋予任何初值，执行以上代码后都可以将其自动计算为需要的结果。在分析后发现，出现以上报警的原因是程序在此 while 循环中无法跳出。随即从这里下手寻找问题点。在经过给 R0 赋予一些特殊的初值，然后执行程序后发现，当初值为 -0.0000000001 或 359.999999999 时无法跳出循环，R0 的值一直在这两者之间跳动，猜测应该是数控系统精度判断 359.999999999 等于 360，导致 IF R0&gt;=360 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。找到了问题点解决就很简单了，只需要将 R0=R0-360 修改为 R0=R0-360.00001 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。</description>
+<description>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：
+![2021-09-03T01:27:34.png][1]
+
+
+
+
+程序代码如下：
+```
+WHILE((R0>=360) OR (R0=360
+		R0=R0-360
+	ELSE
+		IF R0=360` 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。
+
+找到了问题点解决就很简单了，只需要将 `R0=R0-360` 修改为 `R0=R0-360.00001` 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。
+
+出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。
+
+
+  [1]: https://blog.niekun.net/usr/uploads/2021/09/577513986.png</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1563.html">
 <title>使用 EXECSTRING 指令执行字符串的内容</title>
 <link>https://blog.niekun.net/archives/1563.html</link>
 <dc:date>2020-05-07T15:57:00+08:00</dc:date>
-<description>最近在编程中遇到一个问题：字符串内定义了一个已知的变量名，需要得到变量的值。例如：已知 real 类型全局变量：TEST定义一个字符串,并赋值：DEF STRING[10] STR1
-STR1=&quot;TEST&quot;
-想通过 STR1 来得到 TEST 变量的值。可以使用 EXECSTRING 来处理:EXECSTRING(&quot;R0=&quot;&lt;&lt;STR1)
-以上指令可以将 TEST 变量的值读入 R0。</description>
+<description>最近在编程中遇到一个问题：字符串内定义了一个已知的变量名，需要得到变量的值。
+
+例如：
+已知 real 类型全局变量：`TEST`
+
+定义一个字符串,并赋值：
+    DEF STRING[10] STR1
+    STR1="TEST"
+
+想通过 `STR1` 来得到 `TEST` 变量的值。可以使用 `EXECSTRING` 来处理:
+    EXECSTRING("R0="</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/376.html">
 <title>SIEMENS 坐标系转换</title>
 <link>https://blog.niekun.net/archives/376.html</link>
 <dc:date>2019-09-18T14:23:00+08:00</dc:date>
-<description>编写 NC 程序时，遇到需要进行坐标系旋转的地方。研究了下手册，发现使用起来很方便。以上是 4 种常用的坐标变换指令。简介TRANS/ATRANS：以给定的几何轴方向移动 WCSROT/AROT：WCS 旋转：链接单个旋转，围绕给定的几何轴旋转当前工作平面（G17/G18/G19）绕角度RPL=...旋转SCALE/ASCALE：以设定的几何轴的方向比例放大/缩小轮廓MIRROR/AMIRROR：通过对设定的几何轴执行镜像（方向切换）进行 WCS 镜像每个指令可以独立生效，也可以叠加生效：替换型指令：TRANS X… Y… Z… 
+<description>**编写 NC 程序时，遇到需要进行坐标系旋转的地方。研究了下手册，发现使用起来很方便。**
+
+![2019-09-18T03:03:16.png][1]
+
+
+
+
+以上是 4 种常用的坐标变换指令。
+
+## 简介
+
+TRANS/ATRANS：以给定的几何轴方向移动 WCS
+ROT/AROT：WCS 旋转：
+- 链接单个旋转，围绕给定的几何轴旋转
+- 当前工作平面（G17/G18/G19）绕角度RPL=...旋转
+SCALE/ASCALE：以设定的几何轴的方向比例放大/缩小轮廓
+MIRROR/AMIRROR：通过对设定的几何轴执行镜像（方向切换）进行 WCS 镜像
+
+**每个指令可以独立生效，也可以叠加生效：**
+
+替换型指令：
+```
+TRANS X… Y… Z… 
 ROT X… Y… Z… 
 ROT RPL=... 
 SCALE X… Y… Z… 
-MIRROR X0/Y0/Z0 附加型指令：ATRANS X… Y… Z…
+MIRROR X0/Y0/Z0 
+```
+
+附加型指令：
+```
+ATRANS X… Y… Z…
 AROT X… Y… Z…
 AROT RPL=...
 ASCALE X… Y… Z…
-AMIRROR X0/Y0/Z0例如，想要先将参考点平移到 X1 Y1 (G17 平面)，然后将参考点绕Z轴旋转到45度：TRANS X1 Y1
-AROT RPL=45ROT句法ROT X30 - 绕X轴旋转30度ROT RPL=30 - 在当前平面旋转30度，如果当前为 G17，则绕Z轴旋转30，相当于 ROT Z30SCALE 句法ASCALE X0.7 Y0.7 - 可为每个轴设定一个独立的比例系数MIRRORMIRROR X0 - X 轴镜像（X轴上反向）MIRROR - 关闭镜像</description>
+AMIRROR X0/Y0/Z0
+```
+
+例如，想要先将参考点平移到 X1 Y1 (G17 平面)，然后将参考点绕Z轴旋转到45度：
+```
+TRANS X1 Y1
+AROT RPL=45
+```
+
+## ROT句法
+
+**ROT X30** - 绕X轴旋转30度
+**ROT RPL=30** - 在当前平面旋转30度，如果当前为 G17，则绕Z轴旋转30，相当于 ROT Z30
+
+## SCALE 句法
+
+**ASCALE X0.7 Y0.7** - 可为每个轴设定一个独立的比例系数
+
+## MIRROR
+
+**MIRROR X0** - X 轴镜像（X轴上反向）
+**MIRROR** - 关闭镜像
+
+
+  [1]: https://niekun.net/usr/uploads/2019/09/2723381540.png
+  [2]: https://niekun.net/usr/uploads/2019/09/1463123164.png</description>
 </item>
 </rdf:RDF>

@@ -7,7 +7,7 @@ xml:base="https://blog.niekun.net/2021/05/"
 <title type="text">Marco Nie - 2021年5月</title>
 <subtitle type="text">you are the company you keep...</subtitle>
 <updated>2021-05-31T18:33:51+08:00</updated>
-<generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
+<generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/2021/05/" />
 <id>https://blog.niekun.net/feed/atom/2021/05/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/05/" />
@@ -21,36 +21,99 @@ xml:base="https://blog.niekun.net/2021/05/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 2&amp;gt;&amp;amp;1，例如：ls foo &amp;gt; /dev/null 2&amp;...]]></summary>
+<summary type="html"><![CDATA[you are the company you keep...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2320.html" xml:lang="zh-CN"><![CDATA[
-<p>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 <code>2&gt;&amp;1</code>，例如：</p><pre><code>ls foo &gt; /dev/null 2&gt;&amp;1
-</code></pre><p>下面我们一步步了解下这种结构的含义。</p><!--more--><h3>I/O redirection 重定向</h3><p>简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 <code>cat</code> 命令打印一个文件的内容到屏幕：</p><pre><code>$ cat foo.txt
+<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 `2>&1`，例如：
+    ls foo > /dev/null 2>&1
+
+下面我们一步步了解下这种结构的含义。
+
+
+<!--more-->
+
+### I/O redirection 重定向
+
+简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 `cat` 命令打印一个文件的内容到屏幕：
+```
+$ cat foo.txt
 foo
 bar
-baz</code></pre><p>我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:</p><pre><code>$ cat foo.txt &gt; output.txt
+baz
+```
+
+我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:
+```
+$ cat foo.txt > output.txt
 
 $ cat output.txt
 foo
 bar
-baz</code></pre><p>执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 <strong>standard output (stdout)标准输出</strong>到一个文件，所以它就不会输出到屏幕了。</p><p>需要注意的是还有另一个地方：<strong>standard error (stderr)标准错误</strong>，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：</p><pre><code>$ cat nop.txt &gt; output.txt
-cat: nop.txt: No such file or directory</code></pre><p>以上示例中即使我们将 <strong>stdout</strong> 重定向到一个文件了，由于 output.txt 不存在，<strong>stderr</strong> 依然会输出错误信息到屏幕。因为我们重定向的只是 <strong>stdout</strong> 而不包括 <strong>stderr</strong>。</p><h3>file descriptors 文件描述器</h3><p>一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 <strong>stdout</strong> 和 <strong>stderr</strong> 有其各自的文件描述器 id 定义了它们各自的地址。</p><p><strong>stdout</strong> 是 <strong>1</strong>，<strong>stderr</strong> 是 <strong>2</strong>。</p><p>在之前的示例中，我们可以修改命令为如下结构：</p><pre><code>cat foo.txt 1&gt; output.txt
-</code></pre><p>这里的 <strong>1</strong> 就是 <strong>stdout</strong> 的文件描述器，通过重定向语法 <code>[FILE_DESCRIPTOR]&gt;</code> 将 <strong>stdout</strong> 重定向到另一个文件。注意 <code>1&gt;</code> 可以简写为 <code>&gt;</code>。</p><p>类似的，可以将 stderr 重定向到指定的目的地：</p><pre><code>$ cat nop.txt 2&gt; error.txt
+baz
+```
+
+执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 **standard output (stdout)标准输出**到一个文件，所以它就不会输出到屏幕了。
+
+需要注意的是还有另一个地方：**standard error (stderr)标准错误**，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：
+```
+$ cat nop.txt > output.txt
+cat: nop.txt: No such file or directory
+```
+
+以上示例中即使我们将 **stdout** 重定向到一个文件了，由于 output.txt 不存在，**stderr** 依然会输出错误信息到屏幕。因为我们重定向的只是 **stdout** 而不包括 **stderr**。
+
+### file descriptors 文件描述器
+
+一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 **stdout** 和 **stderr** 有其各自的文件描述器 id 定义了它们各自的地址。
+
+**stdout** 是 **1**，**stderr** 是 **2**。
+
+在之前的示例中，我们可以修改命令为如下结构：
+    cat foo.txt 1> output.txt
+
+这里的 **1** 就是 **stdout** 的文件描述器，通过重定向语法 `[FILE_DESCRIPTOR]>` 将 **stdout** 重定向到另一个文件。注意 `1>` 可以简写为 `>`。
+
+类似的，可以将 stderr 重定向到指定的目的地：
+```
+$ cat nop.txt 2> error.txt
 
 $ cat error.txt
-cat: nop.txt: No such file or directory</code></pre><p>这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。</p><p>下面我们理解下 <code>2&gt;&amp;1</code> 的意义。我们使用 <code>&amp;1</code> 来指向 <strong>stdout</strong> 的重定向地址，所以 <code>2&gt;&amp;1</code> 表示重定向 <strong>stderr</strong> 到和 <strong>stdout</strong> 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 <strong>stdout</strong> 和 <strong>stderr</strong> 重定向到同一个文件中：</p><pre><code>$ cat foo.txt &gt; output.txt 2&gt;&amp;1
+cat: nop.txt: No such file or directory
+```
+
+这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。
+
+下面我们理解下 `2>&1` 的意义。我们使用 `&1` 来指向 **stdout** 的重定向地址，所以 `2>&1` 表示重定向 **stderr** 到和 **stdout** 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 **stdout** 和 **stderr** 重定向到同一个文件中：
+```
+$ cat foo.txt > output.txt 2>&1
 
 $ cat output.txt
 foo
 bar
 baz
 
-$ cat nop.txt &gt; output.txt 2&gt;&amp;1
+$ cat nop.txt > output.txt 2>&1
 
 $ cat output.txt
-cat: nop.txt: No such file or directory</code></pre><h3>总结</h3><ul><li>有两个地方用来让程序发送输出内容：<strong>stdout</strong>，<strong>stderr</strong></li><li>可以单独定义两个输出的重定向目的地</li><li>文件描述器用来识别 <strong>stdout (1)</strong> 和 <strong>stderr (2)</strong></li><li><code>command &gt; output</code> 是 <code>command 1&gt; output</code> 的简写</li><li>通过 <code>&amp;[FILE_DESCRIPTOR]</code> 指向一个文件描述器的重定向目标地址上</li><li><code>2&gt;&amp;1</code> 可以将 <strong>stderr</strong> 重定向到 <strong>stdout</strong> 同样的重定向地址上。反之亦然。</li></ul><h3>参考链接</h3><p><a href="https://www.brianstorti.com/understanding-shell-script-idiom-redirect/">Understanding Shell Script's idiom: 2&gt;&1</a><br><a href="https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean">In the shell, what does “ 2&gt;&1 ” mean?</a></p>
+cat: nop.txt: No such file or directory
+```
+
+### 总结
+
+- 有两个地方用来让程序发送输出内容：**stdout**，**stderr**
+- 可以单独定义两个输出的重定向目的地
+- 文件描述器用来识别 **stdout (1)** 和 **stderr (2)**
+- `command > output` 是 `command 1> output` 的简写
+- 通过 `&[FILE_DESCRIPTOR]` 指向一个文件描述器的重定向目标地址上
+- `2>&1` 可以将 **stderr** 重定向到 **stdout** 同样的重定向地址上。反之亦然。
+
+### 参考链接
+
+[Understanding Shell Script's idiom: 2>&1](https://www.brianstorti.com/understanding-shell-script-idiom-redirect/)
+[In the shell, what does “ 2>&1 ” mean?](https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean)
+</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2320.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2320.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/05/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[通过 telegram-cli 命令行发送 telegram 消息]]></title>
@@ -62,20 +125,72 @@ cat: nop.txt: No such file or directory</code></pre><h3>总结</h3><ul><li>有�
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。GitHub 主页：htt...]]></summary>
+<summary type="html"><![CDATA[you are the company you keep...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2310.html" xml:lang="zh-CN"><![CDATA[
-<p>最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。</p><p>GitHub 主页：<a href="https://github.com/vysheng/tg">https://github.com/vysheng/tg</a></p><p>测试平台为 Ubuntu 18.04</p><!--more--><h3>安装</h3><p>有两种方法安装，第一种是通过 snap 应用商店来安装，第二种是从源码安装。</p><p>snap 安装需要首先安装 snap 环境：</p><pre><code>sudo apt install snapd
-</code></pre><p>然后就可以安装 telegram-cli：</p><pre><code>sudo snap install telegram-cli
-</code></pre><p>默认安装路径为：<code>/snap/bin/telegram-cli</code></p><p>从源码编译稍微有些麻烦，因为 GitHub 上的源码最近更新是 2016 年，经过我的测试在 make 时会报错，查询后需要增加安装相关依赖库及调整配置选项后才能正常编译。</p><p>首先安装依赖：</p><pre><code> sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev libpython-dev zlib1g-dev libgcrypt20-dev make
-</code></pre><p>下载仓库源码：</p><pre><code>git clone --recursive https://github.com/vysheng/tg.git &amp;&amp; cd tg
-</code></pre><p>然后配置 configure：</p><pre><code>./configure --disable-openssl
-</code></pre><p>最后编译：</p><pre><code>make
-</code></pre><p>编译完成后可执行文件在项目源码的 <strong>bin</strong> 文件夹内。</p><h3>使用</h3><p>安装完成后需要配置账户信息，输入 telegram-cli 命令：</p><pre><code>telegram-cli
-</code></pre><p>会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。</p><p>这时候通过 <code>msg USERNAME message</code> 的模式来给某个对话发送消息了：</p><pre><code>&gt; msg my_bot test
-</code></pre><p>USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过<code>@username</code>的方式定义会话对象。</p><p>经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：<strong>error FAIL: 38: can not parse arg #1</strong>，但是我的用户名写的是没问题的。这时候需要首先执行一下 <code>dialog_list</code> 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 <code>@username</code> 来发送消息了。</p><p>以上的操作都是在登录到 telegram-cli 中进行的，可以通过 <strong>quit</strong> 或 <strong>safe_quit</strong> 命令退出 telegram-cli 程序：</p><pre><code>&gt; quit
-</code></pre><p>我们也可以直接通过 telegram-cli 命令发送给某个对象消息，需要 <code>-e</code> 参数加执行的命令，例如：</p><pre><code>telegram-cli -e &quot;msg @username message&quot;
-</code></pre><p>建议执行时加上 <code>-W</code>参数以加载 dialog 列表，否则可能出现报警：<strong>error FAIL: 38: can not parse arg #1</strong>：</p><pre><code>telegram-cli -W -e &quot;msg @username message&quot;
-</code></pre><p>使用 <code>-D</code> 参数可以关闭输出信息。使用 <code>-U</code> 参数可以自定义命令执行的用户。</p><p>更多 telegram-cli 可用参数如下：</p><pre><code># telegram-cli -h
+<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。
+
+GitHub 主页：https://github.com/vysheng/tg
+
+测试平台为 Ubuntu 18.04
+
+<!--more-->
+
+### 安装
+
+有两种方法安装，第一种是通过 snap 应用商店来安装，第二种是从源码安装。
+
+snap 安装需要首先安装 snap 环境：
+    sudo apt install snapd
+
+然后就可以安装 telegram-cli：
+    sudo snap install telegram-cli
+
+默认安装路径为：`/snap/bin/telegram-cli`
+
+从源码编译稍微有些麻烦，因为 GitHub 上的源码最近更新是 2016 年，经过我的测试在 make 时会报错，查询后需要增加安装相关依赖库及调整配置选项后才能正常编译。
+
+首先安装依赖：
+     sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev libpython-dev zlib1g-dev libgcrypt20-dev make
+
+下载仓库源码：
+    git clone --recursive https://github.com/vysheng/tg.git && cd tg
+
+然后配置 configure：
+    ./configure --disable-openssl
+
+最后编译：
+    make
+
+编译完成后可执行文件在项目源码的 **bin** 文件夹内。
+
+### 使用
+
+安装完成后需要配置账户信息，输入 telegram-cli 命令：
+    telegram-cli
+
+会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。
+
+这时候通过 `msg USERNAME message` 的模式来给某个对话发送消息了：
+    > msg my_bot test
+
+USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过`@username`的方式定义会话对象。
+
+经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：**error FAIL: 38: can not parse arg #1**，但是我的用户名写的是没问题的。这时候需要首先执行一下 `dialog_list` 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 `@username` 来发送消息了。
+
+以上的操作都是在登录到 telegram-cli 中进行的，可以通过 **quit** 或 **safe_quit** 命令退出 telegram-cli 程序：
+    > quit
+
+我们也可以直接通过 telegram-cli 命令发送给某个对象消息，需要 `-e` 参数加执行的命令，例如：
+    telegram-cli -e "msg @username message"
+
+建议执行时加上 `-W`参数以加载 dialog 列表，否则可能出现报警：**error FAIL: 38: can not parse arg #1**：
+    telegram-cli -W -e "msg @username message"
+
+使用 `-D` 参数可以关闭输出信息。使用 `-U` 参数可以自定义命令执行的用户。
+
+更多 telegram-cli 可用参数如下：
+```
+# telegram-cli -h
 telegram-cli Usage
   --phone/-u                           specify username (would not be asked during authorization)
   --rsa-key/-k                         specify location of public key (possible multiple entries)
@@ -92,13 +207,13 @@ telegram-cli Usage
   --disable-readline/-R                disable readline
   --alert/-A                           enable bell notifications
   --daemonize/-d                       daemon mode
-  --logname/-L &lt;log-name&gt;              log file name
-  --username/-U &lt;user-name&gt;            change uid after start
-  --groupname/-G &lt;group-name&gt;          change gid after start
+  --logname/-L <log-name>              log file name
+  --username/-U <user-name>            change uid after start
+  --groupname/-G <group-name>          change gid after start
   --disable-output/-D                  disable output
-  --tcp-port/-P &lt;port&gt;                 port to listen for input commands
-  --udp-socket/-S &lt;socket-name&gt;        unix socket to create
-  --exec/-e &lt;commands&gt;                 make commands end exit
+  --tcp-port/-P <port>                 port to listen for input commands
+  --udp-socket/-S <socket-name>        unix socket to create
+  --exec/-e <commands>                 make commands end exit
   --disable-names/-I                   use user and chat IDs in updates instead of names
   --enable-ipv6/-6                     use ipv6 (may be unstable)
   --help/-h                            prints this help
@@ -107,16 +222,50 @@ telegram-cli Usage
   --bot/-b                             bot mode
   --json                               prints answers and values in json format
   --permanent-msg-ids                  use permanent msg ids
-  --permanent-peer-ids                 use permanent peer ids</code></pre><h3>crontab 定时任务</h3><p>可以通过 crontab 设置定时自动发送消息。</p><p>首先编辑执行脚本，将如下示例代码保存在 <strong>test.sh</strong> 中：</p><pre><code>#!/bin/sh
-LOGFILE=&quot;/home/log/submit_code.log&quot;
+  --permanent-peer-ids                 use permanent peer ids
+```
 
-telegram-cli -U root -W -e &quot;msg USERNAME test&quot; &gt;&gt; ${LOGFILE}</code></pre><p>以上脚本通过 root 用户执行发送消息，会首先加载 dialog list 然后发送消息，最后退出会话。</p><p>脚本中我配置了将发送信息保存在 log 文件中，也可以不保存日志，去掉最后的 <code>&gt;&gt; ${LOGFILE}</code> 即可。</p><p>然后配置 crontab 定时任务，可以参考我的教程：<a href="https://blog.niekun.net/archives/461.html">https://blog.niekun.net/archives/461.html</a></p><p>需要注意的是通过 snap 安装的 telegram-cli 可执行程序目录默认在 <code>/snap/bin</code> 目录下。需要将路径定义到 crontab 配置文件中才可以正常识别到脚本中的 telegram-cli 命令。</p><p>编辑 <code>/etc/crontab</code> 文件：</p><pre><code>SHELL=/bin/sh
+### crontab 定时任务
+
+可以通过 crontab 设置定时自动发送消息。
+
+首先编辑执行脚本，将如下示例代码保存在 **test.sh** 中：
+```
+#!/bin/sh
+LOGFILE="/home/log/submit_code.log"
+
+telegram-cli -U root -W -e "msg USERNAME test" >> ${LOGFILE}
+```
+
+以上脚本通过 root 用户执行发送消息，会首先加载 dialog list 然后发送消息，最后退出会话。
+
+脚本中我配置了将发送信息保存在 log 文件中，也可以不保存日志，去掉最后的 `>> ${LOGFILE}` 即可。
+
+然后配置 crontab 定时任务，可以参考我的教程：https://blog.niekun.net/archives/461.html
+
+需要注意的是通过 snap 安装的 telegram-cli 可执行程序目录默认在 `/snap/bin` 目录下。需要将路径定义到 crontab 配置文件中才可以正常识别到脚本中的 telegram-cli 命令。
+
+编辑 `/etc/crontab` 文件：
+```
+SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/snap/bin
 HOME=/root
 
-10  9  *  *  * root bash   /path/to/test.sh</code></pre><p>注意 <strong>PATH</strong> 参数最后添加的 <code>/snap/bin</code>，如果是通过其他方式安装的 telegram-cli，需要根据实际情况定义可执行程序路径。</p><p>保存文件后，会自动在 9 点 10 分自动执行 <strong>test.sh</strong> 脚本。</p><h3>参考链接</h3><p><a href="https://snapcraft.io/install/telegram-cli/ubuntu">How to install telegram-clion Ubuntu</a><br><a href="https://www.91yun.co/archives/5691">使用telegram-cli命令行发送信息</a><br><a href="https://www.orzlee.com/toss/2021/02/24/lxk0301-jingdong-signin-scriptautomatic-submission-of-mutual-aid-codes.html">LXK0301京东签到脚本-自动提交互助码</a><br><a href="https://github.com/vysheng/tg/issues/548#issuecomment-169776227">FAIL: 38: can not parse arg #1</a></p>
+10  9  *  *  * root bash   /path/to/test.sh
+```
+
+注意 **PATH** 参数最后添加的 `/snap/bin`，如果是通过其他方式安装的 telegram-cli，需要根据实际情况定义可执行程序路径。
+
+保存文件后，会自动在 9 点 10 分自动执行 **test.sh** 脚本。
+
+### 参考链接
+
+[How to install telegram-clion Ubuntu](https://snapcraft.io/install/telegram-cli/ubuntu)
+[使用telegram-cli命令行发送信息](https://www.91yun.co/archives/5691)
+[LXK0301京东签到脚本-自动提交互助码](https://www.orzlee.com/toss/2021/02/24/lxk0301-jingdong-signin-scriptautomatic-submission-of-mutual-aid-codes.html)
+[FAIL: 38: can not parse arg #1](https://github.com/vysheng/tg/issues/548#issuecomment-169776227)</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2310.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2310.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/05/" thr:count="0"/>
 </entry>
 </feed>
