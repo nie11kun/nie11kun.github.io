@@ -17,15 +17,36 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <title>Linux 自动删除指定天数前文件</title>
 <link>https://blog.niekun.net/archives/832.html</link>
 <dc:date>2019-12-20T10:15:00+08:00</dc:date>
-<description>服务器上搭建了个云盘，有个 temp 目录存放一些临时文件，想要设定指定天数后自动删除，可以使用 Linux 脚本实现。用到的命令：find mtime crontab基本思路是使用 find 命令筛选符合条件的文件或文件夹，使用 crontab 创建定时任务。find 的详细用法：https://niekun.net/index.php/archives/543.htmlcrontab 的详细用法：https://niekun.net/index.php/archives/461.html指定删除 /temp 目录下超过 3 天的文件，新建脚本 timerRemove.sh 内容如下：LOCALDIR=&quot;/temp/&quot;
-LOCALAGE=&quot;3&quot;
+<description>服务器上搭建了个云盘，有个 temp 目录存放一些临时文件，想要设定指定天数后自动删除，可以使用 Linux 脚本实现。
+
+用到的命令：
+find mtime crontab
+
+基本思路是使用 find 命令筛选符合条件的文件或文件夹，使用 crontab 创建定时任务。
+
+find 的详细用法：https://niekun.net/index.php/archives/543.html
+crontab 的详细用法：https://niekun.net/index.php/archives/461.html
+
+
+
+
+指定删除 /temp 目录下超过 3 天的文件，新建脚本 timerRemove.sh 内容如下：
+```
+LOCALDIR="/temp/"
+LOCALAGE="3"
 cd ${LOCALDIR} || exit
 
-find ${LOCALDIR}* -mtime +${LOCALAGE} -exec rm -rf {} \;在 crontab 配置文件内修改如下，每 2 小时执行一次脚本：SHELL=/bin/bash
+find ${LOCALDIR}* -mtime +${LOCALAGE} -exec rm -rf {} \;
+```
+
+在 crontab 配置文件内修改如下，每 2 小时执行一次脚本：
+```
+SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 MAILTO=root
 HOME=/root
 
-0  */2  *  *  * root bash /path/to/timerRemove.sh</description>
+0  */2  *  *  * root bash /path/to/timerRemove.sh
+```</description>
 </item>
 </rdf:RDF>

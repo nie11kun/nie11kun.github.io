@@ -7,7 +7,7 @@ xml:base="https://blog.niekun.net/tag/nginx/"
 <title type="text">Marco Nie - nginx</title>
 <subtitle type="text"></subtitle>
 <updated>2020-09-22T16:27:00+08:00</updated>
-<generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
+<generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/tag/nginx/" />
 <id>https://blog.niekun.net/feed/atom/tag/nginx/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/tag/nginx/" />
@@ -21,18 +21,31 @@ xml:base="https://blog.niekun.net/tag/nginx/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[今天在使用 journalctl 查看 nginx 日志时看到在每次启动服务后会出现一条错误信息：$ journalctl -u nginx...nginx.service: Failed to...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/1763.html" xml:lang="zh-CN"><![CDATA[
-<p>今天在使用 <code>journalctl</code> 查看 nginx 日志时看到在每次启动服务后会出现一条错误信息：</p><pre><code>$ journalctl -u nginx
-...
-nginx.service: Failed to parse PID from file /opt/nginx/logs/nginx.pid: Invalid argument
-...
-</code></pre><p>查找了下原因，可能是 nginx 在启动时创建 nginx.pid 文件前 systemd 就在请求这个文件，所以出错了。</p><p>解决办法就是题前手动创建 systemd 需要的文件：</p><pre><code>mkdir /etc/systemd/system/nginx.service.d
-printf &quot;[Service]\nExecStartPost=/bin/sleep 0.1\n&quot; &gt; /etc/systemd/system/nginx.service.d/override.conf
-systemctl daemon-reload</code></pre><p>以上处理就可以解决问题。</p><p>参考链接：<br><a href="https://bugs.launchpad.net/ubuntu/+source/nginx/+bug/1581864">https://bugs.launchpad.net/ubuntu/+source/nginx/+bug/1581864</a></p>
+<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">今天在使用 `journalctl` 查看 nginx 日志时看到在每次启动服务后会出现一条错误信息：
+    $ journalctl -u nginx
+    ...
+    nginx.service: Failed to parse PID from file /opt/nginx/logs/nginx.pid: Invalid argument
+    ...
+
+查找了下原因，可能是 nginx 在启动时创建 nginx.pid 文件前 systemd 就在请求这个文件，所以出错了。
+
+解决办法就是题前手动创建 systemd 需要的文件：
+```
+mkdir /etc/systemd/system/nginx.service.d
+printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" > /etc/systemd/system/nginx.service.d/override.conf
+systemctl daemon-reload
+```
+
+以上处理就可以解决问题。
+
+参考链接：
+https://bugs.launchpad.net/ubuntu/+source/nginx/+bug/1581864
+
+</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1763.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1763.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/tag/nginx/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[限制用户名密码访问页面 in nginx]]></title>
@@ -44,25 +57,72 @@ systemctl daemon-reload</code></pre><p>以上处理就可以解决问题。</p><
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。如果使用 nginx 作为反向代理服务器，可以使用 auth_basic 来实现页面加密。环境需求：Linux envnginxap...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/730.html" xml:lang="zh-CN"><![CDATA[
-<p>有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。</p><p>如果使用 <strong>nginx</strong> 作为反向代理服务器，可以使用 <strong>auth_basic</strong> 来实现页面加密。</p><p><strong>环境需求：</strong></p><p>Linux env<br>nginx<br><strong>apache2-utils</strong> (Debian, Ubuntu) or <strong>httpd-tools</strong> (RHEL/CentOS/Oracle Linux)</p><p><strong>安装环境：</strong></p><p>nginx 安装参考：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p>安装 apache2-utils：</p><pre><code>apt-get install apache2-utils
-</code></pre><p><strong>创建账户密码：</strong></p><p>使用了 htpasswd 命令创建用户。</p><p>关于 htpasswd 的详细使用：<a href="https://httpd.apache.org/docs/2.4/programs/htpasswd.html">https://httpd.apache.org/docs/2.4/programs/htpasswd.html</a></p><p>建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：</p><pre><code>htpasswd -c /etc/nginx/users/.adminpasswd user1
-</code></pre><p>.adminpasswd 为隐藏的存储所有账户信息的文件，user1 为用户名，回车后会提示输入密码，然后确认密码。</p><p>建立其他账户：</p><pre><code>htpasswd /etc/nginx/users/.adminpasswd user2
-</code></pre><p>不需要 <code>-c</code> 参数，因为文件已经建立了。</p><p>验证账户密码 <code>-v</code>：</p><pre><code>htpasswd -v /etc/nginx/users/.adminpasswd user1
-</code></pre><p>删除账户 <code>-D</code>：</p><pre><code>htpasswd -D /etc/nginx/users/.adminpasswd user1
-</code></pre><p><strong>使用账户：</strong></p><p>打开 nginx 配置文件，在需要账户登录的路径段修改如下：</p><pre><code>location /path {
+<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。
+
+如果使用 **nginx** 作为反向代理服务器，可以使用 **auth_basic** 来实现页面加密。
+
+**环境需求：**
+
+Linux env
+nginx
+**apache2-utils** (Debian, Ubuntu) or **httpd-tools** (RHEL/CentOS/Oracle Linux)
+
+**安装环境：**
+
+nginx 安装参考：https://niekun.net/index.php/archives/30.html
+
+安装 apache2-utils：
+    apt-get install apache2-utils
+
+**创建账户密码：**
+
+使用了 htpasswd 命令创建用户。
+
+关于 htpasswd 的详细使用：https://httpd.apache.org/docs/2.4/programs/htpasswd.html
+
+建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：
+    htpasswd -c /etc/nginx/users/.adminpasswd user1
+
+.adminpasswd 为隐藏的存储所有账户信息的文件，user1 为用户名，回车后会提示输入密码，然后确认密码。
+
+建立其他账户：
+    htpasswd /etc/nginx/users/.adminpasswd user2
+
+不需要 `-c` 参数，因为文件已经建立了。
+
+验证账户密码 `-v`：
+    htpasswd -v /etc/nginx/users/.adminpasswd user1
+
+删除账户 `-D`：
+    htpasswd -D /etc/nginx/users/.adminpasswd user1
+
+**使用账户：**
+
+打开 nginx 配置文件，在需要账户登录的路径段修改如下：
+```
+location /path {
     ...
-    auth_basic           &quot;Administrator's Area&quot;;
+    auth_basic           "Administrator's Area";
     auth_basic_user_file /etc/nginx/users/.adminpasswd;
     ...
     ...
-}</code></pre><p>重新加载配置文件：</p><pre><code>service nginx configtest
-service nginx reload
-</code></pre><p>打开对应页面测试是否提示输入账号密码。</p>
+}
+```
+
+重新加载配置文件：
+    service nginx configtest
+    service nginx reload
+
+打开对应页面测试是否提示输入账号密码。
+
+
+
+
+</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/730.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/730.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/tag/nginx/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[fancyindex 插件模块美化 nginx 的默认 index 页面]]></title>
@@ -74,32 +134,95 @@ service nginx reload
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[使用 nginx 的 autoindex 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：autoindex 搭建教程参考：https://niekun.net/index.php/arc...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/725.html" xml:lang="zh-CN"><![CDATA[
-<p><img src="https://niekun.net/usr/uploads/2019/12/4133735129.png" alt="2019-12-09T06:50:25.png" title="2019-12-09T06:50:25.png"></p><p>使用 <strong>nginx</strong> 的 <strong>autoindex</strong> 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：<br><img src="https://niekun.net/usr/uploads/2019/12/3380876021.png" alt="2019-12-09T06:48:13.png" title="2019-12-09T06:48:13.png"></p><p><strong>autoindex</strong> 搭建教程参考：<a href="https://niekun.net/index.php/archives/26.html">https://niekun.net/index.php/archives/26.html</a></p><p>如果需要更加美观和丰富的页面，可以使用第三方模块 <strong>fancyindex</strong> 来实现。</p><!--more--><p>fancyindex GitHub 主页：<a href="https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format">https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format</a></p><blockquote>The Fancy Index module makes possible the generation of file listings, like the built-in autoindex module does, but adding a touch of style.</blockquote><h2>安装</h2><p>使用 fancyindex 首先需要安装带有 fancyindex 模块的 nginx，需要在编译 nginx 的时候加载 fancyindex 源码作为 add-module。</p><p>从源码编译 nginx 及加载 第三方模块教程参考：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p>查看当前安装 nginx 是否包含 fancyindex：</p><pre><code>nginx -V
-</code></pre><h2>使用</h2><p>使用方法很简单，在需要作为共享目录的 location 段，修改如下：</p><pre><code>location /shared {
+<div id="md_content_3" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">![2019-12-09T06:50:25.png][1]
+
+使用 **nginx** 的 **autoindex** 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：
+![2019-12-09T06:48:13.png][2]
+
+**autoindex** 搭建教程参考：https://niekun.net/index.php/archives/26.html
+
+如果需要更加美观和丰富的页面，可以使用第三方模块 **fancyindex** 来实现。
+
+
+<!--more-->
+
+fancyindex GitHub 主页：https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format
+
+> The Fancy Index module makes possible the generation of file listings, like the built-in autoindex module does, but adding a touch of style. 
+
+## 安装
+
+使用 fancyindex 首先需要安装带有 fancyindex 模块的 nginx，需要在编译 nginx 的时候加载 fancyindex 源码作为 add-module。
+
+从源码编译 nginx 及加载 第三方模块教程参考：https://niekun.net/index.php/archives/30.html
+
+查看当前安装 nginx 是否包含 fancyindex：
+    nginx -V
+
+## 使用
+
+使用方法很简单，在需要作为共享目录的 location 段，修改如下：
+```
+location /shared {
   fancyindex on;              # Enable fancy indexes.
   fancyindex_exact_size off;  # Output human-readable file sizes.
-}</code></pre><p>重新加载配置查看效果：</p><pre><code>service nginx reload
+}
+```
 
-</code></pre><h2>使用自定义配置美化页面</h2><p>由于 fancyindex 支持自定义页眉页脚和主题风格，所以可以使用 html 来进行修饰。</p><p>我的主题：<a href="https://github.com/nie11kun/FancyIndexTheme">https://github.com/nie11kun/FancyIndexTheme</a></p><p>下载主题到服务器，我放置在：/home/www/FancyIndexTheme</p><p>新建 fancyindex 的配置文件：fancyindex，我放在 /etc/nginx/my-server/fancyindex，内容如下：</p><pre><code>fancyindex             on;
-fancyindex_header      &quot;/FancyIndexTheme/header.html&quot;;
-fancyindex_footer      &quot;/FancyIndexTheme/footer.html&quot;;
+重新加载配置查看效果：
+    service nginx reload
+
+
+## 使用自定义配置美化页面
+
+由于 fancyindex 支持自定义页眉页脚和主题风格，所以可以使用 html 来进行修饰。
+
+我的主题：https://github.com/nie11kun/FancyIndexTheme
+
+下载主题到服务器，我放置在：/home/www/FancyIndexTheme
+
+新建 fancyindex 的配置文件：fancyindex，我放在 /etc/nginx/my-server/fancyindex，内容如下：
+```
+fancyindex             on;
+fancyindex_header      "/FancyIndexTheme/header.html";
+fancyindex_footer      "/FancyIndexTheme/footer.html";
 fancyindex_show_path   off;
 fancyindex_name_length 255;
 fancyindex_exact_size  off;
 fancyindex_localtime   on;
-fancyindex_time_format &quot;%Y-%m-%d %H:%M&quot;;</code></pre><p>详细的配置参数使用方法参考：<a href="https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format">https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format</a></p><p>在 nginx 配置文件中，需要作为共享文件夹的路径如 download 修改如下：</p><pre><code>    location /download {
+fancyindex_time_format "%Y-%m-%d %H:%M";
+```
+
+详细的配置参数使用方法参考：https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format
+
+在 nginx 配置文件中，需要作为共享文件夹的路径如 download 修改如下：
+```
+    location /download {
         root /home/www;
         include my-server/fancyindex;
-    }</code></pre><p>在 nginx 配置文件中，配置外部 html 配置页面文件夹访问路径，我的主题文件夹路径为 /home/www/FancyIndexTheme：</p><pre><code>    location /FancyIndexTheme {
+    }
+```
+
+在 nginx 配置文件中，配置外部 html 配置页面文件夹访问路径，我的主题文件夹路径为 /home/www/FancyIndexTheme：
+```
+    location /FancyIndexTheme {
         root /home/www;
-    }</code></pre><p>重新加载配置文件：</p><pre><code>service nginx configtest
-service nginx reload
-</code></pre><p>现在可以打开共享页面查看效果。</p>
+    }
+```
+
+重新加载配置文件：
+    service nginx configtest
+    service nginx reload
+
+现在可以打开共享页面查看效果。
+
+
+  [1]: https://niekun.net/usr/uploads/2019/12/4133735129.png
+  [2]: https://niekun.net/usr/uploads/2019/12/3380876021.png</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/725.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/725.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/tag/nginx/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[NGINX rewrite 模块的应用]]></title>
@@ -111,38 +234,124 @@ service nginx reload
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[nginx rewrite 模块主要应用于修改客户端发起的 url 请求，主要使用场景有两个：1.客户端请求的域名已经已经有了新的地址，需要自动将连接进行转换2.需要根据请求的 url 动态处理...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/195.html" xml:lang="zh-CN"><![CDATA[
-<p>nginx rewrite 模块主要应用于修改客户端发起的 url 请求，主要使用场景有两个：<br>1.客户端请求的域名已经已经有了新的地址，需要自动将连接进行转换<br>2.需要根据请求的 url 动态处理到不同的页面，此处主要使用 try_files 指令</p><!--more--><p>指令有三种：<strong>return</strong>, <strong>rewrite</strong>, and <strong>try_files</strong></p><h2>return</h2><p>这是最简单也最推荐使用的指令，主要应用于将指定的 server 或 location 重定向到另一个固定的 server 或 location。</p><p>一个简单的例子，将客户端请求重定向到新的域名：</p><pre><code>server {
+<div id="md_content_4" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">nginx rewrite 模块主要应用于修改客户端发起的 url 请求，主要使用场景有两个：
+1.客户端请求的域名已经已经有了新的地址，需要自动将连接进行转换
+2.需要根据请求的 url 动态处理到不同的页面，此处主要使用 try_files 指令
+
+
+<!--more-->
+
+指令有三种：**return**, **rewrite**, and **try_files**
+
+## return
+这是最简单也最推荐使用的指令，主要应用于将指定的 server 或 location 重定向到另一个固定的 server 或 location。
+
+一个简单的例子，将客户端请求重定向到新的域名：
+```
+server {
     listen 80;
     listen 443 ssl;
     server_name www.old-name.com;
     return 301 $scheme://www.new-name.com$request_uri;
-}</code></pre><p>示例参数解释：<br>301: Moved Permanently<br>$scheme: protocol (http or https)<br>$request_uri: 域名后的整个 url</p><p>关于状态码的使用参考：<a href="https://niekun.net/index.php/archives/192.html">https://niekun.net/index.php/archives/192.html</a></p><p>重定向到新 url 的基本语法：</p><pre><code>return (301 | 302 | 303 | 307) url;
-</code></pre><p>也可以将一个字符串作为一个响应：</p><pre><code>return (1xx | 2xx | 4xx | 5xx) [&quot;text&quot;];
-</code></pre><p>例如：</p><pre><code>return 401 &quot;Access denied because token is expired or invalid&quot;;
-</code></pre><p>return 执行后，在浏览器中会看到跳转到新的链接。</p><h2>rewrite</h2><p>此指令主要应用于一些更复杂的重定向，可以使用正则表达式进行匹配。此方式可以做动态链接的伪静态处理，隐藏 url 里的 index.php 等。</p><p>语法：</p><pre><code>rewrite regex replacement [flag];
-</code></pre><p>如果正则规则匹配到了请求的 uri，则会用 replacement 部分替换请求的 uri。rewrite 指令是按顺序执行的，也就是在一个快中可以写多个 rewrite 指令。使用 flag 来设置 uri 修改后的动作。</p><p>如果 replacement 里包含有 <code>http://, https://, $scheme</code> 则处理结束并给客户端发送重定向响应，客户端会重新访问新的 uri。</p><p><strong>支持的 flag 标记：</strong></p><ul><li>last：修改完成后，结束当前的 rewrite 指令，然后根据修改后新的地址匹配 location 进行处理。<strong>客户端看起来 uri 没有变化</strong></li><li>break：修改完成后，结束当前的 rewrite 指令，继续顺序执行下面的指令。这时候 $uri 已更新。</li><li>redirect：修改完成后，返回一个临时的 302 重新向给客户端，使用场景是 replacement 部分没有写：<code>http://, https://, $scheme</code></li><li>permanent：修改完成后，返回一个 301 永久重定向响应给客户端。客户端跳转到新的 url</li></ul><pre><code>location /rewrite {
+}
+```
+
+示例参数解释：
+301: Moved Permanently
+$scheme: protocol (http or https)
+$request_uri: 域名后的整个 url
+
+关于状态码的使用参考：https://niekun.net/index.php/archives/192.html
+
+重定向到新 url 的基本语法：
+    return (301 | 302 | 303 | 307) url;
+
+也可以将一个字符串作为一个响应：
+    return (1xx | 2xx | 4xx | 5xx) ["text"];
+
+例如：
+    return 401 "Access denied because token is expired or invalid";
+
+return 执行后，在浏览器中会看到跳转到新的链接。
+
+## rewrite
+此指令主要应用于一些更复杂的重定向，可以使用正则表达式进行匹配。此方式可以做动态链接的伪静态处理，隐藏 url 里的 index.php 等。
+
+语法：
+    rewrite regex replacement [flag];
+
+如果正则规则匹配到了请求的 uri，则会用 replacement 部分替换请求的 uri。rewrite 指令是按顺序执行的，也就是在一个快中可以写多个 rewrite 指令。使用 flag 来设置 uri 修改后的动作。
+
+如果 replacement 里包含有 `http://, https://, $scheme` 则处理结束并给客户端发送重定向响应，客户端会重新访问新的 uri。
+
+**支持的 flag 标记：**
+- last：修改完成后，结束当前的 rewrite 指令，然后根据修改后新的地址匹配 location 进行处理。**客户端看起来 uri 没有变化**
+- break：修改完成后，结束当前的 rewrite 指令，继续顺序执行下面的指令。这时候 $uri 已更新。
+- redirect：修改完成后，返回一个临时的 302 重新向给客户端，使用场景是 replacement 部分没有写：`http://, https://, $scheme`
+- permanent：修改完成后，返回一个 301 永久重定向响应给客户端。客户端跳转到新的 url
+
+```
+location /rewrite {
     rewrite ^(.*)$  /echo last;
   # rewrite ^(.*)$  /echo permanent;
     rewrite ^(.*)$  https://niekun.net last;
-}</code></pre><p>上面三个示例：</p><ul><li>第一个跳转到 /echo 路径下。客户端看到的依然是 /rewrite 路径</li><li>第二个跳转到 /echo 路径下。客户端看到的是新的 /echo 路径</li><li>第三个跳转到 <a href="https://niekun.net。客户端看到的是：https://niekun.net">https://niekun.net。客户端看到的是：https://niekun.net</a></li></ul><p>用 regex 时，使用小括号()来设置 group，按照顺序 group 用 $1,$2...表示。</p><p><strong>以下是一个例子，进行了如下处理：</strong></p><ul><li>以 /download 为起始然后包含 /media/ 或 /audio/ 段的 url 替换成包含 /mp3/ 段然后添加后缀 .mp3 或 .ra。</li><li>例如：/download/cdn-west/media/file1 会修改为：/download/cdn-west/mp3/file1.mp3。</li><li>last：表示当处理完当前 rewrite 后跳过当前 server 或 location内其他的 rewrite 模块，为处理后的 url 寻找到合适的匹配的 location。</li><li><p>如果没有匹配到，则返回状态码：402。</p><pre><code>server {
-  # ...
-  rewrite ^(/download/.*)/media/(\w+)\.?.*$ $1/mp3/$2.mp3 last;
-  rewrite ^(/download/.*)/audio/(\w+)\.?.*$ $1/mp3/$2.ra  last;
-  return  403;
-  # ...
-}</code></pre></li></ul><h2>try_files</h2><p>此指令的参数为一个或多个文件或目录，以及一个最终内部 url。</p><p>语法：</p><pre><code>try_files file ... uri;
-</code></pre><p>处理过程为：nginx 检查列出的文件或文件夹地址是否存在，如果没有存在的话就内部重定向到指定的 url。为了让其工作，需要再定义一个 location 块捕获内部重定向的地址。</p><p>try_files 指令常用的变量为 $uri, 代表域名后的 url 部分。</p><p>以下例子进行了如下处理：</p><ul><li>放置一个 default.gif 文件来处理请求的图片不存在的情况</li><li>如果请求 url 为：<a href="http://www.domain.com/images/image1.gif，nginx">http://www.domain.com/images/image1.gif，nginx</a> 首先寻找此 location 下 root 目录的 image1.gif 文件，如果没找到则再次寻找 image1.gif/ 目录，如果还是没有则重定向到 /images/default.gif，这次请求就完成了，此文件会缓存 30s</li></ul><pre><code>location /images/ {
+}
+```
+
+上面三个示例：
+- 第一个跳转到 /echo 路径下。客户端看到的依然是 /rewrite 路径
+- 第二个跳转到 /echo 路径下。客户端看到的是新的 /echo 路径
+- 第三个跳转到 https://niekun.net。客户端看到的是：https://niekun.net
+
+用 regex 时，使用小括号()来设置 group，按照顺序 group 用 $1,$2...表示。
+
+**以下是一个例子，进行了如下处理：**
+* 以 /download 为起始然后包含 /media/ 或 /audio/ 段的 url 替换成包含 /mp3/ 段然后添加后缀 .mp3 或 .ra。
+* 例如：/download/cdn-west/media/file1 会修改为：/download/cdn-west/mp3/file1.mp3。
+* last：表示当处理完当前 rewrite 后跳过当前 server 或 location内其他的 rewrite 模块，为处理后的 url 寻找到合适的匹配的 location。
+* 如果没有匹配到，则返回状态码：402。
+```
+server {
+    # ...
+    rewrite ^(/download/.*)/media/(\w+)\.?.*$ $1/mp3/$2.mp3 last;
+    rewrite ^(/download/.*)/audio/(\w+)\.?.*$ $1/mp3/$2.ra  last;
+    return  403;
+    # ...
+}
+```
+
+## try_files
+此指令的参数为一个或多个文件或目录，以及一个最终内部 url。
+
+语法：
+    try_files file ... uri;
+
+处理过程为：nginx 检查列出的文件或文件夹地址是否存在，如果没有存在的话就内部重定向到指定的 url。为了让其工作，需要再定义一个 location 块捕获内部重定向的地址。
+
+try_files 指令常用的变量为 $uri, 代表域名后的 url 部分。
+
+以下例子进行了如下处理：
+* 放置一个 default.gif 文件来处理请求的图片不存在的情况
+* 如果请求 url 为：http://www.domain.com/images/image1.gif，nginx 首先寻找此 location 下 root 目录的 image1.gif 文件，如果没找到则再次寻找 image1.gif/ 目录，如果还是没有则重定向到 /images/default.gif，这次请求就完成了，此文件会缓存 30s
+
+```
+location /images/ {
     try_files $uri $uri/ /images/default.gif;
 }
 
 location = /images/default.gif {
     expires 30s;
-}</code></pre><h3>参考链接</h3><p><a href="https://nginx.org/en/docs/http/ngx_http_rewrite_module.html">ngx_http_rewrite_module</a><br><a href="https://www.nginx.com/blog/creating-nginx-rewrite-rules/">https://www.nginx.com/blog/creating-nginx-rewrite-rules/</a></p>
+}
+```
+
+### 参考链接
+
+[ngx_http_rewrite_module](https://nginx.org/en/docs/http/ngx_http_rewrite_module.html)
+https://www.nginx.com/blog/creating-nginx-rewrite-rules/</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/195.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/195.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/tag/nginx/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[使用Nginx配置强ssl的网站]]></title>
@@ -154,10 +363,26 @@ location = /images/default.gif {
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[本文主要参考的网站：https://cipherli.sthttps://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.htmlThis...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/187.html" xml:lang="zh-CN"><![CDATA[
-<p><strong>本文主要参考的网站：</strong><br><a href="https://cipherli.st">https://cipherli.st</a><br><a href="https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html">https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html</a></p><blockquote>This tutorial shows you how to set up strong SSL security on the nginx webserver. We do this by updating OpenSSL to the latest version to mitigate attacks like Heartbleed, disabling SSL Compression and EXPORT ciphers to mitigate attacks like FREAK, CRIME and LogJAM, disabling SSLv3 and below because of vulnerabilities in the protocol and we will set up a strong ciphersuite that enables Forward Secrecy when possible. We also enable HSTS and HPKP. This way we have a strong and future proof ssl configuration and we get an A+ on the Qually Labs SSL Test.</blockquote><!--more--><p><strong>本文使用的配置需要相关软件的最低版本要求：</strong><br>Nginx: 1.13.0 -- 升级教程：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a><br>openssl: 1.0.1 -- 升级教程：<a href="https://niekun.net/index.php/archives/183.html">https://niekun.net/index.php/archives/183.html</a></p><p>首先需要生成一个 4096 bit 的 DH parameters：</p><pre><code>openssl dhparam -out /etc/nginx/your.domain/dhparam.pem 4096
-</code></pre><p>编辑 Nginx 配置文件，在server段加入或修改如下：</p><pre><code>ssl_protocols                TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+<div id="md_content_5" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">**本文主要参考的网站：**
+https://cipherli.st
+https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
+
+> This tutorial shows you how to set up strong SSL security on the nginx webserver. We do this by updating OpenSSL to the latest version to mitigate attacks like Heartbleed, disabling SSL Compression and EXPORT ciphers to mitigate attacks like FREAK, CRIME and LogJAM, disabling SSLv3 and below because of vulnerabilities in the protocol and we will set up a strong ciphersuite that enables Forward Secrecy when possible. We also enable HSTS and HPKP. This way we have a strong and future proof ssl configuration and we get an A+ on the Qually Labs SSL Test.
+
+
+<!--more-->
+
+**本文使用的配置需要相关软件的最低版本要求：**
+Nginx: 1.13.0 -- 升级教程：https://niekun.net/index.php/archives/30.html
+openssl: 1.0.1 -- 升级教程：https://niekun.net/index.php/archives/183.html
+
+首先需要生成一个 4096 bit 的 DH parameters：
+    openssl dhparam -out /etc/nginx/your.domain/dhparam.pem 4096
+
+编辑 Nginx 配置文件，在server段加入或修改如下：
+```
+ssl_protocols                TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
 ssl_prefer_server_ciphers    on; 
 ssl_ciphers                  ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
 ssl_dhparam                  /etc/nginx/your.domain/dhparam.pem;
@@ -169,16 +394,26 @@ ssl_stapling                 on;
 ssl_stapling_verify          on;
 resolver                     8.8.8.8 1.1.1.1 valid=300s;
 resolver_timeout             5s; 
-add_header                   Strict-Transport-Security &quot;max-age=63072000; includeSubDomains; preload&quot;;
+add_header                   Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
 add_header                   X-Frame-Options DENY;
 add_header                   X-Content-Type-Options nosniff;
-add_header                   X-XSS-Protection &quot;1; mode=block&quot;;</code></pre><p>ssl_ciphers 的设置可能会影响一些老版本系统或浏览器的访问，以下是兼容 IE6/WinXP 的配置：</p><pre><code>EECDH+AESGCM:EDH+AESGCM:ECDHE-RSA-AES128-GCM-SHA256:AES256+EECDH:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4;</code></pre><p>修改完成后测试配置及重启：</p><pre><code>service nginx configtest
-service nginx reload
-service nginx restart
-</code></pre><p>可以在这里测试网站安全级别，最高为 A+: <a href="https://www.ssllabs.com/ssltest/index.html">https://www.ssllabs.com/ssltest/index.html</a></p>
+add_header                   X-XSS-Protection "1; mode=block";
+```
+
+ssl_ciphers 的设置可能会影响一些老版本系统或浏览器的访问，以下是兼容 IE6/WinXP 的配置：
+```
+EECDH+AESGCM:EDH+AESGCM:ECDHE-RSA-AES128-GCM-SHA256:AES256+EECDH:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4;
+```
+
+修改完成后测试配置及重启：
+    service nginx configtest
+    service nginx reload
+    service nginx restart
+
+可以在这里测试网站安全级别，最高为 A+: https://www.ssllabs.com/ssltest/index.html</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/187.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/187.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/tag/nginx/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[nginx实现mp4流媒体播放]]></title>
@@ -190,19 +425,47 @@ service nginx restart
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[如果还没有安装nginx，参考教程：https://niekun.net/index.php/archives/30.html此功能使用的是 Nginx 的 ngx_http_mp4_modul...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/177.html" xml:lang="zh-CN"><![CDATA[
-<p>如果还没有安装nginx，参考教程：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p><strong>此功能使用的是 Nginx 的 ngx_http_mp4_module 模块。</strong></p><p>首先查看当前 nginx 是否已经安装了 ngx_http_mp4_module 模块：</p><pre><code>nginx -v
-</code></pre><p>查看是否已经有了对应模块，一般使用 apt 安装的都集成了此模块。</p><!--more--><p>编辑你的 nginx 配置文件，加入下面的片段：</p><pre><code>location /video {
+<div id="md_content_6" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">如果还没有安装nginx，参考教程：https://niekun.net/index.php/archives/30.html
+
+**此功能使用的是 Nginx 的 ngx_http_mp4_module 模块。**
+
+首先查看当前 nginx 是否已经安装了 ngx_http_mp4_module 模块：
+    nginx -v
+
+查看是否已经有了对应模块，一般使用 apt 安装的都集成了此模块。
+
+
+<!--more-->
+
+编辑你的 nginx 配置文件，加入下面的片段：
+```
+location /video {
     mp4;
     mp4_buffer_size       1m;
     mp4_max_buffer_size   10m;
-}</code></pre><p>测试是否配置正确：</p><pre><code>service nginx configtest
-</code></pre><p>重新加载配置文件：</p><pre><code>service nginx reload
-</code></pre><p>现在你就可以在对应目录下放置一个mp4文件，访问看是否能够正常播放。</p><p>如果访问网页出现 500 错误，或者 nginx log 里提示mp4 moov atom is too large，则可能需要将 mp4_max_buffer_size 设置大一些。</p><p>支持的格式：.mp4, .m4v, .m4a</p><p>可以从任意时间开始播放，如：<a href="http://example.com/elephants_dream.mp4?start=238.88">http://example.com/elephants_dream.mp4?start=238.88</a><br>start 后的数字为秒</p><p>也可以设置结束时间点：<a href="http://example.com/elephants_dream.mp4?start=238.88&end=555.55">http://example.com/elephants_dream.mp4?start=238.88&end=555.55</a></p>
+}
+```
+
+测试是否配置正确：
+    service nginx configtest
+
+重新加载配置文件：
+    service nginx reload
+
+现在你就可以在对应目录下放置一个mp4文件，访问看是否能够正常播放。
+
+如果访问网页出现 500 错误，或者 nginx log 里提示mp4 moov atom is too large，则可能需要将 mp4_max_buffer_size 设置大一些。
+
+支持的格式：.mp4, .m4v, .m4a
+
+可以从任意时间开始播放，如：http://example.com/elephants_dream.mp4?start=238.88
+start 后的数字为秒
+
+也可以设置结束时间点：http://example.com/elephants_dream.mp4?start=238.88&end=555.55</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/177.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/177.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/tag/nginx/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[重定向 HTTP to HTTPS in Nginx]]></title>
@@ -214,19 +477,42 @@ service nginx restart
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[将http请求重定向为https，使所有连接都使用安全的ssl。重定向所有http请求以下配置为将所有收到的80端口的请求都重定向到443端口,这会把此ip下的所有域名都转换：server { ...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/118.html" xml:lang="zh-CN"><![CDATA[
-<p>将http请求重定向为https，使所有连接都使用安全的ssl。</p><h2>重定向所有http请求</h2><p>以下配置为将所有收到的80端口的请求都重定向到443端口,这会把此ip下的所有域名都转换：</p><pre><code>server {
+<div id="md_content_7" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">将http请求重定向为https，使所有连接都使用安全的ssl。
+
+## 重定向所有http请求
+
+以下配置为将所有收到的80端口的请求都重定向到443端口,这会把此ip下的所有域名都转换：
+
+```
+server {
     listen           80;
     listen           [::]:80;
     server_name      _;
     return           301 https://$host$request_uri;
-}</code></pre><p>listen 80 default_server 表示这是唯一监听80端口的server块<br>server_name _ 表示监听所有使用的域名</p><h2>重定向特定域名</h2><p>以下配置为重定向特定域名的请求，此方式适用于此ip下绑定多个域名的情况：</p><pre><code>server {
+}
+```
+listen 80 default_server 表示这是唯一监听80端口的server块
+server_name _ 表示监听所有使用的域名
+
+## 重定向特定域名
+
+以下配置为重定向特定域名的请求，此方式适用于此ip下绑定多个域名的情况：
+
+```
+server {
     listen           80;
     listen           [::]:80;
     server_name      your.domain;
     return           301 https://your.domain$request_uri;
-}</code></pre><h2>443 server block</h2><p>设定我们的域名只接收443端口的访问：</p><pre><code>server {
+}
+```
+
+## 443 server block
+
+设定我们的域名只接收443端口的访问：
+```
+server {
     listen                443 ssl default_server;
     listen                [::]:443 ssl;
     server_name           foo.com;
@@ -239,10 +525,13 @@ server {
 }
 
 ...
-</code></pre><p>只能设置一个域名为default_server。</p>
+
+```
+只能设置一个域名为default_server。
+</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/118.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/118.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/tag/nginx/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[使用acme.sh生成 ssl 证书并部署到 Nginx]]></title>
@@ -254,38 +543,133 @@ server {
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[acme.sh 实现了 acme 协议, 可以从 letsencrypt 生成免费的证书.官方说明：https://github.com/Neilpang/acme.sh安装acme.sh安装很...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/34.html" xml:lang="zh-CN"><![CDATA[
-<p>acme.sh 实现了 <code>acme</code> 协议, 可以从 letsencrypt 生成免费的证书.</p><p>官方说明：<a href="https://github.com/Neilpang/acme.sh">https://github.com/Neilpang/acme.sh</a></p><h2>安装acme.sh</h2><p>安装很简单:</p><pre><code>apt-get install curl
-curl  https://get.acme.sh | sh
-</code></pre><p>安装过程进行了以下几步:</p><ul><li>把 acme.sh 安装到你的 root 目录下: <code>/root/.acme.sh/</code></li><li>自动为你创建 cronjob, 每天 0:00 点自动检测所有的证书, 如果快过期了, 需要更新, 则会自动更新证书.</li><li>在 /root/.bashrc 创建 一个 bash 的 alias: <code>alias acme.sh=&quot;/root/.acme.sh/acme.sh&quot;</code></li></ul><p>cronjob 的任务可以使用命令 <code>crontab -e</code> 查看。</p><!--more--><p>新版的acme.sh是在 .bashrc 里引用了<code>. &quot;/root/.acme.sh/acme.sh.env&quot;</code>，此文件里定义了上面的alias。<br>如果安装完成后无法运行命令：<code>acme.sh</code>，试着运行：<code>source ~/.bashrc</code>重新加载alias，或者检查此文件内容。</p><h2>生成证书</h2><p>acme.sh 实现了 acme 协议支持的所有验证协议. 一般有两种方式验证: <strong>http 和 dns 验证</strong>。dns 验证可以生成泛域名的证书，更加方便的适用于二级域名。</p><h4>http 方式</h4><p>需要在你的网站根目录下放置一个文件, 来验证你的域名所有权,完成验证. 然后就可以生成证书了.</p><pre><code>acme.sh  --issue  -d domain.you -d www.domain.you -d abc.domain.you --webroot  /your/www/root
-</code></pre><p>只需要指定域名, 可以同时生成多个域名到一个证书，并指定域名所在的网站根目录. acme.sh 会全自动的生成验证文件, 并放到网站的根目录, 然后自动完成验证. 最后会聪明的删除验证文件. 整个过程没有任何副作用.</p><h4>dns 方式</h4><p>可以使用域名解析服务商的 api 来解析，我使用的是 cloudflare 作域名解析，进入 cf 的对应域名，在网站右下角有 account ID，记录下来，然后点击 get your api token：<br><img src="https://niekun.net/usr/uploads/2020/03/2057100712.png" alt="2020-03-06T01:22:00.png" title="2020-03-06T01:22:00.png"></p><p>点击 create token：<br><img src="https://niekun.net/usr/uploads/2020/03/3512310951.png" alt="2020-03-06T01:06:17.png" title="2020-03-06T01:06:17.png"></p><p>增加如下内容：<br><img src="https://niekun.net/usr/uploads/2020/03/104997018.png" alt="2020-03-06T01:12:34.png" title="2020-03-06T01:12:34.png"></p><p>点击确认后，会显示 token，记录下来：<br><img src="https://niekun.net/usr/uploads/2020/03/1869846058.png" alt="2020-03-06T01:15:22.png" title="2020-03-06T01:15:22.png"></p><p>在终端根据上面的 account ID 和 token 输入如下命令：</p><pre><code>export CF_Token=&quot;sdfsdfsdfljlbjkljlkjsdfoiwje&quot;
-export CF_Account_ID=&quot;xxxxxxxxxxxxx&quot;
-</code></pre><p>然后开始生成证书，可以指定顶级域名和泛域名：</p><pre><code>acme.sh --issue --dns dns_cf -d example.com -d *.example.com
-</code></pre><p>CF_Tokenand CF_Account_ID will be saved in ~/.acme.sh/account.conf and will be reused when needed.</p><p>没有报错信息，代表生成成功，如果有报错，查看生成 api token 时候的权限设置有没有问题。</p><h2>安装证书</h2><p>默认生成的证书都放在安装目录下: <code>/root/.acme.sh/</code>, 请不要直接使用此目录下的文件, 例如: 不要直接让 <code>nginx/apache</code> 的配置文件使用这下面的文件. 这里面的文件都是内部使用, 而且目录结构可能会变化.</p><p>正确的使用方法是使用 <code>--installcert</code> 命令,并指定目标位置, 然后证书文件会被copy到相应的位置, 例如:</p><pre><code>acme.sh --install-cert -d domain.you \
+<div id="md_content_8" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">acme.sh 实现了 `acme` 协议, 可以从 letsencrypt 生成免费的证书.
+
+官方说明：https://github.com/Neilpang/acme.sh
+
+## 安装acme.sh
+
+安装很简单:
+    apt-get install curl
+    curl  https://get.acme.sh | sh
+
+安装过程进行了以下几步:
+- 把 acme.sh 安装到你的 root 目录下: `/root/.acme.sh/`
+- 自动为你创建 cronjob, 每天 0:00 点自动检测所有的证书, 如果快过期了, 需要更新, 则会自动更新证书.
+- 在 /root/.bashrc 创建 一个 bash 的 alias: `alias acme.sh="/root/.acme.sh/acme.sh"`
+
+cronjob 的任务可以使用命令 `crontab -e` 查看。
+
+<!--more-->
+
+新版的acme.sh是在 .bashrc 里引用了`. "/root/.acme.sh/acme.sh.env"`，此文件里定义了上面的alias。
+如果安装完成后无法运行命令：`acme.sh`，试着运行：`source ~/.bashrc`重新加载alias，或者检查此文件内容。
+
+## 生成证书
+
+acme.sh 实现了 acme 协议支持的所有验证协议. 一般有两种方式验证: **http 和 dns 验证**。dns 验证可以生成泛域名的证书，更加方便的适用于二级域名。
+
+#### http 方式
+
+需要在你的网站根目录下放置一个文件, 来验证你的域名所有权,完成验证. 然后就可以生成证书了.
+
+    acme.sh  --issue  -d domain.you -d www.domain.you -d abc.domain.you --webroot  /your/www/root
+
+只需要指定域名, 可以同时生成多个域名到一个证书，并指定域名所在的网站根目录. acme.sh 会全自动的生成验证文件, 并放到网站的根目录, 然后自动完成验证. 最后会聪明的删除验证文件. 整个过程没有任何副作用.
+
+#### dns 方式
+
+可以使用域名解析服务商的 api 来解析，我使用的是 cloudflare 作域名解析，进入 cf 的对应域名，在网站右下角有 account ID，记录下来，然后点击 get your api token：
+![2020-03-06T01:22:00.png][1]
+
+点击 create token：
+![2020-03-06T01:06:17.png][2]
+
+增加如下内容：
+![2020-03-06T01:12:34.png][3]
+
+点击确认后，会显示 token，记录下来：
+![2020-03-06T01:15:22.png][4]
+
+在终端根据上面的 account ID 和 token 输入如下命令：
+    export CF_Token="sdfsdfsdfljlbjkljlkjsdfoiwje"
+    export CF_Account_ID="xxxxxxxxxxxxx"
+
+然后开始生成证书，可以指定顶级域名和泛域名：
+    acme.sh --issue --dns dns_cf -d example.com -d *.example.com
+
+CF_Tokenand CF_Account_ID will be saved in ~/.acme.sh/account.conf and will be reused when needed.
+
+没有报错信息，代表生成成功，如果有报错，查看生成 api token 时候的权限设置有没有问题。
+
+## 安装证书
+
+默认生成的证书都放在安装目录下: `/root/.acme.sh/`, 请不要直接使用此目录下的文件, 例如: 不要直接让 `nginx/apache` 的配置文件使用这下面的文件. 这里面的文件都是内部使用, 而且目录结构可能会变化.
+
+正确的使用方法是使用 `--installcert` 命令,并指定目标位置, 然后证书文件会被copy到相应的位置, 例如:
+```
+acme.sh --install-cert -d domain.you \
 --key-file       /etc/nginx/domain.you/key.pem  \
 --fullchain-file /etc/nginx/domain.you/cert.pem \
---reloadcmd     &quot;service nginx force-reload&quot;</code></pre><p>以上命令安装证书后，会每 60 天自动更新证书，并自动运行 <code>service nginx force-reload</code>。我喜欢将证书放到 nginx/domain.you 目录下。</p><h2>配置Nginx.conf</h2><pre><code>server {
-    listen                443 ssl;
-    listen                [::]:443 ssl;
-    server_name           domain.you;
-    keepalive_timeout     70;
+--reloadcmd     "service nginx force-reload"
+```
 
-    ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
-    ssl_ciphers           AES128-SHA:AES256-SHA:RC4-SHA:DES-CBC3-SHA:RC4-MD5;
-    ssl_certificate       /etc/nginx/domain.you/cert.pem;
-    ssl_certificate_key   /etc/nginx/domain.you/key.pem;
-    ssl_session_cache     shared:SSL:10m;
-    ssl_session_timeout   10m;
-    ...
-}
-</code></pre><p>重启Nginx服务： <code>service nginx force-reload</code></p><p>这里用的是 <code>service nginx force-reload</code>, 不是 <code>service nginx reload</code>, 据测试, <code>reload</code> 并不会重新加载证书, 所以用的 <code>force-reload</code></p><h2>更新证书</h2><p>目前证书在 60 天以后会自动更新, 你无需任何操作. 今后有可能会缩短这个时间, 不过都是自动的, 你不用关心.</p><h2>更新acme.sh</h2><p>升级 acme.sh 到最新版 :</p><pre><code>acme.sh --upgrade
-</code></pre><p>如果你不想手动升级, 可以开启自动升级:</p><pre><code>acme.sh  --upgrade  --auto-upgrade
-</code></pre><p>之后, acme.sh 就会自动保持更新了.</p><p>你也可以随时关闭自动更新:</p><pre><code>acme.sh --upgrade  --auto-upgrade  0
-</code></pre><p>以上就是使用acme.sh生成免费证书的简单过程，安装完成后使用https登录你的网站看能否正常访问，如果不能试着重启系统。</p><p>配置完成后可以到 ssl labs 测试：<a href="https://www.ssllabs.com/ssltest/index.html">https://www.ssllabs.com/ssltest/index.html</a><br>关于 Nginx 安全性更强的配置参考: <a href="https://niekun.net/archives/187.html">https://niekun.net/archives/187.html</a></p>
+以上命令安装证书后，会每 60 天自动更新证书，并自动运行 `service nginx force-reload`。我喜欢将证书放到 nginx/domain.you 目录下。
+
+## 配置Nginx.conf
+
+    server {
+        listen                443 ssl;
+        listen                [::]:443 ssl;
+        server_name           domain.you;
+        keepalive_timeout     70;
+
+        ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers           AES128-SHA:AES256-SHA:RC4-SHA:DES-CBC3-SHA:RC4-MD5;
+        ssl_certificate       /etc/nginx/domain.you/cert.pem;
+        ssl_certificate_key   /etc/nginx/domain.you/key.pem;
+        ssl_session_cache     shared:SSL:10m;
+        ssl_session_timeout   10m;
+        ...
+    }
+
+重启Nginx服务： `service nginx force-reload`
+
+这里用的是 `service nginx force-reload`, 不是 `service nginx reload`, 据测试, `reload` 并不会重新加载证书, 所以用的 `force-reload`
+
+## 更新证书
+
+目前证书在 60 天以后会自动更新, 你无需任何操作. 今后有可能会缩短这个时间, 不过都是自动的, 你不用关心.
+
+## 更新acme.sh
+
+升级 acme.sh 到最新版 :
+
+    acme.sh --upgrade
+
+如果你不想手动升级, 可以开启自动升级:
+
+    acme.sh  --upgrade  --auto-upgrade
+
+之后, acme.sh 就会自动保持更新了.
+
+你也可以随时关闭自动更新:
+
+    acme.sh --upgrade  --auto-upgrade  0
+
+以上就是使用acme.sh生成免费证书的简单过程，安装完成后使用https登录你的网站看能否正常访问，如果不能试着重启系统。
+
+配置完成后可以到 ssl labs 测试：https://www.ssllabs.com/ssltest/index.html
+关于 Nginx 安全性更强的配置参考: https://niekun.net/archives/187.html
+
+  [1]: https://niekun.net/usr/uploads/2020/03/2057100712.png
+  [2]: https://niekun.net/usr/uploads/2020/03/3512310951.png
+  [3]: https://niekun.net/usr/uploads/2020/03/104997018.png
+  [4]: https://niekun.net/usr/uploads/2020/03/1869846058.png</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/34.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/34.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/tag/nginx/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[Nginx 安装/编译教程]]></title>
@@ -297,49 +681,156 @@ export CF_Account_ID=&quot;xxxxxxxxxxxxx&quot;
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[我的VPS上的Nginx记得还是一年前安装的，一直没有升级，最近发现版本都到了1.14了，我的还是1.4，就想做一次升级。由于使用Nginx用到一些配置文件，所以我预计升级会导致配置文件恢复到默...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/30.html" xml:lang="zh-CN"><![CDATA[
-<p>我的VPS上的<code>Nginx</code>记得还是一年前安装的，一直没有升级，最近发现版本都到了1.14了，我的还是1.4，就想做一次升级。</p><p>由于使用<code>Nginx</code>用到一些配置文件，所以我预计升级会导致配置文件恢复到默认，所以查询了一些资料后，安全的做了升级。</p><!--more--><hr><p>备份nginx.conf配置文件：</p><pre><code>cp nginx.conf nginx.conf.bak
-</code></pre><h2>从官方 ppa 源安装</h2><p>我将自定义server放在单独文件夹内 /etc/nginx/my-server/, 所以配置文件是安全的，升级后需要重新在 nginx.conf 里 include 一下即可。</p><p>安装依赖包:</p><pre><code>apt-get install curl gnupg2 ca-certificates lsb-release
-</code></pre><p>设置安装稳定版:</p><pre><code>echo &quot;deb http://nginx.org/packages/ubuntu `lsb_release -cs` nginx&quot; \
-    | sudo tee /etc/apt/sources.list.d/nginx.list</code></pre><p>导入 nginx 官方 key 使 apt 可以鉴定来源:</p><pre><code>curl -fsSL https://nginx.org/keys/nginx_signing.key | sudo apt-key add -
-</code></pre><p>Verify that you now have the proper key:</p><pre><code>apt-key fingerprint ABF5BD827BD9BF62
-</code></pre><p>The output should contain the full fingerprint 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62 as follows:</p><pre><code>pub   rsa2048 2011-08-19 [SC] [expires: 2024-06-14]
+<div id="md_content_9" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">我的VPS上的`Nginx`记得还是一年前安装的，一直没有升级，最近发现版本都到了1.14了，我的还是1.4，就想做一次升级。
+
+由于使用`Nginx`用到一些配置文件，所以我预计升级会导致配置文件恢复到默认，所以查询了一些资料后，安全的做了升级。
+
+
+<!--more-->
+
+
+----------
+
+备份nginx.conf配置文件：
+
+    cp nginx.conf nginx.conf.bak
+
+## 从官方 ppa 源安装
+
+我将自定义server放在单独文件夹内 /etc/nginx/my-server/, 所以配置文件是安全的，升级后需要重新在 nginx.conf 里 include 一下即可。
+
+安装依赖包:
+    apt-get install curl gnupg2 ca-certificates lsb-release
+
+设置安装稳定版:
+```
+echo "deb http://nginx.org/packages/ubuntu `lsb_release -cs` nginx" \
+    | sudo tee /etc/apt/sources.list.d/nginx.list
+```
+
+导入 nginx 官方 key 使 apt 可以鉴定来源:
+
+    curl -fsSL https://nginx.org/keys/nginx_signing.key | sudo apt-key add -
+
+Verify that you now have the proper key:
+
+    apt-key fingerprint ABF5BD827BD9BF62
+
+The output should contain the full fingerprint 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62 as follows:
+```
+pub   rsa2048 2011-08-19 [SC] [expires: 2024-06-14]
       573B FD6B 3D8F BC64 1079  A6AB ABF5 BD82 7BD9 BF62
-uid   [ unknown] nginx signing key &lt;signing-key@nginx.com&gt;</code></pre><p>安装Nginx，期间会提示有些文件要修改，根据提示覆盖<code>Y</code>或查看不同<code>D</code>，'N'保留原文件:</p><pre><code>apt-get update
-apt-get install nginx
-</code></pre><p>如果安装失败，提示 error 类似：/var/cache/apt/archives/nginx_1.14.1-1~trusty_amd64.deb，运行下面命令：</p><pre><code>apt-get -f install
-apt-get remove nginx-common
-apt-get install nginx
-</code></pre><p>安装完成后，打开备份的nginx.conf.bak文件，将里面你之前做了自定义修改的字段复制回当前nginx.conf文件内，或者恢复单独的在文件夹的配置文件，并在 nginx.conf 里 include 一下。</p><p>检查配置文件是否正确：</p><pre><code>service nginx configtest
-</code></pre><p>重启<code>Nginx</code>服务：</p><pre><code>service nginx reload
-service nginx start
-</code></pre><p>以上就完成了从官方源 Nginx 的安装/升级。</p><h2>从源码编译安装</h2><p>nginx源码编译适用于需要安装第三方的一些模块的情况，例如需要 fancyindex 等模块。</p><p>nginx 使用 GNU 编译系统，使用 configure 和 make 来工作，关于 GNU 编译系统的详细说明参考：<a href="https://blog.niekun.net/archives/883.html">https://blog.niekun.net/archives/883.html</a></p><p>首先检查是否安装了 <strong>g++</strong> 编译器，执行：</p><pre><code>gcc -v
-</code></pre><p>如果返回错误，说明缺少 gcc 编译器：</p><pre><code>sudo apt install gcc g++ -y
-</code></pre><p>从此处下载最新源码：<a href="http://nginx.org/en/download.html">http://nginx.org/en/download.html</a></p><p>下载源码并解压：</p><pre><code>wget http://nginx.org/download/nginx-1.17.6.tar.gz
-tar -zxvf nginx-1.17.6.tar.gz
-</code></pre><p>下载第三方模块，如：fancyindex：</p><pre><code>git clone https://github.com/aperezdc/ngx-fancyindex.git ngx-fancyindex
-</code></pre><p>建立安装目录：</p><pre><code>mkdir /opt/nginx-1.17.6
-ln -s /opt/nginx-1.17.6 /opt/nginx
-</code></pre><p>运行配置脚本：</p><pre><code>cd nginx-1.17.6
-./configure --add-module=../ngx-fancyindex [其他参数项]
-</code></pre><p>如果要加入多个第三方模块，需要单独再用一个 --add-module=...</p><p>其他参数项:<br>如果不知道该加入那些附加编译参数，通过 nginx -V 可以查看当前官方预编译版本的配置变量。</p><p>我使用的配置如下，使用了两个第三方 module：</p><pre><code>./configure --prefix=/opt/nginx-1.17.6 \
+uid   [ unknown] nginx signing key <signing-key@nginx.com>
+```
+
+安装Nginx，期间会提示有些文件要修改，根据提示覆盖`Y`或查看不同`D`，'N'保留原文件:
+
+    apt-get update
+    apt-get install nginx
+
+如果安装失败，提示 error 类似：/var/cache/apt/archives/nginx_1.14.1-1~trusty_amd64.deb，运行下面命令：
+    apt-get -f install
+    apt-get remove nginx-common
+    apt-get install nginx
+
+安装完成后，打开备份的nginx.conf.bak文件，将里面你之前做了自定义修改的字段复制回当前nginx.conf文件内，或者恢复单独的在文件夹的配置文件，并在 nginx.conf 里 include 一下。
+
+检查配置文件是否正确：
+    service nginx configtest
+
+重启`Nginx`服务：
+    service nginx reload
+    service nginx start
+
+以上就完成了从官方源 Nginx 的安装/升级。
+
+## 从源码编译安装
+
+nginx源码编译适用于需要安装第三方的一些模块的情况，例如需要 fancyindex 等模块。
+
+nginx 使用 GNU 编译系统，使用 configure 和 make 来工作，关于 GNU 编译系统的详细说明参考：https://blog.niekun.net/archives/883.html
+
+首先检查是否安装了 **g++** 编译器，执行：
+    gcc -v
+
+如果返回错误，说明缺少 gcc 编译器：
+    sudo apt install gcc g++ -y
+
+从此处下载最新源码：http://nginx.org/en/download.html
+
+下载源码并解压：
+    wget http://nginx.org/download/nginx-1.17.6.tar.gz
+    tar -zxvf nginx-1.17.6.tar.gz
+
+下载第三方模块，如：fancyindex：
+    git clone https://github.com/aperezdc/ngx-fancyindex.git ngx-fancyindex
+
+建立安装目录：
+    mkdir /opt/nginx-1.17.6
+    ln -s /opt/nginx-1.17.6 /opt/nginx
+
+运行配置脚本：
+    cd nginx-1.17.6
+    ./configure --add-module=../ngx-fancyindex [其他参数项]
+
+如果要加入多个第三方模块，需要单独再用一个 --add-module=...
+
+其他参数项:
+如果不知道该加入那些附加编译参数，通过 nginx -V 可以查看当前官方预编译版本的配置变量。
+
+我使用的配置如下，使用了两个第三方 module：
+```
+./configure --prefix=/opt/nginx-1.17.6 \
 --user=nginx --group=nginx \
 --with-compat --with-file-aio --with-threads \
 --with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module \
 --with-mail --with-mail_ssl_module \
 --with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module \
 --add-module=../echo-nginx-module \
---add-module=../ngx-fancyindex</code></pre><p>需要提前安装的 library 库：</p><ul><li>openssl: <a href="https://blog.niekun.net/archives/183.html">https://blog.niekun.net/archives/183.html</a></li><li>PCRE dev library: <code>libpcre3-dev</code></li><li>zlib library：<code>zlib1g-dev</code></li><li>libxml2 library：<code>libxml2-dev</code></li><li>libxslt library：<code>libxslt1-dev</code></li></ul><p>官方编译手册里面列出了所有可用的编译参数：<a href="http://nginx.org/en/docs/configure.html">http://nginx.org/en/docs/configure.html</a></p><p>执行后如果有报错，一般是设定参数里有需要的依赖环境未安装，如：openssl，PCRE Library 等。根据提示安装需要的库再次执行 configure。</p><p>编译和安装：</p><pre><code>make
-make install
-</code></pre><p>可执行文件路径为：<code>/opt/nginx/sbin/nginx</code>，添加到系统 PATH 路径：</p><pre><code>Ln -s /opt/nginx/sbin/nginx /usr/local/bin/nginx
-</code></pre><p>刷新 link 及缓存：</p><pre><code>ldconfig
-</code></pre><p>测试是否可用：</p><pre><code>nginx -v
-</code></pre><p>如果安装失败，提示 error，尝试运行下面命令，然后再次执行上面的 make install：</p><pre><code>apt-get -f install
-apt-get remove nginx-common
-</code></pre><p>安装完成后的设置和上面 ppa 安装类似。</p><p>如果运行 <code>service nginx start</code> 后，nginx 无法运行，查看 80 端口是否被占用，选择卸载或 kill 相关进程：</p><pre><code>lsof -i:80
+--add-module=../ngx-fancyindex
+```
 
-</code></pre><p><strong>如果使用 systemd 管理进程，需要手动添加 service 服务文件。</strong></p><p>在 <code>/usr/lib/systemd/system/</code> 目录下新建文件 <code>nginx.service</code>，内容如下：</p><pre><code>[Unit]
+需要提前安装的 library 库：
+- openssl: https://blog.niekun.net/archives/183.html
+- PCRE dev library: `libpcre3-dev`
+- zlib library：`zlib1g-dev`
+- libxml2 library：`libxml2-dev`
+- libxslt library：`libxslt1-dev`
+
+官方编译手册里面列出了所有可用的编译参数：http://nginx.org/en/docs/configure.html
+
+执行后如果有报错，一般是设定参数里有需要的依赖环境未安装，如：openssl，PCRE Library 等。根据提示安装需要的库再次执行 configure。
+
+编译和安装：
+    make
+    make install
+
+可执行文件路径为：`/opt/nginx/sbin/nginx`，添加到系统 PATH 路径：
+    Ln -s /opt/nginx/sbin/nginx /usr/local/bin/nginx
+
+刷新 link 及缓存：
+    ldconfig
+
+测试是否可用：
+    nginx -v
+
+如果安装失败，提示 error，尝试运行下面命令，然后再次执行上面的 make install：
+
+    apt-get -f install
+    apt-get remove nginx-common
+
+安装完成后的设置和上面 ppa 安装类似。
+
+如果运行 `service nginx start` 后，nginx 无法运行，查看 80 端口是否被占用，选择卸载或 kill 相关进程：
+    lsof -i:80
+
+
+**如果使用 systemd 管理进程，需要手动添加 service 服务文件。**
+
+在 `/usr/lib/systemd/system/` 目录下新建文件 `nginx.service`，内容如下：
+```
+[Unit]
 Description=The NGINX HTTP and reverse proxy server
 After=syslog.target network-online.target remote-fs.target nss-lookup.target
 Wants=network-online.target
@@ -354,13 +845,23 @@ ExecStop=/bin/kill -s QUIT $MAINPID
 PrivateTmp=true
 
 [Install]
-WantedBy=multi-user.target</code></pre><p>重新加载配置文件：</p><pre><code>systemctl daemon-reload
-</code></pre><p>启动服务：</p><pre><code>systemctl start nginx
-</code></pre><p>开机启动：</p><pre><code>systemctl enable nginx
-</code></pre><p>以上就是 nginx 的安装教程。</p>
+WantedBy=multi-user.target
+```
+
+重新加载配置文件：
+    systemctl daemon-reload
+
+启动服务：
+    systemctl start nginx
+
+开机启动：
+    systemctl enable nginx
+
+以上就是 nginx 的安装教程。
+</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/30.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/30.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/tag/nginx/" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[使用Nginx搭建HTTP共享文件夹]]></title>
@@ -372,17 +873,23 @@ WantedBy=multi-user.target</code></pre><p>重新加载配置文件：</p><pre><c
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[最近有需求做一个类似网盘的功能，方便共享文件给他人，实际上就是把服务器的一个目录设置为可见。发现Nginx支持这一功能。官方相关文档：http://nginx.org/en/docs/http/...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/26.html" xml:lang="zh-CN"><![CDATA[
-<p>最近有需求做一个类似网盘的功能，方便共享文件给他人，实际上就是把服务器的一个目录设置为可见。发现Nginx支持这一功能。</p><p>官方相关文档：<a href="http://nginx.org/en/docs/http/ngx_http_autoindex_module.html">http://nginx.org/en/docs/http/ngx_http_autoindex_module.html</a></p><p>在service里的新建需要共享目录的location段修改如下：</p><pre><code>location /downloads {
-    root /home;
-    autoindex on;
-    autoindex_exact_size on;
-    autoindex_localtime on;
-}
-</code></pre><p>后三句为打开当前location段的目录索引功能，显示文件大小，显示文件创建日期，建议只对需要共享的目录打开目录功能。</p>
+<div id="md_content_10" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近有需求做一个类似网盘的功能，方便共享文件给他人，实际上就是把服务器的一个目录设置为可见。发现Nginx支持这一功能。
+
+官方相关文档：http://nginx.org/en/docs/http/ngx_http_autoindex_module.html
+
+在service里的新建需要共享目录的location段修改如下：
+
+    location /downloads {
+        root /home;
+        autoindex on;
+        autoindex_exact_size on;
+        autoindex_localtime on;
+    }
+
+后三句为打开当前location段的目录索引功能，显示文件大小，显示文件创建日期，建议只对需要共享的目录打开目录功能。</textarea></div>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/26.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/26.html" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/tag/nginx/" thr:count="0"/>
 </entry>
 </feed>

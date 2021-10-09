@@ -19,32 +19,118 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <guid>https://blog.niekun.net/archives/204.html</guid>
 <pubDate>Tue, 09 Apr 2019 20:30:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
-<description><![CDATA[最近想在试一下wordpress怎么样，于是尝试了下安装到服务器，期间在安装新版 php 和 在 Nginx 中使用 FastCGI 代理 php 上遇到一些麻烦的地方。官网：https://w...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<p>最近想在试一下wordpress怎么样，于是尝试了下安装到服务器，期间在安装新版 php 和 在 Nginx 中使用 FastCGI 代理 php 上遇到一些麻烦的地方。</p><p>官网：<a href="https://wordpress.org">https://wordpress.org</a></p><p><strong>环境要求：</strong></p><ul><li>Nginx</li><li>PHP version 7.3 or greater.</li><li>MySQL version 5.6 or greater OR MariaDB version 10.0 or greater.</li><li>HTTPS support</li></ul><!--more--><p>这里需要安装 php7.3 和 MySQL5.6 以上版本，于是首先安装这两个。</p><p>Linux系统：ubantu14.04</p><h2>Nginx</h2><p>安装 Nginx 参考：<a href="https://niekun.net/archives/30.html">https://niekun.net/archives/30.html</a><br>初始配置 Nginx 参考：<a href="https://niekun.net/archives/6.html">https://niekun.net/archives/6.html</a></p><p>nginx 配置文件中，将 user 改为 www-data:</p><pre><code>user  www-data;
-</code></pre><h2>php7.3</h2><p>由于官方的源里没有 php7.3 版的程序，所以有两种方法安装：源码编译或添加第三方源。</p><p>我首先尝试了第一种方法，这里是官方参考手册：<a href="https://www.php.net/manual/zh/install.unix.nginx.php">https://www.php.net/manual/zh/install.unix.nginx.php</a></p><p>但我在 make test 的时候遇到错误了，所以无法继续进行下去，在没找到错误原因的情况下，我尝试使用第二种方法。</p><p><strong>添加第三方软件源：</strong></p><p>由于第三方源是没有安全保证的，容易安装恶意软件，所以一定要找到值得信任的来源。</p><p>我使用的是这个：<a href="https://launchpad.net/~ondrej/+archive/ubuntu/php">https://launchpad.net/~ondrej/+archive/ubuntu/php</a></p><p>开始添加源及安装 php：</p><pre><code>add-apt-repository ppa:ondrej/php
-apt-get update
-apt-get install php7.3-fpm php7.3-mysql
-</code></pre><p>安装完成后修改配置文件 php.ini，可以使用 find / -name php.ini 找到这个文件路径:</p><pre><code>vim /etc/php/7.3/fpm/php.ini
-</code></pre><p>通过搜索 /cgi.fix_pathinfo 找到下面字符串，去掉前面注释并修改：</p><pre><code>cgi.fix_pathinfo=0
-</code></pre><p>找到配置文件 www.conf:</p><pre><code>vim /etc/php/7.3/fpm/pool.d/www.conf
-</code></pre><p>Nginx 的执行用户是 www-data, 所以修改下面内容：</p><pre><code>listen.owner = www-data
-listen.group = www-data
-</code></pre><p>重启 php-fpm 服务：</p><pre><code>service php7.3-fpm restart
-</code></pre><h2>安装MySQL5.6</h2><p>安装：</p><pre><code>apt-get install mysql-server-5.7
-</code></pre><p>期间会自动创建 root 用户根据提示设置密码。</p><p>启动 MySQL 服务：</p><pre><code>service mysql start
-</code></pre><p>查看当前 MySQL 版本：</p><pre><code>mysql -V
-</code></pre><p>进入 MySQL：</p><pre><code>mysql -uUSER -pPASSWORD
-</code></pre><p>创建数据库并设置权限：</p><pre><code>create database blog; 
-grant all privileges on blog.* to &quot;root&quot;@&quot;localhost&quot; identified by &quot;password&quot;; 
-show databases;
-quit;
-</code></pre><p><strong>*注意如果是在 Windows WSL 上安装，安装完成后不会提示设置账号密码，直接输入 <code>sudo mysql</code> 就进入 MySQL 了，建立新 user 和 database 指令如下：</strong></p><pre><code>create user &quot;newuser&quot;@&quot;localhost&quot; identified by &quot;PASSWORD&quot;;
+<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近想在试一下wordpress怎么样，于是尝试了下安装到服务器，期间在安装新版 php 和 在 Nginx 中使用 FastCGI 代理 php 上遇到一些麻烦的地方。
+
+官网：https://wordpress.org
+
+**环境要求：**
+- Nginx
+- PHP version 7.3 or greater.
+- MySQL version 5.6 or greater OR MariaDB version 10.0 or greater.
+- HTTPS support
+
+
+<!--more-->
+
+
+这里需要安装 php7.3 和 MySQL5.6 以上版本，于是首先安装这两个。
+
+Linux系统：ubantu14.04
+
+## Nginx
+
+安装 Nginx 参考：https://niekun.net/archives/30.html
+初始配置 Nginx 参考：https://niekun.net/archives/6.html
+
+nginx 配置文件中，将 user 改为 www-data:
+    user  www-data;
+
+## php7.3
+
+由于官方的源里没有 php7.3 版的程序，所以有两种方法安装：源码编译或添加第三方源。
+
+我首先尝试了第一种方法，这里是官方参考手册：https://www.php.net/manual/zh/install.unix.nginx.php
+
+但我在 make test 的时候遇到错误了，所以无法继续进行下去，在没找到错误原因的情况下，我尝试使用第二种方法。
+
+**添加第三方软件源：**
+
+由于第三方源是没有安全保证的，容易安装恶意软件，所以一定要找到值得信任的来源。
+
+我使用的是这个：https://launchpad.net/~ondrej/+archive/ubuntu/php
+
+开始添加源及安装 php：
+    add-apt-repository ppa:ondrej/php
+    apt-get update
+    apt-get install php7.3-fpm php7.3-mysql
+
+安装完成后修改配置文件 php.ini，可以使用 find / -name php.ini 找到这个文件路径:
+    vim /etc/php/7.3/fpm/php.ini
+
+通过搜索 /cgi.fix_pathinfo 找到下面字符串，去掉前面注释并修改：
+    cgi.fix_pathinfo=0
+
+找到配置文件 www.conf:
+    vim /etc/php/7.3/fpm/pool.d/www.conf
+
+Nginx 的执行用户是 www-data, 所以修改下面内容：
+    listen.owner = www-data
+    listen.group = www-data
+
+重启 php-fpm 服务：
+    service php7.3-fpm restart
+
+## 安装MySQL5.6
+
+安装：
+    apt-get install mysql-server-5.7
+
+期间会自动创建 root 用户根据提示设置密码。
+
+启动 MySQL 服务：
+    service mysql start
+
+查看当前 MySQL 版本：
+    mysql -V
+
+进入 MySQL：
+    mysql -uUSER -pPASSWORD
+
+创建数据库并设置权限：
+    create database blog; 
+    grant all privileges on blog.* to "root"@"localhost" identified by "password"; 
+    show databases;
+    quit;
+
+***注意如果是在 Windows WSL 上安装，安装完成后不会提示设置账号密码，直接输入 `sudo mysql` 就进入 MySQL 了，建立新 user 和 database 指令如下：**
+```
+create user "newuser"@"localhost" identified by "PASSWORD";
 grant all privileges on *.* to 'newuser'@'localhost';
 FLUSH PRIVILEGES;
 create database wordpress;
-grant all privileges on wordpress.* to &quot;newuser&quot;@&quot;localhost&quot; identified by &quot;PASSWORD&quot;;
-FLUSH PRIVILEGES;</code></pre><p>WSL 中建立 database 建立 user 只能在 root 用户下，也就是 <code>sudo mysql</code> 进入的用户，然后授予其他自己建立的 user 使用 database 的权限。</p><p>数据库基本操作参考：<a href="https://niekun.net/index.php/archives/23.html">https://niekun.net/index.php/archives/23.html</a></p><h2>Nginx 配置 FastCGI</h2><blockquote>FastCGI proxying within Nginx is generally used to translate client requests for an application server that does not or should not handle client requests directly. FastCGI is a protocol based on the earlier CGI, or common gateway interface, protocol meant to improve performance by not running each request as a separate process. It is used to efficiently interface with a server that processes requests for dynamic content.</blockquote><p>One of the main use-cases of FastCGI proxying within Nginx is for PHP processing. Unlike Apache, which can handle PHP processing directly with the use of the mod_php module, Nginx must rely on a separate PHP processor to handle PHP requests. Most often, this processing is handled with php-fpm, a PHP processor that has been extensively tested to work with Nginx.</p><p>简单说就是 FastCGI 实现了使用 Nginx 代理 php 请求的过程。</p><p>关于 FastCGI 的详细分析：<a href="https://www.digitalocean.com/community/tutorials/understanding-and-implementing-fastcgi-proxying-in-nginx">https://www.digitalocean.com/community/tutorials/understanding-and-implementing-fastcgi-proxying-in-nginx</a><br>wordpress 官方对于配置 Nginx 的介绍，可设置多个网站的配置：<a href="https://codex.wordpress.org/Nginx">https://codex.wordpress.org/Nginx</a></p><p>在 Nginx 配置文件内添加或修改如下片段：</p><pre><code>include index.php;
+grant all privileges on wordpress.* to "newuser"@"localhost" identified by "PASSWORD";
+FLUSH PRIVILEGES;
+```
+
+WSL 中建立 database 建立 user 只能在 root 用户下，也就是 `sudo mysql` 进入的用户，然后授予其他自己建立的 user 使用 database 的权限。
+
+数据库基本操作参考：https://niekun.net/index.php/archives/23.html
+
+## Nginx 配置 FastCGI
+
+> FastCGI proxying within Nginx is generally used to translate client requests for an application server that does not or should not handle client requests directly. FastCGI is a protocol based on the earlier CGI, or common gateway interface, protocol meant to improve performance by not running each request as a separate process. It is used to efficiently interface with a server that processes requests for dynamic content.
+
+One of the main use-cases of FastCGI proxying within Nginx is for PHP processing. Unlike Apache, which can handle PHP processing directly with the use of the mod_php module, Nginx must rely on a separate PHP processor to handle PHP requests. Most often, this processing is handled with php-fpm, a PHP processor that has been extensively tested to work with Nginx.
+
+简单说就是 FastCGI 实现了使用 Nginx 代理 php 请求的过程。
+
+关于 FastCGI 的详细分析：https://www.digitalocean.com/community/tutorials/understanding-and-implementing-fastcgi-proxying-in-nginx
+wordpress 官方对于配置 Nginx 的介绍，可设置多个网站的配置：https://codex.wordpress.org/Nginx
+
+在 Nginx 配置文件内添加或修改如下片段：
+```
+include index.php;
 
 location ~ [^/]\.php(/|$) {
     try_files $fastcgi_script_name =404;
@@ -53,23 +139,64 @@ location ~ [^/]\.php(/|$) {
     fastcgi_index index.php;
     fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
     include fastcgi_params;
-}</code></pre><ul><li>location 里使用正则定义了匹配包含 php 后缀的 url。</li><li>try_files 用来拒绝非本地 php 文件的访问，$fastcgi_script_name 用来只识别 php 文件之前的路径，如果用 $uri 的话回到这访问二级路径 404。</li><li>fastcgi_split_path_info 用来将 请求 url 拆分成两部分：php 文件之前的 $fastcgi_script_name 和之后的部分：$fastcgi_path_info</li><li>fastcgi_pass 定义真正的用来处理 FastCGI 代理的服务，一般默认地址为：127.0.0.1:9000，可自定义指定为特定版本的php</li><li>fastcgi_param 定义一些需要的 FastCGI 变量值，大部分已经在 Nginx 安装是附带的 fastcgi_params 预定义好了。</li></ul><p>测试及重新加载 Nginx 配置：</p><pre><code>service nginx configtest
-service nginx reload
-</code></pre><p>在 root 目录新建 test.php 测试文件：</p><pre><code>&lt;?php
+}
+```
+- location 里使用正则定义了匹配包含 php 后缀的 url。
+- try_files 用来拒绝非本地 php 文件的访问，$fastcgi_script_name 用来只识别 php 文件之前的路径，如果用 $uri 的话回到这访问二级路径 404。
+- fastcgi_split_path_info 用来将 请求 url 拆分成两部分：php 文件之前的 $fastcgi_script_name 和之后的部分：$fastcgi_path_info
+- fastcgi_pass 定义真正的用来处理 FastCGI 代理的服务，一般默认地址为：127.0.0.1:9000，可自定义指定为特定版本的php
+- fastcgi_param 定义一些需要的 FastCGI 变量值，大部分已经在 Nginx 安装是附带的 fastcgi_params 预定义好了。
+
+测试及重新加载 Nginx 配置：
+    service nginx configtest
+    service nginx reload
+
+在 root 目录新建 test.php 测试文件：
+```
+<?php
     phpinfo();
-?&gt;</code></pre><p>访问：yourdomain/test.php，如果显示 php 信息页面，则代表 FastCGI 配置完成。</p><p>如果显示access denied可能是权限问题:</p><p>nginx 和php-fpm不再一个用户下运行，查看上面的说到的配置(默认都是www-data)</p><pre><code>ps -aux | grep nginx
-ps -aux | grep php
-</code></pre><p>网站目录权限不对:</p><pre><code>chmod -R 755 /www/path
-chown -R www-data /www/path
-</code></pre><p>以上就完成基本 php + mysql + nginx 的环境配置。</p><h2>安装 wordpress</h2><p>发布地址：<a href="https://wordpress.org/download/releases/">https://wordpress.org/download/releases/</a></p><p>下载最新版并解压：</p><pre><code>wget https://wordpress.org/latest.tar.gz
-tar -xzvf latest.tar.gz
-</code></pre><p>复制目录到网站 root 目录：</p><pre><code>mv wordpress /your/www/root
-</code></pre><p>由于 Nginx 和 php 的用户都是 www-data，所以设置网站目录用户级别也为 www-data：</p><pre><code>chown -R www-data:www-data /your/www/root
-</code></pre><p>这时候访问域名就会进入 wordpress 引导界面。根据提示绑定 mysql 数据库及其他相关。</p><hr><p><strong>wordpress free 主题：</strong><br><a href="https://colorlib.com/wp/themes/">https://colorlib.com/wp/themes/</a><br><a href="https://colorlib.com/wp/free-wordpress-themes/">https://colorlib.com/wp/free-wordpress-themes/</a></p>
+?>
+```
+访问：yourdomain/test.php，如果显示 php 信息页面，则代表 FastCGI 配置完成。
+
+如果显示access denied可能是权限问题:
+
+nginx 和php-fpm不再一个用户下运行，查看上面的说到的配置(默认都是www-data)
+    ps -aux | grep nginx
+    ps -aux | grep php
+
+网站目录权限不对:
+    chmod -R 755 /www/path
+    chown -R www-data /www/path
+
+以上就完成基本 php + mysql + nginx 的环境配置。
+
+## 安装 wordpress
+
+发布地址：https://wordpress.org/download/releases/
+
+下载最新版并解压：
+    wget https://wordpress.org/latest.tar.gz
+    tar -xzvf latest.tar.gz
+
+复制目录到网站 root 目录：
+    mv wordpress /your/www/root
+
+由于 Nginx 和 php 的用户都是 www-data，所以设置网站目录用户级别也为 www-data：
+    chown -R www-data:www-data /your/www/root
+
+这时候访问域名就会进入 wordpress 引导界面。根据提示绑定 mysql 数据库及其他相关。
+
+---
+
+**wordpress free 主题：**
+https://colorlib.com/wp/themes/
+https://colorlib.com/wp/free-wordpress-themes/
+</textarea></div>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/204.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/204.html</wfw:commentRss>
+<wfw:commentRss>https://blog.niekun.net/feed/tag/wordpress/</wfw:commentRss>
 </item>
 </channel>
 </rss>

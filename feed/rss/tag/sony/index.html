@@ -19,27 +19,184 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <title>使用Final Cut Pro预处理Sony HLG视频</title>
 <link>https://blog.niekun.net/archives/17.html</link>
 <dc:date>2019-02-16T22:14:00+08:00</dc:date>
-<description>过年拍了一些视频和照片，使用的是sony a7iii，在视频拍摄中，我尝试使用了自带的pp10，也就是HLG2伽马曲线，BT2020色彩空间的配置。由于在之前看了一些YouTube视频，很多播主都推荐使用HLG格式，所以我对拍摄的视频还是有很大期待的。关于HLGHLG 相當於HDR標準Hybrid Log-Gamma、ITU-R BT.2100。HLG1 強調雜訊消除。不過，拍攝會限制在比使用HLG2或HLG3更窄的動態範圍。HLG2 提供動態範圍與雜訊消除的平衡。HLG3 比HLG2更寬的動態範圍。不過，雜訊可能會增加。HLG1 HLG2 和 HLG3皆以相同特性套用迦瑪曲線，不過每一個所提供的動態範圍與雜訊消除的平衡不一樣。每一個都有不同的視訊輸出等級上限，如下所示：HLG1：大約87%，HLG2：大約95%，HLG3：大約100%。看看以下圖示，就知道每個HLG的差異特性了!关于BT2020色彩空间就是一个空间下能够显示多少种色彩，空间越大，理论上支持更加丰富的色彩。在下图中，曲线的色彩空间代表了人眼视觉的范围。Rec. 709的色域较窄。相比之下，很容易就能看出S-Log录制中所使用的S-Gamut更为宽广。在专为Rec. 709设计的屏幕上查看时，Log视频缺少对比度，因为屏幕上无法显示所有的色域。绿框所示的ITU-R BT.2020色域可通过4K设备重现。这也显示出4K环境中的创意调色范围要比HD宽广得多。关于色彩空间的系统知识，我在之前看到知乎上有几篇文章很好，有兴趣的可以移步色彩空间基础色彩空间的表示与转换custom LUT将拍摄的HLG视频倒入FXP后，直观上发现视频都是曝光过度，查找资料后了解到，需要支持HDR的显示器才能直接显示出正常的色彩亮度。在普通设备上预览视频需要做一些设置和配置。首先修改FXP设置打开最后一项，这样会在project栏预览和选择片段的时候不会显示过爆。在timeline开始编辑的时候，在Effect里搜索custom LUT，添加到视频片段里。input里选择rec. 2020HLG。output选择rec.709这里需要选择一个自定义LUT文件，才能正常完成色彩空间转换，我使用PhotoShop制作了一个不对图像进行任何调整的LUT。LUT制作打开Photoshop，新建一个包含白色背景的项目，添加一个curves的layer，不用做任何调整。导出LUT文件：file - export - color lookup tablesformat只选择CUBE，命名后确认导出。将导出的文件放到Final Cut Pro LUT目录。返回final cut pro，在刚才添加的custom LUT内添加里的LUT文件夹，选择choice custom LUT。选择刚才保存生成的CUBE文件的文件夹，确认后回到FXP，在第一项LUT中找到自定义LUT文件。确认input和output是上面提到的设置。这时候预览图像应该会变灰，好像s-log视频一样，快捷键CMD-7打开亮度直方图，观察亮度空间，调整custom LUT里的MIX选项来将亮度调整到充满0～100空间。至此，对于HLG的初始调整结束，接下来就可以正常的进行调色了。</description>
+<description>过年拍了一些视频和照片，使用的是sony a7iii，在视频拍摄中，我尝试使用了自带的pp10，也就是HLG2伽马曲线，BT2020色彩空间的配置。由于在之前看了一些YouTube视频，很多播主都推荐使用HLG格式，所以我对拍摄的视频还是有很大期待的。
+
+## 关于HLG
+- HLG 相當於HDR標準Hybrid Log-Gamma、ITU-R BT.2100。
+- HLG1 強調雜訊消除。不過，拍攝會限制在比使用HLG2或HLG3更窄的動態範圍。
+- HLG2 提供動態範圍與雜訊消除的平衡。
+- HLG3 比HLG2更寬的動態範圍。不過，雜訊可能會增加。
+
+HLG1 HLG2 和 HLG3皆以相同特性套用迦瑪曲線，不過每一個所提供的動態範圍與雜訊消除的平衡不一樣。每一個都有不同的視訊輸出等級上限，如下所示：HLG1：大約87%，HLG2：大約95%，HLG3：大約100%。
+
+看看以下圖示，就知道每個HLG的差異特性了!
+
+![17-01.png][1]
+
+
+
+
+
+----------
+
+
+## 关于BT2020
+
+色彩空间就是一个空间下能够显示多少种色彩，空间越大，理论上支持更加丰富的色彩。
+在下图中，曲线的色彩空间代表了人眼视觉的范围。Rec. 709的色域较窄。相比之下，很容易就能看出S-Log录制中所使用的S-Gamut更为宽广。
+
+在专为Rec. 709设计的屏幕上查看时，Log视频缺少对比度，因为屏幕上无法显示所有的色域。
+
+绿框所示的ITU-R BT.2020色域可通过4K设备重现。这也显示出4K环境中的创意调色范围要比HD宽广得多。
+
+![17-02.png][2]
+
+**关于色彩空间的系统知识，我在之前看到知乎上有几篇文章很好，有兴趣的可以移步**
+[色彩空间基础](https://zhuanlan.zhihu.com/p/24214731)
+[色彩空间的表示与转换](https://zhuanlan.zhihu.com/p/24281841)
+
+
+----------
+
+
+## custom LUT
+
+将拍摄的HLG视频倒入FXP后，直观上发现视频都是曝光过度，查找资料后了解到，需要支持HDR的显示器才能直接显示出正常的色彩亮度。在普通设备上预览视频需要做一些设置和配置。
+
+首先修改FXP设置
+
+![17-03.png][3]
+
+打开最后一项，这样会在project栏预览和选择片段的时候不会显示过爆。
+
+在timeline开始编辑的时候，在Effect里搜索custom LUT，添加到视频片段里。input里选择rec. 2020HLG。output选择rec.709
+
+![17-04.png][4]
+
+这里需要选择一个自定义LUT文件，才能正常完成色彩空间转换，我使用PhotoShop制作了一个不对图像进行任何调整的LUT。
+
+### LUT制作
+
+打开Photoshop，新建一个包含白色背景的项目，添加一个curves的layer，不用做任何调整。
+
+![17-05.png][5]
+
+导出LUT文件：file - export - color lookup tables
+
+![17-06.png][6]
+
+format只选择CUBE，命名后确认导出。将导出的文件放到Final Cut Pro LUT目录。
+返回final cut pro，在刚才添加的custom LUT内添加里的LUT文件夹，选择choice custom LUT。
+
+![17-07.png][7]
+
+选择刚才保存生成的CUBE文件的文件夹，确认后回到FXP，在第一项`LUT`中找到自定义LUT文件。
+
+确认input和output是上面提到的设置。这时候预览图像应该会变灰，好像s-log视频一样，快捷键CMD-7打开亮度直方图，观察亮度空间，调整custom LUT里的MIX选项来将亮度调整到充满0～100空间。
+
+至此，对于HLG的初始调整结束，接下来就可以正常的进行调色了。
+
+  [1]: https://niekun.net/usr/uploads/2019/02/1792385705.png
+  [2]: https://niekun.net/usr/uploads/2019/02/1978915105.png
+  [3]: https://niekun.net/usr/uploads/2019/02/3010766121.png
+  [4]: https://niekun.net/usr/uploads/2019/02/3937821205.png
+  [5]: https://niekun.net/usr/uploads/2019/02/3347524401.png
+  [6]: https://niekun.net/usr/uploads/2019/02/662548232.png
+  [7]: https://niekun.net/usr/uploads/2019/02/1188189134.png</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/5.html">
 <title>sony picture profile setting explain</title>
 <link>https://blog.niekun.net/archives/5.html</link>
 <dc:date>2019-02-15T16:35:00+08:00</dc:date>
-<description>官网介绍：https://helpguide.sony.net/di/pp/v1/en/contents/TP0000909109.htmlGammaMovieStandard gamma curve for videoStillStandard gamma curve for still imagesCine1Softens the contrast in darker image areas and emphasizes gradation changes in lighter image areas, producing a subdued tone overall (equivalent to HG4609G33)
+<description>官网介绍：https://helpguide.sony.net/di/pp/v1/en/contents/TP0000909109.html
+
+## Gamma
+**Movie** 
+```
+Standard gamma curve for video
+```
+**Still** 
+```
+Standard gamma curve for still images
+```
+**Cine1** 
+```
+Softens the contrast in darker image areas and emphasizes gradation changes in lighter image areas, producing a subdued tone overall (equivalent to HG4609G33)
 
 Gamma curve that obtains a dynamic range of 460% when the exposure is adjusted to 33% video output with 18% reflectance gray. The maximum value of video output is 109%.
 
-Images shot with this gamma can be used without grading, but since the images have smooth gradation characteristics, this can be used to grade and finalize the viewed image in the post-production process.Cine2Similar results to [Cine1] but optimized for editing with up to 100% video signal (equivalent to HG4600G30)
-Gamma curve that obtains a dynamic range of 460% when the exposure is adjusted to 30% video output with 18% reflectance gray. The maximum value of video output is 100%.Cine3Stronger contrast between dark and light image areas and greater emphasis on black gradation changes (compared to [Cine1])Cine4Stronger contrast than [Cine3] in darker image areasITU709ITU709 gamma curve (low-light gain of 4.5)ITU709 (800%)Gamma curve for checking scenes recorded using [S-Log2] or [S-Log3]S-Log2[S-Log2] gamma curve. This setting is selected when some grading work will be performed after recording.
-The exposure is set so that 18% reflectance gray video is output as 32%. Under these conditions, a dynamic range of 1,300% is obtained with 90% reflectance white. The maximum value of video output is 106%.S-Log3[S-Log3] gamma curve with characteristics closer to those of film. This setting is selected when some grading work will be performed after recording.
+Images shot with this gamma can be used without grading, but since the images have smooth gradation characteristics, this can be used to grade and finalize the viewed image in the post-production process.
+```
+
+
+
+
+
+**Cine2**
+```
+Similar results to [Cine1] but optimized for editing with up to 100% video signal (equivalent to HG4600G30)
+Gamma curve that obtains a dynamic range of 460% when the exposure is adjusted to 30% video output with 18% reflectance gray. The maximum value of video output is 100%.
+```
+**Cine3**
+```
+Stronger contrast between dark and light image areas and greater emphasis on black gradation changes (compared to [Cine1])
+```
+**Cine4**
+```
+Stronger contrast than [Cine3] in darker image areas
+```
+**ITU709**
+```
+ITU709 gamma curve (low-light gain of 4.5)
+```
+**ITU709 (800%)**
+```
+Gamma curve for checking scenes recorded using [S-Log2] or [S-Log3]
+```
+**S-Log2**
+```
+[S-Log2] gamma curve. This setting is selected when some grading work will be performed after recording.
+The exposure is set so that 18% reflectance gray video is output as 32%. Under these conditions, a dynamic range of 1,300% is obtained with 90% reflectance white. The maximum value of video output is 106%.
+```
+**S-Log3**
+```
+[S-Log3] gamma curve with characteristics closer to those of film. This setting is selected when some grading work will be performed after recording.
 It allows for better reproduction of gradations in shadows and the mid-tone range than S-Log2.
 The exposure is set so that 18% reflectance gray video is output as 41%. Under these conditions, a dynamic range of 1,300% is obtained with 90% reflectance white.
-As a characteristics of S-Log3, the dynamic range can be extended above 1,300%. However, Picture Profile is set to a dynamic range of 1,300% in order to maintain a balance with camera performance. Under these conditions, the maximum value of video output is 94%.HLGHDR gamma curve. Characteristics correspond to the ITU-R BT.2100 HDR standard.HLG1HDR gamma curve. Reduces noise more than [HLG2]. However, shooting is restricted to a narrower dynamic range. Maximum video output level: 87%.HLG2HDR gamma curve. Provides a balance of dynamic range and noise reduction. Maximum video output level: 95%.HLG3HDR gamma curve. Wider dynamic range than [HLG2]. However, noise will be higher. Same dynamic range as [HLG]. Maximum video output level: 100%.</description>
+As a characteristics of S-Log3, the dynamic range can be extended above 1,300%. However, Picture Profile is set to a dynamic range of 1,300% in order to maintain a balance with camera performance. Under these conditions, the maximum value of video output is 94%.
+```
+**HLG**
+```
+HDR gamma curve. Characteristics correspond to the ITU-R BT.2100 HDR standard.
+```
+**HLG1**
+```
+HDR gamma curve. Reduces noise more than [HLG2]. However, shooting is restricted to a narrower dynamic range. Maximum video output level: 87%.
+```
+**HLG2**
+```
+HDR gamma curve. Provides a balance of dynamic range and noise reduction. Maximum video output level: 95%.
+```
+**HLG3**
+```
+HDR gamma curve. Wider dynamic range than [HLG2]. However, noise will be higher. Same dynamic range as [HLG]. Maximum video output level: 100%.
+```</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/start.html">
 <title>sony A7iii弱光视频录制设置</title>
 <link>https://blog.niekun.net/archives/start.html</link>
 <dc:date>2019-02-15T08:42:00+08:00</dc:date>
-<description>Menu - Picture profilesPP2 - Right on dialBlack Level -2    (if too dark, change to +2)Gamma StillBlack Gamma -2   (if too dark, change to +2)Color Mode - ProSaturation -4Detail -7 (Make sure to sharpen in post)ISO less than 25600</description>
+<description>1. Menu - Picture profiles 
+2. PP2 - Right on dial 
+3. Black Level -2    (if too dark, change to +2)
+4. Gamma Still 
+5. Black Gamma -2   (if too dark, change to +2)
+6. Color Mode - Pro 
+7. Saturation -4 
+8. Detail -7 (Make sure to sharpen in post) 
+
+
+**ISO less than 25600**
+</description>
 </item>
 </rdf:RDF>

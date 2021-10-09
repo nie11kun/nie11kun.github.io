@@ -18,11 +18,37 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <title>Ubuntu 修改 apt 国内源</title>
 <link>https://blog.niekun.net/archives/1161.html</link>
 <dc:date>2020-02-26T13:25:00+08:00</dc:date>
-<description>国内使用 apt 安装软件如果感觉比较慢，可能是 deb 源是国外的，通过修改为国内源，可以很好的进行加速下载。系统代号每一个版本的 Ubuntu 都会有一个代号: codename，用来识别不同的版本，比如：14.04 LTS 代号是 trusty16.04 LTS 代号是 xenial18.04 LTS 代号是 bionic在更换源的时候需要使用到代号codename，可以使用如下命令查看当前系统版本代号：lsb_release -a
+<description>![2020-02-26T04:59:18.png][1]
 
-备份系统源文件为防止修改错误或其他问题，将系统自带源文件进行备份很有必要，执行如下指令：sudo cp /etc/apt/sources.list /etc/apt/sources.list_bak
-修改 sources.list 源文件打开 sources.list 文件，将内容修改为想要的国内源：vim /etc/apt/sources.list
-输入命令 ggdG 清空内容，修改为清华源加入如下内容：# 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
+国内使用 apt 安装软件如果感觉比较慢，可能是 deb 源是国外的，通过修改为国内源，可以很好的进行加速下载。
+
+#### 系统代号
+
+每一个版本的 Ubuntu 都会有一个代号: codename，用来识别不同的版本，比如：
+- 14.04 LTS 代号是 **trusty**
+- 16.04 LTS 代号是 **xenial**
+- 18.04 LTS 代号是 **bionic**
+
+在更换源的时候需要使用到代号codename，可以使用如下命令查看当前系统版本代号：
+    lsb_release -a
+
+
+
+
+
+#### 备份系统源文件
+
+为防止修改错误或其他问题，将系统自带源文件进行备份很有必要，执行如下指令：
+    sudo cp /etc/apt/sources.list /etc/apt/sources.list_bak
+
+#### 修改 sources.list 源文件
+
+打开 sources.list 文件，将内容修改为想要的国内源：
+    vim /etc/apt/sources.list
+
+输入命令 `ggdG` 清空内容，修改为清华源加入如下内容：
+```
+# 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
 deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
 # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
 deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
@@ -34,44 +60,167 @@ deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted
 
 # 预发布软件源，不建议启用
 # deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
-# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse可以看到每行内容里都有对应系统代号信息，如果要修改其他版本系统的 apt 源，只需要将里面系统代号替换即可。常用国内源：清华源：https://mirror.tuna.tsinghua.edu.cn/help/ubuntu/中科大源：https://lug.ustc.edu.cn/wiki/mirrors/help/ubuntu</description>
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
+```
+
+可以看到每行内容里都有对应系统代号信息，如果要修改其他版本系统的 apt 源，只需要将里面**系统代号**替换即可。
+
+**常用国内源：**
+- 清华源：https://mirror.tuna.tsinghua.edu.cn/help/ubuntu/
+- 中科大源：https://lug.ustc.edu.cn/wiki/mirrors/help/ubuntu
+
+
+  [1]: https://niekun.net/usr/uploads/2020/02/3080758679.png</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/196.html">
 <title>关于debian的apt/dpkg包管理相关</title>
 <link>https://blog.niekun.net/archives/196.html</link>
 <dc:date>2019-04-08T22:11:00+08:00</dc:date>
-<description>Debian 是一个致力于自由软件开发并宣扬自由软件基金会之理念的自愿者组织。Debian 计划创建于 1993 年。当时，Ian Murdock 发出一份公开信，邀请软件开发者们参与构建一个基于较新的 Linux 内核的完整而紧密的软件发行版。官网：https://www.debian.org/简单来说就是一个 Linux 的发行版，和 centos Ubuntu是一个类型的。但是其设计初衷为纯粹，更为干净。APT(advanced package tool)Debian 带来了数万个软件包。为了方便用户使用，这些软件包都已经被编译包装为一种方便的格式，开发人员把它叫做 deb 包。Debian 系统中，软件包管理可由多种工具协作进行，范围从最底层的 dpkg 命令直到图形界面的 Synaptic 工具。推荐在 Debian 系统中管理软件包的标准工具是 apt 工具集。使用 apt 安装软件，就不需要从源码开始编译了，可以有效节省时间。有两个主要命令：apt-get：用于安装，升级或清理软件包apt-cache：用户寻找新的软件包apt-get更新软件包元数据：apt-get update
-升级所有已安装包：apt-get upgrade或者：apt-get dist-upgrade
-升级特定软件包：apt-get upgrade &lt;package_name&gt;
-upgrade 和 dist-upgrade 的区别：upgrade 是一个更安全的模式，它不会尝试删除现有或安装一个新的软件包，而 dist-upgrade 会更加“聪明”的替你安装包，这个过程可能会删除或更改你现有的软件包，包括一些你不想进行更改的包，有潜在隐患。所以进行一次完整的升级：apt-get update &amp;&amp; sudo apt-get upgrade -y
-安装一个软件包：apt-get install &lt;package_name&gt;
-重新安装一个已安装的软件包：apt-get install --reinstall &lt;package_name&gt;
-同时安装多个包：apt-get install &lt;package_1&gt; &lt;package_2&gt; &lt;package_3&gt;
-安装一个包的特定版本：apt-get install &lt;package_name&gt;=&lt;version_number&gt;
-删除一个包：apt-get remove &lt;package_name&gt;或者：apt-get purge &lt;package_name&gt;
-apt-get remove 和 apt-get purge 的区别：remove 只会删除这个包本身，不会删除其配置文件等残留内容，这意味着如果你重新安装此包，会提示你要覆盖相关配置文件。purge 会删除此包的相关所有内容。清理本地缓存仓库文件：apt-get clean
-清理本地过期缓存文件：apt-get autoclean
-删除之前自动安装的不再需要的包：apt-get autoremove
-安装其他包管理源：(注意不要添加不被信任的源，以免危险)add-apt-repository ppa:&lt;some/source&gt;
-apt-get update
-如果添加一个第三方源后，执行 apt-get update 时提示：GPG error: http://ppa.launchpad.net trusty InRelease...这时需要先确定其 key 没有问题，这个可以访问这个源发布者页面查看其 key 比对命令行里出现的 key，如果一样的话需要手动加入 key 到 key管理器：apt-key adv --keyserver keyserver.ubuntu.com --recv-keys &lt;PUBKEY&gt;
-将 &lt;PUBKEY&gt; 替换为 key。删除自己安装的某个包管理源，可以安装 ppa-purge 来管理：apt-get install ppa-purge
-ppa-purge ppa:&lt;some/source&gt;
-apt-get update
-已安装的第三方源在 /etc/apt/sources.list.d/ 目录下的 .list 文件。手动删除 .list 文件也可删除对应源，删除后执行 apt-get update。apt-cache搜索你想要的软件：apt-cache search &lt;search term&gt;
-你不需要精确的包名字，它会自动匹配相近的内容。如果你知道确切的包名来搜索，可以这样：apt-cache pkgnames &lt;search_term&gt;
-或者更精确的搜索到一个包的详细；apt-cache showpkg &lt;package_name&gt;
-sources.listList of configured APT data sources包管理数据源列表文件地址：/etc/apt/sources.list 和 /etc/apt/sources.list.d/ 目录下的所有 .list 文件。在 sources.list.d 下添加源文件，等同于使用上面的 add-apt-repository 命令。list 格式解释参考：http://manpages.ubuntu.com/manpages/trusty/man5/sources.list.5.html官方源列表：https://launchpad.net/ubuntu/+archivemirrorsunoffical php: https://launchpad.net/~ondrej/+archive/ubuntu/phpunoffical ffmpeg源：https://launchpad.net/~mc3man/+archive/ubuntu/trusty-mediadpkgdpkg 是基于 Debian 的 Linux 系统的包管理器，它可以 安装，删除，创建包，不同于 apt 等其他包管理器，它不可以自动的安装一些依赖文件。所有的安装操作都需要手动完成。apt 也是 dpkg 安装包形式的。所以 dpkg 可以管理 apt 安装的包常用命令：列出当前系统安装的所有包：dpkg -l
-列出特定包的相关安装信息：dpkg -l | grep xxxx
-列出安装某个包时创建的文件：dpkg -L nginx
-查看某个文件是在那个包安装时创建的：dpkg -S file
+<description>> Debian 是一个致力于自由软件开发并宣扬自由软件基金会之理念的自愿者组织。Debian 计划创建于 1993 年。当时，Ian Murdock 发出一份公开信，邀请软件开发者们参与构建一个基于较新的 Linux 内核的完整而紧密的软件发行版。
 
-dpkg -S /etc/nginx/naxsi.rules
-nginx-common: /etc/nginx/naxsi.rules
-安装一个 deb 包：dpkg -i xxx.deb
-删除一个包：dpkg -r nginx
-或者
-dpkg -p nginx
+官网：https://www.debian.org/
+
+
+
+
+简单来说就是一个 Linux 的发行版，和 centos Ubuntu是一个类型的。但是其设计初衷为纯粹，更为干净。
+
+# APT(advanced package tool)
+Debian 带来了数万个软件包。为了方便用户使用，这些软件包都已经被编译包装为一种方便的格式，开发人员把它叫做 deb 包。
+
+Debian 系统中，软件包管理可由多种工具协作进行，范围从最底层的 dpkg 命令直到图形界面的 Synaptic 工具。推荐在 Debian 系统中管理软件包的标准工具是 apt 工具集。
+
+使用 apt 安装软件，就不需要从源码开始编译了，可以有效节省时间。
+
+有两个主要命令：
+apt-get：用于安装，升级或清理软件包
+apt-cache：用户寻找新的软件包
+
+## apt-get
+更新软件包元数据：
+    apt-get update
+
+升级所有已安装包：
+    apt-get upgrade
+或者：
+    apt-get dist-upgrade
+
+升级特定软件包：
+    apt-get upgrade 
+
+**upgrade 和 dist-upgrade 的区别：**
+
+upgrade 是一个更安全的模式，它不会尝试删除现有或安装一个新的软件包，而 dist-upgrade 会更加“聪明”的替你安装包，这个过程可能会删除或更改你现有的软件包，包括一些你不想进行更改的包，有潜在隐患。
+
+所以进行一次完整的升级：
+    apt-get update && sudo apt-get upgrade -y
+
+安装一个软件包：
+    apt-get install 
+
+重新安装一个已安装的软件包：
+    apt-get install --reinstall 
+
+同时安装多个包：
+    apt-get install   
+
+安装一个包的特定版本：
+    apt-get install =
+
+删除一个包：
+    apt-get remove 
+或者：
+    apt-get purge 
+
+**apt-get remove 和 apt-get purge 的区别：**
+
+remove 只会删除这个包本身，不会删除其配置文件等残留内容，这意味着如果你重新安装此包，会提示你要覆盖相关配置文件。purge 会删除此包的相关所有内容。
+
+清理本地缓存仓库文件：
+    apt-get clean
+
+清理本地过期缓存文件：
+    apt-get autoclean
+
+删除之前自动安装的不再需要的包：
+    apt-get autoremove
+
+安装其他包管理源：(注意不要添加不被信任的源，以免危险)
+    add-apt-repository ppa:
+    apt-get update
+
+如果添加一个第三方源后，执行 apt-get update 时提示：GPG error: http://ppa.launchpad.net trusty InRelease...
+这时需要先确定其 key 没有问题，这个可以访问这个源发布者页面查看其 key 比对命令行里出现的 key，如果一样的话需要手动加入 key 到 key管理器：
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 
+
+将 `` 替换为 key。
+
+删除自己安装的某个包管理源，可以安装 ppa-purge 来管理：
+    apt-get install ppa-purge
+    ppa-purge ppa:
+    apt-get update
+
+已安装的第三方源在 **/etc/apt/sources.list.d/** 目录下的 **.list** 文件。
+
+手动删除 **.list** 文件也可删除对应源，删除后执行 `apt-get update`。
+
+## apt-cache
+搜索你想要的软件：
+    apt-cache search 
+
+你不需要精确的包名字，它会自动匹配相近的内容。
+
+如果你知道确切的包名来搜索，可以这样：
+    apt-cache pkgnames 
+
+或者更精确的搜索到一个包的详细；
+    apt-cache showpkg 
+
+## sources.list
+
+List of configured APT data sources
+
+包管理数据源列表文件地址：**/etc/apt/sources.list** 和 **/etc/apt/sources.list.d/** 目录下的所有 .list 文件。
+
+在 sources.list.d 下添加源文件，等同于使用上面的 add-apt-repository 命令。
+
+list 格式解释参考：http://manpages.ubuntu.com/manpages/trusty/man5/sources.list.5.html
+
+官方源列表：https://launchpad.net/ubuntu/+archivemirrors
+
+unoffical php: https://launchpad.net/~ondrej/+archive/ubuntu/php
+unoffical ffmpeg源：https://launchpad.net/~mc3man/+archive/ubuntu/trusty-media
+
+# dpkg
+
+dpkg 是基于 Debian 的 Linux 系统的包管理器，它可以 安装，删除，创建包，不同于 apt 等其他包管理器，它不可以自动的安装一些依赖文件。所有的安装操作都需要手动完成。
+
+**apt 也是 dpkg 安装包形式的。所以 dpkg 可以管理 apt 安装的包**
+
+**常用命令：**
+
+列出当前系统安装的所有包：
+    dpkg -l
+
+列出特定包的相关安装信息：
+    dpkg -l | grep xxxx
+
+列出安装某个包时创建的文件：
+    dpkg -L nginx
+
+查看某个文件是在那个包安装时创建的：
+    dpkg -S file
+
+    dpkg -S /etc/nginx/naxsi.rules
+    nginx-common: /etc/nginx/naxsi.rules
+
+安装一个 deb 包：
+    dpkg -i xxx.deb
+
+删除一个包：
+    dpkg -r nginx
+    或者
+    dpkg -p nginx
 
 
 
