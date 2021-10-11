@@ -14,7 +14,7 @@
 <link rel="alternate" type="application/rss+xml" title="openwrt network 配置 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2291.html" />
 <link rel="alternate" type="application/rdf+xml" title="openwrt network 配置 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2291.html" />
 <link rel="alternate" type="application/atom+xml" title="openwrt network 配置 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2291.html" />
-<script type="c36b5c5a04e38c2cc93b7b30-text/javascript">
+<script type="3cb701d73d9a104958029f9c-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -86,7 +86,7 @@
     };
 })();
 </script>
-<script type="c36b5c5a04e38c2cc93b7b30-text/javascript">
+<script type="3cb701d73d9a104958029f9c-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -104,34 +104,33 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _4OeOz = //'iLr'
-'9ba'+'6'//'dO'
-+'cKY'//'cKY'
-+'YI'//'YI'
-+/* 'J'//'J' */''+//'Q'
-'87'+'c0'//'uu'
-+//'gQH'
-'65'+//'wyM'
-'d82'+'48'//'e'
-+//'ant'
-'76'+//'J'
-'b8'+//'t'
-'d3'+//'OX'
-'6ae'+//'0P'
-'7'+//'9'
-'9'+//'D'
-'b'+''///*'F'*/'F'
-+//'u'
-'93'+//'pr6'
-'3'+//'1'
-'4b'+/* 'O'//'O' */''+//'Pkf'
-'1', _zjOPqR = [[4,7],[4,6],[25,26]];
+    var _KRod = '9ba'//'Z'
++//'f'
+'68'+//'z'
+'7'+'c06'//'r'
++//'rv'
+'5d'+//'1'
+'1'+//'y'
+'824'+//'Caj'
+'8'+'W'//'W'
++'7'//'Z'
++'6'//'j'
++//'Y'
+'Y'+'kJ'//'kJ'
++//'T'
+'b8'+//'fv'
+'d36'+//'p'
+'ae'+//'LHf'
+'7b9'+'33'//'XoR'
++//'Jk'
+'4'+'b1'//'Ms'
+, _WrY = [[11,12],[15,16],[17,18],[17,19]];
     
-    for (var i = 0; i < _zjOPqR.length; i ++) {
-        _4OeOz = _4OeOz.substring(0, _zjOPqR[i][0]) + _4OeOz.substring(_zjOPqR[i][1]);
+    for (var i = 0; i < _WrY.length; i ++) {
+        _KRod = _KRod.substring(0, _WrY[i][0]) + _KRod.substring(_WrY[i][1]);
     }
 
-    return _4OeOz;
+    return _KRod;
 })();
 
         if (null != r) {
@@ -188,17 +187,8 @@
 </div>
 </section>
 <article class="post-content">
-<blockquote>这篇文章上次修改于 184 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
-<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。
-
-在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。
-
-
-<!--more-->
-
-下面是一个默认的 `/etc/config/network` 文件内容：
-```
-"/etc/config/network"
+<blockquote>这篇文章上次修改于 185 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<p>openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。</p><p>在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。</p><p>下面是一个默认的 <code>/etc/config/network</code> 文件内容：</p><pre><code>&quot;/etc/config/network&quot;
 
 config interface 'loopback'
         option ifname 'lo'
@@ -223,84 +213,20 @@ config interface 'wan'
 
 config interface 'wan6'
         option ifname 'eth1'
-        option proto 'dhcpv6'
-```
-
-可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，**注意 lan 的 downlink 下级链接会自动开启 dhcp 服务**，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。
-
-以上默认的 network 配置包含了 global 配置块和 **loopback**，**lan**，**wan** interface 的配置块。这也是最基本的需要配置的网络设置。
-
-关于 network 配置文件的结构参考：[Network basics /etc/config/network](https://openwrt.org/docs/guide-user/base-system/basic-networking)
-
-interfaces 配置块定义了对应 interface 具体连接的物理网卡名称和协议类型，通过 **option** 来定义这个 interface 具体参数。
-
-一个最基本的 interface 配置项需要包含 **proto 协议类型**和 **ifname 网卡名称**，例如：
-```
-config 'interface' 'wan'
+        option proto 'dhcpv6'</code></pre><p>可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，<strong>注意 lan 的 downlink 下级链接会自动开启 dhcp 服务</strong>，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。</p><p>以上默认的 network 配置包含了 global 配置块和 <strong>loopback</strong>，<strong>lan</strong>，<strong>wan</strong> interface 的配置块。这也是最基本的需要配置的网络设置。</p><p>关于 network 配置文件的结构参考：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking">Network basics /etc/config/network</a></p><p>interfaces 配置块定义了对应 interface 具体连接的物理网卡名称和协议类型，通过 <strong>option</strong> 来定义这个 interface 具体参数。</p><p>一个最基本的 interface 配置项需要包含 <strong>proto 协议类型</strong>和 <strong>ifname 网卡名称</strong>，例如：</p><pre><code>config 'interface' 'wan'
         option 'proto' 'dhcp'
-        option 'ifname' 'eth0.2'
-```
-
-- wan 表示这个 interface 名称
-- dhcp 表示协议类型
-- eth0.2 表示绑定的物理网卡名称
-
-常用的 proto 协议类型有：
-```
-static	Static configuration with fixed address and netmask	ip/ifconfig
-dhcp	Address and netmask are assigned by DHCP	udhcpc (Busybox)
-dhcpv6	Address and netmask are assigned by DHCPv6	odhcpc6c
-ppp	PPP protocol - dialup modem connections	pppd
-pppoe	PPP over Ethernet - DSL broadband connection	pppd + plugin rp-pppoe.so
-pppoa	PPP over ATM - DSL connection using a builtin modem	pppd + plugin …
-```
-
-更多协议介绍：[interface](https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces)
-
-配置了协议后需要定义详细的 option 选项参数，下面是常用的适用于所有类型协议的 option 可选项：
-|Name|Type|Default Description|
-|:--:|:--:|
-|ifname |         物理网卡名称 | 如eth0 eth1 eth2，当定义 type 为 bridge 桥接时，可以是一个集合
-|type    |        字符串     |  如果设置为 bridge，会桥接在 ifname 中定义的物理网卡名称集合
-|stp      |       boolean	|     Only valid for type bridge, enables the Spanning Tree Protocol
-|bridge_empty	|boolean	 |    Only valid for type bridge, enables creating empty bridges
-|igmp_snooping	|boolean	  |   Only valid for type bridge, sets the multicast_snooping kernel setting for a bridge
-|macaddr    | mac地址 | Override MAC address of this interface. Example: 62:11:22:aa:bb:cc
-|mtu	|number| Override the default MTU on this interface
-  
-具体到某个 proto 协议会有各自特殊需要定义的 option 参数，下面介绍 static 模式下需要定义的参数：
-|名称|类型|描述
-|:--:|:--:|
-|ipaddr	|ip address	|IP address
-|netmask|netmask	|子网掩码
-|gateway|ip address	|Default gateway
-|broadcast|ip address	|Broadcast address (autogenerated if not set)
-|dns	|list of ip addresses	|DNS server(s)
-|dns_search	|list of domain names	|Search list for host-name lookup
-|metric	|integer	|Specifies the default route metric to use
-
-关于 proto 协议的配置项参考：[openwrt IPv4](https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4)
-
-### 示例
-
-下面通过示例来介绍一些典型配置模式。
-
-lan 网络的 Downstream 下层流量配置：
-```
-config interface 'lan'
+        option 'ifname' 'eth0.2'</code></pre><ul><li>wan 表示这个 interface 名称</li><li>dhcp 表示协议类型</li><li>eth0.2 表示绑定的物理网卡名称</li></ul><p>常用的 proto 协议类型有：</p><pre><code>static    Static configuration with fixed address and netmask    ip/ifconfig
+dhcp    Address and netmask are assigned by DHCP    udhcpc (Busybox)
+dhcpv6    Address and netmask are assigned by DHCPv6    odhcpc6c
+ppp    PPP protocol - dialup modem connections    pppd
+pppoe    PPP over Ethernet - DSL broadband connection    pppd + plugin rp-pppoe.so
+pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin …</code></pre><p>更多协议介绍：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a></p><p>配置了协议后需要定义详细的 option 选项参数，下面是常用的适用于所有类型协议的 option 可选项：</p><table><thead><tr><th align="center">Name</th><th align="center">Type</th><th>Default Description</th></tr></thead><tbody><tr><td align="center">ifname</td><td align="center">物理网卡名称</td><td>如eth0 eth1 eth2，当定义 type 为 bridge 桥接时，可以是一个集合</td></tr><tr><td align="center">type</td><td align="center">字符串</td><td>如果设置为 bridge，会桥接在 ifname 中定义的物理网卡名称集合</td></tr><tr><td align="center">stp</td><td align="center">boolean</td><td>Only valid for type bridge, enables the Spanning Tree Protocol</td></tr><tr><td align="center">bridge_empty</td><td align="center">boolean</td><td>Only valid for type bridge, enables creating empty bridges</td></tr><tr><td align="center">igmp_snooping</td><td align="center">boolean</td><td>Only valid for type bridge, sets the multicast_snooping kernel setting for a bridge</td></tr><tr><td align="center">macaddr</td><td align="center">mac地址</td><td>Override MAC address of this interface. Example: 62:11:22:aa:bb:cc</td></tr><tr><td align="center">mtu</td><td align="center">number</td><td>Override the default MTU on this interface</td></tr></tbody></table><p>具体到某个 proto 协议会有各自特殊需要定义的 option 参数，下面介绍 static 模式下需要定义的参数：</p><table><thead><tr><th align="center">名称</th><th align="center">类型</th><th>描述</th></tr></thead><tbody><tr><td align="center">ipaddr</td><td align="center">ip address</td><td>IP address</td></tr><tr><td align="center">netmask</td><td align="center">netmask</td><td>子网掩码</td></tr><tr><td align="center">gateway</td><td align="center">ip address</td><td>Default gateway</td></tr><tr><td align="center">broadcast</td><td align="center">ip address</td><td>Broadcast address (autogenerated if not set)</td></tr><tr><td align="center">dns</td><td align="center">list of ip addresses</td><td>DNS server(s)</td></tr><tr><td align="center">dns_search</td><td align="center">list of domain names</td><td>Search list for host-name lookup</td></tr><tr><td align="center">metric</td><td align="center">integer</td><td>Specifies the default route metric to use</td></tr></tbody></table><p>关于 proto 协议的配置项参考：<a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">openwrt IPv4</a></p><h3>示例</h3><p>下面通过示例来介绍一些典型配置模式。</p><p>lan 网络的 Downstream 下层流量配置：</p><pre><code>config interface 'lan'
         option ifname 'eth1'
         option proto 'static'
         option ipaddr '192.168.85.1'
         option netmask '255.255.255.0'
         option ip6assign '60'
-        option gateway '27.168.1.1'
-```
-
-lan 网络的下层链接会自动启用 dhcp 服务。
-
-lan 网络配置多网卡桥接模式：
-```
-config interface 'lan'
+        option gateway '27.168.1.1'</code></pre><p>lan 网络的下层链接会自动启用 dhcp 服务。</p><p>lan 网络配置多网卡桥接模式：</p><pre><code>config interface 'lan'
         option type 'bridge'
         option ifname 'eth1 eth2 eth3'
         option proto 'static'
@@ -308,31 +234,13 @@ config interface 'lan'
         option netmask '255.255.255.0'
         option ip6assign '60'
         option gateway '27.168.1.1'
-        option dns '1.1.1.1'
-```
-
-多 dns 配置：
-```
-config interface 'example'
+        option dns '1.1.1.1'</code></pre><p>多 dns 配置：</p><pre><code>config interface 'example'
         option proto     'static'
         option ifname    'eth0'
         option ipaddr    '192.168.1.200'
         option netmask   '255.255.255.0'
         list   dns       '192.168.1.1'
-        list   dns       '192.168.10.1'
-```
-
-### 参考链接
-
-[interface](https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces)
-[IPv4](https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4)
-
-
-
-
-
-
-</textarea></div> </article>
+        list   dns       '192.168.10.1'</code></pre><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a><br><a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">IPv4</a></p> </article>
 <section class="post-near">
 <ul>
 <li>上一篇: <a href="2290.html" title="通过 GitHub API 获取数据">通过 GitHub API 获取数据</a></li>
@@ -343,7 +251,7 @@ config interface 'example'
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-2291">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2291.html#respond-post-2291" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-c36b5c5a04e38c2cc93b7b30-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="2291.html#respond-post-2291" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-3cb701d73d9a104958029f9c-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/2291.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -395,58 +303,14 @@ config interface 'example'
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="c36b5c5a04e38c2cc93b7b30-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="c36b5c5a04e38c2cc93b7b30-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="c36b5c5a04e38c2cc93b7b30-text/javascript"></script>
-<script type="c36b5c5a04e38c2cc93b7b30-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<link rel="stylesheet" href="../usr/plugins/EditorMD/css/emojify.min.css" />
-<script type="c36b5c5a04e38c2cc93b7b30-text/javascript">
-    window.jQuery || document.write(unescape('%3Cscript%20type%3D%22text/javascript%22%20src%3D%22https://blog.niekun.net/usr/plugins/EditorMD/lib/jquery.min.js%22%3E%3C/script%3E'));
-</script>
-<script src="../usr/plugins/EditorMD/lib/marked.min.js" type="c36b5c5a04e38c2cc93b7b30-text/javascript"></script>
-<script src="../usr/plugins/EditorMD/js/editormd.min.js" type="c36b5c5a04e38c2cc93b7b30-text/javascript"></script>
-<script src="../usr/plugins/EditorMD/js/emojify.min.js" type="c36b5c5a04e38c2cc93b7b30-text/javascript"></script>
-<script type="c36b5c5a04e38c2cc93b7b30-text/javascript">
-$(function() {
-    var parseMarkdown = function () {
-        var markdowns = document.getElementsByClassName("md_content");
-        $(markdowns).each(function () {
-            var markdown = $(this).children("#append-test").text();
-            //$('#md_content_'+i).text('');
-            var editormdView;
-            editormdView = editormd.markdownToHTML($(this).attr("id"), {
-                markdown: markdown,//+ "\r\n" + $("#append-test").text(),
-                toolbarAutoFixed: false,
-                htmlDecode: true,
-                emoji: true,
-                tex: true,
-                toc: true,
-                tocm: true,
-                taskList: true,
-                flowChart: false,
-                sequenceDiagram: false,
-            });
-        });
-    };
-    parseMarkdown();
-    $(document).on('pjax:complete', function () {
-        parseMarkdown()
-    });
-    emojify.setConfig({
-        img_dir: "//cdn.staticfile.org/emoji-cheat-sheet/1.0.0",
-        blacklist: {
-            'ids': [],
-            'classes': ['no-emojify'],
-            'elements': ['^script$', '^textarea$', '^pre$', '^code$']
-        },
-    });
-    emojify.run();
-});
-</script>
+<script src="../usr/themes/Single/static/kico.js" type="3cb701d73d9a104958029f9c-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="3cb701d73d9a104958029f9c-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="3cb701d73d9a104958029f9c-text/javascript"></script>
+<script type="3cb701d73d9a104958029f9c-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
 <bgm>
-<a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-c36b5c5a04e38c2cc93b7b30-=""><i id="ydmc"></i></a>
+<a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-3cb701d73d9a104958029f9c-=""><i id="ydmc"></i></a>
 </bgm>
-<script data-no-instant type="c36b5c5a04e38c2cc93b7b30-text/javascript">
+<script data-no-instant type="3cb701d73d9a104958029f9c-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[
@@ -458,6 +322,6 @@ var a=parseInt(Math.random()*musicArr.length);
 var sj=musicArr[a];
 yaudio.src=sj.mp3;
  </script>
-<script src="../usr/plugins/YoduBGM/js/player.js" data-no-instant type="c36b5c5a04e38c2cc93b7b30-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="c36b5c5a04e38c2cc93b7b30-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="c36b5c5a04e38c2cc93b7b30-|49" defer=""></script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js" data-no-instant type="3cb701d73d9a104958029f9c-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="3cb701d73d9a104958029f9c-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="3cb701d73d9a104958029f9c-|49" defer=""></script></body>
 </html>

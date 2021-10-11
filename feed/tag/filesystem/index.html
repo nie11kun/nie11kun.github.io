@@ -20,22 +20,13 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <pubDate>Thu, 21 Feb 2019 14:03:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">近期在开发过程中遇到一个奇怪的问题，当我复制一个文件夹到新目录时候总是失败，查看日志发现是传递地址出错了。
-我是使用的是Boost的filesystem C++库处理文件，下面是代码片段，将path类型的地址放入一个指针，然后调用其他function：
-
-    fs::path childDir = np;
-    childDir += "/\\" + dir_itr->path().filename().string();
-    const char* c_childDir = childDir.string().c_str();
-
-我在本机实验是没有问题，但在他人电脑上提示directory error。
-我将path里的地址先存放到一个string里然后在转换为char*，发现问题解决了。
-我想可能的原因就是path不能直接使用其指针地址。下面是修改后的程序片段：
-
-    string s_childDir = newDir;
-    s_childDir += "/\\" + dir_itr->path().filename().string();
-    const char* c_childDir = s_childDir.c_str();
-
-以上就是关于boost库里使用path的指针问题的解决方法。</textarea></div>
+<p>近期在开发过程中遇到一个奇怪的问题，当我复制一个文件夹到新目录时候总是失败，查看日志发现是传递地址出错了。<br>我是使用的是Boost的filesystem C++库处理文件，下面是代码片段，将path类型的地址放入一个指针，然后调用其他function：</p><pre><code>fs::path childDir = np;
+childDir += &quot;/\\&quot; + dir_itr-&gt;path().filename().string();
+const char* c_childDir = childDir.string().c_str();
+</code></pre><p>我在本机实验是没有问题，但在他人电脑上提示directory error。<br>我将path里的地址先存放到一个string里然后在转换为char*，发现问题解决了。<br>我想可能的原因就是path不能直接使用其指针地址。下面是修改后的程序片段：</p><pre><code>string s_childDir = newDir;
+s_childDir += &quot;/\\&quot; + dir_itr-&gt;path().filename().string();
+const char* c_childDir = s_childDir.c_str();
+</code></pre><p>以上就是关于boost库里使用path的指针问题的解决方法。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/95.html#comments</comments>

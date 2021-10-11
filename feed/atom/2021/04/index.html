@@ -23,75 +23,13 @@ xml:base="https://blog.niekun.net/2021/04/"
 </author>
 <summary type="html"><![CDATA[you are the company you keep...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2305.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。
-
-之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？
-
-研究了下果然有解决方案的，基本原理就是**通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘**就可以正常进行备份及还原了。
-
-
-<!--more-->
-
-### 创建虚拟磁盘
-
-打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：
-![2021-04-30T00:36:06.png][1]
-
-设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：
-![2021-04-30T00:38:02.png][2]
-
-点击 **存储** 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。
-
-也可以通过命令行的方式直接生成镜像文件：
-    hdiutil create -size 1024g -type SPARSEBUNDLE -fs "HFS+J" TimeMachine.sparsebundle
-
-这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。
-
-### 配置 Time Machine
-
-镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 **TimeMachine.sparsebundle** 文件到合适的目录。
-
-然后我们在 finder 中双击网络驱动器中的 **TimeMachine.sparsebundle** 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。
-
-然后我们就可以设置 **TimeMachine** 绑定到这个磁盘：
-    sudo tmutil setdestination /Volumes/TimeMachine
-
-注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。
-
-此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：
-![2021-04-30T00:49:26.png][3]
-
-我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。
-
-### 备份与还原
-
-备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。
-
-我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。
-
-### 自动挂载
-
-如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：
-```
-try
-	mount volume "smb://xxx.xxx.xxx.xxx/"
+<p>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。</p><p>之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？</p><p>研究了下果然有解决方案的，基本原理就是<strong>通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘</strong>就可以正常进行备份及还原了。</p><!--more--><h3>创建虚拟磁盘</h3><p>打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/3390003757.png" alt="2021-04-30T00:36:06.png" title="2021-04-30T00:36:06.png"></p><p>设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/4157435921.png" alt="2021-04-30T00:38:02.png" title="2021-04-30T00:38:02.png"></p><p>点击 <strong>存储</strong> 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。</p><p>也可以通过命令行的方式直接生成镜像文件：</p><pre><code>hdiutil create -size 1024g -type SPARSEBUNDLE -fs &quot;HFS+J&quot; TimeMachine.sparsebundle
+</code></pre><p>这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。</p><h3>配置 Time Machine</h3><p>镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 <strong>TimeMachine.sparsebundle</strong> 文件到合适的目录。</p><p>然后我们在 finder 中双击网络驱动器中的 <strong>TimeMachine.sparsebundle</strong> 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。</p><p>然后我们就可以设置 <strong>TimeMachine</strong> 绑定到这个磁盘：</p><pre><code>sudo tmutil setdestination /Volumes/TimeMachine
+</code></pre><p>注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。</p><p>此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/2641215091.png" alt="2021-04-30T00:49:26.png" title="2021-04-30T00:49:26.png"></p><p>我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。</p><h3>备份与还原</h3><p>备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。</p><p>我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。</p><h3>自动挂载</h3><p>如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：</p><pre><code>try
+    mount volume &quot;smb://xxx.xxx.xxx.xxx/&quot;
 end try
 
-do shell script "hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle"
-```
-
-脚本另存为 application 格式并 system preference 中加入开机自启动项即可。
-
-### 参考链接
-
-[添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）](https://www.douban.com/note/614980869/)
-[自建Mac TimeMachine局域网无线备份环境](https://yanke.info/?id=78)
-[How to restore system from network drive](https://apple.stackexchange.com/questions/162544/how-to-restore-system-from-network-drive)
-
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/04/3390003757.png
-  [2]: https://blog.niekun.net/usr/uploads/2021/04/4157435921.png
-  [3]: https://blog.niekun.net/usr/uploads/2021/04/2641215091.png</textarea></div>
+do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle&quot;</code></pre><p>脚本另存为 application 格式并 system preference 中加入开机自启动项即可。</p><h3>参考链接</h3><p><a href="https://www.douban.com/note/614980869/">添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）</a><br><a href="https://yanke.info/?id=78">自建Mac TimeMachine局域网无线备份环境</a><br><a href="https://apple.stackexchange.com/questions/162544/how-to-restore-system-from-network-drive">How to restore system from network drive</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2305.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/04/" thr:count="0"/>
@@ -108,72 +46,16 @@ do shell script "hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网�
 </author>
 <summary type="html"><![CDATA[you are the company you keep...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2303.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。
-
-访问 smb 共享目录的方法是在文件浏览器中通过：`smb://xxx.xxx.xxx.xxx` 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。
-
-但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。
-
-下面介绍在 Ubuntu 中配置。
-
-
-<!--more-->
-
-在 Linux 中，可以通过 **mount** 命令的 **cifs** 选项将 smb 共享加载到本地驱动器的某个地方。**Common Internet File System (CIFS)** 是一个网络文件共享协议，它是 smb 的一种格式。
-
-### 安装
-
-首先我们安装 CIFS 工具：
-    sudo apt install cifs-utils
-
-### 加载
-
-加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：
-    sudo mkdir /mnt/h99_share
-
-通过下面命令加载某个 smb 共享：
-    sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-
-其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。
-
-默认情况下加载的共享目录所有者为 **root** 且权限为 777。通过 **dir_mode** 和 **file_mode** 参数可以自定义挂载的目录权限：
-    sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-
-如果当前登录用户不是 root 用户，则可能你无法修改共享目录下的内容，可以在挂载时指定用户和用户组：
-    sudo mount -t cifs -o username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-
-以上示例中，我们设置用户和用户组为 **marco**，这样当本地用户登录为 **marco** 时就可以读写共享目录的内容了。
-
-### 自动挂载
-
-以上命令挂载的目录在系统重启后会取消。
-
-在 `/etc/fstab` 文件中可以定义指定的路径及文件系统在系统启动时自动挂载。下面我们在此文件中定义自动挂载配置，需要指定远程地址，共享目录以及本地映射地址：
-```
-# <file system>             <dir>          <type> <options>                                                                                           <dump>  <pass>                             
-//xxx.xxx.xxx.xxx/usbshare  /mnt/h99_share  cifs  username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755  0       0
-```
-
-配置好 fatab 文件后，我们就可以使用以下命令直接挂载对应远程目录了：
-    sudo mount /mnt/h99_share
-
-mount 命令会自动读取 `/etc/fstab` 文件并挂载对应远程地址目录。并且下次系统重启会自动挂载此目录。
-
-### 卸载目录
-
-通过 **umount** 命令可以下载已经加载的文件系统：
-    sudo umount /mnt/h99_share
-
-如果当前加载的文件正在被其他进程使用，则 umount 卸载会失败，提示文件正忙。查询当前加载目录正在被那个进程使用，可以通过 fuser 命令实现：
-    fuser -m /mnt/h99_share
-
-可以根据输出信息使用 kill 结束对应进程，然后就可以正常卸载了。
-
-### 参考链接
-
-[How to Mount Windows Share on Linux using CIFS](https://linuxize.com/post/how-to-mount-cifs-windows-share-on-linux/)
-[Forcing Linux to Unmount a Filesystem Reporting “device is busy”](https://www.systutorials.com/force-linux-unmount-filesystem-reporting-device-busy/)
-</textarea></div>
+<p>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。</p><p>访问 smb 共享目录的方法是在文件浏览器中通过：<code>smb://xxx.xxx.xxx.xxx</code> 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。</p><p>但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。</p><p>下面介绍在 Ubuntu 中配置。</p><!--more--><p>在 Linux 中，可以通过 <strong>mount</strong> 命令的 <strong>cifs</strong> 选项将 smb 共享加载到本地驱动器的某个地方。<strong>Common Internet File System (CIFS)</strong> 是一个网络文件共享协议，它是 smb 的一种格式。</p><h3>安装</h3><p>首先我们安装 CIFS 工具：</p><pre><code>sudo apt install cifs-utils
+</code></pre><h3>加载</h3><p>加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：</p><pre><code>sudo mkdir /mnt/h99_share
+</code></pre><p>通过下面命令加载某个 smb 共享：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。</p><p>默认情况下加载的共享目录所有者为 <strong>root</strong> 且权限为 777。通过 <strong>dir_mode</strong> 和 <strong>file_mode</strong> 参数可以自定义挂载的目录权限：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>如果当前登录用户不是 root 用户，则可能你无法修改共享目录下的内容，可以在挂载时指定用户和用户组：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>以上示例中，我们设置用户和用户组为 <strong>marco</strong>，这样当本地用户登录为 <strong>marco</strong> 时就可以读写共享目录的内容了。</p><h3>自动挂载</h3><p>以上命令挂载的目录在系统重启后会取消。</p><p>在 <code>/etc/fstab</code> 文件中可以定义指定的路径及文件系统在系统启动时自动挂载。下面我们在此文件中定义自动挂载配置，需要指定远程地址，共享目录以及本地映射地址：</p><pre><code># &lt;file system&gt;             &lt;dir&gt;          &lt;type&gt; &lt;options&gt;                                                                                           &lt;dump&gt;  &lt;pass&gt;                             
+//xxx.xxx.xxx.xxx/usbshare  /mnt/h99_share  cifs  username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755  0       0</code></pre><p>配置好 fatab 文件后，我们就可以使用以下命令直接挂载对应远程目录了：</p><pre><code>sudo mount /mnt/h99_share
+</code></pre><p>mount 命令会自动读取 <code>/etc/fstab</code> 文件并挂载对应远程地址目录。并且下次系统重启会自动挂载此目录。</p><h3>卸载目录</h3><p>通过 <strong>umount</strong> 命令可以下载已经加载的文件系统：</p><pre><code>sudo umount /mnt/h99_share
+</code></pre><p>如果当前加载的文件正在被其他进程使用，则 umount 卸载会失败，提示文件正忙。查询当前加载目录正在被那个进程使用，可以通过 fuser 命令实现：</p><pre><code>fuser -m /mnt/h99_share
+</code></pre><p>可以根据输出信息使用 kill 结束对应进程，然后就可以正常卸载了。</p><h3>参考链接</h3><p><a href="https://linuxize.com/post/how-to-mount-cifs-windows-share-on-linux/">How to Mount Windows Share on Linux using CIFS</a><br><a href="https://www.systutorials.com/force-linux-unmount-filesystem-reporting-device-busy/">Forcing Linux to Unmount a Filesystem Reporting “device is busy”</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2303.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/04/" thr:count="0"/>
@@ -190,21 +72,10 @@ mount 命令会自动读取 `/etc/fstab` 文件并挂载对应远程地址目录
 </author>
 <summary type="html"><![CDATA[you are the company you keep...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2294.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_3" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。
-
-首先在 web 端或直接修改配置文件：`/etc/config/system` 中的 zone 相关参数：
-![2021-04-10T05:23:23.png][1]
-
-然后安装对应 zoneinfo：
-    opkg update
-    opkg install zoneinfo-asia
-
-重启 system 服务：
-    /etc/init.d/system restart
-
-然后输出日志日期就正常了。
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/04/2639787103.png</textarea></div>
+<p>最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。</p><p>首先在 web 端或直接修改配置文件：<code>/etc/config/system</code> 中的 zone 相关参数：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/2639787103.png" alt="2021-04-10T05:23:23.png" title="2021-04-10T05:23:23.png"></p><p>然后安装对应 zoneinfo：</p><pre><code>opkg update
+opkg install zoneinfo-asia
+</code></pre><p>重启 system 服务：</p><pre><code>/etc/init.d/system restart
+</code></pre><p>然后输出日志日期就正常了。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2294.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/04/" thr:count="0"/>
@@ -221,16 +92,7 @@ mount 命令会自动读取 `/etc/fstab` 文件并挂载对应远程地址目录
 </author>
 <summary type="html"><![CDATA[you are the company you keep...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2291.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_4" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。
-
-在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。
-
-
-<!--more-->
-
-下面是一个默认的 `/etc/config/network` 文件内容：
-```
-"/etc/config/network"
+<p>openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。</p><p>在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。</p><!--more--><p>下面是一个默认的 <code>/etc/config/network</code> 文件内容：</p><pre><code>&quot;/etc/config/network&quot;
 
 config interface 'loopback'
         option ifname 'lo'
@@ -255,84 +117,20 @@ config interface 'wan'
 
 config interface 'wan6'
         option ifname 'eth1'
-        option proto 'dhcpv6'
-```
-
-可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，**注意 lan 的 downlink 下级链接会自动开启 dhcp 服务**，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。
-
-以上默认的 network 配置包含了 global 配置块和 **loopback**，**lan**，**wan** interface 的配置块。这也是最基本的需要配置的网络设置。
-
-关于 network 配置文件的结构参考：[Network basics /etc/config/network](https://openwrt.org/docs/guide-user/base-system/basic-networking)
-
-interfaces 配置块定义了对应 interface 具体连接的物理网卡名称和协议类型，通过 **option** 来定义这个 interface 具体参数。
-
-一个最基本的 interface 配置项需要包含 **proto 协议类型**和 **ifname 网卡名称**，例如：
-```
-config 'interface' 'wan'
+        option proto 'dhcpv6'</code></pre><p>可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，<strong>注意 lan 的 downlink 下级链接会自动开启 dhcp 服务</strong>，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。</p><p>以上默认的 network 配置包含了 global 配置块和 <strong>loopback</strong>，<strong>lan</strong>，<strong>wan</strong> interface 的配置块。这也是最基本的需要配置的网络设置。</p><p>关于 network 配置文件的结构参考：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking">Network basics /etc/config/network</a></p><p>interfaces 配置块定义了对应 interface 具体连接的物理网卡名称和协议类型，通过 <strong>option</strong> 来定义这个 interface 具体参数。</p><p>一个最基本的 interface 配置项需要包含 <strong>proto 协议类型</strong>和 <strong>ifname 网卡名称</strong>，例如：</p><pre><code>config 'interface' 'wan'
         option 'proto' 'dhcp'
-        option 'ifname' 'eth0.2'
-```
-
-- wan 表示这个 interface 名称
-- dhcp 表示协议类型
-- eth0.2 表示绑定的物理网卡名称
-
-常用的 proto 协议类型有：
-```
-static	Static configuration with fixed address and netmask	ip/ifconfig
-dhcp	Address and netmask are assigned by DHCP	udhcpc (Busybox)
-dhcpv6	Address and netmask are assigned by DHCPv6	odhcpc6c
-ppp	PPP protocol - dialup modem connections	pppd
-pppoe	PPP over Ethernet - DSL broadband connection	pppd + plugin rp-pppoe.so
-pppoa	PPP over ATM - DSL connection using a builtin modem	pppd + plugin …
-```
-
-更多协议介绍：[interface](https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces)
-
-配置了协议后需要定义详细的 option 选项参数，下面是常用的适用于所有类型协议的 option 可选项：
-|Name|Type|Default Description|
-|:--:|:--:|
-|ifname |         物理网卡名称 | 如eth0 eth1 eth2，当定义 type 为 bridge 桥接时，可以是一个集合
-|type    |        字符串     |  如果设置为 bridge，会桥接在 ifname 中定义的物理网卡名称集合
-|stp      |       boolean	|     Only valid for type bridge, enables the Spanning Tree Protocol
-|bridge_empty	|boolean	 |    Only valid for type bridge, enables creating empty bridges
-|igmp_snooping	|boolean	  |   Only valid for type bridge, sets the multicast_snooping kernel setting for a bridge
-|macaddr    | mac地址 | Override MAC address of this interface. Example: 62:11:22:aa:bb:cc
-|mtu	|number| Override the default MTU on this interface
-  
-具体到某个 proto 协议会有各自特殊需要定义的 option 参数，下面介绍 static 模式下需要定义的参数：
-|名称|类型|描述
-|:--:|:--:|
-|ipaddr	|ip address	|IP address
-|netmask|netmask	|子网掩码
-|gateway|ip address	|Default gateway
-|broadcast|ip address	|Broadcast address (autogenerated if not set)
-|dns	|list of ip addresses	|DNS server(s)
-|dns_search	|list of domain names	|Search list for host-name lookup
-|metric	|integer	|Specifies the default route metric to use
-
-关于 proto 协议的配置项参考：[openwrt IPv4](https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4)
-
-### 示例
-
-下面通过示例来介绍一些典型配置模式。
-
-lan 网络的 Downstream 下层流量配置：
-```
-config interface 'lan'
+        option 'ifname' 'eth0.2'</code></pre><ul><li>wan 表示这个 interface 名称</li><li>dhcp 表示协议类型</li><li>eth0.2 表示绑定的物理网卡名称</li></ul><p>常用的 proto 协议类型有：</p><pre><code>static    Static configuration with fixed address and netmask    ip/ifconfig
+dhcp    Address and netmask are assigned by DHCP    udhcpc (Busybox)
+dhcpv6    Address and netmask are assigned by DHCPv6    odhcpc6c
+ppp    PPP protocol - dialup modem connections    pppd
+pppoe    PPP over Ethernet - DSL broadband connection    pppd + plugin rp-pppoe.so
+pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin …</code></pre><p>更多协议介绍：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a></p><p>配置了协议后需要定义详细的 option 选项参数，下面是常用的适用于所有类型协议的 option 可选项：</p><table><thead><tr><th align="center">Name</th><th align="center">Type</th><th>Default Description</th></tr></thead><tbody><tr><td align="center">ifname</td><td align="center">物理网卡名称</td><td>如eth0 eth1 eth2，当定义 type 为 bridge 桥接时，可以是一个集合</td></tr><tr><td align="center">type</td><td align="center">字符串</td><td>如果设置为 bridge，会桥接在 ifname 中定义的物理网卡名称集合</td></tr><tr><td align="center">stp</td><td align="center">boolean</td><td>Only valid for type bridge, enables the Spanning Tree Protocol</td></tr><tr><td align="center">bridge_empty</td><td align="center">boolean</td><td>Only valid for type bridge, enables creating empty bridges</td></tr><tr><td align="center">igmp_snooping</td><td align="center">boolean</td><td>Only valid for type bridge, sets the multicast_snooping kernel setting for a bridge</td></tr><tr><td align="center">macaddr</td><td align="center">mac地址</td><td>Override MAC address of this interface. Example: 62:11:22:aa:bb:cc</td></tr><tr><td align="center">mtu</td><td align="center">number</td><td>Override the default MTU on this interface</td></tr></tbody></table><p>具体到某个 proto 协议会有各自特殊需要定义的 option 参数，下面介绍 static 模式下需要定义的参数：</p><table><thead><tr><th align="center">名称</th><th align="center">类型</th><th>描述</th></tr></thead><tbody><tr><td align="center">ipaddr</td><td align="center">ip address</td><td>IP address</td></tr><tr><td align="center">netmask</td><td align="center">netmask</td><td>子网掩码</td></tr><tr><td align="center">gateway</td><td align="center">ip address</td><td>Default gateway</td></tr><tr><td align="center">broadcast</td><td align="center">ip address</td><td>Broadcast address (autogenerated if not set)</td></tr><tr><td align="center">dns</td><td align="center">list of ip addresses</td><td>DNS server(s)</td></tr><tr><td align="center">dns_search</td><td align="center">list of domain names</td><td>Search list for host-name lookup</td></tr><tr><td align="center">metric</td><td align="center">integer</td><td>Specifies the default route metric to use</td></tr></tbody></table><p>关于 proto 协议的配置项参考：<a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">openwrt IPv4</a></p><h3>示例</h3><p>下面通过示例来介绍一些典型配置模式。</p><p>lan 网络的 Downstream 下层流量配置：</p><pre><code>config interface 'lan'
         option ifname 'eth1'
         option proto 'static'
         option ipaddr '192.168.85.1'
         option netmask '255.255.255.0'
         option ip6assign '60'
-        option gateway '27.168.1.1'
-```
-
-lan 网络的下层链接会自动启用 dhcp 服务。
-
-lan 网络配置多网卡桥接模式：
-```
-config interface 'lan'
+        option gateway '27.168.1.1'</code></pre><p>lan 网络的下层链接会自动启用 dhcp 服务。</p><p>lan 网络配置多网卡桥接模式：</p><pre><code>config interface 'lan'
         option type 'bridge'
         option ifname 'eth1 eth2 eth3'
         option proto 'static'
@@ -340,31 +138,13 @@ config interface 'lan'
         option netmask '255.255.255.0'
         option ip6assign '60'
         option gateway '27.168.1.1'
-        option dns '1.1.1.1'
-```
-
-多 dns 配置：
-```
-config interface 'example'
+        option dns '1.1.1.1'</code></pre><p>多 dns 配置：</p><pre><code>config interface 'example'
         option proto     'static'
         option ifname    'eth0'
         option ipaddr    '192.168.1.200'
         option netmask   '255.255.255.0'
         list   dns       '192.168.1.1'
-        list   dns       '192.168.10.1'
-```
-
-### 参考链接
-
-[interface](https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces)
-[IPv4](https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4)
-
-
-
-
-
-
-</textarea></div>
+        list   dns       '192.168.10.1'</code></pre><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a><br><a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">IPv4</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2291.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/04/" thr:count="0"/>
@@ -381,90 +161,73 @@ config interface 'example'
 </author>
 <summary type="html"><![CDATA[you are the company you keep...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2290.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_5" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近发现通过 GitHub API 可以获取到很多有用的数据，它返回一个 json 格式数据，可以后期解析得到需要的内容。
-
-主链接：https://api.github.com/
-
-
-<!--more-->
-
-返回内容如下：
-```
-{
-  "current_user_url": "https://api.github.com/user",
-  "current_user_authorizations_html_url": "https://github.com/settings/connections/applications{/client_id}",
-  "authorizations_url": "https://api.github.com/authorizations",
-  "code_search_url": "https://api.github.com/search/code?q={query}{&page,per_page,sort,order}",
-  "commit_search_url": "https://api.github.com/search/commits?q={query}{&page,per_page,sort,order}",
-  "emails_url": "https://api.github.com/user/emails",
-  "emojis_url": "https://api.github.com/emojis",
-  "events_url": "https://api.github.com/events",
-  "feeds_url": "https://api.github.com/feeds",
-  "followers_url": "https://api.github.com/user/followers",
-  "following_url": "https://api.github.com/user/following{/target}",
-  "gists_url": "https://api.github.com/gists{/gist_id}",
-  "hub_url": "https://api.github.com/hub",
-  "issue_search_url": "https://api.github.com/search/issues?q={query}{&page,per_page,sort,order}",
-  "issues_url": "https://api.github.com/issues",
-  "keys_url": "https://api.github.com/user/keys",
-  "label_search_url": "https://api.github.com/search/labels?q={query}&repository_id={repository_id}{&page,per_page}",
-  "notifications_url": "https://api.github.com/notifications",
-  "organization_url": "https://api.github.com/orgs/{org}",
-  "organization_repositories_url": "https://api.github.com/orgs/{org}/repos{?type,page,per_page,sort}",
-  "organization_teams_url": "https://api.github.com/orgs/{org}/teams",
-  "public_gists_url": "https://api.github.com/gists/public",
-  "rate_limit_url": "https://api.github.com/rate_limit",
-  "repository_url": "https://api.github.com/repos/{owner}/{repo}",
-  "repository_search_url": "https://api.github.com/search/repositories?q={query}{&page,per_page,sort,order}",
-  "current_user_repositories_url": "https://api.github.com/user/repos{?type,page,per_page,sort}",
-  "starred_url": "https://api.github.com/user/starred{/owner}{/repo}",
-  "starred_gists_url": "https://api.github.com/gists/starred",
-  "user_url": "https://api.github.com/users/{user}",
-  "user_organizations_url": "https://api.github.com/user/orgs",
-  "user_repositories_url": "https://api.github.com/users/{user}/repos{?type,page,per_page,sort}",
-  "user_search_url": "https://api.github.com/search/users?q={query}{&page,per_page,sort,order}"
-}
-```
-
-可以通过它里面给的使用方法来获取到相应的内容，例如可以通过：https://api.github.com/users/{user} 获取到某个用户相关数据，如下是我的个人相关数据：
-```
-{
-  "login": "nie11kun",
-  "id": 11830603,
-  "node_id": "MDQ6VXNlcjExODMwNjAz",
-  "avatar_url": "https://avatars.githubusercontent.com/u/11830603?v=4",
-  "gravatar_id": "",
-  "url": "https://api.github.com/users/nie11kun",
-  "html_url": "https://github.com/nie11kun",
-  "followers_url": "https://api.github.com/users/nie11kun/followers",
-  "following_url": "https://api.github.com/users/nie11kun/following{/other_user}",
-  "gists_url": "https://api.github.com/users/nie11kun/gists{/gist_id}",
-  "starred_url": "https://api.github.com/users/nie11kun/starred{/owner}{/repo}",
-  "subscriptions_url": "https://api.github.com/users/nie11kun/subscriptions",
-  "organizations_url": "https://api.github.com/users/nie11kun/orgs",
-  "repos_url": "https://api.github.com/users/nie11kun/repos",
-  "events_url": "https://api.github.com/users/nie11kun/events{/privacy}",
-  "received_events_url": "https://api.github.com/users/nie11kun/received_events",
-  "type": "User",
-  "site_admin": false,
-  "name": "Marco Nie",
-  "company": "HJMT",
-  "blog": "https://niekun.net",
-  "location": "China",
-  "email": null,
-  "hireable": null,
-  "bio": "You are the company you keep.",
-  "twitter_username": null,
-  "public_repos": 88,
-  "public_gists": 2,
-  "followers": 4,
-  "following": 15,
-  "created_at": "2015-04-07T06:53:16Z",
-  "updated_at": "2021-03-15T08:45:12Z"
-}
-```
-
-更多使用方法可以自己研究下。</textarea></div>
+<p>最近发现通过 GitHub API 可以获取到很多有用的数据，它返回一个 json 格式数据，可以后期解析得到需要的内容。</p><p>主链接：<a href="https://api.github.com/">https://api.github.com/</a></p><!--more--><p>返回内容如下：</p><pre><code>{
+  &quot;current_user_url&quot;: &quot;https://api.github.com/user&quot;,
+  &quot;current_user_authorizations_html_url&quot;: &quot;https://github.com/settings/connections/applications{/client_id}&quot;,
+  &quot;authorizations_url&quot;: &quot;https://api.github.com/authorizations&quot;,
+  &quot;code_search_url&quot;: &quot;https://api.github.com/search/code?q={query}{&amp;page,per_page,sort,order}&quot;,
+  &quot;commit_search_url&quot;: &quot;https://api.github.com/search/commits?q={query}{&amp;page,per_page,sort,order}&quot;,
+  &quot;emails_url&quot;: &quot;https://api.github.com/user/emails&quot;,
+  &quot;emojis_url&quot;: &quot;https://api.github.com/emojis&quot;,
+  &quot;events_url&quot;: &quot;https://api.github.com/events&quot;,
+  &quot;feeds_url&quot;: &quot;https://api.github.com/feeds&quot;,
+  &quot;followers_url&quot;: &quot;https://api.github.com/user/followers&quot;,
+  &quot;following_url&quot;: &quot;https://api.github.com/user/following{/target}&quot;,
+  &quot;gists_url&quot;: &quot;https://api.github.com/gists{/gist_id}&quot;,
+  &quot;hub_url&quot;: &quot;https://api.github.com/hub&quot;,
+  &quot;issue_search_url&quot;: &quot;https://api.github.com/search/issues?q={query}{&amp;page,per_page,sort,order}&quot;,
+  &quot;issues_url&quot;: &quot;https://api.github.com/issues&quot;,
+  &quot;keys_url&quot;: &quot;https://api.github.com/user/keys&quot;,
+  &quot;label_search_url&quot;: &quot;https://api.github.com/search/labels?q={query}&amp;repository_id={repository_id}{&amp;page,per_page}&quot;,
+  &quot;notifications_url&quot;: &quot;https://api.github.com/notifications&quot;,
+  &quot;organization_url&quot;: &quot;https://api.github.com/orgs/{org}&quot;,
+  &quot;organization_repositories_url&quot;: &quot;https://api.github.com/orgs/{org}/repos{?type,page,per_page,sort}&quot;,
+  &quot;organization_teams_url&quot;: &quot;https://api.github.com/orgs/{org}/teams&quot;,
+  &quot;public_gists_url&quot;: &quot;https://api.github.com/gists/public&quot;,
+  &quot;rate_limit_url&quot;: &quot;https://api.github.com/rate_limit&quot;,
+  &quot;repository_url&quot;: &quot;https://api.github.com/repos/{owner}/{repo}&quot;,
+  &quot;repository_search_url&quot;: &quot;https://api.github.com/search/repositories?q={query}{&amp;page,per_page,sort,order}&quot;,
+  &quot;current_user_repositories_url&quot;: &quot;https://api.github.com/user/repos{?type,page,per_page,sort}&quot;,
+  &quot;starred_url&quot;: &quot;https://api.github.com/user/starred{/owner}{/repo}&quot;,
+  &quot;starred_gists_url&quot;: &quot;https://api.github.com/gists/starred&quot;,
+  &quot;user_url&quot;: &quot;https://api.github.com/users/{user}&quot;,
+  &quot;user_organizations_url&quot;: &quot;https://api.github.com/user/orgs&quot;,
+  &quot;user_repositories_url&quot;: &quot;https://api.github.com/users/{user}/repos{?type,page,per_page,sort}&quot;,
+  &quot;user_search_url&quot;: &quot;https://api.github.com/search/users?q={query}{&amp;page,per_page,sort,order}&quot;
+}</code></pre><p>可以通过它里面给的使用方法来获取到相应的内容，例如可以通过：<a href="https://api.github.com/users/">https://api.github.com/users/</a>{user} 获取到某个用户相关数据，如下是我的个人相关数据：</p><pre><code>{
+  &quot;login&quot;: &quot;nie11kun&quot;,
+  &quot;id&quot;: 11830603,
+  &quot;node_id&quot;: &quot;MDQ6VXNlcjExODMwNjAz&quot;,
+  &quot;avatar_url&quot;: &quot;https://avatars.githubusercontent.com/u/11830603?v=4&quot;,
+  &quot;gravatar_id&quot;: &quot;&quot;,
+  &quot;url&quot;: &quot;https://api.github.com/users/nie11kun&quot;,
+  &quot;html_url&quot;: &quot;https://github.com/nie11kun&quot;,
+  &quot;followers_url&quot;: &quot;https://api.github.com/users/nie11kun/followers&quot;,
+  &quot;following_url&quot;: &quot;https://api.github.com/users/nie11kun/following{/other_user}&quot;,
+  &quot;gists_url&quot;: &quot;https://api.github.com/users/nie11kun/gists{/gist_id}&quot;,
+  &quot;starred_url&quot;: &quot;https://api.github.com/users/nie11kun/starred{/owner}{/repo}&quot;,
+  &quot;subscriptions_url&quot;: &quot;https://api.github.com/users/nie11kun/subscriptions&quot;,
+  &quot;organizations_url&quot;: &quot;https://api.github.com/users/nie11kun/orgs&quot;,
+  &quot;repos_url&quot;: &quot;https://api.github.com/users/nie11kun/repos&quot;,
+  &quot;events_url&quot;: &quot;https://api.github.com/users/nie11kun/events{/privacy}&quot;,
+  &quot;received_events_url&quot;: &quot;https://api.github.com/users/nie11kun/received_events&quot;,
+  &quot;type&quot;: &quot;User&quot;,
+  &quot;site_admin&quot;: false,
+  &quot;name&quot;: &quot;Marco Nie&quot;,
+  &quot;company&quot;: &quot;HJMT&quot;,
+  &quot;blog&quot;: &quot;https://niekun.net&quot;,
+  &quot;location&quot;: &quot;China&quot;,
+  &quot;email&quot;: null,
+  &quot;hireable&quot;: null,
+  &quot;bio&quot;: &quot;You are the company you keep.&quot;,
+  &quot;twitter_username&quot;: null,
+  &quot;public_repos&quot;: 88,
+  &quot;public_gists&quot;: 2,
+  &quot;followers&quot;: 4,
+  &quot;following&quot;: 15,
+  &quot;created_at&quot;: &quot;2015-04-07T06:53:16Z&quot;,
+  &quot;updated_at&quot;: &quot;2021-03-15T08:45:12Z&quot;
+}</code></pre><p>更多使用方法可以自己研究下。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2290.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/04/" thr:count="0"/>
@@ -481,55 +244,11 @@ config interface 'example'
 </author>
 <summary type="html"><![CDATA[you are the company you keep...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2287.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_6" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">在 Linux 中，当我们准备运行一个可执行文件时，execve 程序会建立一个新的进程替代当前的进程(如终端下的 bash)，同时决定如何完成这个执行任务。
-
-当我们执行一个文本文件时，execve 需要文本文件的开头两个字符为 `“#!` 读作：**shebang**，同时跟随一个解释器的路径用来解释后续的脚本文本内容。
-
-下面我们举例说明。
-
-
-<!--more-->
-
-### shell 脚本
-
-最常用的就是在 shell 脚本中使用 shebang，下面是一个简单的示例：
-```
-#!/bin/sh
-echo "Hello, ${USER}"
-```
-
-我们定义了此脚本的解释器为 `/bin/sh`，后续的脚本内容会通过此解释器来运行。
-
-实际上 `/bin/sh` 是当前系统可执行 shell 命令的程序的软链接，大多数情况下它表示 bash，但为了不同系统的兼容性和安全性，我们直接使用此软链接来表示当前系统支持的 shell 可执行程序。
-
-同时需要注意的是，可执行文本文件必须有执行权限，当创建一个新的脚本文件时，需要对其设置执行权限：
-    chmod +x test.sh
-
-### 其他解释器
-
-当然我们可以根据需要定义其他的解释器，而不仅仅是 sh。下面的示例我们将 cat 作为解释器，这样就会输出脚本本身的内容：
-```
-#!/bin/cat
-Hello World!
-```
-
-### 调用 PATH
-
-上面的示例中，我们定义的解释器的绝对路径，但是当我们不知道一个程序的明确的路径时，我们可以通过将解释器定义为 env 程序，并传递实际需要的解释器程序名称，env 会自动在当前用户 PATH 环境变量中查询程序的路径并作为解释器执行脚本。
-
-下面我们通过 env 来查询 node 并作为解释器执行 node 脚本：
-```
-#!/usr/bin/env node
-console.log('Hello world!');
-```
-
-以上就是对 shebang 的简单解释。
-
-
-### 参考链接
-
-[Using Shebang #! in Linux Scripts](https://www.baeldung.com/linux/shebang)
-</textarea></div>
+<p>在 Linux 中，当我们准备运行一个可执行文件时，execve 程序会建立一个新的进程替代当前的进程(如终端下的 bash)，同时决定如何完成这个执行任务。</p><p>当我们执行一个文本文件时，execve 需要文本文件的开头两个字符为 <code>“#!</code> 读作：<strong>shebang</strong>，同时跟随一个解释器的路径用来解释后续的脚本文本内容。</p><p>下面我们举例说明。</p><!--more--><h3>shell 脚本</h3><p>最常用的就是在 shell 脚本中使用 shebang，下面是一个简单的示例：</p><pre><code>#!/bin/sh
+echo &quot;Hello, ${USER}&quot;</code></pre><p>我们定义了此脚本的解释器为 <code>/bin/sh</code>，后续的脚本内容会通过此解释器来运行。</p><p>实际上 <code>/bin/sh</code> 是当前系统可执行 shell 命令的程序的软链接，大多数情况下它表示 bash，但为了不同系统的兼容性和安全性，我们直接使用此软链接来表示当前系统支持的 shell 可执行程序。</p><p>同时需要注意的是，可执行文本文件必须有执行权限，当创建一个新的脚本文件时，需要对其设置执行权限：</p><pre><code>chmod +x test.sh
+</code></pre><h3>其他解释器</h3><p>当然我们可以根据需要定义其他的解释器，而不仅仅是 sh。下面的示例我们将 cat 作为解释器，这样就会输出脚本本身的内容：</p><pre><code>#!/bin/cat
+Hello World!</code></pre><h3>调用 PATH</h3><p>上面的示例中，我们定义的解释器的绝对路径，但是当我们不知道一个程序的明确的路径时，我们可以通过将解释器定义为 env 程序，并传递实际需要的解释器程序名称，env 会自动在当前用户 PATH 环境变量中查询程序的路径并作为解释器执行脚本。</p><p>下面我们通过 env 来查询 node 并作为解释器执行 node 脚本：</p><pre><code>#!/usr/bin/env node
+console.log('Hello world!');</code></pre><p>以上就是对 shebang 的简单解释。</p><h3>参考链接</h3><p><a href="https://www.baeldung.com/linux/shebang">Using Shebang #! in Linux Scripts</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2287.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/04/" thr:count="0"/>

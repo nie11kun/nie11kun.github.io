@@ -14,7 +14,7 @@
 <link rel="alternate" type="application/rss+xml" title="配置外部网络存储器作为 Time Machine 备份 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2305.html" />
 <link rel="alternate" type="application/rdf+xml" title="配置外部网络存储器作为 Time Machine 备份 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2305.html" />
 <link rel="alternate" type="application/atom+xml" title="配置外部网络存储器作为 Time Machine 备份 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2305.html" />
-<script type="a03e399afa4559b799befd63-text/javascript">
+<script type="9d6013547227ea24a1ac4224-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -86,7 +86,7 @@
     };
 })();
 </script>
-<script type="a03e399afa4559b799befd63-text/javascript">
+<script type="9d6013547227ea24a1ac4224-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -104,32 +104,36 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _I4kE = //'pR'
-'0a3'+'684'//'q'
-+'79a'//'Ju'
-+''///*'L0'*/'L0'
-+//'u0g'
-'648'+/* '6'//'6' */''+'3'//'U'
-+'899'//'w'
-+'348'//'h'
-+//'x74'
-'x74'+//'wNF'
-'d'+//'kA'
-'a'+'8'//'R'
-+'6'//'aP'
-+'55'//'DbB'
-+'03b'//'Y1'
-+//'Nr'
-'Nr'+//'yh'
-'43b'+''///*'jM'*/'jM'
-+//'Yq'
-'f', _IbZCkp = [[19,22],[28,30]];
+    var _oP9iWnr = //'et4'
+'0'+'a36'//'F'
++//'7c'
+'8'+''///*'tV'*/'tV'
++'4'//'D'
++//'Nb6'
+'Nb6'+//'nLS'
+'nLS'+//'3'
+'7'+//'qtY'
+'9a'+'64'//'Rnx'
++'8'//'W'
++//'rHa'
+'389'+'9'//'ZN'
++//'b'
+'348'+'L'//'L'
++/* 'r'//'r' */''+'da'//'r'
++'865'//'Ps'
++//'4'
+'50'+//'Z'
+'Z'+'3'//'F'
++'b4'//'3x'
++'3'//'Zi'
++'bf'//'lDA'
+, _luUTk = [[6,9],[6,9],[19,20],[26,27]];
     
-    for (var i = 0; i < _IbZCkp.length; i ++) {
-        _I4kE = _I4kE.substring(0, _IbZCkp[i][0]) + _I4kE.substring(_IbZCkp[i][1]);
+    for (var i = 0; i < _luUTk.length; i ++) {
+        _oP9iWnr = _oP9iWnr.substring(0, _luUTk[i][0]) + _oP9iWnr.substring(_luUTk[i][1]);
     }
 
-    return _I4kE;
+    return _oP9iWnr;
 })();
 
         if (null != r) {
@@ -186,75 +190,13 @@
 </div>
 </section>
 <article class="post-content">
-<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。
-
-之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？
-
-研究了下果然有解决方案的，基本原理就是**通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘**就可以正常进行备份及还原了。
-
-
-<!--more-->
-
-### 创建虚拟磁盘
-
-打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：
-![2021-04-30T00:36:06.png][1]
-
-设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：
-![2021-04-30T00:38:02.png][2]
-
-点击 **存储** 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。
-
-也可以通过命令行的方式直接生成镜像文件：
-    hdiutil create -size 1024g -type SPARSEBUNDLE -fs "HFS+J" TimeMachine.sparsebundle
-
-这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。
-
-### 配置 Time Machine
-
-镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 **TimeMachine.sparsebundle** 文件到合适的目录。
-
-然后我们在 finder 中双击网络驱动器中的 **TimeMachine.sparsebundle** 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。
-
-然后我们就可以设置 **TimeMachine** 绑定到这个磁盘：
-    sudo tmutil setdestination /Volumes/TimeMachine
-
-注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。
-
-此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：
-![2021-04-30T00:49:26.png][3]
-
-我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。
-
-### 备份与还原
-
-备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。
-
-我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。
-
-### 自动挂载
-
-如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：
-```
-try
-	mount volume "smb://xxx.xxx.xxx.xxx/"
+<p>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。</p><p>之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？</p><p>研究了下果然有解决方案的，基本原理就是<strong>通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘</strong>就可以正常进行备份及还原了。</p><h3>创建虚拟磁盘</h3><p>打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：<br><img src="../usr/uploads/2021/04/3390003757.png" alt="2021-04-30T00:36:06.png" title="2021-04-30T00:36:06.png"></p><p>设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：<br><img src="../usr/uploads/2021/04/4157435921.png" alt="2021-04-30T00:38:02.png" title="2021-04-30T00:38:02.png"></p><p>点击 <strong>存储</strong> 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。</p><p>也可以通过命令行的方式直接生成镜像文件：</p><pre><code>hdiutil create -size 1024g -type SPARSEBUNDLE -fs &quot;HFS+J&quot; TimeMachine.sparsebundle
+</code></pre><p>这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。</p><h3>配置 Time Machine</h3><p>镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 <strong>TimeMachine.sparsebundle</strong> 文件到合适的目录。</p><p>然后我们在 finder 中双击网络驱动器中的 <strong>TimeMachine.sparsebundle</strong> 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。</p><p>然后我们就可以设置 <strong>TimeMachine</strong> 绑定到这个磁盘：</p><pre><code>sudo tmutil setdestination /Volumes/TimeMachine
+</code></pre><p>注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。</p><p>此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：<br><img src="../usr/uploads/2021/04/2641215091.png" alt="2021-04-30T00:49:26.png" title="2021-04-30T00:49:26.png"></p><p>我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。</p><h3>备份与还原</h3><p>备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。</p><p>我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。</p><h3>自动挂载</h3><p>如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：</p><pre><code>try
+    mount volume &quot;smb://xxx.xxx.xxx.xxx/&quot;
 end try
 
-do shell script "hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle"
-```
-
-脚本另存为 application 格式并 system preference 中加入开机自启动项即可。
-
-### 参考链接
-
-[添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）](https://www.douban.com/note/614980869/)
-[自建Mac TimeMachine局域网无线备份环境](https://yanke.info/?id=78)
-[How to restore system from network drive](https://apple.stackexchange.com/questions/162544/how-to-restore-system-from-network-drive)
-
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/04/3390003757.png
-  [2]: https://blog.niekun.net/usr/uploads/2021/04/4157435921.png
-  [3]: https://blog.niekun.net/usr/uploads/2021/04/2641215091.png</textarea></div> </article>
+do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle&quot;</code></pre><p>脚本另存为 application 格式并 system preference 中加入开机自启动项即可。</p><h3>参考链接</h3><p><a href="https://www.douban.com/note/614980869/">添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）</a><br><a href="https://yanke.info/?id=78">自建Mac TimeMachine局域网无线备份环境</a><br><a href="https://apple.stackexchange.com/questions/162544/how-to-restore-system-from-network-drive">How to restore system from network drive</a></p> </article>
 <section class="post-near">
 <ul>
 <li>上一篇: <a href="2303.html" title="在 Ubuntu 中加载 smb 共享目录为本地路径">在 Ubuntu 中加载 smb 共享目录为本地路径</a></li>
@@ -265,7 +207,7 @@ do shell script "hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网�
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-2305">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2305.html#respond-post-2305" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-a03e399afa4559b799befd63-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="2305.html#respond-post-2305" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-9d6013547227ea24a1ac4224-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/2305.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -317,58 +259,14 @@ do shell script "hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网�
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="a03e399afa4559b799befd63-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="a03e399afa4559b799befd63-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="a03e399afa4559b799befd63-text/javascript"></script>
-<script type="a03e399afa4559b799befd63-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<link rel="stylesheet" href="../usr/plugins/EditorMD/css/emojify.min.css" />
-<script type="a03e399afa4559b799befd63-text/javascript">
-    window.jQuery || document.write(unescape('%3Cscript%20type%3D%22text/javascript%22%20src%3D%22https://blog.niekun.net/usr/plugins/EditorMD/lib/jquery.min.js%22%3E%3C/script%3E'));
-</script>
-<script src="../usr/plugins/EditorMD/lib/marked.min.js" type="a03e399afa4559b799befd63-text/javascript"></script>
-<script src="../usr/plugins/EditorMD/js/editormd.min.js" type="a03e399afa4559b799befd63-text/javascript"></script>
-<script src="../usr/plugins/EditorMD/js/emojify.min.js" type="a03e399afa4559b799befd63-text/javascript"></script>
-<script type="a03e399afa4559b799befd63-text/javascript">
-$(function() {
-    var parseMarkdown = function () {
-        var markdowns = document.getElementsByClassName("md_content");
-        $(markdowns).each(function () {
-            var markdown = $(this).children("#append-test").text();
-            //$('#md_content_'+i).text('');
-            var editormdView;
-            editormdView = editormd.markdownToHTML($(this).attr("id"), {
-                markdown: markdown,//+ "\r\n" + $("#append-test").text(),
-                toolbarAutoFixed: false,
-                htmlDecode: true,
-                emoji: true,
-                tex: true,
-                toc: true,
-                tocm: true,
-                taskList: true,
-                flowChart: false,
-                sequenceDiagram: false,
-            });
-        });
-    };
-    parseMarkdown();
-    $(document).on('pjax:complete', function () {
-        parseMarkdown()
-    });
-    emojify.setConfig({
-        img_dir: "//cdn.staticfile.org/emoji-cheat-sheet/1.0.0",
-        blacklist: {
-            'ids': [],
-            'classes': ['no-emojify'],
-            'elements': ['^script$', '^textarea$', '^pre$', '^code$']
-        },
-    });
-    emojify.run();
-});
-</script>
+<script src="../usr/themes/Single/static/kico.js" type="9d6013547227ea24a1ac4224-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="9d6013547227ea24a1ac4224-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="9d6013547227ea24a1ac4224-text/javascript"></script>
+<script type="9d6013547227ea24a1ac4224-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
 <bgm>
-<a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-a03e399afa4559b799befd63-=""><i id="ydmc"></i></a>
+<a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-9d6013547227ea24a1ac4224-=""><i id="ydmc"></i></a>
 </bgm>
-<script data-no-instant type="a03e399afa4559b799befd63-text/javascript">
+<script data-no-instant type="9d6013547227ea24a1ac4224-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[
@@ -380,6 +278,6 @@ var a=parseInt(Math.random()*musicArr.length);
 var sj=musicArr[a];
 yaudio.src=sj.mp3;
  </script>
-<script src="../usr/plugins/YoduBGM/js/player.js" data-no-instant type="a03e399afa4559b799befd63-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="a03e399afa4559b799befd63-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="a03e399afa4559b799befd63-|49" defer=""></script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js" data-no-instant type="9d6013547227ea24a1ac4224-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="9d6013547227ea24a1ac4224-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="9d6013547227ea24a1ac4224-|49" defer=""></script></body>
 </html>

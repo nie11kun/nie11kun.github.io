@@ -22,331 +22,7 @@ xml:base="https://blog.niekun.net/category/software/"
     <uri>https://niekun.net</uri>
 </author>
 <content type="html" xml:base="https://blog.niekun.net/archives/2213.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">### 什么是 VMware vSphere
-
-VMware vSphere 是 VMware 的虚拟化平台，可将数据中心转换为包括 CPU、存储和网络资源的聚合计算基础架构。vSphere 将这些基础架构作为一个统一的运行环境进行管理，并为您提供工具来管理加入该环境的数据中心。
-
-![2021-03-29T03:22:48.png][1]
-
-
-<!--more-->
-
-
-vSphere 的两个核心组件是 **ESXi**  和 **vCenter Server**。ESXi 是用于创建并运行虚拟机和虚拟设备的虚拟化平台。vCenter Server 是一项服务，用于管理网络中连接的多个主机，并将主机资源池化。
-
-**vSphere Hypervisor** **虚拟领域管理程序**是一种可将服务器虚拟化的裸机管理程序，依托 **VMware vSphere ESXi** 体系架构构建。
-
-**ESXi** 是安装在物理机上的管理器。vSphere Client 安装在一个笔记本或者桌面PC上，用于访问 ESXi 服务器进行虚拟机的创建和管理。vCenter server 像一个虚拟机一样安装在 ESXi 上面。在拥有多个 ESXi 服务器和数十个虚拟机时，vCenter server的应用就比较频繁了。在小环境下的管理通常都会使用 vSphere client 来直连 ESXi 服务器。
-
-简单来说 **ESXi** 是直接安装在物理机器上用来管理硬件设备，相当于一个操作系统，然后在 **ESXi** 中安装虚拟机。它可以方便的给不同的虚拟机分配硬件资源，以及管理。
-
-类似 VMware workstation 等产品是需要安装在某个操作系统内部运行的。
-
-### 下载镜像
-
-我们需要下载 vSphere Hypervisor 的 iso 镜像。
-
-最简单的是登陆账号后在下面网址搜索下载：
-https://customerconnect.vmware.com/downloads/#my_products
-
-也可以进入官网下载：https://www.vmware.com/products/vsphere-hypervisor.html
-
-在右侧点击 download 会提示登录账号，然后需要注册下产品，点击 register：
-![2021-03-29T03:38:15.png][2]
-
-然后找到 esxi ISO 镜像下载地址，点击下载：
-![2021-03-29T03:39:38.png][3]
-
-当前最新版为 VMware vSphere 7.0 Update 2。
-
-### 安装
-
-然后我们需要将制作一个启动盘来安装 esxi，推荐使用 ventoy 来加载镜像，非常方便：https://www.ventoy.net/en/index.html
-
-开机进入 boot 设置，将对应的启动盘设置为第一项启动，然后就可以进入 ventoy 引导画面了。
-
-选择 esxi 镜像文件 enter 进入，下面我们就进入 esxi 安装程序了。
-
-**这里有第一个需要注意的地方**，esxi 在第一次全新安装中会默认划分 120G 的虚拟闪存，类似于 Windows 的虚拟内存，提供更大的交换空间，为虚拟机提供读缓存，提升虚拟机的存储性能。
-
-但是对于家用设备来说，120G 的空间白白占用有点浪费，所以我们需要自定义设置这个虚拟闪存的大小。
-
-在引导进入安装界面后，立刻按下 shift + o 键，会停留在如下画面：
-![2021-03-29T03:51:01.png][4]
-
-在下方可以输入命令行的地方，我们在已有命令后添加一句：**autoPartitionOSDataSize=4096**:
-![2021-03-29T03:52:40.png][5]
-
-表示设置虚拟闪存大小为 4 GB，可以按照需要调整，数字就是 1024 乘以需要的 GB 大小。
-
-回车确认后继续引导安装程序，期间会自动识别设备硬件。根据提示点击 enter 继续：
-![2021-03-29T03:57:37.png][6]
-
-点击 F11 继续：
-![2021-03-29T03:58:05.png][7]
-
-选择安装到那个硬盘，enter 确认继续：
-![2021-03-29T03:58:48.png][8]
-
-选择键盘布局，默认即可：
-![2021-03-29T03:59:09.png][9]
-
-设置 root 密码：
-![2021-03-29T03:59:39.png][10]
-
-最后点击 F11 开始安装：
-![2021-03-29T03:59:59.png][11]
-
-安装完成后提示可以移除引导盘并重启了：
-![2021-03-29T04:02:19.png][12]
-
-### 连接管理
-
-系统重启后，会自动识别第一个网口的网络地址，我们可以在同一局域网下通过 ESXi 的地址访问管理页面：
-![2021-03-29T04:05:07.png][13]
-
-我们也可以通过网线将其他设备连接到第一个网口的方式进入管理页面，需要首先设置 esxi 的网络地址。点击 F2 进入配置界面，需要输入 root 密码：
-![2021-03-29T04:06:19.png][14]
-
-进入 config management network：
-![2021-03-29T04:06:52.png][15]
-
-默认选中的管理网络为第一个网口，可以自行修改：
-![2021-03-29T04:07:31.png][16]
-
-我们需要配置 IPv4 configuration：
-![2021-03-29T04:08:09.png][17]
-
-空格键选中 set static ipv4 address，并配置合适的 ip 地址，稍后需要将连接的设备也设置为同一网段才可以连接：
-![2021-03-29T04:10:26.png][18]
-
-完成后点击 esc 退出配置，会弹出是否重启网络提示框，点击 Y 确认。
-
-然后我们需要在通过网线连接的设备端配置网络到上面设置的同一网段内。这样就可以通过设置的静态地址来访问 esxi 管理页面了。
-
-以上两种方式都可以进入 esxi 管理界面，这里我是通过局域网设备来实现的。
-
-### 进入 esxi 管理
-
-访问 esxi 的管理地址，这里我的 esxi 地址为 27.168.1.181。在局域网下其他设备浏览器打开这个地址：
-![2021-03-29T05:07:46.png][19]
-
-登录 root 账户：
-![2021-03-29T05:08:39.png][20]
-
-可以看到 esxi 7 自身占用了 1.3GB 内存和 2.5GB 硬盘空间。
-
-hardware 栏里的 virtual flash 就是我们安装时候自定义的 4GB 虚拟闪存空间：
-![2021-03-29T05:11:58.png][21]
-
-我们安装的是 esxi 评估版可以免费使用 60 天，如果想要一直使用则需要输入有效的序列号。可以通过 manage - licensing - actions - assign license 输入序列号：
-![2021-03-29T05:14:49.png][22]
-
-### 配置磁盘
-
-安装 esxi 的时候会格式化系统对应的磁盘，如果安装了多个磁盘并且需要在 esxi 中作为存储设备，就需要单独配置它们了。
-
-点击左侧导航栏的 storage，然后选择 devices：
-![2021-03-29T05:29:12.png][23]
-
-可以看到我有两块硬盘和一个 cdrom。其中最下面的 10G 的硬盘是 esxi 安装盘，点击进入可以查看详细信息：
-![2021-03-29T05:30:52.png][24]
-
-其中 VMFSL 就是虚拟闪存空间，剩下的 VMFS 分区就是可用的数据分区。
-
-点击进入第二个硬盘查看：
-![2021-03-29T05:32:35.png][25]
-
-我们看到这里什么都没有，这是因为这块硬盘没有分配 datastore。我们点击 new datastore，首先给这个数据区取一个名字：
-![2021-03-29T05:37:13.png][26]
-
-在下面的页面，我们首先选择 use full disk，这样会见整块硬盘都作为这个 datastore，然后点击 next：
-![2021-03-29T05:38:45.png][27]
-
-点击 finish 后，datastroe 就建立完成了，这时候可以看到这块磁盘的信息：
-![2021-03-29T05:39:59.png][28]
-
-返回 datastore 选项卡可以看到新建立的 datastore2 在列表中：
-![2021-03-29T05:41:08.png][29]
-
-在后续的虚拟机安装中，我们可以选择将虚拟机安装到哪一个 datastore 中。
-
-点击 datastore browser 可以查看其中的数据文件：
-![2021-03-29T05:42:37.png][30]
-
-![2021-03-29T05:43:38.png][31]
-
-可以看到左上角有一个 upload 选项，我们可以远程将文件复制到 datasotre 中：
-![2021-03-29T05:44:47.png][32]
-
-后续安装虚拟机时，我会通过这种方法将系统镜像文件复制到 datastore 中。
-
-### 配置网卡
-
-下面我们来配置网卡，这也是 esxi 的核心之一。我们可以将主机上的物理网卡定义为虚拟交换机，然后分配给虚拟机使用。
-
-这里的配置非常自由，需要根据实际需求来设置，我们可以将每个网卡单独配置一个虚拟交换机，也可以将多个网卡设置为一个虚拟交换机。
-
-选择左侧导航栏的 networking，然后点击 physical NICs，就是主机上的所有物理网卡，这里有三个：
-![2021-03-29T05:49:50.png][33]
-
-然后我们切换到 virtual switches，这里就是定义虚拟交换机，默认有一个 vSwitch0，我们点击进去看看它的配置：
-![2021-03-29T05:52:17.png][34]
-
-可以看到它绑定了我们的第一个网卡。我们点击 edit settings 进入配置：
-![2021-03-29T05:53:18.png][35]
-
-uplink 定义了绑定到那个物理网卡。**注意我们将 security 里的三个选项都设置为 accept 来使网络功能完整支持。**点击 save 保存配置。
-
-如果需要将另一个网卡也绑定到这个虚拟交换机，可以点击左上角的 add uplink：
-![2021-03-29T05:55:58.png][36]
-
-这里我们将每个网卡都配置单独的虚拟交换机。
-
-返回 virtual switches 栏，点击 add standard virtual switch 添加新的交换机：
-![2021-03-29T05:58:59.png][37]
-
-将第二个网卡配置给 vSwitch1，同样的设置 security 为 accept。然后通过相同的方法配置第三个网卡，最终我们配置好了所有的交换机：
-![2021-03-29T06:00:49.png][38]
-
-最后我们配置 port group 端口组，可以定义一个虚拟交换机的集合。我们安装虚拟机为其分配网卡时就是分配给其某个 port group。同一个虚拟交换机可以定义到多个集合中。
-
-默认有两个集合，可以看到它们都是对应 vSwtich0：
-![2021-03-29T06:06:42.png][39]
-
-注意不要修改第二个 Management Network 的配置，否则可能无法访问 esxi 管理页面。
-
-我们将另外两个刚才建立的虚拟交换机定义到 port group 中，以便虚拟机可以调用。点击 add port group：
-![2021-03-29T06:09:25.png][40]
-
-**这里注意 group 名称如果最后一个是数字，则不要再前面加空格，否则虚拟机无法识别到它。**
-
-将所有的虚拟交换机都配置对应的 port group：
-![2021-03-29T06:11:09.png][41]
-
-这样我们就配置好了所有的网卡部分。
-
-这里有个进阶教程，可以将某个网卡或其他物理设备设置为直通模式，可以供虚拟机直接调用。可以提高性能。这样就不需要配置虚拟交换机了。
-
-通过 manage - hardware - PCI devices 查看所有的硬件：
-![2021-03-29T06:14:47.png][42]
-
-如果又可以直通的硬件，前面的复选框就可为可选状态，然后点击 左上角的 toggle passthrough 就可以切换直通模式了，这里我由于是虚拟机中安装的 esxi 所有网卡不可以设置为直通模式。
-
-### 创建虚拟机
-
-下面我们就可以创建虚拟机了。
-
-首先配置虚拟机，左侧导航栏选择 virtual machines，然后点击 create/register vm 进入引导页面：
-![2021-03-29T06:20:45.png][43]
-
-如果时创建新虚拟机则选择第一项，如果是添加已有的虚拟机则选择第三项，这里我们创建新虚拟机，点击 next。
-
-设置虚拟机名称和系统类型，这里我安装一个 openwrt 系统：
-![2021-03-29T06:22:47.png][44]
-
-然后选择虚拟机安装位置，也就是选择一个 datastore：
-![2021-03-29T06:23:31.png][45]
-
-然后是定义虚拟机硬件配置，可以根据需要设置，这里我通过顶部的菜单添加一个新的 network adapter：
-![2021-03-29T06:25:46.png][46]
-
-然后我们配置网络适配器对应的 port group，点击后面的下拉菜单可以看到我们在 port group 中定义的所有集合：
-![2021-03-29T06:27:30.png][47]
-
-我给两个网络适配器分别分配不同的集合，也就是对应不同的虚拟交换机：
-![2021-03-29T06:29:15.png][48]
-
-如果需要通过系统镜像的方式安装虚拟机，则需要配置 cdrom 为 datastore ISO file，然后选择提前上传到 datastore 的镜像文件：
-![2021-03-29T06:32:02.png][49]
-
-这里我是通过提前准备好的 vmdk 虚拟磁盘文件来直接启动虚拟机，所以我需要将虚拟磁盘添加进来。
-
-首先将默认的 disk 删除，然后选择 add hard disk - existing hard disk：
-![2021-03-29T06:37:21.png][50]
-
-然后选中对应的磁盘文件，这里我们直接将磁盘文件放在 openwrt 目录内，方便后期管理：
-![2021-03-29T06:39:40.png][51]
-
-然后点击 finish 完成虚拟机的硬件配置：
-![2021-03-29T06:40:30.png][52]
-
-现在可以看到我们刚添加的 openwrt：
-![2021-03-29T06:41:15.png][53]
-
-点击 openwrt 进入监控界面：
-![2021-03-29T06:42:43.png][54]
-
-然后点击 power on 就可以启动虚拟机了。
-
-### 开机自启
-
-可以通过设置，让 esxi 启动后自动启动某个虚拟机，点击 manage - system - autostart，然后选中需要自动启动的虚拟机，点击 enable 即可：
-![2021-03-29T06:50:13.png][55]
-
-如果有多个虚拟机需要自动启动，还可以设置它们的启动顺序。
-
-以上就是 esxi 的简单安装和使用教程。
-
-### 参考链接
-[VMware vSphere 文档](https://docs.vmware.com/cn/VMware-vSphere/index.html)
-
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/03/2575390332.png
-  [2]: https://blog.niekun.net/usr/uploads/2021/03/801019411.png
-  [3]: https://blog.niekun.net/usr/uploads/2021/03/4066834994.png
-  [4]: https://blog.niekun.net/usr/uploads/2021/03/4151124259.png
-  [5]: https://blog.niekun.net/usr/uploads/2021/03/2886267543.png
-  [6]: https://blog.niekun.net/usr/uploads/2021/03/1535191890.png
-  [7]: https://blog.niekun.net/usr/uploads/2021/03/4282492030.png
-  [8]: https://blog.niekun.net/usr/uploads/2021/03/749667252.png
-  [9]: https://blog.niekun.net/usr/uploads/2021/03/2896348534.png
-  [10]: https://blog.niekun.net/usr/uploads/2021/03/476951246.png
-  [11]: https://blog.niekun.net/usr/uploads/2021/03/3121539912.png
-  [12]: https://blog.niekun.net/usr/uploads/2021/03/1588907724.png
-  [13]: https://blog.niekun.net/usr/uploads/2021/03/3325959303.png
-  [14]: https://blog.niekun.net/usr/uploads/2021/03/3445057029.png
-  [15]: https://blog.niekun.net/usr/uploads/2021/03/1507410719.png
-  [16]: https://blog.niekun.net/usr/uploads/2021/03/2292204358.png
-  [17]: https://blog.niekun.net/usr/uploads/2021/03/2414244109.png
-  [18]: https://blog.niekun.net/usr/uploads/2021/03/193729119.png
-  [19]: https://blog.niekun.net/usr/uploads/2021/03/2979117796.png
-  [20]: https://blog.niekun.net/usr/uploads/2021/03/1796962619.png
-  [21]: https://blog.niekun.net/usr/uploads/2021/03/262708481.png
-  [22]: https://blog.niekun.net/usr/uploads/2021/03/2860080469.png
-  [23]: https://blog.niekun.net/usr/uploads/2021/03/3020367051.png
-  [24]: https://blog.niekun.net/usr/uploads/2021/03/2817559226.png
-  [25]: https://blog.niekun.net/usr/uploads/2021/03/2158895126.png
-  [26]: https://blog.niekun.net/usr/uploads/2021/03/707394890.png
-  [27]: https://blog.niekun.net/usr/uploads/2021/03/37552592.png
-  [28]: https://blog.niekun.net/usr/uploads/2021/03/2769919541.png
-  [29]: https://blog.niekun.net/usr/uploads/2021/03/393116508.png
-  [30]: https://blog.niekun.net/usr/uploads/2021/03/2214393644.png
-  [31]: https://blog.niekun.net/usr/uploads/2021/03/3379758427.png
-  [32]: https://blog.niekun.net/usr/uploads/2021/03/604823768.png
-  [33]: https://blog.niekun.net/usr/uploads/2021/03/2409538492.png
-  [34]: https://blog.niekun.net/usr/uploads/2021/03/1241696609.png
-  [35]: https://blog.niekun.net/usr/uploads/2021/03/4128853737.png
-  [36]: https://blog.niekun.net/usr/uploads/2021/03/570019677.png
-  [37]: https://blog.niekun.net/usr/uploads/2021/03/1530204776.png
-  [38]: https://blog.niekun.net/usr/uploads/2021/03/3189820924.png
-  [39]: https://blog.niekun.net/usr/uploads/2021/03/1808085278.png
-  [40]: https://blog.niekun.net/usr/uploads/2021/03/3495385610.png
-  [41]: https://blog.niekun.net/usr/uploads/2021/03/2104661130.png
-  [42]: https://blog.niekun.net/usr/uploads/2021/03/2966573054.png
-  [43]: https://blog.niekun.net/usr/uploads/2021/03/1923027329.png
-  [44]: https://blog.niekun.net/usr/uploads/2021/03/1716246100.png
-  [45]: https://blog.niekun.net/usr/uploads/2021/03/688792816.png
-  [46]: https://blog.niekun.net/usr/uploads/2021/03/3386313093.png
-  [47]: https://blog.niekun.net/usr/uploads/2021/03/3112212601.png
-  [48]: https://blog.niekun.net/usr/uploads/2021/03/2568647135.png
-  [49]: https://blog.niekun.net/usr/uploads/2021/03/4018267828.png
-  [50]: https://blog.niekun.net/usr/uploads/2021/03/1574139812.png
-  [51]: https://blog.niekun.net/usr/uploads/2021/03/2568476479.png
-  [52]: https://blog.niekun.net/usr/uploads/2021/03/353707365.png
-  [53]: https://blog.niekun.net/usr/uploads/2021/03/3640121135.png
-  [54]: https://blog.niekun.net/usr/uploads/2021/03/2812354515.png
-  [55]: https://blog.niekun.net/usr/uploads/2021/03/3894487917.png</textarea></div>
+<h3>什么是 VMware vSphere</h3><p>VMware vSphere 是 VMware 的虚拟化平台，可将数据中心转换为包括 CPU、存储和网络资源的聚合计算基础架构。vSphere 将这些基础架构作为一个统一的运行环境进行管理，并为您提供工具来管理加入该环境的数据中心。</p><p><img src="https://blog.niekun.net/usr/uploads/2021/03/2575390332.png" alt="2021-03-29T03:22:48.png" title="2021-03-29T03:22:48.png"></p><!--more--><p>vSphere 的两个核心组件是 <strong>ESXi</strong>  和 <strong>vCenter Server</strong>。ESXi 是用于创建并运行虚拟机和虚拟设备的虚拟化平台。vCenter Server 是一项服务，用于管理网络中连接的多个主机，并将主机资源池化。</p><p><strong>vSphere Hypervisor</strong> <strong>虚拟领域管理程序</strong>是一种可将服务器虚拟化的裸机管理程序，依托 <strong>VMware vSphere ESXi</strong> 体系架构构建。</p><p><strong>ESXi</strong> 是安装在物理机上的管理器。vSphere Client 安装在一个笔记本或者桌面PC上，用于访问 ESXi 服务器进行虚拟机的创建和管理。vCenter server 像一个虚拟机一样安装在 ESXi 上面。在拥有多个 ESXi 服务器和数十个虚拟机时，vCenter server的应用就比较频繁了。在小环境下的管理通常都会使用 vSphere client 来直连 ESXi 服务器。</p><p>简单来说 <strong>ESXi</strong> 是直接安装在物理机器上用来管理硬件设备，相当于一个操作系统，然后在 <strong>ESXi</strong> 中安装虚拟机。它可以方便的给不同的虚拟机分配硬件资源，以及管理。</p><p>类似 VMware workstation 等产品是需要安装在某个操作系统内部运行的。</p><h3>下载镜像</h3><p>我们需要下载 vSphere Hypervisor 的 iso 镜像。</p><p>最简单的是登陆账号后在下面网址搜索下载：<br><a href="https://customerconnect.vmware.com/downloads/#my_products">https://customerconnect.vmware.com/downloads/#my_products</a></p><p>也可以进入官网下载：<a href="https://www.vmware.com/products/vsphere-hypervisor.html">https://www.vmware.com/products/vsphere-hypervisor.html</a></p><p>在右侧点击 download 会提示登录账号，然后需要注册下产品，点击 register：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/801019411.png" alt="2021-03-29T03:38:15.png" title="2021-03-29T03:38:15.png"></p><p>然后找到 esxi ISO 镜像下载地址，点击下载：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4066834994.png" alt="2021-03-29T03:39:38.png" title="2021-03-29T03:39:38.png"></p><p>当前最新版为 VMware vSphere 7.0 Update 2。</p><h3>安装</h3><p>然后我们需要将制作一个启动盘来安装 esxi，推荐使用 ventoy 来加载镜像，非常方便：<a href="https://www.ventoy.net/en/index.html">https://www.ventoy.net/en/index.html</a></p><p>开机进入 boot 设置，将对应的启动盘设置为第一项启动，然后就可以进入 ventoy 引导画面了。</p><p>选择 esxi 镜像文件 enter 进入，下面我们就进入 esxi 安装程序了。</p><p><strong>这里有第一个需要注意的地方</strong>，esxi 在第一次全新安装中会默认划分 120G 的虚拟闪存，类似于 Windows 的虚拟内存，提供更大的交换空间，为虚拟机提供读缓存，提升虚拟机的存储性能。</p><p>但是对于家用设备来说，120G 的空间白白占用有点浪费，所以我们需要自定义设置这个虚拟闪存的大小。</p><p>在引导进入安装界面后，立刻按下 shift + o 键，会停留在如下画面：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4151124259.png" alt="2021-03-29T03:51:01.png" title="2021-03-29T03:51:01.png"></p><p>在下方可以输入命令行的地方，我们在已有命令后添加一句：<strong>autoPartitionOSDataSize=4096</strong>:<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2886267543.png" alt="2021-03-29T03:52:40.png" title="2021-03-29T03:52:40.png"></p><p>表示设置虚拟闪存大小为 4 GB，可以按照需要调整，数字就是 1024 乘以需要的 GB 大小。</p><p>回车确认后继续引导安装程序，期间会自动识别设备硬件。根据提示点击 enter 继续：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1535191890.png" alt="2021-03-29T03:57:37.png" title="2021-03-29T03:57:37.png"></p><p>点击 F11 继续：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4282492030.png" alt="2021-03-29T03:58:05.png" title="2021-03-29T03:58:05.png"></p><p>选择安装到那个硬盘，enter 确认继续：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/749667252.png" alt="2021-03-29T03:58:48.png" title="2021-03-29T03:58:48.png"></p><p>选择键盘布局，默认即可：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2896348534.png" alt="2021-03-29T03:59:09.png" title="2021-03-29T03:59:09.png"></p><p>设置 root 密码：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/476951246.png" alt="2021-03-29T03:59:39.png" title="2021-03-29T03:59:39.png"></p><p>最后点击 F11 开始安装：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3121539912.png" alt="2021-03-29T03:59:59.png" title="2021-03-29T03:59:59.png"></p><p>安装完成后提示可以移除引导盘并重启了：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1588907724.png" alt="2021-03-29T04:02:19.png" title="2021-03-29T04:02:19.png"></p><h3>连接管理</h3><p>系统重启后，会自动识别第一个网口的网络地址，我们可以在同一局域网下通过 ESXi 的地址访问管理页面：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3325959303.png" alt="2021-03-29T04:05:07.png" title="2021-03-29T04:05:07.png"></p><p>我们也可以通过网线将其他设备连接到第一个网口的方式进入管理页面，需要首先设置 esxi 的网络地址。点击 F2 进入配置界面，需要输入 root 密码：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3445057029.png" alt="2021-03-29T04:06:19.png" title="2021-03-29T04:06:19.png"></p><p>进入 config management network：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1507410719.png" alt="2021-03-29T04:06:52.png" title="2021-03-29T04:06:52.png"></p><p>默认选中的管理网络为第一个网口，可以自行修改：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2292204358.png" alt="2021-03-29T04:07:31.png" title="2021-03-29T04:07:31.png"></p><p>我们需要配置 IPv4 configuration：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2414244109.png" alt="2021-03-29T04:08:09.png" title="2021-03-29T04:08:09.png"></p><p>空格键选中 set static ipv4 address，并配置合适的 ip 地址，稍后需要将连接的设备也设置为同一网段才可以连接：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/193729119.png" alt="2021-03-29T04:10:26.png" title="2021-03-29T04:10:26.png"></p><p>完成后点击 esc 退出配置，会弹出是否重启网络提示框，点击 Y 确认。</p><p>然后我们需要在通过网线连接的设备端配置网络到上面设置的同一网段内。这样就可以通过设置的静态地址来访问 esxi 管理页面了。</p><p>以上两种方式都可以进入 esxi 管理界面，这里我是通过局域网设备来实现的。</p><h3>进入 esxi 管理</h3><p>访问 esxi 的管理地址，这里我的 esxi 地址为 27.168.1.181。在局域网下其他设备浏览器打开这个地址：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2979117796.png" alt="2021-03-29T05:07:46.png" title="2021-03-29T05:07:46.png"></p><p>登录 root 账户：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1796962619.png" alt="2021-03-29T05:08:39.png" title="2021-03-29T05:08:39.png"></p><p>可以看到 esxi 7 自身占用了 1.3GB 内存和 2.5GB 硬盘空间。</p><p>hardware 栏里的 virtual flash 就是我们安装时候自定义的 4GB 虚拟闪存空间：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/262708481.png" alt="2021-03-29T05:11:58.png" title="2021-03-29T05:11:58.png"></p><p>我们安装的是 esxi 评估版可以免费使用 60 天，如果想要一直使用则需要输入有效的序列号。可以通过 manage - licensing - actions - assign license 输入序列号：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2860080469.png" alt="2021-03-29T05:14:49.png" title="2021-03-29T05:14:49.png"></p><h3>配置磁盘</h3><p>安装 esxi 的时候会格式化系统对应的磁盘，如果安装了多个磁盘并且需要在 esxi 中作为存储设备，就需要单独配置它们了。</p><p>点击左侧导航栏的 storage，然后选择 devices：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3020367051.png" alt="2021-03-29T05:29:12.png" title="2021-03-29T05:29:12.png"></p><p>可以看到我有两块硬盘和一个 cdrom。其中最下面的 10G 的硬盘是 esxi 安装盘，点击进入可以查看详细信息：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2817559226.png" alt="2021-03-29T05:30:52.png" title="2021-03-29T05:30:52.png"></p><p>其中 VMFSL 就是虚拟闪存空间，剩下的 VMFS 分区就是可用的数据分区。</p><p>点击进入第二个硬盘查看：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2158895126.png" alt="2021-03-29T05:32:35.png" title="2021-03-29T05:32:35.png"></p><p>我们看到这里什么都没有，这是因为这块硬盘没有分配 datastore。我们点击 new datastore，首先给这个数据区取一个名字：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/707394890.png" alt="2021-03-29T05:37:13.png" title="2021-03-29T05:37:13.png"></p><p>在下面的页面，我们首先选择 use full disk，这样会见整块硬盘都作为这个 datastore，然后点击 next：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/37552592.png" alt="2021-03-29T05:38:45.png" title="2021-03-29T05:38:45.png"></p><p>点击 finish 后，datastroe 就建立完成了，这时候可以看到这块磁盘的信息：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2769919541.png" alt="2021-03-29T05:39:59.png" title="2021-03-29T05:39:59.png"></p><p>返回 datastore 选项卡可以看到新建立的 datastore2 在列表中：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/393116508.png" alt="2021-03-29T05:41:08.png" title="2021-03-29T05:41:08.png"></p><p>在后续的虚拟机安装中，我们可以选择将虚拟机安装到哪一个 datastore 中。</p><p>点击 datastore browser 可以查看其中的数据文件：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2214393644.png" alt="2021-03-29T05:42:37.png" title="2021-03-29T05:42:37.png"></p><p><img src="https://blog.niekun.net/usr/uploads/2021/03/3379758427.png" alt="2021-03-29T05:43:38.png" title="2021-03-29T05:43:38.png"></p><p>可以看到左上角有一个 upload 选项，我们可以远程将文件复制到 datasotre 中：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/604823768.png" alt="2021-03-29T05:44:47.png" title="2021-03-29T05:44:47.png"></p><p>后续安装虚拟机时，我会通过这种方法将系统镜像文件复制到 datastore 中。</p><h3>配置网卡</h3><p>下面我们来配置网卡，这也是 esxi 的核心之一。我们可以将主机上的物理网卡定义为虚拟交换机，然后分配给虚拟机使用。</p><p>这里的配置非常自由，需要根据实际需求来设置，我们可以将每个网卡单独配置一个虚拟交换机，也可以将多个网卡设置为一个虚拟交换机。</p><p>选择左侧导航栏的 networking，然后点击 physical NICs，就是主机上的所有物理网卡，这里有三个：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2409538492.png" alt="2021-03-29T05:49:50.png" title="2021-03-29T05:49:50.png"></p><p>然后我们切换到 virtual switches，这里就是定义虚拟交换机，默认有一个 vSwitch0，我们点击进去看看它的配置：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1241696609.png" alt="2021-03-29T05:52:17.png" title="2021-03-29T05:52:17.png"></p><p>可以看到它绑定了我们的第一个网卡。我们点击 edit settings 进入配置：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4128853737.png" alt="2021-03-29T05:53:18.png" title="2021-03-29T05:53:18.png"></p><p>uplink 定义了绑定到那个物理网卡。<strong>注意我们将 security 里的三个选项都设置为 accept 来使网络功能完整支持。</strong>点击 save 保存配置。</p><p>如果需要将另一个网卡也绑定到这个虚拟交换机，可以点击左上角的 add uplink：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/570019677.png" alt="2021-03-29T05:55:58.png" title="2021-03-29T05:55:58.png"></p><p>这里我们将每个网卡都配置单独的虚拟交换机。</p><p>返回 virtual switches 栏，点击 add standard virtual switch 添加新的交换机：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1530204776.png" alt="2021-03-29T05:58:59.png" title="2021-03-29T05:58:59.png"></p><p>将第二个网卡配置给 vSwitch1，同样的设置 security 为 accept。然后通过相同的方法配置第三个网卡，最终我们配置好了所有的交换机：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3189820924.png" alt="2021-03-29T06:00:49.png" title="2021-03-29T06:00:49.png"></p><p>最后我们配置 port group 端口组，可以定义一个虚拟交换机的集合。我们安装虚拟机为其分配网卡时就是分配给其某个 port group。同一个虚拟交换机可以定义到多个集合中。</p><p>默认有两个集合，可以看到它们都是对应 vSwtich0：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1808085278.png" alt="2021-03-29T06:06:42.png" title="2021-03-29T06:06:42.png"></p><p>注意不要修改第二个 Management Network 的配置，否则可能无法访问 esxi 管理页面。</p><p>我们将另外两个刚才建立的虚拟交换机定义到 port group 中，以便虚拟机可以调用。点击 add port group：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3495385610.png" alt="2021-03-29T06:09:25.png" title="2021-03-29T06:09:25.png"></p><p><strong>这里注意 group 名称如果最后一个是数字，则不要再前面加空格，否则虚拟机无法识别到它。</strong></p><p>将所有的虚拟交换机都配置对应的 port group：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2104661130.png" alt="2021-03-29T06:11:09.png" title="2021-03-29T06:11:09.png"></p><p>这样我们就配置好了所有的网卡部分。</p><p>这里有个进阶教程，可以将某个网卡或其他物理设备设置为直通模式，可以供虚拟机直接调用。可以提高性能。这样就不需要配置虚拟交换机了。</p><p>通过 manage - hardware - PCI devices 查看所有的硬件：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2966573054.png" alt="2021-03-29T06:14:47.png" title="2021-03-29T06:14:47.png"></p><p>如果又可以直通的硬件，前面的复选框就可为可选状态，然后点击 左上角的 toggle passthrough 就可以切换直通模式了，这里我由于是虚拟机中安装的 esxi 所有网卡不可以设置为直通模式。</p><h3>创建虚拟机</h3><p>下面我们就可以创建虚拟机了。</p><p>首先配置虚拟机，左侧导航栏选择 virtual machines，然后点击 create/register vm 进入引导页面：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1923027329.png" alt="2021-03-29T06:20:45.png" title="2021-03-29T06:20:45.png"></p><p>如果时创建新虚拟机则选择第一项，如果是添加已有的虚拟机则选择第三项，这里我们创建新虚拟机，点击 next。</p><p>设置虚拟机名称和系统类型，这里我安装一个 openwrt 系统：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1716246100.png" alt="2021-03-29T06:22:47.png" title="2021-03-29T06:22:47.png"></p><p>然后选择虚拟机安装位置，也就是选择一个 datastore：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/688792816.png" alt="2021-03-29T06:23:31.png" title="2021-03-29T06:23:31.png"></p><p>然后是定义虚拟机硬件配置，可以根据需要设置，这里我通过顶部的菜单添加一个新的 network adapter：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3386313093.png" alt="2021-03-29T06:25:46.png" title="2021-03-29T06:25:46.png"></p><p>然后我们配置网络适配器对应的 port group，点击后面的下拉菜单可以看到我们在 port group 中定义的所有集合：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3112212601.png" alt="2021-03-29T06:27:30.png" title="2021-03-29T06:27:30.png"></p><p>我给两个网络适配器分别分配不同的集合，也就是对应不同的虚拟交换机：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2568647135.png" alt="2021-03-29T06:29:15.png" title="2021-03-29T06:29:15.png"></p><p>如果需要通过系统镜像的方式安装虚拟机，则需要配置 cdrom 为 datastore ISO file，然后选择提前上传到 datastore 的镜像文件：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4018267828.png" alt="2021-03-29T06:32:02.png" title="2021-03-29T06:32:02.png"></p><p>这里我是通过提前准备好的 vmdk 虚拟磁盘文件来直接启动虚拟机，所以我需要将虚拟磁盘添加进来。</p><p>首先将默认的 disk 删除，然后选择 add hard disk - existing hard disk：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1574139812.png" alt="2021-03-29T06:37:21.png" title="2021-03-29T06:37:21.png"></p><p>然后选中对应的磁盘文件，这里我们直接将磁盘文件放在 openwrt 目录内，方便后期管理：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2568476479.png" alt="2021-03-29T06:39:40.png" title="2021-03-29T06:39:40.png"></p><p>然后点击 finish 完成虚拟机的硬件配置：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/353707365.png" alt="2021-03-29T06:40:30.png" title="2021-03-29T06:40:30.png"></p><p>现在可以看到我们刚添加的 openwrt：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3640121135.png" alt="2021-03-29T06:41:15.png" title="2021-03-29T06:41:15.png"></p><p>点击 openwrt 进入监控界面：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2812354515.png" alt="2021-03-29T06:42:43.png" title="2021-03-29T06:42:43.png"></p><p>然后点击 power on 就可以启动虚拟机了。</p><h3>开机自启</h3><p>可以通过设置，让 esxi 启动后自动启动某个虚拟机，点击 manage - system - autostart，然后选中需要自动启动的虚拟机，点击 enable 即可：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3894487917.png" alt="2021-03-29T06:50:13.png" title="2021-03-29T06:50:13.png"></p><p>如果有多个虚拟机需要自动启动，还可以设置它们的启动顺序。</p><p>以上就是 esxi 的简单安装和使用教程。</p><h3>参考链接</h3><p><a href="https://docs.vmware.com/cn/VMware-vSphere/index.html">VMware vSphere 文档</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2213.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/" thr:count="0"/>
@@ -362,57 +38,11 @@ uplink 定义了绑定到那个物理网卡。**注意我们将 security 里的�
     <uri>https://niekun.net</uri>
 </author>
 <content type="html" xml:base="https://blog.niekun.net/archives/2205.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。
-
-关于配置自己的 bot 参考之前的文章：https://blog.niekun.net/archives/428.html
-
-我的应用于 telegram bot 的 YouTube 下载器源码地址：https://github.com/nie11kun/telegram-bot-youtube-downloader
-
-最近想给我的 telegram bot 添加 Instagram 图片的下载功能，但是 youtube-dl 并不支持 Instagram。查询了下发现了 instaloader 这个开源软件可以完美实现我想要的功能。
-
-instaloader 官网：https://instaloader.github.io/
-
-GitHub：https://github.com/instaloader/instaloader
-
-
-<!--more-->
-
-### 安装
-
-instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。
-
-使用 pip3 安装：
-    pip3 install instaloader --upgrade
-
-**注意必须通过 pip3 而不是 pip 安装，否则使用中会报错。**
-
-### 使用
-
-安装完成后就可以使用 **instaloader** 命令来下载了。注意如果 python 安装到了自定义目录，如 `/opt` 则需要手动链接 instaloader 可执行程序到 `/usr/local/bin` 目录。
-
-#### 下载 post
-
-如果要下载一个 post 中的图片，提取链接中的 **shortcode** 来下载，如下是一个 Instagram post 的链接：https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link，其中的 `CMcMZycLpbS` 就是 **shortcode** 代码。
-
-需要通过 `-shortcode` 参数来下载对应的图片，且需要通过 `--` 告诉 instaloader 不要将 `-shortcode` 作为 option 对待，如：
-    instaloader -- -CMcMZycLpbS
-
-关于命令中的特殊字符处理参考：https://blog.niekun.net/archives/2204.html
-
-默认会下载到当前目录下，并新建文件夹 `-shortcode`，媒体文件及相关文本文件就在其中，注意到文件夹是以特殊字符 `-` 开头的，所以访问目录需要加上 `--`，如：
-    cd -- -CMcMZycLpbS
-
-#### 自定义下载目录
-
-通过 `--dirname-pattern` 参数可以指定下载目录，如：
-    instaloader --dirname-pattern=/tmp/test -- -CMcMZycLpbS
-
-就会将对应 post 的媒体下载到 `/tmp/test` 目录内。
-
-**instaloader** 的功能很强大，可以下载一个用户的所有发布内容，可以下载一个 `#hashtag` 标签的所有内容等。具体可以参考官方文档：https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram
-
-我将 instaloader 加入了 telegram bot 中，可以很方便的下载一个 post 的媒体内容，有兴趣的可以查看：https://github.com/nie11kun/telegram-bot-youtube-downloader
-</textarea></div>
+<p>一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。</p><p>关于配置自己的 bot 参考之前的文章：<a href="https://blog.niekun.net/archives/428.html">https://blog.niekun.net/archives/428.html</a></p><p>我的应用于 telegram bot 的 YouTube 下载器源码地址：<a href="https://github.com/nie11kun/telegram-bot-youtube-downloader">https://github.com/nie11kun/telegram-bot-youtube-downloader</a></p><p>最近想给我的 telegram bot 添加 Instagram 图片的下载功能，但是 youtube-dl 并不支持 Instagram。查询了下发现了 instaloader 这个开源软件可以完美实现我想要的功能。</p><p>instaloader 官网：<a href="https://instaloader.github.io/">https://instaloader.github.io/</a></p><p>GitHub：<a href="https://github.com/instaloader/instaloader">https://github.com/instaloader/instaloader</a></p><!--more--><h3>安装</h3><p>instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。</p><p>使用 pip3 安装：</p><pre><code>pip3 install instaloader --upgrade
+</code></pre><p><strong>注意必须通过 pip3 而不是 pip 安装，否则使用中会报错。</strong></p><h3>使用</h3><p>安装完成后就可以使用 <strong>instaloader</strong> 命令来下载了。注意如果 python 安装到了自定义目录，如 <code>/opt</code> 则需要手动链接 instaloader 可执行程序到 <code>/usr/local/bin</code> 目录。</p><h4>下载 post</h4><p>如果要下载一个 post 中的图片，提取链接中的 <strong>shortcode</strong> 来下载，如下是一个 Instagram post 的链接：<a href="https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link">https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link</a>，其中的 <code>CMcMZycLpbS</code> 就是 <strong>shortcode</strong> 代码。</p><p>需要通过 <code>-shortcode</code> 参数来下载对应的图片，且需要通过 <code>--</code> 告诉 instaloader 不要将 <code>-shortcode</code> 作为 option 对待，如：</p><pre><code>instaloader -- -CMcMZycLpbS
+</code></pre><p>关于命令中的特殊字符处理参考：<a href="https://blog.niekun.net/archives/2204.html">https://blog.niekun.net/archives/2204.html</a></p><p>默认会下载到当前目录下，并新建文件夹 <code>-shortcode</code>，媒体文件及相关文本文件就在其中，注意到文件夹是以特殊字符 <code>-</code> 开头的，所以访问目录需要加上 <code>--</code>，如：</p><pre><code>cd -- -CMcMZycLpbS
+</code></pre><h4>自定义下载目录</h4><p>通过 <code>--dirname-pattern</code> 参数可以指定下载目录，如：</p><pre><code>instaloader --dirname-pattern=/tmp/test -- -CMcMZycLpbS
+</code></pre><p>就会将对应 post 的媒体下载到 <code>/tmp/test</code> 目录内。</p><p><strong>instaloader</strong> 的功能很强大，可以下载一个用户的所有发布内容，可以下载一个 <code>#hashtag</code> 标签的所有内容等。具体可以参考官方文档：<a href="https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram">https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram</a></p><p>我将 instaloader 加入了 telegram bot 中，可以很方便的下载一个 post 的媒体内容，有兴趣的可以查看：<a href="https://github.com/nie11kun/telegram-bot-youtube-downloader">https://github.com/nie11kun/telegram-bot-youtube-downloader</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2205.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/" thr:count="0"/>
@@ -428,26 +58,7 @@ instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。
     <uri>https://niekun.net</uri>
 </author>
 <content type="html" xml:base="https://blog.niekun.net/archives/2191.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_3" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：
-![2021-02-25T12:40:56.png][1]
-
-
-<!--more-->
-
-
-经过查询发现时由于安装的 **JS-CSS-HTML Formatter** 插件默认会在保存文件时对文件格式进行处理。但是堆 React 代码的自动处理有问题导致无法正常进行开发。
-
-只需要修改其配置文件将保存文件时自动处理关掉即可。
-
-快捷键 **cmd + shift + p** 打开控制器，输入 formatter：
-![2021-02-25T12:44:41.png][2]
-
-点击 formatter config 修改配置文件，将第一句 **"onSave": true** 改为 **false** 保存即可。
-
-需要重启 vscode 才能生效。
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/02/175565695.png
-  [2]: https://blog.niekun.net/usr/uploads/2021/02/1966900753.png</textarea></div>
+<p>今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/175565695.png" alt="2021-02-25T12:40:56.png" title="2021-02-25T12:40:56.png"></p><!--more--><p>经过查询发现时由于安装的 <strong>JS-CSS-HTML Formatter</strong> 插件默认会在保存文件时对文件格式进行处理。但是堆 React 代码的自动处理有问题导致无法正常进行开发。</p><p>只需要修改其配置文件将保存文件时自动处理关掉即可。</p><p>快捷键 <strong>cmd + shift + p</strong> 打开控制器，输入 formatter：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/1966900753.png" alt="2021-02-25T12:44:41.png" title="2021-02-25T12:44:41.png"></p><p>点击 formatter config 修改配置文件，将第一句 <strong>"onSave": true</strong> 改为 <strong>false</strong> 保存即可。</p><p>需要重启 vscode 才能生效。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2191.html#comments" thr:count="1" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/" thr:count="1"/>
@@ -463,65 +74,17 @@ instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。
     <uri>https://niekun.net</uri>
 </author>
 <content type="html" xml:base="https://blog.niekun.net/archives/1958.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_4" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">如果要在 QT 中使用第三方库，需要将相关库文件路径写入项目 pro 文件内，有两种方式：GUI 对话框添加或直接编辑 pro 文件。
-
-### GUI 添加
-
-使用 GUI 添加的好处是比较直观，使用鼠标点击即可。
-
-右键项目名称，点击 add library：
-![1.jpg][1]
-
-
-<!--more-->
-
-
-选中 external library 点击 next：
-![2.jpg][2]
-
-选择头文件所在目录路径：
-![3.jpg][3]
-
-如果有 lib 库文件的话需要链接进来，没有的话可以不设置：
-![4.jpg][4]
-
-其他保持默认然后点击 next 完成添加。
-
-我们打开 pro 文件可以看到在文件最后添加了相关内容：
-```
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../Library/boost_1_72_0/stage/lib/ -llibboost_filesystem-mgw81-mt-x32-1_72.dll
+<p>如果要在 QT 中使用第三方库，需要将相关库文件路径写入项目 pro 文件内，有两种方式：GUI 对话框添加或直接编辑 pro 文件。</p><h3>GUI 添加</h3><p>使用 GUI 添加的好处是比较直观，使用鼠标点击即可。</p><p>右键项目名称，点击 add library：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/3998509933.jpg" alt="1.jpg" title="1.jpg"></p><!--more--><p>选中 external library 点击 next：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/1625536441.jpg" alt="2.jpg" title="2.jpg"></p><p>选择头文件所在目录路径：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/3830480933.jpg" alt="3.jpg" title="3.jpg"></p><p>如果有 lib 库文件的话需要链接进来，没有的话可以不设置：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/1700799379.jpg" alt="4.jpg" title="4.jpg"></p><p>其他保持默认然后点击 next 完成添加。</p><p>我们打开 pro 文件可以看到在文件最后添加了相关内容：</p><pre><code>win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../Library/boost_1_72_0/stage/lib/ -llibboost_filesystem-mgw81-mt-x32-1_72.dll
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../Library/boost_1_72_0/stage/lib/ -llibboost_filesystem-mgw81-mt-x32-1_72.dlld
 else:unix: LIBS += -L$$PWD/../../../Library/boost_1_72_0/stage/lib/ -llibboost_filesystem-mgw81-mt-x32-1_72.dll
 
 INCLUDEPATH += $$PWD/../../../Library/boost_1_72_0
-DEPENDPATH += $$PWD/../../../Library/boost_1_72_0
-```
-
-### pro 文件添加
-
-根据添加一个第三方库所增加的语句，我们可以手动直接编辑 pro 文件完成添加：
-- `LIBS` 指定 lib 库文件路径，没有的话不需要定义
-- `INCLUDEPATH` 指头文件所在目录
-- `DEPENDPATH` 定义和头文件相同目录即可
-
-例如我们添加一个 boost filesystem 库到项目：
-```
-LIBS += -L"/path/to/boost_1_72_0/stage/lib/" \
+DEPENDPATH += $$PWD/../../../Library/boost_1_72_0</code></pre><h3>pro 文件添加</h3><p>根据添加一个第三方库所增加的语句，我们可以手动直接编辑 pro 文件完成添加：</p><ul><li><code>LIBS</code> 指定 lib 库文件路径，没有的话不需要定义</li><li><code>INCLUDEPATH</code> 指头文件所在目录</li><li><code>DEPENDPATH</code> 定义和头文件相同目录即可</li></ul><p>例如我们添加一个 boost filesystem 库到项目：</p><pre><code>LIBS += -L&quot;/path/to/boost_1_72_0/stage/lib/&quot; \
         -llibboost_filesystem-mgw81-mt-x32-1_72 \
         -llibboost_regex-mgw81-mt-x32-1_72
 
-INCLUDEPATH += "/path/to/boost_1_72_0"
-DEPENDPATH += "/path/to/boost_1_72_0"
-```
-
-`LIBS` 中，使用 `-L` 添加 lib 库目录，使用 `-l` 添加具体某个库文件，可以不写文件后缀。
-
-以上就是 QT 中添加第三方库的方法。
-
-  [1]: https://blog.niekun.net/usr/uploads/2020/12/3998509933.jpg
-  [2]: https://blog.niekun.net/usr/uploads/2020/12/1625536441.jpg
-  [3]: https://blog.niekun.net/usr/uploads/2020/12/3830480933.jpg
-  [4]: https://blog.niekun.net/usr/uploads/2020/12/1700799379.jpg</textarea></div>
+INCLUDEPATH += &quot;/path/to/boost_1_72_0&quot;
+DEPENDPATH += &quot;/path/to/boost_1_72_0&quot;</code></pre><p><code>LIBS</code> 中，使用 <code>-L</code> 添加 lib 库目录，使用 <code>-l</code> 添加具体某个库文件，可以不写文件后缀。</p><p>以上就是 QT 中添加第三方库的方法。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1958.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/" thr:count="0"/>
@@ -537,27 +100,7 @@ DEPENDPATH += "/path/to/boost_1_72_0"
     <uri>https://niekun.net</uri>
 </author>
 <content type="html" xml:base="https://blog.niekun.net/archives/1553.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_5" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">![2020-04-20T13:35:22.png][1]
-下载百度云的资源一直是比较头疼的，限速严重影响到了使用体验，我对百度产品又不太喜欢所以就排除了充值会员的选项。前段时间发了一篇[百度云网盘直链获取及下载](https://blog.niekun.net/archives/1443.html)的文章，但是封锁很严重，基本处于不能用的状态。
-
-这两天 pandownload 这款百度盘下载器的话题很多。由于服务器被关闭，导致软件打不开。研究了下可以绕过程序启动同服务器的链接正常使用软件。原理就是利用别人备份的 pandownload.com 的网站的内容托管到别的服务器，再将对 pandownload.com 域名的请求解析到对应的服务器地址。
-
-
-<!--more-->
-
-### pandownload app
-
-pandownload 只提供了 Windows 版本，这里提供程序的备份：[PanDownload_add_temp.zip](https://blog.niekun.net/usr/uploads/2020/04/PanDownload_add_temp.zip)
-
-### 网站托管
-
-程序启动时会同 pandownload.com 发起请求，感谢有人对网站内容做了备份，这里只需要将网站托管到其他的服务器即可。
-
-网站备份：https://github.com/AyagawaSeirin/PandownloadFake
-
-下载仓库到服务器，使用 nginx 监听 pandownload.com 域名的访问:
-```
-server {
+<p><img src="https://blog.niekun.net/usr/uploads/2020/04/3072236758.png" alt="2020-04-20T13:35:22.png" title="2020-04-20T13:35:22.png"><br>下载百度云的资源一直是比较头疼的，限速严重影响到了使用体验，我对百度产品又不太喜欢所以就排除了充值会员的选项。前段时间发了一篇<a href="https://blog.niekun.net/archives/1443.html">百度云网盘直链获取及下载</a>的文章，但是封锁很严重，基本处于不能用的状态。</p><p>这两天 pandownload 这款百度盘下载器的话题很多。由于服务器被关闭，导致软件打不开。研究了下可以绕过程序启动同服务器的链接正常使用软件。原理就是利用别人备份的 pandownload.com 的网站的内容托管到别的服务器，再将对 pandownload.com 域名的请求解析到对应的服务器地址。</p><!--more--><h3>pandownload app</h3><p>pandownload 只提供了 Windows 版本，这里提供程序的备份：<a href="https://blog.niekun.net/usr/uploads/2020/04/PanDownload_add_temp.zip">PanDownload_add_temp.zip</a></p><h3>网站托管</h3><p>程序启动时会同 pandownload.com 发起请求，感谢有人对网站内容做了备份，这里只需要将网站托管到其他的服务器即可。</p><p>网站备份：<a href="https://github.com/AyagawaSeirin/PandownloadFake">https://github.com/AyagawaSeirin/PandownloadFake</a></p><p>下载仓库到服务器，使用 nginx 监听 pandownload.com 域名的访问:</p><pre><code>server {
     listen        80;
     server_name   pandownload.com;
     root          /path/PandownloadFake;
@@ -568,94 +111,39 @@ server {
     }
     location /api {
     }
-}
-```
-
-### 域名解析
-
-网站托管到新的服务器后，就可以将本地 dns 解析到服务器地址了。有很多方法可以实现，这里介绍修改 hosts 文件和 v2ray 的 dns 服务器实现。
-
-#### hosts
-
-修改 hosts 文件是最基本的方法，就是强制将某个域名的访问解析到对应的 IP 地址。
-
-hosts 文件地址：C:\\Windows\\System32\\Drivers\\etc\\hosts
-
-打开 hosts 文件，在最后加入如下：
-    xxx.xxx.xxx.xxx    pandownload.com
-
-解析地址可以填写服务器 IP，如果服务器原本的域名加了 CDN，可以填写 CDN 分配的 IP，隐藏服务器真实地址。也可以直接填写域名。
-
-修改 hosts 完成后再 cmd 执行下面命令以刷新 dns 缓存：
-    ipconfig /flushdns
-
-启动 pandownload 查看是否可以启动。
-
-#### 配置 v2ray dns 服务器
-
-如果正在使用 v2ray，可以配置 dns 服务器来达到同样的效果。
-
-dns 段添加设置如下：
-```
-{
-    "dns": {
-        "hosts": {
-            "domain:pandownload.com": "xxx.xxx.xxx.xxx"
+}</code></pre><h3>域名解析</h3><p>网站托管到新的服务器后，就可以将本地 dns 解析到服务器地址了。有很多方法可以实现，这里介绍修改 hosts 文件和 v2ray 的 dns 服务器实现。</p><h4>hosts</h4><p>修改 hosts 文件是最基本的方法，就是强制将某个域名的访问解析到对应的 IP 地址。</p><p>hosts 文件地址：C:\Windows\System32\Drivers\etc\hosts</p><p>打开 hosts 文件，在最后加入如下：</p><pre><code>xxx.xxx.xxx.xxx    pandownload.com
+</code></pre><p>解析地址可以填写服务器 IP，如果服务器原本的域名加了 CDN，可以填写 CDN 分配的 IP，隐藏服务器真实地址。也可以直接填写域名。</p><p>修改 hosts 完成后再 cmd 执行下面命令以刷新 dns 缓存：</p><pre><code>ipconfig /flushdns
+</code></pre><p>启动 pandownload 查看是否可以启动。</p><h4>配置 v2ray dns 服务器</h4><p>如果正在使用 v2ray，可以配置 dns 服务器来达到同样的效果。</p><p>dns 段添加设置如下：</p><pre><code>{
+    &quot;dns&quot;: {
+        &quot;hosts&quot;: {
+            &quot;domain:pandownload.com&quot;: &quot;xxx.xxx.xxx.xxx&quot;
         }
     }
-}
-```
-
-routing 段添加设置如下：
-```
-{
-    "routing": {
-        "domainStrategy": "IPOnDemand",
-        "rules": [
+}</code></pre><p>routing 段添加设置如下：</p><pre><code>{
+    &quot;routing&quot;: {
+        &quot;domainStrategy&quot;: &quot;IPOnDemand&quot;,
+        &quot;rules&quot;: [
             {
-                "type": "field",
-                "domain": [
-                    "pandownload.com"
+                &quot;type&quot;: &quot;field&quot;,
+                &quot;domain&quot;: [
+                    &quot;pandownload.com&quot;
                 ],
-                "outboundTag": "direct-customDNS"
+                &quot;outboundTag&quot;: &quot;direct-customDNS&quot;
             }
         ]
     }
-}
-```
-
-outbounds 段添加设置如下：
-```
-{
-    "outbounds": [
+}</code></pre><p>outbounds 段添加设置如下：</p><pre><code>{
+    &quot;outbounds&quot;: [
         {
-            "protocol": "freedom",
-            "settings": {
-                "domainStrategy": "UseIP"
+            &quot;protocol&quot;: &quot;freedom&quot;,
+            &quot;settings&quot;: {
+                &quot;domainStrategy&quot;: &quot;UseIP&quot;
             },
-            "tag": "direct-customDNS"
+            &quot;tag&quot;: &quot;direct-customDNS&quot;
         }
     ]
-}
-```
-
-以上 v2ray 配置完成后，需要让 pandownload 走 v2ray 监听的代理地址。修改 `PanData\config.ini`：
-    proxy=127.0.0.1:1082
-
-proxy 地址为 v2ray http 监听地址。启动 pandownload 测试是否启动正常。
-
-### 使用
-
-网上有人搭建好现成的服务端，自己搭建不方便的话可以直接使用别人搭建好的 hosts 地址：
-185.199.108.153
-64.52.84.68
-
-登录百度账户即可进行下载，这里测试需要设置为**PCS接口**才能正常下载：
-![2020-04-18T14:03:44.png][2]
-
-
-  [1]: https://blog.niekun.net/usr/uploads/2020/04/3072236758.png
-  [2]: https://blog.niekun.net/usr/uploads/2020/04/2377157041.png</textarea></div>
+}</code></pre><p>以上 v2ray 配置完成后，需要让 pandownload 走 v2ray 监听的代理地址。修改 <code>PanData\config.ini</code>：</p><pre><code>proxy=127.0.0.1:1082
+</code></pre><p>proxy 地址为 v2ray http 监听地址。启动 pandownload 测试是否启动正常。</p><h3>使用</h3><p>网上有人搭建好现成的服务端，自己搭建不方便的话可以直接使用别人搭建好的 hosts 地址：<br>185.199.108.153<br>64.52.84.68</p><p>登录百度账户即可进行下载，这里测试需要设置为<strong>PCS接口</strong>才能正常下载：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2377157041.png" alt="2020-04-18T14:03:44.png" title="2020-04-18T14:03:44.png"></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1553.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/" thr:count="0"/>
@@ -671,38 +159,13 @@ proxy 地址为 v2ray http 监听地址。启动 pandownload 测试是否启动�
     <uri>https://niekun.net</uri>
 </author>
 <content type="html" xml:base="https://blog.niekun.net/archives/1547.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_6" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">安全复制（英语：Secure copy，缩写SCP）是指在本地主机与远程主机或者两台远程主机之间基于Secure Shell（SSH）协议安全地传输电脑文件。
+<p>安全复制（英语：Secure copy，缩写SCP）是指在本地主机与远程主机或者两台远程主机之间基于Secure Shell（SSH）协议安全地传输电脑文件。</p><p>SCP是一种基于BSD RCP协议的网络传输协议，[3] 支持同一个网络上主机之间传输文件。SCP使用Secure Shell（SSH）完成数据传输，并使用同时用它进行身份认证，从而确保数据传输时的真实性和保密性。客户端可以向服务器发送（上传）文件，可选包含其基本属性（权限、时间戳）。客户端也可以请求（下载）一个服务器的文件或目录。SCP默认通过TCP端口22运行。</p><p>和 SCP 类似功能的是 SFTP 协议，也是使用 SSH 传输数据，具体使用方法参考：<a href="https://blog.niekun.net/archives/130.html">https://blog.niekun.net/archives/130.html</a></p><p>Linux 系统可以直接使用 scp 命令进行操作，Windows 系统可以安装 <a href="http://winscp.net/">WinSCP</a>，进行操作。</p><!--more--><p>下面介绍 Linux 下使用 scp 进行文件传输。</p><p>复制远程文件到本地:</p><pre><code>scp -P port username@from_host:file.txt /local/directory/
+</code></pre><p>复制本地文件到远程:</p><pre><code>scp file.txt username@to_host:/remote/directory/
+</code></pre><p>复制远程文件夹到本地:</p><pre><code>scp -r username@from_host:/remote/directory/  /local/directory/
 
-SCP是一种基于BSD RCP协议的网络传输协议，[3] 支持同一个网络上主机之间传输文件。SCP使用Secure Shell（SSH）完成数据传输，并使用同时用它进行身份认证，从而确保数据传输时的真实性和保密性。客户端可以向服务器发送（上传）文件，可选包含其基本属性（权限、时间戳）。客户端也可以请求（下载）一个服务器的文件或目录。SCP默认通过TCP端口22运行。
-
-和 SCP 类似功能的是 SFTP 协议，也是使用 SSH 传输数据，具体使用方法参考：https://blog.niekun.net/archives/130.html
-
-Linux 系统可以直接使用 scp 命令进行操作，Windows 系统可以安装 [WinSCP](http://winscp.net/)，进行操作。
-
-<!--more-->
-
-下面介绍 Linux 下使用 scp 进行文件传输。
-
-复制远程文件到本地:
-    scp -P port username@from_host:file.txt /local/directory/
- 
-复制本地文件到远程:
-    scp file.txt username@to_host:/remote/directory/
- 
-复制远程文件夹到本地:
-    scp -r username@from_host:/remote/directory/  /local/directory/
- 
-
-复制本地文件夹到远程:
-    scp -r /local/directory/ username@to_host:/remote/directory/
- 
-复制远程文件到另一个远程服务器:
-    scp username@from_host:/remote/directory/file.txt username@to_host:/remote/directory/
-
-执行上面的命令后会提示要求输入所登录的远程用户密码。
-
-如果远程服务器 ssh 端口不是默认的 22，需要使用 `-P` 参数进行设置，注意是大写 P。
-</textarea></div>
+</code></pre><p>复制本地文件夹到远程:</p><pre><code>scp -r /local/directory/ username@to_host:/remote/directory/
+</code></pre><p>复制远程文件到另一个远程服务器:</p><pre><code>scp username@from_host:/remote/directory/file.txt username@to_host:/remote/directory/
+</code></pre><p>执行上面的命令后会提示要求输入所登录的远程用户密码。</p><p>如果远程服务器 ssh 端口不是默认的 22，需要使用 <code>-P</code> 参数进行设置，注意是大写 P。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1547.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/" thr:count="0"/>
@@ -718,203 +181,7 @@ Linux 系统可以直接使用 scp 命令进行操作，Windows 系统可以安�
     <uri>https://niekun.net</uri>
 </author>
 <content type="html" xml:base="https://blog.niekun.net/archives/1506.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_7" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">![2020-04-01T05:34:24.png][1]
-Remote Desktop Manager(RDM) 是一个功能强大的远程链接平台，支持：Microsoft Remote Desktop Protocol(RDP)，Apple Remote Desktop(ARD)，VNC，SSH，FTP，SFTP 等多种协议，覆盖各种类型的远程连接及各大网盘访问。
-
-官网：https://remotedesktopmanager.com
-官方配置手册：https://help.remotedesktopmanager.com
-
-客户端支持：Windows，macOS，iOS，Android。有免费版和付费版区分，普通用户使用免费版即可。
-
-下面介绍他的常规使用方法。
-
-
-<!--more-->
-
-### 安装及注册
-
-在下载页面下载合适平台的安装包：https://remotedesktopmanager.com/home/download，这里以安装 Windows 平台为例。
-
-安装完成后启动 RemoteDesktopManagerFree，第一次启动会要求注册产品，点击下方的 create a free account 注册 devolutions 账户：
-![2020-04-01T05:46:08.png][2]
-
-注册完成后需要验证邮箱，然后返回应用界面选择第一项使用 devolutions 账户登录：
-![2020-04-01T05:45:32.png][3]
-
-登录成功后就可以使用 RemoteDesktopManagerFree 了，主界面如下：
-![2020-04-01T05:49:25.png][4]
-
-### 设置程序访问密码
-
-由于远程连接涉及隐私较多，最好设置一个主密码用来访问 RDM，选择 file - option，左侧选择 security：
-![2020-04-01T05:52:50.png][5]
-
-选项中设置 **use application password**，下方设置 password，然后设置锁定应用的情景，我设置了 **最小化/系统锁定/30分钟无操作** 后锁定应用：
-![2020-04-01T05:55:22.png][6]
-
-### 远程链接打开模式
-
-![2020-04-01T13:36:50.png][7]
-
-建立不同的连接时，有三种模式可供选择：
-•External 启动远程连接时作为外部进程打开窗口，一般用来启动本地应用程序，如 rdp 会启动微软的 mstsc.exe
-•Embedded (tabbed) 在 RDM 窗口建立新的选项卡打开远程连接，方便管理打开的进程
-•Undocked 启动连接时会打开新的 RDM 窗口
-
-### 建立文件夹
-
-当建立了很多个远程连接后，为了方便管理，可以建立文件夹将连接进行分类放置。
-
-在导航栏根路径： **local data source** 右键选择 add - add folder：
-![2020-04-01T06:11:04.png][8]
-
-设置文件夹名然后确认即可，在导航栏就可以看到新建的文件夹了，将需要放到这个文件夹的连接拖动到这位文件夹即可完成归类：
-![2020-04-01T06:12:54.png][9]
-
-### 建立 SSH 连接
-
-dashboard 界面点击 new entry：
-![2020-04-01T05:56:46.png][10]
-
-上方搜索 ssh，然后选择 ssh shell 点击 ok：
-![2020-04-01T05:57:34.png][11]
-
-设置 name 方便识别这个连接，然后下方设置 ssh IP 地址/端口，以及账户/密码：
-![2020-04-01T05:59:44.png][12]
-
-为避免长时间不操作，ssh 连接中断，选项卡切换到 advanced 设置 **send keepalive ping**: 30s，Windows 版里的名称是 **ping interval**，点击确认完成，：
-![Screen Shot 2020-04-01 at 21.21.47.png][13]
-
-完成后，在左侧导航栏找到刚建立的连接 name，点击 open session 即可建立连接：
-![2020-04-01T06:03:20.png][14]
-
-### 建立 SFTP 连接
-
-SFTP 用来管理服务器的文件，建立方法和 ssh 类似。sftp 用的链接协议是 ssh 的，所以登录端口以及账户密码和 ssh 一样。
-
-设置 Name 代表这个连接名，然后设置 host/port/username/password 即可：
-![2020-04-01T06:07:52.png][15]
-
-
-### 建立 RDP 连接
-
-RDP 是微软远程连接的协议，走的是 TCP 流量，默认端口是 3389。下面介绍如何添加 RDP 连接。
-
-首先进行系统设置，打开远程连接功能。进入设置界面搜索 remote，选择 remote desktop settings：
-![2020-04-01T06:17:50.png][16]
-
-点击 enable 即可打开远程功能，下方提示的 pc name 是在局域网内电脑的名称。可以进行局域网连接：
-![2020-04-01T06:19:52.png][17]
-
-系统设置完成后，返回 RDM 点击 new entry 添加一个 rdp 连接：
-![2020-04-01T06:15:37.png][18]
-
-然后在 rdp 设置栏设置 name 定义此连接名称，然后是 host/port/username/password：
-![2020-04-01T06:23:26.png][19]
-
-在此解释下 host/port/username/password 如何设置：
-- 如果是在同一局域网下访问 rdp，host 设置为上面打开系统远程时提供的 pc name  或者 cmd 执行 `hostname` 查看，RDM 就会搜索局域网下的这个设备，端口号默认就是 3389
-- 如果是在外网访问，则 host 要设置为此设备的外网 IP 地址，需要设备有公网 IP。
-- 如果通过 frp 等内网穿透工具转发 rdp 连接到外网，则 host 和 port 要设置为 frp 服务端 IP 地址和设定的端口
-- username 是 Windows 用户名，可以打开 cmd 执行 `whoami` 查看
-- password 就是你开机时候登录系统的密码，如果登陆的是 Microsoft 账号，则密码就是微软账户密码
-
-如果远程连接要降低带宽占用，可以设置 advanced 选项里的 encoding 类型。
-
-关于 frp 内网穿透参考我的教程：https://blog.niekun.net/archives/539.html
-
-RDP 的详细设置参数参考[官方 RDP 配置手册](https://help.remotedesktopmanager.com/session_rdp.html)。
-
-### macOS ARD 设置
-
-macOS 系统的远程连接协议是 ARD，走的是 TCP 流量，默认端口是 5900。下面介绍如何添加 ARD 连接。
-
-首先在 macOS 系统打开远程连接功能：
-- 打开 system preference - sharing
-- 打开 remote management 其他设备就可以使用 ARD 访问本机了
-- 打开 remote login 可以打开远程设备对本机的 ssh 访问，在其他设备上使用上面的 ssh 连接方式建立连接
-
-**本机 host 名称可以在终端执行 `hostname` 查看，也可以直接设置本机局域网 IP，使用 ifconfig 查看**
-
-系统设置完成后，就可以配置 ARD 了，建立新的 ARD entry，设置 name：
-![2020-04-01T14:09:04.png][20]
-
-然后类似 RDP 设置 host/port/username/password：
-![2020-04-01T14:18:49.png][21]
-
-下面介绍 host/port/username/password 各项参数如何设置：
-- 如果在本地远程访问设备就 host 就直接用设备局域网地址或在终端执行 `hostname` 命令得到本机 host，port 默认为 5900
-- 如果是在外网访问，则 host 要设置为此设备的外网 IP 地址，需要设备有公网 IP。
-- 如果通过 frp 等内网穿透工具转发 rdp 连接到外网，则 host 和 port 要设置为 frp 服务端 IP 地址和设定的端口
-- username 就是本机用户名，用户名可以打开终端执行命令 `whoami` 查看
-- 密码就是上面设置的用户名对应访问密码
-
-如果远程连接要降低带宽占用，可以设置 advanced 选项里的 encoding 类型。
-
-关于 frp 内网穿透参考我的教程：https://blog.niekun.net/archives/539.html
-
-ARD 的详细设置参数参考[官方 ARD 配置手册](https://help.remotedesktopmanager.com/sessions_appleremotedesktop.html)。
-
-### 备份/恢复数据
-
-当我们使用 RDM 建立了很多连接及文件夹后，为了在其他设备上同步配置及数据备份/恢复，我们需要设置数据备份配置。
-
-首先需要登陆 devolutions 账号，也就是开始安装 RDM 时注册的账号。如果没有登陆的话点击 file - devolutions account - sign in 登陆账号，注意选上下面的 automatically sign-in at start up，这样下次打开 RDM 就会自动登陆账号了：
-![2020-04-02T13:49:57.png][22]
-
-点击 file - backup - backup configuration：
-![2020-04-01T14:32:37.png][23]
-
-点击 select：
-![Screen Shot 2020-04-01 at 22.33.10.png][24]
-
-如果之前没有建立过备份配置，在下方设置配置名称，点击 create：
-![2020-04-01T14:35:18.png][25]
-
-上方显示当前账号已建立的配置，要选择已有的配置作为本机配置，则直接选中对应配置名点击 select，然后点击 ok，就配置好了本机备份配置：
-![2020-04-01T14:37:06.png][26]
-
-**可以多个客户端使用同一个备份名的存档，这样就可以实现多设备同步数据了。**
-
-如果要备份当前数据，选择 file - backup - execute backup：
-![2020-04-01T14:40:46.png][27]
-
-要恢复数据到某个备份节点，选择 file - backup - restore，会弹出所有存在的备份，根据需要选中某个备份，点击 ok 即可恢复：
-![2020-04-01T14:46:31.png][28]
-
----
-
-以上就是 RDM 的使用方法，更多复杂的配置方法或细节参数设置，可以参考官方文档：https://help.remotedesktopmanager.com/remote-connections.html
-
-
-  [1]: https://blog.niekun.net/usr/uploads/2020/04/728150323.png
-  [2]: https://blog.niekun.net/usr/uploads/2020/04/93790875.png
-  [3]: https://blog.niekun.net/usr/uploads/2020/04/2588948767.png
-  [4]: https://blog.niekun.net/usr/uploads/2020/04/1690961626.png
-  [5]: https://blog.niekun.net/usr/uploads/2020/04/366110144.png
-  [6]: https://blog.niekun.net/usr/uploads/2020/04/1887532089.png
-  [7]: https://blog.niekun.net/usr/uploads/2020/04/2035621665.png
-  [8]: https://blog.niekun.net/usr/uploads/2020/04/120824632.png
-  [9]: https://blog.niekun.net/usr/uploads/2020/04/614521210.png
-  [10]: https://blog.niekun.net/usr/uploads/2020/04/2648469406.png
-  [11]: https://blog.niekun.net/usr/uploads/2020/04/2416306302.png
-  [12]: https://blog.niekun.net/usr/uploads/2020/04/4058666984.png
-  [13]: https://blog.niekun.net/usr/uploads/2020/04/3322647774.png
-  [14]: https://blog.niekun.net/usr/uploads/2020/04/4009763518.png
-  [15]: https://blog.niekun.net/usr/uploads/2020/04/477739667.png
-  [16]: https://blog.niekun.net/usr/uploads/2020/04/1681963866.png
-  [17]: https://blog.niekun.net/usr/uploads/2020/04/2405131847.png
-  [18]: https://blog.niekun.net/usr/uploads/2020/04/3427198668.png
-  [19]: https://blog.niekun.net/usr/uploads/2020/04/2015891144.png
-  [20]: https://blog.niekun.net/usr/uploads/2020/04/3264639510.png
-  [21]: https://blog.niekun.net/usr/uploads/2020/04/2498368069.png
-  [22]: https://blog.niekun.net/usr/uploads/2020/04/511657788.png
-  [23]: https://blog.niekun.net/usr/uploads/2020/04/1190518483.png
-  [24]: https://blog.niekun.net/usr/uploads/2020/04/2610934896.png
-  [25]: https://blog.niekun.net/usr/uploads/2020/04/1528413674.png
-  [26]: https://blog.niekun.net/usr/uploads/2020/04/2519179958.png
-  [27]: https://blog.niekun.net/usr/uploads/2020/04/710893406.png
-  [28]: https://blog.niekun.net/usr/uploads/2020/04/596164637.png</textarea></div>
+<p><img src="https://blog.niekun.net/usr/uploads/2020/04/728150323.png" alt="2020-04-01T05:34:24.png" title="2020-04-01T05:34:24.png"><br>Remote Desktop Manager(RDM) 是一个功能强大的远程链接平台，支持：Microsoft Remote Desktop Protocol(RDP)，Apple Remote Desktop(ARD)，VNC，SSH，FTP，SFTP 等多种协议，覆盖各种类型的远程连接及各大网盘访问。</p><p>官网：<a href="https://remotedesktopmanager.com">https://remotedesktopmanager.com</a><br>官方配置手册：<a href="https://help.remotedesktopmanager.com">https://help.remotedesktopmanager.com</a></p><p>客户端支持：Windows，macOS，iOS，Android。有免费版和付费版区分，普通用户使用免费版即可。</p><p>下面介绍他的常规使用方法。</p><!--more--><h3>安装及注册</h3><p>在下载页面下载合适平台的安装包：<a href="https://remotedesktopmanager.com/home/download">https://remotedesktopmanager.com/home/download</a>，这里以安装 Windows 平台为例。</p><p>安装完成后启动 RemoteDesktopManagerFree，第一次启动会要求注册产品，点击下方的 create a free account 注册 devolutions 账户：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/93790875.png" alt="2020-04-01T05:46:08.png" title="2020-04-01T05:46:08.png"></p><p>注册完成后需要验证邮箱，然后返回应用界面选择第一项使用 devolutions 账户登录：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2588948767.png" alt="2020-04-01T05:45:32.png" title="2020-04-01T05:45:32.png"></p><p>登录成功后就可以使用 RemoteDesktopManagerFree 了，主界面如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/1690961626.png" alt="2020-04-01T05:49:25.png" title="2020-04-01T05:49:25.png"></p><h3>设置程序访问密码</h3><p>由于远程连接涉及隐私较多，最好设置一个主密码用来访问 RDM，选择 file - option，左侧选择 security：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/366110144.png" alt="2020-04-01T05:52:50.png" title="2020-04-01T05:52:50.png"></p><p>选项中设置 <strong>use application password</strong>，下方设置 password，然后设置锁定应用的情景，我设置了 <strong>最小化/系统锁定/30分钟无操作</strong> 后锁定应用：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/1887532089.png" alt="2020-04-01T05:55:22.png" title="2020-04-01T05:55:22.png"></p><h3>远程链接打开模式</h3><p><img src="https://blog.niekun.net/usr/uploads/2020/04/2035621665.png" alt="2020-04-01T13:36:50.png" title="2020-04-01T13:36:50.png"></p><p>建立不同的连接时，有三种模式可供选择：<br>•External 启动远程连接时作为外部进程打开窗口，一般用来启动本地应用程序，如 rdp 会启动微软的 mstsc.exe<br>•Embedded (tabbed) 在 RDM 窗口建立新的选项卡打开远程连接，方便管理打开的进程<br>•Undocked 启动连接时会打开新的 RDM 窗口</p><h3>建立文件夹</h3><p>当建立了很多个远程连接后，为了方便管理，可以建立文件夹将连接进行分类放置。</p><p>在导航栏根路径： <strong>local data source</strong> 右键选择 add - add folder：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/120824632.png" alt="2020-04-01T06:11:04.png" title="2020-04-01T06:11:04.png"></p><p>设置文件夹名然后确认即可，在导航栏就可以看到新建的文件夹了，将需要放到这个文件夹的连接拖动到这位文件夹即可完成归类：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/614521210.png" alt="2020-04-01T06:12:54.png" title="2020-04-01T06:12:54.png"></p><h3>建立 SSH 连接</h3><p>dashboard 界面点击 new entry：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2648469406.png" alt="2020-04-01T05:56:46.png" title="2020-04-01T05:56:46.png"></p><p>上方搜索 ssh，然后选择 ssh shell 点击 ok：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2416306302.png" alt="2020-04-01T05:57:34.png" title="2020-04-01T05:57:34.png"></p><p>设置 name 方便识别这个连接，然后下方设置 ssh IP 地址/端口，以及账户/密码：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/4058666984.png" alt="2020-04-01T05:59:44.png" title="2020-04-01T05:59:44.png"></p><p>为避免长时间不操作，ssh 连接中断，选项卡切换到 advanced 设置 <strong>send keepalive ping</strong>: 30s，Windows 版里的名称是 <strong>ping interval</strong>，点击确认完成，：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/3322647774.png" alt="Screen Shot 2020-04-01 at 21.21.47.png" title="Screen Shot 2020-04-01 at 21.21.47.png"></p><p>完成后，在左侧导航栏找到刚建立的连接 name，点击 open session 即可建立连接：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/4009763518.png" alt="2020-04-01T06:03:20.png" title="2020-04-01T06:03:20.png"></p><h3>建立 SFTP 连接</h3><p>SFTP 用来管理服务器的文件，建立方法和 ssh 类似。sftp 用的链接协议是 ssh 的，所以登录端口以及账户密码和 ssh 一样。</p><p>设置 Name 代表这个连接名，然后设置 host/port/username/password 即可：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/477739667.png" alt="2020-04-01T06:07:52.png" title="2020-04-01T06:07:52.png"></p><h3>建立 RDP 连接</h3><p>RDP 是微软远程连接的协议，走的是 TCP 流量，默认端口是 3389。下面介绍如何添加 RDP 连接。</p><p>首先进行系统设置，打开远程连接功能。进入设置界面搜索 remote，选择 remote desktop settings：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/1681963866.png" alt="2020-04-01T06:17:50.png" title="2020-04-01T06:17:50.png"></p><p>点击 enable 即可打开远程功能，下方提示的 pc name 是在局域网内电脑的名称。可以进行局域网连接：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2405131847.png" alt="2020-04-01T06:19:52.png" title="2020-04-01T06:19:52.png"></p><p>系统设置完成后，返回 RDM 点击 new entry 添加一个 rdp 连接：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/3427198668.png" alt="2020-04-01T06:15:37.png" title="2020-04-01T06:15:37.png"></p><p>然后在 rdp 设置栏设置 name 定义此连接名称，然后是 host/port/username/password：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2015891144.png" alt="2020-04-01T06:23:26.png" title="2020-04-01T06:23:26.png"></p><p>在此解释下 host/port/username/password 如何设置：</p><ul><li>如果是在同一局域网下访问 rdp，host 设置为上面打开系统远程时提供的 pc name  或者 cmd 执行 <code>hostname</code> 查看，RDM 就会搜索局域网下的这个设备，端口号默认就是 3389</li><li>如果是在外网访问，则 host 要设置为此设备的外网 IP 地址，需要设备有公网 IP。</li><li>如果通过 frp 等内网穿透工具转发 rdp 连接到外网，则 host 和 port 要设置为 frp 服务端 IP 地址和设定的端口</li><li>username 是 Windows 用户名，可以打开 cmd 执行 <code>whoami</code> 查看</li><li>password 就是你开机时候登录系统的密码，如果登陆的是 Microsoft 账号，则密码就是微软账户密码</li></ul><p>如果远程连接要降低带宽占用，可以设置 advanced 选项里的 encoding 类型。</p><p>关于 frp 内网穿透参考我的教程：<a href="https://blog.niekun.net/archives/539.html">https://blog.niekun.net/archives/539.html</a></p><p>RDP 的详细设置参数参考<a href="https://help.remotedesktopmanager.com/session_rdp.html">官方 RDP 配置手册</a>。</p><h3>macOS ARD 设置</h3><p>macOS 系统的远程连接协议是 ARD，走的是 TCP 流量，默认端口是 5900。下面介绍如何添加 ARD 连接。</p><p>首先在 macOS 系统打开远程连接功能：</p><ul><li>打开 system preference - sharing</li><li>打开 remote management 其他设备就可以使用 ARD 访问本机了</li><li>打开 remote login 可以打开远程设备对本机的 ssh 访问，在其他设备上使用上面的 ssh 连接方式建立连接</li></ul><p><strong>本机 host 名称可以在终端执行 <code>hostname</code> 查看，也可以直接设置本机局域网 IP，使用 ifconfig 查看</strong></p><p>系统设置完成后，就可以配置 ARD 了，建立新的 ARD entry，设置 name：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/3264639510.png" alt="2020-04-01T14:09:04.png" title="2020-04-01T14:09:04.png"></p><p>然后类似 RDP 设置 host/port/username/password：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2498368069.png" alt="2020-04-01T14:18:49.png" title="2020-04-01T14:18:49.png"></p><p>下面介绍 host/port/username/password 各项参数如何设置：</p><ul><li>如果在本地远程访问设备就 host 就直接用设备局域网地址或在终端执行 <code>hostname</code> 命令得到本机 host，port 默认为 5900</li><li>如果是在外网访问，则 host 要设置为此设备的外网 IP 地址，需要设备有公网 IP。</li><li>如果通过 frp 等内网穿透工具转发 rdp 连接到外网，则 host 和 port 要设置为 frp 服务端 IP 地址和设定的端口</li><li>username 就是本机用户名，用户名可以打开终端执行命令 <code>whoami</code> 查看</li><li>密码就是上面设置的用户名对应访问密码</li></ul><p>如果远程连接要降低带宽占用，可以设置 advanced 选项里的 encoding 类型。</p><p>关于 frp 内网穿透参考我的教程：<a href="https://blog.niekun.net/archives/539.html">https://blog.niekun.net/archives/539.html</a></p><p>ARD 的详细设置参数参考<a href="https://help.remotedesktopmanager.com/sessions_appleremotedesktop.html">官方 ARD 配置手册</a>。</p><h3>备份/恢复数据</h3><p>当我们使用 RDM 建立了很多连接及文件夹后，为了在其他设备上同步配置及数据备份/恢复，我们需要设置数据备份配置。</p><p>首先需要登陆 devolutions 账号，也就是开始安装 RDM 时注册的账号。如果没有登陆的话点击 file - devolutions account - sign in 登陆账号，注意选上下面的 automatically sign-in at start up，这样下次打开 RDM 就会自动登陆账号了：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/511657788.png" alt="2020-04-02T13:49:57.png" title="2020-04-02T13:49:57.png"></p><p>点击 file - backup - backup configuration：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/1190518483.png" alt="2020-04-01T14:32:37.png" title="2020-04-01T14:32:37.png"></p><p>点击 select：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2610934896.png" alt="Screen Shot 2020-04-01 at 22.33.10.png" title="Screen Shot 2020-04-01 at 22.33.10.png"></p><p>如果之前没有建立过备份配置，在下方设置配置名称，点击 create：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/1528413674.png" alt="2020-04-01T14:35:18.png" title="2020-04-01T14:35:18.png"></p><p>上方显示当前账号已建立的配置，要选择已有的配置作为本机配置，则直接选中对应配置名点击 select，然后点击 ok，就配置好了本机备份配置：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2519179958.png" alt="2020-04-01T14:37:06.png" title="2020-04-01T14:37:06.png"></p><p><strong>可以多个客户端使用同一个备份名的存档，这样就可以实现多设备同步数据了。</strong></p><p>如果要备份当前数据，选择 file - backup - execute backup：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/710893406.png" alt="2020-04-01T14:40:46.png" title="2020-04-01T14:40:46.png"></p><p>要恢复数据到某个备份节点，选择 file - backup - restore，会弹出所有存在的备份，根据需要选中某个备份，点击 ok 即可恢复：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/596164637.png" alt="2020-04-01T14:46:31.png" title="2020-04-01T14:46:31.png"></p><hr><p>以上就是 RDM 的使用方法，更多复杂的配置方法或细节参数设置，可以参考官方文档：<a href="https://help.remotedesktopmanager.com/remote-connections.html">https://help.remotedesktopmanager.com/remote-connections.html</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1506.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/" thr:count="0"/>
@@ -930,24 +197,7 @@ ARD 的详细设置参数参考[官方 ARD 配置手册](https://help.remotedesk
     <uri>https://niekun.net</uri>
 </author>
 <content type="html" xml:base="https://blog.niekun.net/archives/1489.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_8" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近在学习 nginx 的反向代理，在处理请求和响应的时候，需要处理 header 头信息用到了很多 nignx 变量，但是在传递给代理服务器时，我不知道我设置的 proxy_set_header 等信息是否设置正确，以及其他用到的变量到底当前值是多少我也不知道。调试起来很费劲。
-
-发现一个第三方 nginx 模块：**echo**，可以方便的输出信息，利用这一模块可以实现变量值读取到 html，调试方便了很多。
-
-echo GitHub 主页：https://github.com/openresty/echo-nginx-module
-
-
-<!--more-->
-
-### 编译
-
-echo 模块需要从源码编译 nginx 时使用指令：`--add-module=` 加入，源码编译 nginx 及加入第三方模块参考我的教程：[Nginx 安装/编译教程](https://blog.niekun.net/archives/30.html)
-
-### 使用
-
-echo 使用命令很简单：
-```
-server{
+<p>最近在学习 nginx 的反向代理，在处理请求和响应的时候，需要处理 header 头信息用到了很多 nignx 变量，但是在传递给代理服务器时，我不知道我设置的 proxy_set_header 等信息是否设置正确，以及其他用到的变量到底当前值是多少我也不知道。调试起来很费劲。</p><p>发现一个第三方 nginx 模块：<strong>echo</strong>，可以方便的输出信息，利用这一模块可以实现变量值读取到 html，调试方便了很多。</p><p>echo GitHub 主页：<a href="https://github.com/openresty/echo-nginx-module">https://github.com/openresty/echo-nginx-module</a></p><!--more--><h3>编译</h3><p>echo 模块需要从源码编译 nginx 时使用指令：<code>--add-module=</code> 加入，源码编译 nginx 及加入第三方模块参考我的教程：<a href="https://blog.niekun.net/archives/30.html">Nginx 安装/编译教程</a></p><h3>使用</h3><p>echo 使用命令很简单：</p><pre><code>server{
     listen 80;
     server_name 127.0.0.1;
 
@@ -956,16 +206,7 @@ server{
         echo 'remote address: $remote_addr';
         echo 'remote_port: $remote_port';
     }
-}
-```
-
-default_type text/plain 指令设置响应内容的格式，不设置的话浏览器访问会返回下载文件而不是网页。
-
-执行 `curl 127.0.0.1/echo` 或浏览器访问 127.0.0.1/echo 路径就会看到 echo 定义的内容。
-
-**注意如果在 echo 指令下面定义了其他 html 页面或者 proxy_pass 反向代理，则 echo 的内容会被覆盖，如果 echo 指令在 
- location 段的最后，则会显示 echo 指令的内容。**
-</textarea></div>
+}</code></pre><p>default_type text/plain 指令设置响应内容的格式，不设置的话浏览器访问会返回下载文件而不是网页。</p><p>执行 <code>curl 127.0.0.1/echo</code> 或浏览器访问 127.0.0.1/echo 路径就会看到 echo 定义的内容。</p><p>**注意如果在 echo 指令下面定义了其他 html 页面或者 proxy_pass 反向代理，则 echo 的内容会被覆盖，如果 echo 指令在 <br> location 段的最后，则会显示 echo 指令的内容。**</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1489.html#comments" thr:count="1" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/" thr:count="1"/>
@@ -981,66 +222,15 @@ default_type text/plain 指令设置响应内容的格式，不设置的话浏�
     <uri>https://niekun.net</uri>
 </author>
 <content type="html" xml:base="https://blog.niekun.net/archives/1378.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_9" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">> Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.
-
-nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有： ** HTTP，FastCGI, uwsgi, SCGI, and memcached。**
-
-不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：https://blog.niekun.net/archives/195.html
-
-下面介绍 ngx_http_proxy_module 模块的使用方式。
-
-
-<!--more-->
-
-
-### 语法
-
-proxy_pass 指令将请求转发到其他代理服务器。
-
-转发一个 http 请求到另一个地址：
-```
-location /some/path/ {
+<blockquote>Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.</blockquote><p>nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有： <strong> HTTP，FastCGI, uwsgi, SCGI, and memcached。</strong></p><p>不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：<a href="https://blog.niekun.net/archives/195.html">https://blog.niekun.net/archives/195.html</a></p><p>下面介绍 ngx_http_proxy_module 模块的使用方式。</p><!--more--><h3>语法</h3><p>proxy_pass 指令将请求转发到其他代理服务器。</p><p>转发一个 http 请求到另一个地址：</p><pre><code>location /some/path/ {
     proxy_pass http://www.example.com/link/;
-}
-```
-
-以上示例将访问 location 段的请求转发到特定地址，这里有几个规则需要注意：
-
-1.代理地址如果不写明 location 段，则转发请求 location 到新的地址：
-```
-location /some/path/ {
+}</code></pre><p>以上示例将访问 location 段的请求转发到特定地址，这里有几个规则需要注意：</p><p>1.代理地址如果不写明 location 段，则转发请求 location 到新的地址：</p><pre><code>location /some/path/ {
     proxy_pass http://www.example.com;
-}
-```
-
-以上规则下，访问 /some/path/.test.html 时，会转发到 http://www.example.com/some/path/.test.html
-
-```
-location ~ \.php {
+}</code></pre><p>以上规则下，访问 /some/path/.test.html 时，会转发到 <a href="http://www.example.com/some/path/.test.html">http://www.example.com/some/path/.test.html</a></p><pre><code>location ~ \.php {
     proxy_pass http://127.0.0.1:8000;
-}
-```
-
-以上规则下，访问 /some/path/test.php 时，会转发到 127.0.0.1:8000/some/path/test.php
-
-2.代理地址包含新的 location 时会替换掉请求 location 部分：
-```
-location /some/path/ {
+}</code></pre><p>以上规则下，访问 /some/path/test.php 时，会转发到 127.0.0.1:8000/some/path/test.php</p><p>2.代理地址包含新的 location 时会替换掉请求 location 部分：</p><pre><code>location /some/path/ {
     proxy_pass http://www.example.com/new/;
-}
-```
-
-以上规则下，访问 /some/path/test.html 时，会转发到 http://www.example.com/new/test.html，注意 http://www.example.com/ 和 http://www.example.com 不同，也属于包含根路径 location 段的。
-
-proxy_pass 语法用来转发给 http 服务，还支持转发给其他协议的服务：
-- fastcgi_pass 转发给 FastCGI server 如 php 服务
-- uwsgi_pass 转发给 uwsgi server 如 python 服务
-- scgi_pass 转发给 SCGI server
-- memcached_pass 转发给 memcached server
-
-转发的服务地址可以用一个 **upstream** 组来实现负载均衡：
-```
-http {
+}</code></pre><p>以上规则下，访问 /some/path/test.html 时，会转发到 <a href="http://www.example.com/new/test.html">http://www.example.com/new/test.html</a>，注意 <a href="http://www.example.com/">http://www.example.com/</a> 和 <a href="http://www.example.com">http://www.example.com</a> 不同，也属于包含根路径 location 段的。</p><p>proxy_pass 语法用来转发给 http 服务，还支持转发给其他协议的服务：</p><ul><li>fastcgi_pass 转发给 FastCGI server 如 php 服务</li><li>uwsgi_pass 转发给 uwsgi server 如 python 服务</li><li>scgi_pass 转发给 SCGI server</li><li>memcached_pass 转发给 memcached server</li></ul><p>转发的服务地址可以用一个 <strong>upstream</strong> 组来实现负载均衡：</p><pre><code>http {
     upstream backend {
         server backend1.example.com;
         server backend2.example.com;
@@ -1053,76 +243,26 @@ http {
             proxy_pass http://backend;
         }
     }
-}
-```
+}</code></pre><p>以上是一个简单的负载均衡代理转发示例。关于 upstream 详细使用参考<a href="https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/">官方教程</a></p><h3>proxy_redirect 响应头 location/refresh 重定向</h3><p>当上游服务器返回的响应是重定向或刷新请求（如HTTP响应码是301或者302）时，proxy_redirect可以重设HTTP头部的location/Refresh 字段。</p><p>语法结构：</p><pre><code>proxy_redirect default;
+proxy_redirect off;
+proxy_redirect redirect replacement;
+</code></pre><p>默认设置是：proxy_redirect default。</p><p>http 响应头的 location 段 HTTP Location 是在两种情况使用在响应头中：</p><ul><li>要求网页浏览器加载其他网页(域名转址)。在这种情况下，应该使用HTTP状态码3xx发送Location头。</li><li>提供有关新创建资源位置的信息。在这种情况下，应该使用HTTP状态码201或202发送Location头。</li></ul><p>通过修改 location 可以让客户端接收到响应后，访问重定向到新的 location。</p><p>更详细的关于重定向/刷新请求头概念，需要理解 http 协议的结构，查看我的教程：<a href="https://blog.niekun.net/archives/1432.html">HTTP 协议结构</a></p><p>如果设置：<br>server {</p><pre><code>listen 8080;
+servername frontend;
 
-以上是一个简单的负载均衡代理转发示例。关于 upstream 详细使用参考[官方教程](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/)
-
-### proxy_redirect 响应头 location/refresh 重定向
-
-当上游服务器返回的响应是重定向或刷新请求（如HTTP响应码是301或者302）时，proxy_redirect可以重设HTTP头部的location/Refresh 字段。
-
-语法结构：
-    proxy_redirect default;
-    proxy_redirect off;
-    proxy_redirect redirect replacement;
-
-默认设置是：proxy_redirect default。
-
-http 响应头的 location 段 HTTP Location 是在两种情况使用在响应头中：
-- 要求网页浏览器加载其他网页(域名转址)。在这种情况下，应该使用HTTP状态码3xx发送Location头。
-- 提供有关新创建资源位置的信息。在这种情况下，应该使用HTTP状态码201或202发送Location头。
-
-通过修改 location 可以让客户端接收到响应后，访问重定向到新的 location。
-
-更详细的关于重定向/刷新请求头概念，需要理解 http 协议的结构，查看我的教程：[HTTP 协议结构](https://blog.niekun.net/archives/1432.html)
-
-如果设置：
-server {
-    listen 8080;
-    servername frontend;
-
-    proxy_redirect http://localhost:8000/two/ http://frontend:8080/one/;
-    ...
-}
-
-代理服务器返回的 http 头信息：
-    HTTP/1.1 302 Found
-    Location: http://localhost:8000/two/some/uri/
-
-则返回给客户端的 Location 段被重写为: http://frontend:8080/one/some/uri/，客户端接收到后就会去重新访问这个新的地址。
-
-server 名也可以被省略：
-    proxy_redirect http://localhost:8000/two/ /
-
-以上指令返回给客户端的 Location 段被重写为: http://frontend:8080/some/uri/
-
-proxy_redirect 默认设置值为：**default**，它会自动根据 server location 段和 proxy_pass 地址来修改头信息，以下两种写法效果一样：
-```
-location /one/ {
+proxy_redirect http://localhost:8000/two/ http://frontend:8080/one/;
+...</code></pre><p>}</p><p>代理服务器返回的 http 头信息：</p><pre><code>HTTP/1.1 302 Found
+Location: http://localhost:8000/two/some/uri/
+</code></pre><p>则返回给客户端的 Location 段被重写为: <a href="http://frontend:8080/one/some/uri/">http://frontend:8080/one/some/uri/</a>，客户端接收到后就会去重新访问这个新的地址。</p><p>server 名也可以被省略：</p><pre><code>proxy_redirect http://localhost:8000/two/ /
+</code></pre><p>以上指令返回给客户端的 Location 段被重写为: <a href="http://frontend:8080/some/uri/">http://frontend:8080/some/uri/</a></p><p>proxy_redirect 默认设置值为：<strong>default</strong>，它会自动根据 server location 段和 proxy_pass 地址来修改头信息，以下两种写法效果一样：</p><pre><code>location /one/ {
     proxy_pass     http://localhost:8000/two/;
     proxy_redirect default;
 
 location /one/ {
     proxy_pass     http://localhost:8000/two/;
-    proxy_redirect http://localhost:8000/two/ /one/;
-```
-
-以上两种写法都是将返回 location 头信息中 http://localhost:8000/two/ 修改为 http://frontend:8080/one/
-
-redirect 和 replacement 都可以包含参数：
-    proxy_redirect http://$proxy_host:8000/ $scheme$host:$server_port/;
-
-rederect 可以使用正则匹配：
-    proxy_redirect ~^(http://[^:]+):\d+(/.+)$ $1$2;
-    proxy_redirect ~*/user/([^/]+)/(.+)$      http://$1.example.com/$2;
-
-可以同时写多个 proxy_redirect 指令来处理不同的重定向地址。
-使用 proxy_redirect off 具有最高优先级，会取消当前同一级的所有 proxy_redirect 指令。
-
-一个完整例子：
-```
-server {
+    proxy_redirect http://localhost:8000/two/ /one/;</code></pre><p>以上两种写法都是将返回 location 头信息中 <a href="http://localhost:8000/two/">http://localhost:8000/two/</a> 修改为 <a href="http://frontend:8080/one/">http://frontend:8080/one/</a></p><p>redirect 和 replacement 都可以包含参数：</p><pre><code>proxy_redirect http://$proxy_host:8000/ $scheme$host:$server_port/;
+</code></pre><p>rederect 可以使用正则匹配：</p><pre><code>proxy_redirect ~^(http://[^:]+):\d+(/.+)$ $1$2;
+proxy_redirect ~*/user/([^/]+)/(.+)$      http://$1.example.com/$2;
+</code></pre><p>可以同时写多个 proxy_redirect 指令来处理不同的重定向地址。<br>使用 proxy_redirect off 具有最高优先级，会取消当前同一级的所有 proxy_redirect 指令。</p><p>一个完整例子：</p><pre><code>server {
     listen           8080;
     server_name      127.0.0.1;
 
@@ -1137,47 +277,14 @@ server {
         default_type text/plain;
         echo 'remote address: $remote_addr';
     }
-}
-```
-
-**代理过程：**
-- 客户端访问：http://127.0.0.1:8080/proxy
-- nginx 转发到：http://127.0.0.1:8080/return
-- 代理服务器响应 301 重定向到：https://niekun.net，http 头的 location 值为：https://niekun.net
-- nginx 将 http 头的 location 修改为：http://127.0.0.1:8080/echo
-- nginx 将修改后的响应内容发送给客户端
-- 客户端根据响应再次访问：http://127.0.0.1:8080/echo
-
-### 转发请求头信息
-
-默认情况下，nginx 反向代理时会舍弃**原始请求头中的空字符串项**，并重新设定两个请求头内容：**Host** 和 **Connection**：
-- Host -> $proxy_host  也就是 proxy_pass 里的 host
-- Connection -> close
-
-关于 http 请求头 header 的可定义的项目参考我的教程：[HTTP 协议结构](https://blog.niekun.net/archives/1432.html)
-
-想要设置或修改传递给代理服务的请求头，使用 proxy_set_header 指令：
-```
-location /some/path/ {
+}</code></pre><p><strong>代理过程：</strong></p><ul><li>客户端访问：<a href="http://127.0.0.1:8080/proxy">http://127.0.0.1:8080/proxy</a></li><li>nginx 转发到：<a href="http://127.0.0.1:8080/return">http://127.0.0.1:8080/return</a></li><li>代理服务器响应 301 重定向到：<a href="https://niekun.net">https://niekun.net</a>，http 头的 location 值为：<a href="https://niekun.net">https://niekun.net</a></li><li>nginx 将 http 头的 location 修改为：<a href="http://127.0.0.1:8080/echo">http://127.0.0.1:8080/echo</a></li><li>nginx 将修改后的响应内容发送给客户端</li><li>客户端根据响应再次访问：<a href="http://127.0.0.1:8080/echo">http://127.0.0.1:8080/echo</a></li></ul><h3>转发请求头信息</h3><p>默认情况下，nginx 反向代理时会舍弃<strong>原始请求头中的空字符串项</strong>，并重新设定两个请求头内容：<strong>Host</strong> 和 <strong>Connection</strong>：</p><ul><li>Host -&gt; $proxy_host  也就是 proxy_pass 里的 host</li><li>Connection -&gt; close</li></ul><p>关于 http 请求头 header 的可定义的项目参考我的教程：<a href="https://blog.niekun.net/archives/1432.html">HTTP 协议结构</a></p><p>想要设置或修改传递给代理服务的请求头，使用 proxy_set_header 指令：</p><pre><code>location /some/path/ {
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header Accept-Encoding "";
+    proxy_set_header Accept-Encoding &quot;&quot;;
     proxy_pass http://localhost:8000;
-}
-```
-
-以上示例的处理结果是：
-- 设置 Host 为本 server 的host 地址而不是转发地址
-- 设置 X-Real-IP 为客户端 IP 地址，用来识别访问服务的客户信息
-- 清空 Accept-Encoding 的内容
-
-### mapping headers 动态请求头内容
-
-proxy_set_header 支持使用内部变量来定义，也可以使用 map 指令配合自定义参数来根据请求清空动态设置相关 header 内容，注意 map 指令要写在 http 段：
-```
-map $http_cloudfront_forwarded_proto $cloudfront_proto {
-    default "http";
-    https "https";
+}</code></pre><p>以上示例的处理结果是：</p><ul><li>设置 Host 为本 server 的host 地址而不是转发地址</li><li>设置 X-Real-IP 为客户端 IP 地址，用来识别访问服务的客户信息</li><li>清空 Accept-Encoding 的内容</li></ul><h3>mapping headers 动态请求头内容</h3><p>proxy_set_header 支持使用内部变量来定义，也可以使用 map 指令配合自定义参数来根据请求清空动态设置相关 header 内容，注意 map 指令要写在 http 段：</p><pre><code>map $http_cloudfront_forwarded_proto $cloudfront_proto {
+    default &quot;http&quot;;
+    https &quot;https&quot;;
 }
 server {
     ...
@@ -1187,67 +294,28 @@ server {
         proxy_redirect off;
         ...
     }
-}
-```
-
-以上示例中 `$http_cloudfront_forwarded_proto` 是已知变量，`$cloudfront_proto` 是我自定义的变量，使用 map 指令来根据前者的值设置后者的值，然后在 proxy_set_header 设置。
-
-map 指令支持以两个因变量来给终变量赋值,语法示例如下：
-```
-map "$http_cloudfront_forwarded_proto:$http_x_forwarded_proto" $cloudfront_proto {
-    default "http";
-    ":https" "https";
-    "https:" "https";
-    "https:http" "https";
-    "http:https" "https";
-    "https:https" "https";
-}
-```
-
-如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。客户端也可以伪造 X-Forwarded-For 信息，使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：
-```
-map $http_x_forwarded_for  $client_real_ip {
+}</code></pre><p>以上示例中 <code>$http_cloudfront_forwarded_proto</code> 是已知变量，<code>$cloudfront_proto</code> 是我自定义的变量，使用 map 指令来根据前者的值设置后者的值，然后在 proxy_set_header 设置。</p><p>map 指令支持以两个因变量来给终变量赋值,语法示例如下：</p><pre><code>map &quot;$http_cloudfront_forwarded_proto:$http_x_forwarded_proto&quot; $cloudfront_proto {
+    default &quot;http&quot;;
+    &quot;:https&quot; &quot;https&quot;;
+    &quot;https:&quot; &quot;https&quot;;
+    &quot;https:http&quot; &quot;https&quot;;
+    &quot;http:https&quot; &quot;https&quot;;
+    &quot;https:https&quot; &quot;https&quot;;
+}</code></pre><p>如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。客户端也可以伪造 X-Forwarded-For 信息，使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：</p><pre><code>map $http_x_forwarded_for  $client_real_ip {
     default                         $remote_addr;
     ~^(([0-9\.]+),\s?)*([0-9\.]+)$  $3;
 }
 
 server {
     echo 'remote address: $client_real_ip';
-}
-```
-
-如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。
-
-关于 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 参考我的文章：[获取用户真实 IP in Nginx](https://blog.niekun.net/archives/1296.html)
-
-### buffers 缓存区
-
-默认情况下 nginx 缓存来自 proxy server 的响应内容。nginx 会一直在内部缓存来自代理服务器的响应内容直到内容接收完成，然后才发送给客户端。缓存能够帮助减轻客户端的压力，但会浪费服务器的资源和响应。但是打开缓存功能的另一个好处是当客户端再次进行一个缓存过的请求时，nginx 可以快速的返回已经在缓存区的内容。
-
-使用 proxy_buffering 指令控制缓存打开/关闭。默认是 on 状态。proxy_buffers 指令控制缓存区数量和缓存大小。第一个来自代理服务器的响应会缓存到单独的区域，proxy_buffer_size 指令控制这一区域的大小：
-```
-location /some/path/ {
+}</code></pre><p>如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。</p><p>关于 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 参考我的文章：<a href="https://blog.niekun.net/archives/1296.html">获取用户真实 IP in Nginx</a></p><h3>buffers 缓存区</h3><p>默认情况下 nginx 缓存来自 proxy server 的响应内容。nginx 会一直在内部缓存来自代理服务器的响应内容直到内容接收完成，然后才发送给客户端。缓存能够帮助减轻客户端的压力，但会浪费服务器的资源和响应。但是打开缓存功能的另一个好处是当客户端再次进行一个缓存过的请求时，nginx 可以快速的返回已经在缓存区的内容。</p><p>使用 proxy_buffering 指令控制缓存打开/关闭。默认是 on 状态。proxy_buffers 指令控制缓存区数量和缓存大小。第一个来自代理服务器的响应会缓存到单独的区域，proxy_buffer_size 指令控制这一区域的大小：</p><pre><code>location /some/path/ {
     proxy_buffers 16 4k;
     proxy_buffer_size 2k;
     proxy_pass http://localhost:8000;
-}
-```
-
-以上示例会给 来自代理服务器：http://localhost:8000 的响应建立 16 个缓存区，每个区域 4kb 空间，第一个响应缓存区 2kb 空间。
-
-如果关闭缓存，来自代理服务器的响应会即时发送给客户端，对于想要快速响应的使用场景可以关闭缓存：
-```
-location /some/path/ {
+}</code></pre><p>以上示例会给 来自代理服务器：<a href="http://localhost:8000">http://localhost:8000</a> 的响应建立 16 个缓存区，每个区域 4kb 空间，第一个响应缓存区 2kb 空间。</p><p>如果关闭缓存，来自代理服务器的响应会即时发送给客户端，对于想要快速响应的使用场景可以关闭缓存：</p><pre><code>location /some/path/ {
     proxy_buffering off;
     proxy_pass http://localhost:8000;
-}
-```
-
-### 设置出口 IP 地址
-
-默认情况下 nginx 向 proxy 上游发起请求连接，代理服务器看到的请求 IP 地址来自 nignx 服务器地址。有时候 web 服务器会设置只允许特定 IP 地址的访问，可以通过 proxy_bind 指令来修改，**nginx 用户必须是 root 才行**：
-```
-user root;
+}</code></pre><h3>设置出口 IP 地址</h3><p>默认情况下 nginx 向 proxy 上游发起请求连接，代理服务器看到的请求 IP 地址来自 nignx 服务器地址。有时候 web 服务器会设置只允许特定 IP 地址的访问，可以通过 proxy_bind 指令来修改，<strong>nginx 用户必须是 root 才行</strong>：</p><pre><code>user root;
 ...
 http{
     ...
@@ -1257,18 +325,7 @@ http{
             proxy_pass http://example.com/app1/;
         }
     }
-}
-```
-
-以上示例中，代理服务器看到的请求来源就会是真正的访问客户端 IP 地址,也就是实现了**透明代理**。
-
-nginx 配置后还需要配置 iptables 路由表来处理代理服务器响应内容：
-- 新建一个链，把过来的tcp包都打上标记。
-- 新建一个路由表100，让有标记的包都走表100。
-- 在路由表100加入一个默认路由，把所有包都扔到lo网卡上去。
-
-```
-      #### 新建一个 DIVERT 给包打标签
+}</code></pre><p>以上示例中，代理服务器看到的请求来源就会是真正的访问客户端 IP 地址,也就是实现了<strong>透明代理</strong>。</p><p>nginx 配置后还需要配置 iptables 路由表来处理代理服务器响应内容：</p><ul><li>新建一个链，把过来的tcp包都打上标记。</li><li>新建一个路由表100，让有标记的包都走表100。</li><li>在路由表100加入一个默认路由，把所有包都扔到lo网卡上去。</li></ul><pre><code>      #### 新建一个 DIVERT 给包打标签
      sudo iptables -t mangle -N DIVERT;
      sudo iptables -t mangle -A DIVERT -j MARK --set-mark 1;
      sudo iptables -t mangle -A DIVERT -j ACCEPT;
@@ -1280,21 +337,7 @@ nginx 配置后还需要配置 iptables 路由表来处理代理服务器响应�
      sudo ip rule add fwmark 1 lookup 100
 
      #### 100的路由表里就一条默认路由，把所有包都扔到lo网卡上去
-     sudo ip route add local 0.0.0.0/0 dev lo table 100;
-```
-
-具体实现我还不太懂，后期再研究下。
-
-以上就是 http 代理服务器基本使用，下面简单介绍其他集中代理服务器的语法。
-
-### fastcgi 代理服务器
-
-Nginx must rely on a separate PHP processor to handle PHP requests. Most often, this processing is handled with php-fpm, a PHP processor that has been extensively tested to work with Nginx.
-
-简单说就是 FastCGI 实现了使用 Nginx 代理 php 请求的过程，将请求转发给 php-fpm：php 进程管理器。
-
-```
-location / {
+     sudo ip route add local 0.0.0.0/0 dev lo table 100;</code></pre><p>具体实现我还不太懂，后期再研究下。</p><p>以上就是 http 代理服务器基本使用，下面简单介绍其他集中代理服务器的语法。</p><h3>fastcgi 代理服务器</h3><p>Nginx must rely on a separate PHP processor to handle PHP requests. Most often, this processing is handled with php-fpm, a PHP processor that has been extensively tested to work with Nginx.</p><p>简单说就是 FastCGI 实现了使用 Nginx 代理 php 请求的过程，将请求转发给 php-fpm：php 进程管理器。</p><pre><code>location / {
     fastcgi_pass  localhost:9000;
     # fastcgi_pass unix:/run/php/php7.3-fpm.sock;
     fastcgi_index index.php;
@@ -1307,40 +350,7 @@ location / {
     fastcgi_param HTTP_X-REAL-IP $remote_addr;
     fastcgi_param HTTP_X-FORWARED-FOR $proxy_add_x_forwarded_for;
     fastcgi_param HOST $http_host;
-}
-```
-
-- $fastcgi_split_path_info 用来将 请求 url 拆分成两部分：php 文件之前的 $fastcgi_script_name 和之后的部分：$fastcgi_path_info
-- fastcgi_pass 定义真正的用来处理 FastCGI 代理的服务，一般默认地址为：127.0.0.1:9000，可自定义指定为特定版本的php
-- fastcgi_param 定义 FastCGI 参数
-- fastcgi_params 一般在 nginx 配置目录下，包含了常用的 php 需要设定的参数。
-
-总结下和 http 语法区别：
-- fastcgi_pass 类似于 proxy_pass
-- fastcgi_param  类似于 proxy_set_header，注意 fastcgi_param 添加 http 请求头信息要加上 `HTTP_` 前缀，如：`HTTP_X-FORWARED-FOR`
-
-关于 FastCGI 的详细分析参考：[Understanding and Implementing FastCGI Proxying in Nginx](https://www.digitalocean.com/community/tutorials/understanding-and-implementing-fastcgi-proxying-in-nginx)
-
-### uWSGI web 服务器
-
-uWSGI 是一个独立的 web 服务器，和 nginx 是一个类型的应用。一般 uWSGI 作为后端服务器使用，用 nginx 代理来访问。
-
-uWSGI 可以用来部署 python 应用。之前我学习 django 的时候就使用过这个。
-
-未完待续。。。
-
-### 参考链接
-
-[ngx_http_proxy_module 模块所有指令](http://nginx.org/en/docs/http/ngx_http_proxy_module.html)
-[NGINX Reverse Proxy](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/)
-[HTTP Load Balancing](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/)
-[Securing HTTP Traffic to Upstream Servers](https://docs.nginx.com/nginx/admin-guide/security-controls/securing-http-traffic-upstream/)
-[使用nginx的proxy_bind选项配置透明的反向代理](https://pengpengxp.github.io/archive/before-2018-11-10/2017-06-27-%E4%BD%BF%E7%94%A8nginx%E7%9A%84proxy_bind%E9%80%89%E9%A1%B9%E9%85%8D%E7%BD%AE%E9%80%8F%E6%98%8E%E7%9A%84%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86.html)
-[Mapping Headers in Nginx](https://serversforhackers.com/c/nginx-mapping-headers)
-[ngx_http_fastcgi_module 模块所有指令](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass)
-[]()
-
-</textarea></div>
+}</code></pre><ul><li>$fastcgi_split_path_info 用来将 请求 url 拆分成两部分：php 文件之前的 $fastcgi_script_name 和之后的部分：$fastcgi_path_info</li><li>fastcgi_pass 定义真正的用来处理 FastCGI 代理的服务，一般默认地址为：127.0.0.1:9000，可自定义指定为特定版本的php</li><li>fastcgi_param 定义 FastCGI 参数</li><li>fastcgi_params 一般在 nginx 配置目录下，包含了常用的 php 需要设定的参数。</li></ul><p>总结下和 http 语法区别：</p><ul><li>fastcgi_pass 类似于 proxy_pass</li><li>fastcgi_param  类似于 proxy_set_header，注意 fastcgi_param 添加 http 请求头信息要加上 <code>HTTP_</code> 前缀，如：<code>HTTP_X-FORWARED-FOR</code></li></ul><p>关于 FastCGI 的详细分析参考：<a href="https://www.digitalocean.com/community/tutorials/understanding-and-implementing-fastcgi-proxying-in-nginx">Understanding and Implementing FastCGI Proxying in Nginx</a></p><h3>uWSGI web 服务器</h3><p>uWSGI 是一个独立的 web 服务器，和 nginx 是一个类型的应用。一般 uWSGI 作为后端服务器使用，用 nginx 代理来访问。</p><p>uWSGI 可以用来部署 python 应用。之前我学习 django 的时候就使用过这个。</p><p>未完待续。。。</p><h3>参考链接</h3><p><a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html">ngx_http_proxy_module 模块所有指令</a><br><a href="https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/">NGINX Reverse Proxy</a><br><a href="https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/">HTTP Load Balancing</a><br><a href="https://docs.nginx.com/nginx/admin-guide/security-controls/securing-http-traffic-upstream/">Securing HTTP Traffic to Upstream Servers</a><br><a href="https://pengpengxp.github.io/archive/before-2018-11-10/2017-06-27-%E4%BD%BF%E7%94%A8nginx%E7%9A%84proxy_bind%E9%80%89%E9%A1%B9%E9%85%8D%E7%BD%AE%E9%80%8F%E6%98%8E%E7%9A%84%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86.html">使用nginx的proxy_bind选项配置透明的反向代理</a><br><a href="https://serversforhackers.com/c/nginx-mapping-headers">Mapping Headers in Nginx</a><br><a href="https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass">ngx_http_fastcgi_module 模块所有指令</a><br>[]()</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1378.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/" thr:count="0"/>
@@ -1356,26 +366,7 @@ uWSGI 可以用来部署 python 应用。之前我学习 django 的时候就使�
     <uri>https://niekun.net</uri>
 </author>
 <content type="html" xml:base="https://blog.niekun.net/archives/1443.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_10" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">![2020-03-27T01:40:28.png][1]
-众所周知，现在百度盘非会员下载速度十分慢，还要求必须使用他的客户端下载，我的资料现在也基本不会存在百度云了。但是在下载已经保存在上面的资源或者网络别人分享的资源，还是偶尔要用到，而我又对百度十分的讨厌，也不会去充值会员，所以研究了下如何解决非会员的限速问题。
-
-
-<!--more-->
-
-### BaiduPCS-Go
-
-BaiduPCS-Go 是我之前一直使用的工具，他是 GO 语言编写的命令行工具，需要登录你的账号使用，集成下载/上传等功能。就是一个第三方命令行客户端。
-
-他可以设置**缓存/并发数/user agent**等，理论上可以加速下载。
-
-GitHub 主页(作者已删除)：https://github.com/iikira/BaiduPCS-Go
-fork：https://github.com/Erope/BaiduPCS-Go
-
-可以下载 release 页面发布的版本，也可以使用源码自己编译，go 语言编译教程参考我的文章：https://blog.niekun.net/archives/468.html
-
-打开 BaiduPCS-Go 客户端，进入命令行界面，登录完成后可以输入 `help` 指令查看支持的命令。
-```
-----
+<p><img src="https://blog.niekun.net/usr/uploads/2020/03/1366780471.png" alt="2020-03-27T01:40:28.png" title="2020-03-27T01:40:28.png"><br>众所周知，现在百度盘非会员下载速度十分慢，还要求必须使用他的客户端下载，我的资料现在也基本不会存在百度云了。但是在下载已经保存在上面的资源或者网络别人分享的资源，还是偶尔要用到，而我又对百度十分的讨厌，也不会去充值会员，所以研究了下如何解决非会员的限速问题。</p><!--more--><h3>BaiduPCS-Go</h3><p>BaiduPCS-Go 是我之前一直使用的工具，他是 GO 语言编写的命令行工具，需要登录你的账号使用，集成下载/上传等功能。就是一个第三方命令行客户端。</p><p>他可以设置<strong>缓存/并发数/user agent</strong>等，理论上可以加速下载。</p><p>GitHub 主页(作者已删除)：<a href="https://github.com/iikira/BaiduPCS-Go">https://github.com/iikira/BaiduPCS-Go</a><br>fork：<a href="https://github.com/Erope/BaiduPCS-Go">https://github.com/Erope/BaiduPCS-Go</a></p><p>可以下载 release 页面发布的版本，也可以使用源码自己编译，go 语言编译教程参考我的文章：<a href="https://blog.niekun.net/archives/468.html">https://blog.niekun.net/archives/468.html</a></p><p>打开 BaiduPCS-Go 客户端，进入命令行界面，登录完成后可以输入 <code>help</code> 指令查看支持的命令。</p><pre><code>----
   BaiduPCS-Go - 百度网盘客户端 for windows/amd64
 
 USAGE:
@@ -1452,16 +443,7 @@ GLOBAL OPTIONS:
   --version, -v  print the version
 
 COPYRIGHT:
-  (c) 2016-2019 iikira.
-```
-
-执行 `login` 指令，登录百度账户，根据提示输入密码及验证码。
-
-登录完成后可以使用 `ls` `cd` 等命令来访问目录及文件。
-
-执行 `config` 命令查看当前配置信息：
-```
-运行 BaiduPCS-Go config set 可进行设置配置
+  (c) 2016-2019 iikira.</code></pre><p>执行 <code>login</code> 指令，登录百度账户，根据提示输入密码及验证码。</p><p>登录完成后可以使用 <code>ls</code> <code>cd</code> 等命令来访问目录及文件。</p><p>执行 <code>config</code> 命令查看当前配置信息：</p><pre><code>运行 BaiduPCS-Go config set 可进行设置配置
 
 当前配置:
   名称                 值             描述                                             建议值                                                                                                                     
@@ -1478,18 +460,7 @@ COPYRIGHT:
   pcs_ua                         PCS 浏览器标识
   pan_ua     netdisk;2.2.51.6;netdisk;10.0.63;PC;android-android    Pan 浏览器标识    netdisk;2.2.51.6;netdisk;10.0.63;PC;android-android                 
   proxy                         设置代理, 支持 http/socks5 代理
-  local_addrs                   设置本地网卡地址, 多个地址用逗号隔开
-```
-
-执行 `config set --名称=value` 可以修改设置值。
-
-下载指令是 `d file_name`。
-
-我当前使用 BaiduPCS-Go 速度非常慢，在下载时使用参数 --verbose 和 --status 查看详细信息，发现链接都是错误的，经过查询发现可能是 appid 的问题，我的账号可能上了黑名单了，需要修改 appid 来修复。
-
-找了半天网上提供的 appid 都没法用，这个 python 小程序可以扫描可用的 appid：https://gist.github.com/pcmid/5818b1165bc3f5f2088e19299278a613
-```
-from __future__ import print_function
+  local_addrs                   设置本地网卡地址, 多个地址用逗号隔开</code></pre><p>执行 <code>config set --名称=value</code> 可以修改设置值。</p><p>下载指令是 <code>d file_name</code>。</p><p>我当前使用 BaiduPCS-Go 速度非常慢，在下载时使用参数 --verbose 和 --status 查看详细信息，发现链接都是错误的，经过查询发现可能是 appid 的问题，我的账号可能上了黑名单了，需要修改 appid 来修复。</p><p>找了半天网上提供的 appid 都没法用，这个 python 小程序可以扫描可用的 appid：<a href="https://gist.github.com/pcmid/5818b1165bc3f5f2088e19299278a613">https://gist.github.com/pcmid/5818b1165bc3f5f2088e19299278a613</a></p><pre><code>from __future__ import print_function
 
 import requests
 import threading
@@ -1507,18 +478,18 @@ class GetterTread(threading.Thread):
 
         self.__thread_id = thread_id
 
-        self.__URL = "http://pcs.baidu.com/rest/2.0/pcs/file?app_id={}&method=list&path=%2F"
+        self.__URL = &quot;http://pcs.baidu.com/rest/2.0/pcs/file?app_id={}&amp;method=list&amp;path=%2F&quot;
 
-        with open("./BDUSS.txt") as f:
+        with open(&quot;./BDUSS.txt&quot;) as f:
             BDUSS = f.readline()
-            self.__COOKIES = {"BDUSS": BDUSS}
+            self.__COOKIES = {&quot;BDUSS&quot;: BDUSS}
 
         self.app_id = app_id
         self.times = times
 
     def run(self):
         current_id = self.app_id
-        while current_id - self.app_id < self.times:  # 250000:
+        while current_id - self.app_id &lt; self.times:  # 250000:
             url = self.__URL.format(current_id)
 
             try:
@@ -1526,10 +497,10 @@ class GetterTread(threading.Thread):
                 if r.status_code == 200:
                     print(current_id)
             except Exception:
-                eprint("Exception: " + str(current_id))
+                eprint(&quot;Exception: &quot; + str(current_id))
 
             current_id += 1
-            # print("id " + str(self.__thread_id) + " over")
+            # print(&quot;id &quot; + str(self.__thread_id) + &quot; over&quot;)
 
 
 if __name__ == '__main__':
@@ -1539,66 +510,16 @@ if __name__ == '__main__':
 
     threads_list = []
 
-    while start_app_id < 500000:
+    while start_app_id &lt; 500000:
         thread = GetterTread(start_app_id, start_app_id, times)
         thread.start()
         threads_list.append(thread)
         start_app_id += times
 
-    # print("size: " + str(len(threads_list)))
+    # print(&quot;size: &quot; + str(len(threads_list)))
 
     for thread in threads_list:
-        thread.join()
-```
-需要在目录下放一个 BDUSS.txt，里面填上你的账号的 BDUSS [获取 BDUSS 的方法参考](https://github.com/iikira/BaiduPCS-Go/wiki/%E5%85%B3%E4%BA%8E-%E8%8E%B7%E5%8F%96%E7%99%BE%E5%BA%A6-BDUSS)
-
-### 网盘直链下载助手
-
-BaiduPCS-Go 慢慢失效后，我开始找寻其他的有效方法，发现有一个网盘直链下载助手挺好用的。
-
-官网：https://www.baiduyun.wiki/
-GitHub 主页：https://github.com/syhyz1990/baiduyun
-
-这是一个油猴脚本，需要在 chrome 安装 Tampermonkey 脚本管理器，在 chrome [安装 tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en-US)
-
-安装好管理器后，访问 [GitHub脚本](https://github.com/syhyz1990/baiduyun/raw/master/baiduyun.user.js)，会自动跳转到 tampermonkey 安装界面，然后点击安装即可。
-
-进入百度云盘，会出现一个下载助手按钮：
-![2020-03-27T03:20:35.png][2]
-
-勾选想要下载的资源，点击下载助手，里面有几个选项：
-![2020-03-27T03:21:20.png][3]
-
-第一个是直接获取 api 下载链接，可以在浏览器或其他下载软件粘贴链接即可下载：
-![2020-03-27T03:22:18.png][4]
-
-第二个是 aria2 下载链接，可以导入 aria2 进行下载，关于 aria2 的安装参考我的教程：https://blog.niekun.net/archives/1199.html
-
-安装好 aria2 后还需要安装**网盘万能助手** chrome 插件才能使用这个功能。插件地址：https://www.baiduyun.wiki/download.html
-
-插件安装步骤：
-- 下载好 zip 包后解压到文件夹
-- chrome 访问：chrome://extensions/ 右边打开 develop mode，点击 load unpacked 打开解压的文件夹就自动安装了
-- 关闭 develop mode
-- 重启浏览器
-
-第三个是远程 aria2 rpc 下载，也是需要安装 aria2 并启用 rpc，然后点击 rpc 配置，设置参数：
-![2020-03-27T03:24:48.png][5]
-
-点击显示链接可以直接发送到 aria2：
-![2020-03-27T03:25:32.png][6]
-
-下载客户端推荐：
-aria2：https://blog.niekun.net/archives/1199.html
-IDM：https://www.internetdownloadmanager.com/ 可以设置最大链接数到 32 来提高下载速度 download - option - connection
-xdown：https://xdown.org/ 可以识别 aria2 的链接
-
-  [1]: https://blog.niekun.net/usr/uploads/2020/03/1366780471.png
-  [2]: https://blog.niekun.net/usr/uploads/2020/03/455780567.png
-  [3]: https://blog.niekun.net/usr/uploads/2020/03/1769818541.png
-  [4]: https://blog.niekun.net/usr/uploads/2020/03/1015860586.png
-  [5]: https://blog.niekun.net/usr/uploads/2020/03/3217135409.png
-  [6]: https://blog.niekun.net/usr/uploads/2020/03/701382724.png</textarea></div>
+        thread.join()</code></pre><p>需要在目录下放一个 BDUSS.txt，里面填上你的账号的 BDUSS <a href="https://github.com/iikira/BaiduPCS-Go/wiki/%E5%85%B3%E4%BA%8E-%E8%8E%B7%E5%8F%96%E7%99%BE%E5%BA%A6-BDUSS">获取 BDUSS 的方法参考</a></p><h3>网盘直链下载助手</h3><p>BaiduPCS-Go 慢慢失效后，我开始找寻其他的有效方法，发现有一个网盘直链下载助手挺好用的。</p><p>官网：<a href="https://www.baiduyun.wiki/">https://www.baiduyun.wiki/</a><br>GitHub 主页：<a href="https://github.com/syhyz1990/baiduyun">https://github.com/syhyz1990/baiduyun</a></p><p>这是一个油猴脚本，需要在 chrome 安装 Tampermonkey 脚本管理器，在 chrome <a href="https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en-US">安装 tampermonkey</a></p><p>安装好管理器后，访问 <a href="https://github.com/syhyz1990/baiduyun/raw/master/baiduyun.user.js">GitHub脚本</a>，会自动跳转到 tampermonkey 安装界面，然后点击安装即可。</p><p>进入百度云盘，会出现一个下载助手按钮：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/455780567.png" alt="2020-03-27T03:20:35.png" title="2020-03-27T03:20:35.png"></p><p>勾选想要下载的资源，点击下载助手，里面有几个选项：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1769818541.png" alt="2020-03-27T03:21:20.png" title="2020-03-27T03:21:20.png"></p><p>第一个是直接获取 api 下载链接，可以在浏览器或其他下载软件粘贴链接即可下载：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/1015860586.png" alt="2020-03-27T03:22:18.png" title="2020-03-27T03:22:18.png"></p><p>第二个是 aria2 下载链接，可以导入 aria2 进行下载，关于 aria2 的安装参考我的教程：<a href="https://blog.niekun.net/archives/1199.html">https://blog.niekun.net/archives/1199.html</a></p><p>安装好 aria2 后还需要安装<strong>网盘万能助手</strong> chrome 插件才能使用这个功能。插件地址：<a href="https://www.baiduyun.wiki/download.html">https://www.baiduyun.wiki/download.html</a></p><p>插件安装步骤：</p><ul><li>下载好 zip 包后解压到文件夹</li><li>chrome 访问：chrome://extensions/ 右边打开 develop mode，点击 load unpacked 打开解压的文件夹就自动安装了</li><li>关闭 develop mode</li><li>重启浏览器</li></ul><p>第三个是远程 aria2 rpc 下载，也是需要安装 aria2 并启用 rpc，然后点击 rpc 配置，设置参数：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/3217135409.png" alt="2020-03-27T03:24:48.png" title="2020-03-27T03:24:48.png"></p><p>点击显示链接可以直接发送到 aria2：<br><img src="https://blog.niekun.net/usr/uploads/2020/03/701382724.png" alt="2020-03-27T03:25:32.png" title="2020-03-27T03:25:32.png"></p><p>下载客户端推荐：<br>aria2：<a href="https://blog.niekun.net/archives/1199.html">https://blog.niekun.net/archives/1199.html</a><br>IDM：<a href="https://www.internetdownloadmanager.com/">https://www.internetdownloadmanager.com/</a> 可以设置最大链接数到 32 来提高下载速度 download - option - connection<br>xdown：<a href="https://xdown.org/">https://xdown.org/</a> 可以识别 aria2 的链接</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1443.html#comments" thr:count="1" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/" thr:count="1"/>

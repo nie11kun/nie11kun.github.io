@@ -26,317 +26,76 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <title>配置外部网络存储器作为 Time Machine 备份</title>
 <link>https://blog.niekun.net/archives/2305.html</link>
 <dc:date>2021-04-30T08:59:42+08:00</dc:date>
-<description>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。
-
-之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？
-
-研究了下果然有解决方案的，基本原理就是**通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘**就可以正常进行备份及还原了。
-
-
-
-
-### 创建虚拟磁盘
-
-打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：
-![2021-04-30T00:36:06.png][1]
-
-设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：
-![2021-04-30T00:38:02.png][2]
-
-点击 **存储** 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。
-
-也可以通过命令行的方式直接生成镜像文件：
-    hdiutil create -size 1024g -type SPARSEBUNDLE -fs "HFS+J" TimeMachine.sparsebundle
-
-这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。
-
-### 配置 Time Machine
-
-镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 **TimeMachine.sparsebundle** 文件到合适的目录。
-
-然后我们在 finder 中双击网络驱动器中的 **TimeMachine.sparsebundle** 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。
-
-然后我们就可以设置 **TimeMachine** 绑定到这个磁盘：
-    sudo tmutil setdestination /Volumes/TimeMachine
-
-注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。
-
-此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：
-![2021-04-30T00:49:26.png][3]
-
-我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。
-
-### 备份与还原
-
-备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。
-
-我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。
-
-### 自动挂载
-
-如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：
-```
-try
-	mount volume "smb://xxx.xxx.xxx.xxx/"
+<description>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？研究了下果然有解决方案的，基本原理就是通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘就可以正常进行备份及还原了。创建虚拟磁盘打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：点击 存储 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。也可以通过命令行的方式直接生成镜像文件：hdiutil create -size 1024g -type SPARSEBUNDLE -fs &quot;HFS+J&quot; TimeMachine.sparsebundle
+这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。配置 Time Machine镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 TimeMachine.sparsebundle 文件到合适的目录。然后我们在 finder 中双击网络驱动器中的 TimeMachine.sparsebundle 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。然后我们就可以设置 TimeMachine 绑定到这个磁盘：sudo tmutil setdestination /Volumes/TimeMachine
+注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。备份与还原备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。自动挂载如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：try
+    mount volume &quot;smb://xxx.xxx.xxx.xxx/&quot;
 end try
 
-do shell script "hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle"
-```
-
-脚本另存为 application 格式并 system preference 中加入开机自启动项即可。
-
-### 参考链接
-
-[添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）](https://www.douban.com/note/614980869/)
-[自建Mac TimeMachine局域网无线备份环境](https://yanke.info/?id=78)
-[How to restore system from network drive](https://apple.stackexchange.com/questions/162544/how-to-restore-system-from-network-drive)
-
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/04/3390003757.png
-  [2]: https://blog.niekun.net/usr/uploads/2021/04/4157435921.png
-  [3]: https://blog.niekun.net/usr/uploads/2021/04/2641215091.png</description>
+do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle&quot;脚本另存为 application 格式并 system preference 中加入开机自启动项即可。参考链接添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）自建Mac TimeMachine局域网无线备份环境How to restore system from network drive</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2198.html">
 <title>升级 command line tool 后 QT 编译 boost 库报错问题</title>
 <link>https://blog.niekun.net/archives/2198.html</link>
 <dc:date>2021-03-03T21:03:37+08:00</dc:date>
-<description>今天打开一个 QT 项目后进行编译发现报错了，查看了下什么都没有修改就比较奇怪了。根据日志是 boost 库出了问题，报错为：**Undefined symbols for architecture x86_64**，但是 boost 库是以前编译好的从来没动过。回想起来前几天重新安装了下 command line tool 会不会有关系。
-
-
-
-
-
-看了下 QT kit 配置里面发现 clang 的设置居然有叹号。重新识别了下系统编译器：
-![2021-03-03T12:54:53.png][1]
-
-然后重建下项目配置：
-![2021-03-03T13:01:04.png][2]
-
-重新编译项目依然有报错。
-
-最后就是 boost 库的确有问题了。于是我重新编译了一次。居然问题就解决了。
-
-原来真的是由于系统的 Clang 更新后原来编译的 boost 库不兼容了，在此使用当前系统的 Clang 编译一次就行了。
-
-boost 库编译方法参考：https://blog.niekun.net/archives/1174.html 
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/03/2815337861.png
-  [2]: https://blog.niekun.net/usr/uploads/2021/03/4082452549.png</description>
+<description>今天打开一个 QT 项目后进行编译发现报错了，查看了下什么都没有修改就比较奇怪了。根据日志是 boost 库出了问题，报错为：Undefined symbols for architecture x86_64，但是 boost 库是以前编译好的从来没动过。回想起来前几天重新安装了下 command line tool 会不会有关系。看了下 QT kit 配置里面发现 clang 的设置居然有叹号。重新识别了下系统编译器：然后重建下项目配置：重新编译项目依然有报错。最后就是 boost 库的确有问题了。于是我重新编译了一次。居然问题就解决了。原来真的是由于系统的 Clang 更新后原来编译的 boost 库不兼容了，在此使用当前系统的 Clang 编译一次就行了。boost 库编译方法参考：https://blog.niekun.net/archives/1174.html</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2040.html">
 <title>修复 parallels desktop 16 网络无法连接问题</title>
 <link>https://blog.niekun.net/archives/2040.html</link>
 <dc:date>2021-01-03T22:40:00+08:00</dc:date>
-<description>随着升级到 macOS Big Sur 后，虚拟机 parallels desktop 也更新到了 16 版本。我当然是继续安装破解版啦。
-
-但是安装好后，启动虚拟机会有一个报错：**Network Initialization Failed**，启动后会发现虚拟机无法联网，网络设置中无法正常在各种模式中切换。
-
-在寻找解决方案期间，了解到了这可能是由于破解的原因，正版用户没有这个问题。网上有人提供了一个方法，执行一条命令就启动虚拟机就可以正常联网了。但是会导致虚拟机无法访问主机的共享目录及无法访问 USB 设备。而且一旦重启 parallels desktop 后又回恢复之前的状态，我也就没有去做。
-
-这两天看到网上终于有人找到的解决方法，测试后的确可用，所以介绍给大家参考。
-
-
-
-
-解决的方法都是通过修改相关配置文件实现的。首先需要彻底退出 parallels desktop。
-
-### 网络问题
-
-修改 `/Library/Preferences/Parallels/network.desktop.xml` 文件。
-
-在终端或者 vs code 中打开这个文件，找到 `` 标签，将其中的内容改为 0：
-    0
-
-注意如果你的这个文件内没有这个标签，则需要在 `` 根标签内手动创建它即可。
-
-修改完成后保存文件，需要输入账户密码。
-
-### USB 问题
-
-修改 `/Library/Preferences/Parallels/dispatcher.desktop.xml` 文件。
-
-在终端或者 vs code 中打开这个文件，找到 `` 标签，将其中的内容改为 1：
-    1
-
-修改完成后保存文件，需要输入账户密码。
-
-修改完以上两个文件后，重启 parallels desktop 就会发现一切都正常了。</description>
+<description>随着升级到 macOS Big Sur 后，虚拟机 parallels desktop 也更新到了 16 版本。我当然是继续安装破解版啦。但是安装好后，启动虚拟机会有一个报错：Network Initialization Failed，启动后会发现虚拟机无法联网，网络设置中无法正常在各种模式中切换。在寻找解决方案期间，了解到了这可能是由于破解的原因，正版用户没有这个问题。网上有人提供了一个方法，执行一条命令就启动虚拟机就可以正常联网了。但是会导致虚拟机无法访问主机的共享目录及无法访问 USB 设备。而且一旦重启 parallels desktop 后又回恢复之前的状态，我也就没有去做。这两天看到网上终于有人找到的解决方法，测试后的确可用，所以介绍给大家参考。解决的方法都是通过修改相关配置文件实现的。首先需要彻底退出 parallels desktop。网络问题修改 /Library/Preferences/Parallels/network.desktop.xml 文件。在终端或者 vs code 中打开这个文件，找到 &lt;UseKextless&gt; 标签，将其中的内容改为 0：&lt;UseKextless&gt;0&lt;/UseKextless&gt;
+注意如果你的这个文件内没有这个标签，则需要在 &lt;ParallelsNetworkConfig&gt; 根标签内手动创建它即可。修改完成后保存文件，需要输入账户密码。USB 问题修改 /Library/Preferences/Parallels/dispatcher.desktop.xml 文件。在终端或者 vs code 中打开这个文件，找到 &lt;Usb&gt; 标签，将其中的内容改为 1：&lt;Usb&gt;1&lt;/Usb&gt;
+修改完成后保存文件，需要输入账户密码。修改完以上两个文件后，重启 parallels desktop 就会发现一切都正常了。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1977.html">
 <title>brew 安装路径</title>
 <link>https://blog.niekun.net/archives/1977.html</link>
 <dc:date>2020-12-16T22:04:00+08:00</dc:date>
-<description>brew 是 macOS 下流行的包管理工具，可以方便的安装各种工具。
-
-brew 默认安装路径为：`/usr/local/Cellar`，然后会在 `/usr/local/opt/` 建立所安装的包的软连接。
-
-包安装好后如果不能正常执行，可以建立包的可执行程序的软连接到：`/usr/local/bin/` 目录。
-
-比如安装 openssl：
-    brew install openssl
-
-安装后包的路径为：`/usr/local/Cellar/openssl@1.1/1.1.1h`。同时包的软连接在：`/usr/local/Cellar/openssl`。
-
-这时候执行命令：
-    openssl version
-
-返回的并不是刚才安装的版本，而是系统自带的老版本的。这时候可以建立可执行程序的软连接到对应路径：
-    ln -s /usr/local/opt/openssl/bin/openssl /usr/local/bin/openssl
-
-这时候执行命令就可以得到正确的返回：
-    openssl version
-    //OpenSSL 1.1.1h  22 Sep 2020
-
-其他包的模式和此类似。
-</description>
+<description>brew 是 macOS 下流行的包管理工具，可以方便的安装各种工具。brew 默认安装路径为：/usr/local/Cellar，然后会在 /usr/local/opt/ 建立所安装的包的软连接。包安装好后如果不能正常执行，可以建立包的可执行程序的软连接到：/usr/local/bin/ 目录。比如安装 openssl：brew install openssl
+安装后包的路径为：/usr/local/Cellar/openssl@1.1/1.1.1h。同时包的软连接在：/usr/local/Cellar/openssl。这时候执行命令：openssl version
+返回的并不是刚才安装的版本，而是系统自带的老版本的。这时候可以建立可执行程序的软连接到对应路径：ln -s /usr/local/opt/openssl/bin/openssl /usr/local/bin/openssl
+这时候执行命令就可以得到正确的返回：openssl version
+//OpenSSL 1.1.1h  22 Sep 2020
+其他包的模式和此类似。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1966.html">
 <title>macOS 下使用 QT 部署工具 macdeployqt</title>
 <link>https://blog.niekun.net/archives/1966.html</link>
 <dc:date>2020-12-05T23:53:15+08:00</dc:date>
-<description>在 Windows 下可以使用 QT 部署工具：windeployqt 来自动提取可执行程序的依赖库，在 macOS 下同样有部署工具：macdeployqt 实现相同的功能。
+<description>在 Windows 下可以使用 QT 部署工具：windeployqt 来自动提取可执行程序的依赖库，在 macOS 下同样有部署工具：macdeployqt 实现相同的功能。工具路径在 QT 安装目录的对应编译器 bin 目录下，如：/Users/marconie/Qt/5.15.2/clang_64/bin/macdeployqt为了方便使用建议将 bin 目录添加到系统 PATH 中，我的终端是 zsh 添加方法如下：打开 ~/.zshrc 添加如下内容，可以使用 vim 来操作：export PATH=$PATH:/Users/marconie/Qt/5.15.2/clang_64/bin编辑完成后关闭文件，刷新源：source ~/.zshrc
+现在就可以直接使用命令了：macdeployqt -h
 
-工具路径在 QT 安装目录的对应编译器 bin 目录下，如：`/Users/marconie/Qt/5.15.2/clang_64/bin/macdeployqt`
-
-为了方便使用建议将 bin 目录添加到系统 PATH 中，我的终端是 zsh 添加方法如下：
-
-打开 `~/.zshrc` 添加如下内容，可以使用 vim 来操作： 
-```
-export PATH=$PATH:/Users/marconie/Qt/5.15.2/clang_64/bin
-```
-
-编辑完成后关闭文件，刷新源：
-    source ~/.zshrc
-
-现在就可以直接使用命令了：
-    macdeployqt -h
-
-
-
-
-
-部署的方法是直接在 macdeployqt 后提供 app 路径：
-    macdeployqt path/to/test.app
-
-执行后会自动搜索此 app 需要的 QT 库并打包到 app 内，可以打开 app 包查看相关内容：
-![Screen Shot 2020-12-05 at 23.49.48.jpg][1]
-
-如果项目中使用了其他第三方库，此部署工具不会自动提取相关文件，需要手动将相关库文件添加到 `app/Contents/Frameworks` 文件夹内。
-
-
-  [1]: https://blog.niekun.net/usr/uploads/2020/12/3770174957.jpg</description>
+部署的方法是直接在 macdeployqt 后提供 app 路径：macdeployqt path/to/test.app
+执行后会自动搜索此 app 需要的 QT 库并打包到 app 内，可以打开 app 包查看相关内容：如果项目中使用了其他第三方库，此部署工具不会自动提取相关文件，需要手动将相关库文件添加到 app/Contents/Frameworks 文件夹内。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1773.html">
 <title>macOS 下命令行控制显示系统通知</title>
 <link>https://blog.niekun.net/archives/1773.html</link>
 <dc:date>2020-09-26T21:42:00+08:00</dc:date>
-<description>在使用 aira2 的 rpc 下载功能时，默认没有下载完成提示，所以需要手动打开 webui 进行查看。
-
-关于 aria2 的使用参考我的教程：https://blog.niekun.net/archives/1199.html
-
-注意到配置文件里有一个：`on-download-complete` 选项，可以在下载完成后执行脚本，具体解释参考[官方网页](https://aria2.github.io/manual/en/html/aria2c.html#cmdoption-on-download-complete)
-
-可以利用这一点，编写一个脚本来触发系统通知，这样就可以知道文件下载完成了。
-
-
-
-
-### on-download-complete
-
-在 aria2 下载完成后，执行 `on-download-complete` 脚本时会自动传递三个参数：
-- GID *GID is an ID of a download which aria2c uses to identify a particular download*
-- 下载文件个数
-- 文件路径
-
-示例：
-```
-$ cat hook.sh
+<description>在使用 aira2 的 rpc 下载功能时，默认没有下载完成提示，所以需要手动打开 webui 进行查看。关于 aria2 的使用参考我的教程：https://blog.niekun.net/archives/1199.html注意到配置文件里有一个：on-download-complete 选项，可以在下载完成后执行脚本，具体解释参考官方网页可以利用这一点，编写一个脚本来触发系统通知，这样就可以知道文件下载完成了。on-download-complete在 aria2 下载完成后，执行 on-download-complete 脚本时会自动传递三个参数：GID GID is an ID of a download which aria2c uses to identify a particular download下载文件个数文件路径示例：$ cat hook.sh
 #!/bin/sh
-echo "Called with [$1] [$2] [$3]"
+echo &quot;Called with [$1] [$2] [$3]&quot;
 $ aria2c --on-download-complete hook.sh http://example.org/file.iso
-Called with [1] [1] [/path/to/file.iso]
-```
-
-### osascript
-
-这里使用 AppleScript 来编写简单的系统通知，使用 osascript 可以在 terminal 终端执行 AppleScript 脚本。
-
-语法结构：
-    osascript [-l language] [-i] [-s flags] [-e statement | programfile] [argument ...]
-
-这里主要使用 `-e`选项 来执行 AppleScript 脚本。
-
-#### 显示通知
-
-显示一个简单的通知很简单：
-    osascript -e 'display notification "hello world!"'
-
-引号内的就是纯 AppleScript 脚本，很简单。
-
-#### 显示带标题的通知
-    osascript -e 'display notification "hello world!" with title "This is the title"'
-
-#### 显示带主副标题的通知
-    osascript -e 'display notification "hello world!" with title "Greeting" subtitle "More text"'
-
-#### 显示带声音提醒的通知
-
-系统内置的声音音频在：`/System/Library/Sounds` 目录：
-```
-$ ls /System/Library/Sounds
-Basso.aiff	Frog.aiff	Hero.aiff	Pop.aiff	Submarine.aiff
-Blow.aiff	Funk.aiff	Morse.aiff	Purr.aiff	Tink.aiff
-Bottle.aiff	Glass.aiff	Ping.aiff	Sosumi.aif
-```
-
-`Pop.aiff` 这个声音就是默认的提示音。
-
-    osascript -e 'display notification "hello world!" with title "Greeting" subtitle "More text" sound name "Pop.aiff"'
-
-#### 显示需要点击确认的提示框
-
-    osascript -e 'display alert "Hello World!" message "longer text can be added in the message field."'
-
-#### 音频提示
-
-除了显示系统通知外，也可以用音频提示，使用 `say` 命令来完成。
-
-    osascript -e 'say "Hello World!"'
-
-提示信息将不显示而是语音播报出来。
-
-#### aria2 下载完成提示脚本
-
-`download-complete.sh`
-```
-#!/bin/sh
-osascript -e 'display notification "download complete" sound name "Pop.aiff"'
-```
-
-参考连接：
-https://code-maven.com/display-notification-from-the-mac-command-line
-</description>
+Called with [1] [1] [/path/to/file.iso]osascript这里使用 AppleScript 来编写简单的系统通知，使用 osascript 可以在 terminal 终端执行 AppleScript 脚本。语法结构：osascript [-l language] [-i] [-s flags] [-e statement | programfile] [argument ...]
+这里主要使用 -e选项 来执行 AppleScript 脚本。显示通知显示一个简单的通知很简单：osascript -e 'display notification &quot;hello world!&quot;'
+引号内的就是纯 AppleScript 脚本，很简单。显示带标题的通知osascript -e 'display notification &quot;hello world!&quot; with title &quot;This is the title&quot;'
+显示带主副标题的通知osascript -e 'display notification &quot;hello world!&quot; with title &quot;Greeting&quot; subtitle &quot;More text&quot;'
+显示带声音提醒的通知系统内置的声音音频在：/System/Library/Sounds 目录：$ ls /System/Library/Sounds
+Basso.aiff    Frog.aiff    Hero.aiff    Pop.aiff    Submarine.aiff
+Blow.aiff    Funk.aiff    Morse.aiff    Purr.aiff    Tink.aiff
+Bottle.aiff    Glass.aiff    Ping.aiff    Sosumi.aifPop.aiff 这个声音就是默认的提示音。osascript -e 'display notification &quot;hello world!&quot; with title &quot;Greeting&quot; subtitle &quot;More text&quot; sound name &quot;Pop.aiff&quot;'
+显示需要点击确认的提示框osascript -e 'display alert &quot;Hello World!&quot; message &quot;longer text can be added in the message field.&quot;'
+音频提示除了显示系统通知外，也可以用音频提示，使用 say 命令来完成。osascript -e 'say &quot;Hello World!&quot;'
+提示信息将不显示而是语音播报出来。aria2 下载完成提示脚本download-complete.sh#!/bin/sh
+osascript -e 'display notification &quot;download complete&quot; sound name &quot;Pop.aiff&quot;'参考连接：https://code-maven.com/display-notification-from-the-mac-command-line</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1680.html">
 <title>xattr 命令清除 app 的隔离属性</title>
 <link>https://blog.niekun.net/archives/1680.html</link>
 <dc:date>2020-07-21T12:37:00+08:00</dc:date>
-<description>macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - security 里可以手动允许运行，但是有时候使用这种方法也无法打开，这是由于系统识别到这个 app 可能有问题所以给它加上了 `com.apple.quarantine` 隔离属性阻止了他的运行。
-
-如果我们需要运行它，就需要删除 app 的 `com.apple.quarantine` 属性，可以使用 `xattr` 来处理。
-
-
-
-
-
-macOS 上的文件不只有 "normal" 属性，也有 "读", "写", "执行" 等其他属性。常规属性可以用 `ls -l myfile` 命令来查看。除此之外还可以定义**扩展属性**，扩展属性的修改可以用 `xattr` 来处理。
-
-命令语法如下：
-    xattr [options] attributes [files]
-
-可用 option：
-```
-   -c  CLear all Atrributes.
+<description>macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - security 里可以手动允许运行，但是有时候使用这种方法也无法打开，这是由于系统识别到这个 app 可能有问题所以给它加上了 com.apple.quarantine 隔离属性阻止了他的运行。如果我们需要运行它，就需要删除 app 的 com.apple.quarantine 属性，可以使用 xattr 来处理。macOS 上的文件不只有 "normal" 属性，也有 "读", "写", "执行" 等其他属性。常规属性可以用 ls -l myfile 命令来查看。除此之外还可以定义扩展属性，扩展属性的修改可以用 xattr 来处理。命令语法如下：xattr [options] attributes [files]
+可用 option：   -c  CLear all Atrributes.
    -d  Delete the given attribute.
    -h  Help.
    -l  By default, the first two command forms either display just the attribute names or
@@ -350,96 +109,33 @@ macOS 上的文件不只有 "normal" 属性，也有 "读", "写", "执行" 等�
        the file that the symbolic link points at.
    -v  Force the the file name to be displayed, even for a single file.
    -w  Write a given attribute name with a value.
-   -x  Force the attribute value to be displayed in the hexadecimal representation.   
-```
-
-显示一个文件的存在的扩展属性：
-    xattr myfile
-
-显示一个文件的存在的扩展属性及这个属性的值：
-    xattr -l myfile
-
-给一个文件添加 `com.example.color` 属性：
-    xattr -w com.example.color myfile
-
-清除一个文件的 `com.example.color` 属性：
-    xattr -d com.example.color myfile
-
-清除一个文件夹内所有文件的 `com.example.color` 属性：
-    xattr -d -r com.example.color mydir
-
-清除一个文件的所有扩展属性：
-    xattr -c myfile
-
----
-
-对于被屏蔽的 app 需要清除`com.apple.quarantine`  这一属性，处理过程如下：
-
-首先查看 app 的现有属性：
-    xattr /path/to/MyApp.app
-
-如果返回的结果有 `com.apple.quarantine` 属性则执行下面命令删除：
-    sudo xattr -r -d com.apple.quarantine /path/to/MyApp.app
-
-执行后就可以正常打开 app 了。
-</description>
+   -x  Force the attribute value to be displayed in the hexadecimal representation.   显示一个文件的存在的扩展属性：xattr myfile
+显示一个文件的存在的扩展属性及这个属性的值：xattr -l myfile
+给一个文件添加 com.example.color 属性：xattr -w com.example.color myfile
+清除一个文件的 com.example.color 属性：xattr -d com.example.color myfile
+清除一个文件夹内所有文件的 com.example.color 属性：xattr -d -r com.example.color mydir
+清除一个文件的所有扩展属性：xattr -c myfile
+对于被屏蔽的 app 需要清除com.apple.quarantine  这一属性，处理过程如下：首先查看 app 的现有属性：xattr /path/to/MyApp.app
+如果返回的结果有 com.apple.quarantine 属性则执行下面命令删除：sudo xattr -r -d com.apple.quarantine /path/to/MyApp.app
+执行后就可以正常打开 app 了。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1640.html">
 <title>MacBook Pro 2015 升级 SSD</title>
 <link>https://blog.niekun.net/archives/1640.html</link>
 <dc:date>2020-07-13T14:15:00+08:00</dc:date>
-<description>最近升级了我的 2015 款 MacBook Pro 13，期间遇到一些问题，这里做一些流水记录：
-- 使用 time machine 备份系统
-- 拆掉背壳
-- 断开电源接口
-- 拆掉硬盘螺丝，拿下原装硬盘
-- 先在电脑上安装好转接模块
-- 插上新 SSD，上好螺丝
-- 接上电源
-- 按住 cmd option R + 电源键进入恢复系统工具
-- 连上 WiFi 等待网络下载工具包，大概 2Gb
-- 进入 disk utility 硬盘工具
-- 格式化新 SSD，格式 apfs，分区表 guid
-- 连上 time machine 硬盘，进入恢复工具恢复系统到新 SSD
-
-关于安装新 SSD 后待机耗电增加参考：https://blog.niekun.net/archives/1622.html</description>
+<description>最近升级了我的 2015 款 MacBook Pro 13，期间遇到一些问题，这里做一些流水记录：使用 time machine 备份系统拆掉背壳断开电源接口拆掉硬盘螺丝，拿下原装硬盘先在电脑上安装好转接模块插上新 SSD，上好螺丝接上电源按住 cmd option R + 电源键进入恢复系统工具连上 WiFi 等待网络下载工具包，大概 2Gb进入 disk utility 硬盘工具格式化新 SSD，格式 apfs，分区表 guid连上 time machine 硬盘，进入恢复工具恢复系统到新 SSD关于安装新 SSD 后待机耗电增加参考：https://blog.niekun.net/archives/1622.html</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1629.html">
 <title>macOS 使用终端命令设置系统代理</title>
 <link>https://blog.niekun.net/archives/1629.html</link>
 <dc:date>2020-07-07T23:38:00+08:00</dc:date>
-<description>在平时使用中，我一般是在浏览器内设置代理服务器，还有就是终端设置了代理切换脚本来实现快速切换，系统默认没有代理。关于 macOS/Windows 下设置终端代理可以参考我之前的文章：https://blog.niekun.net/archives/97.html
-
-如果想要设置系统级的代理，需要在 system preference - network - proxies 里设置，常用的需要设置 http/https/socks 代理，基本覆盖大多数应用的流量了：
-![2020-07-07T14:34:57.png][1]
-
-
-
-
-但是每次需要让其他应用走代理时都要进入系统设置项里打开代理开关很麻烦，可以通过设置 terminal 命令来实现快速切换。
-
-### networksetup
-
-这里需要使用的命令是 `networksetup`，它可以查看及设置系统网络配置。
-
-man page：https://www.unix.com/man-page/osx/8/networksetup/
-
-**查看设备可用的网络服务：**
-```
-marconie@marco-mbp ~ % networksetup -listallnetworkservices
+<description>在平时使用中，我一般是在浏览器内设置代理服务器，还有就是终端设置了代理切换脚本来实现快速切换，系统默认没有代理。关于 macOS/Windows 下设置终端代理可以参考我之前的文章：https://blog.niekun.net/archives/97.html如果想要设置系统级的代理，需要在 system preference - network - proxies 里设置，常用的需要设置 http/https/socks 代理，基本覆盖大多数应用的流量了：但是每次需要让其他应用走代理时都要进入系统设置项里打开代理开关很麻烦，可以通过设置 terminal 命令来实现快速切换。networksetup这里需要使用的命令是 networksetup，它可以查看及设置系统网络配置。man page：https://www.unix.com/man-page/osx/8/networksetup/查看设备可用的网络服务：marconie@marco-mbp ~ % networksetup -listallnetworkservices
 An asterisk (*) denotes that a network service is disabled.
 Apple USB Ethernet Hub
 iPhone USB
 Wi-Fi
 Bluetooth PAN
-Thunderbolt Bridge
-```
-
-可以看到设备支持的有线和无线网络服务，**后续设置中需要使用对应的服务名**。
-
-**查看各个网络服务的端口名：**
-```
-marconie@marco-mbp ~ % networksetup -listallhardwareports
+Thunderbolt Bridge可以看到设备支持的有线和无线网络服务，后续设置中需要使用对应的服务名。查看各个网络服务的端口名：marconie@marco-mbp ~ % networksetup -listallhardwareports
 
 Hardware Port: Wi-Fi
 Device: en0
@@ -462,14 +158,7 @@ Device: bridge0
 Ethernet Address: 82:13:07:10:b9:80
 
 VLAN Configurations
-===================
-```
-
-在后续的设置中会用到 device 名称，可以用以上命令来查询。
-
-**查看某个网络服务的信息：**
-```
-marconie@marco-mbp ~ % networksetup -getinfo Wi-Fi
+===================在后续的设置中会用到 device 名称，可以用以上命令来查询。查看某个网络服务的信息：marconie@marco-mbp ~ % networksetup -getinfo Wi-Fi
 DHCP Configuration
 IP address: 192.168.123.25
 Subnet mask: 255.255.255.0
@@ -478,215 +167,59 @@ Client ID:
 IPv6: Automatic
 IPv6 IP address: none
 IPv6 Router: none
-Wi-Fi ID: a0:99:9b:04:a6:9d
-```
-
-**查看系统记录的可连接的无线信号，可以使用命令来查看，需要用到上面得到的 device name：**
-```
-marconie@marco-mbp ~ % networksetup -listpreferredwirelessnetworks en0
+Wi-Fi ID: a0:99:9b:04:a6:9d查看系统记录的可连接的无线信号，可以使用命令来查看，需要用到上面得到的 device name：marconie@marco-mbp ~ % networksetup -listpreferredwirelessnetworks en0
 Preferred networks on en0:
-	zhang_4lou
-	Phicomm_A196D8
-	TP-LINK_27BB
-	MERCURY_F610
-	iPhone (MISS)
-	Marco Nie’s 8
-	Office_Diagnosis
-```
-
-**查看当前连接的无线接入点名称：**
-```
-marconie@marco-mbp ~ % networksetup -getairportnetwork en0
-Current Wi-Fi Network: My2.4G
-```
-
-**关闭无线连接：**
-    networksetup -setairportpower en0 off
-
-**打开无线连接：**
-    networksetup -setairportpower en0 on
-
-**查询当前无线连接是否打开状态：**
-    marconie@marco-mbp ~ % networksetup -getairportpower en0
-    Wi-Fi Power (en0): On
-
-**设置系统 http 代理：**
-    networksetup -setwebproxy networkservices address port
-
-**设置系统 https 代理：**
-    networksetup -setsecurewebproxy networkservices address port
-
-**设置系统 socks 代理：**
-    networksetup -setsocksfirewallproxy networkservices address port
-
-打开/关闭系统代理：
-    networksetup [-setwebproxystate | -setsecurewebproxystate | -setsocksfirewallproxystate] networkservices [on | off]
-
-### 应用
-
-上面介绍的常用的 `networksetup` 命令，下面介绍具体如何设置系统代理。这里以 Wi-Fi 网络服务举例。我的 http 代理地址为：127.0.0.1:1082，socks 代理地址为：127.0.0.1:1080。
-
-首先设置代理地址：
-```
-networksetup -setwebproxy Wi-Fi 127.0.0.1 1082
+    zhang_4lou
+    Phicomm_A196D8
+    TP-LINK_27BB
+    MERCURY_F610
+    iPhone (MISS)
+    Marco Nie’s 8
+    Office_Diagnosis查看当前连接的无线接入点名称：marconie@marco-mbp ~ % networksetup -getairportnetwork en0
+Current Wi-Fi Network: My2.4G关闭无线连接：networksetup -setairportpower en0 off
+打开无线连接：networksetup -setairportpower en0 on
+查询当前无线连接是否打开状态：marconie@marco-mbp ~ % networksetup -getairportpower en0
+Wi-Fi Power (en0): On
+设置系统 http 代理：networksetup -setwebproxy networkservices address port
+设置系统 https 代理：networksetup -setsecurewebproxy networkservices address port
+设置系统 socks 代理：networksetup -setsocksfirewallproxy networkservices address port
+打开/关闭系统代理：networksetup [-setwebproxystate | -setsecurewebproxystate | -setsocksfirewallproxystate] networkservices [on | off]
+应用上面介绍的常用的 networksetup 命令，下面介绍具体如何设置系统代理。这里以 Wi-Fi 网络服务举例。我的 http 代理地址为：127.0.0.1:1082，socks 代理地址为：127.0.0.1:1080。首先设置代理地址：networksetup -setwebproxy Wi-Fi 127.0.0.1 1082
 networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 1082
-networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 1080
-```
-
-以上设置只需要设置一次，以后使用只需要执行打开/关闭代理操作即可。
-
-打开系统代理：
-```
-networksetup -setwebproxystate Wi-Fi on
+networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 1080以上设置只需要设置一次，以后使用只需要执行打开/关闭代理操作即可。打开系统代理：networksetup -setwebproxystate Wi-Fi on
 networksetup -setsecurewebproxystate Wi-Fi on
-networksetup -setsocksfirewallproxystate Wi-Fi on
-```
-
-关闭系统代理：
-```
-networksetup -setwebproxystate Wi-Fi off
+networksetup -setsocksfirewallproxystate Wi-Fi on关闭系统代理：networksetup -setwebproxystate Wi-Fi off
 networksetup -setsecurewebproxystate Wi-Fi off
-networksetup -setsocksfirewallproxystate Wi-Fi off
-```
-
-可以在终端执行上述命令，然后打开系统代理设置界面验证是否设置成功。
-
-### 设置 alias 快捷命令
-
-如果需要频繁的打开/关闭代理，每次都需要输入以上命令比较麻烦，比较好的方法是设置 alias。关于 alias 我在[macOS/Linux/windows设置终端 proxy 代理](https://blog.niekun.net/archives/97.html)里有详细介绍。
-
-编辑 ~/.bash_frofile 添加如下并保存文件：
-```
-alias pset='networksetup -setwebproxy Wi-Fi 127.0.0.1 1082 && networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 1082 && networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 1080'
-alias psystem='networksetup -setwebproxystate Wi-Fi on && networksetup -setsecurewebproxystate Wi-Fi on && networksetup -setsocksfirewallproxystate Wi-Fi on'
-alias upsystem='networksetup -setwebproxystate Wi-Fi off && networksetup -setsecurewebproxystate Wi-Fi off && networksetup -setsocksfirewallproxystate Wi-Fi off'
-```
-
-更新缓存，macOS 终端使用的是 zsh，所有要先在 `~/.zshrc` 里添加一句 `source ~/.bash_profile`，具体查看我上面提到的文章：
-    source ~/.zshrc
-
-设置完成后，执行 `pset` 设置代理地址，执行 `psystem` 打开系统代理，执行 `upsystem` 关闭系统代理。
-
-### 参考连接：
-http://support.moonpoint.com/os/os-x/networksetup-wifi.php
-https://superuser.com/questions/316502/how-to-change-proxy-setting-using-command-line-in-mac-os
-
-  [1]: https://blog.niekun.net/usr/uploads/2020/07/600970559.png</description>
+networksetup -setsocksfirewallproxystate Wi-Fi off可以在终端执行上述命令，然后打开系统代理设置界面验证是否设置成功。设置 alias 快捷命令如果需要频繁的打开/关闭代理，每次都需要输入以上命令比较麻烦，比较好的方法是设置 alias。关于 alias 我在macOS/Linux/windows设置终端 proxy 代理里有详细介绍。编辑 ~/.bash_frofile 添加如下并保存文件：alias pset='networksetup -setwebproxy Wi-Fi 127.0.0.1 1082 &amp;&amp; networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 1082 &amp;&amp; networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 1080'
+alias psystem='networksetup -setwebproxystate Wi-Fi on &amp;&amp; networksetup -setsecurewebproxystate Wi-Fi on &amp;&amp; networksetup -setsocksfirewallproxystate Wi-Fi on'
+alias upsystem='networksetup -setwebproxystate Wi-Fi off &amp;&amp; networksetup -setsecurewebproxystate Wi-Fi off &amp;&amp; networksetup -setsocksfirewallproxystate Wi-Fi off'更新缓存，macOS 终端使用的是 zsh，所有要先在 ~/.zshrc 里添加一句 source ~/.bash_profile，具体查看我上面提到的文章：source ~/.zshrc
+设置完成后，执行 pset 设置代理地址，执行 psystem 打开系统代理，执行 upsystem 关闭系统代理。参考连接：http://support.moonpoint.com/os/os-x/networksetup-wifi.phphttps://superuser.com/questions/316502/how-to-change-proxy-setting-using-command-line-in-mac-os</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1622.html">
 <title>macOS 电源管理修复 MacBook 休眠耗电大问题</title>
 <link>https://blog.niekun.net/archives/1622.html</link>
 <dc:date>2020-07-07T10:16:00+08:00</dc:date>
-<description>**20-07-12 update:**
-经过上周几天的观察和这个周末两天休眠的情况，发现一晚上休眠耗电基本2%左右，但是连续休眠两天发现跑了50%电量，今天下午来通过 `pmset -g log | grep Wake` 查看日志，发现一些情况：
-```
-2020-07-10 17:15:08 +0800 Wake Requests       	[*process=powerd request=AdaptiveWake deltaSecs=50391 wakeAt=2020-07-11 07:14:59] [process=powerd request=UserWake deltaSecs=150292 wakeAt=2020-07-12 11:00:00 info="com.apple.alarm.user-visible-com.apple.remindd.time-alarm,315"] 
+<description>20-07-12 update:经过上周几天的观察和这个周末两天休眠的情况，发现一晚上休眠耗电基本2%左右，但是连续休眠两天发现跑了50%电量，今天下午来通过 pmset -g log | grep Wake 查看日志，发现一些情况：2020-07-10 17:15:08 +0800 Wake Requests           [*process=powerd request=AdaptiveWake deltaSecs=50391 wakeAt=2020-07-11 07:14:59] [process=powerd request=UserWake deltaSecs=150292 wakeAt=2020-07-12 11:00:00 info=&quot;com.apple.alarm.user-visible-com.apple.remindd.time-alarm,315&quot;] 
 ...
-2020-07-12 11:00:02 +0800 Assertions          	PID 127(powerd) Created UserIsActive "com.apple.powermanagement.wakeschedule" 00:00:00  id:0x0x900008234 [System: DeclUser IntPrevDisp kDisp]
-...
-```
-
-发现一些和 reminder 和 schedule 有关的唤醒日志。执行 `pmset -g sched` 的确有很多 remainder 的计划任务：
-```
-marconie@marco-mbp ~ % pmset -g sched
+2020-07-12 11:00:02 +0800 Assertions              PID 127(powerd) Created UserIsActive &quot;com.apple.powermanagement.wakeschedule&quot; 00:00:00  id:0x0x900008234 [System: DeclUser IntPrevDisp kDisp]
+...发现一些和 reminder 和 schedule 有关的唤醒日志。执行 pmset -g sched 的确有很多 remainder 的计划任务：marconie@marco-mbp ~ % pmset -g sched
 Scheduled power events:
  [0]  wake at 07/13/20 08:01:56 by 'com.apple.alarm.user-visible-Weekly Usage Report'
  [1]  wake at 07/17/20 20:00:00 by 'com.apple.alarm.user-visible-com.apple.remindd.time-alarm' User visible: true
  [2]  wake at 07/19/20 21:00:00 by 'com.apple.alarm.user-visible-com.apple.remindd.time-alarm' User visible: true
- [3]  wake at 07/19/20 21:00:00 by 'com.apple.alarm.user-visible-com.apple.remindd.time-alarm' User visible: true
-```
-
-这些可能跟我在 remainder 设定的一些事项有关吧，经过查询，网上人也发现这个问题：[eminders app waking mac from sleep](https://discussions.apple.com/thread/250736022)，貌似目前没有好的解决方法。
-
-
-
-
-
-最近升级了我的 macbook pro 2015 的 ssd，买了一块第三方的 nvme 512G 硬盘。更换很顺利，使用 time machine 还原系统后就跟什么都没发生一样。
-
-但是随着这几天的使用，发现待机耗电巨大，一晚上合盖耗电 20% 左右。查看 activity monitor 也没发现什么耗电量大的后台服务。发现可能是合盖后依然没有进入休眠，一直有什么东西在运转有关。回想我在安装好新硬盘进入系统后，修改了些什么设置，好像就是打开了 find my mac，可能就是休眠后一直存在网络活动有关吧。
-
-macOS 上可以在设置里对接上电源和使用电池的情况下系统休眠进行单独设置。但是里面的设置项比较少，在使用电池的界面上已经把 休眠后进行网络活动的选项关掉了。
-
-想要进行更加详细的设置可以使用命令 `pmset` 处理。`pmset` 是 macOS 上的电源管理工具，它可以查看，修改系统休眠及唤醒的相关设置。
-
-## pmset
-
-**pmset 命令必须在 root 权限下执行。**
-
-### 电源管理参数设置
-
-    sudo pmset [−a | −b | −c | −u] [setting value] [...]
-
-pmset 可以对不同电源状态下进行独立设置。
-- -a(all, default) 代表对所有供电情况下统一设置，也是默认的选项
-- -b(battery) 电池供电情况下的设置参数
-- -c(charger) 修改连接上外接电源情况下的设置参数
-- -u(UPS) 连接上 ups 情况下的设置参数
-
-例如，在电池供电情况下，无操作5分钟后屏幕休眠：
-    sudo pmset -b displaysleep 5
-
-常用的参数有：
-- displaysleep – display sleep timer in minutes, 0 to disable display sleep
-- disksleep – disk spin-down timer in minutes, 0 to disable disk sleep
-- sleep – system sleep timer in minutes, 0 to disable sleep
-- hibernatemode - change hibernation mode, 0 for RAM powered while sleeping; 1 for RAM contents written to disk and system totally unpowered; 3 for RAM both powered and written to disk; 5 is the same as mode 1, but for use with secure virtual memory; 7 is the same as mode 3, but for use with secure virtual memory; 25 for hibernation in Mac OS X 10.7, with RAM contents written to disk and system totally unpowered
-- autorestart - automatic restart after loss of power, 1 to enable or 0 to disable
-- tcpkeepalive - keep network process when sleep, 1 to enable or 0 to disable
-
-### 计划任务的设置
-
-    sudo pmset [repeat, schedule] [sleep, wake, poweron, shutdown, wakeorpoweron] [ ]
-
-pmset 可以设置计划任务，来根据日期来将设备休眠或唤醒。
-
-例如，每天晚上 23:59 自动关机，每天早上 7:00 自动唤醒或开机：
-    sudo pmset repeat shutdown MTWRFSU 23:59:00 wakeorpoweron MTWRFSU 7:00:00
-
-- type; one of sleep, wake, poweron, shutdown or wakeorpoweron
-- date and time (schedule only); in the format "MM/dd/yy HH:mm:ss"; must be in 24-hour format, must be in quotes
-- time (repeat only); in the format HH:mm:ss; must be in 24 format, but does not have to be in quotes
-- weekdays; a subset of MTWRFSU such as M or MTWRF are valid, as are strings weekdays, weekends, and everyday
-- owner; a string describing the person or program who is scheduling the power event (optional)
-
-### 查看电源信息
-
-    sudo pmset −g [option]
-
-当我们想要知道当前系统进行了那些设置，我们可以使用 `-g` 参数来查看。
-
-查看当前状况下的电源参数设置：
-    sudo pmset -g
-
-查看所有电源情况下的参数设置：
-    sudo pmset -g custom
-
-查看计划任务的设置：
-    sudo pmset -g sched
-
-查看历史日志：
-    sudo pmset -g log
-
-日志的查看一般可以配合 grep 来过滤有用的信息，例如想要查看那些进程唤醒了设备可以使用：
-    sudo pmset -g log | grep Wake
-
-### 修复电源问题
-
-首先查看我的电池供电情况下的参数设置：
-    sudo pmset -g custom
-
-在 Battery Power 列表里可以找到 tcpkeepalive 当前的设置为 1。
-
-根据我的情况，我修改了电池供电情况下的 tcpkeepalive 为 0，问题就解决了：
-    sudo pmset -b tcpkeepalive 0
-
-执行命令后，会提示关闭这个参数会导致 find my mac 等功能失效。
-
-### man pmset
-
-```
-PMSET(1)                  BSD General Commands Manual                 PMSET(1)
+ [3]  wake at 07/19/20 21:00:00 by 'com.apple.alarm.user-visible-com.apple.remindd.time-alarm' User visible: true这些可能跟我在 remainder 设定的一些事项有关吧，经过查询，网上人也发现这个问题：eminders app waking mac from sleep，貌似目前没有好的解决方法。最近升级了我的 macbook pro 2015 的 ssd，买了一块第三方的 nvme 512G 硬盘。更换很顺利，使用 time machine 还原系统后就跟什么都没发生一样。但是随着这几天的使用，发现待机耗电巨大，一晚上合盖耗电 20% 左右。查看 activity monitor 也没发现什么耗电量大的后台服务。发现可能是合盖后依然没有进入休眠，一直有什么东西在运转有关。回想我在安装好新硬盘进入系统后，修改了些什么设置，好像就是打开了 find my mac，可能就是休眠后一直存在网络活动有关吧。macOS 上可以在设置里对接上电源和使用电池的情况下系统休眠进行单独设置。但是里面的设置项比较少，在使用电池的界面上已经把 休眠后进行网络活动的选项关掉了。想要进行更加详细的设置可以使用命令 pmset 处理。pmset 是 macOS 上的电源管理工具，它可以查看，修改系统休眠及唤醒的相关设置。pmsetpmset 命令必须在 root 权限下执行。电源管理参数设置sudo pmset [−a | −b | −c | −u] [setting value] [...]
+pmset 可以对不同电源状态下进行独立设置。-a(all, default) 代表对所有供电情况下统一设置，也是默认的选项-b(battery) 电池供电情况下的设置参数-c(charger) 修改连接上外接电源情况下的设置参数-u(UPS) 连接上 ups 情况下的设置参数例如，在电池供电情况下，无操作5分钟后屏幕休眠：sudo pmset -b displaysleep 5
+常用的参数有：displaysleep – display sleep timer in minutes, 0 to disable display sleepdisksleep – disk spin-down timer in minutes, 0 to disable disk sleepsleep – system sleep timer in minutes, 0 to disable sleephibernatemode - change hibernation mode, 0 for RAM powered while sleeping; 1 for RAM contents written to disk and system totally unpowered; 3 for RAM both powered and written to disk; 5 is the same as mode 1, but for use with secure virtual memory; 7 is the same as mode 3, but for use with secure virtual memory; 25 for hibernation in Mac OS X 10.7, with RAM contents written to disk and system totally unpoweredautorestart - automatic restart after loss of power, 1 to enable or 0 to disabletcpkeepalive - keep network process when sleep, 1 to enable or 0 to disable计划任务的设置sudo pmset [repeat, schedule] [sleep, wake, poweron, shutdown, wakeorpoweron] [&lt;MTWRFSU&gt; &lt;date/time&gt;]
+pmset 可以设置计划任务，来根据日期来将设备休眠或唤醒。例如，每天晚上 23:59 自动关机，每天早上 7:00 自动唤醒或开机：sudo pmset repeat shutdown MTWRFSU 23:59:00 wakeorpoweron MTWRFSU 7:00:00
+type; one of sleep, wake, poweron, shutdown or wakeorpowerondate and time (schedule only); in the format "MM/dd/yy HH:mm:ss"; must be in 24-hour format, must be in quotestime (repeat only); in the format HH:mm:ss; must be in 24 format, but does not have to be in quotesweekdays; a subset of MTWRFSU such as M or MTWRF are valid, as are strings weekdays, weekends, and everydayowner; a string describing the person or program who is scheduling the power event (optional)查看电源信息sudo pmset −g [option]
+当我们想要知道当前系统进行了那些设置，我们可以使用 -g 参数来查看。查看当前状况下的电源参数设置：sudo pmset -g
+查看所有电源情况下的参数设置：sudo pmset -g custom
+查看计划任务的设置：sudo pmset -g sched
+查看历史日志：sudo pmset -g log
+日志的查看一般可以配合 grep 来过滤有用的信息，例如想要查看那些进程唤醒了设备可以使用：sudo pmset -g log | grep Wake
+修复电源问题首先查看我的电池供电情况下的参数设置：sudo pmset -g custom
+在 Battery Power 列表里可以找到 tcpkeepalive 当前的设置为 1。根据我的情况，我修改了电池供电情况下的 tcpkeepalive 为 0，问题就解决了：sudo pmset -b tcpkeepalive 0
+执行命令后，会提示关闭这个参数会导致 find my mac 等功能失效。man pmsetPMSET(1)                  BSD General Commands Manual                 PMSET(1)
 
 NAME
      pmset -- manipulate power management settings
@@ -712,7 +245,7 @@ DESCRIPTION
 
 SETTING
      pmset can modify the values of any of the power management settings
-     defined below. You may specify one or more setting & value pairs on the
+     defined below. You may specify one or more setting &amp; value pairs on the
      command-line invocation of pmset.  The -a, -b, -c, -u flags determine
      whether the settings apply to battery ( -b ), charger (wall power) ( -c
      ), UPS ( -u ) or all ( -a ).
@@ -728,8 +261,8 @@ SETTINGS
      disksleep - disk spindown timer; replaces 'spindown' argument in 10.4
      (value in minutes, or 0 to disable)
      sleep - system sleep timer (value in minutes, or 0 to disable)
-     womp - wake on ethernet magic packet (value = 0/1). Same as "Wake for
-     network access" in the Energy Saver preferences.
+     womp - wake on ethernet magic packet (value = 0/1). Same as &quot;Wake for
+     network access&quot; in the Energy Saver preferences.
      ring - wake on modem ring (value = 0/1)
      powernap - enable/disable Power Nap on supported machines (value = 0/1)
      proximitywake - On supported systems, this option controls system wake
@@ -781,7 +314,7 @@ GETTING
      vent system sleep or display sleep. Available 10.6 and later.
      -g assertionslog shows a log of assertion creations and releases. Avail-
      able 10.6 and later.
-     -g sysload displays the "system load advisory" - a summary of system
+     -g sysload displays the &quot;system load advisory&quot; - a summary of system
      activity available from the IOGetSystemLoadAdvisory API. Available 10.6
      and later.
      -g sysloadlog displays an ongoing log of lives changes to the system load
@@ -789,7 +322,7 @@ GETTING
      -g ac / adapter will display details about an attached AC power adapter.
      Only supported for MacBook and MacBook Pro.
      -g log displays a history of sleeps, wakes, and other power management
-     events. This log is for admin & debugging purposes.
+     events. This log is for admin &amp; debugging purposes.
      -g uuid displays the currently active sleep/wake UUID; used within OS X
      to correlate sleep/wake activity within one sleep cycle.  history
      -g uuidlog displays the currently active sleep/wake UUID, and prints a
@@ -806,7 +339,7 @@ GETTING
      power state residency times for some drivers. Caller may provide one or
      more I/O Kit class names (separated by spaces). If no classes are pro-
      vided, it will log the IOPower plane's root registry entry. Caller may
-     specify a polling interval, in seconds with -i ; other-
+     specify a polling interval, in seconds with -i &lt;polling interval&gt;; other-
      wise it defaults to 5 seconds.
      -g stats Prints the counts for number sleeps and wakes system has gone
      thru since boot.
@@ -838,8 +371,8 @@ SAFE SLEEP ARGUMENTS
 
      hibernatemode = 25 is only settable via pmset. The system will store a
      copy of memory to persistent storage (the disk), and will remove power to
-     memory. The system will restore from disk image. If you want "hiberna-
-     tion" - slower sleeps, slower wakes, and better battery life, you should
+     memory. The system will restore from disk image. If you want &quot;hiberna-
+     tion&quot; - slower sleeps, slower wakes, and better battery life, you should
      use this setting.
 
      Please note that hibernatefile may only point to a file located on the
@@ -862,7 +395,7 @@ STANDBY ARGUMENTS
 
      autopoweroff is enabled by default on supported platforms as an implemen-
      tation of Lot 6 to the European Energy-related Products Directive. After
-     sleeping for  seconds, the system will write a hiber-
+     sleeping for &lt;autopoweroffdelay&gt; seconds, the system will write a hiber-
      nation image and go into a lower power chipset sleep. Wakeups from this
      state will take longer than wakeups from regular sleep.
 
@@ -890,18 +423,18 @@ UPS SPECIFIC ARGUMENTS
 
 SCHEDULED EVENT ARGUMENTS
      pmset allows you to schedule system sleep, shutdown, wakeup and/or power
-     on. "schedule" is for setting up one-time power events, and "repeat" is
+     on. &quot;schedule&quot; is for setting up one-time power events, and &quot;repeat&quot; is
      for setting up daily/weekly power on and power off events. Note that you
-     may only have one pair of repeating events scheduled - a "power on" event
-     and a "power off" event. For sleep cycling applications, pmset can sched-
-     ule a "relative" wakeup or poweron to occur in seconds from the end of
+     may only have one pair of repeating events scheduled - a &quot;power on&quot; event
+     and a &quot;power off&quot; event. For sleep cycling applications, pmset can sched-
+     ule a &quot;relative&quot; wakeup or poweron to occur in seconds from the end of
      system sleep/shutdown, but this event cannot be cancelled and is inher-
      ently imprecise.
 
      type - one of sleep, wake, poweron, shutdown, wakeorpoweron
-     date/time - "MM/dd/yy HH:mm:ss" (in 24 hour format; must be in quotes)
+     date/time - &quot;MM/dd/yy HH:mm:ss&quot; (in 24 hour format; must be in quotes)
      time - HH:mm:ss
-     weekdays - a subset of MTWRFSU ("M" and "MTWRF" are valid strings)
+     weekdays - a subset of MTWRFSU (&quot;M&quot; and &quot;MTWRF&quot; are valid strings)
      owner - a string describing the person or program who is scheduling this
      one-time power event (optional)
 
@@ -921,7 +454,7 @@ OTHER ARGUMENTS
      cated in favor of caffeinate(8). Please use caffeinate(8) instead.
      sleepnow - causes an immediate system sleep.
      restoredefaults - Restores Energy Saver settings to their default values.
-     (Like clicking "Restore Defaults" in Energy Saver GUI).
+     (Like clicking &quot;Restore Defaults&quot; in Energy Saver GUI).
      displaysleepnow - causes display to go to sleep immediately.
      resetdisplayambientparams - resets the ambient light parameters for cer-
      tain Apple displays.
@@ -967,7 +500,7 @@ EXAMPLES
      Schedules the system to automatically wake from sleep on July 4, 2016, at
      8PM.
 
-     pmset schedule wake "07/04/16 20:00:00"
+     pmset schedule wake &quot;07/04/16 20:00:00&quot;
 
      Schedules a repeating shutdown to occur each day, Tuesday through Satur-
      day, at 11AM.
@@ -1009,13 +542,6 @@ FILES
      pmset modifies the same file that System Preferences Energy Saver modi-
      fies.
 
-Darwin                         November 9, 2012                         Darwin
-```
-
-### 参考链接
-
-https://en.wikipedia.org/wiki/Pmset
-https://www.dssw.co.uk/reference/pmset.html
-</description>
+Darwin                         November 9, 2012                         Darwin参考链接https://en.wikipedia.org/wiki/Pmsethttps://www.dssw.co.uk/reference/pmset.html</description>
 </item>
 </rdf:RDF>

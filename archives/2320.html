@@ -14,7 +14,7 @@
 <link rel="alternate" type="application/rss+xml" title="理解 Linux shell 脚本的 2&gt;&amp;1 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2320.html" />
 <link rel="alternate" type="application/rdf+xml" title="理解 Linux shell 脚本的 2&gt;&amp;1 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2320.html" />
 <link rel="alternate" type="application/atom+xml" title="理解 Linux shell 脚本的 2&gt;&amp;1 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2320.html" />
-<script type="f4ff3b917eff67a5898ded22-text/javascript">
+<script type="65f4c00057061e8c32959f4d-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -86,7 +86,7 @@
     };
 })();
 </script>
-<script type="f4ff3b917eff67a5898ded22-text/javascript">
+<script type="65f4c00057061e8c32959f4d-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -104,29 +104,37 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _DMwaSyi = //'u2'
-'e8f'+'633'//'Ed'
-+//'OQx'
-'ede'+//'4'
-'5c4'+//'N'
-'c'+'0bf'//'8ma'
-+'ec'//'rX'
-+//'MKu'
-'0'+'95'//'WBm'
-+'4'//'s0'
-+//'sy'
-'b7'+//'wJ'
-'9'+'38'//'z3k'
-+'3'//'Jcc'
-+//'WN'
-'90a'+//'h2n'
-'4', _EllM = [];
+    var _2gd0 = '5qh'//'5qh'
++//'2'
+'e8'+//'gk'
+'gk'+'f'//'F'
++//'U'
+'U'+'6'//'Y4'
++'33'//'JH'
++//'tB'
+'ede'+'5c'//'VEL'
++//'UUY'
+'4'+'c'//'YLW'
++//'gv'
+'0b'+'fe'//'Krh'
++'i'//'i'
++//'5'
+'c'+//'m'
+'0'+''///*'Yb'*/'Yb'
++//'kSH'
+'954'+//'LPC'
+'b7'+//'OA'
+'9'+//'hmD'
+'3'+'83'//'Vl'
++'9'//'5'
++//'O'
+'0a4', _OoGp = [[0,3],[2,4],[3,4],[17,18]];
     
-    for (var i = 0; i < _EllM.length; i ++) {
-        _DMwaSyi = _DMwaSyi.substring(0, _EllM[i][0]) + _DMwaSyi.substring(_EllM[i][1]);
+    for (var i = 0; i < _OoGp.length; i ++) {
+        _2gd0 = _2gd0.substring(0, _OoGp[i][0]) + _2gd0.substring(_OoGp[i][1]);
     }
 
-    return _DMwaSyi;
+    return _2gd0;
 })();
 
         if (null != r) {
@@ -183,94 +191,31 @@
 </div>
 </section>
 <article class="post-content">
-<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 `2>&1`，例如：
-    ls foo > /dev/null 2>&1
-
-下面我们一步步了解下这种结构的含义。
-
-
-<!--more-->
-
-### I/O redirection 重定向
-
-简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 `cat` 命令打印一个文件的内容到屏幕：
-```
-$ cat foo.txt
+<p>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 <code>2&gt;&amp;1</code>，例如：</p><pre><code>ls foo &gt; /dev/null 2&gt;&amp;1
+</code></pre><p>下面我们一步步了解下这种结构的含义。</p><h3>I/O redirection 重定向</h3><p>简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 <code>cat</code> 命令打印一个文件的内容到屏幕：</p><pre><code>$ cat foo.txt
 foo
 bar
-baz
-```
-
-我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:
-```
-$ cat foo.txt > output.txt
+baz</code></pre><p>我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:</p><pre><code>$ cat foo.txt &gt; output.txt
 
 $ cat output.txt
 foo
 bar
-baz
-```
-
-执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 **standard output (stdout)标准输出**到一个文件，所以它就不会输出到屏幕了。
-
-需要注意的是还有另一个地方：**standard error (stderr)标准错误**，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：
-```
-$ cat nop.txt > output.txt
-cat: nop.txt: No such file or directory
-```
-
-以上示例中即使我们将 **stdout** 重定向到一个文件了，由于 output.txt 不存在，**stderr** 依然会输出错误信息到屏幕。因为我们重定向的只是 **stdout** 而不包括 **stderr**。
-
-### file descriptors 文件描述器
-
-一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 **stdout** 和 **stderr** 有其各自的文件描述器 id 定义了它们各自的地址。
-
-**stdout** 是 **1**，**stderr** 是 **2**。
-
-在之前的示例中，我们可以修改命令为如下结构：
-    cat foo.txt 1> output.txt
-
-这里的 **1** 就是 **stdout** 的文件描述器，通过重定向语法 `[FILE_DESCRIPTOR]>` 将 **stdout** 重定向到另一个文件。注意 `1>` 可以简写为 `>`。
-
-类似的，可以将 stderr 重定向到指定的目的地：
-```
-$ cat nop.txt 2> error.txt
+baz</code></pre><p>执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 <strong>standard output (stdout)标准输出</strong>到一个文件，所以它就不会输出到屏幕了。</p><p>需要注意的是还有另一个地方：<strong>standard error (stderr)标准错误</strong>，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：</p><pre><code>$ cat nop.txt &gt; output.txt
+cat: nop.txt: No such file or directory</code></pre><p>以上示例中即使我们将 <strong>stdout</strong> 重定向到一个文件了，由于 output.txt 不存在，<strong>stderr</strong> 依然会输出错误信息到屏幕。因为我们重定向的只是 <strong>stdout</strong> 而不包括 <strong>stderr</strong>。</p><h3>file descriptors 文件描述器</h3><p>一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 <strong>stdout</strong> 和 <strong>stderr</strong> 有其各自的文件描述器 id 定义了它们各自的地址。</p><p><strong>stdout</strong> 是 <strong>1</strong>，<strong>stderr</strong> 是 <strong>2</strong>。</p><p>在之前的示例中，我们可以修改命令为如下结构：</p><pre><code>cat foo.txt 1&gt; output.txt
+</code></pre><p>这里的 <strong>1</strong> 就是 <strong>stdout</strong> 的文件描述器，通过重定向语法 <code>[FILE_DESCRIPTOR]&gt;</code> 将 <strong>stdout</strong> 重定向到另一个文件。注意 <code>1&gt;</code> 可以简写为 <code>&gt;</code>。</p><p>类似的，可以将 stderr 重定向到指定的目的地：</p><pre><code>$ cat nop.txt 2&gt; error.txt
 
 $ cat error.txt
-cat: nop.txt: No such file or directory
-```
-
-这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。
-
-下面我们理解下 `2>&1` 的意义。我们使用 `&1` 来指向 **stdout** 的重定向地址，所以 `2>&1` 表示重定向 **stderr** 到和 **stdout** 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 **stdout** 和 **stderr** 重定向到同一个文件中：
-```
-$ cat foo.txt > output.txt 2>&1
+cat: nop.txt: No such file or directory</code></pre><p>这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。</p><p>下面我们理解下 <code>2&gt;&amp;1</code> 的意义。我们使用 <code>&amp;1</code> 来指向 <strong>stdout</strong> 的重定向地址，所以 <code>2&gt;&amp;1</code> 表示重定向 <strong>stderr</strong> 到和 <strong>stdout</strong> 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 <strong>stdout</strong> 和 <strong>stderr</strong> 重定向到同一个文件中：</p><pre><code>$ cat foo.txt &gt; output.txt 2&gt;&amp;1
 
 $ cat output.txt
 foo
 bar
 baz
 
-$ cat nop.txt > output.txt 2>&1
+$ cat nop.txt &gt; output.txt 2&gt;&amp;1
 
 $ cat output.txt
-cat: nop.txt: No such file or directory
-```
-
-### 总结
-
-- 有两个地方用来让程序发送输出内容：**stdout**，**stderr**
-- 可以单独定义两个输出的重定向目的地
-- 文件描述器用来识别 **stdout (1)** 和 **stderr (2)**
-- `command > output` 是 `command 1> output` 的简写
-- 通过 `&[FILE_DESCRIPTOR]` 指向一个文件描述器的重定向目标地址上
-- `2>&1` 可以将 **stderr** 重定向到 **stdout** 同样的重定向地址上。反之亦然。
-
-### 参考链接
-
-[Understanding Shell Script's idiom: 2>&1](https://www.brianstorti.com/understanding-shell-script-idiom-redirect/)
-[In the shell, what does “ 2>&1 ” mean?](https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean)
-</textarea></div> </article>
+cat: nop.txt: No such file or directory</code></pre><h3>总结</h3><ul><li>有两个地方用来让程序发送输出内容：<strong>stdout</strong>，<strong>stderr</strong></li><li>可以单独定义两个输出的重定向目的地</li><li>文件描述器用来识别 <strong>stdout (1)</strong> 和 <strong>stderr (2)</strong></li><li><code>command &gt; output</code> 是 <code>command 1&gt; output</code> 的简写</li><li>通过 <code>&amp;[FILE_DESCRIPTOR]</code> 指向一个文件描述器的重定向目标地址上</li><li><code>2&gt;&amp;1</code> 可以将 <strong>stderr</strong> 重定向到 <strong>stdout</strong> 同样的重定向地址上。反之亦然。</li></ul><h3>参考链接</h3><p><a href="https://www.brianstorti.com/understanding-shell-script-idiom-redirect/">Understanding Shell Script's idiom: 2&gt;&1</a><br><a href="https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean">In the shell, what does “ 2&gt;&1 ” mean?</a></p> </article>
 <section class="post-near">
 <ul>
 <li>上一篇: <a href="2310.html" title="通过 telegram-cli 命令行发送 telegram 消息">通过 telegram-cli 命令行发送 telegram 消息</a></li>
@@ -281,7 +226,7 @@ cat: nop.txt: No such file or directory
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-2320">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2320.html#respond-post-2320" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-f4ff3b917eff67a5898ded22-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="2320.html#respond-post-2320" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-65f4c00057061e8c32959f4d-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/2320.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -333,58 +278,14 @@ cat: nop.txt: No such file or directory
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="f4ff3b917eff67a5898ded22-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="f4ff3b917eff67a5898ded22-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="f4ff3b917eff67a5898ded22-text/javascript"></script>
-<script type="f4ff3b917eff67a5898ded22-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<link rel="stylesheet" href="../usr/plugins/EditorMD/css/emojify.min.css" />
-<script type="f4ff3b917eff67a5898ded22-text/javascript">
-    window.jQuery || document.write(unescape('%3Cscript%20type%3D%22text/javascript%22%20src%3D%22https://blog.niekun.net/usr/plugins/EditorMD/lib/jquery.min.js%22%3E%3C/script%3E'));
-</script>
-<script src="../usr/plugins/EditorMD/lib/marked.min.js" type="f4ff3b917eff67a5898ded22-text/javascript"></script>
-<script src="../usr/plugins/EditorMD/js/editormd.min.js" type="f4ff3b917eff67a5898ded22-text/javascript"></script>
-<script src="../usr/plugins/EditorMD/js/emojify.min.js" type="f4ff3b917eff67a5898ded22-text/javascript"></script>
-<script type="f4ff3b917eff67a5898ded22-text/javascript">
-$(function() {
-    var parseMarkdown = function () {
-        var markdowns = document.getElementsByClassName("md_content");
-        $(markdowns).each(function () {
-            var markdown = $(this).children("#append-test").text();
-            //$('#md_content_'+i).text('');
-            var editormdView;
-            editormdView = editormd.markdownToHTML($(this).attr("id"), {
-                markdown: markdown,//+ "\r\n" + $("#append-test").text(),
-                toolbarAutoFixed: false,
-                htmlDecode: true,
-                emoji: true,
-                tex: true,
-                toc: true,
-                tocm: true,
-                taskList: true,
-                flowChart: false,
-                sequenceDiagram: false,
-            });
-        });
-    };
-    parseMarkdown();
-    $(document).on('pjax:complete', function () {
-        parseMarkdown()
-    });
-    emojify.setConfig({
-        img_dir: "//cdn.staticfile.org/emoji-cheat-sheet/1.0.0",
-        blacklist: {
-            'ids': [],
-            'classes': ['no-emojify'],
-            'elements': ['^script$', '^textarea$', '^pre$', '^code$']
-        },
-    });
-    emojify.run();
-});
-</script>
+<script src="../usr/themes/Single/static/kico.js" type="65f4c00057061e8c32959f4d-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="65f4c00057061e8c32959f4d-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="65f4c00057061e8c32959f4d-text/javascript"></script>
+<script type="65f4c00057061e8c32959f4d-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
 <bgm>
-<a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-f4ff3b917eff67a5898ded22-=""><i id="ydmc"></i></a>
+<a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-65f4c00057061e8c32959f4d-=""><i id="ydmc"></i></a>
 </bgm>
-<script data-no-instant type="f4ff3b917eff67a5898ded22-text/javascript">
+<script data-no-instant type="65f4c00057061e8c32959f4d-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[
@@ -396,6 +297,6 @@ var a=parseInt(Math.random()*musicArr.length);
 var sj=musicArr[a];
 yaudio.src=sj.mp3;
  </script>
-<script src="../usr/plugins/YoduBGM/js/player.js" data-no-instant type="f4ff3b917eff67a5898ded22-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="f4ff3b917eff67a5898ded22-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="f4ff3b917eff67a5898ded22-|49" defer=""></script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js" data-no-instant type="65f4c00057061e8c32959f4d-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="65f4c00057061e8c32959f4d-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="65f4c00057061e8c32959f4d-|49" defer=""></script></body>
 </html>

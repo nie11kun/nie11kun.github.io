@@ -18,155 +18,45 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <title>VPS 自动备份脚本</title>
 <link>https://blog.niekun.net/archives/466.html</link>
 <dc:date>2019-11-08T13:43:44+08:00</dc:date>
-<description>此脚本转载自 **秋水逸冰** 博客：https://teddysun.com/469.html
-
-需要用到的工具：
-Linux
-MySQL
-openssl
-gdrive
-crontab
-
-脚本实现定时自动备份数据库及指定目录文件夹，备份文件加密处理，自动上传到google drive。可设定备份文件保留天数。
-
-
-
-
-脚本下载，设定权限：
-```
-wget --no-check-certificate https://github.com/teddysun/across/raw/master/backup.sh
-chmod +x backup.sh
-```
-
-修改脚本配置 具体参考：https://teddysun.com/469.html
-
-安装 openssl 参考：https://niekun.net/index.php/archives/449.html
-
-安装 gdrive 参考：https://niekun.net/index.php/archives/460.html
-
-设置 crontab 定时 参考：https://niekun.net/index.php/archives/461.html
-</description>
+<description>此脚本转载自 秋水逸冰 博客：https://teddysun.com/469.html需要用到的工具：LinuxMySQLopensslgdrivecrontab脚本实现定时自动备份数据库及指定目录文件夹，备份文件加密处理，自动上传到google drive。可设定备份文件保留天数。脚本下载，设定权限：wget --no-check-certificate https://github.com/teddysun/across/raw/master/backup.sh
+chmod +x backup.sh修改脚本配置 具体参考：https://teddysun.com/469.html安装 openssl 参考：https://niekun.net/index.php/archives/449.html安装 gdrive 参考：https://niekun.net/index.php/archives/460.html设置 crontab 定时 参考：https://niekun.net/index.php/archives/461.html</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/460.html">
 <title>gdrive 实现服务器文件的备份/同步</title>
 <link>https://blog.niekun.net/archives/460.html</link>
 <dc:date>2019-11-08T10:30:00+08:00</dc:date>
-<description>gdrive 是 Linux 下访问 google drive 的工具，可以实现文件的上传下载及同步，对于服务器文件的备份很方便。配合 定时运行脚本，可实现自动化操作。
-
-
-
-
-项目地址：https://github.com/prasmussen/gdrive
-
-## 编译安装
-
-新版的 gdrive 无法在 Google 账户授权了，需要自己手动编译安装并绑定 ID。
-
-有一个自动脚本可以完成这一过程：https://github.com/mbrother2/backuptogoogle
-    curl -o butgg.bash https://raw.githubusercontent.com/mbrother2/backuptogoogle/master/butgg.bash
-    bash butgg.bash --setup
-
-运行脚本会自动安装 go 环境和下载 gdrive 最新源码，期间会提示输入 Google credential，申请自己的 credential 教程如下：https://github.com/mbrother2/backuptogoogle/wiki/Create-own-Google-credential-step-by-step
-
-输入两个 ID 后，脚本提示设置需要备份的目录之类的，这里我们只需要编译好的 gdrvie，所以直接 ctrl C 结束当前脚本即可，编译好的可执行文件在 `~/go/bin` 目录下，复制到系统路径并设置可执行属性：
-```
-    cp ~/go/bin/gdrvie /usr/local/bin
-    chmod +x /usr/local/bin/gdrive
-```
-
-执行测试账号是否已经绑定：
-    gdrive about
-
-返回值为你的google drvie 信息即可。
-
-## 使用
-
-### list
-```
-gdrive list [options]
+<description>gdrive 是 Linux 下访问 google drive 的工具，可以实现文件的上传下载及同步，对于服务器文件的备份很方便。配合 定时运行脚本，可实现自动化操作。项目地址：https://github.com/prasmussen/gdrive编译安装新版的 gdrive 无法在 Google 账户授权了，需要自己手动编译安装并绑定 ID。有一个自动脚本可以完成这一过程：https://github.com/mbrother2/backuptogooglecurl -o butgg.bash https://raw.githubusercontent.com/mbrother2/backuptogoogle/master/butgg.bash
+bash butgg.bash --setup
+运行脚本会自动安装 go 环境和下载 gdrive 最新源码，期间会提示输入 Google credential，申请自己的 credential 教程如下：https://github.com/mbrother2/backuptogoogle/wiki/Create-own-Google-credential-step-by-step输入两个 ID 后，脚本提示设置需要备份的目录之类的，这里我们只需要编译好的 gdrvie，所以直接 ctrl C 结束当前脚本即可，编译好的可执行文件在 ~/go/bin 目录下，复制到系统路径并设置可执行属性：    cp ~/go/bin/gdrvie /usr/local/bin
+    chmod +x /usr/local/bin/gdrive执行测试账号是否已经绑定：gdrive about
+返回值为你的google drvie 信息即可。使用listgdrive list [options]
 
 options:
-  -m, --max        Max files to list, default: 30
-  -q, --query         Default query: "trashed = false and 'me' in owners".
-  --order         Sort order.
-```
-**query**可用参数：https://developers.google.com/drive/api/v3/ref-search-terms#operators
-**order** 可用参数：'createdTime', 'folder', 'modifiedByMeTime', 'modifiedTime', 'name', 'name_natural', 'quotaBytesUsed', 'recency', 'sharedWithMeTime', 'starred', and 'viewedByMeTime'
-
-例如，列出文件名包含 "gdrive" 的最大的三个文件，按从大到小排列：
-    gdrive list --query "name contains 'gdrive'" --order "quotaBytesUsed desc" -m 3
-
-### download
-
-想要下载文件或文件夹，首先必须知道文件的 ID，需要通过 list 指令获取。
-```
-gdrive download [options] 
+  -m, --max &lt;maxFiles&gt;       Max files to list, default: 30
+  -q, --query &lt;query&gt;        Default query: &quot;trashed = false and 'me' in owners&quot;.
+  --order &lt;sortOrder&gt;        Sort order.query可用参数：https://developers.google.com/drive/api/v3/ref-search-terms#operatorsorder 可用参数：'createdTime', 'folder', 'modifiedByMeTime', 'modifiedTime', 'name', 'name_natural', 'quotaBytesUsed', 'recency', 'sharedWithMeTime', 'starred', and 'viewedByMeTime'例如，列出文件名包含 "gdrive" 的最大的三个文件，按从大到小排列：gdrive list --query &quot;name contains 'gdrive'&quot; --order &quot;quotaBytesUsed desc&quot; -m 3
+download想要下载文件或文件夹，首先必须知道文件的 ID，需要通过 list 指令获取。gdrive download [options] &lt;fileId&gt;
 
 options:
   -f, --force           Overwrite existing file
   -r, --recursive       Download directory recursively, documents will be skipped
-  --path          Download path
-```
-
-例如，下载文件到指定目录：
-    gdrive download --path /your/path 0B3X9GlR6EmbnZ1NGS25FdEVlWEk
-
-## upload
-
-```
-drive upload [options] 
+  --path &lt;path&gt;         Download path例如，下载文件到指定目录：gdrive download --path /your/path 0B3X9GlR6EmbnZ1NGS25FdEVlWEk
+uploaddrive upload [options] &lt;path&gt;
 
 options:
   -r, --recursive               Upload directory recursively
-  -p, --parent          Parent id, used to upload file to a specific directory
-  --name                  Filename
-```
-
-不指定目录则上传到根目录。
-
-例如，上传文件到指定 google drive 目录：
-    gdrive upload -p 3X9GlR6EmbnZ1NGS25FdEVlW test.txt
-
-## mkdir
-
-在 google drive 根目录新建文件夹：
-
-    gdrive mkdir foldername
-
-## sync
-
-同步功能可以将文件或文件夹进行同步，适用与 vps 的备份。
-
-### 同步远程文件夹到本地
-
-    gdrive sync download [options]  
-
-```
+  -p, --parent &lt;parent&gt;         Parent id, used to upload file to a specific directory
+  --name &lt;name&gt;                 Filename不指定目录则上传到根目录。例如，上传文件到指定 google drive 目录：gdrive upload -p 3X9GlR6EmbnZ1NGS25FdEVlW test.txt
+mkdir在 google drive 根目录新建文件夹：gdrive mkdir foldername
+sync同步功能可以将文件或文件夹进行同步，适用与 vps 的备份。同步远程文件夹到本地gdrive sync download [options] &lt;fileId&gt; &lt;path&gt;
 options:
   --keep-remote         Keep remote file when a conflict is encountered
-  --keep-local          Keep local file when a conflict is encountered
-```
-
-例如，同步远程文件夹到本地：
-    gdrive sync download 3X9GlR6EmbnZ1NGS25FdEVlW /home/download
-
-```
+  --keep-local          Keep local file when a conflict is encountered例如，同步远程文件夹到本地：gdrive sync download 3X9GlR6EmbnZ1NGS25FdEVlW /home/download
 options:
   --keep-remote         Keep remote file when a conflict is encountered
-  --keep-local          Keep local file when a conflict is encountered
-```
-
-### 同步本地文件夹到远程
-
-    gdrive sync upload [options]  
-
-例如：
-    gdrive sync upload /home/upload 3X9GlR6EmbnZ1NGS25FdEVlW 
-
-**以后如果文件发生了更改需要再次同步，则可以再次执行以上命令。**
-
-### 查看当前已经设置的sync 同步：
-    gdrive sync list
+  --keep-local          Keep local file when a conflict is encountered同步本地文件夹到远程gdrive sync upload [options] &lt;path&gt; &lt;fileId&gt;
+例如：gdrive sync upload /home/upload 3X9GlR6EmbnZ1NGS25FdEVlW 
+以后如果文件发生了更改需要再次同步，则可以再次执行以上命令。查看当前已经设置的sync 同步：gdrive sync list
 </description>
 </item>
 </rdf:RDF>

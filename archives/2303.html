@@ -14,7 +14,7 @@
 <link rel="alternate" type="application/rss+xml" title="在 Ubuntu 中加载 smb 共享目录为本地路径 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2303.html" />
 <link rel="alternate" type="application/rdf+xml" title="在 Ubuntu 中加载 smb 共享目录为本地路径 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2303.html" />
 <link rel="alternate" type="application/atom+xml" title="在 Ubuntu 中加载 smb 共享目录为本地路径 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2303.html" />
-<script type="330a7702c15b44a3ddb4f3a6-text/javascript">
+<script type="dedf1b3ebbf9827494a4adf5-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -86,7 +86,7 @@
     };
 })();
 </script>
-<script type="330a7702c15b44a3ddb4f3a6-text/javascript">
+<script type="dedf1b3ebbf9827494a4adf5-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -104,30 +104,33 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _iWlBh = //'L'
-'4'+//'l'
-'003'+'5'//'YTo'
-+//'s'
-'90'+'l'//'l'
-+//'j8'
-'2'+'e1'//'o'
-+'594'//'n'
-+'18'//'Er'
-+//'U'
-'d0'+'59d'//'XK'
-+//'Q'
-'7ee'+'809'//'QFf'
-+'35'//'hE'
-+/* 'kr'//'kr' */''+'5fe'//'PTk'
-+'4'//'4'
-+//'p'
-'1', _sPc = [[7,8],[31,32]];
+    var _ZWksdbI = //'UO'
+'40'+'035'//'tx'
++//'iex'
+'90'+'2e'//'4'
++//'dj'
+'15'+/* 'IN8'//'IN8' */''+'9'//'6h'
++''///*'77s'*/'77s'
++'418'//'h'
++//'5u1'
+'d05'+//'GMI'
+'9'+'d7'//'IHK'
++'e8'//'e8'
++//'8W'
+'ee'+//'NoH'
+'NoH'+//'x4'
+'8'+/* 'X'//'X' */''+'09'//'qdY'
++//'Sqe'
+'35'+//'O'
+'5fe'+'5F'//'5F'
++'1'//'wV'
+, _TFGk5 = [[21,23],[23,26],[31,33]];
     
-    for (var i = 0; i < _sPc.length; i ++) {
-        _iWlBh = _iWlBh.substring(0, _sPc[i][0]) + _iWlBh.substring(_sPc[i][1]);
+    for (var i = 0; i < _TFGk5.length; i ++) {
+        _ZWksdbI = _ZWksdbI.substring(0, _TFGk5[i][0]) + _ZWksdbI.substring(_TFGk5[i][1]);
     }
 
-    return _iWlBh;
+    return _ZWksdbI;
 })();
 
         if (null != r) {
@@ -184,72 +187,16 @@
 </div>
 </section>
 <article class="post-content">
-<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。
-
-访问 smb 共享目录的方法是在文件浏览器中通过：`smb://xxx.xxx.xxx.xxx` 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。
-
-但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。
-
-下面介绍在 Ubuntu 中配置。
-
-
-<!--more-->
-
-在 Linux 中，可以通过 **mount** 命令的 **cifs** 选项将 smb 共享加载到本地驱动器的某个地方。**Common Internet File System (CIFS)** 是一个网络文件共享协议，它是 smb 的一种格式。
-
-### 安装
-
-首先我们安装 CIFS 工具：
-    sudo apt install cifs-utils
-
-### 加载
-
-加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：
-    sudo mkdir /mnt/h99_share
-
-通过下面命令加载某个 smb 共享：
-    sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-
-其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。
-
-默认情况下加载的共享目录所有者为 **root** 且权限为 777。通过 **dir_mode** 和 **file_mode** 参数可以自定义挂载的目录权限：
-    sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-
-如果当前登录用户不是 root 用户，则可能你无法修改共享目录下的内容，可以在挂载时指定用户和用户组：
-    sudo mount -t cifs -o username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-
-以上示例中，我们设置用户和用户组为 **marco**，这样当本地用户登录为 **marco** 时就可以读写共享目录的内容了。
-
-### 自动挂载
-
-以上命令挂载的目录在系统重启后会取消。
-
-在 `/etc/fstab` 文件中可以定义指定的路径及文件系统在系统启动时自动挂载。下面我们在此文件中定义自动挂载配置，需要指定远程地址，共享目录以及本地映射地址：
-```
-# <file system>             <dir>          <type> <options>                                                                                           <dump>  <pass>                             
-//xxx.xxx.xxx.xxx/usbshare  /mnt/h99_share  cifs  username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755  0       0
-```
-
-配置好 fatab 文件后，我们就可以使用以下命令直接挂载对应远程目录了：
-    sudo mount /mnt/h99_share
-
-mount 命令会自动读取 `/etc/fstab` 文件并挂载对应远程地址目录。并且下次系统重启会自动挂载此目录。
-
-### 卸载目录
-
-通过 **umount** 命令可以下载已经加载的文件系统：
-    sudo umount /mnt/h99_share
-
-如果当前加载的文件正在被其他进程使用，则 umount 卸载会失败，提示文件正忙。查询当前加载目录正在被那个进程使用，可以通过 fuser 命令实现：
-    fuser -m /mnt/h99_share
-
-可以根据输出信息使用 kill 结束对应进程，然后就可以正常卸载了。
-
-### 参考链接
-
-[How to Mount Windows Share on Linux using CIFS](https://linuxize.com/post/how-to-mount-cifs-windows-share-on-linux/)
-[Forcing Linux to Unmount a Filesystem Reporting “device is busy”](https://www.systutorials.com/force-linux-unmount-filesystem-reporting-device-busy/)
-</textarea></div> </article>
+<p>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。</p><p>访问 smb 共享目录的方法是在文件浏览器中通过：<code>smb://xxx.xxx.xxx.xxx</code> 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。</p><p>但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。</p><p>下面介绍在 Ubuntu 中配置。</p><p>在 Linux 中，可以通过 <strong>mount</strong> 命令的 <strong>cifs</strong> 选项将 smb 共享加载到本地驱动器的某个地方。<strong>Common Internet File System (CIFS)</strong> 是一个网络文件共享协议，它是 smb 的一种格式。</p><h3>安装</h3><p>首先我们安装 CIFS 工具：</p><pre><code>sudo apt install cifs-utils
+</code></pre><h3>加载</h3><p>加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：</p><pre><code>sudo mkdir /mnt/h99_share
+</code></pre><p>通过下面命令加载某个 smb 共享：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。</p><p>默认情况下加载的共享目录所有者为 <strong>root</strong> 且权限为 777。通过 <strong>dir_mode</strong> 和 <strong>file_mode</strong> 参数可以自定义挂载的目录权限：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>如果当前登录用户不是 root 用户，则可能你无法修改共享目录下的内容，可以在挂载时指定用户和用户组：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>以上示例中，我们设置用户和用户组为 <strong>marco</strong>，这样当本地用户登录为 <strong>marco</strong> 时就可以读写共享目录的内容了。</p><h3>自动挂载</h3><p>以上命令挂载的目录在系统重启后会取消。</p><p>在 <code>/etc/fstab</code> 文件中可以定义指定的路径及文件系统在系统启动时自动挂载。下面我们在此文件中定义自动挂载配置，需要指定远程地址，共享目录以及本地映射地址：</p><pre><code># &lt;file system&gt;             &lt;dir&gt;          &lt;type&gt; &lt;options&gt;                                                                                           &lt;dump&gt;  &lt;pass&gt;                             
+//xxx.xxx.xxx.xxx/usbshare  /mnt/h99_share  cifs  username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755  0       0</code></pre><p>配置好 fatab 文件后，我们就可以使用以下命令直接挂载对应远程目录了：</p><pre><code>sudo mount /mnt/h99_share
+</code></pre><p>mount 命令会自动读取 <code>/etc/fstab</code> 文件并挂载对应远程地址目录。并且下次系统重启会自动挂载此目录。</p><h3>卸载目录</h3><p>通过 <strong>umount</strong> 命令可以下载已经加载的文件系统：</p><pre><code>sudo umount /mnt/h99_share
+</code></pre><p>如果当前加载的文件正在被其他进程使用，则 umount 卸载会失败，提示文件正忙。查询当前加载目录正在被那个进程使用，可以通过 fuser 命令实现：</p><pre><code>fuser -m /mnt/h99_share
+</code></pre><p>可以根据输出信息使用 kill 结束对应进程，然后就可以正常卸载了。</p><h3>参考链接</h3><p><a href="https://linuxize.com/post/how-to-mount-cifs-windows-share-on-linux/">How to Mount Windows Share on Linux using CIFS</a><br><a href="https://www.systutorials.com/force-linux-unmount-filesystem-reporting-device-busy/">Forcing Linux to Unmount a Filesystem Reporting “device is busy”</a></p> </article>
 <section class="post-near">
 <ul>
 <li>上一篇: <a href="2294.html" title=" openwrt 时区设置"> openwrt 时区设置</a></li>
@@ -260,7 +207,7 @@ mount 命令会自动读取 `/etc/fstab` 文件并挂载对应远程地址目录
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-2303">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2303.html#respond-post-2303" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-330a7702c15b44a3ddb4f3a6-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="2303.html#respond-post-2303" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-dedf1b3ebbf9827494a4adf5-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/2303.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -312,58 +259,14 @@ mount 命令会自动读取 `/etc/fstab` 文件并挂载对应远程地址目录
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="330a7702c15b44a3ddb4f3a6-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="330a7702c15b44a3ddb4f3a6-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="330a7702c15b44a3ddb4f3a6-text/javascript"></script>
-<script type="330a7702c15b44a3ddb4f3a6-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<link rel="stylesheet" href="../usr/plugins/EditorMD/css/emojify.min.css" />
-<script type="330a7702c15b44a3ddb4f3a6-text/javascript">
-    window.jQuery || document.write(unescape('%3Cscript%20type%3D%22text/javascript%22%20src%3D%22https://blog.niekun.net/usr/plugins/EditorMD/lib/jquery.min.js%22%3E%3C/script%3E'));
-</script>
-<script src="../usr/plugins/EditorMD/lib/marked.min.js" type="330a7702c15b44a3ddb4f3a6-text/javascript"></script>
-<script src="../usr/plugins/EditorMD/js/editormd.min.js" type="330a7702c15b44a3ddb4f3a6-text/javascript"></script>
-<script src="../usr/plugins/EditorMD/js/emojify.min.js" type="330a7702c15b44a3ddb4f3a6-text/javascript"></script>
-<script type="330a7702c15b44a3ddb4f3a6-text/javascript">
-$(function() {
-    var parseMarkdown = function () {
-        var markdowns = document.getElementsByClassName("md_content");
-        $(markdowns).each(function () {
-            var markdown = $(this).children("#append-test").text();
-            //$('#md_content_'+i).text('');
-            var editormdView;
-            editormdView = editormd.markdownToHTML($(this).attr("id"), {
-                markdown: markdown,//+ "\r\n" + $("#append-test").text(),
-                toolbarAutoFixed: false,
-                htmlDecode: true,
-                emoji: true,
-                tex: true,
-                toc: true,
-                tocm: true,
-                taskList: true,
-                flowChart: false,
-                sequenceDiagram: false,
-            });
-        });
-    };
-    parseMarkdown();
-    $(document).on('pjax:complete', function () {
-        parseMarkdown()
-    });
-    emojify.setConfig({
-        img_dir: "//cdn.staticfile.org/emoji-cheat-sheet/1.0.0",
-        blacklist: {
-            'ids': [],
-            'classes': ['no-emojify'],
-            'elements': ['^script$', '^textarea$', '^pre$', '^code$']
-        },
-    });
-    emojify.run();
-});
-</script>
+<script src="../usr/themes/Single/static/kico.js" type="dedf1b3ebbf9827494a4adf5-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="dedf1b3ebbf9827494a4adf5-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="dedf1b3ebbf9827494a4adf5-text/javascript"></script>
+<script type="dedf1b3ebbf9827494a4adf5-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
 <bgm>
-<a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-330a7702c15b44a3ddb4f3a6-=""><i id="ydmc"></i></a>
+<a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-dedf1b3ebbf9827494a4adf5-=""><i id="ydmc"></i></a>
 </bgm>
-<script data-no-instant type="330a7702c15b44a3ddb4f3a6-text/javascript">
+<script data-no-instant type="dedf1b3ebbf9827494a4adf5-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[
@@ -375,6 +278,6 @@ var a=parseInt(Math.random()*musicArr.length);
 var sj=musicArr[a];
 yaudio.src=sj.mp3;
  </script>
-<script src="../usr/plugins/YoduBGM/js/player.js" data-no-instant type="330a7702c15b44a3ddb4f3a6-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="330a7702c15b44a3ddb4f3a6-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="330a7702c15b44a3ddb4f3a6-|49" defer=""></script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js" data-no-instant type="dedf1b3ebbf9827494a4adf5-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="dedf1b3ebbf9827494a4adf5-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="dedf1b3ebbf9827494a4adf5-|49" defer=""></script></body>
 </html>

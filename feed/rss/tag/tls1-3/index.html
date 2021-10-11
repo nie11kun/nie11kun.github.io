@@ -17,25 +17,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <title>使用Nginx配置强ssl的网站</title>
 <link>https://blog.niekun.net/archives/187.html</link>
 <dc:date>2019-04-03T23:24:00+08:00</dc:date>
-<description>**本文主要参考的网站：**
-https://cipherli.st
-https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
-
-> This tutorial shows you how to set up strong SSL security on the nginx webserver. We do this by updating OpenSSL to the latest version to mitigate attacks like Heartbleed, disabling SSL Compression and EXPORT ciphers to mitigate attacks like FREAK, CRIME and LogJAM, disabling SSLv3 and below because of vulnerabilities in the protocol and we will set up a strong ciphersuite that enables Forward Secrecy when possible. We also enable HSTS and HPKP. This way we have a strong and future proof ssl configuration and we get an A+ on the Qually Labs SSL Test.
-
-
-
-
-**本文使用的配置需要相关软件的最低版本要求：**
-Nginx: 1.13.0 -- 升级教程：https://niekun.net/index.php/archives/30.html
-openssl: 1.0.1 -- 升级教程：https://niekun.net/index.php/archives/183.html
-
-首先需要生成一个 4096 bit 的 DH parameters：
-    openssl dhparam -out /etc/nginx/your.domain/dhparam.pem 4096
-
-编辑 Nginx 配置文件，在server段加入或修改如下：
-```
-ssl_protocols                TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+<description>本文主要参考的网站：https://cipherli.sthttps://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.htmlThis tutorial shows you how to set up strong SSL security on the nginx webserver. We do this by updating OpenSSL to the latest version to mitigate attacks like Heartbleed, disabling SSL Compression and EXPORT ciphers to mitigate attacks like FREAK, CRIME and LogJAM, disabling SSLv3 and below because of vulnerabilities in the protocol and we will set up a strong ciphersuite that enables Forward Secrecy when possible. We also enable HSTS and HPKP. This way we have a strong and future proof ssl configuration and we get an A+ on the Qually Labs SSL Test.本文使用的配置需要相关软件的最低版本要求：Nginx: 1.13.0 -- 升级教程：https://niekun.net/index.php/archives/30.htmlopenssl: 1.0.1 -- 升级教程：https://niekun.net/index.php/archives/183.html首先需要生成一个 4096 bit 的 DH parameters：openssl dhparam -out /etc/nginx/your.domain/dhparam.pem 4096
+编辑 Nginx 配置文件，在server段加入或修改如下：ssl_protocols                TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
 ssl_prefer_server_ciphers    on; 
 ssl_ciphers                  ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
 ssl_dhparam                  /etc/nginx/your.domain/dhparam.pem;
@@ -47,22 +30,12 @@ ssl_stapling                 on;
 ssl_stapling_verify          on;
 resolver                     8.8.8.8 1.1.1.1 valid=300s;
 resolver_timeout             5s; 
-add_header                   Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
+add_header                   Strict-Transport-Security &quot;max-age=63072000; includeSubDomains; preload&quot;;
 add_header                   X-Frame-Options DENY;
 add_header                   X-Content-Type-Options nosniff;
-add_header                   X-XSS-Protection "1; mode=block";
-```
-
-ssl_ciphers 的设置可能会影响一些老版本系统或浏览器的访问，以下是兼容 IE6/WinXP 的配置：
-```
-EECDH+AESGCM:EDH+AESGCM:ECDHE-RSA-AES128-GCM-SHA256:AES256+EECDH:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4;
-```
-
-修改完成后测试配置及重启：
-    service nginx configtest
-    service nginx reload
-    service nginx restart
-
+add_header                   X-XSS-Protection &quot;1; mode=block&quot;;ssl_ciphers 的设置可能会影响一些老版本系统或浏览器的访问，以下是兼容 IE6/WinXP 的配置：EECDH+AESGCM:EDH+AESGCM:ECDHE-RSA-AES128-GCM-SHA256:AES256+EECDH:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4;修改完成后测试配置及重启：service nginx configtest
+service nginx reload
+service nginx restart
 可以在这里测试网站安全级别，最高为 A+: https://www.ssllabs.com/ssltest/index.html</description>
 </item>
 </rdf:RDF>

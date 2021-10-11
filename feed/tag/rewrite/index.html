@@ -20,120 +20,33 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <pubDate>Thu, 04 Apr 2019 22:44:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">nginx rewrite 模块主要应用于修改客户端发起的 url 请求，主要使用场景有两个：
-1.客户端请求的域名已经已经有了新的地址，需要自动将连接进行转换
-2.需要根据请求的 url 动态处理到不同的页面，此处主要使用 try_files 指令
-
-
-<!--more-->
-
-指令有三种：**return**, **rewrite**, and **try_files**
-
-## return
-这是最简单也最推荐使用的指令，主要应用于将指定的 server 或 location 重定向到另一个固定的 server 或 location。
-
-一个简单的例子，将客户端请求重定向到新的域名：
-```
-server {
+<p>nginx rewrite 模块主要应用于修改客户端发起的 url 请求，主要使用场景有两个：<br>1.客户端请求的域名已经已经有了新的地址，需要自动将连接进行转换<br>2.需要根据请求的 url 动态处理到不同的页面，此处主要使用 try_files 指令</p><!--more--><p>指令有三种：<strong>return</strong>, <strong>rewrite</strong>, and <strong>try_files</strong></p><h2>return</h2><p>这是最简单也最推荐使用的指令，主要应用于将指定的 server 或 location 重定向到另一个固定的 server 或 location。</p><p>一个简单的例子，将客户端请求重定向到新的域名：</p><pre><code>server {
     listen 80;
     listen 443 ssl;
     server_name www.old-name.com;
     return 301 $scheme://www.new-name.com$request_uri;
-}
-```
-
-示例参数解释：
-301: Moved Permanently
-$scheme: protocol (http or https)
-$request_uri: 域名后的整个 url
-
-关于状态码的使用参考：https://niekun.net/index.php/archives/192.html
-
-重定向到新 url 的基本语法：
-    return (301 | 302 | 303 | 307) url;
-
-也可以将一个字符串作为一个响应：
-    return (1xx | 2xx | 4xx | 5xx) ["text"];
-
-例如：
-    return 401 "Access denied because token is expired or invalid";
-
-return 执行后，在浏览器中会看到跳转到新的链接。
-
-## rewrite
-此指令主要应用于一些更复杂的重定向，可以使用正则表达式进行匹配。此方式可以做动态链接的伪静态处理，隐藏 url 里的 index.php 等。
-
-语法：
-    rewrite regex replacement [flag];
-
-如果正则规则匹配到了请求的 uri，则会用 replacement 部分替换请求的 uri。rewrite 指令是按顺序执行的，也就是在一个快中可以写多个 rewrite 指令。使用 flag 来设置 uri 修改后的动作。
-
-如果 replacement 里包含有 `http://, https://, $scheme` 则处理结束并给客户端发送重定向响应，客户端会重新访问新的 uri。
-
-**支持的 flag 标记：**
-- last：修改完成后，结束当前的 rewrite 指令，然后根据修改后新的地址匹配 location 进行处理。**客户端看起来 uri 没有变化**
-- break：修改完成后，结束当前的 rewrite 指令，继续顺序执行下面的指令。这时候 $uri 已更新。
-- redirect：修改完成后，返回一个临时的 302 重新向给客户端，使用场景是 replacement 部分没有写：`http://, https://, $scheme`
-- permanent：修改完成后，返回一个 301 永久重定向响应给客户端。客户端跳转到新的 url
-
-```
-location /rewrite {
+}</code></pre><p>示例参数解释：<br>301: Moved Permanently<br>$scheme: protocol (http or https)<br>$request_uri: 域名后的整个 url</p><p>关于状态码的使用参考：<a href="https://niekun.net/index.php/archives/192.html">https://niekun.net/index.php/archives/192.html</a></p><p>重定向到新 url 的基本语法：</p><pre><code>return (301 | 302 | 303 | 307) url;
+</code></pre><p>也可以将一个字符串作为一个响应：</p><pre><code>return (1xx | 2xx | 4xx | 5xx) [&quot;text&quot;];
+</code></pre><p>例如：</p><pre><code>return 401 &quot;Access denied because token is expired or invalid&quot;;
+</code></pre><p>return 执行后，在浏览器中会看到跳转到新的链接。</p><h2>rewrite</h2><p>此指令主要应用于一些更复杂的重定向，可以使用正则表达式进行匹配。此方式可以做动态链接的伪静态处理，隐藏 url 里的 index.php 等。</p><p>语法：</p><pre><code>rewrite regex replacement [flag];
+</code></pre><p>如果正则规则匹配到了请求的 uri，则会用 replacement 部分替换请求的 uri。rewrite 指令是按顺序执行的，也就是在一个快中可以写多个 rewrite 指令。使用 flag 来设置 uri 修改后的动作。</p><p>如果 replacement 里包含有 <code>http://, https://, $scheme</code> 则处理结束并给客户端发送重定向响应，客户端会重新访问新的 uri。</p><p><strong>支持的 flag 标记：</strong></p><ul><li>last：修改完成后，结束当前的 rewrite 指令，然后根据修改后新的地址匹配 location 进行处理。<strong>客户端看起来 uri 没有变化</strong></li><li>break：修改完成后，结束当前的 rewrite 指令，继续顺序执行下面的指令。这时候 $uri 已更新。</li><li>redirect：修改完成后，返回一个临时的 302 重新向给客户端，使用场景是 replacement 部分没有写：<code>http://, https://, $scheme</code></li><li>permanent：修改完成后，返回一个 301 永久重定向响应给客户端。客户端跳转到新的 url</li></ul><pre><code>location /rewrite {
     rewrite ^(.*)$  /echo last;
   # rewrite ^(.*)$  /echo permanent;
     rewrite ^(.*)$  https://niekun.net last;
-}
-```
-
-上面三个示例：
-- 第一个跳转到 /echo 路径下。客户端看到的依然是 /rewrite 路径
-- 第二个跳转到 /echo 路径下。客户端看到的是新的 /echo 路径
-- 第三个跳转到 https://niekun.net。客户端看到的是：https://niekun.net
-
-用 regex 时，使用小括号()来设置 group，按照顺序 group 用 $1,$2...表示。
-
-**以下是一个例子，进行了如下处理：**
-* 以 /download 为起始然后包含 /media/ 或 /audio/ 段的 url 替换成包含 /mp3/ 段然后添加后缀 .mp3 或 .ra。
-* 例如：/download/cdn-west/media/file1 会修改为：/download/cdn-west/mp3/file1.mp3。
-* last：表示当处理完当前 rewrite 后跳过当前 server 或 location内其他的 rewrite 模块，为处理后的 url 寻找到合适的匹配的 location。
-* 如果没有匹配到，则返回状态码：402。
-```
-server {
-    # ...
-    rewrite ^(/download/.*)/media/(\w+)\.?.*$ $1/mp3/$2.mp3 last;
-    rewrite ^(/download/.*)/audio/(\w+)\.?.*$ $1/mp3/$2.ra  last;
-    return  403;
-    # ...
-}
-```
-
-## try_files
-此指令的参数为一个或多个文件或目录，以及一个最终内部 url。
-
-语法：
-    try_files file ... uri;
-
-处理过程为：nginx 检查列出的文件或文件夹地址是否存在，如果没有存在的话就内部重定向到指定的 url。为了让其工作，需要再定义一个 location 块捕获内部重定向的地址。
-
-try_files 指令常用的变量为 $uri, 代表域名后的 url 部分。
-
-以下例子进行了如下处理：
-* 放置一个 default.gif 文件来处理请求的图片不存在的情况
-* 如果请求 url 为：http://www.domain.com/images/image1.gif，nginx 首先寻找此 location 下 root 目录的 image1.gif 文件，如果没找到则再次寻找 image1.gif/ 目录，如果还是没有则重定向到 /images/default.gif，这次请求就完成了，此文件会缓存 30s
-
-```
-location /images/ {
+}</code></pre><p>上面三个示例：</p><ul><li>第一个跳转到 /echo 路径下。客户端看到的依然是 /rewrite 路径</li><li>第二个跳转到 /echo 路径下。客户端看到的是新的 /echo 路径</li><li>第三个跳转到 <a href="https://niekun.net">https://niekun.net</a>。客户端看到的是：<a href="https://niekun.net">https://niekun.net</a></li></ul><p>用 regex 时，使用小括号()来设置 group，按照顺序 group 用 $1,$2...表示。</p><p><strong>以下是一个例子，进行了如下处理：</strong></p><ul><li>以 /download 为起始然后包含 /media/ 或 /audio/ 段的 url 替换成包含 /mp3/ 段然后添加后缀 .mp3 或 .ra。</li><li>例如：/download/cdn-west/media/file1 会修改为：/download/cdn-west/mp3/file1.mp3。</li><li>last：表示当处理完当前 rewrite 后跳过当前 server 或 location内其他的 rewrite 模块，为处理后的 url 寻找到合适的匹配的 location。</li><li><p>如果没有匹配到，则返回状态码：402。</p><pre><code>server {
+  # ...
+  rewrite ^(/download/.*)/media/(\w+)\.?.*$ $1/mp3/$2.mp3 last;
+  rewrite ^(/download/.*)/audio/(\w+)\.?.*$ $1/mp3/$2.ra  last;
+  return  403;
+  # ...
+}</code></pre></li></ul><h2>try_files</h2><p>此指令的参数为一个或多个文件或目录，以及一个最终内部 url。</p><p>语法：</p><pre><code>try_files file ... uri;
+</code></pre><p>处理过程为：nginx 检查列出的文件或文件夹地址是否存在，如果没有存在的话就内部重定向到指定的 url。为了让其工作，需要再定义一个 location 块捕获内部重定向的地址。</p><p>try_files 指令常用的变量为 $uri, 代表域名后的 url 部分。</p><p>以下例子进行了如下处理：</p><ul><li>放置一个 default.gif 文件来处理请求的图片不存在的情况</li><li>如果请求 url 为：<a href="http://www.domain.com/images/image1.gif">http://www.domain.com/images/image1.gif</a>，nginx 首先寻找此 location 下 root 目录的 image1.gif 文件，如果没找到则再次寻找 image1.gif/ 目录，如果还是没有则重定向到 /images/default.gif，这次请求就完成了，此文件会缓存 30s</li></ul><pre><code>location /images/ {
     try_files $uri $uri/ /images/default.gif;
 }
 
 location = /images/default.gif {
     expires 30s;
-}
-```
-
-### 参考链接
-
-[ngx_http_rewrite_module](https://nginx.org/en/docs/http/ngx_http_rewrite_module.html)
-https://www.nginx.com/blog/creating-nginx-rewrite-rules/</textarea></div>
+}</code></pre><h3>参考链接</h3><p><a href="https://nginx.org/en/docs/http/ngx_http_rewrite_module.html">ngx_http_rewrite_module</a><br><a href="https://www.nginx.com/blog/creating-nginx-rewrite-rules/">https://www.nginx.com/blog/creating-nginx-rewrite-rules/</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/195.html#comments</comments>

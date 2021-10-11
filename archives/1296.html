@@ -14,7 +14,7 @@
 <link rel="alternate" type="application/rss+xml" title="获取用户真实 IP in Nginx &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1296.html" />
 <link rel="alternate" type="application/rdf+xml" title="获取用户真实 IP in Nginx &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1296.html" />
 <link rel="alternate" type="application/atom+xml" title="获取用户真实 IP in Nginx &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1296.html" />
-<script type="c34a91698cc4820761ab6307-text/javascript">
+<script type="fe18e35633a3cfe8695f811b-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -86,7 +86,7 @@
     };
 })();
 </script>
-<script type="c34a91698cc4820761ab6307-text/javascript">
+<script type="fe18e35633a3cfe8695f811b-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -104,31 +104,38 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _9Txtca = /* 'g'//'g' */''+//'m'
-'m'+'5'//'KKV'
-+'a'//'5'
-+//'a'
-'f67'+//'urI'
-'a'+'bc'//'xMW'
-+//'lJ'
-'61'+//'Nj'
-'8'+//'J1f'
-'0f'+'32'//'n'
-+'fcb'//'DX6'
-+//'o'
-'221'+//'mAs'
-'661'+'6e'//'2u'
-+//'9Bc'
-'40'+'171'//'T'
-+'U'//'U'
-+//'2YD'
-'b', _QzPY7 = [[0,1],[31,32]];
+    var _414pbkP = '5a'//'5G'
++''///*'lcJ'*/'lcJ'
++//'ECB'
+'f'+''///*'j'*/'j'
++'6'//'z8k'
++//'D'
+'D'+'7'//'V7'
++'a'//'1Lw'
++//'E5i'
+'E5i'+'bc6'//'b7'
++//'4'
+'1'+//'Fy0'
+'80'+'f3'//'q'
++'2'//'dy'
++'fc'//'R3Z'
++'b2'//'94'
++'f'//'f'
++'2'//'euC'
++//'gUr'
+'1'+'6'//'63'
++'61'//'fgt'
++'6'//'mN'
++'e40'//'83i'
++'17'//'OTV'
++//'I'
+'1b', _aHr = [[4,5],[6,9],[19,20]];
     
-    for (var i = 0; i < _QzPY7.length; i ++) {
-        _9Txtca = _9Txtca.substring(0, _QzPY7[i][0]) + _9Txtca.substring(_QzPY7[i][1]);
+    for (var i = 0; i < _aHr.length; i ++) {
+        _414pbkP = _414pbkP.substring(0, _aHr[i][0]) + _414pbkP.substring(_aHr[i][1]);
     }
 
-    return _9Txtca;
+    return _414pbkP;
 })();
 
         if (null != r) {
@@ -185,54 +192,27 @@
 </div>
 </section>
 <article class="post-content">
-<blockquote>这篇文章上次修改于 559 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
-<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">对于没有连代理访问网站的用户或者没有加 CDN 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，**$remote_addr** 存储了当前链接用户的 IP:https://nginx.org/en/docs/http/ngx_http_access_module.html#deny
-```
-location / {
+<blockquote>这篇文章上次修改于 560 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<p>对于没有连代理访问网站的用户或者没有加 CDN 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，<strong>$remote_addr</strong> 存储了当前链接用户的 IP:<a href="https://nginx.org/en/docs/http/ngx_http_access_module.html#deny">https://nginx.org/en/docs/http/ngx_http_access_module.html#deny</a></p><pre><code>location / {
     deny  192.168.1.1;
     allow 192.168.1.0/24;
     allow 10.1.1.0/16;
     allow 2001:0db8::/32;
     deny  all;
-}
-```
-
-如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。
-
-$remote_addr 变量默认读取 $proxy_add_x_forwarded_for 变量最后一个 IP 地址，一般情况下这个就是客户端原始 IP，但当网站加了 CDN，最后一个 IP 就成了 CDN 分配的 IP，如用户本地 IP为：`1.81.218.204`，访问没有加 CDN 的网站：
-    $remote_addr：1.81.218.204
-    $http_x_forwarded_for: 1.81.218.204
-    $proxy_add_x_forwarded_for: 1.81.218.204
-
-如果网站加了 CDN 返回信息如下：
-    $remote_addr：172.69.34.194
-    $http_x_forwarded_for: 1.81.218.204
-    $proxy_add_x_forwarded_for: 1.81.218.204, 172.69.34.194
-
-可以看到 $remote_addr 发生了变化。$http_x_forwarded_for 的值没有包含 CDN 代理 IP。
-
-客户端也可以伪造 X-Forwarded-For 信息，如下使用 curl -H 参数设置头信息：
-    curl https://info.niekun.net -H 'X-Forwarded-For: 2.2.2.2' -H 'X-Forwarded-For: 3.3.3.3'
-
-这时候 nginx 的变量就发生了变化：
-    $remote_addr：172.69.34.194
-    $http_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204
-    $proxy_add_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204, 172.69.34.194
-
-可以看到 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 变量值都附加上了伪造的信息。
-
-根据观察 $http_x_forwarded_for 的最后一个 IP，永远是真实的用户 IP，可以进行提取。
-
-使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：
-```
-map $http_x_forwarded_for  $client_real_ip {
+}</code></pre><p>如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。</p><p>$remote_addr 变量默认读取 $proxy_add_x_forwarded_for 变量最后一个 IP 地址，一般情况下这个就是客户端原始 IP，但当网站加了 CDN，最后一个 IP 就成了 CDN 分配的 IP，如用户本地 IP为：<code>1.81.218.204</code>，访问没有加 CDN 的网站：</p><pre><code>$remote_addr：1.81.218.204
+$http_x_forwarded_for: 1.81.218.204
+$proxy_add_x_forwarded_for: 1.81.218.204
+</code></pre><p>如果网站加了 CDN 返回信息如下：</p><pre><code>$remote_addr：172.69.34.194
+$http_x_forwarded_for: 1.81.218.204
+$proxy_add_x_forwarded_for: 1.81.218.204, 172.69.34.194
+</code></pre><p>可以看到 $remote_addr 发生了变化。$http_x_forwarded_for 的值没有包含 CDN 代理 IP。</p><p>客户端也可以伪造 X-Forwarded-For 信息，如下使用 curl -H 参数设置头信息：</p><pre><code>curl https://info.niekun.net -H 'X-Forwarded-For: 2.2.2.2' -H 'X-Forwarded-For: 3.3.3.3'
+</code></pre><p>这时候 nginx 的变量就发生了变化：</p><pre><code>$remote_addr：172.69.34.194
+$http_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204
+$proxy_add_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204, 172.69.34.194
+</code></pre><p>可以看到 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 变量值都附加上了伪造的信息。</p><p>根据观察 $http_x_forwarded_for 的最后一个 IP，永远是真实的用户 IP，可以进行提取。</p><p>使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：</p><pre><code>map $http_x_forwarded_for  $client_real_ip {
     default                         $remote_addr;
     ~^(([0-9\.]+),\s?)*([0-9\.]+)$  $3;
-}
-```
-
-如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。
-</textarea></div> </article>
+}</code></pre><p>如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。</p> </article>
 <section class="post-near">
 <ul>
 <li>上一篇: <a href="1280.html" title="Nginx upstream timed out 问题的处理">Nginx upstream timed out 问题的处理</a></li>
@@ -243,7 +223,7 @@ map $http_x_forwarded_for  $client_real_ip {
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-1296">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1296.html#respond-post-1296" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-c34a91698cc4820761ab6307-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="1296.html#respond-post-1296" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-fe18e35633a3cfe8695f811b-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/1296.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -295,58 +275,14 @@ map $http_x_forwarded_for  $client_real_ip {
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="c34a91698cc4820761ab6307-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="c34a91698cc4820761ab6307-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="c34a91698cc4820761ab6307-text/javascript"></script>
-<script type="c34a91698cc4820761ab6307-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<link rel="stylesheet" href="../usr/plugins/EditorMD/css/emojify.min.css" />
-<script type="c34a91698cc4820761ab6307-text/javascript">
-    window.jQuery || document.write(unescape('%3Cscript%20type%3D%22text/javascript%22%20src%3D%22https://blog.niekun.net/usr/plugins/EditorMD/lib/jquery.min.js%22%3E%3C/script%3E'));
-</script>
-<script src="../usr/plugins/EditorMD/lib/marked.min.js" type="c34a91698cc4820761ab6307-text/javascript"></script>
-<script src="../usr/plugins/EditorMD/js/editormd.min.js" type="c34a91698cc4820761ab6307-text/javascript"></script>
-<script src="../usr/plugins/EditorMD/js/emojify.min.js" type="c34a91698cc4820761ab6307-text/javascript"></script>
-<script type="c34a91698cc4820761ab6307-text/javascript">
-$(function() {
-    var parseMarkdown = function () {
-        var markdowns = document.getElementsByClassName("md_content");
-        $(markdowns).each(function () {
-            var markdown = $(this).children("#append-test").text();
-            //$('#md_content_'+i).text('');
-            var editormdView;
-            editormdView = editormd.markdownToHTML($(this).attr("id"), {
-                markdown: markdown,//+ "\r\n" + $("#append-test").text(),
-                toolbarAutoFixed: false,
-                htmlDecode: true,
-                emoji: true,
-                tex: true,
-                toc: true,
-                tocm: true,
-                taskList: true,
-                flowChart: false,
-                sequenceDiagram: false,
-            });
-        });
-    };
-    parseMarkdown();
-    $(document).on('pjax:complete', function () {
-        parseMarkdown()
-    });
-    emojify.setConfig({
-        img_dir: "//cdn.staticfile.org/emoji-cheat-sheet/1.0.0",
-        blacklist: {
-            'ids': [],
-            'classes': ['no-emojify'],
-            'elements': ['^script$', '^textarea$', '^pre$', '^code$']
-        },
-    });
-    emojify.run();
-});
-</script>
+<script src="../usr/themes/Single/static/kico.js" type="fe18e35633a3cfe8695f811b-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="fe18e35633a3cfe8695f811b-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="fe18e35633a3cfe8695f811b-text/javascript"></script>
+<script type="fe18e35633a3cfe8695f811b-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
 <bgm>
-<a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-c34a91698cc4820761ab6307-=""><i id="ydmc"></i></a>
+<a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-fe18e35633a3cfe8695f811b-=""><i id="ydmc"></i></a>
 </bgm>
-<script data-no-instant type="c34a91698cc4820761ab6307-text/javascript">
+<script data-no-instant type="fe18e35633a3cfe8695f811b-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[
@@ -358,6 +294,6 @@ var a=parseInt(Math.random()*musicArr.length);
 var sj=musicArr[a];
 yaudio.src=sj.mp3;
  </script>
-<script src="../usr/plugins/YoduBGM/js/player.js" data-no-instant type="c34a91698cc4820761ab6307-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="c34a91698cc4820761ab6307-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="c34a91698cc4820761ab6307-|49" defer=""></script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js" data-no-instant type="fe18e35633a3cfe8695f811b-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="fe18e35633a3cfe8695f811b-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="fe18e35633a3cfe8695f811b-|49" defer=""></script></body>
 </html>

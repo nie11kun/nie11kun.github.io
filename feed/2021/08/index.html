@@ -21,166 +21,126 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <dc:creator>admin</dc:creator>
 <description><![CDATA[you are the company you keep...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。
-
-### containment 包含
-
-一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。
-
-
-<!--more-->
-
-
-这一类的 components 推荐直接使用 **children** props 来直接表示 parent 传递给他们的 elements：
-```
-const FancyBorder = props => {
+<p>react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。</p><h3>containment 包含</h3><p>一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。</p><!--more--><p>这一类的 components 推荐直接使用 <strong>children</strong> props 来直接表示 parent 传递给他们的 elements：</p><pre><code>const FancyBorder = props =&gt; {
     return (
-        <div className={`FancyBorder FancyBorder-${props.color}`}>
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
             {props.children}
-        </div>
+        &lt;/div&gt;
     );
-}
-```
-
-`props.children` 表示所有在调用此 component 时放在其元素中的内容。
-
-然后我们创建一个 component 来调用上面的 FancyBorder：
-```
-const WelcomeDialog = () => {
+}</code></pre><p><code>props.children</code> 表示所有在调用此 component 时放在其元素中的内容。</p><p>然后我们创建一个 component 来调用上面的 FancyBorder：</p><pre><code>const WelcomeDialog = () =&gt; {
     return (
-        <FancyBorder color='red'>
-            <h1 className='Dialog-title'>Welcome</h1>
-            <p className='Dialog-message'>
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;Welcome&lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
                 thank you for check this page.
-            </p>
-        </FancyBorder>
+            &lt;/p&gt;
+        &lt;/FancyBorder&gt;
     )
-}
-```
-
-任何在 **FancyBorder** 标签中的内容都会作为 **children** prop 传入 **FancyBorder** 中，然后通过 props.children 进行渲染。
-
-但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：
-```
-const React = require('react')
+}</code></pre><p>任何在 <strong>FancyBorder</strong> 标签中的内容都会作为 <strong>children</strong> prop 传入 <strong>FancyBorder</strong> 中，然后通过 props.children 进行渲染。</p><p>但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：</p><pre><code>const React = require('react')
 const ReactDOM = require('react-dom')
 
-const SplitPane = (props) => {
+const SplitPane = (props) =&gt; {
     return (
-        <div className='SplitPane'>
-            <div className='Splitpane-left'>
+        &lt;div className='SplitPane'&gt;
+            &lt;div className='Splitpane-left'&gt;
                 {props.left}
-            </div>
-            <div className='Splitpane-right'>
+            &lt;/div&gt;
+            &lt;div className='Splitpane-right'&gt;
                 {props.right}
-            </div>
-        </div>
+            &lt;/div&gt;
+        &lt;/div&gt;
     )
 }
 
-const Contacts = () => {
+const Contacts = () =&gt; {
     return (
-        <div>
-            <h1>marco</h1>
-        </div>
+        &lt;div&gt;
+            &lt;h1&gt;marco&lt;/h1&gt;
+        &lt;/div&gt;
     )
 }
 
-const Chat = () => {
+const Chat = () =&gt; {
     return (
-        <div>
-            <p>this is a test</p>
-        </div>
+        &lt;div&gt;
+            &lt;p&gt;this is a test&lt;/p&gt;
+        &lt;/div&gt;
     )
 }
 
-const App = () => {
+const App = () =&gt; {
     return (
-        <SplitPane
+        &lt;SplitPane
             left={
-                <Contacts />
+                &lt;Contacts /&gt;
             }
             right={
-                <Chat />
+                &lt;Chat /&gt;
             }
-        />
+        /&gt;
     )
 }
 
 ReactDOM.render(
-    <App />,
+    &lt;App /&gt;,
     document.getElementById('root')
-);
-```
-
-可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。
-
-### specialization 特殊化
-
-一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：
-```
-const React = require('react')
+);</code></pre><p>可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。</p><h3>specialization 特殊化</h3><p>一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：</p><pre><code>const React = require('react')
 const ReactDOM = require('react-dom')
 
-const FancyBorder = props => {
+const FancyBorder = props =&gt; {
     return (
-        <div className={`FancyBorder FancyBorder-${props.color}`}>
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
             {props.children}
-        </div>
+        &lt;/div&gt;
     );
 }
 
-const Dialog = props => {
+const Dialog = props =&gt; {
     return (
-        <FancyBorder color='red'>
-            <h1 className='Dialog-title'>
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;
                 {props.title}
-            </h1>
-            <p className='Dialog-message'>
+            &lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
                 {props.message}
-            </p>
-        </FancyBorder>
+            &lt;/p&gt;
+        &lt;/FancyBorder&gt;
     )
 }
-const WelcomeDialog = () => {
+const WelcomeDialog = () =&gt; {
     return (
-        <Dialog 
+        &lt;Dialog 
             title='Welcome'
             message='welcome to this party'
-        />
+        /&gt;
     )
 }
 
 ReactDOM.render(
-    <WelcomeDialog />,
+    &lt;WelcomeDialog /&gt;,
     document.getElementById('root')
-);
-```
-
-我们也可以通过 class 的方式定义 component：
-```
-const React = require('react')
+);</code></pre><p>我们也可以通过 class 的方式定义 component：</p><pre><code>const React = require('react')
 const ReactDOM = require('react-dom')
 
-const FancyBorder = props => {
+const FancyBorder = props =&gt; {
     return (
-        <div className={`FancyBorder FancyBorder-${props.color}`}>
+        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
             {props.children}
-        </div>
+        &lt;/div&gt;
     );
 }
 
-const Dialog = props => {
+const Dialog = props =&gt; {
     return (
-        <FancyBorder color='red'>
-            <h1 className='Dialog-title'>
+        &lt;FancyBorder color='red'&gt;
+            &lt;h1 className='Dialog-title'&gt;
                 {props.title}
-            </h1>
-            <p className='Dialog-message'>
+            &lt;/h1&gt;
+            &lt;p className='Dialog-message'&gt;
                 {props.message}
-            </p>
+            &lt;/p&gt;
             {props.children}
-        </FancyBorder>
+        &lt;/FancyBorder&gt;
     )
 }
 
@@ -202,27 +162,21 @@ class SignUpDialog extends React.Component {
 
     render () {
         return (
-            <Dialog
+            &lt;Dialog
                 title='Sport game'
                 message='welcome to this game'
-            >
-                <input value={this.state.login} onChange={this.handleChangle} />
-                <button onClick={this.handleSignup}>Sign me up</button>
-            </Dialog>
+            &gt;
+                &lt;input value={this.state.login} onChange={this.handleChangle} /&gt;
+                &lt;button onClick={this.handleSignup}&gt;Sign me up&lt;/button&gt;
+            &lt;/Dialog&gt;
         )
     }
 }
 
 ReactDOM.render(
-    <SignUpDialog />,
+    &lt;SignUpDialog /&gt;,
     document.getElementById('root')
-);
-```
-
-这里我们使用了自定义 props 和 **children** props 来构建了 **SignUpDialog** component，根据实际场景灵活使用。
-
-props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始**二进制数据/elements/functions** 等。
-</textarea></div>
+);</code></pre><p>这里我们使用了自定义 props 和 <strong>children</strong> props 来构建了 <strong>SignUpDialog</strong> component，根据实际场景灵活使用。</p><p>props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始<strong>二进制数据/elements/functions</strong> 等。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2329.html#comments</comments>
@@ -236,34 +190,19 @@ props 和 composition 提供了灵活性来自定义一个 component 的样式/�
 <dc:creator>admin</dc:creator>
 <description><![CDATA[you are the company you keep...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，下面详细介绍如何实现这一 function。
-
-下面创建一个 **temperature calculator** 温度计算器来判断在一个给定的温度下，水是否会沸腾。
-
-
-<!--more-->
-
-
-首先我们创建一个 `BoilingVerdict` component作为沸腾裁决器，它接受 celsius 摄氏温度作为一个 prop，然后输出是否足够使水沸腾：
-```
-const BoilingVerdict = (props) => {
-    if (props.celsius >= 100) {
-        return <p>The Water would boil.</p>
+<p>大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，下面详细介绍如何实现这一 function。</p><p>下面创建一个 <strong>temperature calculator</strong> 温度计算器来判断在一个给定的温度下，水是否会沸腾。</p><!--more--><p>首先我们创建一个 <code>BoilingVerdict</code> component作为沸腾裁决器，它接受 celsius 摄氏温度作为一个 prop，然后输出是否足够使水沸腾：</p><pre><code>const BoilingVerdict = (props) =&gt; {
+    if (props.celsius &gt;= 100) {
+        return &lt;p&gt;The Water would boil.&lt;/p&gt;
     }
-    return <p>The water would not boil.</p>
-} 
-```
-
-然后我们创建一个 `Calculator` compenent，它会渲染一个 input 元素用来输入温度数据，且将数据存储在 `this.state.temprature` 中：
-```
-const React = require('react')
+    return &lt;p&gt;The water would not boil.&lt;/p&gt;
+} </code></pre><p>然后我们创建一个 <code>Calculator</code> compenent，它会渲染一个 input 元素用来输入温度数据，且将数据存储在 <code>this.state.temprature</code> 中：</p><pre><code>const React = require('react')
 const ReactDOM = require('react-dom')
 
-const BoilingVerdict = (props) => {
-    if (props.celsius >= 100) {
-        return <p>The Water would boil.</p>
+const BoilingVerdict = (props) =&gt; {
+    if (props.celsius &gt;= 100) {
+        return &lt;p&gt;The Water would boil.&lt;/p&gt;
     }
-    return <p>The water would not boil.</p>
+    return &lt;p&gt;The water would not boil.&lt;/p&gt;
 } 
 
 class Calculator extends React.Component {
@@ -281,35 +220,22 @@ class Calculator extends React.Component {
     render() {
         const temperature = this.state.temperature;
         return (
-            <fieldset>
-                <legend>Enter temperature in celsius</legend>
-                <input
+            &lt;fieldset&gt;
+                &lt;legend&gt;Enter temperature in celsius&lt;/legend&gt;
+                &lt;input
                     value={temperature}
                     onChange={this.handleChange}
-                />
-                <BoilingVerdict celsius={parseFloat(temperature)} />
-            </fieldset>
+                /&gt;
+                &lt;BoilingVerdict celsius={parseFloat(temperature)} /&gt;
+            &lt;/fieldset&gt;
         );
     }
 }
 
 ReactDOM.render(
-    <Calculator />,
+    &lt;Calculator /&gt;,
     document.getElementById('root')
-);
-```
-
-上面的示例中使用了一个 fieldset 来定义一个块，legend 定义了这个块的抬头信息，效果如下：
-
-![2021-08-28T13:36:45.png][1]
-
-上一章节中我们详细介绍了如何构建一个 controlled component 可以参考。
-
-现在我们有一个新的需求，在原有 celsius 摄氏输入的同时增加一个 Fahrenheit 华氏输入栏，同时让它们两者保持数据同步。
-
-首先我们从 `Calculator` 中拆解出一个 `TempratureInput` component，将会给其增加一个 **scale** props，它可以是 "c" 或 "f" 来区分摄氏和华氏：
-```
-const scaleNames = {
+);</code></pre><p>上面的示例中使用了一个 fieldset 来定义一个块，legend 定义了这个块的抬头信息，效果如下：</p><p><img src="https://blog.niekun.net/usr/uploads/2021/08/2134840666.png" alt="2021-08-28T13:36:45.png" title="2021-08-28T13:36:45.png"></p><p>上一章节中我们详细介绍了如何构建一个 controlled component 可以参考。</p><p>现在我们有一个新的需求，在原有 celsius 摄氏输入的同时增加一个 Fahrenheit 华氏输入栏，同时让它们两者保持数据同步。</p><p>首先我们从 <code>Calculator</code> 中拆解出一个 <code>TempratureInput</code> component，将会给其增加一个 <strong>scale</strong> props，它可以是 "c" 或 "f" 来区分摄氏和华氏：</p><pre><code>const scaleNames = {
     c: 'Celsius',
     f: 'Fahrenheit'
 }
@@ -330,13 +256,13 @@ class TemperatureInput extends React.Component {
         const temperature = this.state.temperature;
         const scale = this.props.scale;
         return (
-            <fieldset>
-                <legend>Enter temperature in {scaleNames[scale]}:</legend>
-                <input
+            &lt;fieldset&gt;
+                &lt;legend&gt;Enter temperature in {scaleNames[scale]}:&lt;/legend&gt;
+                &lt;input
                     value={temperature}
                     onChange={this.handleChange}
-                />
-            </fieldset>
+                /&gt;
+            &lt;/fieldset&gt;
         );
     } 
 }
@@ -344,30 +270,14 @@ class TemperatureInput extends React.Component {
 class Calculator extends React.Component {
     render() {
         return (
-            <div>
-                <TemperatureInput scale='c' />
-                <TemperatureInput scale='f' />
-            </div>
+            &lt;div&gt;
+                &lt;TemperatureInput scale='c' /&gt;
+                &lt;TemperatureInput scale='f' /&gt;
+            &lt;/div&gt;
         );
     }
-}
-```
-
-修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称，这里使用了 ES6 的 Computed Property Names 预定义属性名，通过 `scaleNames[scale]` 动态调用其属性。此时两个 input 是相互隔离的，它们的数据不能相互访问。
-
-下面我们实现两个 component 之间的数据互通。
-
-首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：
-```
-const toCelsius = fahrenheit => (fahrenheit - 32) * 5 / 9;
-const toFahrenheit = celsius => (celsius * 9 / 5) + 32;
-```
-
-这里我使用了 ES6 的简化写法，省略了 return 等符号。
-
-下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：
-```
-const tryConvert = (temperature, convert) => {
+}</code></pre><p>修改后，我们有了两个 fieldset，分别用来输入摄氏和华氏温度值，我们建立了一个 scaleNames object 用来简化 scale 属性的定义，只需要通过调用 object props 的方式即可引用我们想要的文本全称，这里使用了 ES6 的 Computed Property Names 预定义属性名，通过 <code>scaleNames[scale]</code> 动态调用其属性。此时两个 input 是相互隔离的，它们的数据不能相互访问。</p><p>下面我们实现两个 component 之间的数据互通。</p><p>首先我们建立两个 function 用来实现 celsius 和 Fahrenheit 之前的互相转换：</p><pre><code>const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
+const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;</code></pre><p>这里我使用了 ES6 的简化写法，省略了 return 等符号。</p><p>下面我们编写另一个 function 接收两个数据，一个是 string 字符串和一个 function，用来将输入的 temperature 数据转换并返回转换好的字符串，当输入的 string 不是无法转换为数字时会返回一个空字符串，可以转换时将精度设置为 3 位小数：</p><pre><code>const tryConvert = (temperature, convert) =&gt; {
     const input = parseFloat(temperature);
     if (Number.isNaN(input)) {
         return '';
@@ -375,57 +285,18 @@ const tryConvert = (temperature, convert) => {
     const output = convert(input);
     const rounded = Math.round(output * 1000) / 1000;
     return rounded.toString();
-}
-```
-
-使用上面的 function 如果执行 `tryConvert('abc', toCelsius)` 会返回空字符串，如果执行 `tryConvert('10.22', toFahrenheit)` 会返回 `"50.396"`。
-
-下面我们将 **TempratureInput** 中的 state 提升到 parent component。
-
-当前的代码中，每个 **TempratureInput** component 各自控制它们的 state 且相互隔离，但是我们希望这两个 inputs 能够共享数据且同步更新，例如当我修改了 celsius input 后 Fahrenheit input 会自动更改为对应 celsius input 的结果。
-
-在 react 中，共享 state 通过将其移动到这些 components 最近层级中的 parent component 中，叫做 lifting state up，下面我们将 TempratureInput 中的本地 state 移动到 Calculator 中。如果 Calculator 含有 shared state，它就成为了其下级 components 的 source of truth 可信来源，它可以管理他的下级 components 保持数据一致性，因此两个 TempratureInput 的 props 都来自于同一个 Calculator，所以他们的 inputs 将会保持一致同步.
-
-下面我们逐步实现这个过程，首先替换 **TemperatureInput** component 中的 `this.state.temperature` 为 `this.props.temperature`，稍后我们将在 Calculator 中定义它：
-```
-  render() {
+}</code></pre><p>使用上面的 function 如果执行 <code>tryConvert('abc', toCelsius)</code> 会返回空字符串，如果执行 <code>tryConvert('10.22', toFahrenheit)</code> 会返回 <code>&quot;50.396&quot;</code>。</p><p>下面我们将 <strong>TempratureInput</strong> 中的 state 提升到 parent component。</p><p>当前的代码中，每个 <strong>TempratureInput</strong> component 各自控制它们的 state 且相互隔离，但是我们希望这两个 inputs 能够共享数据且同步更新，例如当我修改了 celsius input 后 Fahrenheit input 会自动更改为对应 celsius input 的结果。</p><p>在 react 中，共享 state 通过将其移动到这些 components 最近层级中的 parent component 中，叫做 lifting state up，下面我们将 TempratureInput 中的本地 state 移动到 Calculator 中。如果 Calculator 含有 shared state，它就成为了其下级 components 的 source of truth 可信来源，它可以管理他的下级 components 保持数据一致性，因此两个 TempratureInput 的 props 都来自于同一个 Calculator，所以他们的 inputs 将会保持一致同步.</p><p>下面我们逐步实现这个过程，首先替换 <strong>TemperatureInput</strong> component 中的 <code>this.state.temperature</code> 为 <code>this.props.temperature</code>，稍后我们将在 Calculator 中定义它：</p><pre><code>  render() {
     // Before: const temperature = this.state.temperature;
     const temperature = this.props.temperature;
-    // ...
-```
-
-我们知道 props 是只读的，在之前我们的 temperature 存储在本地的 state 中，然后通过 setState 来修改它，现在 temperature 来自 parent component，所以 TemperatureInput 无法直接控制它。
-
-在 react 中，通常的解决方法是使 component 为 controlled，就像 `<input>` 元素可以接受 **value** 和 **onChange** props 属性，我们可以自定义使 TempratureInput 接受 temperature 和 onTemperatureChange 属性。从而当它需要更新他的 temperature 数据时，就可以通过调用 `this.props.onTemperatureChange`:
-```
-    handleChange(e) {
+    // ...</code></pre><p>我们知道 props 是只读的，在之前我们的 temperature 存储在本地的 state 中，然后通过 setState 来修改它，现在 temperature 来自 parent component，所以 TemperatureInput 无法直接控制它。</p><p>在 react 中，通常的解决方法是使 component 为 controlled，就像 <code>&lt;input&gt;</code> 元素可以接受 <strong>value</strong> 和 <strong>onChange</strong> props 属性，我们可以自定义使 TempratureInput 接受 temperature 和 onTemperatureChange 属性。从而当它需要更新他的 temperature 数据时，就可以通过调用 <code>this.props.onTemperatureChange</code>:</p><pre><code>    handleChange(e) {
         this.props.onTemperatureChange(e.target.value);
-    }
-```
-
-注意这里的命名时自定义的，我们可以定义任意的名称作为 component 的 props 属性名称。
-
-onTemperatureChange 属性将会在 Calculator 中通 temperature 相关联起来，它将会修改 Calculator 中的 state 同时重新渲染两个 inputs 元素.
-
-下面我们专注于 Calculator component，我们需要存储当前 input 的 **temperate** 和 **scale** 数据到其 state 中，这里的 state 来自于之前从 TemperatureInput 中 lifting up 的，同时它将会同时作为两个 inputs 的可信来源，这两个 state 可以同时提供足够的数据来同时 render 两个 inputs，例如我们在 celsius input 中输入了 37，则 Calculator 的 state 应该是这样的：
-```
-{
+    }</code></pre><p>注意这里的命名时自定义的，我们可以定义任意的名称作为 component 的 props 属性名称。</p><p>onTemperatureChange 属性将会在 Calculator 中通 temperature 相关联起来，它将会修改 Calculator 中的 state 同时重新渲染两个 inputs 元素.</p><p>下面我们专注于 Calculator component，我们需要存储当前 input 的 <strong>temperate</strong> 和 <strong>scale</strong> 数据到其 state 中，这里的 state 来自于之前从 TemperatureInput 中 lifting up 的，同时它将会同时作为两个 inputs 的可信来源，这两个 state 可以同时提供足够的数据来同时 render 两个 inputs，例如我们在 celsius input 中输入了 37，则 Calculator 的 state 应该是这样的：</p><pre><code>{
   temperature: '37',
   scale: 'c'
-}
-```
-
-如果我们在 Fahrenheit input 中输入了 212，则 state 应该是这样的：
-```
-{
+}</code></pre><p>如果我们在 Fahrenheit input 中输入了 212，则 state 应该是这样的：</p><pre><code>{
   temperature: '212',
   scale: 'f'
-}
-```
-
-我们不需要同时单独存储两个 input 的数据，只需要存储最后一个 input 的数据即可，scale 中记录了具体是哪个 input 的来源。最后两个 inputs 中的数据是同步的，因为他们的值都是来自于同一个 state：
-```
-class Calculator extends React.Component {
+}</code></pre><p>我们不需要同时单独存储两个 input 的数据，只需要存储最后一个 input 的数据即可，scale 中记录了具体是哪个 input 的来源。最后两个 inputs 中的数据是同步的，因为他们的值都是来自于同一个 state：</p><pre><code>class Calculator extends React.Component {
     constructor(props) {
         super(props);
         this.handleCelsiusChange = this.handleCelsiusChange.bind(this);
@@ -448,34 +319,27 @@ class Calculator extends React.Component {
         const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
 
         return (
-            <div>
-                <TemperatureInput
+            &lt;div&gt;
+                &lt;TemperatureInput
                     scale='c'
                     temperature={celsius}
-                    onTemperatureChange={this.handleCelsiusChange} />
-                <TemperatureInput
+                    onTemperatureChange={this.handleCelsiusChange} /&gt;
+                &lt;TemperatureInput
                     scale='f'
                     temperature={fahrenheit}
-                    onTemperatureChange={this.handleFahrenheitChange} />
-                <BoilingVerdict celsius={parseFloat(celsius)} />
-            </div>
+                    onTemperatureChange={this.handleFahrenheitChange} /&gt;
+                &lt;BoilingVerdict celsius={parseFloat(celsius)} /&gt;
+            &lt;/div&gt;
         );
     }
-}
-```
-
-此时无论我们在 celsius 或 Fahrenheit 中输入数据都会同时更新两个 input 的值。
-
-此示例完整代码如下：
-```
-const React = require('react')
+}</code></pre><p>此时无论我们在 celsius 或 Fahrenheit 中输入数据都会同时更新两个 input 的值。</p><p>此示例完整代码如下：</p><pre><code>const React = require('react')
 const ReactDOM = require('react-dom')
 
-const BoilingVerdict = (props) => {
-    if (props.celsius >= 100) {
-        return <p>The Water would boil.</p>
+const BoilingVerdict = (props) =&gt; {
+    if (props.celsius &gt;= 100) {
+        return &lt;p&gt;The Water would boil.&lt;/p&gt;
     }
-    return <p>The water would not boil.</p>
+    return &lt;p&gt;The water would not boil.&lt;/p&gt;
 } 
 
 const scaleNames = {
@@ -483,10 +347,10 @@ const scaleNames = {
     f: 'Fahrenheit'
 }
 
-const toCelsius = fahrenheit => (fahrenheit - 32) * 5 / 9;
-const toFahrenheit = celsius => (celsius * 9 / 5) + 32;
+const toCelsius = fahrenheit =&gt; (fahrenheit - 32) * 5 / 9;
+const toFahrenheit = celsius =&gt; (celsius * 9 / 5) + 32;
 
-const tryConvert = (temperature, convert) => {
+const tryConvert = (temperature, convert) =&gt; {
     const input = parseFloat(temperature);
     if (Number.isNaN(input)) {
         return '';
@@ -511,13 +375,13 @@ class TemperatureInput extends React.Component {
         const temperature = this.props.temperature;
         const scale = this.props.scale;
         return (
-            <fieldset>
-                <legend>Enter temperature in {scaleNames[scale]}:</legend>
-                <input
+            &lt;fieldset&gt;
+                &lt;legend&gt;Enter temperature in {scaleNames[scale]}:&lt;/legend&gt;
+                &lt;input
                     value={temperature}
                     onChange={this.handleChange}
-                />
-            </fieldset>
+                /&gt;
+            &lt;/fieldset&gt;
         );
     } 
 }
@@ -545,38 +409,25 @@ class Calculator extends React.Component {
         const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
 
         return (
-            <div>
-                <TemperatureInput
+            &lt;div&gt;
+                &lt;TemperatureInput
                     scale='c'
                     temperature={celsius}
-                    onTemperatureChange={this.handleCelsiusChange} />
-                <TemperatureInput
+                    onTemperatureChange={this.handleCelsiusChange} /&gt;
+                &lt;TemperatureInput
                     scale='f'
                     temperature={fahrenheit}
-                    onTemperatureChange={this.handleFahrenheitChange} />
-                <BoilingVerdict celsius={parseFloat(celsius)} />
-            </div>
+                    onTemperatureChange={this.handleFahrenheitChange} /&gt;
+                &lt;BoilingVerdict celsius={parseFloat(celsius)} /&gt;
+            &lt;/div&gt;
         );
     }
 }
 
 ReactDOM.render(
-    <Calculator />,
+    &lt;Calculator /&gt;,
     document.getElementById('root')
-);
-```
-
-![2021-08-28T15:30:35.png][2]
-
-处理流程为：
-- 用户输入在任意一个 input 中输入数值后，触发 onChange 并调用 handleChange
-- 然后触发了 Calculator 的 onTemperatureChange 并将 input 的数据作为传入参数
-- 根据不同的 input 最终触发了 Calculator 中的 handleChange function 并对 state 进行了修改
-- state 改变后会触发 render，并计算最新的 celsius 和 Fahrenheit 数值
-- 最后根据计算的结果重新渲染 Temperature 的 input value
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/08/2134840666.png
-  [2]: https://blog.niekun.net/usr/uploads/2021/08/3952262804.png</textarea></div>
+);</code></pre><p><img src="https://blog.niekun.net/usr/uploads/2021/08/3952262804.png" alt="2021-08-28T15:30:35.png" title="2021-08-28T15:30:35.png"></p><p>处理流程为：</p><ul><li>用户输入在任意一个 input 中输入数值后，触发 onChange 并调用 handleChange</li><li>然后触发了 Calculator 的 onTemperatureChange 并将 input 的数据作为传入参数</li><li>根据不同的 input 最终触发了 Calculator 中的 handleChange function 并对 state 进行了修改</li><li>state 改变后会触发 render，并计算最新的 celsius 和 Fahrenheit 数值</li><li>最后根据计算的结果重新渲染 Temperature 的 input value</li></ul>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2324.html#comments</comments>

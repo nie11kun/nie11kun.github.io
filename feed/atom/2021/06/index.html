@@ -23,64 +23,32 @@ xml:base="https://blog.niekun.net/2021/06/"
 </author>
 <summary type="html"><![CDATA[you are the company you keep...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2321.html" xml:lang="zh-CN"><![CDATA[
-<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：
-```
-root@OpenWrt:~# df -h
+<p>我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：</p><pre><code>root@OpenWrt:~# df -h
 Filesystem                Size      Used Available Use% Mounted on
 /dev/root               252.0M    241.4M      5.5M  98% /rom
 tmpfs                   496.5M     68.0K    496.4M   0% /tmp
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
-tmpfs                   512.0K         0    512.0K   0% /dev
-```
-
-其中 `/dev/root` 是系统固件目录，不用考虑。`/dev/sda*` 就是系统实际可用的硬盘空间。我明明分配了 5 GB 空间给 openwrt 但是由于系统分区是在下载的固件中定义好的，所以其余空间就没有被识别。由于默认存储空间过小，当安装了过多的插件后，会提示空间不足导致无法安装更多插件：
-```
-verify_pkg_installable: Only have 0kb available on filesystem /overlay, pkg luci-app-openvpn needs 9
-opkg_install_cmd: Cannot install package luci-app-openvpn
-```
-
-下面介绍如何将剩余空间挂在到 openwrt 中。
-
-
-<!--more-->
-
-首先安装需要的插件，注意顺序不能错：
-```
-opkg update
+tmpfs                   512.0K         0    512.0K   0% /dev</code></pre><p>其中 <code>/dev/root</code> 是系统固件目录，不用考虑。<code>/dev/sda*</code> 就是系统实际可用的硬盘空间。我明明分配了 5 GB 空间给 openwrt 但是由于系统分区是在下载的固件中定义好的，所以其余空间就没有被识别。由于默认存储空间过小，当安装了过多的插件后，会提示空间不足导致无法安装更多插件：</p><pre><code>verify_pkg_installable: Only have 0kb available on filesystem /overlay, pkg luci-app-openvpn needs 9
+opkg_install_cmd: Cannot install package luci-app-openvpn</code></pre><p>下面介绍如何将剩余空间挂在到 openwrt 中。</p><!--more--><p>首先安装需要的插件，注意顺序不能错：</p><pre><code>opkg update
 opkg install block-mount e2fsprogs
 opkg update
-opkg install fdisk blkid
-```
-
-然后配置存储空间，注意 fdisk 指令后的几个选项：
-```
-fdisk -l
+opkg install fdisk blkid</code></pre><p>然后配置存储空间，注意 fdisk 指令后的几个选项：</p><pre><code>fdisk -l
 
 fdisk /dev/sda
 m
 n
 p
-<默认,回车> //–>分区号为3
-<默认,回车>
-<默认,回车>
+&lt;默认,回车&gt; //–&gt;分区号为3
+&lt;默认,回车&gt;
+&lt;默认,回车&gt;
 w
 
-reboot
-```
-
-重启后，格式化刚才建立的分区：
-```
-mkfs.ext4 /dev/sda3
-reboot
-```
-
-重启后配置 fstab：
-```
-uci add fstab mount
+reboot</code></pre><p>重启后，格式化刚才建立的分区：</p><pre><code>mkfs.ext4 /dev/sda3
+reboot</code></pre><p>重启后配置 fstab：</p><pre><code>uci add fstab mount
 
 # 将下面第一行命令输出的 UUID 替换第二行命令后的 UUID
-blkid -s UUID /dev/sda3 | cut -d\" -f2
+blkid -s UUID /dev/sda3 | cut -d\&quot; -f2
 uci set fstab.@mount[-1].uuid=UUID
 
 uci set fstab.@mount[-1].options=rw,sync,noatime
@@ -89,47 +57,24 @@ uci set fstab.@mount[-1].enabled_fsck=1
 uci set fstab.@mount[-1].enabled=1
 uci set fstab.@mount[-1].target=/
 uci set fstab.@mount[-1].device=/dev/sda3
-uci commit fstab
-```
-
-然后根目录复制到新的分区下：
-```
-mkdir /mnt/sda3
+uci commit fstab</code></pre><p>然后根目录复制到新的分区下：</p><pre><code>mkdir /mnt/sda3
 mount /dev/sda3 /mnt/sda3
 mkdir -p /tmp/cproot
 mount --bind / /tmp/cproot
 tar -C /tmp/cproot -cvf - . | tar -C /mnt/sda3 -xf -
 
 umount /tmp/cproot
-umount /mnt/sda3
-```
-
-然后启用引导：
-```
-/etc/init.d/fstab enable
+umount /mnt/sda3</code></pre><p>然后启用引导：</p><pre><code>/etc/init.d/fstab enable
 /etc/init.d/fstab start
 
-reboot
-```
-
-重启后再次查看系统分区信息：
-```
-root@OpenWrt:~# df -h
+reboot</code></pre><p>重启后再次查看系统分区信息：</p><pre><code>root@OpenWrt:~# df -h
 Filesystem                Size      Used Available Use% Mounted on
 /dev/root               252.0M    241.4M      5.5M  98% /rom
 tmpfs                   496.5M      1.0M    495.5M   0% /tmp
 /dev/sda3                 4.6G    257.2M      4.1G   6% /
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
-tmpfs                   512.0K         0    512.0K   0% /dev
-```
-
-可以看到 sda3 分区已经正常挂载了，后续可以继续安装需要的各种插件了。
-
-### 参考链接
-
-[Vmware下openwrt虚拟机扩展根目录大小](https://blog.csdn.net/duandao123/article/details/99689383)
-</textarea></div>
+tmpfs                   512.0K         0    512.0K   0% /dev</code></pre><p>可以看到 sda3 分区已经正常挂载了，后续可以继续安装需要的各种插件了。</p><h3>参考链接</h3><p><a href="https://blog.csdn.net/duandao123/article/details/99689383">Vmware下openwrt虚拟机扩展根目录大小</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2321.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2021/06/" thr:count="0"/>

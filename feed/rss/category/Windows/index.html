@@ -26,357 +26,60 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <title>解除 Windows 11 TPM 或 CPU 限制</title>
 <link>https://blog.niekun.net/archives/2340.html</link>
 <dc:date>2021-10-08T11:58:00+08:00</dc:date>
-<description>最近微软发布了 Windows 11 正式版。但是对设备硬件有一些限制，可以通过修改注册表的方式解除限制。
-
-首先打开注册表，快捷键 `win + R`，输入 regedit：
-![2021-10-08T03:51:00.png][1]
-
-
-
-
-
-通过左侧层级菜单找到：`Computer\HKEY_LOCAL_MACHINE\SYSTEM\Setup\MoSetup`:
-![2021-10-08T03:52:28.png][2]
-
-选中 Mosetup，菜单栏选择 **edit** - **New** - **DWORD** 添加新键，重命名为：`AllowUpgradesWithUnsupportedTPMOrCPU`：
-![2021-10-08T03:54:27.png][3]
-
-双击此键设置值为 1，然后确认：
-![2021-10-08T03:55:45.png][4]
-
-然后就可以下载镜像安装了，期间会提示硬件不符合要求，但多了个**接受**选项安装 Windows 11：
-![2021-10-08T03:57:47.png][5]
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/10/2068741883.png
-  [2]: https://blog.niekun.net/usr/uploads/2021/10/3148204400.png
-  [3]: https://blog.niekun.net/usr/uploads/2021/10/2409459988.png
-  [4]: https://blog.niekun.net/usr/uploads/2021/10/401781102.png
-  [5]: https://blog.niekun.net/usr/uploads/2021/10/2409503880.png</description>
+<description>最近微软发布了 Windows 11 正式版。但是对设备硬件有一些限制，可以通过修改注册表的方式解除限制。首先打开注册表，快捷键 win + R，输入 regedit：通过左侧层级菜单找到：Computer\HKEY_LOCAL_MACHINE\SYSTEM\Setup\MoSetup:选中 Mosetup，菜单栏选择 edit - New - DWORD 添加新键，重命名为：AllowUpgradesWithUnsupportedTPMOrCPU：双击此键设置值为 1，然后确认：然后就可以下载镜像安装了，期间会提示硬件不符合要求，但多了个接受选项安装 Windows 11：</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2139.html">
 <title>Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理</title>
 <link>https://blog.niekun.net/archives/2139.html</link>
 <dc:date>2021-02-07T11:07:10+08:00</dc:date>
-<description>由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。
-
-我的流程是：
-- VMware 安装 Ubuntu
-- 共享 Windows 下的文件夹给 Ubuntu 作为开发目录
-- Windows 下使用 vs code 通过 ssh 方式远程连接 Ubuntu
-
-通过远程连接的方式在 Windows 下做 node.js 开发实际体验很好。但是在通过 npm 安装某些包时常常会有报错出现，错误日志大概意思就是说无法给 node_modules 文件夹内安装的库文件添加软连接到系统路径。
-
-网上查询后发现了问题原因，我的开发目录实际是在 Windows 下的，Windows 和 Linux 有着不一样的文件系统和路径格式，所以 npm 在安装某些包含 bin 可执行文件的第三方库时，会默认自动创建相关文件的软链接到 Linux 系统路径，这样就就报错了。
-
-如果要坚持使用共享目录的形式做开发，那么需要设置在 npm 安装新库时使用参数 `--no-bin-links` 告诉系统不要自动创建软连接，语法如下：
-    npm install cowsay --no-bin-links
-
-这样就会跳过相关步骤。
-
-也可以设置到 npm 配置中，这样以后安装的包都会默认不创建 bin 的软连接了：
-    npm config set bin-links false
-
-当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。
-
-参考链接：https://github.com/npm/npm/issues/2221</description>
+<description>由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。我的流程是：VMware 安装 Ubuntu共享 Windows 下的文件夹给 Ubuntu 作为开发目录Windows 下使用 vs code 通过 ssh 方式远程连接 Ubuntu通过远程连接的方式在 Windows 下做 node.js 开发实际体验很好。但是在通过 npm 安装某些包时常常会有报错出现，错误日志大概意思就是说无法给 node_modules 文件夹内安装的库文件添加软连接到系统路径。网上查询后发现了问题原因，我的开发目录实际是在 Windows 下的，Windows 和 Linux 有着不一样的文件系统和路径格式，所以 npm 在安装某些包含 bin 可执行文件的第三方库时，会默认自动创建相关文件的软链接到 Linux 系统路径，这样就就报错了。如果要坚持使用共享目录的形式做开发，那么需要设置在 npm 安装新库时使用参数 --no-bin-links 告诉系统不要自动创建软连接，语法如下：npm install cowsay --no-bin-links
+这样就会跳过相关步骤。也可以设置到 npm 配置中，这样以后安装的包都会默认不创建 bin 的软连接了：npm config set bin-links false
+当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。参考链接：https://github.com/npm/npm/issues/2221</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2103.html">
 <title>Windows 10 配置共享文件夹</title>
 <link>https://blog.niekun.net/archives/2103.html</link>
 <dc:date>2021-02-03T10:28:00+08:00</dc:date>
-<description>最近研究了下 Windows 的共享设置，目的是在同一局域网下共享文件夹给其他设备读写。下面从原理和实际操作上介绍下共享过程。
-
-### SMB
-
-Windows 共享使用 Server Message Block (SMB) 协议，它可以让应用程序访问本机网络下的其他设备的文件及服务。
-
-SMB 是 IBM 在 1980 年代创造的协议，目前已经有了很多的升级及分支。
-
-SMB 协议允许应用程序访问远程主机的文件和资源如打印机等，也可以同远程主机上设置了接收 SMB 协议的应用程序通信。它运行在网络的 layer 7 层，也就是 application 应用层，使用 TCP/IP 的 445 端口传输数据。
-
-从 Windows 95 开始，微软将引入了 SMB 协议的支持。Linux 端，samba 作为一个开源软件提供 SMB 的支持。
-
-
-
-
-
-SMB 协议也是在不断发展的，下面是一个简单的版本更新过程：
-- SMB 1.0 (1984): IBM 为 DOS 下的文件共享创造了 SMB
-- CIFS (1996): 微软开发了 SMB 的分支版本并集成在 Windows 95，添加了大文件的支持，直接在 TCP/IP 传输
-- SMB 2.0 (2006): 在 Windows Vista 和 Windows Server 2008 中发布. 提升了性能
-- SMB 2.1 (2010): 在 Windows Server 2008 R2 和 Windows 7 中发布
-- SMB 3.0 (2012): 在 Windows 8 和 Windows Server 2012 中发布. 提升了性能，增加备份，安全和管理功能
-- SMB 3.02 (2014): 在 Windows 8.1 和 Windows Server 2012 R2 中发布. 提升性能并完全停止支持 CIFS/SMB 1.0
-- SMB 3.1.1 (2015): 在 Windows 10 和 Windows Server 2016 中发布
-
-在 2017 年，利用 SMB 1.0 的漏洞，WannaCry 勒索软件在互联网中大规模传播，微软虽然立刻发布了补丁，但专家还是建议立刻停止运行 SMB 1.0 协议。
-
-### Windows 设置共享
-
-下面介绍在 Windows 10 中配置共享文件夹。
-
-首先打开控制面板，进入 network and Internet：
-![1.jpg][1]
-
-点击 network and sharing center：
-![2.jpg][2]
-
-点击 change advanced sharing settings：
-![3.jpg][3]
-
-在 current profile 中打开网络发现和文件共享：
-![4.jpg][4]
-
-然后在 all network 中关闭密码保护(否则在其他设备访问时会提示输入账户密码)：
-![5.jpg][5]
-
-控制面板配置完成后，我们开始配置需要共享的文件夹。
-
-在需要共享的文件夹上点击右键，选择属性：
-![6.jpg][6]
-
-在 share 选项卡中点击 share：
-![7.jpg][7]
-
-在下拉菜单中选择 everyone，然后点击 add：
-![8.jpg][8]
-
-修改此文件夹的读写权限，我这里设置读和写：
-![9.jpg][9]
-
-点击 share 开启共享：
-![10.jpg][10]
-
-返回属性栏，点击 advanced share：
-![11.jpg][11]
-
-选中 share this folder：
-![12.jpg][12]
-
-点击 permission：
-![13.jpg][13]
-
-设置共享权限，我这里设置为可读写：
-![14.jpg][14]
-
-确认后共享文件夹就配置完成了。
-
-### 访问共享文件
-
-下面介绍在其他局域网设备访问主机的共享文件夹。
-
-#### Windows
-
-在 Windows 上，打开 file explorer，点击 network：
-![15.jpg][15]
-
-在右侧就是本地网络下启用了网络发现的设备列表，点击进入设置了共享文件夹的设备名称就可以访问了：
-![16.jpg][16]
-
-也可以在地址栏直接输入共享路径地址，以双反斜线`\\`开头后面是设备 IP 或名称，如：`\\DESKTOP-BS3C55D`。
-
-关于设备的名称，可以在终端通过 `whoami` 命令查询：
-![17.jpg][17]
-
-#### iPhone
-
-**在支持 SMB 协议的设备或应用程序中都可以打开 Windows 共享的文件**，下面介绍通过 iPhone 的 files app 来连接到 Windows 共享目录。
-
-**打开 files app，点击右上角的 `...` 选择 connect to server：**
-![IMG_3227.jpg][18]
-
-**在 server 中输入共享主机的地址，这里直接输入 IP 地址：**
-![IMG_3229.PNG][19]
-
-**选择 guest 点击 next：**
-![IMG_3230.PNG][20]
-
-**完成后就可以访问到共享目录了：**
-![IMG_3232.PNG][21]
-
-如果文件夹设置的是可读写权限，就可以在手机上传输文件到共享目录了。
-
-参考链接：
-[Server Message Block Protocol (SMB protocol)](https://searchnetworking.techtarget.com/definition/Server-Message-Block-Protocol)
-
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/02/3484356955.jpg
-  [2]: https://blog.niekun.net/usr/uploads/2021/02/1555287216.jpg
-  [3]: https://blog.niekun.net/usr/uploads/2021/02/3540072456.jpg
-  [4]: https://blog.niekun.net/usr/uploads/2021/02/87039655.jpg
-  [5]: https://blog.niekun.net/usr/uploads/2021/02/368588129.jpg
-  [6]: https://blog.niekun.net/usr/uploads/2021/02/244669714.jpg
-  [7]: https://blog.niekun.net/usr/uploads/2021/02/3905984961.jpg
-  [8]: https://blog.niekun.net/usr/uploads/2021/02/1822670699.jpg
-  [9]: https://blog.niekun.net/usr/uploads/2021/02/3658771641.jpg
-  [10]: https://blog.niekun.net/usr/uploads/2021/02/3388059287.jpg
-  [11]: https://blog.niekun.net/usr/uploads/2021/02/1235392306.jpg
-  [12]: https://blog.niekun.net/usr/uploads/2021/02/2162677218.jpg
-  [13]: https://blog.niekun.net/usr/uploads/2021/02/2270117126.jpg
-  [14]: https://blog.niekun.net/usr/uploads/2021/02/2247707898.jpg
-  [15]: https://blog.niekun.net/usr/uploads/2021/02/3714944153.jpg
-  [16]: https://blog.niekun.net/usr/uploads/2021/02/1841189733.jpg
-  [17]: https://blog.niekun.net/usr/uploads/2021/02/969206228.jpg
-  [18]: https://blog.niekun.net/usr/uploads/2021/02/765618703.jpg
-  [19]: https://blog.niekun.net/usr/uploads/2021/02/323133738.png
-  [20]: https://blog.niekun.net/usr/uploads/2021/02/2346742928.png
-  [21]: https://blog.niekun.net/usr/uploads/2021/02/989176749.png</description>
+<description>最近研究了下 Windows 的共享设置，目的是在同一局域网下共享文件夹给其他设备读写。下面从原理和实际操作上介绍下共享过程。SMBWindows 共享使用 Server Message Block (SMB) 协议，它可以让应用程序访问本机网络下的其他设备的文件及服务。SMB 是 IBM 在 1980 年代创造的协议，目前已经有了很多的升级及分支。SMB 协议允许应用程序访问远程主机的文件和资源如打印机等，也可以同远程主机上设置了接收 SMB 协议的应用程序通信。它运行在网络的 layer 7 层，也就是 application 应用层，使用 TCP/IP 的 445 端口传输数据。从 Windows 95 开始，微软将引入了 SMB 协议的支持。Linux 端，samba 作为一个开源软件提供 SMB 的支持。SMB 协议也是在不断发展的，下面是一个简单的版本更新过程：SMB 1.0 (1984): IBM 为 DOS 下的文件共享创造了 SMBCIFS (1996): 微软开发了 SMB 的分支版本并集成在 Windows 95，添加了大文件的支持，直接在 TCP/IP 传输SMB 2.0 (2006): 在 Windows Vista 和 Windows Server 2008 中发布. 提升了性能SMB 2.1 (2010): 在 Windows Server 2008 R2 和 Windows 7 中发布SMB 3.0 (2012): 在 Windows 8 和 Windows Server 2012 中发布. 提升了性能，增加备份，安全和管理功能SMB 3.02 (2014): 在 Windows 8.1 和 Windows Server 2012 R2 中发布. 提升性能并完全停止支持 CIFS/SMB 1.0SMB 3.1.1 (2015): 在 Windows 10 和 Windows Server 2016 中发布在 2017 年，利用 SMB 1.0 的漏洞，WannaCry 勒索软件在互联网中大规模传播，微软虽然立刻发布了补丁，但专家还是建议立刻停止运行 SMB 1.0 协议。Windows 设置共享下面介绍在 Windows 10 中配置共享文件夹。首先打开控制面板，进入 network and Internet：点击 network and sharing center：点击 change advanced sharing settings：在 current profile 中打开网络发现和文件共享：然后在 all network 中关闭密码保护(否则在其他设备访问时会提示输入账户密码)：控制面板配置完成后，我们开始配置需要共享的文件夹。在需要共享的文件夹上点击右键，选择属性：在 share 选项卡中点击 share：在下拉菜单中选择 everyone，然后点击 add：修改此文件夹的读写权限，我这里设置读和写：点击 share 开启共享：返回属性栏，点击 advanced share：选中 share this folder：点击 permission：设置共享权限，我这里设置为可读写：确认后共享文件夹就配置完成了。访问共享文件下面介绍在其他局域网设备访问主机的共享文件夹。Windows在 Windows 上，打开 file explorer，点击 network：在右侧就是本地网络下启用了网络发现的设备列表，点击进入设置了共享文件夹的设备名称就可以访问了：也可以在地址栏直接输入共享路径地址，以双反斜线\\开头后面是设备 IP 或名称，如：\\DESKTOP-BS3C55D。关于设备的名称，可以在终端通过 whoami 命令查询：iPhone在支持 SMB 协议的设备或应用程序中都可以打开 Windows 共享的文件，下面介绍通过 iPhone 的 files app 来连接到 Windows 共享目录。打开 files app，点击右上角的 ... 选择 connect to server：在 server 中输入共享主机的地址，这里直接输入 IP 地址：选择 guest 点击 next：完成后就可以访问到共享目录了：如果文件夹设置的是可读写权限，就可以在手机上传输文件到共享目录了。参考链接：Server Message Block Protocol (SMB protocol)</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2098.html">
 <title>解除 UWP 应用的网络隔离</title>
 <link>https://blog.niekun.net/archives/2098.html</link>
 <dc:date>2021-02-02T09:33:00+08:00</dc:date>
-<description>Microsoft store 里都是 UWP 应用，运行在被称为 App Container 的虚拟沙箱环境中，其安全性及纯净度远胜于传统的 EXE 应用。但 App Container 机制同时也阻止了网络流量发送到本机（即 loopback）， 使大部分网络抓包调试工具无法对 UWP 应用进行流量分析。该机制也阻止了 UWP 应用访问 localhost，如果你的代理地址在本地地址，UWP 就无法访问。
-
-有两种方法来解除某个 UWP 应用的沙盒隔离，一种是使用系统自带的工具 **CheckNetIsolation**，一种是使用第三方工具 **fiddler**。
-
-### CheckNetIsolation 
-
-Windows 10 自带了一个 CheckNetIsolation 工具，可以解除 UWP 应用的网络隔离，使之可以正常访问本地地址在终端执行以下指令即可：
-    CheckNetIsolation.exe loopbackexempt -a -p=SID
-
-SID(security identifier) 是每个 UWP 应用独有的识别码，可以从注册表中获得应用的 SID 码。
-
-
-
-
-快捷键 win + R 打开运行窗口，输入 regedit 进入注册表。访问如下路径：`\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppContainer\Mappings\`：
-![1.jpg][1]
-
-此路径下的左侧文件夹名称就是当前安装的每个 UWP 应用的 SID 码，右侧的 DisplayName 就是应用的名称，可以用来帮助找到需要的应用 SID。
-
-复制需要解除隔离的应用的 SID 码执行上面的命令即可。然后应用就可以正常访问本地地址了，也可以使用抓包工具获取到流量。
-
-### fiddler
-
-也可以使用第三方软件来实现以上任务，这里介绍 fiddler。
-
-fiddler 是一款免费的网络调试代理工具。官网地址：https://www.telerik.com/fiddler
-
-下载安装后打开应用，点击左上角的 WinConfig：
-![2.jpg][2]
-
-会弹出所有 UWP 应用列表，找到需要解除隔离的应用，点击左侧的选择框，然后点击 save change 即可：
-![3.jpg][3]
-
-此时再次运行对应的应用，就可以在 fiddler 看到应用的流量信息了。**注意 fiddler 需要一直保持开启状态解除隔离才会生效。**
-
-使用 fiddler 还可以方便的设置代理服务，使选中的应用通过代理访问网络，点击 tools - options：
-![4.jpg][4]
-
-在弹出栏中，点击 gateway，选择 manual proxy configuration：
-![5.jpg][5]
-
-第一行设置代理地址，模式为：
-    proxyserver:8080
-
-也可以根据网络协议设置：
-    http=httpproxy:8080;https=httpsproxy:8080
-
-第二行设置 bypass 忽略列表，可以设置忽略代理本地地址或其他需要排除的地址：
-    ;*.extranet.example.com;
-
-点击 ok 保存后即可，此时在 WinConfig 中选中的 UWP 应用就会通过代理地址访问网络。
-
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/02/3861334125.jpg
-  [2]: https://blog.niekun.net/usr/uploads/2021/02/186160648.jpg
-  [3]: https://blog.niekun.net/usr/uploads/2021/02/2421167178.jpg
-  [4]: https://blog.niekun.net/usr/uploads/2021/02/3134568243.jpg
-  [5]: https://blog.niekun.net/usr/uploads/2021/02/3205051089.jpg</description>
+<description>Microsoft store 里都是 UWP 应用，运行在被称为 App Container 的虚拟沙箱环境中，其安全性及纯净度远胜于传统的 EXE 应用。但 App Container 机制同时也阻止了网络流量发送到本机（即 loopback）， 使大部分网络抓包调试工具无法对 UWP 应用进行流量分析。该机制也阻止了 UWP 应用访问 localhost，如果你的代理地址在本地地址，UWP 就无法访问。有两种方法来解除某个 UWP 应用的沙盒隔离，一种是使用系统自带的工具 CheckNetIsolation，一种是使用第三方工具 fiddler。CheckNetIsolationWindows 10 自带了一个 CheckNetIsolation 工具，可以解除 UWP 应用的网络隔离，使之可以正常访问本地地址在终端执行以下指令即可：CheckNetIsolation.exe loopbackexempt -a -p=SID
+SID(security identifier) 是每个 UWP 应用独有的识别码，可以从注册表中获得应用的 SID 码。快捷键 win + R 打开运行窗口，输入 regedit 进入注册表。访问如下路径：\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppContainer\Mappings\：此路径下的左侧文件夹名称就是当前安装的每个 UWP 应用的 SID 码，右侧的 DisplayName 就是应用的名称，可以用来帮助找到需要的应用 SID。复制需要解除隔离的应用的 SID 码执行上面的命令即可。然后应用就可以正常访问本地地址了，也可以使用抓包工具获取到流量。fiddler也可以使用第三方软件来实现以上任务，这里介绍 fiddler。fiddler 是一款免费的网络调试代理工具。官网地址：https://www.telerik.com/fiddler下载安装后打开应用，点击左上角的 WinConfig：会弹出所有 UWP 应用列表，找到需要解除隔离的应用，点击左侧的选择框，然后点击 save change 即可：此时再次运行对应的应用，就可以在 fiddler 看到应用的流量信息了。注意 fiddler 需要一直保持开启状态解除隔离才会生效。使用 fiddler 还可以方便的设置代理服务，使选中的应用通过代理访问网络，点击 tools - options：在弹出栏中，点击 gateway，选择 manual proxy configuration：第一行设置代理地址，模式为：proxyserver:8080
+也可以根据网络协议设置：http=httpproxy:8080;https=httpsproxy:8080
+第二行设置 bypass 忽略列表，可以设置忽略代理本地地址或其他需要排除的地址：&lt;local&gt;;*.extranet.example.com;
+点击 ok 保存后即可，此时在 WinConfig 中选中的 UWP 应用就会通过代理地址访问网络。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2061.html">
 <title>VMware 虚拟机 NAT 网络下配置端口转发到主机</title>
 <link>https://blog.niekun.net/archives/2061.html</link>
 <dc:date>2021-01-12T11:06:00+08:00</dc:date>
-<description>今天安装了 Ubuntu 虚拟机用来做 node.js 开发，在选择网络模式时我选择了 NAT 模式，因为这样可以在主机处于不同网络环境下使虚拟机都有着同一个 IP 地址，方便管理。
-
-但是在此时中发现，虚拟机可以正常访问主机及外网，但是主机无法通过分配的 NAT 地址来 ssh 访问虚拟机。查询后发现这是正常现象。可以通过设置端口转发来将虚拟机端口映射到主机端口来实现对虚拟机的访问。
-
-
-
-
-首先给虚拟机设置一个静态 ip 地址：
-![1.jpg][1]
-
-然后打开**虚拟网络编辑器**：
-![2.jpg][2]
-
-选中 NAT 对应的网卡，这里是 vnet 8，点击 **NAT 设置**：
-![3.jpg][3]
-
-在端口转发栏点击**添加**：
-![4.jpg][4]
-
-设置要转发到的主机端口及对应虚拟机 IP 和端口等信息，这里我需要转发 ssh 的 22 端口到主机的 2222 端口：
-![5.jpg][5]
-
-点击确定保存设置即可。
-
-设置好后就可以通过访问主机本地 2222 端口实现 ssh 访问虚拟机了。可以根据需要设置多个端口转发。
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/01/1335854183.jpg
-  [2]: https://blog.niekun.net/usr/uploads/2021/01/2454627578.jpg
-  [3]: https://blog.niekun.net/usr/uploads/2021/01/2210698665.jpg
-  [4]: https://blog.niekun.net/usr/uploads/2021/01/725240944.jpg
-  [5]: https://blog.niekun.net/usr/uploads/2021/01/406942165.jpg</description>
+<description>今天安装了 Ubuntu 虚拟机用来做 node.js 开发，在选择网络模式时我选择了 NAT 模式，因为这样可以在主机处于不同网络环境下使虚拟机都有着同一个 IP 地址，方便管理。但是在此时中发现，虚拟机可以正常访问主机及外网，但是主机无法通过分配的 NAT 地址来 ssh 访问虚拟机。查询后发现这是正常现象。可以通过设置端口转发来将虚拟机端口映射到主机端口来实现对虚拟机的访问。首先给虚拟机设置一个静态 ip 地址：然后打开虚拟网络编辑器：选中 NAT 对应的网卡，这里是 vnet 8，点击 NAT 设置：在端口转发栏点击添加：设置要转发到的主机端口及对应虚拟机 IP 和端口等信息，这里我需要转发 ssh 的 22 端口到主机的 2222 端口：点击确定保存设置即可。设置好后就可以通过访问主机本地 2222 端口实现 ssh 访问虚拟机了。可以根据需要设置多个端口转发。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2021.html">
 <title>Windows 补丁下载</title>
 <link>https://blog.niekun.net/archives/2021.html</link>
 <dc:date>2020-12-22T10:54:50+08:00</dc:date>
-<description>如果需要单独下载某个 Windows 补丁，可以在其官网下载：https://www.catalog.update.microsoft.com/
-
-搜索补丁编号即可。</description>
+<description>如果需要单独下载某个 Windows 补丁，可以在其官网下载：https://www.catalog.update.microsoft.com/搜索补丁编号即可。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1911.html">
 <title>Speedtest CLI 命令行测速工具</title>
 <link>https://blog.niekun.net/archives/1911.html</link>
 <dc:date>2020-11-16T13:08:00+08:00</dc:date>
-<description>speedtest 是国外很流行的测速平台，可以直接在其网站上测试本地上行下行带宽，最近看到其提供了本地命令行工具，使用起来更加方便了。
-
-官网：https://www.speedtest.net/
-
-
-
-
-### 安装
-
-首先需要到官网安装对应平台的 CLI 工具：https://www.speedtest.net/apps/cli
-
-Linux 类系统可以直接在使用 apt/brew 等包管理工具方便的安装，Windows 下需要手动下载 exe 可执行文件使用。
-
-**macOS:**
-```
-brew tap teamookla/speedtest
+<description>speedtest 是国外很流行的测速平台，可以直接在其网站上测试本地上行下行带宽，最近看到其提供了本地命令行工具，使用起来更加方便了。官网：https://www.speedtest.net/安装首先需要到官网安装对应平台的 CLI 工具：https://www.speedtest.net/apps/cliLinux 类系统可以直接在使用 apt/brew 等包管理工具方便的安装，Windows 下需要手动下载 exe 可执行文件使用。macOS:brew tap teamookla/speedtest
 brew update
-brew install speedtest --force
-```
-
-**ubuntu:**
-```
-sudo apt-get install gnupg1 apt-transport-https dirmngr
+brew install speedtest --forceubuntu:sudo apt-get install gnupg1 apt-transport-https dirmngr
 export INSTALL_KEY=379CE192D401AB61
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $INSTALL_KEY
-echo "deb https://ookla.bintray.com/debian generic main" | sudo tee  /etc/apt/sources.list.d/speedtest.list
+echo &quot;deb https://ookla.bintray.com/debian generic main&quot; | sudo tee  /etc/apt/sources.list.d/speedtest.list
 sudo apt-get update
-sudo apt-get install speedtest
-```
-
-**windows:**
-首先在网站上下载可执行文件，[点击下载 1.0.0 版](https://bintray.com/ookla/download/download_file?file_path=ookla-speedtest-1.0.0-win64.zip)。
-
-可执行文件为 `speedtest.exe`，需要将其目录加入系统 PATH 路径才可以直接在 terminal 调用，加入 PATH 方法参考我的教程：https://blog.niekun.net/archives/413.html
-
-### 使用
-
-在终端下使用 `speedtest -h` 命令查看帮助：
-```
-Speedtest by Ookla is the official command line client for testing the speed and performance of your internet connection.
+sudo apt-get install speedtestwindows:首先在网站上下载可执行文件，点击下载 1.0.0 版。可执行文件为 speedtest.exe，需要将其目录加入系统 PATH 路径才可以直接在 terminal 调用，加入 PATH 方法参考我的教程：https://blog.niekun.net/archives/413.html使用在终端下使用 speedtest -h 命令查看帮助：Speedtest by Ookla is the official command line client for testing the speed and performance of your internet connection.
 
 Version: speedtest 1.0.0.2
 
-Usage: speedtest []
+Usage: speedtest [&lt;options&gt;]
   -h, --help                        Print usage information
   -V, --version                     Print version number
   -L, --servers                     List nearest servers
@@ -408,12 +111,7 @@ Usage: speedtest []
    Decimal prefix, bytes per second: B/s, kB/s, MB/s, GB/s
    Binary prefix, bits per second:   kibps, Mibps, Gibps
    Binary prefix, bytes per second:  kiB/s, MiB/s, GiB/s
-   Auto-scaled prefix: auto-binary-bits, auto-binary-bytes, auto-decimal-bits, auto-decimal-bytes
-```
-
-首先使用测试最近的测速节点 `testspeed -L`:
-```
-root@Marco-vostro-14-wsl:~# speedtest -L
+   Auto-scaled prefix: auto-binary-bits, auto-binary-bytes, auto-decimal-bits, auto-decimal-bytes首先使用测试最近的测速节点 testspeed -L:root@Marco-vostro-14-wsl:~# speedtest -L
 Closest servers:
 
     ID  Name                           Location             Country
@@ -426,12 +124,7 @@ Closest servers:
  31985  China Unicom                   Chongqing            China
  17584  Chongqing Mobile Company       Chongqing            CN
   5530  CCN                            Chongqing            China
- 16145  Lanzhou,China Mobile,Gansu     Lanzhou              China
-```
-
-执行 `speedtest` 命令进行测速，默认使用上面测试的最近的节点：
-```
-root@Marco-vostro-14-wsl:~# speedtest
+ 16145  Lanzhou,China Mobile,Gansu     Lanzhou              China执行 speedtest 命令进行测速，默认使用上面测试的最近的节点：root@Marco-vostro-14-wsl:~# speedtest
 
    Speedtest by Ookla
 
@@ -441,29 +134,15 @@ root@Marco-vostro-14-wsl:~# speedtest
    Download:    14.31 Mbps (data used: 17.5 MB)
      Upload:     8.23 Mbps (data used: 11.3 MB)
 Packet Loss:     0.0%
- Result URL: https://www.speedtest.net/result/c/bee17d45-7b9c-44e6-8a6e-ef99d84ba441
-```
-
-以上就是简单的用法，可以查看帮助了解更多的使用方法。</description>
+ Result URL: https://www.speedtest.net/result/c/bee17d45-7b9c-44e6-8a6e-ef99d84ba441以上就是简单的用法，可以查看帮助了解更多的使用方法。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1893.html">
 <title>VMware 虚拟机磁盘文件合并</title>
 <link>https://blog.niekun.net/archives/1893.html</link>
 <dc:date>2020-11-05T16:39:01+08:00</dc:date>
-<description>在创建 VMware workstation 虚拟机时，在磁盘选项上会提示选择创建单个虚拟磁盘文件或分割为多个文件。我喜欢使用单个文件，因为选择多个文件会在虚拟机目录下建立许多类似的 vmdk 文件，不太方便复制到其他地方。而且在导入 macOS 下的 VMware fusion 时会报错，所以推荐使用单个磁盘文件。
-
-当现有的虚拟机已经是使用多个文件形式的话，可以使用 VMware workstation 附带的 vmware-vdiskmanager.exe 工具来进行合并。
-
-
-
-
-vmware-vdiskmanager.exe 是一个命令行工具，工具的位置在 VMware 安装路径下，如：`C:\Program Files (x86)\VMware\VMware Workstation\vmware-vdiskmanager.exe`
-
-在 PS 命令行下调用此工具查看帮助：
-```
-PS C:\Users\Marco Nie> &"vmware-vdiskmanager.exe"
+<description>在创建 VMware workstation 虚拟机时，在磁盘选项上会提示选择创建单个虚拟磁盘文件或分割为多个文件。我喜欢使用单个文件，因为选择多个文件会在虚拟机目录下建立许多类似的 vmdk 文件，不太方便复制到其他地方。而且在导入 macOS 下的 VMware fusion 时会报错，所以推荐使用单个磁盘文件。当现有的虚拟机已经是使用多个文件形式的话，可以使用 VMware workstation 附带的 vmware-vdiskmanager.exe 工具来进行合并。vmware-vdiskmanager.exe 是一个命令行工具，工具的位置在 VMware 安装路径下，如：C:\Program Files (x86)\VMware\VMware Workstation\vmware-vdiskmanager.exe在 PS 命令行下调用此工具查看帮助：PS C:\Users\Marco Nie&gt; &amp;&quot;vmware-vdiskmanager.exe&quot;
 VMware Virtual Disk Manager - build 16894299.
-Usage: vmware-vdiskmanager.exe OPTIONS  | 
+Usage: vmware-vdiskmanager.exe OPTIONS &lt;disk-name&gt; | &lt;mount-point&gt;
 Offline disk manipulation utility
   Operations, only one may be specified at a time:
      -c                   : create disk.  Additional creation options must
@@ -473,15 +152,15 @@ Offline disk manipulation utility
                             local virtual disks may be defragmented.
      -k                   : shrink the specified virtual disk. Only local
                             virtual disks may be shrunk.
-     -n      : rename the specified virtual disk; need to
+     -n &lt;source-disk&gt;     : rename the specified virtual disk; need to
                             specify destination disk-name. Only local virtual
                             disks may be renamed.
      -p                   : prepare the mounted virtual disk specified by
                             the mount point for shrinking.
-     -r      : convert the specified disk; need to specify
+     -r &lt;source-disk&gt;     : convert the specified disk; need to specify
                             destination disk-type.  For local destination disks
                             the disk type must be specified.
-     -x     : expand the disk to the specified capacity. Only
+     -x &lt;new-capacity&gt;    : expand the disk to the specified capacity. Only
                             local virtual disks may be expanded.
      -R                   : check a sparse virtual disk for consistency and attempt
                             to repair any errors.
@@ -494,10 +173,10 @@ Offline disk manipulation utility
      -q                   : do not log messages
 
   Additional options for create and convert:
-     -a          : (for use with -c only) adapter type
+     -a &lt;adapter&gt;         : (for use with -c only) adapter type
                             (ide, buslogic, lsilogic). Pass lsilogic for other adapter types.
-     -s             : capacity of the virtual disk
-     -t        : disk type id
+     -s &lt;size&gt;            : capacity of the virtual disk
+     -t &lt;disk-type&gt;       : disk type id
 
   Disk types:
       0                   : single growable virtual disk
@@ -518,384 +197,51 @@ Offline disk manipulation utility
         ex 4: vmware-vdiskmanager.exe -x 36GB myDisk.vmdk
         ex 5: vmware-vdiskmanager.exe -n sourceName.vmdk destinationName.vmdk
         ex 6: vmware-vdiskmanager.exe -k myDisk.vmdk
-        ex 7: vmware-vdiskmanager.exe -p 
-              (A virtual disk first needs to be mounted at )
-```
-
-**VMware 生成的磁盘多个文件名称命名规则是如下：**
-- 根磁盘文件 - 如：Windows7.vmdk
-- 分割磁盘文件 - 如：Windows7-s001.vmdk Windows7-s002.vmdk Windows7-s003.vmdk ...
-
-**使用命令合并多文件时只需要指定跟磁盘文件名称即可。**
-
-根据帮助文档，使用 `-r` 指令指定多文件，`-t 0` 指令指定输出为单文件。示例如下：
-```
-&"vmware-vdiskmanager.exe" -r Windows7.vmdk -t 0 merge.vmdk
+        ex 7: vmware-vdiskmanager.exe -p &lt;mount-point&gt;
+              (A virtual disk first needs to be mounted at &lt;mount-point&gt;)VMware 生成的磁盘多个文件名称命名规则是如下：根磁盘文件 - 如：Windows7.vmdk分割磁盘文件 - 如：Windows7-s001.vmdk Windows7-s002.vmdk Windows7-s003.vmdk ...使用命令合并多文件时只需要指定跟磁盘文件名称即可。根据帮助文档，使用 -r 指令指定多文件，-t 0 指令指定输出为单文件。示例如下：&amp;&quot;vmware-vdiskmanager.exe&quot; -r Windows7.vmdk -t 0 merge.vmdk
 
 Creating disk 'merge.vmdk'
   Convert: 100% done.
-Virtual disk conversion successful.
-```
-
-命令执行后，在对应目录下会生成 merge.vmdk 虚拟磁盘文件，可以使用此文件建立新的虚拟机。
-
-</description>
+Virtual disk conversion successful.命令执行后，在对应目录下会生成 merge.vmdk 虚拟磁盘文件，可以使用此文件建立新的虚拟机。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1818.html">
 <title>openwrt 的安装与配置</title>
 <link>https://blog.niekun.net/archives/1818.html</link>
 <dc:date>2020-10-15T16:51:00+08:00</dc:date>
-<description>openWrt 是专门为嵌入式设备设计的 Linux 系统，常用来作为软路由系统使用。LEDE 和 openWrt 已经合并到一起。
-
-官网：https://openwrt.org/
-
-最近研究软路由，所以先使用 VMware 虚拟机安装测试 openWrt，由于 VMware 只能识别 vmdk 格式的虚拟磁盘镜像，而官网下载的是 img 镜像，所以需要进行格式转换。
-
-
-
-
-### 固件下载及转换
-
-openWrt 固件也是区分不同硬件平台的，需要根据硬件情况下载对应的系统镜像。
-
-官方固件下载地址：https://downloads.openwrt.org/
-
-目前最新的版本是 19.07.4，我电脑是 x86 平台 64位系统需下载 x86_64 固件，进入列表下载 `combined-ext4.img.gz` 到本地:
-![1.jpg][1]
- 
-将下载的压缩包解压出 img 镜像文件。由于我是虚拟机安装，所以需要将下载的 img 镜像转换为 VMware 的虚拟硬盘格式：`.vmdk`，最方便的是使用 Linux 工具 `qemu-img` 来完成，这里我是用 wsl 子系统来处理：
-```
-apt install qemu qemu-utils
-qemu-img convert -f raw -O vmdk openwrt-19.07.4-x86-64-combined-ext4.img openwrt-19.07.4-x86-64-combined-ext4.vmdk
-```
-
-完成后得到 vmdk 文件。
-
-### 建立虚拟机
-
-新建虚拟机，选择自定义模式：
-![2.jpg][2]
-
-硬件兼容选择最新的即可：
-![3.jpg][3]
-
-然后选择稍后安装操作系统：
-![4.jpg][4]
-
-系统选择 Linux 系统，19.07 版本是 4.14 内核，我下载的是 64 位固件，所以选择**其他 Linux 4.x内核，64位**：
-![5.jpg][5]
-
-虚拟机名称自己定义：
-![6.jpg][6]
-
-处理器默认即可：
-![7.jpg][7]
-
-内存分配1G：
-![8.jpg][8]
-
-剩下的全部默认确定即可，虚拟机初步建立完成。
-
-下一步开始配置虚拟网卡用来分配给 openwrt 的 lan 内网网卡，点击**编辑 - 虚拟网络编辑器**：
-![9.jpg][9]
-
-点击右下角**更改设置**：
-![10.jpg][10]
-
-点击**添加网络**：
-![11.jpg][11]
-
-选择一个可用的网络点击确定，我选择 vnet2：
-![12.jpg][12]
-
-选择**仅主机模式**，由于 openwrt 自带 DHCP 控制所以这里取消勾选 DHCP 服务：
-![13.jpg][13]
-
-点击确认，完成虚拟网卡的建立，子网 IP 段是 192.168.111.0，子网掩码 255.255.255.0。
-
-下面编辑刚才建立的虚拟机，点击**编辑虚拟机设置**：
-![14.jpg][14]
-
-移除不需要的硬件，包括硬盘，保留网络适配器。快捷键 alt + R：
-![15.jpg][15]
-
-将上面转换的 vmdk 文件拷贝到此虚拟机文件夹：
-![16.jpg][16]
-
-点击添加硬件：
-![17.jpg][17]
-
-选择**硬盘**，点击下一步：
-![18.jpg][18]
-
-选择**使用现有虚拟磁盘**：
-![19.jpg][19]
-
-选择刚才复制到目录的 vmdk 文件，点击完成：
-![20.jpg][20]
-
-选择**转换**：
-![21.jpg][21]
-
-再次添加一个网络适配器：
-![22.jpg][22]
-
-这里我们有了两个网络适配器，第一个分配给 lan 第二个分配给 wan，注意顺序，**openWrt 默认识别第一个网卡为 lan**。后期进入系统后也可以修改网卡顺序。
-
-第一个网卡 lan 设置为我们刚才建立的虚拟网卡 vnet2，用来给 openWrt 路由的内网使用：
-![23.jpg][23]
-
-第二个网卡 wan 设置为桥接模式，用来连接物理外网：
-![24.jpg][24]
-
-确认后启动虚拟机，等待进入进入系统。**进入系统后可以设置一个快照方便以后恢复。**
-
-### 网络配置
-
-进入系统后，我们需要设置 lan 的 IP 地址为我们创建的虚拟网卡所在的 IP 段，就能从主机访问 openwrt 了。
-
-首先通过 `ip l` 命令查看当前安装的网卡名称：
-```
-1: lo:  mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+<description>openWrt 是专门为嵌入式设备设计的 Linux 系统，常用来作为软路由系统使用。LEDE 和 openWrt 已经合并到一起。官网：https://openwrt.org/最近研究软路由，所以先使用 VMware 虚拟机安装测试 openWrt，由于 VMware 只能识别 vmdk 格式的虚拟磁盘镜像，而官网下载的是 img 镜像，所以需要进行格式转换。固件下载及转换openWrt 固件也是区分不同硬件平台的，需要根据硬件情况下载对应的系统镜像。官方固件下载地址：https://downloads.openwrt.org/目前最新的版本是 19.07.4，我电脑是 x86 平台 64位系统需下载 x86_64 固件，进入列表下载 combined-ext4.img.gz 到本地:将下载的压缩包解压出 img 镜像文件。由于我是虚拟机安装，所以需要将下载的 img 镜像转换为 VMware 的虚拟硬盘格式：.vmdk，最方便的是使用 Linux 工具 qemu-img 来完成，这里我是用 wsl 子系统来处理：apt install qemu qemu-utils
+qemu-img convert -f raw -O vmdk openwrt-19.07.4-x86-64-combined-ext4.img openwrt-19.07.4-x86-64-combined-ext4.vmdk完成后得到 vmdk 文件。建立虚拟机新建虚拟机，选择自定义模式：硬件兼容选择最新的即可：然后选择稍后安装操作系统：系统选择 Linux 系统，19.07 版本是 4.14 内核，我下载的是 64 位固件，所以选择其他 Linux 4.x内核，64位：虚拟机名称自己定义：处理器默认即可：内存分配1G：剩下的全部默认确定即可，虚拟机初步建立完成。下一步开始配置虚拟网卡用来分配给 openwrt 的 lan 内网网卡，点击编辑 - 虚拟网络编辑器：点击右下角更改设置：点击添加网络：选择一个可用的网络点击确定，我选择 vnet2：选择仅主机模式，由于 openwrt 自带 DHCP 控制所以这里取消勾选 DHCP 服务：点击确认，完成虚拟网卡的建立，子网 IP 段是 192.168.111.0，子网掩码 255.255.255.0。下面编辑刚才建立的虚拟机，点击编辑虚拟机设置：移除不需要的硬件，包括硬盘，保留网络适配器。快捷键 alt + R：将上面转换的 vmdk 文件拷贝到此虚拟机文件夹：点击添加硬件：选择硬盘，点击下一步：选择使用现有虚拟磁盘：选择刚才复制到目录的 vmdk 文件，点击完成：选择转换：再次添加一个网络适配器：这里我们有了两个网络适配器，第一个分配给 lan 第二个分配给 wan，注意顺序，openWrt 默认识别第一个网卡为 lan。后期进入系统后也可以修改网卡顺序。第一个网卡 lan 设置为我们刚才建立的虚拟网卡 vnet2，用来给 openWrt 路由的内网使用：第二个网卡 wan 设置为桥接模式，用来连接物理外网：确认后启动虚拟机，等待进入进入系统。进入系统后可以设置一个快照方便以后恢复。网络配置进入系统后，我们需要设置 lan 的 IP 地址为我们创建的虚拟网卡所在的 IP 段，就能从主机访问 openwrt 了。首先通过 ip l 命令查看当前安装的网卡名称：1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-2: eth0:  mtu 1500 qdisc fq_codel state UP qlen 1000
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP qlen 1000
     link/ether 00:0c:29:c5:39:8d brd ff:ff:ff:ff:ff:ff
-3: eth1:  mtu 1500 qdisc fq_codel state UP qlen 1000
-    link/ether 00:0c:29:c5:39:97 brd ff:ff:ff:ff:ff:ff
-```
+3: eth1: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP qlen 1000
+    link/ether 00:0c:29:c5:39:97 brd ff:ff:ff:ff:ff:ff可以看到除了 lo 本地网络外，有两个网卡 eth0 和 eth1，分别对应第一个网卡和第二个网卡。下面我们编辑 /etc/config/network 配置文件，默认配置文件如下：这里我们需要关闭网桥模式(用 #井号 屏蔽)，然后修改 lan 段里的 ipaddr 地址为虚拟网卡网段。我们这里修改为 192.168.111.2:修改完成后 reboot 系统。重启完成后使用 ip addr 查看系统网络配置，可以看到 wan 口 eth1 分配到主机网络所在局域网 IP 地址，lan 口 eth0 是虚拟网卡 IP 地址：使用 ping 查看是否可以连接外网：如果无法 ping 通，则需要检查配置问题。主机网络适配器里找到 vnet 2 虚拟网卡：查看信息，ip 地址是否正确，注意如果 openwrt 里的 IP 设置为了 192.168.111.1，则这里的IPv4 地址就需要修改为其他地址了，不然就冲突了：这时候使用主机访问 192.168.111.2 应该就可以进入 LuCl 界面了：默认没有密码，可以使用 passwd 设置登录密码。我们先给 openWrt 设置一个静态 wan 口 Ip，这样局域网设备就可以方便访问了。点击 network - interface：wan 口配置点击 edit：protocol 选择 static address，点击 switch protocol：设置本地局域网内的 IP 地址，网关地址和 DNS 地址，点击保存：点击 save：更换国内源由于虚拟机内不方便复制粘贴文本，我们使用 ssh 连接虚拟机：类似于 Debian，openWrt 也有包管理系统 opkg。默认都是国外源地址访问比较慢，可以替换为国内镜像地址，这里使用清华园镜像：https://mirrors.tuna.tsinghua.edu.cn/help/openwrt/列表路径是：/etc/opkg/，有两个 conf 文件：distfeeds.conf, customfeeds.conf一键替换命令：sed -i 's_downloads.openwrt.org_mirrors.tuna.tsinghua.edu.cn/openwrt_' /etc/opkg/distfeeds.conf
+更新列表：opkg update
+安装常用工具：opkg install git-http vim-full curl ca-certificates ca-bundle libopenssl luci-ssl-openssl lsof wget ipset
+虚拟机下可以安装 vmtools 来开启虚拟机管理等功能：opkg install open-vm-tools
+可以安装中文 luci 语言包：opkg luci-i18n-base-zh-cn
+自带的 dnsmasq 是精简版的不支持一些高级语法，可以参考我的文章升级为 dnsmasq-full：https://blog.niekun.net/archives/1869.html如果需要进行透明代理，需要安装 iptables 的 tproxy 扩展：opkg install iptables-mod-tproxy iptables-mod-extra
+iptables 的操作教程参考：https://blog.niekun.net/archives/1872.html需要 sftp 连接系统的话需要安装支持包：opkg install openssh-sftp-server
+如果需要打开网络发现，这样其他设备就可以主动找到此服务器，可以安装扩展：opkg install announce
+如果安装了 openssh-sftp-server 就会在网络上声明此 sftp 服务的存在。也可以直接安装下载好的 ipk 包：opkg install test.ipk
+使用第三方源使用第三方源步骤：添加 第三方源 key 文件源仓库地址加入 /etc/opkg/customfeeds.conf 文件opkg update源仓库地址格式：src/gz example_feed_name http://www.example.com/path/to/files
+示例，加入第三方开发者 kuoruan 的源：添加 key：wget -O kuoruan-public.key http://openwrt.kuoruan.net/packages/public.key
+opkg-key add kuoruan-public.key添加仓库地址到配置文件：echo &quot;src/gz kuoruan_packages http://openwrt.kuoruan.net/packages/releases/$(. /etc/openwrt_release ; echo $DISTRIB_ARCH)&quot; \
+  &gt;&gt; /etc/opkg/customfeeds.conf
 
-可以看到除了 lo 本地网络外，有两个网卡 eth0 和 eth1，分别对应第一个网卡和第二个网卡。
-
-下面我们编辑 `/etc/config/network` 配置文件，默认配置文件如下：
-![25.jpg][25]
-
-这里我们需要关闭网桥模式(用 #井号 屏蔽)，然后修改 lan 段里的 ipaddr 地址为虚拟网卡网段。我们这里修改为 `192.168.111.2`:
-![40.jpg][26]
-
-修改完成后 reboot 系统。
-
-重启完成后使用 `ip addr` 查看系统网络配置，可以看到 wan 口 eth1 分配到主机网络所在局域网 IP 地址，lan 口 eth0 是虚拟网卡 IP 地址：
-![39.jpg][27]
-
-使用 ping 查看是否可以连接外网：
-![31.jpg][28]
-
-如果无法 ping 通，则需要检查配置问题。
-
-主机网络适配器里找到 vnet 2 虚拟网卡：
-![29.jpg][29]
-
-查看信息，ip 地址是否正确，**注意**如果 openwrt 里的 IP 设置为了 `192.168.111.1`，则这里的IPv4 地址就需要修改为其他地址了，不然就冲突了：
-![30.jpg][30]
-
-这时候使用主机访问 `192.168.111.2` 应该就可以进入 LuCl 界面了：
-![28.jpg][31]
-
-默认没有密码，可以使用 `passwd` 设置登录密码。
-
-我们先给 openWrt 设置一个静态 wan 口 Ip，这样局域网设备就可以方便访问了。点击 network - interface：
-![32.jpg][32]
-
-wan 口配置点击 edit：
-![33.jpg][33]
-
-protocol 选择 static address，点击 switch protocol：
-![34.jpg][34]
-
-设置本地局域网内的 IP 地址，网关地址和 DNS 地址，点击保存：
-![38.jpg][35]
-
-点击 save：
-![36.jpg][36]
-
-### 更换国内源
-
-由于虚拟机内不方便复制粘贴文本，我们使用 ssh 连接虚拟机：
-![37.jpg][37]
-
-类似于 Debian，openWrt 也有包管理系统 `opkg`。默认都是国外源地址访问比较慢，可以替换为国内镜像地址，这里使用清华园镜像：https://mirrors.tuna.tsinghua.edu.cn/help/openwrt/
-
-列表路径是：`/etc/opkg/`，有两个 conf 文件：`distfeeds.conf`, `customfeeds.conf`
-
-一键替换命令：
-    sed -i 's_downloads.openwrt.org_mirrors.tuna.tsinghua.edu.cn/openwrt_' /etc/opkg/distfeeds.conf
-
-更新列表：
-    opkg update
-
-安装常用工具：
-    opkg install git-http vim-full curl ca-certificates ca-bundle libopenssl luci-ssl-openssl lsof wget ipset
-
-虚拟机下可以安装 vmtools 来开启虚拟机管理等功能：
-    opkg install open-vm-tools
-
-可以安装中文 luci 语言包：
-    opkg luci-i18n-base-zh-cn
-
-自带的 dnsmasq 是精简版的不支持一些高级语法，可以参考我的文章升级为 dnsmasq-full：https://blog.niekun.net/archives/1869.html
-
-如果需要进行透明代理，需要安装 iptables 的 tproxy 扩展：
-    opkg install iptables-mod-tproxy iptables-mod-extra
-
-iptables 的操作教程参考：https://blog.niekun.net/archives/1872.html
-
-需要 sftp 连接系统的话需要安装支持包：
-    opkg install openssh-sftp-server
-
-如果需要打开网络发现，这样其他设备就可以主动找到此服务器，可以安装扩展：
-    opkg install announce
-
-如果安装了 openssh-sftp-server 就会在网络上声明此 sftp 服务的存在。
-
-也可以直接安装下载好的 ipk 包：
-    opkg install test.ipk
-
-### 使用第三方源
-
-**使用第三方源步骤：**
-- 添加 第三方源 key 文件
-- 源仓库地址加入 `/etc/opkg/customfeeds.conf` 文件
-- opkg update
-
-源仓库地址格式：
-    src/gz example_feed_name http://www.example.com/path/to/files
-
-**示例，加入第三方开发者 kuoruan 的源：**
-
-添加 key：
-```
-wget -O kuoruan-public.key http://openwrt.kuoruan.net/packages/public.key
-opkg-key add kuoruan-public.key
-```
-
-添加仓库地址到配置文件：
-```
-echo "src/gz kuoruan_packages http://openwrt.kuoruan.net/packages/releases/$(. /etc/openwrt_release ; echo $DISTRIB_ARCH)" \
-  >> /etc/opkg/customfeeds.conf
-
-opkg update
-```
-
-然后就可以安装第三方库的软件了，例如：
-    opkg install v2ray-core
-
-### 外网访问
-
-默认设置下，openwrt 会禁止 wan 网络对主机的 INPUT 和 FORWARD 流量，只会转发信息给其他设备。这样是为了安全因素。
-
-如果需要通过 wan 口的网络访问 luci 管理页面，或者远程 ssh 访问 openwrt，就需要打开防火墙设置。如果要**彻底关闭防火墙**，可以进入 **network - firewall - general settings**，编辑下面的 **zone** 中的 **wan** 设置：
-![2021-03-30T08:41:16.png][38]
-
-将 input，output，forward 都设置为 accept：
-![2021-03-30T08:42:14.png][39]
-
-这样就会完全开放网络的访问，也可以根据需要只开放指定的端口或服务。
-
-这样就可以通过 wan 口访问 openwrt 本地服务了。但是为了安全期间，请设置强度高的 root 密码。
-
-注意通过我的测试，无法使用 frp 的内网穿透访问 luci 界面，会一直进入 307 重定向死循环导致网页卡死。具体原因未知。配置 ssh 远程访问正常。
-
-### 参考链接：
-https://openwrt.org/docs/guide-user/virtualization/vmware
-https://github.com/kuoruan/luci-app-v2ray
-
-
-  [1]: https://blog.niekun.net/usr/uploads/2020/10/2820863057.jpg
-  [2]: https://blog.niekun.net/usr/uploads/2020/10/1077455176.jpg
-  [3]: https://blog.niekun.net/usr/uploads/2020/10/1008180166.jpg
-  [4]: https://blog.niekun.net/usr/uploads/2020/10/689721582.jpg
-  [5]: https://blog.niekun.net/usr/uploads/2020/10/1075618772.jpg
-  [6]: https://blog.niekun.net/usr/uploads/2020/10/2232764296.jpg
-  [7]: https://blog.niekun.net/usr/uploads/2020/10/1085680336.jpg
-  [8]: https://blog.niekun.net/usr/uploads/2020/10/89327964.jpg
-  [9]: https://blog.niekun.net/usr/uploads/2020/10/1374273348.jpg
-  [10]: https://blog.niekun.net/usr/uploads/2020/10/691892215.jpg
-  [11]: https://blog.niekun.net/usr/uploads/2020/10/1419508697.jpg
-  [12]: https://blog.niekun.net/usr/uploads/2020/10/44933613.jpg
-  [13]: https://blog.niekun.net/usr/uploads/2020/10/2381585332.jpg
-  [14]: https://blog.niekun.net/usr/uploads/2020/10/1011907668.jpg
-  [15]: https://blog.niekun.net/usr/uploads/2020/10/731943422.jpg
-  [16]: https://blog.niekun.net/usr/uploads/2020/10/1633164225.jpg
-  [17]: https://blog.niekun.net/usr/uploads/2020/10/1582850006.jpg
-  [18]: https://blog.niekun.net/usr/uploads/2020/10/1091507877.jpg
-  [19]: https://blog.niekun.net/usr/uploads/2020/10/3795351894.jpg
-  [20]: https://blog.niekun.net/usr/uploads/2020/10/3286075109.jpg
-  [21]: https://blog.niekun.net/usr/uploads/2020/10/3939975986.jpg
-  [22]: https://blog.niekun.net/usr/uploads/2020/10/903097129.jpg
-  [23]: https://blog.niekun.net/usr/uploads/2020/10/2504631771.jpg
-  [24]: https://blog.niekun.net/usr/uploads/2020/10/2177677516.jpg
-  [25]: https://blog.niekun.net/usr/uploads/2020/10/3506271504.jpg
-  [26]: https://blog.niekun.net/usr/uploads/2020/10/265255040.jpg
-  [27]: https://blog.niekun.net/usr/uploads/2020/10/2989248495.jpg
-  [28]: https://blog.niekun.net/usr/uploads/2020/10/3233271645.jpg
-  [29]: https://blog.niekun.net/usr/uploads/2020/10/133092593.jpg
-  [30]: https://blog.niekun.net/usr/uploads/2020/10/43426789.jpg
-  [31]: https://blog.niekun.net/usr/uploads/2020/10/811268622.jpg
-  [32]: https://blog.niekun.net/usr/uploads/2020/10/1641305336.jpg
-  [33]: https://blog.niekun.net/usr/uploads/2020/10/2975940019.jpg
-  [34]: https://blog.niekun.net/usr/uploads/2020/10/2765529412.jpg
-  [35]: https://blog.niekun.net/usr/uploads/2020/10/2870937409.jpg
-  [36]: https://blog.niekun.net/usr/uploads/2020/10/366895487.jpg
-  [37]: https://blog.niekun.net/usr/uploads/2020/10/2079947691.jpg
-  [38]: https://blog.niekun.net/usr/uploads/2021/03/1813628993.png
-  [39]: https://blog.niekun.net/usr/uploads/2021/03/926631505.png</description>
+opkg update然后就可以安装第三方库的软件了，例如：opkg install v2ray-core
+外网访问默认设置下，openwrt 会禁止 wan 网络对主机的 INPUT 和 FORWARD 流量，只会转发信息给其他设备。这样是为了安全因素。如果需要通过 wan 口的网络访问 luci 管理页面，或者远程 ssh 访问 openwrt，就需要打开防火墙设置。如果要彻底关闭防火墙，可以进入 network - firewall - general settings，编辑下面的 zone 中的 wan 设置：将 input，output，forward 都设置为 accept：这样就会完全开放网络的访问，也可以根据需要只开放指定的端口或服务。这样就可以通过 wan 口访问 openwrt 本地服务了。但是为了安全期间，请设置强度高的 root 密码。注意通过我的测试，无法使用 frp 的内网穿透访问 luci 界面，会一直进入 307 重定向死循环导致网页卡死。具体原因未知。配置 ssh 远程访问正常。参考链接：https://openwrt.org/docs/guide-user/virtualization/vmwarehttps://github.com/kuoruan/luci-app-v2ray</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1805.html">
 <title>wsl 2 激活 systemd</title>
 <link>https://blog.niekun.net/archives/1805.html</link>
 <dc:date>2020-10-13T12:03:00+08:00</dc:date>
-<description>wsl 默认不支持 systemd，执行 systemd 命令会返回错误提示：
-```
-# hostnamectl
+<description>wsl 默认不支持 systemd，执行 systemd 命令会返回错误提示：# hostnamectl
 System has not been booted with systemd as init system (PID 1). Can't operate.
-Failed to create bus connection: Host is down
-```
-
-可以安装第三方的工具 genie 来激活 systemd。
-
-GitHub：https://github.com/arkane-systems/genie
-
-
-
-
-### 安装
-
-添加第三方 apt 库，在 `/etc/apt/sources.list.d` 目录下新建文件 `wsl-translinux.list`，文件内容如下：
-```
-deb [trusted=yes] https://wsl-translinux.arkane-systems.net/apt/ /
-```
-
-更新库列表：
-    apt update && apt upgrade
-
-安装依赖包：
-
-安装 Microsoft 依赖，下载对应系统版本的 prod 包：https://packages.microsoft.com/config/：
-```
-curl -O https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
-dpkg -i packages-microsoft-prod.deb
-```
-
-安装其他依赖：
-```
-apt update && apt install apt-transport-https daemonize dotnet-runtime-3.1
-```
-
-安装 genie：
-    apt install systemd-genie
-
-### 使用
-
-退出 wsl 系统后关闭 所有已打开的 wsl：
-    wsl --shutdown
-
-启动 wsl：
-    wsl genie -s
-
-启动的 Linux 系统就可以正常使用 systemd 了。
-
-参考链接：
-https://gist.github.com/djfdyuruiry/6720faa3f9fc59bfdf6284ee1f41f950
-</description>
+Failed to create bus connection: Host is down可以安装第三方的工具 genie 来激活 systemd。GitHub：https://github.com/arkane-systems/genie安装添加第三方 apt 库，在 /etc/apt/sources.list.d 目录下新建文件 wsl-translinux.list，文件内容如下：deb [trusted=yes] https://wsl-translinux.arkane-systems.net/apt/ /更新库列表：apt update &amp;&amp; apt upgrade
+安装依赖包：安装 Microsoft 依赖，下载对应系统版本的 prod 包：https://packages.microsoft.com/config/：curl -O https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+dpkg -i packages-microsoft-prod.deb安装其他依赖：apt update &amp;&amp; apt install apt-transport-https daemonize dotnet-runtime-3.1安装 genie：apt install systemd-genie
+使用退出 wsl 系统后关闭 所有已打开的 wsl：wsl --shutdown
+启动 wsl：wsl genie -s
+启动的 Linux 系统就可以正常使用 systemd 了。参考链接：https://gist.github.com/djfdyuruiry/6720faa3f9fc59bfdf6284ee1f41f950</description>
 </item>
 </rdf:RDF>

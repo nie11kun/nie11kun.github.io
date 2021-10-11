@@ -20,64 +20,32 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <pubDate>Tue, 22 Jun 2021 21:40:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_1" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：
-```
-root@OpenWrt:~# df -h
+<p>我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：</p><pre><code>root@OpenWrt:~# df -h
 Filesystem                Size      Used Available Use% Mounted on
 /dev/root               252.0M    241.4M      5.5M  98% /rom
 tmpfs                   496.5M     68.0K    496.4M   0% /tmp
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
-tmpfs                   512.0K         0    512.0K   0% /dev
-```
-
-其中 `/dev/root` 是系统固件目录，不用考虑。`/dev/sda*` 就是系统实际可用的硬盘空间。我明明分配了 5 GB 空间给 openwrt 但是由于系统分区是在下载的固件中定义好的，所以其余空间就没有被识别。由于默认存储空间过小，当安装了过多的插件后，会提示空间不足导致无法安装更多插件：
-```
-verify_pkg_installable: Only have 0kb available on filesystem /overlay, pkg luci-app-openvpn needs 9
-opkg_install_cmd: Cannot install package luci-app-openvpn
-```
-
-下面介绍如何将剩余空间挂在到 openwrt 中。
-
-
-<!--more-->
-
-首先安装需要的插件，注意顺序不能错：
-```
-opkg update
+tmpfs                   512.0K         0    512.0K   0% /dev</code></pre><p>其中 <code>/dev/root</code> 是系统固件目录，不用考虑。<code>/dev/sda*</code> 就是系统实际可用的硬盘空间。我明明分配了 5 GB 空间给 openwrt 但是由于系统分区是在下载的固件中定义好的，所以其余空间就没有被识别。由于默认存储空间过小，当安装了过多的插件后，会提示空间不足导致无法安装更多插件：</p><pre><code>verify_pkg_installable: Only have 0kb available on filesystem /overlay, pkg luci-app-openvpn needs 9
+opkg_install_cmd: Cannot install package luci-app-openvpn</code></pre><p>下面介绍如何将剩余空间挂在到 openwrt 中。</p><!--more--><p>首先安装需要的插件，注意顺序不能错：</p><pre><code>opkg update
 opkg install block-mount e2fsprogs
 opkg update
-opkg install fdisk blkid
-```
-
-然后配置存储空间，注意 fdisk 指令后的几个选项：
-```
-fdisk -l
+opkg install fdisk blkid</code></pre><p>然后配置存储空间，注意 fdisk 指令后的几个选项：</p><pre><code>fdisk -l
 
 fdisk /dev/sda
 m
 n
 p
-<默认,回车> //–>分区号为3
-<默认,回车>
-<默认,回车>
+&lt;默认,回车&gt; //–&gt;分区号为3
+&lt;默认,回车&gt;
+&lt;默认,回车&gt;
 w
 
-reboot
-```
-
-重启后，格式化刚才建立的分区：
-```
-mkfs.ext4 /dev/sda3
-reboot
-```
-
-重启后配置 fstab：
-```
-uci add fstab mount
+reboot</code></pre><p>重启后，格式化刚才建立的分区：</p><pre><code>mkfs.ext4 /dev/sda3
+reboot</code></pre><p>重启后配置 fstab：</p><pre><code>uci add fstab mount
 
 # 将下面第一行命令输出的 UUID 替换第二行命令后的 UUID
-blkid -s UUID /dev/sda3 | cut -d\" -f2
+blkid -s UUID /dev/sda3 | cut -d\&quot; -f2
 uci set fstab.@mount[-1].uuid=UUID
 
 uci set fstab.@mount[-1].options=rw,sync,noatime
@@ -86,47 +54,24 @@ uci set fstab.@mount[-1].enabled_fsck=1
 uci set fstab.@mount[-1].enabled=1
 uci set fstab.@mount[-1].target=/
 uci set fstab.@mount[-1].device=/dev/sda3
-uci commit fstab
-```
-
-然后根目录复制到新的分区下：
-```
-mkdir /mnt/sda3
+uci commit fstab</code></pre><p>然后根目录复制到新的分区下：</p><pre><code>mkdir /mnt/sda3
 mount /dev/sda3 /mnt/sda3
 mkdir -p /tmp/cproot
 mount --bind / /tmp/cproot
 tar -C /tmp/cproot -cvf - . | tar -C /mnt/sda3 -xf -
 
 umount /tmp/cproot
-umount /mnt/sda3
-```
-
-然后启用引导：
-```
-/etc/init.d/fstab enable
+umount /mnt/sda3</code></pre><p>然后启用引导：</p><pre><code>/etc/init.d/fstab enable
 /etc/init.d/fstab start
 
-reboot
-```
-
-重启后再次查看系统分区信息：
-```
-root@OpenWrt:~# df -h
+reboot</code></pre><p>重启后再次查看系统分区信息：</p><pre><code>root@OpenWrt:~# df -h
 Filesystem                Size      Used Available Use% Mounted on
 /dev/root               252.0M    241.4M      5.5M  98% /rom
 tmpfs                   496.5M      1.0M    495.5M   0% /tmp
 /dev/sda3                 4.6G    257.2M      4.1G   6% /
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
-tmpfs                   512.0K         0    512.0K   0% /dev
-```
-
-可以看到 sda3 分区已经正常挂载了，后续可以继续安装需要的各种插件了。
-
-### 参考链接
-
-[Vmware下openwrt虚拟机扩展根目录大小](https://blog.csdn.net/duandao123/article/details/99689383)
-</textarea></div>
+tmpfs                   512.0K         0    512.0K   0% /dev</code></pre><p>可以看到 sda3 分区已经正常挂载了，后续可以继续安装需要的各种插件了。</p><h3>参考链接</h3><p><a href="https://blog.csdn.net/duandao123/article/details/99689383">Vmware下openwrt虚拟机扩展根目录大小</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2321.html#comments</comments>
@@ -139,94 +84,31 @@ tmpfs                   512.0K         0    512.0K   0% /dev
 <pubDate>Mon, 31 May 2021 18:33:51 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_2" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 `2>&1`，例如：
-    ls foo > /dev/null 2>&1
-
-下面我们一步步了解下这种结构的含义。
-
-
-<!--more-->
-
-### I/O redirection 重定向
-
-简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 `cat` 命令打印一个文件的内容到屏幕：
-```
-$ cat foo.txt
+<p>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 <code>2&gt;&amp;1</code>，例如：</p><pre><code>ls foo &gt; /dev/null 2&gt;&amp;1
+</code></pre><p>下面我们一步步了解下这种结构的含义。</p><!--more--><h3>I/O redirection 重定向</h3><p>简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 <code>cat</code> 命令打印一个文件的内容到屏幕：</p><pre><code>$ cat foo.txt
 foo
 bar
-baz
-```
-
-我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:
-```
-$ cat foo.txt > output.txt
+baz</code></pre><p>我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:</p><pre><code>$ cat foo.txt &gt; output.txt
 
 $ cat output.txt
 foo
 bar
-baz
-```
-
-执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 **standard output (stdout)标准输出**到一个文件，所以它就不会输出到屏幕了。
-
-需要注意的是还有另一个地方：**standard error (stderr)标准错误**，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：
-```
-$ cat nop.txt > output.txt
-cat: nop.txt: No such file or directory
-```
-
-以上示例中即使我们将 **stdout** 重定向到一个文件了，由于 output.txt 不存在，**stderr** 依然会输出错误信息到屏幕。因为我们重定向的只是 **stdout** 而不包括 **stderr**。
-
-### file descriptors 文件描述器
-
-一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 **stdout** 和 **stderr** 有其各自的文件描述器 id 定义了它们各自的地址。
-
-**stdout** 是 **1**，**stderr** 是 **2**。
-
-在之前的示例中，我们可以修改命令为如下结构：
-    cat foo.txt 1> output.txt
-
-这里的 **1** 就是 **stdout** 的文件描述器，通过重定向语法 `[FILE_DESCRIPTOR]>` 将 **stdout** 重定向到另一个文件。注意 `1>` 可以简写为 `>`。
-
-类似的，可以将 stderr 重定向到指定的目的地：
-```
-$ cat nop.txt 2> error.txt
+baz</code></pre><p>执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 <strong>standard output (stdout)标准输出</strong>到一个文件，所以它就不会输出到屏幕了。</p><p>需要注意的是还有另一个地方：<strong>standard error (stderr)标准错误</strong>，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：</p><pre><code>$ cat nop.txt &gt; output.txt
+cat: nop.txt: No such file or directory</code></pre><p>以上示例中即使我们将 <strong>stdout</strong> 重定向到一个文件了，由于 output.txt 不存在，<strong>stderr</strong> 依然会输出错误信息到屏幕。因为我们重定向的只是 <strong>stdout</strong> 而不包括 <strong>stderr</strong>。</p><h3>file descriptors 文件描述器</h3><p>一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 <strong>stdout</strong> 和 <strong>stderr</strong> 有其各自的文件描述器 id 定义了它们各自的地址。</p><p><strong>stdout</strong> 是 <strong>1</strong>，<strong>stderr</strong> 是 <strong>2</strong>。</p><p>在之前的示例中，我们可以修改命令为如下结构：</p><pre><code>cat foo.txt 1&gt; output.txt
+</code></pre><p>这里的 <strong>1</strong> 就是 <strong>stdout</strong> 的文件描述器，通过重定向语法 <code>[FILE_DESCRIPTOR]&gt;</code> 将 <strong>stdout</strong> 重定向到另一个文件。注意 <code>1&gt;</code> 可以简写为 <code>&gt;</code>。</p><p>类似的，可以将 stderr 重定向到指定的目的地：</p><pre><code>$ cat nop.txt 2&gt; error.txt
 
 $ cat error.txt
-cat: nop.txt: No such file or directory
-```
-
-这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。
-
-下面我们理解下 `2>&1` 的意义。我们使用 `&1` 来指向 **stdout** 的重定向地址，所以 `2>&1` 表示重定向 **stderr** 到和 **stdout** 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 **stdout** 和 **stderr** 重定向到同一个文件中：
-```
-$ cat foo.txt > output.txt 2>&1
+cat: nop.txt: No such file or directory</code></pre><p>这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。</p><p>下面我们理解下 <code>2&gt;&amp;1</code> 的意义。我们使用 <code>&amp;1</code> 来指向 <strong>stdout</strong> 的重定向地址，所以 <code>2&gt;&amp;1</code> 表示重定向 <strong>stderr</strong> 到和 <strong>stdout</strong> 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 <strong>stdout</strong> 和 <strong>stderr</strong> 重定向到同一个文件中：</p><pre><code>$ cat foo.txt &gt; output.txt 2&gt;&amp;1
 
 $ cat output.txt
 foo
 bar
 baz
 
-$ cat nop.txt > output.txt 2>&1
+$ cat nop.txt &gt; output.txt 2&gt;&amp;1
 
 $ cat output.txt
-cat: nop.txt: No such file or directory
-```
-
-### 总结
-
-- 有两个地方用来让程序发送输出内容：**stdout**，**stderr**
-- 可以单独定义两个输出的重定向目的地
-- 文件描述器用来识别 **stdout (1)** 和 **stderr (2)**
-- `command > output` 是 `command 1> output` 的简写
-- 通过 `&[FILE_DESCRIPTOR]` 指向一个文件描述器的重定向目标地址上
-- `2>&1` 可以将 **stderr** 重定向到 **stdout** 同样的重定向地址上。反之亦然。
-
-### 参考链接
-
-[Understanding Shell Script's idiom: 2>&1](https://www.brianstorti.com/understanding-shell-script-idiom-redirect/)
-[In the shell, what does “ 2>&1 ” mean?](https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean)
-</textarea></div>
+cat: nop.txt: No such file or directory</code></pre><h3>总结</h3><ul><li>有两个地方用来让程序发送输出内容：<strong>stdout</strong>，<strong>stderr</strong></li><li>可以单独定义两个输出的重定向目的地</li><li>文件描述器用来识别 <strong>stdout (1)</strong> 和 <strong>stderr (2)</strong></li><li><code>command &gt; output</code> 是 <code>command 1&gt; output</code> 的简写</li><li>通过 <code>&amp;[FILE_DESCRIPTOR]</code> 指向一个文件描述器的重定向目标地址上</li><li><code>2&gt;&amp;1</code> 可以将 <strong>stderr</strong> 重定向到 <strong>stdout</strong> 同样的重定向地址上。反之亦然。</li></ul><h3>参考链接</h3><p><a href="https://www.brianstorti.com/understanding-shell-script-idiom-redirect/">Understanding Shell Script's idiom: 2&gt;&1</a><br><a href="https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean">In the shell, what does “ 2&gt;&1 ” mean?</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2320.html#comments</comments>
@@ -239,70 +121,18 @@ cat: nop.txt: No such file or directory
 <pubDate>Tue, 18 May 2021 20:08:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_3" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。
-
-GitHub 主页：https://github.com/vysheng/tg
-
-测试平台为 Ubuntu 18.04
-
-<!--more-->
-
-### 安装
-
-有两种方法安装，第一种是通过 snap 应用商店来安装，第二种是从源码安装。
-
-snap 安装需要首先安装 snap 环境：
-    sudo apt install snapd
-
-然后就可以安装 telegram-cli：
-    sudo snap install telegram-cli
-
-默认安装路径为：`/snap/bin/telegram-cli`
-
-从源码编译稍微有些麻烦，因为 GitHub 上的源码最近更新是 2016 年，经过我的测试在 make 时会报错，查询后需要增加安装相关依赖库及调整配置选项后才能正常编译。
-
-首先安装依赖：
-     sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev libpython-dev zlib1g-dev libgcrypt20-dev make
-
-下载仓库源码：
-    git clone --recursive https://github.com/vysheng/tg.git && cd tg
-
-然后配置 configure：
-    ./configure --disable-openssl
-
-最后编译：
-    make
-
-编译完成后可执行文件在项目源码的 **bin** 文件夹内。
-
-### 使用
-
-安装完成后需要配置账户信息，输入 telegram-cli 命令：
-    telegram-cli
-
-会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。
-
-这时候通过 `msg USERNAME message` 的模式来给某个对话发送消息了：
-    > msg my_bot test
-
-USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过`@username`的方式定义会话对象。
-
-经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：**error FAIL: 38: can not parse arg #1**，但是我的用户名写的是没问题的。这时候需要首先执行一下 `dialog_list` 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 `@username` 来发送消息了。
-
-以上的操作都是在登录到 telegram-cli 中进行的，可以通过 **quit** 或 **safe_quit** 命令退出 telegram-cli 程序：
-    > quit
-
-我们也可以直接通过 telegram-cli 命令发送给某个对象消息，需要 `-e` 参数加执行的命令，例如：
-    telegram-cli -e "msg @username message"
-
-建议执行时加上 `-W`参数以加载 dialog 列表，否则可能出现报警：**error FAIL: 38: can not parse arg #1**：
-    telegram-cli -W -e "msg @username message"
-
-使用 `-D` 参数可以关闭输出信息。使用 `-U` 参数可以自定义命令执行的用户。
-
-更多 telegram-cli 可用参数如下：
-```
-# telegram-cli -h
+<p>最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。</p><p>GitHub 主页：<a href="https://github.com/vysheng/tg">https://github.com/vysheng/tg</a></p><p>测试平台为 Ubuntu 18.04</p><!--more--><h3>安装</h3><p>有两种方法安装，第一种是通过 snap 应用商店来安装，第二种是从源码安装。</p><p>snap 安装需要首先安装 snap 环境：</p><pre><code>sudo apt install snapd
+</code></pre><p>然后就可以安装 telegram-cli：</p><pre><code>sudo snap install telegram-cli
+</code></pre><p>默认安装路径为：<code>/snap/bin/telegram-cli</code></p><p>从源码编译稍微有些麻烦，因为 GitHub 上的源码最近更新是 2016 年，经过我的测试在 make 时会报错，查询后需要增加安装相关依赖库及调整配置选项后才能正常编译。</p><p>首先安装依赖：</p><pre><code> sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev libpython-dev zlib1g-dev libgcrypt20-dev make
+</code></pre><p>下载仓库源码：</p><pre><code>git clone --recursive https://github.com/vysheng/tg.git &amp;&amp; cd tg
+</code></pre><p>然后配置 configure：</p><pre><code>./configure --disable-openssl
+</code></pre><p>最后编译：</p><pre><code>make
+</code></pre><p>编译完成后可执行文件在项目源码的 <strong>bin</strong> 文件夹内。</p><h3>使用</h3><p>安装完成后需要配置账户信息，输入 telegram-cli 命令：</p><pre><code>telegram-cli
+</code></pre><p>会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。</p><p>这时候通过 <code>msg USERNAME message</code> 的模式来给某个对话发送消息了：</p><pre><code>&gt; msg my_bot test
+</code></pre><p>USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过<code>@username</code>的方式定义会话对象。</p><p>经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：<strong>error FAIL: 38: can not parse arg #1</strong>，但是我的用户名写的是没问题的。这时候需要首先执行一下 <code>dialog_list</code> 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 <code>@username</code> 来发送消息了。</p><p>以上的操作都是在登录到 telegram-cli 中进行的，可以通过 <strong>quit</strong> 或 <strong>safe_quit</strong> 命令退出 telegram-cli 程序：</p><pre><code>&gt; quit
+</code></pre><p>我们也可以直接通过 telegram-cli 命令发送给某个对象消息，需要 <code>-e</code> 参数加执行的命令，例如：</p><pre><code>telegram-cli -e &quot;msg @username message&quot;
+</code></pre><p>建议执行时加上 <code>-W</code>参数以加载 dialog 列表，否则可能出现报警：<strong>error FAIL: 38: can not parse arg #1</strong>：</p><pre><code>telegram-cli -W -e &quot;msg @username message&quot;
+</code></pre><p>使用 <code>-D</code> 参数可以关闭输出信息。使用 <code>-U</code> 参数可以自定义命令执行的用户。</p><p>更多 telegram-cli 可用参数如下：</p><pre><code># telegram-cli -h
 telegram-cli Usage
   --phone/-u                           specify username (would not be asked during authorization)
   --rsa-key/-k                         specify location of public key (possible multiple entries)
@@ -319,13 +149,13 @@ telegram-cli Usage
   --disable-readline/-R                disable readline
   --alert/-A                           enable bell notifications
   --daemonize/-d                       daemon mode
-  --logname/-L <log-name>              log file name
-  --username/-U <user-name>            change uid after start
-  --groupname/-G <group-name>          change gid after start
+  --logname/-L &lt;log-name&gt;              log file name
+  --username/-U &lt;user-name&gt;            change uid after start
+  --groupname/-G &lt;group-name&gt;          change gid after start
   --disable-output/-D                  disable output
-  --tcp-port/-P <port>                 port to listen for input commands
-  --udp-socket/-S <socket-name>        unix socket to create
-  --exec/-e <commands>                 make commands end exit
+  --tcp-port/-P &lt;port&gt;                 port to listen for input commands
+  --udp-socket/-S &lt;socket-name&gt;        unix socket to create
+  --exec/-e &lt;commands&gt;                 make commands end exit
   --disable-names/-I                   use user and chat IDs in updates instead of names
   --enable-ipv6/-6                     use ipv6 (may be unstable)
   --help/-h                            prints this help
@@ -334,48 +164,14 @@ telegram-cli Usage
   --bot/-b                             bot mode
   --json                               prints answers and values in json format
   --permanent-msg-ids                  use permanent msg ids
-  --permanent-peer-ids                 use permanent peer ids
-```
+  --permanent-peer-ids                 use permanent peer ids</code></pre><h3>crontab 定时任务</h3><p>可以通过 crontab 设置定时自动发送消息。</p><p>首先编辑执行脚本，将如下示例代码保存在 <strong>test.sh</strong> 中：</p><pre><code>#!/bin/sh
+LOGFILE=&quot;/home/log/submit_code.log&quot;
 
-### crontab 定时任务
-
-可以通过 crontab 设置定时自动发送消息。
-
-首先编辑执行脚本，将如下示例代码保存在 **test.sh** 中：
-```
-#!/bin/sh
-LOGFILE="/home/log/submit_code.log"
-
-telegram-cli -U root -W -e "msg USERNAME test" >> ${LOGFILE}
-```
-
-以上脚本通过 root 用户执行发送消息，会首先加载 dialog list 然后发送消息，最后退出会话。
-
-脚本中我配置了将发送信息保存在 log 文件中，也可以不保存日志，去掉最后的 `>> ${LOGFILE}` 即可。
-
-然后配置 crontab 定时任务，可以参考我的教程：https://blog.niekun.net/archives/461.html
-
-需要注意的是通过 snap 安装的 telegram-cli 可执行程序目录默认在 `/snap/bin` 目录下。需要将路径定义到 crontab 配置文件中才可以正常识别到脚本中的 telegram-cli 命令。
-
-编辑 `/etc/crontab` 文件：
-```
-SHELL=/bin/sh
+telegram-cli -U root -W -e &quot;msg USERNAME test&quot; &gt;&gt; ${LOGFILE}</code></pre><p>以上脚本通过 root 用户执行发送消息，会首先加载 dialog list 然后发送消息，最后退出会话。</p><p>脚本中我配置了将发送信息保存在 log 文件中，也可以不保存日志，去掉最后的 <code>&gt;&gt; ${LOGFILE}</code> 即可。</p><p>然后配置 crontab 定时任务，可以参考我的教程：<a href="https://blog.niekun.net/archives/461.html">https://blog.niekun.net/archives/461.html</a></p><p>需要注意的是通过 snap 安装的 telegram-cli 可执行程序目录默认在 <code>/snap/bin</code> 目录下。需要将路径定义到 crontab 配置文件中才可以正常识别到脚本中的 telegram-cli 命令。</p><p>编辑 <code>/etc/crontab</code> 文件：</p><pre><code>SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/snap/bin
 HOME=/root
 
-10  9  *  *  * root bash   /path/to/test.sh
-```
-
-注意 **PATH** 参数最后添加的 `/snap/bin`，如果是通过其他方式安装的 telegram-cli，需要根据实际情况定义可执行程序路径。
-
-保存文件后，会自动在 9 点 10 分自动执行 **test.sh** 脚本。
-
-### 参考链接
-
-[How to install telegram-clion Ubuntu](https://snapcraft.io/install/telegram-cli/ubuntu)
-[使用telegram-cli命令行发送信息](https://www.91yun.co/archives/5691)
-[LXK0301京东签到脚本-自动提交互助码](https://www.orzlee.com/toss/2021/02/24/lxk0301-jingdong-signin-scriptautomatic-submission-of-mutual-aid-codes.html)
-[FAIL: 38: can not parse arg #1](https://github.com/vysheng/tg/issues/548#issuecomment-169776227)</textarea></div>
+10  9  *  *  * root bash   /path/to/test.sh</code></pre><p>注意 <strong>PATH</strong> 参数最后添加的 <code>/snap/bin</code>，如果是通过其他方式安装的 telegram-cli，需要根据实际情况定义可执行程序路径。</p><p>保存文件后，会自动在 9 点 10 分自动执行 <strong>test.sh</strong> 脚本。</p><h3>参考链接</h3><p><a href="https://snapcraft.io/install/telegram-cli/ubuntu">How to install telegram-clion Ubuntu</a><br><a href="https://www.91yun.co/archives/5691">使用telegram-cli命令行发送信息</a><br><a href="https://www.orzlee.com/toss/2021/02/24/lxk0301-jingdong-signin-scriptautomatic-submission-of-mutual-aid-codes.html">LXK0301京东签到脚本-自动提交互助码</a><br><a href="https://github.com/vysheng/tg/issues/548#issuecomment-169776227">FAIL: 38: can not parse arg #1</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2310.html#comments</comments>
@@ -388,72 +184,16 @@ HOME=/root
 <pubDate>Thu, 29 Apr 2021 10:15:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_4" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。
-
-访问 smb 共享目录的方法是在文件浏览器中通过：`smb://xxx.xxx.xxx.xxx` 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。
-
-但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。
-
-下面介绍在 Ubuntu 中配置。
-
-
-<!--more-->
-
-在 Linux 中，可以通过 **mount** 命令的 **cifs** 选项将 smb 共享加载到本地驱动器的某个地方。**Common Internet File System (CIFS)** 是一个网络文件共享协议，它是 smb 的一种格式。
-
-### 安装
-
-首先我们安装 CIFS 工具：
-    sudo apt install cifs-utils
-
-### 加载
-
-加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：
-    sudo mkdir /mnt/h99_share
-
-通过下面命令加载某个 smb 共享：
-    sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-
-其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。
-
-默认情况下加载的共享目录所有者为 **root** 且权限为 777。通过 **dir_mode** 和 **file_mode** 参数可以自定义挂载的目录权限：
-    sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-
-如果当前登录用户不是 root 用户，则可能你无法修改共享目录下的内容，可以在挂载时指定用户和用户组：
-    sudo mount -t cifs -o username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-
-以上示例中，我们设置用户和用户组为 **marco**，这样当本地用户登录为 **marco** 时就可以读写共享目录的内容了。
-
-### 自动挂载
-
-以上命令挂载的目录在系统重启后会取消。
-
-在 `/etc/fstab` 文件中可以定义指定的路径及文件系统在系统启动时自动挂载。下面我们在此文件中定义自动挂载配置，需要指定远程地址，共享目录以及本地映射地址：
-```
-# <file system>             <dir>          <type> <options>                                                                                           <dump>  <pass>                             
-//xxx.xxx.xxx.xxx/usbshare  /mnt/h99_share  cifs  username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755  0       0
-```
-
-配置好 fatab 文件后，我们就可以使用以下命令直接挂载对应远程目录了：
-    sudo mount /mnt/h99_share
-
-mount 命令会自动读取 `/etc/fstab` 文件并挂载对应远程地址目录。并且下次系统重启会自动挂载此目录。
-
-### 卸载目录
-
-通过 **umount** 命令可以下载已经加载的文件系统：
-    sudo umount /mnt/h99_share
-
-如果当前加载的文件正在被其他进程使用，则 umount 卸载会失败，提示文件正忙。查询当前加载目录正在被那个进程使用，可以通过 fuser 命令实现：
-    fuser -m /mnt/h99_share
-
-可以根据输出信息使用 kill 结束对应进程，然后就可以正常卸载了。
-
-### 参考链接
-
-[How to Mount Windows Share on Linux using CIFS](https://linuxize.com/post/how-to-mount-cifs-windows-share-on-linux/)
-[Forcing Linux to Unmount a Filesystem Reporting “device is busy”](https://www.systutorials.com/force-linux-unmount-filesystem-reporting-device-busy/)
-</textarea></div>
+<p>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。</p><p>访问 smb 共享目录的方法是在文件浏览器中通过：<code>smb://xxx.xxx.xxx.xxx</code> 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。</p><p>但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。</p><p>下面介绍在 Ubuntu 中配置。</p><!--more--><p>在 Linux 中，可以通过 <strong>mount</strong> 命令的 <strong>cifs</strong> 选项将 smb 共享加载到本地驱动器的某个地方。<strong>Common Internet File System (CIFS)</strong> 是一个网络文件共享协议，它是 smb 的一种格式。</p><h3>安装</h3><p>首先我们安装 CIFS 工具：</p><pre><code>sudo apt install cifs-utils
+</code></pre><h3>加载</h3><p>加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：</p><pre><code>sudo mkdir /mnt/h99_share
+</code></pre><p>通过下面命令加载某个 smb 共享：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。</p><p>默认情况下加载的共享目录所有者为 <strong>root</strong> 且权限为 777。通过 <strong>dir_mode</strong> 和 <strong>file_mode</strong> 参数可以自定义挂载的目录权限：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>如果当前登录用户不是 root 用户，则可能你无法修改共享目录下的内容，可以在挂载时指定用户和用户组：</p><pre><code>sudo mount -t cifs -o username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
+</code></pre><p>以上示例中，我们设置用户和用户组为 <strong>marco</strong>，这样当本地用户登录为 <strong>marco</strong> 时就可以读写共享目录的内容了。</p><h3>自动挂载</h3><p>以上命令挂载的目录在系统重启后会取消。</p><p>在 <code>/etc/fstab</code> 文件中可以定义指定的路径及文件系统在系统启动时自动挂载。下面我们在此文件中定义自动挂载配置，需要指定远程地址，共享目录以及本地映射地址：</p><pre><code># &lt;file system&gt;             &lt;dir&gt;          &lt;type&gt; &lt;options&gt;                                                                                           &lt;dump&gt;  &lt;pass&gt;                             
+//xxx.xxx.xxx.xxx/usbshare  /mnt/h99_share  cifs  username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755  0       0</code></pre><p>配置好 fatab 文件后，我们就可以使用以下命令直接挂载对应远程目录了：</p><pre><code>sudo mount /mnt/h99_share
+</code></pre><p>mount 命令会自动读取 <code>/etc/fstab</code> 文件并挂载对应远程地址目录。并且下次系统重启会自动挂载此目录。</p><h3>卸载目录</h3><p>通过 <strong>umount</strong> 命令可以下载已经加载的文件系统：</p><pre><code>sudo umount /mnt/h99_share
+</code></pre><p>如果当前加载的文件正在被其他进程使用，则 umount 卸载会失败，提示文件正忙。查询当前加载目录正在被那个进程使用，可以通过 fuser 命令实现：</p><pre><code>fuser -m /mnt/h99_share
+</code></pre><p>可以根据输出信息使用 kill 结束对应进程，然后就可以正常卸载了。</p><h3>参考链接</h3><p><a href="https://linuxize.com/post/how-to-mount-cifs-windows-share-on-linux/">How to Mount Windows Share on Linux using CIFS</a><br><a href="https://www.systutorials.com/force-linux-unmount-filesystem-reporting-device-busy/">Forcing Linux to Unmount a Filesystem Reporting “device is busy”</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2303.html#comments</comments>
@@ -466,21 +206,10 @@ mount 命令会自动读取 `/etc/fstab` 文件并挂载对应远程地址目录
 <pubDate>Sat, 10 Apr 2021 13:24:55 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_5" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。
-
-首先在 web 端或直接修改配置文件：`/etc/config/system` 中的 zone 相关参数：
-![2021-04-10T05:23:23.png][1]
-
-然后安装对应 zoneinfo：
-    opkg update
-    opkg install zoneinfo-asia
-
-重启 system 服务：
-    /etc/init.d/system restart
-
-然后输出日志日期就正常了。
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/04/2639787103.png</textarea></div>
+<p>最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。</p><p>首先在 web 端或直接修改配置文件：<code>/etc/config/system</code> 中的 zone 相关参数：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/2639787103.png" alt="2021-04-10T05:23:23.png" title="2021-04-10T05:23:23.png"></p><p>然后安装对应 zoneinfo：</p><pre><code>opkg update
+opkg install zoneinfo-asia
+</code></pre><p>重启 system 服务：</p><pre><code>/etc/init.d/system restart
+</code></pre><p>然后输出日志日期就正常了。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2294.html#comments</comments>
@@ -493,16 +222,7 @@ mount 命令会自动读取 `/etc/fstab` 文件并挂载对应远程地址目录
 <pubDate>Sat, 10 Apr 2021 09:46:44 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_6" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。
-
-在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。
-
-
-<!--more-->
-
-下面是一个默认的 `/etc/config/network` 文件内容：
-```
-"/etc/config/network"
+<p>openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。</p><p>在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。</p><!--more--><p>下面是一个默认的 <code>/etc/config/network</code> 文件内容：</p><pre><code>&quot;/etc/config/network&quot;
 
 config interface 'loopback'
         option ifname 'lo'
@@ -527,84 +247,20 @@ config interface 'wan'
 
 config interface 'wan6'
         option ifname 'eth1'
-        option proto 'dhcpv6'
-```
-
-可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，**注意 lan 的 downlink 下级链接会自动开启 dhcp 服务**，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。
-
-以上默认的 network 配置包含了 global 配置块和 **loopback**，**lan**，**wan** interface 的配置块。这也是最基本的需要配置的网络设置。
-
-关于 network 配置文件的结构参考：[Network basics /etc/config/network](https://openwrt.org/docs/guide-user/base-system/basic-networking)
-
-interfaces 配置块定义了对应 interface 具体连接的物理网卡名称和协议类型，通过 **option** 来定义这个 interface 具体参数。
-
-一个最基本的 interface 配置项需要包含 **proto 协议类型**和 **ifname 网卡名称**，例如：
-```
-config 'interface' 'wan'
+        option proto 'dhcpv6'</code></pre><p>可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，<strong>注意 lan 的 downlink 下级链接会自动开启 dhcp 服务</strong>，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。</p><p>以上默认的 network 配置包含了 global 配置块和 <strong>loopback</strong>，<strong>lan</strong>，<strong>wan</strong> interface 的配置块。这也是最基本的需要配置的网络设置。</p><p>关于 network 配置文件的结构参考：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking">Network basics /etc/config/network</a></p><p>interfaces 配置块定义了对应 interface 具体连接的物理网卡名称和协议类型，通过 <strong>option</strong> 来定义这个 interface 具体参数。</p><p>一个最基本的 interface 配置项需要包含 <strong>proto 协议类型</strong>和 <strong>ifname 网卡名称</strong>，例如：</p><pre><code>config 'interface' 'wan'
         option 'proto' 'dhcp'
-        option 'ifname' 'eth0.2'
-```
-
-- wan 表示这个 interface 名称
-- dhcp 表示协议类型
-- eth0.2 表示绑定的物理网卡名称
-
-常用的 proto 协议类型有：
-```
-static	Static configuration with fixed address and netmask	ip/ifconfig
-dhcp	Address and netmask are assigned by DHCP	udhcpc (Busybox)
-dhcpv6	Address and netmask are assigned by DHCPv6	odhcpc6c
-ppp	PPP protocol - dialup modem connections	pppd
-pppoe	PPP over Ethernet - DSL broadband connection	pppd + plugin rp-pppoe.so
-pppoa	PPP over ATM - DSL connection using a builtin modem	pppd + plugin …
-```
-
-更多协议介绍：[interface](https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces)
-
-配置了协议后需要定义详细的 option 选项参数，下面是常用的适用于所有类型协议的 option 可选项：
-|Name|Type|Default Description|
-|:--:|:--:|
-|ifname |         物理网卡名称 | 如eth0 eth1 eth2，当定义 type 为 bridge 桥接时，可以是一个集合
-|type    |        字符串     |  如果设置为 bridge，会桥接在 ifname 中定义的物理网卡名称集合
-|stp      |       boolean	|     Only valid for type bridge, enables the Spanning Tree Protocol
-|bridge_empty	|boolean	 |    Only valid for type bridge, enables creating empty bridges
-|igmp_snooping	|boolean	  |   Only valid for type bridge, sets the multicast_snooping kernel setting for a bridge
-|macaddr    | mac地址 | Override MAC address of this interface. Example: 62:11:22:aa:bb:cc
-|mtu	|number| Override the default MTU on this interface
-  
-具体到某个 proto 协议会有各自特殊需要定义的 option 参数，下面介绍 static 模式下需要定义的参数：
-|名称|类型|描述
-|:--:|:--:|
-|ipaddr	|ip address	|IP address
-|netmask|netmask	|子网掩码
-|gateway|ip address	|Default gateway
-|broadcast|ip address	|Broadcast address (autogenerated if not set)
-|dns	|list of ip addresses	|DNS server(s)
-|dns_search	|list of domain names	|Search list for host-name lookup
-|metric	|integer	|Specifies the default route metric to use
-
-关于 proto 协议的配置项参考：[openwrt IPv4](https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4)
-
-### 示例
-
-下面通过示例来介绍一些典型配置模式。
-
-lan 网络的 Downstream 下层流量配置：
-```
-config interface 'lan'
+        option 'ifname' 'eth0.2'</code></pre><ul><li>wan 表示这个 interface 名称</li><li>dhcp 表示协议类型</li><li>eth0.2 表示绑定的物理网卡名称</li></ul><p>常用的 proto 协议类型有：</p><pre><code>static    Static configuration with fixed address and netmask    ip/ifconfig
+dhcp    Address and netmask are assigned by DHCP    udhcpc (Busybox)
+dhcpv6    Address and netmask are assigned by DHCPv6    odhcpc6c
+ppp    PPP protocol - dialup modem connections    pppd
+pppoe    PPP over Ethernet - DSL broadband connection    pppd + plugin rp-pppoe.so
+pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin …</code></pre><p>更多协议介绍：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a></p><p>配置了协议后需要定义详细的 option 选项参数，下面是常用的适用于所有类型协议的 option 可选项：</p><table><thead><tr><th align="center">Name</th><th align="center">Type</th><th>Default Description</th></tr></thead><tbody><tr><td align="center">ifname</td><td align="center">物理网卡名称</td><td>如eth0 eth1 eth2，当定义 type 为 bridge 桥接时，可以是一个集合</td></tr><tr><td align="center">type</td><td align="center">字符串</td><td>如果设置为 bridge，会桥接在 ifname 中定义的物理网卡名称集合</td></tr><tr><td align="center">stp</td><td align="center">boolean</td><td>Only valid for type bridge, enables the Spanning Tree Protocol</td></tr><tr><td align="center">bridge_empty</td><td align="center">boolean</td><td>Only valid for type bridge, enables creating empty bridges</td></tr><tr><td align="center">igmp_snooping</td><td align="center">boolean</td><td>Only valid for type bridge, sets the multicast_snooping kernel setting for a bridge</td></tr><tr><td align="center">macaddr</td><td align="center">mac地址</td><td>Override MAC address of this interface. Example: 62:11:22:aa:bb:cc</td></tr><tr><td align="center">mtu</td><td align="center">number</td><td>Override the default MTU on this interface</td></tr></tbody></table><p>具体到某个 proto 协议会有各自特殊需要定义的 option 参数，下面介绍 static 模式下需要定义的参数：</p><table><thead><tr><th align="center">名称</th><th align="center">类型</th><th>描述</th></tr></thead><tbody><tr><td align="center">ipaddr</td><td align="center">ip address</td><td>IP address</td></tr><tr><td align="center">netmask</td><td align="center">netmask</td><td>子网掩码</td></tr><tr><td align="center">gateway</td><td align="center">ip address</td><td>Default gateway</td></tr><tr><td align="center">broadcast</td><td align="center">ip address</td><td>Broadcast address (autogenerated if not set)</td></tr><tr><td align="center">dns</td><td align="center">list of ip addresses</td><td>DNS server(s)</td></tr><tr><td align="center">dns_search</td><td align="center">list of domain names</td><td>Search list for host-name lookup</td></tr><tr><td align="center">metric</td><td align="center">integer</td><td>Specifies the default route metric to use</td></tr></tbody></table><p>关于 proto 协议的配置项参考：<a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">openwrt IPv4</a></p><h3>示例</h3><p>下面通过示例来介绍一些典型配置模式。</p><p>lan 网络的 Downstream 下层流量配置：</p><pre><code>config interface 'lan'
         option ifname 'eth1'
         option proto 'static'
         option ipaddr '192.168.85.1'
         option netmask '255.255.255.0'
         option ip6assign '60'
-        option gateway '27.168.1.1'
-```
-
-lan 网络的下层链接会自动启用 dhcp 服务。
-
-lan 网络配置多网卡桥接模式：
-```
-config interface 'lan'
+        option gateway '27.168.1.1'</code></pre><p>lan 网络的下层链接会自动启用 dhcp 服务。</p><p>lan 网络配置多网卡桥接模式：</p><pre><code>config interface 'lan'
         option type 'bridge'
         option ifname 'eth1 eth2 eth3'
         option proto 'static'
@@ -612,31 +268,13 @@ config interface 'lan'
         option netmask '255.255.255.0'
         option ip6assign '60'
         option gateway '27.168.1.1'
-        option dns '1.1.1.1'
-```
-
-多 dns 配置：
-```
-config interface 'example'
+        option dns '1.1.1.1'</code></pre><p>多 dns 配置：</p><pre><code>config interface 'example'
         option proto     'static'
         option ifname    'eth0'
         option ipaddr    '192.168.1.200'
         option netmask   '255.255.255.0'
         list   dns       '192.168.1.1'
-        list   dns       '192.168.10.1'
-```
-
-### 参考链接
-
-[interface](https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces)
-[IPv4](https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4)
-
-
-
-
-
-
-</textarea></div>
+        list   dns       '192.168.10.1'</code></pre><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a><br><a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">IPv4</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2291.html#comments</comments>
@@ -649,55 +287,11 @@ config interface 'example'
 <pubDate>Thu, 01 Apr 2021 16:22:46 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_7" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">在 Linux 中，当我们准备运行一个可执行文件时，execve 程序会建立一个新的进程替代当前的进程(如终端下的 bash)，同时决定如何完成这个执行任务。
-
-当我们执行一个文本文件时，execve 需要文本文件的开头两个字符为 `“#!` 读作：**shebang**，同时跟随一个解释器的路径用来解释后续的脚本文本内容。
-
-下面我们举例说明。
-
-
-<!--more-->
-
-### shell 脚本
-
-最常用的就是在 shell 脚本中使用 shebang，下面是一个简单的示例：
-```
-#!/bin/sh
-echo "Hello, ${USER}"
-```
-
-我们定义了此脚本的解释器为 `/bin/sh`，后续的脚本内容会通过此解释器来运行。
-
-实际上 `/bin/sh` 是当前系统可执行 shell 命令的程序的软链接，大多数情况下它表示 bash，但为了不同系统的兼容性和安全性，我们直接使用此软链接来表示当前系统支持的 shell 可执行程序。
-
-同时需要注意的是，可执行文本文件必须有执行权限，当创建一个新的脚本文件时，需要对其设置执行权限：
-    chmod +x test.sh
-
-### 其他解释器
-
-当然我们可以根据需要定义其他的解释器，而不仅仅是 sh。下面的示例我们将 cat 作为解释器，这样就会输出脚本本身的内容：
-```
-#!/bin/cat
-Hello World!
-```
-
-### 调用 PATH
-
-上面的示例中，我们定义的解释器的绝对路径，但是当我们不知道一个程序的明确的路径时，我们可以通过将解释器定义为 env 程序，并传递实际需要的解释器程序名称，env 会自动在当前用户 PATH 环境变量中查询程序的路径并作为解释器执行脚本。
-
-下面我们通过 env 来查询 node 并作为解释器执行 node 脚本：
-```
-#!/usr/bin/env node
-console.log('Hello world!');
-```
-
-以上就是对 shebang 的简单解释。
-
-
-### 参考链接
-
-[Using Shebang #! in Linux Scripts](https://www.baeldung.com/linux/shebang)
-</textarea></div>
+<p>在 Linux 中，当我们准备运行一个可执行文件时，execve 程序会建立一个新的进程替代当前的进程(如终端下的 bash)，同时决定如何完成这个执行任务。</p><p>当我们执行一个文本文件时，execve 需要文本文件的开头两个字符为 <code>“#!</code> 读作：<strong>shebang</strong>，同时跟随一个解释器的路径用来解释后续的脚本文本内容。</p><p>下面我们举例说明。</p><!--more--><h3>shell 脚本</h3><p>最常用的就是在 shell 脚本中使用 shebang，下面是一个简单的示例：</p><pre><code>#!/bin/sh
+echo &quot;Hello, ${USER}&quot;</code></pre><p>我们定义了此脚本的解释器为 <code>/bin/sh</code>，后续的脚本内容会通过此解释器来运行。</p><p>实际上 <code>/bin/sh</code> 是当前系统可执行 shell 命令的程序的软链接，大多数情况下它表示 bash，但为了不同系统的兼容性和安全性，我们直接使用此软链接来表示当前系统支持的 shell 可执行程序。</p><p>同时需要注意的是，可执行文本文件必须有执行权限，当创建一个新的脚本文件时，需要对其设置执行权限：</p><pre><code>chmod +x test.sh
+</code></pre><h3>其他解释器</h3><p>当然我们可以根据需要定义其他的解释器，而不仅仅是 sh。下面的示例我们将 cat 作为解释器，这样就会输出脚本本身的内容：</p><pre><code>#!/bin/cat
+Hello World!</code></pre><h3>调用 PATH</h3><p>上面的示例中，我们定义的解释器的绝对路径，但是当我们不知道一个程序的明确的路径时，我们可以通过将解释器定义为 env 程序，并传递实际需要的解释器程序名称，env 会自动在当前用户 PATH 环境变量中查询程序的路径并作为解释器执行脚本。</p><p>下面我们通过 env 来查询 node 并作为解释器执行 node 脚本：</p><pre><code>#!/usr/bin/env node
+console.log('Hello world!');</code></pre><p>以上就是对 shebang 的简单解释。</p><h3>参考链接</h3><p><a href="https://www.baeldung.com/linux/shebang">Using Shebang #! in Linux Scripts</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2287.html#comments</comments>
@@ -710,112 +304,36 @@ console.log('Hello world!');
 <pubDate>Wed, 31 Mar 2021 11:26:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_8" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">通过 VNC(Virtual Network Computing) 可以使用一个图形化的界面来访问远程服务器。这样对服务器的操作可以更加便捷直观。
-
-下面我们在 Ubuntu 上安装 TightVNC vnc server 并通过更加安全的 SSH tunnel 来连接服务器。
-
-环境需求：
-- 远程主机 Ubuntu desktop 20.04
-- 关闭 ufw 防火墙或配置允许 openssh 远程连接
-- 本地设备 vnc 客户端需要支持 SSH tunnels 连接，如： TightVNC, RealVNC, or UltraVNC.
-
-
-<!--more-->
-
-### 安装桌面环境
-
-如果安装的是 Ubuntu server，它默认并没有按照桌面环境，开机后就显示一个 shell 环境。如果是 Ubuntu desktop 版本则默认安装了 Ubuntu desktop 桌面环境。
-
-如果我们需要远程访问 vnc，最好选择一个轻量级的桌面环境，这样访问的时候会流畅很多，推荐安装 xfce。
-
-在后续章节，会介绍安装其他桌面环境的方法，如：GNOME，LXDE，KDE。
-
-首先安装 xfce 及其增强包：
-    sudo apt install xfce4 xfce4-goodies
-
-安装过程中会提示需要选择 xfce 的一个默认 display manager 显示管理器，它是用来在登录系统时的一个图像界面来输入用户及密码的，由于我们只是使用 xfce 来连接 vnc 客户端，且此时已经登陆了对应账户了，所以这里我们任意选择一个显示管理器即可。
-
-可以通过命令查看当前系统已经安装的桌面环境：
-```
-ls /usr/share/xsessions/
+<p>通过 VNC(Virtual Network Computing) 可以使用一个图形化的界面来访问远程服务器。这样对服务器的操作可以更加便捷直观。</p><p>下面我们在 Ubuntu 上安装 TightVNC vnc server 并通过更加安全的 SSH tunnel 来连接服务器。</p><p>环境需求：</p><ul><li>远程主机 Ubuntu desktop 20.04</li><li>关闭 ufw 防火墙或配置允许 openssh 远程连接</li><li>本地设备 vnc 客户端需要支持 SSH tunnels 连接，如： TightVNC, RealVNC, or UltraVNC.</li></ul><!--more--><h3>安装桌面环境</h3><p>如果安装的是 Ubuntu server，它默认并没有按照桌面环境，开机后就显示一个 shell 环境。如果是 Ubuntu desktop 版本则默认安装了 Ubuntu desktop 桌面环境。</p><p>如果我们需要远程访问 vnc，最好选择一个轻量级的桌面环境，这样访问的时候会流畅很多，推荐安装 xfce。</p><p>在后续章节，会介绍安装其他桌面环境的方法，如：GNOME，LXDE，KDE。</p><p>首先安装 xfce 及其增强包：</p><pre><code>sudo apt install xfce4 xfce4-goodies
+</code></pre><p>安装过程中会提示需要选择 xfce 的一个默认 display manager 显示管理器，它是用来在登录系统时的一个图像界面来输入用户及密码的，由于我们只是使用 xfce 来连接 vnc 客户端，且此时已经登陆了对应账户了，所以这里我们任意选择一个显示管理器即可。</p><p>可以通过命令查看当前系统已经安装的桌面环境：</p><pre><code>ls /usr/share/xsessions/
 
 gnome.desktop                   gnome-flashback-metacity.desktop  ubuntu.desktop
-gnome-flashback-compiz.desktop  gnome-xorg.desktop                xfce.desktop
-```
-
-文件中定义了桌面环境启动指令。
-
-### 安装 vncserver
-
-Ubuntu 本身没有安装 vnc 服务， **TigerVNC** 来实现，它们都很轻量及快速，很适合配置 vnc server。
-
-下面安装 TigerVNC server：
-    sudo apt install tigervnc-standalone-server
-
-安装完成后，我们运行 vncserver 来设置一个 vnc 密码，并且初始化相关配置文件：
-    vncserver
-
-此时会提示要求输入一个密码及 verify 验证密码：
-```
-You will require a password to access your desktops.
+gnome-flashback-compiz.desktop  gnome-xorg.desktop                xfce.desktop</code></pre><p>文件中定义了桌面环境启动指令。</p><h3>安装 vncserver</h3><p>Ubuntu 本身没有安装 vnc 服务， <strong>TigerVNC</strong> 来实现，它们都很轻量及快速，很适合配置 vnc server。</p><p>下面安装 TigerVNC server：</p><pre><code>sudo apt install tigervnc-standalone-server
+</code></pre><p>安装完成后，我们运行 vncserver 来设置一个 vnc 密码，并且初始化相关配置文件：</p><pre><code>vncserver
+</code></pre><p>此时会提示要求输入一个密码及 verify 验证密码：</p><pre><code>You will require a password to access your desktops.
 
 Password: 
-Verify:  
-```
-
-然后会提示是否需要设置一个 view-only 密码，通过这个密码登录后，不可以使用鼠标或键盘操作服务器。不需要的话输入 n 不创建即可。
-
-然后就会创建相关的默认配置文件和显示相关连接信息，同时会启动一个运行在 5901 端口的 vnc 服务实例：
-```
-Would you like to enter a view-only password (y/n)? n
+Verify:  </code></pre><p>然后会提示是否需要设置一个 view-only 密码，通过这个密码登录后，不可以使用鼠标或键盘操作服务器。不需要的话输入 n 不创建即可。</p><p>然后就会创建相关的默认配置文件和显示相关连接信息，同时会启动一个运行在 5901 端口的 vnc 服务实例：</p><pre><code>Would you like to enter a view-only password (y/n)? n
 xauth:  file /home/sammy/.Xauthority does not exist
 
 New 'X' desktop is marco-virtual-machine:1
 
 Creating default startup script /home/marco/.vnc/xstartup
 Starting applications specified in /home/marco/.vnc/xstartup
-Log file is /home/marco/.vnc/marco-virtual-machine:1.log
-```
-
-后期如果需要修改 vnc 密码可以输入 vncpasswd 设置：
-    vncpasswd
-
-此时我们的 vnc server 就安装完成并且启动了，下面我们配置启动 xfce。
-
-### 配置
-
-vnc server 在启动时需要知道需要执行哪些命令，以及需要连接到哪个 graphical desktop environment 图形环境。
-
-vnc server 启动时所执行的命令是在 **xstartup** 文件中定义的。他在当前登录用户的 `home` 目录的 `.vnc` 文件夹内。这个文件在我们第一次启动 vncserver 时会自动创建。下面我们对它进行修改。
-
-由于我们上面已经启动了 vncserver，它启动了一个运行在 5901 端口的 vnc 实例。我们首先关闭这个服务：
-    vncserver -kill :1
-
-输出信息如下：
-    Killing Xtightvnc process ID 17648
-
-下面我们打开 `~/.vnc/xstartup` 文件，修改为以下内容：
-```
-#!/bin/sh
+Log file is /home/marco/.vnc/marco-virtual-machine:1.log</code></pre><p>后期如果需要修改 vnc 密码可以输入 vncpasswd 设置：</p><pre><code>vncpasswd
+</code></pre><p>此时我们的 vnc server 就安装完成并且启动了，下面我们配置启动 xfce。</p><h3>配置</h3><p>vnc server 在启动时需要知道需要执行哪些命令，以及需要连接到哪个 graphical desktop environment 图形环境。</p><p>vnc server 启动时所执行的命令是在 <strong>xstartup</strong> 文件中定义的。他在当前登录用户的 <code>home</code> 目录的 <code>.vnc</code> 文件夹内。这个文件在我们第一次启动 vncserver 时会自动创建。下面我们对它进行修改。</p><p>由于我们上面已经启动了 vncserver，它启动了一个运行在 5901 端口的 vnc 实例。我们首先关闭这个服务：</p><pre><code>vncserver -kill :1
+</code></pre><p>输出信息如下：</p><pre><code>Killing Xtightvnc process ID 17648
+</code></pre><p>下面我们打开 <code>~/.vnc/xstartup</code> 文件，修改为以下内容：</p><pre><code>#!/bin/sh
 
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
 
-[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
-[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+[ -x /etc/vnc/xstartup ] &amp;&amp; exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] &amp;&amp; xrdb $HOME/.Xresources
 xsetroot -solid grey
-vncconfig -iconic &
+vncconfig -iconic &amp;
 
-startxfce4 &
-```
-
-这里我们配置了使用 **xfce4** 作为桌面环境。
-
-**注意前三句是需要添加的**，否则远程连接会显示为灰屏。最后一句我们启动了 xfce 桌面环境。
-
-如果使用其他桌面环境，可以同查看对应 desktop 文件里的启动命令找到如何正确的启动对应桌面，如 ubuntu.desktop 文件内容如下：
-```
-cat /usr/share/xsessions/ubuntu.desktop
+startxfce4 &amp;</code></pre><p>这里我们配置了使用 <strong>xfce4</strong> 作为桌面环境。</p><p><strong>注意前三句是需要添加的</strong>，否则远程连接会显示为灰屏。最后一句我们启动了 xfce 桌面环境。</p><p>如果使用其他桌面环境，可以同查看对应 desktop 文件里的启动命令找到如何正确的启动对应桌面，如 ubuntu.desktop 文件内容如下：</p><pre><code>cat /usr/share/xsessions/ubuntu.desktop
 
 [Desktop Entry]
 Name=Ubuntu
@@ -825,59 +343,11 @@ TryExec=/usr/bin/gnome-shell
 Type=Application
 DesktopNames=ubuntu:GNOME
 X-GDM-SessionRegisters=true
-X-Ubuntu-Gettext-Domain=gnome-session-3.0
-```
-
-可以看到启动命令有如下两条：
-```
-Exec=env GNOME_SHELL_SESSION_MODE=ubuntu /usr/bin/gnome-session --systemd --session=ubuntu
-TryExec=/usr/bin/gnome-shell
-```
-
-在 xstartup 自定义配置中加入以上两条即可。
-
-然后给配置文件添加执行权限：
-    chmod +x ~/.vnc/xstartup
-
-然后我们重新启动 vncserver：
-    vncserver -localhost
-
-注意这里我们添加了 `-localhost` 参数，意味着此 vnc 服务只可以在本机内被连接。如果不添加这个参数，则开放所有网络连接。
-
-我们这里只打开本地网络连接服务，然后通过 ssh tunnel 在远程和本地建立安全的连接并转发 vnc 本地端口。
-
-### 连接
-
-vnc 本身并不支持通过一些安全的协议进行连接，下面我们通过 ssh tunnel 隧道在本地和远程主机间建立一个安全的链接，然后告诉 vnc 客户端使用这个安全隧道连接远程服务器。
-
-上面我们已经启动了一个 vncserver 在 5901 端口，它可以在本地网络内被连接但无法被外部网络连接。
-
-首先我们通过 ssh 在本地和远程建立一个安全链接，并转发远程主机的 localhost 及端口到本地的特定端口：
-    ssh -L 59000:localhost:5901 -C -N -l user xxx.xxx.xxx.xxx
-
-以上命令意义如下：
-- `-L 59000:localhost:5901`：使用 `-L` 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。
-- `-C` 参数用来启用传输数据压缩，可以提高传输效率
-- `-N` 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用
-- `-l` 定义远程主机的用户名和 IP 地址
-
-ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 `localhost:59000`：
-![2021-03-31T03:03:51.png][1]
-
-输入我们之前创建的 vnc 密码后就连接到远程服务器了：
-![2021-03-31T03:04:33.png][2]
-
-当然也可以不使用 ssh tunnel ，但是需要取消 `-localhost` 参数，就可以直接连接 vnc server。
-
-### 配置 vnc systemd 服务
-
-为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。
-
-在 `/usr/lib/systemd/system` 目录下新建文件 `vncserver@.service`，其中的 `@` 可以让我们在操作此服务时添加传递参数，在配置文件中使用 `%1` 可以读取这个参数。
-
-内容如下：
-```
-[Unit]
+X-Ubuntu-Gettext-Domain=gnome-session-3.0</code></pre><p>可以看到启动命令有如下两条：</p><pre><code>Exec=env GNOME_SHELL_SESSION_MODE=ubuntu /usr/bin/gnome-session --systemd --session=ubuntu
+TryExec=/usr/bin/gnome-shell</code></pre><p>在 xstartup 自定义配置中加入以上两条即可。</p><p>然后给配置文件添加执行权限：</p><pre><code>chmod +x ~/.vnc/xstartup
+</code></pre><p>然后我们重新启动 vncserver：</p><pre><code>vncserver -localhost
+</code></pre><p>注意这里我们添加了 <code>-localhost</code> 参数，意味着此 vnc 服务只可以在本机内被连接。如果不添加这个参数，则开放所有网络连接。</p><p>我们这里只打开本地网络连接服务，然后通过 ssh tunnel 在远程和本地建立安全的连接并转发 vnc 本地端口。</p><h3>连接</h3><p>vnc 本身并不支持通过一些安全的协议进行连接，下面我们通过 ssh tunnel 隧道在本地和远程主机间建立一个安全的链接，然后告诉 vnc 客户端使用这个安全隧道连接远程服务器。</p><p>上面我们已经启动了一个 vncserver 在 5901 端口，它可以在本地网络内被连接但无法被外部网络连接。</p><p>首先我们通过 ssh 在本地和远程建立一个安全链接，并转发远程主机的 localhost 及端口到本地的特定端口：</p><pre><code>ssh -L 59000:localhost:5901 -C -N -l user xxx.xxx.xxx.xxx
+</code></pre><p>以上命令意义如下：</p><ul><li><code>-L 59000:localhost:5901</code>：使用 <code>-L</code> 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。</li><li><code>-C</code> 参数用来启用传输数据压缩，可以提高传输效率</li><li><code>-N</code> 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用</li><li><code>-l</code> 定义远程主机的用户名和 IP 地址</li></ul><p>ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 <code>localhost:59000</code>：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1735491420.png" alt="2021-03-31T03:03:51.png" title="2021-03-31T03:03:51.png"></p><p>输入我们之前创建的 vnc 密码后就连接到远程服务器了：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3227212438.png" alt="2021-03-31T03:04:33.png" title="2021-03-31T03:04:33.png"></p><p>当然也可以不使用 ssh tunnel ，但是需要取消 <code>-localhost</code> 参数，就可以直接连接 vnc server。</p><h3>配置 vnc systemd 服务</h3><p>为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。</p><p>在 <code>/usr/lib/systemd/system</code> 目录下新建文件 <code>vncserver@.service</code>，其中的 <code>@</code> 可以让我们在操作此服务时添加传递参数，在配置文件中使用 <code>%1</code> 可以读取这个参数。</p><p>内容如下：</p><pre><code>[Unit]
 Description=Start TightVNC server at startup
 After=syslog.target network.target
 
@@ -888,75 +358,34 @@ Group=user
 WorkingDirectory=/home/user
 
 PIDFile=/home/user/.vnc/%H:%i.pid
-ExecStartPre=-/usr/bin/vncserver -kill :%i > /dev/null 2>&1
+ExecStartPre=-/usr/bin/vncserver -kill :%i &gt; /dev/null 2&gt;&amp;1
 ExecStart=/usr/bin/vncserver -depth 24 -geometry 1280x800 -localhost :%i
 ExecStop=/usr/bin/vncserver -kill :%i
 
 [Install]
-WantedBy=multi-user.target
-```
-
-- 注意上面的配置中，需要将 user 修改为你实际登录的用户名称，共有 4 个地方
-- **ExecStart** 中我们定义了 24 位色深 1280x800 的 vnc 显示，可以根据需要自行修改
-- 使用了 `-localhost` 参数，所以只能使用 ssh tunnel 的方式访问
-
-然后重新加载配置：
-    sudo systemctl daemon-reload
-
-启动一个 vncserver 使用参数 1 来定义 vnc 服务号：
-    sudo systemctl start vncserver@1
-
-此时我们就启动了一个 vncserver 且其服务号为 `:1`。
-
-关闭启动的 `:1` vncserver：
-    systemctl stop vncserver@1
-
-开机自动启动 vncserver 服务：
-    systemctl enable vncserver@1
-
-这样就可以实现开机自动部署 vncserver 服务了。
-
-### 使用 gnome 桌面环境
-
-gnome 是 Ubuntu desktop 默认的桌面环境，使用它近似于原生的 Ubuntu 界面。
-
-安装依赖：
-    sudo apt install gnome-session gnome-terminal gnome-panel gnome-settings-daemon metacity nautilus
-
-修改 `~/.vnc/xstartup` 如下：
-```
-#!/bin/bash
+WantedBy=multi-user.target</code></pre><ul><li>注意上面的配置中，需要将 user 修改为你实际登录的用户名称，共有 4 个地方</li><li><strong>ExecStart</strong> 中我们定义了 24 位色深 1280x800 的 vnc 显示，可以根据需要自行修改</li><li>使用了 <code>-localhost</code> 参数，所以只能使用 ssh tunnel 的方式访问</li></ul><p>然后重新加载配置：</p><pre><code>sudo systemctl daemon-reload
+</code></pre><p>启动一个 vncserver 使用参数 1 来定义 vnc 服务号：</p><pre><code>sudo systemctl start vncserver@1
+</code></pre><p>此时我们就启动了一个 vncserver 且其服务号为 <code>:1</code>。</p><p>关闭启动的 <code>:1</code> vncserver：</p><pre><code>systemctl stop vncserver@1
+</code></pre><p>开机自动启动 vncserver 服务：</p><pre><code>systemctl enable vncserver@1
+</code></pre><p>这样就可以实现开机自动部署 vncserver 服务了。</p><h3>使用 gnome 桌面环境</h3><p>gnome 是 Ubuntu desktop 默认的桌面环境，使用它近似于原生的 Ubuntu 界面。</p><p>安装依赖：</p><pre><code>sudo apt install gnome-session gnome-terminal gnome-panel gnome-settings-daemon metacity nautilus
+</code></pre><p>修改 <code>~/.vnc/xstartup</code> 如下：</p><pre><code>#!/bin/bash
 
 PATH=/usr/bin
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
 
 export XKL_XMODMAP_DISABLE=1
-export XDG_CURRENT_DESKTOP="GNOME-Flashback:GNOME"
-export XDG_MENU_PREFIX="gnome-flashback-"
+export XDG_CURRENT_DESKTOP=&quot;GNOME-Flashback:GNOME&quot;
+export XDG_MENU_PREFIX=&quot;gnome-flashback-&quot;
 
-[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
-[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+[ -x /etc/vnc/xstartup ] &amp;&amp; exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] &amp;&amp; xrdb $HOME/.Xresources
 xsetroot -solid grey
-vncconfig -iconic &
+vncconfig -iconic &amp;
 
-gnome-session --builtin --session=gnome-flashback-metacity --disable-acceleration-check --debug &
-nautilus &
-gnome-terminal &
-```
-
-重启 vncserver 服务，连接可以查看效果。
-
-### 参考链接
-
-[How to Install and Configure VNC on Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-vnc-on-ubuntu-20-04)
-[VNC grey screen, x cursor, nothing helps](https://www.raspberrypi.org/forums/viewtopic.php?t=216725)
-[vncserver grey screen ubuntu 16.04 LTS](https://askubuntu.com/questions/800302/vncserver-grey-screen-ubuntu-16-04-lts)
-[How to Install & Configure VNC Server on Ubuntu 20.04](https://bytexd.com/how-to-install-configure-vnc-server-on-ubuntu-20-04/)
-[How to properly configure xstartup file for TightVNC with Ubuntu 20.04 LTS GNOME environment](https://askubuntu.com/questions/1285420/how-to-properly-configure-xstartup-file-for-tightvnc-with-ubuntu-20-04-lts-gnome)
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/03/1735491420.png
-  [2]: https://blog.niekun.net/usr/uploads/2021/03/3227212438.png</textarea></div>
+gnome-session --builtin --session=gnome-flashback-metacity --disable-acceleration-check --debug &amp;
+nautilus &amp;
+gnome-terminal &amp;</code></pre><p>重启 vncserver 服务，连接可以查看效果。</p><h3>参考链接</h3><p><a href="https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-vnc-on-ubuntu-20-04">How to Install and Configure VNC on Ubuntu 20.04</a><br><a href="https://www.raspberrypi.org/forums/viewtopic.php?t=216725">VNC grey screen, x cursor, nothing helps</a><br><a href="https://askubuntu.com/questions/800302/vncserver-grey-screen-ubuntu-16-04-lts">vncserver grey screen ubuntu 16.04 LTS</a><br><a href="https://bytexd.com/how-to-install-configure-vnc-server-on-ubuntu-20-04/">How to Install & Configure VNC Server on Ubuntu 20.04</a><br><a href="https://askubuntu.com/questions/1285420/how-to-properly-configure-xstartup-file-for-tightvnc-with-ubuntu-20-04-lts-gnome">How to properly configure xstartup file for TightVNC with Ubuntu 20.04 LTS GNOME environment</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2281.html#comments</comments>
@@ -969,27 +398,8 @@ gnome-terminal &
 <pubDate>Tue, 30 Mar 2021 22:00:32 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_9" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">openwrt 提供了一个 luci 管理界面可以通过图形化的方式进行配置管理。我们通过 lan 网地址 http 访问 luci 界面，会有一个提示不安全的链接，一般浏览器提供了一个跳过选项可以忽略警告。
-
-但是当我们通过 wan 口地址访问 luci 界面时，新版的 chrome 会强制拒绝访问 http 不安全的链接，这样我们就无法通过外网访问 luci 界面了。
-
-注意如果想要从 wan 口访问 luci 界面，需要配置防火墙放行，具体参考：https://blog.niekun.net/archives/1818.html
-
-解决方法是我们给 luci 配置一个 ssl 证书，这样浏览器就会放行了。
-
-
-<!--more-->
-
-首先安装相关程序：
-    opkg update && opkg install openssl-util luci-app-uhttpd
-
-以上我们安装了 openssl 套件和 uhttpd 的 ui 配置接口，可以图形化的方式配置 uhttpd。
-
-下面我们来生成需要的 ssl 证书文件。
-
-首先创建文件 `etc/ssl/myconfig.conf`：
-```
-[req]
+<p>openwrt 提供了一个 luci 管理界面可以通过图形化的方式进行配置管理。我们通过 lan 网地址 http 访问 luci 界面，会有一个提示不安全的链接，一般浏览器提供了一个跳过选项可以忽略警告。</p><p>但是当我们通过 wan 口地址访问 luci 界面时，新版的 chrome 会强制拒绝访问 http 不安全的链接，这样我们就无法通过外网访问 luci 界面了。</p><p>注意如果想要从 wan 口访问 luci 界面，需要配置防火墙放行，具体参考：<a href="https://blog.niekun.net/archives/1818.html">https://blog.niekun.net/archives/1818.html</a></p><p>解决方法是我们给 luci 配置一个 ssl 证书，这样浏览器就会放行了。</p><!--more--><p>首先安装相关程序：</p><pre><code>opkg update &amp;&amp; opkg install openssl-util luci-app-uhttpd
+</code></pre><p>以上我们安装了 openssl 套件和 uhttpd 的 ui 配置接口，可以图形化的方式配置 uhttpd。</p><p>下面我们来生成需要的 ssl 证书文件。</p><p>首先创建文件 <code>etc/ssl/myconfig.conf</code>：</p><pre><code>[req]
 distinguished_name  = req_distinguished_name
 x509_extensions     = v3_req
 prompt              = no
@@ -1010,46 +420,10 @@ subjectAltName      = @alt_names
  
 [alt_names]
 DNS.1               = luci.openwrt
-IP.1                = 192.168.1.1
-```
-
-可以修改 C (country), ST (state), L (location), O (organization), OU (organization unit) 为你想要的内容。
-
-CN 和 DNS.1 必须是一样的地址，它们表示此证书代表的域名，和 IP 是对应的。如果配置了 luci 界面地址的 hosts，这里就可以定义为对应的域名。之后我们就可以通过访问这个域名来访问 IP。
-
-IP.1 就是 luci web 地址，设置为对应的地址即可。
-
-配置文件保存后返回 ssl 目录：
-    cd /etc/ssl
-
-执行下面的命令：
-    openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout mycert.key -out mycert.crt -config myconfig.conf
-
-会自动在当前目录下创建 mycert.key 和 mycert.crt 文件。
-
-然后我们先通过 lan 内网访问 luci web 界面，在顶部我们可以看到多了一个 services 菜单，点击其中的 uhttpd 进入配置界面，在 **HTTPS Certificate** 和 **HTTPS Private Key** 中分别上传 crt 和 key 文件：
-![2021-03-30T13:52:17.png][1]
-
-然后点击 save and apply。
-
-重启 uhttpd 服务：
-    /etc/init.d/uhttpd restart
-
-此时我们通过 wan 口地址访问 luci web 界面，应该就可以正常进入了。
-
-下面我们将刚才生成的 ssl 文件加入 backup 列表。默认情况下 `/etc/config` 下的文件会自动进行备份。
-
-我们进入 System → Backup/Flash Firmware，点击 configuration 栏，然后将 `/etc/ssl/mycert.crt` 和 
- `/etc/ssl/mycert.key` 加入列表中，点击 save 即可。
-
-之后我们生成的备份就会包含这些文件。
-
-### 参考链接
-
-[How to get rid of LuCI HTTPS certificate warnings](https://openwrt.org/docs/guide-user/luci/getting_rid_of_luci_https_certificate_warnings)
-
-
-  [1]: https://blog.niekun.net/usr/uploads/2021/03/4104361265.png</textarea></div>
+IP.1                = 192.168.1.1</code></pre><p>可以修改 C (country), ST (state), L (location), O (organization), OU (organization unit) 为你想要的内容。</p><p>CN 和 DNS.1 必须是一样的地址，它们表示此证书代表的域名，和 IP 是对应的。如果配置了 luci 界面地址的 hosts，这里就可以定义为对应的域名。之后我们就可以通过访问这个域名来访问 IP。</p><p>IP.1 就是 luci web 地址，设置为对应的地址即可。</p><p>配置文件保存后返回 ssl 目录：</p><pre><code>cd /etc/ssl
+</code></pre><p>执行下面的命令：</p><pre><code>openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout mycert.key -out mycert.crt -config myconfig.conf
+</code></pre><p>会自动在当前目录下创建 mycert.key 和 mycert.crt 文件。</p><p>然后我们先通过 lan 内网访问 luci web 界面，在顶部我们可以看到多了一个 services 菜单，点击其中的 uhttpd 进入配置界面，在 <strong>HTTPS Certificate</strong> 和 <strong>HTTPS Private Key</strong> 中分别上传 crt 和 key 文件：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4104361265.png" alt="2021-03-30T13:52:17.png" title="2021-03-30T13:52:17.png"></p><p>然后点击 save and apply。</p><p>重启 uhttpd 服务：</p><pre><code>/etc/init.d/uhttpd restart
+</code></pre><p>此时我们通过 wan 口地址访问 luci web 界面，应该就可以正常进入了。</p><p>下面我们将刚才生成的 ssl 文件加入 backup 列表。默认情况下 <code>/etc/config</code> 下的文件会自动进行备份。</p><p>我们进入 System → Backup/Flash Firmware，点击 configuration 栏，然后将 <code>/etc/ssl/mycert.crt</code> 和 <br> <code>/etc/ssl/mycert.key</code> 加入列表中，点击 save 即可。</p><p>之后我们生成的备份就会包含这些文件。</p><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/luci/getting_rid_of_luci_https_certificate_warnings">How to get rid of LuCI HTTPS certificate warnings</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2278.html#comments</comments>
@@ -1062,39 +436,14 @@ IP.1 就是 luci web 地址，设置为对应的地址即可。
 <pubDate>Tue, 30 Mar 2021 21:29:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <content:encoded xml:lang="zh-CN"><![CDATA[
-<div id="md_content_10" class="md_content" style="min-height: 50px;"><textarea id="append-test" style="display:none;">openwrt 是针对于嵌入式设备的精简版 Linux 系统。所以一些常规的 Linux 服务都没有，比如 systemd 等。
-
-openwrt 是通过 init.d 来管理服务的。所有的服务都在 `/etc/init.d` 目录下。
-
-对某个服务进行操作也很方便，例如对 network 服务：
-```
-# 启动 network
+<p>openwrt 是针对于嵌入式设备的精简版 Linux 系统。所以一些常规的 Linux 服务都没有，比如 systemd 等。</p><p>openwrt 是通过 init.d 来管理服务的。所有的服务都在 <code>/etc/init.d</code> 目录下。</p><p>对某个服务进行操作也很方便，例如对 network 服务：</p><pre><code># 启动 network
 /etc/init.d/network start
 
 # 重启 network
 /etc/init.d/network restart
 
 # 停止 network
-/etc/init.d/network stop
-```
-
-
-<!--more-->
-
-如果需要某个服务开机自启动，可以 enable：
-```
-/etc/init.d/frp enable
-```
-
-会自动在 `/etc/rc.d/` 目录下建立一个链接指向 `/etc/init.d` 下的对应服务，如：S95frp。
-
-S95 表示此服务的启动顺序，下面会做介绍。
-
-### 基本结构
-
-script 配置文件基本结构如下：
-```
-#!/bin/sh /etc/rc.common
+/etc/init.d/network stop</code></pre><!--more--><p>如果需要某个服务开机自启动，可以 enable：</p><pre><code>/etc/init.d/frp enable</code></pre><p>会自动在 <code>/etc/rc.d/</code> 目录下建立一个链接指向 <code>/etc/init.d</code> 下的对应服务，如：S95frp。</p><p>S95 表示此服务的启动顺序，下面会做介绍。</p><h3>基本结构</h3><p>script 配置文件基本结构如下：</p><pre><code>#!/bin/sh /etc/rc.common
 
 USE_PROCD=1
 START=95
@@ -1107,35 +456,7 @@ service_triggers() {
 stop_service() {
 }
 restart_service() {
-}
-```
-
-首先定义 shebang，定义脚本执行的相关依赖。
-然后通过 USE_PROCD 定义我们的脚本是新的 procd 脚本而不是老版本的 init 脚本。
-
-**START=95** 定义此服务开机启动时，其服务启动顺序序号。最大为 95，数字越大启动排序越靠后。
-**STOP=15** 定义此服务在关机时，其服务关闭顺序序号。数字越小关闭排序越靠前。
-
-Init script 有两个主要任务：
-- 定义此服务的配置
-- 定义何时重新配置此服务
-
-每个服务都有各自特定需要执行的指令，他们都存储在 procd 内部。需要在 `start_service()` 中定义服务配置内容。
-
-### start_service
-
-`start_service()` 的主要任务是：
-- 启动一个服务需要执行的命令
-- 监测某些信息的变化，如：文件或网络的变化
-- 配置 procd 需要的设定，如：auto respawning, logging stdout
-
-以上的任务作为一个服务实例状态存储在 procd 中。当特定的系统配置发生变化，会自动根据 trigger 的设定调用 `start_service()`。
-
-需要通过设定参数来配置服务实例，常用的参数是直接在 start_service 中设定，如 command，一般我么通过 `procd_set_param()` 和 `procd_append_param()` 来设定参数。
-
-下面列举了支持的参数，有些需要设定有些可以省略：
-```
-start_service() {
+}</code></pre><p>首先定义 shebang，定义脚本执行的相关依赖。<br>然后通过 USE_PROCD 定义我们的脚本是新的 procd 脚本而不是老版本的 init 脚本。</p><p><strong>START=95</strong> 定义此服务开机启动时，其服务启动顺序序号。最大为 95，数字越大启动排序越靠后。<br><strong>STOP=15</strong> 定义此服务在关机时，其服务关闭顺序序号。数字越小关闭排序越靠前。</p><p>Init script 有两个主要任务：</p><ul><li>定义此服务的配置</li><li>定义何时重新配置此服务</li></ul><p>每个服务都有各自特定需要执行的指令，他们都存储在 procd 内部。需要在 <code>start_service()</code> 中定义服务配置内容。</p><h3>start_service</h3><p><code>start_service()</code> 的主要任务是：</p><ul><li>启动一个服务需要执行的命令</li><li>监测某些信息的变化，如：文件或网络的变化</li><li>配置 procd 需要的设定，如：auto respawning, logging stdout</li></ul><p>以上的任务作为一个服务实例状态存储在 procd 中。当特定的系统配置发生变化，会自动根据 trigger 的设定调用 <code>start_service()</code>。</p><p>需要通过设定参数来配置服务实例，常用的参数是直接在 start_service 中设定，如 command，一般我么通过 <code>procd_set_param()</code> 和 <code>procd_append_param()</code> 来设定参数。</p><p>下面列举了支持的参数，有些需要设定有些可以省略：</p><pre><code>start_service() {
          procd_open_instance [instance_name] # 给服务实例定义一个名称
          procd_set_param command /sbin/your_service_daemon -b -a --foo # 需要在前台被执行的服务
          procd_append_param command -bar 42 # 给以上命令附加的指令参数
@@ -1145,7 +466,7 @@ start_service() {
          procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
 
          procd_set_param env SOME_VARIABLE=funtimes  # 给进程传递环境变量
-         procd_set_param limits core="unlimited"  # If you need to set ulimit for your process
+         procd_set_param limits core=&quot;unlimited&quot;  # If you need to set ulimit for your process
          procd_set_param file /var/etc/your_service.conf # 如果此处定义的文件发生了变化，则会触发 /etc/init.d/your_service reload 重启进程
          procd_set_param netdev dev # likewise, except if dev's ifindex changes.
          procd_set_param data name=value ... # likewise, except if this data changes.
@@ -1154,59 +475,19 @@ start_service() {
          procd_set_param user nobody # 以 nobody 用户运行服务
          procd_set_param pidfile /var/run/somefile.pid # 在服务启动时写入一个 pid 文件，在停止服务时删除此 pid 文件
          procd_close_instance # 结束服务实例配置
-}
-```
-
-当我们通过 start 参数执行这个脚本时，会自动运行 `start_service()`：
-    /etc/init.d/test start
-
-### stop_service
-
-如果需要在服务进程被终止时，执行特定的命令，可以在 `stop_service()` 中定义。如：
-```
-stop_service() {
+}</code></pre><p>当我们通过 start 参数执行这个脚本时，会自动运行 <code>start_service()</code>：</p><pre><code>/etc/init.d/test start
+</code></pre><h3>stop_service</h3><p>如果需要在服务进程被终止时，执行特定的命令，可以在 <code>stop_service()</code> 中定义。如：</p><pre><code>stop_service() {
         kill $(ps | grep v2ray | awk '/-confdir/ {print $1}')
-}
-```
-
-通过 stop 参数可以直接调用此 method：
-    /etc/init.d/test stop
-
-### restart_service
-
-当我们想要重启某个服务，可以通过单独执行 stop 和 start 来实现，也可以直接定义一个 `restart_service()` 来自动完成这个过程：
-```
-restart_service() {
+}</code></pre><p>通过 stop 参数可以直接调用此 method：</p><pre><code>/etc/init.d/test stop
+</code></pre><h3>restart_service</h3><p>当我们想要重启某个服务，可以通过单独执行 stop 和 start 来实现，也可以直接定义一个 <code>restart_service()</code> 来自动完成这个过程：</p><pre><code>restart_service() {
         stop
         start
-}
-```
-
-注意，在脚本内部调用某个 function 只需要写它的前面的名称即可。
-
-重启服务只需要运行以下命令即可：
-    /etc/init.d/test restart
-
-### service_triggers
-
-可以定义当某个 event 被触发时，自动运行某个 function。
-
-```
-service_triggers()
+}</code></pre><p>注意，在脚本内部调用某个 function 只需要写它的前面的名称即可。</p><p>重启服务只需要运行以下命令即可：</p><pre><code>/etc/init.d/test restart
+</code></pre><h3>service_triggers</h3><p>可以定义当某个 event 被触发时，自动运行某个 function。</p><pre><code>service_triggers()
 {
-        procd_add_reload_trigger "<uci-file-name>" "<second-uci-file>"
-        procd_add_reload_interface_trigger <interface>
-}
-```
-
-以上配置会在 luci 的配置文件发生修改时，自动触发 reload function。
-
-### 参考链接
-
-https://openwrt.org/docs/guide-developer/procd-init-scripts
-https://openwrt.org/docs/guide-developer/procd-init-script-example
-
-</textarea></div>
+        procd_add_reload_trigger &quot;&lt;uci-file-name&gt;&quot; &quot;&lt;second-uci-file&gt;&quot;
+        procd_add_reload_interface_trigger &lt;interface&gt;
+}</code></pre><p>以上配置会在 luci 的配置文件发生修改时，自动触发 reload function。</p><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-developer/procd-init-scripts">https://openwrt.org/docs/guide-developer/procd-init-scripts</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-script-example">https://openwrt.org/docs/guide-developer/procd-init-script-example</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2277.html#comments</comments>
