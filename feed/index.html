@@ -11,8 +11,22 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Wed, 24 Nov 2021 15:03:54 +0800</lastBuildDate>
-<pubDate>Wed, 24 Nov 2021 15:03:54 +0800</pubDate>
+<lastBuildDate>Fri, 26 Nov 2021 20:31:37 +0800</lastBuildDate>
+<pubDate>Fri, 26 Nov 2021 20:31:37 +0800</pubDate>
+<item>
+<title>使用 OpenCore Legacy Patcher 为 2015 款 MacBook Pro 激活 AirPlay</title>
+<link>https://blog.niekun.net/archives/2353.html</link>
+<guid>https://blog.niekun.net/archives/2353.html</guid>
+<pubDate>Fri, 26 Nov 2021 20:31:37 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[you are the company you keep...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>今年发布的 macOS Monterey 增加了很多新功能，其中一个就是可以通过 AirPlay 将手机屏幕投放到 Mac 上。这个功能挺有意思的，但是当我把我的 MacBook Pro 升级系统后，发现无法使用这个功能，经过查询后发现这些新功能只对较新款的设备开放，这就有点让人吐槽了。<br>但是不放弃的我开始查询是否有大神给不支持的设备添加上这些功能，果然被我找到了，而且是一个挺有名的项目：<strong>OpenCore Legacy Patcher</strong>。</p><!--more--><p><strong>OpenCore Legacy Patcher</strong> 是一个旨在帮助不被苹果官方支持的老版本 Mac 升级到最新系统及特殊功能的项目。为这些老设备提供接近于原生的体验。</p><p>GitHub 地址：<a href="https://github.com/dortania/OpenCore-Legacy-Patcher/">https://github.com/dortania/OpenCore-Legacy-Patcher/</a></p><p>我的是 2015 款 MacBook Pro，系统是支持直接升级到 Monterey 的，就是缺失了一些新功能，也可以使用这个工具来解锁这些限制。</p><h3>下载安装</h3><p>首先在 release 页面下载最新版，下载 TUI 即可也就是 terminal 版：<br><a href="https://github.com/dortania/OpenCore-Legacy-Patcher/releases">https://github.com/dortania/OpenCore-Legacy-Patcher/releases</a></p><p>下载解压后拖放到 application 文件夹即可完成安装。</p><h3>配置</h3><p>注意在操作前最好做一次 Time Machine 备份系统，以免操作失败后数据丢失。</p><p>打开OpenCore-Patcher 进入配置界面：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/771952879.jpg" alt="1.jpg" title="1.jpg"></p><p>上面提示此设备并不在这个 patcher 列表中，因为它依然可以收到苹果官方的系统支持。但我们依然想利用这个 patcher 来解锁一些功能，所以首先我们需要允许 opencore 运行在此设备上。</p><p>选择 4. patcher settings 回车：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1199003523.jpg" alt="2.jpg" title="2.jpg"></p><p>选择 8. allow opencore on native models 回车后输入 y 确认，修改后 8 选项变为 currently true：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/4193487915.jpg" alt="3.jpg" title="3.jpg"></p><p>输入 q 返回主菜单，可以看到显示当前设备已被支持：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/3356615953.jpg" alt="4.jpg" title="4.jpg"></p><p>如果你的设备本来就已经进入了 opencore 的支持列表，这不需要进行以上操作。</p><p>下一步设置 opencore 的默认启动模式，默认情况下安装 opencore 后每次启动系统会自动跳入引导选择界面，用来选择正常启动还是通过 pathcer 启动。但是这样比较麻烦，一般情况下配置好后，我们希望自动进入 patcher 后的系统，所以我们将自动跳入引导选择界面功能关闭，这样后续依然可以通过启动时按住 option 键来进入引导选择。</p><p>主界面选择 5. patcher settings，然后选择 5. miscellaneous settings：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/573877562.jpg" alt="5.jpg" title="5.jpg"></p><p>选择 1. set showpicker mode:<br><img src="https://blog.niekun.net/usr/uploads/2021/11/2801299974.jpg" alt="14.jpg" title="14.jpg"></p><p>上面会提示此选项的含义，这里输入 n 关闭此功能：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/818715180.jpg" alt="6.jpg" title="6.jpg"></p><p>输入 q 回到主界面。</p><p>下面我们需要将上面的配置的结果 bulid 到系统临时路径中，选择 1. bulid opencore，完成 build 后输入 enter 返回：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/3345384447.jpg" alt="7.jpg" title="7.jpg"></p><p>最后，就需要将刚才 build 的数据写入到 usb 或内部存储器中。</p><p>如果写入到 usb 中，如果需要系统加载那些隐藏功能，就需要插入写好数据的 usb 然后启动系统时按住 option 选择 opencore 引导系统。如果写入系统内部存储器，就无须外部设备了，可以做到正常启动自动加载 patcher。这里介绍直接安装到设备内部存储器。</p><p>主界面选择 2. install opencore to usb/internal drive:<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1527068884.jpg" alt="8.jpg" title="8.jpg"></p><p>输入 0 选择内部存储器：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1700583359.jpg" alt="9.jpg" title="9.jpg"></p><p>在此输入 0 选择 EFI 分区：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/3610085083.jpg" alt="10.jpg" title="10.jpg"></p><p>确认后 opencore 就写入系统中。</p><p>等待完成写入后手动重启系统，启动时按住 option 键进入引导选择界面：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1349064389.jpg" alt="11.jpg" title="11.jpg"></p><p>这里默认是选中系统默认引导的，如果需要后续每次启动都自动进入 opencore boot 引导的话，使用方向键选择到 opencore 图标的 boot 项，然后按住 control 键，此时引导下面会出现一个圆圈，鼠标点击此圆圈代表设置此选项为默认引导项：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/2495783972.jpg" alt="12.jpg" title="12.jpg"></p><p>选择 opencore boot 进入系统后，打开 system preference - sharing：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/4202134834.jpg" alt="15.jpg" title="15.jpg"></p><p>可以看到菜单中多了一个 AirPlay receiver，表明 AirPlay 功能已经成功启动，此时就可以测试手机的 screen mirror 能否监测到 Mac 了。</p><p>后续 OpenCore-Legacy-Patcher 如果有更新了，下载安装最新的 app 后再次通过以上同样的方法来更新补丁即可。</p><h3>卸载</h3><p>如果通过 USB 加载 opencore 那么只需要拔出 usb 即可删除 opencore。</p><p>如果安装到内部存储器中，卸载稍微麻烦些，具体参考：<a href="https://dortania.github.io/OpenCore-Legacy-Patcher/UNINSTALL.html">Uninstalling OpenCore</a></p><h3>参考链接</h3><p><a href="https://www.youtube.com/watch?v=sO0yc3_hOE8">Airplay BLOCKED on Monterey? How to unlock it!</a><br><a href="https://dortania.github.io/OpenCore-Legacy-Patcher/">OpenCore Legacy Patcher</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2353.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
+</item>
 <item>
 <title>常用校验类正则表达式大全</title>
 <link>https://blog.niekun.net/archives/2352.html</link>
@@ -662,26 +676,6 @@ HOME=/root
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2310.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
-</item>
-<item>
-<title>配置外部网络存储器作为 Time Machine 备份</title>
-<link>https://blog.niekun.net/archives/2305.html</link>
-<guid>https://blog.niekun.net/archives/2305.html</guid>
-<pubDate>Fri, 30 Apr 2021 08:59:42 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[you are the company you keep...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。</p><p>之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？</p><p>研究了下果然有解决方案的，基本原理就是<strong>通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘</strong>就可以正常进行备份及还原了。</p><!--more--><h3>创建虚拟磁盘</h3><p>打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/3390003757.png" alt="2021-04-30T00:36:06.png" title="2021-04-30T00:36:06.png"></p><p>设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/4157435921.png" alt="2021-04-30T00:38:02.png" title="2021-04-30T00:38:02.png"></p><p>点击 <strong>存储</strong> 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。</p><p>也可以通过命令行的方式直接生成镜像文件：</p><pre><code>hdiutil create -size 1024g -type SPARSEBUNDLE -fs &quot;HFS+J&quot; TimeMachine.sparsebundle
-</code></pre><p>这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。</p><h3>配置 Time Machine</h3><p>镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 <strong>TimeMachine.sparsebundle</strong> 文件到合适的目录。</p><p>然后我们在 finder 中双击网络驱动器中的 <strong>TimeMachine.sparsebundle</strong> 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。</p><p>然后我们就可以设置 <strong>TimeMachine</strong> 绑定到这个磁盘：</p><pre><code>sudo tmutil setdestination /Volumes/TimeMachine
-</code></pre><p>注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。</p><p>此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/2641215091.png" alt="2021-04-30T00:49:26.png" title="2021-04-30T00:49:26.png"></p><p>我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。</p><h3>备份与还原</h3><p>备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。</p><p>我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。</p><h3>自动挂载</h3><p>如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：</p><pre><code>try
-    mount volume &quot;smb://xxx.xxx.xxx.xxx/&quot;
-end try
-
-do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle&quot;</code></pre><p>脚本另存为 application 格式并 system preference 中加入开机自启动项即可。</p><h3>参考链接</h3><p><a href="https://www.douban.com/note/614980869/">添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）</a><br><a href="https://yanke.info/?id=78">自建Mac TimeMachine局域网无线备份环境</a><br><a href="https://apple.stackexchange.com/questions/162544/how-to-restore-system-from-network-drive">How to restore system from network drive</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2305.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
 </item>
 </channel>
