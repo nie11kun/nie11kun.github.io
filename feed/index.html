@@ -11,8 +11,22 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Fri, 26 Nov 2021 20:31:00 +0800</lastBuildDate>
-<pubDate>Fri, 26 Nov 2021 20:31:00 +0800</pubDate>
+<lastBuildDate>Sun, 19 Dec 2021 13:12:28 +0800</lastBuildDate>
+<pubDate>Sun, 19 Dec 2021 13:12:28 +0800</pubDate>
+<item>
+<title>升级 Xcode 后 QT 编译报错 No rule to make target 解决方法</title>
+<link>https://blog.niekun.net/archives/2374.html</link>
+<guid>https://blog.niekun.net/archives/2374.html</guid>
+<pubDate>Sun, 19 Dec 2021 13:12:28 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[you are the company you keep...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近升级了 macOS Monterey 同时更新了 Xcode 到最新版，编译 QT 项目的时候发现报错了：</p><pre><code>No rule to make target 'xxx', needed by 'xxx'. Stop.</code></pre><p>解决方法就是删除项目<strong>编译输出文件夹</strong>内的隐藏文件 <code>.qmake.stash</code>，手动删除后重新编译即可。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2374.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
+</item>
 <item>
 <title>使用 OpenCore Legacy Patcher 为 2015 款 MacBook Pro 激活 AirPlay</title>
 <link>https://blog.niekun.net/archives/2353.html</link>
@@ -616,70 +630,6 @@ cat: nop.txt: No such file or directory</code></pre><h3>总结</h3><ul><li>有�
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2320.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
-</item>
-<item>
-<title>通过 telegram-cli 命令行发送 telegram 消息</title>
-<link>https://blog.niekun.net/archives/2310.html</link>
-<guid>https://blog.niekun.net/archives/2310.html</guid>
-<pubDate>Tue, 18 May 2021 20:08:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[you are the company you keep...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。</p><p>GitHub 主页：<a href="https://github.com/vysheng/tg">https://github.com/vysheng/tg</a></p><p>测试平台为 Ubuntu 18.04</p><!--more--><h3>安装</h3><p>有两种方法安装，第一种是通过 snap 应用商店来安装，第二种是从源码安装。</p><p>snap 安装需要首先安装 snap 环境：</p><pre><code>sudo apt install snapd
-</code></pre><p>然后就可以安装 telegram-cli：</p><pre><code>sudo snap install telegram-cli
-</code></pre><p>默认安装路径为：<code>/snap/bin/telegram-cli</code></p><p>从源码编译稍微有些麻烦，因为 GitHub 上的源码最近更新是 2016 年，经过我的测试在 make 时会报错，查询后需要增加安装相关依赖库及调整配置选项后才能正常编译。</p><p>首先安装依赖：</p><pre><code> sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev libpython-dev zlib1g-dev libgcrypt20-dev make
-</code></pre><p>下载仓库源码：</p><pre><code>git clone --recursive https://github.com/vysheng/tg.git &amp;&amp; cd tg
-</code></pre><p>然后配置 configure：</p><pre><code>./configure --disable-openssl
-</code></pre><p>最后编译：</p><pre><code>make
-</code></pre><p>编译完成后可执行文件在项目源码的 <strong>bin</strong> 文件夹内。</p><h3>使用</h3><p>安装完成后需要配置账户信息，输入 telegram-cli 命令：</p><pre><code>telegram-cli
-</code></pre><p>会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。</p><p>这时候通过 <code>msg USERNAME message</code> 的模式来给某个对话发送消息了：</p><pre><code>&gt; msg my_bot test
-</code></pre><p>USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过<code>@username</code>的方式定义会话对象。</p><p>经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：<strong>error FAIL: 38: can not parse arg #1</strong>，但是我的用户名写的是没问题的。这时候需要首先执行一下 <code>dialog_list</code> 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 <code>@username</code> 来发送消息了。</p><p>以上的操作都是在登录到 telegram-cli 中进行的，可以通过 <strong>quit</strong> 或 <strong>safe_quit</strong> 命令退出 telegram-cli 程序：</p><pre><code>&gt; quit
-</code></pre><p>我们也可以直接通过 telegram-cli 命令发送给某个对象消息，需要 <code>-e</code> 参数加执行的命令，例如：</p><pre><code>telegram-cli -e &quot;msg @username message&quot;
-</code></pre><p>建议执行时加上 <code>-W</code>参数以加载 dialog 列表，否则可能出现报警：<strong>error FAIL: 38: can not parse arg #1</strong>：</p><pre><code>telegram-cli -W -e &quot;msg @username message&quot;
-</code></pre><p>使用 <code>-D</code> 参数可以关闭输出信息。使用 <code>-U</code> 参数可以自定义命令执行的用户。</p><p>更多 telegram-cli 可用参数如下：</p><pre><code># telegram-cli -h
-telegram-cli Usage
-  --phone/-u                           specify username (would not be asked during authorization)
-  --rsa-key/-k                         specify location of public key (possible multiple entries)
-  --verbosity/-v                       increase verbosity (0-ERROR 1-WARNIN 2-NOTICE 3+-DEBUG-levels)
-  --enable-msg-id/-N                   message num mode
-  --config/-c                          config file name
-  --profile/-p                         use specified profile
-  --log-level/-l                       log level
-  --sync-from-start/-f                 during authorization fetch all messages since registration
-  --disable-auto-accept/-E             disable auto accept of encrypted chats
-  --lua-script/-s                      lua script file
-  --wait-dialog-list/-W                send dialog_list query and wait for answer before reading input
-  --disable-colors/-C                  disable color output
-  --disable-readline/-R                disable readline
-  --alert/-A                           enable bell notifications
-  --daemonize/-d                       daemon mode
-  --logname/-L &lt;log-name&gt;              log file name
-  --username/-U &lt;user-name&gt;            change uid after start
-  --groupname/-G &lt;group-name&gt;          change gid after start
-  --disable-output/-D                  disable output
-  --tcp-port/-P &lt;port&gt;                 port to listen for input commands
-  --udp-socket/-S &lt;socket-name&gt;        unix socket to create
-  --exec/-e &lt;commands&gt;                 make commands end exit
-  --disable-names/-I                   use user and chat IDs in updates instead of names
-  --enable-ipv6/-6                     use ipv6 (may be unstable)
-  --help/-h                            prints this help
-  --accept-any-tcp                     accepts tcp connections from any src (only loopback by default)
-  --disable-link-preview               disables server-side previews to links
-  --bot/-b                             bot mode
-  --json                               prints answers and values in json format
-  --permanent-msg-ids                  use permanent msg ids
-  --permanent-peer-ids                 use permanent peer ids</code></pre><h3>crontab 定时任务</h3><p>可以通过 crontab 设置定时自动发送消息。</p><p>首先编辑执行脚本，将如下示例代码保存在 <strong>test.sh</strong> 中：</p><pre><code>#!/bin/sh
-LOGFILE=&quot;/home/log/submit_code.log&quot;
-
-telegram-cli -U root -W -e &quot;msg USERNAME test&quot; &gt;&gt; ${LOGFILE}</code></pre><p>以上脚本通过 root 用户执行发送消息，会首先加载 dialog list 然后发送消息，最后退出会话。</p><p>脚本中我配置了将发送信息保存在 log 文件中，也可以不保存日志，去掉最后的 <code>&gt;&gt; ${LOGFILE}</code> 即可。</p><p>然后配置 crontab 定时任务，可以参考我的教程：<a href="https://blog.niekun.net/archives/461.html">https://blog.niekun.net/archives/461.html</a></p><p>需要注意的是通过 snap 安装的 telegram-cli 可执行程序目录默认在 <code>/snap/bin</code> 目录下。需要将路径定义到 crontab 配置文件中才可以正常识别到脚本中的 telegram-cli 命令。</p><p>编辑 <code>/etc/crontab</code> 文件：</p><pre><code>SHELL=/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/snap/bin
-HOME=/root
-
-10  9  *  *  * root bash   /path/to/test.sh</code></pre><p>注意 <strong>PATH</strong> 参数最后添加的 <code>/snap/bin</code>，如果是通过其他方式安装的 telegram-cli，需要根据实际情况定义可执行程序路径。</p><p>保存文件后，会自动在 9 点 10 分自动执行 <strong>test.sh</strong> 脚本。</p><h3>参考链接</h3><p><a href="https://snapcraft.io/install/telegram-cli/ubuntu">How to install telegram-clion Ubuntu</a><br><a href="https://www.91yun.co/archives/5691">使用telegram-cli命令行发送信息</a><br><a href="https://www.orzlee.com/toss/2021/02/24/lxk0301-jingdong-signin-scriptautomatic-submission-of-mutual-aid-codes.html">LXK0301京东签到脚本-自动提交互助码</a><br><a href="https://github.com/vysheng/tg/issues/548#issuecomment-169776227">FAIL: 38: can not parse arg #1</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2310.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
 </item>
 </channel>

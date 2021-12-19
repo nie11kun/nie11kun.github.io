@@ -11,8 +11,21 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/macos/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Fri, 26 Nov 2021 20:31:00 +0800</lastBuildDate>
-<pubDate>Fri, 26 Nov 2021 20:31:00 +0800</pubDate>
+<lastBuildDate>Sun, 19 Dec 2021 13:12:28 +0800</lastBuildDate>
+<pubDate>Sun, 19 Dec 2021 13:12:28 +0800</pubDate>
+<item>
+<title>升级 Xcode 后 QT 编译报错 No rule to make target 解决方法</title>
+<link>https://blog.niekun.net/archives/2374.html</link>
+<guid>https://blog.niekun.net/archives/2374.html</guid>
+<pubDate>Sun, 19 Dec 2021 13:12:28 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近升级了 macOS Monterey 同时更新了 Xcode 到最新版，编译 QT 项目的时候发现报错了：</p><pre><code>No rule to make target 'xxx', needed by 'xxx'. Stop.</code></pre><p>解决方法就是删除项目<strong>编译输出文件夹</strong>内的隐藏文件 <code>.qmake.stash</code>，手动删除后重新编译即可。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2374.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/macos/</wfw:commentRss>
+</item>
 <item>
 <title>使用 OpenCore Legacy Patcher 为 2015 款 MacBook Pro 激活 AirPlay</title>
 <link>https://blog.niekun.net/archives/2353.html</link>
@@ -187,83 +200,6 @@ osascript -e 'display notification &quot;download complete&quot; sound name &quo
 ]]></content:encoded>
 <slash:comments>2</slash:comments>
 <comments>https://blog.niekun.net/archives/1640.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/category/macos/</wfw:commentRss>
-</item>
-<item>
-<title>macOS 使用终端命令设置系统代理</title>
-<link>https://blog.niekun.net/archives/1629.html</link>
-<guid>https://blog.niekun.net/archives/1629.html</guid>
-<pubDate>Tue, 07 Jul 2020 23:38:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>在平时使用中，我一般是在浏览器内设置代理服务器，还有就是终端设置了代理切换脚本来实现快速切换，系统默认没有代理。关于 macOS/Windows 下设置终端代理可以参考我之前的文章：<a href="https://blog.niekun.net/archives/97.html">https://blog.niekun.net/archives/97.html</a></p><p>如果想要设置系统级的代理，需要在 system preference - network - proxies 里设置，常用的需要设置 http/https/socks 代理，基本覆盖大多数应用的流量了：<br><img src="https://blog.niekun.net/usr/uploads/2020/07/600970559.png" alt="2020-07-07T14:34:57.png" title="2020-07-07T14:34:57.png"></p><!--more--><p>但是每次需要让其他应用走代理时都要进入系统设置项里打开代理开关很麻烦，可以通过设置 terminal 命令来实现快速切换。</p><h3>networksetup</h3><p>这里需要使用的命令是 <code>networksetup</code>，它可以查看及设置系统网络配置。</p><p>man page：<a href="https://www.unix.com/man-page/osx/8/networksetup/">https://www.unix.com/man-page/osx/8/networksetup/</a></p><p><strong>查看设备可用的网络服务：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -listallnetworkservices
-An asterisk (*) denotes that a network service is disabled.
-Apple USB Ethernet Hub
-iPhone USB
-Wi-Fi
-Bluetooth PAN
-Thunderbolt Bridge</code></pre><p>可以看到设备支持的有线和无线网络服务，<strong>后续设置中需要使用对应的服务名</strong>。</p><p><strong>查看各个网络服务的端口名：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -listallhardwareports
-
-Hardware Port: Wi-Fi
-Device: en0
-Ethernet Address: a0:99:9b:04:a6:9d
-
-Hardware Port: Bluetooth PAN
-Device: en3
-Ethernet Address: a0:99:9b:04:a6:9e
-
-Hardware Port: Thunderbolt 1
-Device: en1
-Ethernet Address: 82:13:07:10:b9:80
-
-Hardware Port: Thunderbolt 2
-Device: en2
-Ethernet Address: 82:13:07:10:b9:81
-
-Hardware Port: Thunderbolt Bridge
-Device: bridge0
-Ethernet Address: 82:13:07:10:b9:80
-
-VLAN Configurations
-===================</code></pre><p>在后续的设置中会用到 device 名称，可以用以上命令来查询。</p><p><strong>查看某个网络服务的信息：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -getinfo Wi-Fi
-DHCP Configuration
-IP address: 192.168.123.25
-Subnet mask: 255.255.255.0
-Router: 192.168.123.1
-Client ID: 
-IPv6: Automatic
-IPv6 IP address: none
-IPv6 Router: none
-Wi-Fi ID: a0:99:9b:04:a6:9d</code></pre><p><strong>查看系统记录的可连接的无线信号，可以使用命令来查看，需要用到上面得到的 device name：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -listpreferredwirelessnetworks en0
-Preferred networks on en0:
-    zhang_4lou
-    Phicomm_A196D8
-    TP-LINK_27BB
-    MERCURY_F610
-    iPhone (MISS)
-    Marco Nie’s 8
-    Office_Diagnosis</code></pre><p><strong>查看当前连接的无线接入点名称：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -getairportnetwork en0
-Current Wi-Fi Network: My2.4G</code></pre><p><strong>关闭无线连接：</strong></p><pre><code>networksetup -setairportpower en0 off
-</code></pre><p><strong>打开无线连接：</strong></p><pre><code>networksetup -setairportpower en0 on
-</code></pre><p><strong>查询当前无线连接是否打开状态：</strong></p><pre><code>marconie@marco-mbp ~ % networksetup -getairportpower en0
-Wi-Fi Power (en0): On
-</code></pre><p><strong>设置系统 http 代理：</strong></p><pre><code>networksetup -setwebproxy networkservices address port
-</code></pre><p><strong>设置系统 https 代理：</strong></p><pre><code>networksetup -setsecurewebproxy networkservices address port
-</code></pre><p><strong>设置系统 socks 代理：</strong></p><pre><code>networksetup -setsocksfirewallproxy networkservices address port
-</code></pre><p>打开/关闭系统代理：</p><pre><code>networksetup [-setwebproxystate | -setsecurewebproxystate | -setsocksfirewallproxystate] networkservices [on | off]
-</code></pre><h3>应用</h3><p>上面介绍的常用的 <code>networksetup</code> 命令，下面介绍具体如何设置系统代理。这里以 Wi-Fi 网络服务举例。我的 http 代理地址为：127.0.0.1:1082，socks 代理地址为：127.0.0.1:1080。</p><p>首先设置代理地址：</p><pre><code>networksetup -setwebproxy Wi-Fi 127.0.0.1 1082
-networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 1082
-networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 1080</code></pre><p>以上设置只需要设置一次，以后使用只需要执行打开/关闭代理操作即可。</p><p>打开系统代理：</p><pre><code>networksetup -setwebproxystate Wi-Fi on
-networksetup -setsecurewebproxystate Wi-Fi on
-networksetup -setsocksfirewallproxystate Wi-Fi on</code></pre><p>关闭系统代理：</p><pre><code>networksetup -setwebproxystate Wi-Fi off
-networksetup -setsecurewebproxystate Wi-Fi off
-networksetup -setsocksfirewallproxystate Wi-Fi off</code></pre><p>可以在终端执行上述命令，然后打开系统代理设置界面验证是否设置成功。</p><h3>设置 alias 快捷命令</h3><p>如果需要频繁的打开/关闭代理，每次都需要输入以上命令比较麻烦，比较好的方法是设置 alias。关于 alias 我在<a href="https://blog.niekun.net/archives/97.html">macOS/Linux/windows设置终端 proxy 代理</a>里有详细介绍。</p><p>编辑 ~/.bash_frofile 添加如下并保存文件：</p><pre><code>alias pset='networksetup -setwebproxy Wi-Fi 127.0.0.1 1082 &amp;&amp; networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 1082 &amp;&amp; networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 1080'
-alias psystem='networksetup -setwebproxystate Wi-Fi on &amp;&amp; networksetup -setsecurewebproxystate Wi-Fi on &amp;&amp; networksetup -setsocksfirewallproxystate Wi-Fi on'
-alias upsystem='networksetup -setwebproxystate Wi-Fi off &amp;&amp; networksetup -setsecurewebproxystate Wi-Fi off &amp;&amp; networksetup -setsocksfirewallproxystate Wi-Fi off'</code></pre><p>更新缓存，macOS 终端使用的是 zsh，所有要先在 <code>~/.zshrc</code> 里添加一句 <code>source ~/.bash_profile</code>，具体查看我上面提到的文章：</p><pre><code>source ~/.zshrc
-</code></pre><p>设置完成后，执行 <code>pset</code> 设置代理地址，执行 <code>psystem</code> 打开系统代理，执行 <code>upsystem</code> 关闭系统代理。</p><h3>参考连接：</h3><p><a href="http://support.moonpoint.com/os/os-x/networksetup-wifi.php">http://support.moonpoint.com/os/os-x/networksetup-wifi.php</a><br><a href="https://superuser.com/questions/316502/how-to-change-proxy-setting-using-command-line-in-mac-os">https://superuser.com/questions/316502/how-to-change-proxy-setting-using-command-line-in-mac-os</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1629.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/category/macos/</wfw:commentRss>
 </item>
 </channel>

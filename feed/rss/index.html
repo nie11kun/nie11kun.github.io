@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2374.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2353.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2352.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2348.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2324.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2321.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2320.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2310.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2374.html">
+<title>升级 Xcode 后 QT 编译报错 No rule to make target 解决方法</title>
+<link>https://blog.niekun.net/archives/2374.html</link>
+<dc:date>2021-12-19T13:12:28+08:00</dc:date>
+<description>最近升级了 macOS Monterey 同时更新了 Xcode 到最新版，编译 QT 项目的时候发现报错了：No rule to make target 'xxx', needed by 'xxx'. Stop.解决方法就是删除项目编译输出文件夹内的隐藏文件 .qmake.stash，手动删除后重新编译即可。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2353.html">
 <title>使用 OpenCore Legacy Patcher 为 2015 款 MacBook Pro 激活 AirPlay</title>
 <link>https://blog.niekun.net/archives/2353.html</link>
@@ -554,61 +560,5 @@ $ cat nop.txt &gt; output.txt 2&gt;&amp;1
 
 $ cat output.txt
 cat: nop.txt: No such file or directory总结有两个地方用来让程序发送输出内容：stdout，stderr可以单独定义两个输出的重定向目的地文件描述器用来识别 stdout (1) 和 stderr (2)command &gt; output 是 command 1&gt; output 的简写通过 &amp;[FILE_DESCRIPTOR] 指向一个文件描述器的重定向目标地址上2&gt;&amp;1 可以将 stderr 重定向到 stdout 同样的重定向地址上。反之亦然。参考链接Understanding Shell Script's idiom: 2&gt;&1In the shell, what does “ 2&gt;&1 ” mean?</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2310.html">
-<title>通过 telegram-cli 命令行发送 telegram 消息</title>
-<link>https://blog.niekun.net/archives/2310.html</link>
-<dc:date>2021-05-18T20:08:00+08:00</dc:date>
-<description>最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。GitHub 主页：https://github.com/vysheng/tg测试平台为 Ubuntu 18.04安装有两种方法安装，第一种是通过 snap 应用商店来安装，第二种是从源码安装。snap 安装需要首先安装 snap 环境：sudo apt install snapd
-然后就可以安装 telegram-cli：sudo snap install telegram-cli
-默认安装路径为：/snap/bin/telegram-cli从源码编译稍微有些麻烦，因为 GitHub 上的源码最近更新是 2016 年，经过我的测试在 make 时会报错，查询后需要增加安装相关依赖库及调整配置选项后才能正常编译。首先安装依赖： sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev libpython-dev zlib1g-dev libgcrypt20-dev make
-下载仓库源码：git clone --recursive https://github.com/vysheng/tg.git &amp;&amp; cd tg
-然后配置 configure：./configure --disable-openssl
-最后编译：make
-编译完成后可执行文件在项目源码的 bin 文件夹内。使用安装完成后需要配置账户信息，输入 telegram-cli 命令：telegram-cli
-会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。这时候通过 msg USERNAME message 的模式来给某个对话发送消息了：&gt; msg my_bot test
-USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过@username的方式定义会话对象。经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：error FAIL: 38: can not parse arg #1，但是我的用户名写的是没问题的。这时候需要首先执行一下 dialog_list 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 @username 来发送消息了。以上的操作都是在登录到 telegram-cli 中进行的，可以通过 quit 或 safe_quit 命令退出 telegram-cli 程序：&gt; quit
-我们也可以直接通过 telegram-cli 命令发送给某个对象消息，需要 -e 参数加执行的命令，例如：telegram-cli -e &quot;msg @username message&quot;
-建议执行时加上 -W参数以加载 dialog 列表，否则可能出现报警：error FAIL: 38: can not parse arg #1：telegram-cli -W -e &quot;msg @username message&quot;
-使用 -D 参数可以关闭输出信息。使用 -U 参数可以自定义命令执行的用户。更多 telegram-cli 可用参数如下：# telegram-cli -h
-telegram-cli Usage
-  --phone/-u                           specify username (would not be asked during authorization)
-  --rsa-key/-k                         specify location of public key (possible multiple entries)
-  --verbosity/-v                       increase verbosity (0-ERROR 1-WARNIN 2-NOTICE 3+-DEBUG-levels)
-  --enable-msg-id/-N                   message num mode
-  --config/-c                          config file name
-  --profile/-p                         use specified profile
-  --log-level/-l                       log level
-  --sync-from-start/-f                 during authorization fetch all messages since registration
-  --disable-auto-accept/-E             disable auto accept of encrypted chats
-  --lua-script/-s                      lua script file
-  --wait-dialog-list/-W                send dialog_list query and wait for answer before reading input
-  --disable-colors/-C                  disable color output
-  --disable-readline/-R                disable readline
-  --alert/-A                           enable bell notifications
-  --daemonize/-d                       daemon mode
-  --logname/-L &lt;log-name&gt;              log file name
-  --username/-U &lt;user-name&gt;            change uid after start
-  --groupname/-G &lt;group-name&gt;          change gid after start
-  --disable-output/-D                  disable output
-  --tcp-port/-P &lt;port&gt;                 port to listen for input commands
-  --udp-socket/-S &lt;socket-name&gt;        unix socket to create
-  --exec/-e &lt;commands&gt;                 make commands end exit
-  --disable-names/-I                   use user and chat IDs in updates instead of names
-  --enable-ipv6/-6                     use ipv6 (may be unstable)
-  --help/-h                            prints this help
-  --accept-any-tcp                     accepts tcp connections from any src (only loopback by default)
-  --disable-link-preview               disables server-side previews to links
-  --bot/-b                             bot mode
-  --json                               prints answers and values in json format
-  --permanent-msg-ids                  use permanent msg ids
-  --permanent-peer-ids                 use permanent peer idscrontab 定时任务可以通过 crontab 设置定时自动发送消息。首先编辑执行脚本，将如下示例代码保存在 test.sh 中：#!/bin/sh
-LOGFILE=&quot;/home/log/submit_code.log&quot;
-
-telegram-cli -U root -W -e &quot;msg USERNAME test&quot; &gt;&gt; ${LOGFILE}以上脚本通过 root 用户执行发送消息，会首先加载 dialog list 然后发送消息，最后退出会话。脚本中我配置了将发送信息保存在 log 文件中，也可以不保存日志，去掉最后的 &gt;&gt; ${LOGFILE} 即可。然后配置 crontab 定时任务，可以参考我的教程：https://blog.niekun.net/archives/461.html需要注意的是通过 snap 安装的 telegram-cli 可执行程序目录默认在 /snap/bin 目录下。需要将路径定义到 crontab 配置文件中才可以正常识别到脚本中的 telegram-cli 命令。编辑 /etc/crontab 文件：SHELL=/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/snap/bin
-HOME=/root
-
-10  9  *  *  * root bash   /path/to/test.sh注意 PATH 参数最后添加的 /snap/bin，如果是通过其他方式安装的 telegram-cli，需要根据实际情况定义可执行程序路径。保存文件后，会自动在 9 点 10 分自动执行 test.sh 脚本。参考链接How to install telegram-clion Ubuntu使用telegram-cli命令行发送信息LXK0301京东签到脚本-自动提交互助码FAIL: 38: can not parse arg #1</description>
 </item>
 </rdf:RDF>
