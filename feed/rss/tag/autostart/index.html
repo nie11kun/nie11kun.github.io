@@ -19,9 +19,6 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <dc:date>2019-11-25T20:34:00+08:00</dc:date>
 <description>首先判断自己网络 IP 地址是固定 IP/动态 IP/内网 IP，通过站长工具可以查询，或者终端执行如下指令查看外网看本地 IP 地址：curl https://info.niekun.net/ip
 然后从本地通过 ipconfig(win)/ifconfig(linux) 来查看网络路径，如果本地 IP 和上面检测出的一致，那就是有外网 IP，如果不一样则很可能自己分配到的是一个运营商内网。如下是我本地 Windows 电脑的结果，确认是内网：对于有外网 IP 但是是动态的，每隔一段时间自动变化的情况，可以使用 DDNS 来处理。对于大多数家庭网络用户，都没有固定的 IP 地址或者也没有动态的 IP 地址，在本地搭建网络服务无法直接在外网访问，使用 frp 可以实现这一需求。使用场景：路由器远程访问 远程访问/控制电脑 网搭建网站公网访问项目地址：https://github.com/fatedier/frp使用手册：https://gofrp.org/docs/Windows 脚本参考：https://sspai.com/post/52523环境需求：一台有独立 IP 的服务器可安装 frp 的本地主机或路由器(windows/linux)安装从 release 页面分别下载合适版本的最新程序到客户端和独立 IP 的服务端。程序内包含服务端程序(frps)及客户端程序(frpc)，以及对应配置文件。使用服务器端修改 frps.ini 文件，示例：[common]
-# 服务端和客户端的 common 配置中的 token 参数一致则身份验证通过
-token=12345678
-
 # 服务端本地地址和客户端握手端口，bind_port 设置同 server_port
 bind_addr = 0.0.0.0
 bind_port = 6000
@@ -44,11 +41,31 @@ dashboard_port = 6004
 dashboard_user = admin
 dashboard_pwd = admin
 
+# enable_prometheus 可以导出 prometheus 数据，访问 {dashboard_addr}:{dashboard_port}/metrics
+enable_prometheus = true
+
 # 日志记录文件定义，不写则不记录
 log_file = /usr/log/frps.log
 log_level = info
 log_max_days = 3
 disable_log_color = false
+
+# 定义 frpc 和 frps 连接的验证方式
+# If &quot;token&quot; is specified - token will be read into login message.
+# If &quot;oidc&quot; is specified - OIDC (Open ID Connect) token will be issued using OIDC settings. By default, this value is &quot;token&quot;.
+authentication_method = token
+
+# authenticate_heartbeats specifies whether to include authentication token in heartbeats sent to frps. By default, this value is false.
+authenticate_heartbeats = false
+
+# AuthenticateNewWorkConns specifies whether to include authentication token in new work connections sent to frps. By default, this value is false.
+authenticate_new_work_conns = false
+
+# 服务端和客户端的 common 配置中的 token 参数一致则身份验证通过
+token=12345678
+
+# 启用 tcp stream multiplexing
+tcp_mux = true
 
 # 为给客户端开放的端口，用于和客户端数据交互，如不设置此条目，则默认开放所有端口
 allow_ports = 6000-6100,8000
@@ -56,9 +73,6 @@ allow_ports = 6000-6100,8000
 # 如果想要通过域名访问 http/https web 服务，需要在服务端指定服务器的域名
 subdomain_host = niekun.net执行以下命令启动：path/to/frps -c path/to/frps.ini
 客户端修改 frpc.ini 文件，示例：[common]
-# 服务端和客户端的 common 配置中的 token 参数一致则身份验证通过
-token=12345678
-
 # 远程独立 IP 地址
 server_addr = xxx.xxx.xxx.xxx
 
@@ -71,21 +85,34 @@ log_level = info
 log_max_days = 3
 disable_log_color = false
 
+# 客户端和服务端验证方式，需要和 frps.ini 设置一致
+# authenticate_heartbeats specifies whether to include authentication token in heartbeats sent to frps. By default, this value is false.
+authenticate_heartbeats = false
+
+# authenticate_new_work_conns specifies whether to include authentication token in new work connections sent to frps. By default, this value is false.
+authenticate_new_work_conns = false
+
+# 服务端和客户端的 common 配置中的 token 参数一致则身份验证通过
+token=12345678
+
 # 查看 frpc 客户端配置文件等信息的 web 地址
 admin_addr = 127.0.0.1
 admin_port = 6005
 admin_user = admin
 admin_pwd = admin
 
-# 定义链接服务器的协议，支持 tcp，kcp，websocket, default is tcp
-protocol = kcp
-
-#加密连接服务端
-tls_enable = true
+# 启用 tcp stream multiplexing，必须和 frps 配置一致
+tcp_mux = true
 
 #当第一次链接服务器失败是否退出程序，如果设置开机自启这里需要设置为 false，否则可能启动不成功
 #设置为 false 会在链接失败后再次尝试链接
 login_fail_exit = false
+
+# 定义链接服务器的协议，支持 tcp，kcp，websocket, default is tcp
+protocol = tcp
+
+#加密连接服务端
+tls_enable = true
 
 # ssh 是自定义代理块标记，可以是任意的名称
 [ssh]
@@ -100,6 +127,15 @@ remote_port = 6006
 use_encryption = false
 # if true, 数据会被压缩传输
 use_compression = false
+# 对后端服务进行健康检查, it support 'tcp' and 'http' now
+# frpc 将会连接到本地端口检测
+health_check_type = tcp
+# 超时时间
+health_check_timeout_s = 3
+# 如果超过三次检测失败，则将此连接从 frps 删除
+health_check_max_failed = 3
+# 每 10 秒检测一次
+health_check_interval_s = 10
 
 # remote disktop 远程桌面设置
 [rdp]
