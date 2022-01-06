@@ -240,11 +240,20 @@ opkg update然后就可以安装第三方库的软件了，例如：opkg install
 <dc:date>2020-10-13T12:03:00+08:00</dc:date>
 <description>wsl 默认不支持 systemd，执行 systemd 命令会返回错误提示：# hostnamectl
 System has not been booted with systemd as init system (PID 1). Can't operate.
-Failed to create bus connection: Host is down可以安装第三方的工具 genie 来激活 systemd。GitHub：https://github.com/arkane-systems/genie安装添加第三方 apt 库，在 /etc/apt/sources.list.d 目录下新建文件 wsl-translinux.list，文件内容如下：deb [trusted=yes] https://wsl-translinux.arkane-systems.net/apt/ /更新库列表：apt update &amp;&amp; apt upgrade
-安装依赖包：安装 Microsoft 依赖，下载对应系统版本的 prod 包：https://packages.microsoft.com/config/：curl -O https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
-dpkg -i packages-microsoft-prod.deb安装其他依赖：apt update &amp;&amp; apt install apt-transport-https daemonize dotnet-runtime-3.1安装 genie：apt install systemd-genie
+Failed to create bus connection: Host is down可以安装第三方的工具 genie 来激活 systemd。GitHub：https://github.com/arkane-systems/genie安装安装依赖包：安装 Microsoft 依赖，下载对应系统版本的 prod 包：https://packages.microsoft.com/config/：curl -O https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+dpkg -i packages-microsoft-prod.deb安装 lsb_release:apt install lsb-release
+添加第三方 apt 库，执行下面命令会在 /etc/apt/sources.list.d 目录下新建文件 wsl-translinux.list：wget -O /etc/apt/trusted.gpg.d/wsl-transdebian.gpg https://arkane-systems.github.io/wsl-transdebian/apt/wsl-transdebian.gpg
+
+chmod a+r /etc/apt/trusted.gpg.d/wsl-transdebian.gpg
+
+cat &lt;&lt; EOF &gt; /etc/apt/sources.list.d/wsl-transdebian.list
+deb https://arkane-systems.github.io/wsl-transdebian/apt/ $(lsb_release -cs) main
+deb-src https://arkane-systems.github.io/wsl-transdebian/apt/ $(lsb_release -cs) main
+EOF更新库列表：apt update
+安装依赖：apt install daemonize dbus dotnet-runtime-5.0 gawk libc6 libstdc++6 policykit-1 systemd systemd-container安装 genie：apt install systemd-genie
 使用退出 wsl 系统后关闭 所有已打开的 wsl：wsl --shutdown
 启动 wsl：wsl genie -s
-启动的 Linux 系统就可以正常使用 systemd 了。参考链接：https://gist.github.com/djfdyuruiry/6720faa3f9fc59bfdf6284ee1f41f950</description>
+启动的 Linux 系统就可以正常使用 systemd 了。systemd 启动失败如果启动后一直停留在 Waiting for systemd.... 然后有错误提示，需要根据错误提示的内容关闭部分 service 服务。我遇到的是  systemd-remount-fs.service 和 multipathd.socket 加载出了问题，下面命令将他们关闭：sudo systemctl disable multipathd.service multipathd.socket
+sudo systemctl mask systemd-remount-fs.service然后关闭 wsl 重新启动 genie 查看是否正常了。参考链接：https://gist.github.com/djfdyuruiry/6720faa3f9fc59bfdf6284ee1f41f950</description>
 </item>
 </rdf:RDF>
