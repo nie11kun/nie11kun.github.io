@@ -6,11 +6,29 @@ xml:base="https://blog.niekun.net/category/dev/"
 >
 <title type="text">Marco Nie - Development</title>
 <subtitle type="text"></subtitle>
-<updated>2021-11-24T15:03:54+08:00</updated>
+<updated>2022-01-09T18:53:19+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/dev/" />
 <id>https://blog.niekun.net/feed/atom/category/dev/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/dev/" />
+<entry>
+<title type="html"><![CDATA[获取 JD cookie 方法]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2388.html" />
+<id>https://blog.niekun.net/archives/2388.html</id>
+<updated>2022-01-09T18:53:19+08:00</updated>
+<published>2022-01-09T18:53:19+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<content type="html" xml:base="https://blog.niekun.net/archives/2388.html" xml:lang="zh-CN"><![CDATA[
+<p>在运行自动化脚本的时候需要获取到对应网站的登录 cookie，这里介绍通过 chrome 浏览器获取到需要的信息。</p><p>这里提供的方法仅供用于前端开发测试。</p><!--more--><p>首先登陆移动端网站：<a href="https://m.jd.com">https://m.jd.com</a></p><p>右键点击 inspect 进入开发者界面，然后点击网页右上角的登录键根据提示需要输入账户信息登录。</p><p>登录成功后在开发栏切换到 network 选项，并且在 filter 中输入 <code>log.gif</code> 过滤出需要的信息：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/28325132.jpg" alt="1.jpg" title="1.jpg"></p><p>选中第一个 log 文件，点击 header 栏，在其中找到 cookie 项：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/1901791235.jpg" alt="2.jpg" title="2.jpg"></p><p>复制其中的内容到剪贴板。</p><p>找到开发页面下方的 console 栏，我们通过简单的 js 脚本提取出上面 cookie 的有效内容：</p><pre><code>var CV = '这里粘贴复制好的 cookie';
+var CookieValue = CV.match(/pt_pin=.+?;/) + CV.match(/pt_key=.+?;/);
+copy(CookieValue);</code></pre><p>执行完成后此时我们的剪贴板里就已经复制好了 cookie 信息。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2388.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/dev/" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[常用校验类正则表达式大全]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2352.html" />
@@ -1176,306 +1194,6 @@ ReactDOM.render(&lt;
     }</code></pre><p>上面的示例中 e 依然表示 synthetic event。两种方法都会将 e 作为第二个参数传入。在 arrow function 中我们可以清晰地看到数据的位置，但是通过 <strong>bind</strong> 的方式会将有些参数自动转发过去。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2189.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/dev/" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[React 入门教程之四 -- rendering, components 和 state]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2184.html" />
-<id>https://blog.niekun.net/archives/2184.html</id>
-<updated>2021-02-24T17:17:00+08:00</updated>
-<published>2021-02-24T17:17:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<content type="html" xml:base="https://blog.niekun.net/archives/2184.html" xml:lang="zh-CN"><![CDATA[
-<h3>rendering elements 渲染元素</h3><p>一个 element 表示我们想要显示在屏幕上的内容：</p><pre><code>const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
-</code></pre><p>不同于浏览器 DOM 中的 elements，React elements 是简单的 objects 且可以很方便的创建，React DOM 会严格的刷新 DOM 并匹配对应的 React elements。</p><p>容易混淆的概念是 component 和 element，区别是 component 是用来创建 element 的。在后续章节会介绍。</p><!--more--><h4>在 DOM 中渲染元素</h4><p>我们的 html 页面中定义了一个 div 容器：</p><pre><code>&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
-</code></pre><p>我们将其称作 <strong>root</strong> DOM 节点，因为它所有的内容都是被 React DOM 管理的。</p><p>通常情况下使用 React 创建的程序只有一个 <strong>root</strong> DOM 节点。如果你是将 React 整合到现有网站中，你可以有任意个独立的 <strong>root</strong> DOM 节点。</p><p>将 React elements 渲染到 <strong>root</strong> DOM 节点，需要通过调用 <code>ReactDOM.render()</code>，并将 React element 和 <strong>root</strong> DOM 节点作为传入参数：</p><pre><code>const element = &lt;h1&gt;Hello, world&lt;/h1&gt;;
-
-ReactDOM.render(
-    element,
-    document.getElementById('root')
-);</code></pre><p>此时页面会显示 hello world。</p><h4>刷新渲染的元素</h4><p>React element 是 immutable 不可改变的，当创建了一个 element 后不可以修改其 children 或 attributes，一个 element 就好像一个视频的一帧，它表示了某一时间点的 UI。</p><p>从我们目前学到的知识，唯一刷新 UI 的方法就是重新创建新的 elements 然后调用 <code>ReactDOM.render()</code>，通过设置 setInterval 来定时刷新：</p><pre><code>const tick = () =&gt; {
-    const element = &lt;h1&gt;{new Date().toLocaleTimeString()}&lt;/h1&gt;;
-
-    ReactDOM.render(
-        element,
-        document.getElementById('root')
-    );
-}
-setInterval(tick, 1000);</code></pre><p>这样就会每秒钟创建一个新的 element 并通过 <code>ReactDOM.render()</code> 渲染到界面。</p><p>通常情况下大多数 React app 只会调用 <code>ReactDOM.render()</code> 一次。下一章节会介绍如何将封装到 component 中。</p><h3>React 只会更新必要的内容</h3><p>React DOM 会比较其当前和上一个状态的，然后只对有了变化的部分进行更新来达到最终期望的状态。</p><p>我们打开上面示例的运行页面，通过chrome 的开发工具查看 elements 情况，可以看到只有时间元素每秒在刷新：<br>![2021-02-24T07:44:17.png][<br>即使我们每秒钟都新建并渲染 element，但是只有时间文本 node 是一直通过 React DOM 在刷新的。通过以上的实验，思考我们的 UI 在某个时间点应该是什么样的，而不是只想这着去修改它。</p><h3>components 和 props</h3><p><strong>components</strong> 将 UI 元素分割为独立的，可复用的片段，每个片段都是单独存在的。这一章节介绍 component 的概念，更多细节参考：<a href="https://reactjs.org/docs/react-component.html">React.Component</a></p><p><strong>components</strong> 类似于 JavaScript 的 functions，它可以接受抽象的输入数据(<strong>props</strong>)，然后返回 React elements 用来在界面上显示。</p><h4>Function 和 Class Components</h4><p>最简单的定义 component 方式就是定义一个 JavaScript function：</p><pre><code>const Welcome = (props) =&gt; {
-    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;
-}</code></pre><p>上面的 function 是一个有效的 React component，因为它接受一个单参数 <strong>props</strong> object 作为传入数据并返回一个 React element。我们称这种 component 为 function component。</p><p>也可以使用 ES6 的 class 定义 component：</p><pre><code>class Welcome extends React.Component {
-    render() {
-        return &lt;h1&gt;hello, {this.props.name}&lt;/h1&gt;
-    }
-}</code></pre><p>以上两种定义方式是一致的。</p><p>需要注意的是 <strong>components</strong> 名称<strong>必须是以大写字母开头</strong>，因为 React 会见以小写字母开头的 components 作为 DOM tags 标签，如：<code>&lt;div /&gt;</code> 表示一个 html div 标签。</p><h4>rendering a component</h4><p>上面的介绍中，我们只遇到了 DOM tags 标签类型的 React elements，例如：</p><pre><code>const element = &lt;div /&gt;;
-</code></pre><p>elements 也可以表示用户自定义的 components：</p><pre><code>const element = &lt;Welcome name='marco' /&gt;
-</code></pre><p>当 React 检测到使用了用户自定义的 components 它会将此 JSX 内的 attributes 或 children 作为一个 object 传入 component，这个 object 叫做 <strong>props</strong>。</p><p>下面的示例会输出 <strong>hello, marco</strong>:</p><pre><code>const Welcome = (props) =&gt; {
-    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;;
-}
-
-const element = &lt;Welcome name='marco' /&gt;;
-ReactDOM.render(
-    element,
-    document.getElementById('root')
-);</code></pre><p>以上示例过程如下：</p><ul><li>首先调用 <code>ReactDOM.render()</code> 渲染 <code>&lt;Welcome name=&quot;Sara&quot; /&gt;</code> 元素.</li><li>React 调用 <strong>Welcome</strong> component 使用 {name: 'Sara'} 作为 <strong>props</strong>.</li><li><strong>Welcome</strong> component 返回一个 <code>&lt;h1&gt;Hello, Sara&lt;/h1&gt;</code> 元素.</li><li><strong>React</strong> DOM 高效的更新 DOM 来匹配 <code>&lt;h1&gt;Hello, Sara&lt;/h1&gt;</code> 结果.</li></ul><h3>构建 component</h3><p>component 可以在其输出中引入关联其他 components。这可以让我们在一个 component 内抽象出一个多层的结构。一个 button，一个 form，一个 dialog 或者一个 screen，在 React app 中他们都统称为 components。</p><p>例如我们可以创建一个 App component 来渲染多个 Welcome component：</p><pre><code>const Welcome = (props) =&gt; {
-    return &lt;h1&gt; hello, {props.name}&lt;/h1&gt;;
-}
-
-const App = () =&gt; {
-    return (
-        &lt;div&gt;
-            &lt;Welcome name='marco' /&gt;
-            &lt;Welcome name='tim' /&gt;
-            &lt;Welcome name='jone' /&gt;
-        &lt;/div&gt;
-    )
-}
-ReactDOM.render(
-    &lt;App /&gt;,
-    document.getElementById('root')
-);</code></pre><p>以上示例中，没有定义 App 的 props，因为不需要给其传入数据，也是可以的。</p><p>一般情况下，新建的 React app 只有一个顶层的 <strong>App</strong> component。</p><h4>拆解 component</h4><p>不要害怕将一个 component 拆解为多个小 components。例如下面这个 <strong>Comment</strong> component：</p><pre><code>function Comment(props) {
-  return (
-    &lt;div className=&quot;Comment&quot;&gt;
-      &lt;div className=&quot;UserInfo&quot;&gt;
-        &lt;img className=&quot;Avatar&quot;
-          src={props.author.avatarUrl}
-          alt={props.author.name}
-        /&gt;
-        &lt;div className=&quot;UserInfo-name&quot;&gt;
-          {props.author.name}
-        &lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div className=&quot;Comment-text&quot;&gt;
-        {props.text}
-      &lt;/div&gt;
-      &lt;div className=&quot;Comment-date&quot;&gt;
-        {formatDate(props.date)}
-      &lt;/div&gt;
-    &lt;/div&gt;
-  );
-}</code></pre><p>它的 props 包含一个 <strong>author</strong> object，一个 <strong>text</strong>，一个 <strong>data</strong>，描述了一个社交网站上一个 commit 的内容。</p><p>修改这个 component 有点困难，因为它有很多的嵌套，同时也难以复用它的内部组件。下面我们尝试拆解这个 component。</p><p>首先我们拆解出 <strong>Avatar</strong>：</p><pre><code>const Avatar = (props) =&gt; {
-    return (
-        &lt;img className=&quot;Avatar&quot;
-            src={props.user.avatarUrl}
-            alt={props.user.name}
-        /&gt;
-    );
-}</code></pre><p><strong>Avatar</strong> 并不需要知道它被用于 <strong>commit</strong> 中，因此我们修改其 <strong>prop</strong> 名称为一个更加通用的：<strong>user</strong>。推荐从 component 本身为出发点命名 props，而不是考虑什么地方使用它。</p><p>现在我们可以简化 Commit component：</p><pre><code>function Comment(props) {
-    return (
-        &lt;div className=&quot;Comment&quot;&gt;
-            &lt;div className=&quot;UserInfo&quot;&gt;
-                &lt;Avatar user={props.author} /&gt;
-                &lt;div className=&quot;UserInfo-name&quot;&gt;
-                    {props.author.name}
-                &lt;/div&gt;
-            &lt;/div&gt;
-            &lt;div className=&quot;Comment-text&quot;&gt;
-                {props.text}
-            &lt;/div&gt;
-            &lt;div className=&quot;Comment-date&quot;&gt;
-                {formatDate(props.date)}
-            &lt;/div&gt;
-        &lt;/div&gt;
-    );
-}</code></pre><p>我们将 <strong>props.author</strong> 作为 <strong>user</strong> 数据传入 <strong>Avatar</strong> component 中。</p><p>下面我们拆解 <strong>UserInfo</strong>，其中包含一个 <strong>Avatar</strong> component：</p><pre><code>const UserInfo = (props) =&gt; {
-    return (
-        &lt;div className=&quot;UserInfo&quot;&gt;
-            &lt;Avatar user={props.user} /&gt;
-            &lt;div className=&quot;UserInfo-name&quot;&gt;
-                {props.user.name}
-            &lt;/div&gt;
-        &lt;/div&gt;
-    );
-}</code></pre><p>然后进一步简化 Commit：</p><pre><code>function Comment(props) {
-    return (
-        &lt;div className=&quot;Comment&quot;&gt;
-            &lt;UserInfo user={props.user} /&gt;
-            &lt;div className=&quot;Comment-text&quot;&gt;
-                {props.text}
-            &lt;/div&gt;
-            &lt;div className=&quot;Comment-date&quot;&gt;
-                {formatDate(props.date)}
-            &lt;/div&gt;
-        &lt;/div&gt;
-    );
-}</code></pre><p>拆解 component 在开始看起来使工作量变大了，但是在稍微复杂写的 app 中我们就能够利用这些可复用的 components。一条基本准则是：如果 UI 中的某一部分被多次使用，如 button，panel，Avatar等，或者其自身结构比较复杂，如：App, FeedStory, Comment 等，将他们拆解为独立 components 是一个好的选项。</p><h4>props 是只读的</h4><p>当把一个 component 定义为 function 或 class 时，需要注意的是不可以修改 <strong>props</strong> 的值。</p><p>考虑下面的 function：</p><pre><code>function sum(a, b) {
-  return a + b;
-}</code></pre><p>以上的 function 被称作 pure 纯粹的，以为它没有尝试修改输入数据。</p><p>作为对比，下面的就是 impure 不纯粹的 function，因为会尝试修改它的输入数据：</p><pre><code>function sum(a, b) {
-  a = b;
-}</code></pre><p><strong>React</strong> 程序有一条限制条件：<strong>所有的 React components 都需要是 pure function 来对待 props 数据</strong>。</p><p>当然应用程序的 UI 是随时间动态变化的。下一节我们会介绍 state 的概念。通过 state 可以使 React components 在运行期间修改它们的输出 elements 来响应用户动作，网络响应等。同时不违反上面的那条规则。</p><h3>state 和 lifecycle</h3><p>这一节介绍 React components 中 state 和 lifecycle 的概念。</p><p>在前一章的示例中，我们通过一个 <strong>tick</strong> function 在指定时间间隔通过创建新 element 并渲染的方式刷新 UI：</p><pre><code>const tick = () =&gt; {
-    const element = (
-        &lt;div&gt;
-            &lt;h1&gt;hello world&lt;/h1&gt;
-            &lt;h2&gt;{new Date().toLocaleTimeString()}&lt;/h2&gt;
-        &lt;/div&gt;
-    );
-
-    ReactDOM.render(
-        element,
-        document.getElementById('root')
-    );
-}
-setInterval(tick, 1000);</code></pre><p>下面我们介绍通过创建一个封装好的 <strong>Clock</strong> component，设置定时器并更新其自身。</p><p>首先我们根据上面的示例创建 <strong>Clock</strong> component：</p><pre><code>const Clock = (props) =&gt; {
-    &lt;div&gt;
-        &lt;h1&gt;hello world&lt;/h1&gt;
-        &lt;h2&gt;{props.date.toLocaleTimeString()}&lt;/h2&gt;
-    &lt;/div&gt;
-}
-
-const tick = () =&gt; {
-    ReactDOM.render(
-        &lt;Clock date={new Date()} /&gt;,
-        document.getElementById('root')
-    );
-}
-setInterval(tick, 1000);</code></pre><p>在 <strong>tick</strong> 调用 <strong>Clock</strong> component 并定义 <strong>date</strong> prop 的数据供 Clock 使用。但是上面的实现缺乏一个基本需求，那就是 Clock 应该在其自身中定义定时器并每秒刷新数据的。</p><p>我们想要在渲染时达到如下效果调用 Clock：</p><pre><code>ReactDOM.render(
-  &lt;Clock /&gt;,
-  document.getElementById('root')
-);</code></pre><p>为了实现上述功能，需要为 <strong>Clock</strong> 添加 <strong>state</strong>。<strong>state</strong> 类似于 <strong>props</strong> 但是它是由 component 私有且完全控制的。</p><p>首先我们需要将 component 转换为 class 模式，转换过程如下：</p><ul><li>首先创建一个 ES6 class，且继承自 <strong>React.Component</strong>。</li><li>添加一个 <code>render()</code> function，将原 component function 的返回元素放入其返回值中</li><li>在 <code>render()</code> 中用 <strong>this.props</strong> 代替 <strong>props</strong></li></ul><pre><code>class Clock extends React.Component {
-    render() {
-        return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.props.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
-        );
-    }
-}</code></pre><p>当 update 更新发生时会自动调用 <strong>render</strong> function。但当我们将 <code>&lt;Clock /&gt;</code> 放入 DOM 后，将只会有一个 <strong>Clock</strong> object 实例被使用，这就让我们可以使用 <strong>state</strong> 或 <strong>lifecycle</strong> 等功能。</p><h4>添加 state</h4><p>下面我们将 <strong>date</strong> 数据直接放入 <strong>CLock</strong> component 中。</p><p>首先将 render 中的 <strong>this.props.date</strong> 修改为 <strong>this.state.date</strong>：</p><pre><code>class Clock extends React.Component {
-    render() {
-        return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
-        );
-    }
-}</code></pre><p>然后添加 class constructor 构造器给 <strong>this.state</strong> 赋初值：</p><pre><code>class Clock extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {date: new Date()}
-    }
-    render() {
-        return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
-        );
-    }
-}</code></pre><p>注意 class component 总是应该使用 constructor 且初始化参数为 props。child class 有 constructor 时需要调用 super 来初始化 parent class，具体语法参考我的 JavaScript 教程：<a href="https://blog.niekun.net/archives/2011.html">https://blog.niekun.net/archives/2011.html</a></p><p>然后删除渲染到 DOM 中 <strong>Clock</strong> 的 <strong>date</strong> prop，以及我们设置的 <strong>setInterval</strong> 定时器：</p><pre><code>ReactDOM.render(
-    &lt;Clock /&gt;,
-    document.getElementById('root')
-);</code></pre><p>修改完成后的完整代码如下：</p><pre><code>class Clock extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {date: new Date()}
-    }
-    render() {
-        return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
-        );
-    }
-}
-
-ReactDOM.render(
-    &lt;Clock /&gt;,
-    document.getElementById('root')
-);</code></pre><p>下面我们实现 Clock 设置自己的定时器并每秒更新。</p><h4>添加 lifecycle method</h4><p>对于包含很多 components 的程序，但某个 component 不再需要是需要及时释放其占用的资源。</p><p>我们需要 <strong>Clock</strong> 第一次在 DOM 中渲染时设置一个 timer 定时器，在 React 中叫做 <strong>mounting</strong> 载入。同时我们需要当 <strong>Clock</strong> 在 DOM 中被删除时清除这个定时器，在 React 中叫做 <strong>unmounting</strong> 卸载。</p><p>我们可以在 components 载入或载出时通过定义特殊的 method 来运行特定指令：</p><pre><code>  componentDidMount() {
-  }
-
-  componentWillUnmount() {
-  }</code></pre><p>这些 methods 叫做 <strong>lifecycle methods</strong>。</p><p><strong>componentDidMount</strong> method 会在 component 第一次输出到 DOM 后被自动调用，我们可以将定时器定义在这里：</p><pre><code>    componentDidMount() {
-        this.timerID = setInterval(() =&gt; this.tick(), 1000);
-    }</code></pre><p>这样当 Clock 渲染到 UI 后会自动启动这个定时器。注意使用 this 定义的参数可以在 class 中任意地方被调用。</p><p>注意 <strong>setInterval</strong> 中定义的响应动作需要写在 callback 内 <code>() =&gt; {}</code> 中，不要直接写：<code>setInterval(this.tick, 1000)</code>。因为如果要在 callback 调用 method 需要在 constructor 中做如下定义：</p><pre><code>this.tick = this.tick.bind(this);
-</code></pre><p><strong>componentWillUnmount</strong> method 会在 component 将要被删除时自动调用，我们将定时器在这里取消：</p><pre><code>    componentWillUnmount() {
-        clearInterval(this.timerID);
-    }</code></pre><p>接下来我们定义每秒都会自动运行的 <strong>tick</strong> method，通过 <code>this.setState()</code> 来更新本地 state 中的设置：</p><pre><code>    tick() {
-        this.setState({ date: new Date() });
-    }</code></pre><p>最终的完整代码如下：</p><pre><code>const React = require('react')
-const ReactDOM = require('react-dom')
-
-class Clock extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { date: new Date() }
-    }
-
-    componentDidMount() {
-        this.timerID = setInterval(() =&gt; this.tick(), 1000);
-    }
-
-    componentWillUnmount() {
-        clearInterval(this.timerID);
-    }
-
-    tick() {
-        this.setState({ date: new Date() });
-    }
-
-    render() {
-        return (
-            &lt;div&gt;
-                &lt;h1&gt;hello world&lt;/h1&gt;
-                &lt;h2&gt;{this.state.date.toLocaleTimeString()}&lt;/h2&gt;
-            &lt;/div&gt;
-        );
-    }
-}
-
-ReactDOM.render(
-    &lt;Clock /&gt;,
-    document.getElementById('root')
-);</code></pre><p>现在整个处理流程如下：</p><ul><li>当 <code>ReactDOM.render()</code> 传入 <code>&lt;Clock /&gt;</code> 后，React 调用 Clock 构造器初始化 state 为一个包含 date 的 object</li><li>然后 React 调用 Clock 的 <code>render()</code> 查询到需要显示的 UI 元素，然后更新 DOM 以匹配 Clock 的输出</li><li>当 Clock 的输出嵌入到 DOM 后会调用 <strong>componentDidMount</strong>，Clock 告诉浏览器设置一个定时器每秒调用 <code>tick()</code></li><li>每秒钟调用一次 <code>tick()</code>，这里面 Clock component 通过 <code>setState()</code> 配置了其 UI 更新任务，通过 <code>setState()</code> React 就知道了 state 发生了变化并再次调用 <code>render()</code> 监测需要显示的内容，此时的 <code>this.state.date</code> 和上一次的发生了变化，React 就会更新 DOM 到最新的状态。</li><li>当 Clock 从 DOM 中删除后，React 会调用 <strong>componentWillUnmount</strong> 并结束定时器</li></ul><h4>正确使用 state</h4><p>关于 state 的使用需要如下的几点要求。</p><p>第一点，<strong>不要直接修改 state</strong>。</p><p>下面的语法不会触发重新 render 渲染 component：</p><pre><code>this.state.comment = 'Hello';
-</code></pre><p>正确的语法为使用 <strong>setState()</strong>：</p><pre><code>this.setState({comment: 'Hello'});
-</code></pre><p>唯一可以对 state 赋值的是在 constructor 构造器中。</p><p>第二点，<strong>state 更新是异步的</strong>。</p><p>React 为了性能可能会在一次 component update 更新中捆绑多个 <strong>setState()</strong> 调用，由于 <strong>this.props</strong> 和 <strong>this.state</strong> 可能会被异步更新，所以不要依赖他们的数据来计算后续的 <strong>state</strong>。</p><p>如下示例可能会错误的更新 counter：</p><pre><code>this.setState({
-  counter: this.state.counter + this.props.increment,
-});</code></pre><p>为了实现是这个需求，使用 setState 的另一种格式：传入一个 function，第一个参数为当前 state，第二个参数为 props 然后内部计算 state 更新：</p><pre><code>this.setState(function (state, props) {
-    return {
-        counter: state.counter + props.increment
-    };
-});</code></pre><p>第三点，<strong>state 更新会合并</strong>。</p><p>当调用 <code>setState()</code> 后，会合并设置的 object 到当前 state 中。</p><p>如下示例，<strong>state</strong> 可能包含多个独立的变量：</p><pre><code>    constructor(props) {
-        super(props);
-        this.state = {
-            posts: [],
-            comments: []
-        };
-    }</code></pre><p>然后我们可以单独调用 <strong>setState()</strong> 来分别更新它们：</p><pre><code>    componentDidMount() {
-        fetchPosts().then(response =&gt; {
-            this.setState({
-                posts: response.posts
-            });
-        });
-
-        fetchComments().then(response =&gt; {
-            this.setState({
-                comments: response.comments
-            });
-        });
-    }</code></pre><p>合并过程是自动完成的，所以通过 <strong>setState</strong> 修改 comments 只会更新 comments 而不会改变 posts。</p><h4>数据向下传递</h4><p>一个 component 的 child 或 parent 都不会知道当前 component 是包含 state 还是不包含，且不关心是通过 function 还是 class 方式构建的 component。所以 state 被认为是封装的不能够被外界所访问。</p><p>component 的 state 可以作为 props 向它的 child component 传递：</p><pre><code>&lt;FormattedDate date={this.state.date} /&gt;
-</code></pre><p>如上所示 FormattedDate 可以接受 date prop，它并不知道数据来自 parent 的 state 还是 props：</p><pre><code>function FormattedDate(props) {
-  return &lt;h2&gt;It is {props.date.toLocaleTimeString()}.&lt;/h2&gt;;
-}</code></pre><p>通常这叫做 <strong>top-down</strong> 或 <strong>unidirectional</strong> 数据流。任何 state 都被某个特定 component 所有，state 的数据只能在其 component 的 child 中传递出去。</p><p>我们通过建立 <strong>App</strong> component 并构建三个 <strong>Clock</strong> component 来展示 component 之间是互相独立的：</p><pre><code>function App() {
-    return (
-        &lt;div&gt;
-            &lt;Clock /&gt;
-            &lt;Clock /&gt;
-            &lt;Clock /&gt;
-        &lt;/div&gt;
-    );
-}
-
-ReactDOM.render(
-    &lt;App /&gt;,
-    document.getElementById('root')
-);</code></pre><p>每个 Clock 都有个各自的定时器并独立更新。</p><p>在 React 中，components 定义为 stateful 还是 stateless 的取决于其在运行中可能的变化，可以在 stateful 的 component 中使用 stateless 的 component，反过来亦可。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2184.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/dev/" thr:count="0"/>
 </entry>
 </feed>

@@ -11,8 +11,24 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Sun, 19 Dec 2021 13:12:00 +0800</lastBuildDate>
-<pubDate>Sun, 19 Dec 2021 13:12:00 +0800</pubDate>
+<lastBuildDate>Sun, 09 Jan 2022 18:53:19 +0800</lastBuildDate>
+<pubDate>Sun, 09 Jan 2022 18:53:19 +0800</pubDate>
+<item>
+<title>获取 JD cookie 方法</title>
+<link>https://blog.niekun.net/archives/2388.html</link>
+<guid>https://blog.niekun.net/archives/2388.html</guid>
+<pubDate>Sun, 09 Jan 2022 18:53:19 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[you are the company you keep...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>在运行自动化脚本的时候需要获取到对应网站的登录 cookie，这里介绍通过 chrome 浏览器获取到需要的信息。</p><p>这里提供的方法仅供用于前端开发测试。</p><!--more--><p>首先登陆移动端网站：<a href="https://m.jd.com">https://m.jd.com</a></p><p>右键点击 inspect 进入开发者界面，然后点击网页右上角的登录键根据提示需要输入账户信息登录。</p><p>登录成功后在开发栏切换到 network 选项，并且在 filter 中输入 <code>log.gif</code> 过滤出需要的信息：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/28325132.jpg" alt="1.jpg" title="1.jpg"></p><p>选中第一个 log 文件，点击 header 栏，在其中找到 cookie 项：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/1901791235.jpg" alt="2.jpg" title="2.jpg"></p><p>复制其中的内容到剪贴板。</p><p>找到开发页面下方的 console 栏，我们通过简单的 js 脚本提取出上面 cookie 的有效内容：</p><pre><code>var CV = '这里粘贴复制好的 cookie';
+var CookieValue = CV.match(/pt_pin=.+?;/) + CV.match(/pt_key=.+?;/);
+copy(CookieValue);</code></pre><p>执行完成后此时我们的剪贴板里就已经复制好了 cookie 信息。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2388.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
+</item>
 <item>
 <title>升级 Xcode 后 QT 编译报错 No rule to make target 解决方法</title>
 <link>https://blog.niekun.net/archives/2375.html</link>
@@ -592,44 +608,6 @@ tmpfs                   512.0K         0    512.0K   0% /dev</code></pre><p>可�
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2321.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
-</item>
-<item>
-<title>理解 Linux shell 脚本的 2&amp;gt;&amp;amp;1</title>
-<link>https://blog.niekun.net/archives/2320.html</link>
-<guid>https://blog.niekun.net/archives/2320.html</guid>
-<pubDate>Mon, 31 May 2021 18:33:51 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[you are the company you keep...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 <code>2&gt;&amp;1</code>，例如：</p><pre><code>ls foo &gt; /dev/null 2&gt;&amp;1
-</code></pre><p>下面我们一步步了解下这种结构的含义。</p><!--more--><h3>I/O redirection 重定向</h3><p>简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 <code>cat</code> 命令打印一个文件的内容到屏幕：</p><pre><code>$ cat foo.txt
-foo
-bar
-baz</code></pre><p>我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:</p><pre><code>$ cat foo.txt &gt; output.txt
-
-$ cat output.txt
-foo
-bar
-baz</code></pre><p>执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 <strong>standard output (stdout)标准输出</strong>到一个文件，所以它就不会输出到屏幕了。</p><p>需要注意的是还有另一个地方：<strong>standard error (stderr)标准错误</strong>，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：</p><pre><code>$ cat nop.txt &gt; output.txt
-cat: nop.txt: No such file or directory</code></pre><p>以上示例中即使我们将 <strong>stdout</strong> 重定向到一个文件了，由于 output.txt 不存在，<strong>stderr</strong> 依然会输出错误信息到屏幕。因为我们重定向的只是 <strong>stdout</strong> 而不包括 <strong>stderr</strong>。</p><h3>file descriptors 文件描述器</h3><p>一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 <strong>stdout</strong> 和 <strong>stderr</strong> 有其各自的文件描述器 id 定义了它们各自的地址。</p><p><strong>stdout</strong> 是 <strong>1</strong>，<strong>stderr</strong> 是 <strong>2</strong>。</p><p>在之前的示例中，我们可以修改命令为如下结构：</p><pre><code>cat foo.txt 1&gt; output.txt
-</code></pre><p>这里的 <strong>1</strong> 就是 <strong>stdout</strong> 的文件描述器，通过重定向语法 <code>[FILE_DESCRIPTOR]&gt;</code> 将 <strong>stdout</strong> 重定向到另一个文件。注意 <code>1&gt;</code> 可以简写为 <code>&gt;</code>。</p><p>类似的，可以将 stderr 重定向到指定的目的地：</p><pre><code>$ cat nop.txt 2&gt; error.txt
-
-$ cat error.txt
-cat: nop.txt: No such file or directory</code></pre><p>这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。</p><p>下面我们理解下 <code>2&gt;&amp;1</code> 的意义。我们使用 <code>&amp;1</code> 来指向 <strong>stdout</strong> 的重定向地址，所以 <code>2&gt;&amp;1</code> 表示重定向 <strong>stderr</strong> 到和 <strong>stdout</strong> 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 <strong>stdout</strong> 和 <strong>stderr</strong> 重定向到同一个文件中：</p><pre><code>$ cat foo.txt &gt; output.txt 2&gt;&amp;1
-
-$ cat output.txt
-foo
-bar
-baz
-
-$ cat nop.txt &gt; output.txt 2&gt;&amp;1
-
-$ cat output.txt
-cat: nop.txt: No such file or directory</code></pre><h3>总结</h3><ul><li>有两个地方用来让程序发送输出内容：<strong>stdout</strong>，<strong>stderr</strong></li><li>可以单独定义两个输出的重定向目的地</li><li>文件描述器用来识别 <strong>stdout (1)</strong> 和 <strong>stderr (2)</strong></li><li><code>command &gt; output</code> 是 <code>command 1&gt; output</code> 的简写</li><li>通过 <code>&amp;[FILE_DESCRIPTOR]</code> 指向一个文件描述器的重定向目标地址上</li><li><code>2&gt;&amp;1</code> 可以将 <strong>stderr</strong> 重定向到 <strong>stdout</strong> 同样的重定向地址上。反之亦然。</li></ul><h3>参考链接</h3><p><a href="https://www.brianstorti.com/understanding-shell-script-idiom-redirect/">Understanding Shell Script's idiom: 2&gt;&1</a><br><a href="https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean">In the shell, what does “ 2&gt;&1 ” mean?</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2320.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
 </item>
 </channel>
