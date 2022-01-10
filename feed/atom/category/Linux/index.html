@@ -417,14 +417,14 @@ gnome-terminal &amp;</code></pre><p>重启 vncserver 服务，连接可以查看
 <title type="html"><![CDATA[openwrt 配置 LuCI ssl 证书]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2278.html" />
 <id>https://blog.niekun.net/archives/2278.html</id>
-<updated>2021-03-30T22:00:32+08:00</updated>
-<published>2021-03-30T22:00:32+08:00</published>
+<updated>2021-03-30T22:00:00+08:00</updated>
+<published>2021-03-30T22:00:00+08:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
 <content type="html" xml:base="https://blog.niekun.net/archives/2278.html" xml:lang="zh-CN"><![CDATA[
-<p>openwrt 提供了一个 luci 管理界面可以通过图形化的方式进行配置管理。我们通过 lan 网地址 http 访问 luci 界面，会有一个提示不安全的链接，一般浏览器提供了一个跳过选项可以忽略警告。</p><p>但是当我们通过 wan 口地址访问 luci 界面时，新版的 chrome 会强制拒绝访问 http 不安全的链接，这样我们就无法通过外网访问 luci 界面了。</p><p>注意如果想要从 wan 口访问 luci 界面，需要配置防火墙放行，具体参考：<a href="https://blog.niekun.net/archives/1818.html">https://blog.niekun.net/archives/1818.html</a></p><p>解决方法是我们给 luci 配置一个 ssl 证书，这样浏览器就会放行了。</p><!--more--><p>首先安装相关程序：</p><pre><code>opkg update &amp;&amp; opkg install openssl-util luci-app-uhttpd
+<p>openwrt 提供了一个 luci 管理界面可以通过图形化的方式进行配置管理。我们通过 lan 网地址 http 访问 luci 界面，会有一个提示不安全的链接，一般浏览器提供了一个跳过选项可以忽略警告。</p><p>但是当我们通过 wan 口地址访问 luci 界面时，新版的 chrome 会强制拒绝访问 http 不安全的链接，如果网址不支持 https 访问页面就会无法打开，从而我们就无法通过外网访问 luci 界面了。</p><p>首先注意如果想要从 wan 口通过访问 luci 界面，需要配置防火墙放行，具体参考：<a href="https://blog.niekun.net/archives/1818.html">https://blog.niekun.net/archives/1818.html</a></p><p>然后我们给 luci 配置一个 ssl 证书，这样 chrome 浏览器就会放行了。</p><!--more--><p>首先安装相关程序：</p><pre><code>opkg update &amp;&amp; opkg install openssl-util luci-app-uhttpd
 </code></pre><p>以上我们安装了 openssl 套件和 uhttpd 的 ui 配置接口，可以图形化的方式配置 uhttpd。</p><p>下面我们来生成需要的 ssl 证书文件。</p><p>首先创建文件 <code>etc/ssl/myconfig.conf</code>：</p><pre><code>[req]
 distinguished_name  = req_distinguished_name
 x509_extensions     = v3_req
@@ -449,7 +449,7 @@ DNS.1               = luci.openwrt
 IP.1                = 192.168.1.1</code></pre><p>可以修改 C (country), ST (state), L (location), O (organization), OU (organization unit) 为你想要的内容。</p><p>CN 和 DNS.1 必须是一样的地址，它们表示此证书代表的域名，和 IP 是对应的。如果配置了 luci 界面地址的 hosts，这里就可以定义为对应的域名。之后我们就可以通过访问这个域名来访问 IP。</p><p>IP.1 就是 luci web 地址，设置为对应的地址即可。</p><p>配置文件保存后返回 ssl 目录：</p><pre><code>cd /etc/ssl
 </code></pre><p>执行下面的命令：</p><pre><code>openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout mycert.key -out mycert.crt -config myconfig.conf
 </code></pre><p>会自动在当前目录下创建 mycert.key 和 mycert.crt 文件。</p><p>然后我们先通过 lan 内网访问 luci web 界面，在顶部我们可以看到多了一个 services 菜单，点击其中的 uhttpd 进入配置界面，在 <strong>HTTPS Certificate</strong> 和 <strong>HTTPS Private Key</strong> 中分别上传 crt 和 key 文件：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4104361265.png" alt="2021-03-30T13:52:17.png" title="2021-03-30T13:52:17.png"></p><p>然后点击 save and apply。</p><p>重启 uhttpd 服务：</p><pre><code>/etc/init.d/uhttpd restart
-</code></pre><p>此时我们通过 wan 口地址访问 luci web 界面，应该就可以正常进入了。</p><p>下面我们将刚才生成的 ssl 文件加入 backup 列表。默认情况下 <code>/etc/config</code> 下的文件会自动进行备份。</p><p>我们进入 System → Backup/Flash Firmware，点击 configuration 栏，然后将 <code>/etc/ssl/mycert.crt</code> 和 <br> <code>/etc/ssl/mycert.key</code> 加入列表中，点击 save 即可。</p><p>之后我们生成的备份就会包含这些文件。</p><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/luci/getting_rid_of_luci_https_certificate_warnings">How to get rid of LuCI HTTPS certificate warnings</a></p>
+</code></pre><p>此时我们使用 chrome 通过 wan 口地址访问 luci web 界面，依然会提示证书有问题，但是有选项链接可以正常进入了。</p><p>下面我们将刚才生成的 ssl 文件加入 backup 列表。默认情况下 <code>/etc/config</code> 下的文件会自动进行备份。</p><p>我们进入 System → Backup/Flash Firmware，点击 configuration 栏，然后将 <code>/etc/ssl/mycert.crt</code> 和 <br> <code>/etc/ssl/mycert.key</code> 加入列表中，点击 save 即可。</p><p>之后我们生成的备份就会包含这些文件。</p><h3>取消强制 https 转换</h3><p>默认情况下 uhttpd 的设置会打开 <code>Redirect all HTTP to HTTPS</code>:<br><img src="https://blog.niekun.net/usr/uploads/2022/01/2983483505.png" alt="2022-01-10T12:53:19.png" title="2022-01-10T12:53:19.png"></p><p>此时访问 http 页面也会自动重定向到 https 页面。在本地访问没有什么问题，但是经过测试使用 frp 进行内网穿透将 luci 页面从外网访问时，会出现 redirect too many times 报警，也就是无限重定向了。</p><p>因为我的 frp 配置的是 http to https，这样就需要 frp 访问的本地 http 服务而不是 https。</p><p>解决方法就是取消勾选 <code>Redirect all HTTP to HTTPS</code> 这一选项，然后重启路由就可以正常通过 frp 访问 luci 页面了。</p><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/luci/getting_rid_of_luci_https_certificate_warnings">How to get rid of LuCI HTTPS certificate warnings</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2278.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
