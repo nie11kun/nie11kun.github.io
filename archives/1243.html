@@ -15,7 +15,7 @@
 <link rel="alternate" type="application/rss+xml" title="Typecho 配合 Nginx 设置伪静态链接 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1243.html" />
 <link rel="alternate" type="application/rdf+xml" title="Typecho 配合 Nginx 设置伪静态链接 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1243.html" />
 <link rel="alternate" type="application/atom+xml" title="Typecho 配合 Nginx 设置伪静态链接 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1243.html" />
-<script type="71257c64370e8962e5c6379f-text/javascript">
+<script type="0497cb174243196396b634a0-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -87,7 +87,7 @@
     };
 })();
 </script>
-<script type="71257c64370e8962e5c6379f-text/javascript">
+<script type="0497cb174243196396b634a0-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -105,35 +105,31 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _W1HhkBM = //'o4c'
-'b8b'+'5cf'//'L'
-+'4'//'P3g'
-+//'r9t'
-'b'+//'6w'
-'0'+//'E4'
-'f2'+''///*'I'*/'I'
-+'33'//'bD'
-+'d0d'//'TT'
-+//'m'
-'m'+//'E'
-'6'+//'Qkh'
-'Qkh'+/* 'N2'//'N2' */''+//'S'
-'af0'+//'E'
-'fe'+//'qKJ'
-'7'+/* '4'//'4' */''+'5'//'6Mi'
-+'06d'//'LU'
-+'N'//'N'
-+'3'//'YQ'
-+//'iJ'
-'b5b'+''///*'i1'*/'i1'
-+'8'//'g'
-, _c3c = [[16,17],[17,20],[27,28]];
+    var _nuCDh = //'2L'
+'b8b'+//'r3'
+'5cf'+//'a'
+'4b'+//'IUi'
+'0f2'+'33'//'et3'
++'d'//'FSu'
++'0d'//'CQU'
++//'Di'
+'6'+'af0'//'O'
++//'ZGu'
+'fe'+//'1jE'
+'75'+//'j'
+'06d'+//'fU'
+'3'+'b'//'AI'
++//'hoY'
+'5'+//'O'
+'b'+/* 'H'//'H' */''+''///*'a'*/'a'
++//'IUL'
+'8', _pC4 = [];
     
-    for (var i = 0; i < _c3c.length; i ++) {
-        _W1HhkBM = _W1HhkBM.substring(0, _c3c[i][0]) + _W1HhkBM.substring(_c3c[i][1]);
+    for (var i = 0; i < _pC4.length; i ++) {
+        _nuCDh = _nuCDh.substring(0, _pC4[i][0]) + _nuCDh.substring(_pC4[i][1]);
     }
 
-    return _W1HhkBM;
+    return _nuCDh;
 })();
 
         if (null != r) {
@@ -189,7 +185,7 @@
 </div>
 </section>
 <article class="post-content">
-<blockquote>这篇文章上次修改于 682 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<blockquote>这篇文章上次修改于 683 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
 <p>由于 typecho 是一个动态网页，每篇文章都 URL 都是形如：<a href="https://niekun.net/index.php/archives/192.html">https://niekun.net/index.php/archives/192.html</a></p><p>这种包含 php 的动态网站首先不太美观链接比较长，而且在搜索引擎索引时也对动态链接不太友好。所以需要将以上链接形式进行处理，使网页看起来更像静态链接，形如：<a href="https://niekun.net/archives/192.html">https://niekun.net/archives/192.html</a>。</p><h3>typecho 设置</h3><p>进入 typecho 后台管理，点击 <strong>设置 - 永久链接</strong>：<br><img src="https://niekun.net/usr/uploads/2020/03/4211582110.png" alt="2020-03-03T13:54:41.png" title="2020-03-03T13:54:41.png"></p><p>是否启用地址重写功能，选择 <strong>启用</strong> 然后保存设置，可能会跳出提示框提示未检测到系统支持地址重写，再次选择启用然后保存设置：<br><img src="https://niekun.net/usr/uploads/2020/03/2003571025.png" alt="2020-03-03T13:55:45.png" title="2020-03-03T13:55:45.png"></p><p>设置后系统就会将链接里的 <strong>index.php</strong> 去掉了，但是这时候如果直接访问文章 URL 的话会出错，因为网站实际链接还是原始的动态链接，下面通过 nginx 的 rewrite 把缺失的 <strong>index.php</strong> 再给他补回去，这样访问就没问题了。</p><h3>Nginx rewrite</h3><p>我使用的反向代理是 Nginx，使用 ngx_http_rewrite_module 进行重定向，可以完成我们期望的效果。</p><p>由于我的域名下有除 blog 外其他的网站，所以我将 rewrite 模块放在 <code>location /</code> 下，使重定向不影响其他 location 段。将 <code>location /</code> 段添加如下内容：</p><pre><code>if (!-e $request_filename) {
     rewrite ^(.*)$ /index.php$1 last;
 }</code></pre><p>使用 if 判断当前请求的 URL 下文件/文件夹是否存在，如果不存在则执行 rewrite，<code>!-e</code> 表示不存在文件/文件夹/链接。<br>rewrite 的过程是：将 $URI 也就是域名后的链接前加上 <code>/index.php</code>，这时候就恢复到原始动态链接了。<br>last 就是 rewrite 完成后将结果 URL 输出重新进行 location 匹配。</p><p>关于 nginx if 语法参考：<a href="https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#if">https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#if</a><br>关于 nginx rewrite 的使用参考：<a href="https://niekun.net/archives/195.html">https://niekun.net/archives/195.html</a></p><p>修改完成后测试及重启 nginx：</p><pre><code>service nginx configtest
@@ -207,7 +203,7 @@ service nginx reload
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-1243">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1243.html#respond-post-1243" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-71257c64370e8962e5c6379f-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="1243.html#respond-post-1243" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-0497cb174243196396b634a0-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/1243.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -259,9 +255,9 @@ service nginx reload
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="71257c64370e8962e5c6379f-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="71257c64370e8962e5c6379f-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="71257c64370e8962e5c6379f-text/javascript"></script>
-<script type="71257c64370e8962e5c6379f-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="71257c64370e8962e5c6379f-|49" defer=""></script><script type="text/javascript">(function(){window['__CF$cv$params']={r:'6cd0b6e648cd0beb',m:'pHYH5A.qPOsey8EnjvxNamNRQObtJdOmY7oXfk1RG2g-1642098822-0-AYnDoiPsfUqOKbbT/JGBDPW5CIQxa36qY1uy79MvkbFxS9UlfoWXBWdhV2cigE2HE6AOtOowxabkkS4eHShfEP6v7QSgPm6jyZEdiKAQZe4jTk6s1EeSkYMyasQW+1wXe5cZdid3AYkmp88jPgwU8f0=',s:[0xbfdadf63b6,0x2f606861e2],u:'/cdn-cgi/challenge-platform/h/b'}})();</script></body>
+<script src="../usr/themes/Single/static/kico.js" type="0497cb174243196396b634a0-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="0497cb174243196396b634a0-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="0497cb174243196396b634a0-text/javascript"></script>
+<script type="0497cb174243196396b634a0-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="0497cb174243196396b634a0-|49" defer=""></script><script type="text/javascript">(function(){window['__CF$cv$params']={r:'6cd8f0b5bfbc7d62',m:'aWD_v0hmBo6C_Y7ULN_fkEPyROrC_U8NzIgSQ00irBk-1642185076-0-AUi8Kpoji5f7kI1cda3PwWo7QrGvZWzTEpsfjTuiOLvXzxxWY62lBiqRZ3LhLCTzyx47TkJvJhA5awPyFb106ttKytBTPUEHTIKrv4iIofsRxTvNMxlHQLpBZS1l5xvwNP7xWvi42cX+9HYfpxAUpJU=',s:[0x8466aa58d0,0x7095fed009],u:'/cdn-cgi/challenge-platform/h/b'}})();</script></body>
 </html>
