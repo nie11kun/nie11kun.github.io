@@ -164,19 +164,6 @@ subdomain = web01
 http_user = xxxx
 http_pwd = xxxxxxxxxxx
 
-# https web 示例
-[web02]
-type = https
-# 客户端 https 页面的地址和端口
-local_ip = 127.0.0.1
-local_port = 443
-use_encryption = false
-use_compression = false
-subdomain = web02
-# if not empty, frpc will use proxy protocol to transfer connection info to your local service
-# v1 or v2 or empty
-proxy_protocol_version = v2
-
 # 对外提供简单的文件访问服务
 [test_static_file]
 type = tcp
@@ -203,7 +190,38 @@ type = tcp
 remote_port = 6034
 plugin = http_proxy
 plugin_http_user = admin
-plugin_http_passwd = admin执行以下命令启动：path/to/frpc -c path/to/frpc.ini
+plugin_http_passwd = admin
+
+# 将本地 http 服务转换为 https 服务连接到服务器，后续可以通过 https 访问本地 http 服务，这里需要提供外网域名的证书信息，也可以通过 nginx 反代的 frps 自动实现此功能
+[plugin_https2http]
+type = https
+subdomain = test111
+plugin = https2http
+plugin_local_addr = 127.0.0.1:80
+plugin_crt_path = ./server.crt
+plugin_key_path = ./server.key
+plugin_host_header_rewrite = 127.0.0.1
+plugin_header_X-From-Where = frp
+
+# 将本地 https 服务模拟为服务端的 https 服务给外网访问，这里需要提供外网域名的证书信息
+[plugin_https2https]
+type = https
+subdomain = test222
+plugin = https2https
+plugin_local_addr = 127.0.0.1:443
+plugin_crt_path = ./server.crt
+plugin_key_path = ./server.key
+plugin_host_header_rewrite = 127.0.0.1
+plugin_header_X-From-Where = frp
+
+# 将本地的 https 服务转换为 http 连接到服务器，此时服务端 frps 认为本地是 http 服务，使用此插件可以将 openwrt 的 luci web 界面转为 http 然后转发到 frps 供外网访问。默认 luci 为 https 服务
+[plugin_http2https]
+type = http
+subdomain = test333
+plugin = http2https
+plugin_local_addr = 127.0.0.1:443
+plugin_host_header_rewrite = 127.0.0.1
+plugin_header_X-From-Where = frp执行以下命令启动：path/to/frpc -c path/to/frpc.ini
 测试访问内网 sshssh -oPort=6006 username@x.x.x.x
 IP 为远程服务器的 IP，username 为内网设备的用户名。输入后提示密码，也为内网设备 ssh 密码。web 服务http://web01.niekun.net:6002
 如果设置有用户名密码，会提示口令，然后进入 web 页面。frps 控制面板http://xxx.xxx.xxx.xxx:6004
