@@ -14,7 +14,7 @@
 <link rel="alternate" type="application/rss+xml" title="Ubuntu desktop 配置 vnc server &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2281.html" />
 <link rel="alternate" type="application/rdf+xml" title="Ubuntu desktop 配置 vnc server &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2281.html" />
 <link rel="alternate" type="application/atom+xml" title="Ubuntu desktop 配置 vnc server &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2281.html" />
-<script type="e3b809fed536c54a9c0be215-text/javascript">
+<script type="b4feb1292165a88f3078dfdb-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -86,7 +86,7 @@
     };
 })();
 </script>
-<script type="e3b809fed536c54a9c0be215-text/javascript">
+<script type="b4feb1292165a88f3078dfdb-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -104,32 +104,32 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _SJLDu7 = //'i'
-'6ff'+//'cxU'
-'cxU'+'c'//'xz'
-+'9'//'4'
-+'c'//'y2'
-+//'gp'
-'453'+//'fa'
-'e'+//'0A'
-'83'+'e5'//'e5'
-+//'LQ'
-'467'+''///*'m'*/'m'
-+'55'//'C1C'
-+//'Uj'
-'e66'+'7bf'//'FTI'
-+//'l9M'
-'44'+'57'//'Su'
-+//'znn'
-'01d'+/* 'w6y'//'w6y' */''+//'7w'
-'7w'+'1a'//'V'
-, _29Y = [[3,6],[12,14],[30,32]];
+    var _sUSBX3 = //'Z'
+'6'+'f'//'5t'
++'fc'//'c'
++/* 'G6q'//'G6q' */''+//'Rq'
+'9c4'+//'rrP'
+'53'+'e83'//'q5'
++//'eT'
+'46'+''///*'wP'*/'wP'
++'75'//'f63'
++'5e'//'I'
++'66'//'M'
++//'Y5'
+'7bf'+//'PRu'
+'PRu'+//'3R'
+'4'+'4'//'5'
++//'sA'
+'sA'+'570'//'eW'
++//'ew'
+'1d'+/* 'yCk'//'yCk' */''+'1a'//'P'
+, _C7YDVd = [[23,26],[25,27]];
     
-    for (var i = 0; i < _29Y.length; i ++) {
-        _SJLDu7 = _SJLDu7.substring(0, _29Y[i][0]) + _SJLDu7.substring(_29Y[i][1]);
+    for (var i = 0; i < _C7YDVd.length; i ++) {
+        _sUSBX3 = _sUSBX3.substring(0, _C7YDVd[i][0]) + _sUSBX3.substring(_C7YDVd[i][1]);
     }
 
-    return _SJLDu7;
+    return _sUSBX3;
 })();
 
         if (null != r) {
@@ -180,7 +180,7 @@
 <h2>Ubuntu desktop 配置 vnc server</h2>
 <div class="post-meta">
 <time class="date">2021-03-31</time>
- <span class="category"><a href="../category/Linux/index.html">Linux</a></span>
+<span class="category"><a href="../category/Linux/index.html">Linux</a></span>
 <span class="comments">0</span>
 </div>
 </section>
@@ -228,7 +228,7 @@ X-Ubuntu-Gettext-Domain=gnome-session-3.0</code></pre><p>可以看到启动命�
 TryExec=/usr/bin/gnome-shell</code></pre><p>在 xstartup 自定义配置中加入以上两条即可。</p><p>然后给配置文件添加执行权限：</p><pre><code>chmod +x ~/.vnc/xstartup
 </code></pre><p>然后我们重新启动 vncserver：</p><pre><code>vncserver -localhost
 </code></pre><p>注意这里我们添加了 <code>-localhost</code> 参数，意味着此 vnc 服务只可以在本机内被连接。如果不添加这个参数，则开放所有网络连接。</p><p>我们这里只打开本地网络连接服务，然后通过 ssh tunnel 在远程和本地建立安全的连接并转发 vnc 本地端口。</p><h3>连接</h3><p>vnc 本身并不支持通过一些安全的协议进行连接，下面我们通过 ssh tunnel 隧道在本地和远程主机间建立一个安全的链接，然后告诉 vnc 客户端使用这个安全隧道连接远程服务器。</p><p>上面我们已经启动了一个 vncserver 在 5901 端口，它可以在本地网络内被连接但无法被外部网络连接。</p><p>首先我们通过 ssh 在本地和远程建立一个安全链接，并转发远程主机的 localhost 及端口到本地的特定端口：</p><pre><code>ssh -L 59000:localhost:5901 -C -N -l user xxx.xxx.xxx.xxx
-</code></pre><p>以上命令意义如下：</p><ul><li><code>-L 59000:localhost:5901</code>：使用 <code>-L</code> 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。</li><li><code>-C</code> 参数用来启用传输数据压缩，可以提高传输效率</li><li><code>-N</code> 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用</li><li><code>-l</code> 定义远程主机的用户名和 IP 地址</li></ul><p>ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 <code>localhost:59000</code>：<br><img src="../usr/uploads/2021/03/1735491420.png" alt="2021-03-31T03:03:51.png" title="2021-03-31T03:03:51.png"></p><p>输入我们之前创建的 vnc 密码后就连接到远程服务器了：<br><img src="../usr/uploads/2021/03/3227212438.png" alt="2021-03-31T03:04:33.png" title="2021-03-31T03:04:33.png"></p><p>当然也可以不使用 ssh tunnel ，但是需要取消 <code>-localhost</code> 参数，就可以直接连接 vnc server。</p><h3>配置 vnc systemd 服务</h3><p>为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。</p><p>在 <code>/usr/lib/systemd/system</code> 目录下新建文件 <code><a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4a3c2429392f383c2f380a64392f383c23292f">[email&#160;protected]</a></code>，其中的 <code>@</code> 可以让我们在操作此服务时添加传递参数，在配置文件中使用 <code>%1</code> 可以读取这个参数。</p><p>内容如下：</p><pre><code>[Unit]
+</code></pre><p>以上命令意义如下：</p><ul><li><code>-L 59000:localhost:5901</code>：使用 <code>-L</code> 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。</li><li><code>-C</code> 参数用来启用传输数据压缩，可以提高传输效率</li><li><code>-N</code> 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用</li><li><code>-l</code> 定义远程主机的用户名和 IP 地址</li></ul><p>ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 <code>localhost:59000</code>：<br><img src="../usr/uploads/2021/03/1735491420.png" alt="2021-03-31T03:03:51.png" title="2021-03-31T03:03:51.png"></p><p>输入我们之前创建的 vnc 密码后就连接到远程服务器了：<br><img src="../usr/uploads/2021/03/3227212438.png" alt="2021-03-31T03:04:33.png" title="2021-03-31T03:04:33.png"></p><p>当然也可以不使用 ssh tunnel ，但是需要取消 <code>-localhost</code> 参数，就可以直接连接 vnc server。</p><h3>配置 vnc systemd 服务</h3><p>为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。</p><p>在 <code>/usr/lib/systemd/system</code> 目录下新建文件 <code><a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="03756d60706671756671432d706671756a6066">[email&#160;protected]</a></code>，其中的 <code>@</code> 可以让我们在操作此服务时添加传递参数，在配置文件中使用 <code>%1</code> 可以读取这个参数。</p><p>内容如下：</p><pre><code>[Unit]
 Description=Start TightVNC server at startup
 After=syslog.target network.target
 
@@ -245,9 +245,9 @@ ExecStop=/usr/bin/vncserver -kill :%i
 
 [Install]
 WantedBy=multi-user.target</code></pre><ul><li>注意上面的配置中，需要将 user 修改为你实际登录的用户名称，共有 4 个地方</li><li><strong>ExecStart</strong> 中我们定义了 24 位色深 1280x800 的 vnc 显示，可以根据需要自行修改</li><li>使用了 <code>-localhost</code> 参数，所以只能使用 ssh tunnel 的方式访问</li></ul><p>然后重新加载配置：</p><pre><code>sudo systemctl daemon-reload
-</code></pre><p>启动一个 vncserver 使用参数 1 来定义 vnc 服务号：</p><pre><code>sudo systemctl start <a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="aed8c0cdddcbdcd8cbdcee9f">[email&#160;protected]</a>
-</code></pre><p>此时我们就启动了一个 vncserver 且其服务号为 <code>:1</code>。</p><p>关闭启动的 <code>:1</code> vncserver：</p><pre><code>systemctl stop <a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1f69717c6c7a6d697a6d5f2e">[email&#160;protected]</a>
-</code></pre><p>开机自动启动 vncserver 服务：</p><pre><code>systemctl enable <a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7e08101d0d1b0c081b0c3e4f">[email&#160;protected]</a>
+</code></pre><p>启动一个 vncserver 使用参数 1 来定义 vnc 服务号：</p><pre><code>sudo systemctl start <a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1a6c7479697f686c7f685a2b">[email&#160;protected]</a>
+</code></pre><p>此时我们就启动了一个 vncserver 且其服务号为 <code>:1</code>。</p><p>关闭启动的 <code>:1</code> vncserver：</p><pre><code>systemctl stop <a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ddabb3beaeb8afabb8af9dec">[email&#160;protected]</a>
+</code></pre><p>开机自动启动 vncserver 服务：</p><pre><code>systemctl enable <a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c5b3aba6b6a0b7b3a0b785f4">[email&#160;protected]</a>
 </code></pre><p>这样就可以实现开机自动部署 vncserver 服务了。</p><h3>使用 gnome 桌面环境</h3><p>gnome 是 Ubuntu desktop 默认的桌面环境，使用它近似于原生的 Ubuntu 界面。</p><p>安装依赖：</p><pre><code>sudo apt install gnome-session gnome-terminal gnome-panel gnome-settings-daemon metacity nautilus
 </code></pre><p>修改 <code>~/.vnc/xstartup</code> 如下：</p><pre><code>#!/bin/bash
 
@@ -277,7 +277,7 @@ gnome-terminal &amp;</code></pre><p>重启 vncserver 服务，连接可以查看
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-2281">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2281.html#respond-post-2281" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-e3b809fed536c54a9c0be215-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="2281.html#respond-post-2281" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-b4feb1292165a88f3078dfdb-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/2281.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -329,9 +329,9 @@ gnome-terminal &amp;</code></pre><p>重启 vncserver 服务，连接可以查看
 </section>
 </div>
 </footer>
-<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../usr/themes/Single/static/kico.js" type="e3b809fed536c54a9c0be215-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="e3b809fed536c54a9c0be215-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="e3b809fed536c54a9c0be215-text/javascript"></script>
-<script type="e3b809fed536c54a9c0be215-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="e3b809fed536c54a9c0be215-|49" defer=""></script><script type="text/javascript">(function(){window['__CF$cv$params']={r:'6d0223061de130bc',m:'atMevenlYLH9.TXWx3yIvfVCEoD_vK4F93hKTegB_fE-1642617053-0-ATgE9eZxgEfFnL2IaVgCcindFR1WiZQInDz3BZj9O26LfwyHGco+i6Zq5uRxR9ZIAiJgPO9fqtqbAPFsFh1bwKJPUUTqiTTNRXodZ/uNyhCnuXDkVI2QehLB67OS7NOcA7B3kjaYMKWemIWd25qnioY=',s:[0xef2323481e,0x9a13fb2d86],u:'/cdn-cgi/challenge-platform/h/b'}})();</script></body>
+<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../usr/themes/Single/static/kico.js" type="b4feb1292165a88f3078dfdb-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="b4feb1292165a88f3078dfdb-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="b4feb1292165a88f3078dfdb-text/javascript"></script>
+<script type="b4feb1292165a88f3078dfdb-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="b4feb1292165a88f3078dfdb-|49" defer=""></script><script type="text/javascript">(function(){window['__CF$cv$params']={r:'6d0a605f29e160a1',m:'uqj8u7W.O0Ua1eQN3BHucnQ6xqt04ecTMiMNGwa1s4I-1642703452-0-AZSx+oxQmwZFj/SGYR3dhtDYRSATS13h+mgW7ZEiOoynweLemb5yE2U3eeEfjXszsg/kgs9MMhZCuQrHpq36B82H4mlNK8oHximIrnuGRs/4N6KRF8RmcrCbRdQzw7lQiNooS7NmYWVToNuQhM7vJEo=',s:[0xddcd1eed49,0xd00af90e05],u:'/cdn-cgi/challenge-platform/h/b'}})();</script></body>
 </html>
