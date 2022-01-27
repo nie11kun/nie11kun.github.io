@@ -6,11 +6,80 @@ xml:base="https://blog.niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2022-01-09T18:53:00+08:00</updated>
+<updated>2022-01-27T22:00:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/" />
 <id>https://blog.niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[macOS 中给 finder 添加右键打开 vs code 选项]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2403.html" />
+<id>https://blog.niekun.net/archives/2403.html</id>
+<updated>2022-01-27T22:00:00+08:00</updated>
+<published>2022-01-27T22:00:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[you are the company you keep...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2403.html" xml:lang="zh-CN"><![CDATA[
+<p>macOS 中的右键菜单没有像 windows 那样多样的选项，我最常用的是：<strong>用 vs code 打开文件夹</strong>，<strong>新建文本文件</strong>等。</p><p>目前有第三方的软件可以添加这些功能，比如 irightmouse，但基本都是收费软件，下面介绍如何通过系统自带的 automator 来添加我们需要的功能。</p><!--more--><h3>vs code 菜单</h3><p>首先我们创建一个 <code>Open in Visual Studio Code</code> 的 action。</p><p>打开 Automator，点击 file - new 创建一个 quick action：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/514859828.jpg" alt="1.jpg" title="1.jpg"></p><p>首先修改右边的参数，workflow receives current <strong>files or folders</strong> in <strong>finder</strong>，下面的 image 根据个人喜好修改：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/133095543.jpg" alt="2.jpg" title="2.jpg"></p><p>然后左侧搜索 <strong>run shell script</strong> 双击添加到右侧，修改 pass input：<strong>as arguments</strong>，然后脚本内容如下：</p><pre><code>for f in &quot;$@&quot;
+do
+    open -a 'Visual Studio Code' &quot;$f&quot;
+done</code></pre><p><img src="https://blog.niekun.net/usr/uploads/2022/01/110998044.jpg" alt="3.jpg" title="3.jpg"></p><p>保存脚本即可，命名为 <code>Open in Visual Studio Code</code>，需要保存到当前用户目录下的 library/services 目录下(默认就会保存到这个目录)：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/3983532568.jpg" alt="11.jpg" title="11.jpg"></p><p>然后在 finder 中测试，选中一个文件夹查看右键菜单，在 quick action 中会出现 Open in Visual Studio Code：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/2001620217.jpg" alt="5.jpg" title="5.jpg"></p><p>点击后即可在 vs code 中打开文件或文件夹。</p><h3>copy path 菜单</h3><p>下面我们用同样的方法做一个复制文件或文件夹路径的 action。</p><p>新建一个 quick action，修改右边的参数，workflow receives current <strong>files or folders</strong> in <strong>finder</strong>。然后添加一个 copy to clipboard 的 variable 即可：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/3886391154.jpg" alt="6.jpg" title="6.jpg"></p><p>命名为 <code>Copy Path</code> 并保存即可。</p><p>此时 finder 中 quick action 菜单中就会有了对应的选项：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/2514071669.jpg" alt="7.jpg" title="7.jpg"></p><h3>create new txt file 菜单</h3><p>macOS 中没有右键创建新文件的选项，想要在当前目录中创建一个新文件挺麻烦的，下面我们通过类似的方法来创建一个快捷选项。</p><p>新建一个 quick action，这里 receives 选择 no input：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/3418016774.jpg" alt="8.jpg" title="8.jpg"></p><p>然后搜索并添加一个 Run AppleScript 变量，修改脚本内容如下：</p><pre><code>set file_name to &quot;untitled&quot;
+set file_ext to &quot;.txt&quot;
+set is_desktop to false
+
+-- get folder path and if we are in desktop (no folder opened)
+try
+    tell application &quot;Finder&quot;
+        set this_folder to (folder of the front Finder window) as alias
+    end tell
+on error
+    -- no open folder windows
+    set this_folder to path to desktop folder as alias
+    set is_desktop to true
+end try
+
+-- get the new file name (do not override an already existing file)
+tell application &quot;System Events&quot;
+    set file_list to get the name of every disk item of this_folder
+end tell
+set new_file to file_name &amp; file_ext
+set x to 1
+repeat
+    if new_file is in file_list then
+        set new_file to file_name &amp; &quot; &quot; &amp; x &amp; file_ext
+        set x to x + 1
+    else
+        exit repeat
+    end if
+end repeat
+
+-- create and select the new file
+tell application &quot;Finder&quot;
+
+    activate
+    set the_file to make new file at folder this_folder with properties {name:new_file}
+    if is_desktop is false then
+        reveal the_file
+    else
+        select window of desktop
+        set selection to the_file
+        delay 0.1
+    end if
+end tell
+
+-- press enter (rename)
+tell application &quot;System Events&quot;
+    tell process &quot;Finder&quot;
+        keystroke return
+    end tell
+end tell</code></pre><p>脚本中，定义了新建文件的文件名和扩展名，如果修改其他名称可以自行修改。</p><p>完成后保存即可，名称为 <code>Create New TXT File</code>。</p><p>保存后在 finder 中我们在任意位置右键会发现没有 quick action 选项，这是因为这个 action 定义中并没有选择输入源，因为新建文件和当前的文件并没有什么关系。</p><p>此时需要通过左上角的 finder - services 找到我们刚创建的 action：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/404283572.jpg" alt="9.jpg" title="9.jpg"></p><p>也可以给这个 action 定义快捷键，在 keyboard - shrotcuts - services 中找到这个 action 在后边添加 shortcut 即可：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/61778451.jpg" alt="10.jpg" title="10.jpg"></p><p><strong>注意第一次运行这个 action 会提示需要授权 finder 的几个权限，根据提示打开即可。</strong></p><h3>参考链接</h3><p><a href="https://apple.stackexchange.com/questions/129699/create-a-new-txt-file-in-finder-keyboard-shortcut">Create a new (.txt) File in Finder - Keyboard Shortcut</a><br><a href="https://apple.stackexchange.com/questions/238948/osx-how-to-add-a-right-click-option-to-a-folder-which-opens-the-folder-with-an">OSX: how to add a right click option to a folder which opens the folder with an app like VS Code?</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2403.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[获取 JD cookie 方法]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2388.html" />
@@ -568,74 +637,6 @@ ReactDOM.render(
 );</code></pre><p><img src="https://blog.niekun.net/usr/uploads/2021/08/3952262804.png" alt="2021-08-28T15:30:35.png" title="2021-08-28T15:30:35.png"></p><p>处理流程为：</p><ul><li>用户输入在任意一个 input 中输入数值后，触发 onChange 并调用 handleChange</li><li>然后触发了 Calculator 的 onTemperatureChange 并将 input 的数据作为传入参数</li><li>根据不同的 input 最终触发了 Calculator 中的 handleChange function 并对 state 进行了修改</li><li>state 改变后会触发 render，并计算最新的 celsius 和 Fahrenheit 数值</li><li>最后根据计算的结果重新渲染 Temperature 的 input value</li></ul>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2324.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[openwrt 扩展根目录空间]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2321.html" />
-<id>https://blog.niekun.net/archives/2321.html</id>
-<updated>2021-06-22T21:40:00+08:00</updated>
-<published>2021-06-22T21:40:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[you are the company you keep...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2321.html" xml:lang="zh-CN"><![CDATA[
-<p>我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：</p><pre><code>root@OpenWrt:~# df -h
-Filesystem                Size      Used Available Use% Mounted on
-/dev/root               252.0M    241.4M      5.5M  98% /rom
-tmpfs                   496.5M     68.0K    496.4M   0% /tmp
-/dev/sda1                15.7M      3.8M     11.6M  25% /boot
-/dev/sda1                15.7M      3.8M     11.6M  25% /boot
-tmpfs                   512.0K         0    512.0K   0% /dev</code></pre><p>其中 <code>/dev/root</code> 是系统固件目录，不用考虑。<code>/dev/sda*</code> 就是系统实际可用的硬盘空间。我明明分配了 5 GB 空间给 openwrt 但是由于系统分区是在下载的固件中定义好的，所以其余空间就没有被识别。由于默认存储空间过小，当安装了过多的插件后，会提示空间不足导致无法安装更多插件：</p><pre><code>verify_pkg_installable: Only have 0kb available on filesystem /overlay, pkg luci-app-openvpn needs 9
-opkg_install_cmd: Cannot install package luci-app-openvpn</code></pre><p>下面介绍如何将剩余空间挂在到 openwrt 中。</p><!--more--><p>首先安装需要的插件，注意顺序不能错：</p><pre><code>opkg update
-opkg install block-mount e2fsprogs
-opkg update
-opkg install fdisk blkid</code></pre><p>然后配置存储空间，注意 fdisk 指令后的几个选项：</p><pre><code>fdisk -l
-
-fdisk /dev/sda
-m
-n
-p
-&lt;默认,回车&gt; //–&gt;分区号为3
-&lt;默认,回车&gt;
-&lt;默认,回车&gt;
-w
-
-reboot</code></pre><p>重启后，格式化刚才建立的分区：</p><pre><code>mkfs.ext4 /dev/sda3
-reboot</code></pre><p>重启后配置 fstab：</p><pre><code>uci add fstab mount
-
-# 将下面第一行命令输出的 UUID 替换第二行命令后的 UUID
-blkid -s UUID /dev/sda3 | cut -d\&quot; -f2
-uci set fstab.@mount[-1].uuid=UUID
-
-uci set fstab.@mount[-1].options=rw,sync,noatime
-uci set fstab.@mount[-1].fstype=ext4
-uci set fstab.@mount[-1].enabled_fsck=1
-uci set fstab.@mount[-1].enabled=1
-uci set fstab.@mount[-1].target=/
-uci set fstab.@mount[-1].device=/dev/sda3
-uci commit fstab</code></pre><p>然后根目录复制到新的分区下：</p><pre><code>mkdir /mnt/sda3
-mount /dev/sda3 /mnt/sda3
-mkdir -p /tmp/cproot
-mount --bind / /tmp/cproot
-tar -C /tmp/cproot -cvf - . | tar -C /mnt/sda3 -xf -
-
-umount /tmp/cproot
-umount /mnt/sda3</code></pre><p>然后启用引导：</p><pre><code>/etc/init.d/fstab enable
-/etc/init.d/fstab start
-
-reboot</code></pre><p>重启后再次查看系统分区信息：</p><pre><code>root@OpenWrt:~# df -h
-Filesystem                Size      Used Available Use% Mounted on
-/dev/root               252.0M    241.4M      5.5M  98% /rom
-tmpfs                   496.5M      1.0M    495.5M   0% /tmp
-/dev/sda3                 4.6G    257.2M      4.1G   6% /
-/dev/sda1                15.7M      3.8M     11.6M  25% /boot
-/dev/sda1                15.7M      3.8M     11.6M  25% /boot
-tmpfs                   512.0K         0    512.0K   0% /dev</code></pre><p>可以看到 sda3 分区已经正常挂载了，后续可以继续安装需要的各种插件了。</p><h3>参考链接</h3><p><a href="https://blog.csdn.net/duandao123/article/details/99689383">Vmware下openwrt虚拟机扩展根目录大小</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2321.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" thr:count="0"/>
 </entry>
 </feed>
