@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+xmlns:thr="http://purl.org/syndication/thread/1.0"
+xml:lang="zh-CN"
+xml:base="https://blog.niekun.net/2022/03/"
+>
+<title type="text">Marco Nie - 2022年3月</title>
+<subtitle type="text">you are the company you keep...</subtitle>
+<updated>2022-03-11T16:48:00+08:00</updated>
+<generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/2022/03/" />
+<id>https://blog.niekun.net/feed/atom/2022/03/</id>
+<link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2022/03/" />
+<entry>
+<title type="html"><![CDATA[解决 wget 下载时 certificates 证书报错问题]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2448.html" />
+<id>https://blog.niekun.net/archives/2448.html</id>
+<updated>2022-03-11T16:48:00+08:00</updated>
+<published>2022-03-11T16:48:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[you are the company you keep...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2448.html" xml:lang="zh-CN"><![CDATA[
+<p>我的服务器上在使用 wget 或者 curl 等网络工具时，每次都提示类似下面的报错：</p><pre><code>ERROR: cannot verify github.com's certificate, issued by ‘CN=DigiCert High Assurance TLS Hybrid ECC SHA256 2020 CA1,O=DigiCert\\, Inc.,C=US’:
+  Unable to locally verify the issuer's authority.
+To connect to github.com insecurely, use `--no-check-certificate'.</code></pre><p>需要通过参数跳过证书检查，但是这样又有了安全风险。</p><p>首先尝试更新本地证书文件：</p><pre><code>update-ca-certificates --verbose --fresh</code></pre><p>发现问题没有解决，原来是系统缺少了一个指向证书路径 <code>/etc/ssl/certs</code> 的环境变量，尝试添加：</p><pre><code>export SSL_CERT_DIR=/etc/ssl/certs</code></pre><p>再次测试 wget 命令，发现问题的确没有了。</p><p>可以将上面的环境变量添加到系统 shell 配置文件中，我这里是 <code>~/.bashrc</code>，添加后刷新一下即可：</p><pre><code>source ~/.bashrc</code></pre><p><strong>在更新 Ubuntu18.04 到 20.04 时，也是这个问题导致的报错。</strong></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2448.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2022/03/" thr:count="0"/>
+</entry>
+</feed>

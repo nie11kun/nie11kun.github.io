@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+xmlns:content="http://purl.org/rss/1.0/modules/content/"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+xmlns:atom="http://www.w3.org/2005/Atom"
+xmlns:wfw="http://wellformedweb.org/CommentAPI/">
+<channel>
+<title>Marco Nie - 2022年3月</title>
+<link>https://blog.niekun.net/2022/03/</link>
+<atom:link href="https://blog.niekun.net/feed/2022/03/" rel="self" type="application/rss+xml" />
+<language>zh-CN</language>
+<description>you are the company you keep...</description>
+<lastBuildDate>Fri, 11 Mar 2022 16:48:00 +0800</lastBuildDate>
+<pubDate>Fri, 11 Mar 2022 16:48:00 +0800</pubDate>
+<item>
+<title>解决 wget 下载时 certificates 证书报错问题</title>
+<link>https://blog.niekun.net/archives/2448.html</link>
+<guid>https://blog.niekun.net/archives/2448.html</guid>
+<pubDate>Fri, 11 Mar 2022 16:48:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[you are the company you keep...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>我的服务器上在使用 wget 或者 curl 等网络工具时，每次都提示类似下面的报错：</p><pre><code>ERROR: cannot verify github.com's certificate, issued by ‘CN=DigiCert High Assurance TLS Hybrid ECC SHA256 2020 CA1,O=DigiCert\\, Inc.,C=US’:
+  Unable to locally verify the issuer's authority.
+To connect to github.com insecurely, use `--no-check-certificate'.</code></pre><p>需要通过参数跳过证书检查，但是这样又有了安全风险。</p><p>首先尝试更新本地证书文件：</p><pre><code>update-ca-certificates --verbose --fresh</code></pre><p>发现问题没有解决，原来是系统缺少了一个指向证书路径 <code>/etc/ssl/certs</code> 的环境变量，尝试添加：</p><pre><code>export SSL_CERT_DIR=/etc/ssl/certs</code></pre><p>再次测试 wget 命令，发现问题的确没有了。</p><p>可以将上面的环境变量添加到系统 shell 配置文件中，我这里是 <code>~/.bashrc</code>，添加后刷新一下即可：</p><pre><code>source ~/.bashrc</code></pre><p><strong>在更新 Ubuntu18.04 到 20.04 时，也是这个问题导致的报错。</strong></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2448.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/2022/03/</wfw:commentRss>
+</item>
+</channel>
+</rss>
