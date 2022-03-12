@@ -9,10 +9,38 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2451.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2448.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2451.html">
+<title>Ubuntu 18.04 升级 Ubuntu 20.04 记录</title>
+<link>https://blog.niekun.net/archives/2451.html</link>
+<dc:date>2022-03-12T15:32:00+08:00</dc:date>
+<description>昨天决定把服务器的系统从 Ubuntu 18.04 升级到 Ubuntu 20.04，其中经历了不少问题点，下面记录下处理过程。首先就是升级当前系统所有包到最新：apt update &amp;&amp; apt upgrade -y
+apt autoremove &amp;&amp; apt purge
+然后安装升级需要的管理包，不过一般系统都是自带的：apt install update-manager-core
+然后就可以更新系统了：do-release-upgrade
+标准流程就是以上几步，但是在最后一步的时候问题就开始出现了。在执行升级命令后出现报警：Failed to connect to https://changelogs.ubuntu.com/meta-release-lts. Check your Internet connection or proxy settings
+在查询一些资料后，原来是 ssl certificates 验证问题，系统无法鉴定上面的 https 链接证书是否有效就返回错误了。这个问题也是我这个系统的一个遗留问题，每次执行 wget 或 curl 下载东西的时候就会提示证书报错，需要通过附加指令跳过证书验证，但这就会存在安全问题了。解决方法就是更新本地证书库后添加 SSL_CERT_DIR 环境变量指向系统证书目录：update-ca-certificates --verbose --fresh
+export SSL_CERT_DIR=/etc/ssl/certs
+为了方便以后使用，将环境变量添加到 ~/.bashrc 文件中。这样就解决了 https 链接证书验证问题。然后先删除之前执行升级命令后错误内容：rm /var/lib/ubuntu-release-upgrader/release-upgrade-available
+/usr/lib/ubuntu-release-upgrader/release-upgrade-motd
+之后再次执行升级命令 do-release-upgrade。这时候报错信息变化了，这时候提示的是 python3 有问题，原因是我当前系统使用的是自己编译的 python 3.8，路径在 /opt 目录下。当时将系统软链接 /usr/bin/python 和 /usr/bin/python3 都指向了自己安装的 python，需要将他们恢复到指向系统内置的 python 程序。下面需要介绍下系统内 python 主程序和软链接的分布：python2 主应用程序为 /usr/bin/python2.7
+python3 主应用程序为 /usr/bin/python3.6
+pip 主程序为 /usr/bin/pip
+pip3 主程序为 /usr/bin/pip3下面是默认的软链接及指向的应用程序：/usr/bin/python  -&gt;  /usr/bin/python2.7
+/usr/bin/python2  -&gt;  /usr/bin/python2.7
+/usr/bin/python3  -&gt;  /usr/bin/python3.6
+/usr/local/bin/pip  -&gt;  /usr/bin/pip
+/usr/local/bin/pip3  -&gt;  /usr/bin/pip3如果你修改过这些软链接到自己的 python 版本，就需要修改回来：ln -sf /usr/bin/python2.7 /usr/bin/python
+ln -sf /usr/bin/python2.7 /usr/bin/python2
+ln -sf /usr/bin/python3.6 /usr/bin/python3
+ln -sf /usr/bin/pip /usr/local/bin/pip
+ln -sf /usr/bin/pip3 /usr/local/bin/pip3
+ldconfig以上问题都处理完后，再次执行升级命令，一切都正常了。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2448.html">
 <title>解决 wget 下载时 certificates 证书报错问题</title>
 <link>https://blog.niekun.net/archives/2448.html</link>

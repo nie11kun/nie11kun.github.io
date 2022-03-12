@@ -11,8 +11,43 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Fri, 11 Mar 2022 16:48:00 +0800</lastBuildDate>
-<pubDate>Fri, 11 Mar 2022 16:48:00 +0800</pubDate>
+<lastBuildDate>Sat, 12 Mar 2022 15:32:00 +0800</lastBuildDate>
+<pubDate>Sat, 12 Mar 2022 15:32:00 +0800</pubDate>
+<item>
+<title>Ubuntu 18.04 升级 Ubuntu 20.04 记录</title>
+<link>https://blog.niekun.net/archives/2451.html</link>
+<guid>https://blog.niekun.net/archives/2451.html</guid>
+<pubDate>Sat, 12 Mar 2022 15:32:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[you are the company you keep...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>昨天决定把服务器的系统从 Ubuntu 18.04 升级到 Ubuntu 20.04，其中经历了不少问题点，下面记录下处理过程。</p><p>首先就是升级当前系统所有包到最新：</p><pre><code>apt update &amp;&amp; apt upgrade -y
+apt autoremove &amp;&amp; apt purge
+</code></pre><p>然后安装升级需要的管理包，不过一般系统都是自带的：</p><pre><code>apt install update-manager-core
+</code></pre><p>然后就可以更新系统了：</p><pre><code>do-release-upgrade
+</code></pre><p>标准流程就是以上几步，但是在最后一步的时候问题就开始出现了。</p><!--more--><p>在执行升级命令后出现报警：</p><pre><code>Failed to connect to https://changelogs.ubuntu.com/meta-release-lts. Check your Internet connection or proxy settings
+</code></pre><p>在查询一些资料后，原来是 ssl certificates 验证问题，系统无法鉴定上面的 https 链接证书是否有效就返回错误了。</p><p>这个问题也是我这个系统的一个遗留问题，每次执行 wget 或 curl 下载东西的时候就会提示证书报错，需要通过附加指令跳过证书验证，但这就会存在安全问题了。</p><p>解决方法就是更新本地证书库后添加 <code>SSL_CERT_DIR</code> 环境变量指向系统证书目录：</p><pre><code>update-ca-certificates --verbose --fresh
+export SSL_CERT_DIR=/etc/ssl/certs
+</code></pre><p>为了方便以后使用，将环境变量添加到 <code>~/.bashrc</code> 文件中。这样就解决了 https 链接证书验证问题。</p><p>然后先删除之前执行升级命令后错误内容：</p><pre><code>rm /var/lib/ubuntu-release-upgrader/release-upgrade-available
+/usr/lib/ubuntu-release-upgrader/release-upgrade-motd
+</code></pre><p>之后再次执行升级命令 <code>do-release-upgrade</code>。</p><p>这时候报错信息变化了，这时候提示的是 python3 有问题，原因是我当前系统使用的是自己编译的 python 3.8，路径在 /opt 目录下。当时将系统软链接 <code>/usr/bin/python</code> 和 <code>/usr/bin/python3</code> 都指向了自己安装的 python，需要将他们恢复到指向系统内置的 python 程序。</p><p>下面需要介绍下系统内 python 主程序和软链接的分布：</p><pre><code>python2 主应用程序为 /usr/bin/python2.7
+python3 主应用程序为 /usr/bin/python3.6
+pip 主程序为 /usr/bin/pip
+pip3 主程序为 /usr/bin/pip3</code></pre><p>下面是默认的软链接及指向的应用程序：</p><pre><code>/usr/bin/python  -&gt;  /usr/bin/python2.7
+/usr/bin/python2  -&gt;  /usr/bin/python2.7
+/usr/bin/python3  -&gt;  /usr/bin/python3.6
+/usr/local/bin/pip  -&gt;  /usr/bin/pip
+/usr/local/bin/pip3  -&gt;  /usr/bin/pip3</code></pre><p>如果你修改过这些软链接到自己的 python 版本，就需要修改回来：</p><pre><code>ln -sf /usr/bin/python2.7 /usr/bin/python
+ln -sf /usr/bin/python2.7 /usr/bin/python2
+ln -sf /usr/bin/python3.6 /usr/bin/python3
+ln -sf /usr/bin/pip /usr/local/bin/pip
+ln -sf /usr/bin/pip3 /usr/local/bin/pip3
+ldconfig</code></pre><p>以上问题都处理完后，再次执行升级命令，一切都正常了。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2451.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
+</item>
 <item>
 <title>解决 wget 下载时 certificates 证书报错问题</title>
 <link>https://blog.niekun.net/archives/2448.html</link>
@@ -205,175 +240,6 @@ ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大�
 ]]></content:encoded>
 <slash:comments>2</slash:comments>
 <comments>https://blog.niekun.net/archives/2330.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
-</item>
-<item>
-<title>React 入门教程之九 -- composition 模块化 和 inheritance 继承</title>
-<link>https://blog.niekun.net/archives/2329.html</link>
-<guid>https://blog.niekun.net/archives/2329.html</guid>
-<pubDate>Sun, 29 Aug 2021 13:35:29 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[you are the company you keep...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。</p><h3>containment 包含</h3><p>一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。</p><!--more--><p>这一类的 components 推荐直接使用 <strong>children</strong> props 来直接表示 parent 传递给他们的 elements：</p><pre><code>const FancyBorder = props =&gt; {
-    return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
-            {props.children}
-        &lt;/div&gt;
-    );
-}</code></pre><p><code>props.children</code> 表示所有在调用此 component 时放在其元素中的内容。</p><p>然后我们创建一个 component 来调用上面的 FancyBorder：</p><pre><code>const WelcomeDialog = () =&gt; {
-    return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;Welcome&lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
-                thank you for check this page.
-            &lt;/p&gt;
-        &lt;/FancyBorder&gt;
-    )
-}</code></pre><p>任何在 <strong>FancyBorder</strong> 标签中的内容都会作为 <strong>children</strong> prop 传入 <strong>FancyBorder</strong> 中，然后通过 props.children 进行渲染。</p><p>但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：</p><pre><code>const React = require('react')
-const ReactDOM = require('react-dom')
-
-const SplitPane = (props) =&gt; {
-    return (
-        &lt;div className='SplitPane'&gt;
-            &lt;div className='Splitpane-left'&gt;
-                {props.left}
-            &lt;/div&gt;
-            &lt;div className='Splitpane-right'&gt;
-                {props.right}
-            &lt;/div&gt;
-        &lt;/div&gt;
-    )
-}
-
-const Contacts = () =&gt; {
-    return (
-        &lt;div&gt;
-            &lt;h1&gt;marco&lt;/h1&gt;
-        &lt;/div&gt;
-    )
-}
-
-const Chat = () =&gt; {
-    return (
-        &lt;div&gt;
-            &lt;p&gt;this is a test&lt;/p&gt;
-        &lt;/div&gt;
-    )
-}
-
-const App = () =&gt; {
-    return (
-        &lt;SplitPane
-            left={
-                &lt;Contacts /&gt;
-            }
-            right={
-                &lt;Chat /&gt;
-            }
-        /&gt;
-    )
-}
-
-ReactDOM.render(
-    &lt;App /&gt;,
-    document.getElementById('root')
-);</code></pre><p>可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。</p><h3>specialization 特殊化</h3><p>一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：</p><pre><code>const React = require('react')
-const ReactDOM = require('react-dom')
-
-const FancyBorder = props =&gt; {
-    return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
-            {props.children}
-        &lt;/div&gt;
-    );
-}
-
-const Dialog = props =&gt; {
-    return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;
-                {props.title}
-            &lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
-                {props.message}
-            &lt;/p&gt;
-        &lt;/FancyBorder&gt;
-    )
-}
-const WelcomeDialog = () =&gt; {
-    return (
-        &lt;Dialog 
-            title='Welcome'
-            message='welcome to this party'
-        /&gt;
-    )
-}
-
-ReactDOM.render(
-    &lt;WelcomeDialog /&gt;,
-    document.getElementById('root')
-);</code></pre><p>我们也可以通过 class 的方式定义 component：</p><pre><code>const React = require('react')
-const ReactDOM = require('react-dom')
-
-const FancyBorder = props =&gt; {
-    return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
-            {props.children}
-        &lt;/div&gt;
-    );
-}
-
-const Dialog = props =&gt; {
-    return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;
-                {props.title}
-            &lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
-                {props.message}
-            &lt;/p&gt;
-            {props.children}
-        &lt;/FancyBorder&gt;
-    )
-}
-
-class SignUpDialog extends React.Component {
-    constructor(props) {
-        super(props);
-        this.handleChangle = this.handleChangle.bind(this);
-        this.handleSignup = this.handleSignup.bind(this);
-        this.state = {login: ''};
-    }
-
-    handleChangle(e) {
-        this.setState({login: e.target.value});
-    }
-
-    handleSignup() {
-        alert(`welcome guys, ${this.state.login}`)
-    }
-
-    render () {
-        return (
-            &lt;Dialog
-                title='Sport game'
-                message='welcome to this game'
-            &gt;
-                &lt;input value={this.state.login} onChange={this.handleChangle} /&gt;
-                &lt;button onClick={this.handleSignup}&gt;Sign me up&lt;/button&gt;
-            &lt;/Dialog&gt;
-        )
-    }
-}
-
-ReactDOM.render(
-    &lt;SignUpDialog /&gt;,
-    document.getElementById('root')
-);</code></pre><p>这里我们使用了自定义 props 和 <strong>children</strong> props 来构建了 <strong>SignUpDialog</strong> component，根据实际场景灵活使用。</p><p>props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始<strong>二进制数据/elements/functions</strong> 等。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2329.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
 </item>
 </channel>
