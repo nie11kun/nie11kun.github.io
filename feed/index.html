@@ -11,8 +11,69 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Sat, 12 Mar 2022 15:32:00 +0800</lastBuildDate>
-<pubDate>Sat, 12 Mar 2022 15:32:00 +0800</pubDate>
+<lastBuildDate>Mon, 14 Mar 2022 11:35:31 +0800</lastBuildDate>
+<pubDate>Mon, 14 Mar 2022 11:35:31 +0800</pubDate>
+<item>
+<title>使用 rclone 管理网盘文件</title>
+<link>https://blog.niekun.net/archives/2454.html</link>
+<guid>https://blog.niekun.net/archives/2454.html</guid>
+<pubDate>Mon, 14 Mar 2022 11:35:31 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[you are the company you keep...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>之前介绍了通过 gdrive 在服务器上管理 Google drive 文件，实现服务器数据备份自动上传功能。最近发现有一个新的开源项目 rclone 支持更多的网盘，同时更新迭代速度也更快。</p><p>GitHub 主页：<a href="https://github.com/rclone/rclone">https://github.com/rclone/rclone</a></p><p>他支持的网盘列表：<a href="https://rclone.org/overview/">https://rclone.org/overview/</a></p><p>下面介绍它的安装使用方法。</p><!--more--><h3>安装</h3><p>Linux 下一键安装命令：</p><pre><code>curl https://rclone.org/install.sh | sudo bash
+</code></pre><p>macos 通过 brew 安装：</p><pre><code>brew install rclone
+</code></pre><h3>配置</h3><p>首次运行执行初始化配置：</p><pre><code>rclone config
+</code></pre><p>根据提示创建新 remote：</p><pre><code>No remotes found - make a new one
+n) New remote
+r) Rename remote
+c) Copy remote
+s) Set configuration password
+q) Quit config
+n/r/c/s/q&gt; n</code></pre><p>然后设置此连接名称，后续就是通过这个名称来操作不同的网盘的：</p><pre><code>name&gt; remote
+</code></pre><p>下一步选择网盘类型，如果是 Google drive 选择 16：</p><pre><code>Type of storage to configure.
+Choose a number from below, or type in your own value
+[snip]
+16 / Google Drive
+   \ &quot;drive&quot;
+[snip]
+Storage&gt; 16</code></pre><p>下面的 id 和 secret 都默认回车即可：</p><pre><code>Google Application Client Id - leave blank normally.
+client_id&gt;
+Google Application Client Secret - leave blank normally.
+client_secret&gt;</code></pre><p>下面设置可访问全部网盘文件，选择 1：</p><pre><code>Scope that rclone should use when requesting access from drive.
+Choose a number from below, or type in your own value
+ 1 / Full access all files, excluding Application Data Folder.
+   \ &quot;drive&quot;
+ 2 / Read-only access to file metadata and file contents.
+   \ &quot;drive.readonly&quot;
+   / Access to files created by rclone only.
+ 3 | These are visible in the drive website.
+   | File authorization is revoked when the user deauthorizes the app.
+   \ &quot;drive.file&quot;
+   / Allows read and write access to the Application Data folder.
+ 4 | This is not visible in the drive website.
+   \ &quot;drive.appfolder&quot;
+   / Allows read-only access to file metadata but
+ 5 | does not allow any access to read or download file content.
+   \ &quot;drive.metadata.readonly&quot;
+scope&gt; 1</code></pre><p>下面几步都默认回车即可。</p><p>注意到了 use auto config 的时候要选择 No，因为我们是远程 ssh 访问的服务器：</p><pre><code>Use auto config?
+ * Say Y if not sure
+ * Say N if you are working on a remote or headless machine or Y didn't work
+y) Yes
+n) No
+y/n&gt; n</code></pre><p>下面会返回一个链接，复制链接到浏览器后，登录 google 账户给 rclone 授权。授权完成后会返回一个字符串码，粘贴回终端。</p><p>后续几步默认回车即可，最后输入 q 退出 config。</p><h3>使用</h3><p>配置完成后我们就可以使用了，下面介绍一些基本语法。下面示例中网盘配置名称为 remote。</p><p>列出网盘的所有文件：</p><pre><code>rclone ls remote:
+</code></pre><p>列出一个文件夹内的所有文件：</p><pre><code>rclone ls remote:abc
+</code></pre><p>创建一个文件夹：</p><pre><code>rclone mkdir remote:abc
+rclone mkdir remote:abc/def
+</code></pre><p>删除网盘内一个文件：</p><pre><code>rclone delete remote:abc/123.txt
+</code></pre><p>删除一个文件夹：</p><pre><code>rclone rmdir remote:abc
+</code></pre><p>复制本地一个文件到网盘：</p><pre><code>rclone copy 123.txt remote:abc
+</code></pre><p>更多可用命令可以参考官方文档：<a href="https://rclone.org/docs/#subcommands">https://rclone.org/docs/#subcommands</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2454.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
+</item>
 <item>
 <title>Ubuntu 18.04 升级 Ubuntu 20.04 记录</title>
 <link>https://blog.niekun.net/archives/2451.html</link>
@@ -218,28 +279,6 @@ copy(value);</code></pre><p>执行完成后此时我们的剪贴板里就已经�
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2340.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
-</item>
-<item>
-<title>828D 执行程序提示：等待插补缓冲</title>
-<link>https://blog.niekun.net/archives/2330.html</link>
-<guid>https://blog.niekun.net/archives/2330.html</guid>
-<pubDate>Fri, 03 Sep 2021 09:38:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[you are the company you keep...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：<br><img src="https://blog.niekun.net/usr/uploads/2021/09/577513986.png" alt="2021-09-03T01:27:34.png" title="2021-09-03T01:27:34.png"></p><!--more--><p>程序代码如下：</p><pre><code>WHILE((R0&gt;=360) OR (R0&lt;0))
-    IF R0&gt;=360
-        R0=R0-360
-    ELSE
-        IF R0&lt;0
-            R0=360+R0
-        ENDIF
-    ENDIF
-ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大于等于 0 小于 360 之间。理论上无论给 R0 赋予任何初值，执行以上代码后都可以将其自动计算为需要的结果。</p><p>在分析后发现，出现以上报警的原因是程序在此 while 循环中无法跳出。随即从这里下手寻找问题点。</p><p>在经过给 R0 赋予一些特殊的初值，然后执行程序后发现，当初值为 -0.0000000001 或 359.999999999 时无法跳出循环，R0 的值一直在这两者之间跳动，猜测应该是数控系统精度判断 359.999999999 等于 360，导致 <code>IF R0&gt;=360</code> 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。</p><p>找到了问题点解决就很简单了，只需要将 <code>R0=R0-360</code> 修改为 <code>R0=R0-360.00001</code> 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。</p><p>出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。</p>
-]]></content:encoded>
-<slash:comments>2</slash:comments>
-<comments>https://blog.niekun.net/archives/2330.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
 </item>
 </channel>

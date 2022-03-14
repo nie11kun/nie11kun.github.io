@@ -6,11 +6,74 @@ xml:base="https://blog.niekun.net/category/Linux/"
 >
 <title type="text">Marco Nie - Linux</title>
 <subtitle type="text"></subtitle>
-<updated>2022-03-12T15:32:00+08:00</updated>
+<updated>2022-03-14T11:35:31+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/Linux/" />
 <id>https://blog.niekun.net/feed/atom/category/Linux/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" />
+<entry>
+<title type="html"><![CDATA[使用 rclone 管理网盘文件]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2454.html" />
+<id>https://blog.niekun.net/archives/2454.html</id>
+<updated>2022-03-14T11:35:31+08:00</updated>
+<published>2022-03-14T11:35:31+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<content type="html" xml:base="https://blog.niekun.net/archives/2454.html" xml:lang="zh-CN"><![CDATA[
+<p>之前介绍了通过 gdrive 在服务器上管理 Google drive 文件，实现服务器数据备份自动上传功能。最近发现有一个新的开源项目 rclone 支持更多的网盘，同时更新迭代速度也更快。</p><p>GitHub 主页：<a href="https://github.com/rclone/rclone">https://github.com/rclone/rclone</a></p><p>他支持的网盘列表：<a href="https://rclone.org/overview/">https://rclone.org/overview/</a></p><p>下面介绍它的安装使用方法。</p><!--more--><h3>安装</h3><p>Linux 下一键安装命令：</p><pre><code>curl https://rclone.org/install.sh | sudo bash
+</code></pre><p>macos 通过 brew 安装：</p><pre><code>brew install rclone
+</code></pre><h3>配置</h3><p>首次运行执行初始化配置：</p><pre><code>rclone config
+</code></pre><p>根据提示创建新 remote：</p><pre><code>No remotes found - make a new one
+n) New remote
+r) Rename remote
+c) Copy remote
+s) Set configuration password
+q) Quit config
+n/r/c/s/q&gt; n</code></pre><p>然后设置此连接名称，后续就是通过这个名称来操作不同的网盘的：</p><pre><code>name&gt; remote
+</code></pre><p>下一步选择网盘类型，如果是 Google drive 选择 16：</p><pre><code>Type of storage to configure.
+Choose a number from below, or type in your own value
+[snip]
+16 / Google Drive
+   \ &quot;drive&quot;
+[snip]
+Storage&gt; 16</code></pre><p>下面的 id 和 secret 都默认回车即可：</p><pre><code>Google Application Client Id - leave blank normally.
+client_id&gt;
+Google Application Client Secret - leave blank normally.
+client_secret&gt;</code></pre><p>下面设置可访问全部网盘文件，选择 1：</p><pre><code>Scope that rclone should use when requesting access from drive.
+Choose a number from below, or type in your own value
+ 1 / Full access all files, excluding Application Data Folder.
+   \ &quot;drive&quot;
+ 2 / Read-only access to file metadata and file contents.
+   \ &quot;drive.readonly&quot;
+   / Access to files created by rclone only.
+ 3 | These are visible in the drive website.
+   | File authorization is revoked when the user deauthorizes the app.
+   \ &quot;drive.file&quot;
+   / Allows read and write access to the Application Data folder.
+ 4 | This is not visible in the drive website.
+   \ &quot;drive.appfolder&quot;
+   / Allows read-only access to file metadata but
+ 5 | does not allow any access to read or download file content.
+   \ &quot;drive.metadata.readonly&quot;
+scope&gt; 1</code></pre><p>下面几步都默认回车即可。</p><p>注意到了 use auto config 的时候要选择 No，因为我们是远程 ssh 访问的服务器：</p><pre><code>Use auto config?
+ * Say Y if not sure
+ * Say N if you are working on a remote or headless machine or Y didn't work
+y) Yes
+n) No
+y/n&gt; n</code></pre><p>下面会返回一个链接，复制链接到浏览器后，登录 google 账户给 rclone 授权。授权完成后会返回一个字符串码，粘贴回终端。</p><p>后续几步默认回车即可，最后输入 q 退出 config。</p><h3>使用</h3><p>配置完成后我们就可以使用了，下面介绍一些基本语法。下面示例中网盘配置名称为 remote。</p><p>列出网盘的所有文件：</p><pre><code>rclone ls remote:
+</code></pre><p>列出一个文件夹内的所有文件：</p><pre><code>rclone ls remote:abc
+</code></pre><p>创建一个文件夹：</p><pre><code>rclone mkdir remote:abc
+rclone mkdir remote:abc/def
+</code></pre><p>删除网盘内一个文件：</p><pre><code>rclone delete remote:abc/123.txt
+</code></pre><p>删除一个文件夹：</p><pre><code>rclone rmdir remote:abc
+</code></pre><p>复制本地一个文件到网盘：</p><pre><code>rclone copy 123.txt remote:abc
+</code></pre><p>更多可用命令可以参考官方文档：<a href="https://rclone.org/docs/#subcommands">https://rclone.org/docs/#subcommands</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2454.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Ubuntu 18.04 升级 Ubuntu 20.04 记录]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2451.html" />
@@ -369,103 +432,6 @@ Hello World!</code></pre><h3>调用 PATH</h3><p>上面的示例中，我们定�
 console.log('Hello world!');</code></pre><p>以上就是对 shebang 的简单解释。</p><h3>参考链接</h3><p><a href="https://www.baeldung.com/linux/shebang">Using Shebang #! in Linux Scripts</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2287.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[Ubuntu desktop 配置 vnc server]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2281.html" />
-<id>https://blog.niekun.net/archives/2281.html</id>
-<updated>2021-03-31T11:26:00+08:00</updated>
-<published>2021-03-31T11:26:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<content type="html" xml:base="https://blog.niekun.net/archives/2281.html" xml:lang="zh-CN"><![CDATA[
-<p>通过 VNC(Virtual Network Computing) 可以使用一个图形化的界面来访问远程服务器。这样对服务器的操作可以更加便捷直观。</p><p>下面我们在 Ubuntu 上安装 TightVNC vnc server 并通过更加安全的 SSH tunnel 来连接服务器。</p><p>环境需求：</p><ul><li>远程主机 Ubuntu desktop 20.04</li><li>关闭 ufw 防火墙或配置允许 openssh 远程连接</li><li>本地设备 vnc 客户端需要支持 SSH tunnels 连接，如： TightVNC, RealVNC, or UltraVNC.</li></ul><!--more--><h3>安装桌面环境</h3><p>如果安装的是 Ubuntu server，它默认并没有按照桌面环境，开机后就显示一个 shell 环境。如果是 Ubuntu desktop 版本则默认安装了 Ubuntu desktop 桌面环境。</p><p>如果我们需要远程访问 vnc，最好选择一个轻量级的桌面环境，这样访问的时候会流畅很多，推荐安装 xfce。</p><p>在后续章节，会介绍安装其他桌面环境的方法，如：GNOME，LXDE，KDE。</p><p>首先安装 xfce 及其增强包：</p><pre><code>sudo apt install xfce4 xfce4-goodies
-</code></pre><p>安装过程中会提示需要选择 xfce 的一个默认 display manager 显示管理器，它是用来在登录系统时的一个图像界面来输入用户及密码的，由于我们只是使用 xfce 来连接 vnc 客户端，且此时已经登陆了对应账户了，所以这里我们任意选择一个显示管理器即可。</p><p>可以通过命令查看当前系统已经安装的桌面环境：</p><pre><code>ls /usr/share/xsessions/
-
-gnome.desktop                   gnome-flashback-metacity.desktop  ubuntu.desktop
-gnome-flashback-compiz.desktop  gnome-xorg.desktop                xfce.desktop</code></pre><p>文件中定义了桌面环境启动指令。</p><h3>安装 vncserver</h3><p>Ubuntu 本身没有安装 vnc 服务， <strong>TigerVNC</strong> 来实现，它们都很轻量及快速，很适合配置 vnc server。</p><p>下面安装 TigerVNC server：</p><pre><code>sudo apt install tigervnc-standalone-server
-</code></pre><p>安装完成后，我们运行 vncserver 来设置一个 vnc 密码，并且初始化相关配置文件：</p><pre><code>vncserver
-</code></pre><p>此时会提示要求输入一个密码及 verify 验证密码：</p><pre><code>You will require a password to access your desktops.
-
-Password: 
-Verify:  </code></pre><p>然后会提示是否需要设置一个 view-only 密码，通过这个密码登录后，不可以使用鼠标或键盘操作服务器。不需要的话输入 n 不创建即可。</p><p>然后就会创建相关的默认配置文件和显示相关连接信息，同时会启动一个运行在 5901 端口的 vnc 服务实例：</p><pre><code>Would you like to enter a view-only password (y/n)? n
-xauth:  file /home/sammy/.Xauthority does not exist
-
-New 'X' desktop is marco-virtual-machine:1
-
-Creating default startup script /home/marco/.vnc/xstartup
-Starting applications specified in /home/marco/.vnc/xstartup
-Log file is /home/marco/.vnc/marco-virtual-machine:1.log</code></pre><p>后期如果需要修改 vnc 密码可以输入 vncpasswd 设置：</p><pre><code>vncpasswd
-</code></pre><p>此时我们的 vnc server 就安装完成并且启动了，下面我们配置启动 xfce。</p><h3>配置</h3><p>vnc server 在启动时需要知道需要执行哪些命令，以及需要连接到哪个 graphical desktop environment 图形环境。</p><p>vnc server 启动时所执行的命令是在 <strong>xstartup</strong> 文件中定义的。他在当前登录用户的 <code>home</code> 目录的 <code>.vnc</code> 文件夹内。这个文件在我们第一次启动 vncserver 时会自动创建。下面我们对它进行修改。</p><p>由于我们上面已经启动了 vncserver，它启动了一个运行在 5901 端口的 vnc 实例。我们首先关闭这个服务：</p><pre><code>vncserver -kill :1
-</code></pre><p>输出信息如下：</p><pre><code>Killing Xtightvnc process ID 17648
-</code></pre><p>下面我们打开 <code>~/.vnc/xstartup</code> 文件，修改为以下内容：</p><pre><code>#!/bin/sh
-
-unset SESSION_MANAGER
-unset DBUS_SESSION_BUS_ADDRESS
-
-[ -x /etc/vnc/xstartup ] &amp;&amp; exec /etc/vnc/xstartup
-[ -r $HOME/.Xresources ] &amp;&amp; xrdb $HOME/.Xresources
-xsetroot -solid grey
-vncconfig -iconic &amp;
-
-startxfce4 &amp;</code></pre><p>这里我们配置了使用 <strong>xfce4</strong> 作为桌面环境。</p><p><strong>注意前三句是需要添加的</strong>，否则远程连接会显示为灰屏。最后一句我们启动了 xfce 桌面环境。</p><p>如果使用其他桌面环境，可以同查看对应 desktop 文件里的启动命令找到如何正确的启动对应桌面，如 ubuntu.desktop 文件内容如下：</p><pre><code>cat /usr/share/xsessions/ubuntu.desktop
-
-[Desktop Entry]
-Name=Ubuntu
-Comment=This session logs you into Ubuntu
-Exec=env GNOME_SHELL_SESSION_MODE=ubuntu /usr/bin/gnome-session --systemd --session=ubuntu
-TryExec=/usr/bin/gnome-shell
-Type=Application
-DesktopNames=ubuntu:GNOME
-X-GDM-SessionRegisters=true
-X-Ubuntu-Gettext-Domain=gnome-session-3.0</code></pre><p>可以看到启动命令有如下两条：</p><pre><code>Exec=env GNOME_SHELL_SESSION_MODE=ubuntu /usr/bin/gnome-session --systemd --session=ubuntu
-TryExec=/usr/bin/gnome-shell</code></pre><p>在 xstartup 自定义配置中加入以上两条即可。</p><p>然后给配置文件添加执行权限：</p><pre><code>chmod +x ~/.vnc/xstartup
-</code></pre><p>然后我们重新启动 vncserver：</p><pre><code>vncserver -localhost
-</code></pre><p>注意这里我们添加了 <code>-localhost</code> 参数，意味着此 vnc 服务只可以在本机内被连接。如果不添加这个参数，则开放所有网络连接。</p><p>我们这里只打开本地网络连接服务，然后通过 ssh tunnel 在远程和本地建立安全的连接并转发 vnc 本地端口。</p><h3>连接</h3><p>vnc 本身并不支持通过一些安全的协议进行连接，下面我们通过 ssh tunnel 隧道在本地和远程主机间建立一个安全的链接，然后告诉 vnc 客户端使用这个安全隧道连接远程服务器。</p><p>上面我们已经启动了一个 vncserver 在 5901 端口，它可以在本地网络内被连接但无法被外部网络连接。</p><p>首先我们通过 ssh 在本地和远程建立一个安全链接，并转发远程主机的 localhost 及端口到本地的特定端口：</p><pre><code>ssh -L 59000:localhost:5901 -C -N -l user xxx.xxx.xxx.xxx
-</code></pre><p>以上命令意义如下：</p><ul><li><code>-L 59000:localhost:5901</code>：使用 <code>-L</code> 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。</li><li><code>-C</code> 参数用来启用传输数据压缩，可以提高传输效率</li><li><code>-N</code> 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用</li><li><code>-l</code> 定义远程主机的用户名和 IP 地址</li></ul><p>ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 <code>localhost:59000</code>：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1735491420.png" alt="2021-03-31T03:03:51.png" title="2021-03-31T03:03:51.png"></p><p>输入我们之前创建的 vnc 密码后就连接到远程服务器了：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3227212438.png" alt="2021-03-31T03:04:33.png" title="2021-03-31T03:04:33.png"></p><p>当然也可以不使用 ssh tunnel ，但是需要取消 <code>-localhost</code> 参数，就可以直接连接 vnc server。</p><h3>配置 vnc systemd 服务</h3><p>为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。</p><p>在 <code>/usr/lib/systemd/system</code> 目录下新建文件 <code>vncserver@.service</code>，其中的 <code>@</code> 可以让我们在操作此服务时添加传递参数，在配置文件中使用 <code>%1</code> 可以读取这个参数。</p><p>内容如下：</p><pre><code>[Unit]
-Description=Start TightVNC server at startup
-After=syslog.target network.target
-
-[Service]
-Type=forking
-User=user
-Group=user
-WorkingDirectory=/home/user
-
-PIDFile=/home/user/.vnc/%H:%i.pid
-ExecStartPre=-/usr/bin/vncserver -kill :%i &gt; /dev/null 2&gt;&amp;1
-ExecStart=/usr/bin/vncserver -depth 24 -geometry 1280x800 -localhost :%i
-ExecStop=/usr/bin/vncserver -kill :%i
-
-[Install]
-WantedBy=multi-user.target</code></pre><ul><li>注意上面的配置中，需要将 user 修改为你实际登录的用户名称，共有 4 个地方</li><li><strong>ExecStart</strong> 中我们定义了 24 位色深 1280x800 的 vnc 显示，可以根据需要自行修改</li><li>使用了 <code>-localhost</code> 参数，所以只能使用 ssh tunnel 的方式访问</li></ul><p>然后重新加载配置：</p><pre><code>sudo systemctl daemon-reload
-</code></pre><p>启动一个 vncserver 使用参数 1 来定义 vnc 服务号：</p><pre><code>sudo systemctl start vncserver@1
-</code></pre><p>此时我们就启动了一个 vncserver 且其服务号为 <code>:1</code>。</p><p>关闭启动的 <code>:1</code> vncserver：</p><pre><code>systemctl stop vncserver@1
-</code></pre><p>开机自动启动 vncserver 服务：</p><pre><code>systemctl enable vncserver@1
-</code></pre><p>这样就可以实现开机自动部署 vncserver 服务了。</p><h3>使用 gnome 桌面环境</h3><p>gnome 是 Ubuntu desktop 默认的桌面环境，使用它近似于原生的 Ubuntu 界面。</p><p>安装依赖：</p><pre><code>sudo apt install gnome-session gnome-terminal gnome-panel gnome-settings-daemon metacity nautilus
-</code></pre><p>修改 <code>~/.vnc/xstartup</code> 如下：</p><pre><code>#!/bin/bash
-
-PATH=/usr/bin
-unset SESSION_MANAGER
-unset DBUS_SESSION_BUS_ADDRESS
-
-export XKL_XMODMAP_DISABLE=1
-export XDG_CURRENT_DESKTOP=&quot;GNOME-Flashback:GNOME&quot;
-export XDG_MENU_PREFIX=&quot;gnome-flashback-&quot;
-
-[ -x /etc/vnc/xstartup ] &amp;&amp; exec /etc/vnc/xstartup
-[ -r $HOME/.Xresources ] &amp;&amp; xrdb $HOME/.Xresources
-xsetroot -solid grey
-vncconfig -iconic &amp;
-
-gnome-session --builtin --session=gnome-flashback-metacity --disable-acceleration-check --debug &amp;
-nautilus &amp;
-gnome-terminal &amp;</code></pre><p>重启 vncserver 服务，连接可以查看效果。</p><h3>参考链接</h3><p><a href="https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-vnc-on-ubuntu-20-04">How to Install and Configure VNC on Ubuntu 20.04</a><br><a href="https://www.raspberrypi.org/forums/viewtopic.php?t=216725">VNC grey screen, x cursor, nothing helps</a><br><a href="https://askubuntu.com/questions/800302/vncserver-grey-screen-ubuntu-16-04-lts">vncserver grey screen ubuntu 16.04 LTS</a><br><a href="https://bytexd.com/how-to-install-configure-vnc-server-on-ubuntu-20-04/">How to Install & Configure VNC Server on Ubuntu 20.04</a><br><a href="https://askubuntu.com/questions/1285420/how-to-properly-configure-xstartup-file-for-tightvnc-with-ubuntu-20-04-lts-gnome">How to properly configure xstartup file for TightVNC with Ubuntu 20.04 LTS GNOME environment</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2281.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
 </entry>
 </feed>

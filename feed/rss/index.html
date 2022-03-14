@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2454.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2451.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2448.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2403.html"/>
@@ -18,10 +19,62 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2352.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2348.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2340.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2330.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2454.html">
+<title>使用 rclone 管理网盘文件</title>
+<link>https://blog.niekun.net/archives/2454.html</link>
+<dc:date>2022-03-14T11:35:31+08:00</dc:date>
+<description>之前介绍了通过 gdrive 在服务器上管理 Google drive 文件，实现服务器数据备份自动上传功能。最近发现有一个新的开源项目 rclone 支持更多的网盘，同时更新迭代速度也更快。GitHub 主页：https://github.com/rclone/rclone他支持的网盘列表：https://rclone.org/overview/下面介绍它的安装使用方法。安装Linux 下一键安装命令：curl https://rclone.org/install.sh | sudo bash
+macos 通过 brew 安装：brew install rclone
+配置首次运行执行初始化配置：rclone config
+根据提示创建新 remote：No remotes found - make a new one
+n) New remote
+r) Rename remote
+c) Copy remote
+s) Set configuration password
+q) Quit config
+n/r/c/s/q&gt; n然后设置此连接名称，后续就是通过这个名称来操作不同的网盘的：name&gt; remote
+下一步选择网盘类型，如果是 Google drive 选择 16：Type of storage to configure.
+Choose a number from below, or type in your own value
+[snip]
+16 / Google Drive
+   \ &quot;drive&quot;
+[snip]
+Storage&gt; 16下面的 id 和 secret 都默认回车即可：Google Application Client Id - leave blank normally.
+client_id&gt;
+Google Application Client Secret - leave blank normally.
+client_secret&gt;下面设置可访问全部网盘文件，选择 1：Scope that rclone should use when requesting access from drive.
+Choose a number from below, or type in your own value
+ 1 / Full access all files, excluding Application Data Folder.
+   \ &quot;drive&quot;
+ 2 / Read-only access to file metadata and file contents.
+   \ &quot;drive.readonly&quot;
+   / Access to files created by rclone only.
+ 3 | These are visible in the drive website.
+   | File authorization is revoked when the user deauthorizes the app.
+   \ &quot;drive.file&quot;
+   / Allows read and write access to the Application Data folder.
+ 4 | This is not visible in the drive website.
+   \ &quot;drive.appfolder&quot;
+   / Allows read-only access to file metadata but
+ 5 | does not allow any access to read or download file content.
+   \ &quot;drive.metadata.readonly&quot;
+scope&gt; 1下面几步都默认回车即可。注意到了 use auto config 的时候要选择 No，因为我们是远程 ssh 访问的服务器：Use auto config?
+ * Say Y if not sure
+ * Say N if you are working on a remote or headless machine or Y didn't work
+y) Yes
+n) No
+y/n&gt; n下面会返回一个链接，复制链接到浏览器后，登录 google 账户给 rclone 授权。授权完成后会返回一个字符串码，粘贴回终端。后续几步默认回车即可，最后输入 q 退出 config。使用配置完成后我们就可以使用了，下面介绍一些基本语法。下面示例中网盘配置名称为 remote。列出网盘的所有文件：rclone ls remote:
+列出一个文件夹内的所有文件：rclone ls remote:abc
+创建一个文件夹：rclone mkdir remote:abc
+rclone mkdir remote:abc/def
+删除网盘内一个文件：rclone delete remote:abc/123.txt
+删除一个文件夹：rclone rmdir remote:abc
+复制本地一个文件到网盘：rclone copy 123.txt remote:abc
+更多可用命令可以参考官方文档：https://rclone.org/docs/#subcommands</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2451.html">
 <title>Ubuntu 18.04 升级 Ubuntu 20.04 记录</title>
 <link>https://blog.niekun.net/archives/2451.html</link>
@@ -156,19 +209,5 @@ copy(value);执行完成后此时我们的剪贴板里就已经复制好了 cook
 <link>https://blog.niekun.net/archives/2340.html</link>
 <dc:date>2021-10-08T11:58:00+08:00</dc:date>
 <description>最近微软发布了 Windows 11 正式版。但是对设备硬件有一些限制，可以通过修改注册表的方式解除限制。首先打开注册表，快捷键 win + R，输入 regedit：通过左侧层级菜单找到：Computer\HKEY_LOCAL_MACHINE\SYSTEM\Setup\MoSetup:选中 Mosetup，菜单栏选择 edit - New - DWORD 添加新键，重命名为：AllowUpgradesWithUnsupportedTPMOrCPU：双击此键设置值为 1，然后确认：然后就可以下载镜像安装了，期间会提示硬件不符合要求，但多了个接受选项安装 Windows 11：升级故障在实际升级中，我遇到了一个困扰几个星期的问题，当显示升级进度到 31% 的时候就停留不动了，尝试了无数次都无法解决。最后在今天翻看台湾 Windows 社群的时候找到了一篇帖子，受到启发才找到了问题点。一般这种问题都是因为当前系统内安装的某个硬件的驱动有问题导致升级无法进行，我们需要做的就是找到这个驱动是什么然后卸载它。我们需要从 C:\$WINDOWS.~BT\Sources\Panther 目录内的 CompatData_ 开头的 xml 文件中找到 DriverPackages 标签的内容，找到 BlockMigration="True" 后面的 inf="XXX.inf" 记住这里的 inf 文件名称，在 C:\Windows\INF 目录中找到对应的 inf 文件，用记事本打开文件，查看这到底是什么驱动，根据驱动名称和驱动版本等信息，在设备管理器中找到对应驱动并卸载它。如果 xml 文件中没有找到相关信息，则需要在 C:\$WINDOWS.~BT\Sources\Panther 目录内 setupact.log 文件中找相关信息，一般我们直接翻到日志最后一部分，查找相关信息，同样是找到 XXX.inf 文件。正确的找到并卸载驱动后，需要删除 C:\$WINDOWS.~BT\Sources\Panther 中的 compatscancache.dat 和 CompatData_ 开头的 xml 文件。然后就可以测试再次启动升级。参考链接windows 11更新卡在35%</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2330.html">
-<title>828D 执行程序提示：等待插补缓冲</title>
-<link>https://blog.niekun.net/archives/2330.html</link>
-<dc:date>2021-09-03T09:38:00+08:00</dc:date>
-<description>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：程序代码如下：WHILE((R0&gt;=360) OR (R0&lt;0))
-    IF R0&gt;=360
-        R0=R0-360
-    ELSE
-        IF R0&lt;0
-            R0=360+R0
-        ENDIF
-    ENDIF
-ENDWHILE以上程序实现的功能是将 R0 的值控制在大于等于 0 小于 360 之间。理论上无论给 R0 赋予任何初值，执行以上代码后都可以将其自动计算为需要的结果。在分析后发现，出现以上报警的原因是程序在此 while 循环中无法跳出。随即从这里下手寻找问题点。在经过给 R0 赋予一些特殊的初值，然后执行程序后发现，当初值为 -0.0000000001 或 359.999999999 时无法跳出循环，R0 的值一直在这两者之间跳动，猜测应该是数控系统精度判断 359.999999999 等于 360，导致 IF R0&gt;=360 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。找到了问题点解决就很简单了，只需要将 R0=R0-360 修改为 R0=R0-360.00001 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。</description>
 </item>
 </rdf:RDF>

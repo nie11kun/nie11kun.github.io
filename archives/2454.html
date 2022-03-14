@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>使用 rclone 管理网盘文件 - Marco Nie</title>
+<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
+<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
+<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
+<link href="https://cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
+<meta property="og:site_name" content="Marco Nie">
+<meta property="og:title" content="使用 rclone 管理网盘文件" />
+<meta name="description" content="之前介绍了通过 gdrive 在服务器上管理 Google drive 文件，实现服务器数据备份自动上传功能。最近发现有一个新的开源项目 rclone 支持更多的网盘，同时更新迭代速度也更快。G..." />
+<link rel="alternate" type="application/rss+xml" title="使用 rclone 管理网盘文件 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2454.html" />
+<link rel="alternate" type="application/rdf+xml" title="使用 rclone 管理网盘文件 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2454.html" />
+<link rel="alternate" type="application/atom+xml" title="使用 rclone 管理网盘文件 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2454.html" />
+<script type="9042f912a97002d7b0a6d116-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (id) {
+            return document.getElementById(id);
+        },
+    
+        create : function (tag, attr) {
+            var el = document.createElement(tag);
+        
+            for (var key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+
+        reply : function (cid, coid) {
+            var comment = this.dom(cid), parent = comment.parentNode,
+                response = this.dom('respond-post-2454'), input = this.dom('comment-parent'),
+                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
+                textarea = response.getElementsByTagName('textarea')[0];
+
+            if (null == input) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent',
+                    'id'   : 'comment-parent'
+                });
+
+                form.appendChild(input);
+            }
+
+            input.setAttribute('value', coid);
+
+            if (null == this.dom('comment-form-place-holder')) {
+                var holder = this.create('div', {
+                    'id' : 'comment-form-place-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+
+            comment.appendChild(response);
+            this.dom('cancel-comment-reply-link').style.display = '';
+
+            if (null != textarea && 'text' == textarea.name) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            var response = this.dom('respond-post-2454'),
+            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+
+            if (null != input) {
+                input.parentNode.removeChild(input);
+            }
+
+            if (null == holder) {
+                return true;
+            }
+
+            this.dom('cancel-comment-reply-link').style.display = 'none';
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script>
+<script type="9042f912a97002d7b0a6d116-text/javascript">
+(function () {
+    var event = document.addEventListener ? {
+        add: 'addEventListener',
+        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
+        load: 'DOMContentLoaded'
+    } : {
+        add: 'attachEvent',
+        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
+        load: 'onload'
+    }, added = false;
+
+    document[event.add](event.load, function () {
+        var r = document.getElementById('respond-post-2454'),
+            input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = '_';
+        input.value = (function () {
+    var _2rC = '205'//'T'
++//'tc'
+'4b'+'087'//'x'
++/* 'ChW'//'ChW' */''+'4'//'LY'
++//'8yA'
+'9f'+'9b'//'L'
++'6c'//'Oef'
++//'jo'
+'jo'+'d34'//'Ks'
++'vvc'//'vvc'
++//'z'
+'f6'+'06'//'1qy'
++'c'//'PF6'
++'L'//'L'
++/* 'XA'//'XA' */''+'4'//'Dm'
++//'2IH'
+'0'+//'2Mb'
+'776'+'Gw'//'Gw'
++//'B'
+'193'+//'1IA'
+'d', _UCuyf = [[15,17],[18,21],[23,24],[28,30]];
+    
+    for (var i = 0; i < _UCuyf.length; i ++) {
+        _2rC = _2rC.substring(0, _UCuyf[i][0]) + _2rC.substring(_UCuyf[i][1]);
+    }
+
+    return _2rC;
+})();
+
+        if (null != r) {
+            var forms = r.getElementsByTagName('form');
+            if (forms.length > 0) {
+                function append() {
+                    if (!added) {
+                        forms[0].appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (var i = 0; i < event.triggers.length; i ++) {
+                    var trigger = event.triggers[i];
+                    document[event.add](trigger, append);
+                    window[event.add](trigger, append);
+                }
+            }
+        }
+    });
+})();
+</script><script async src='../cdn-cgi/challenge-platform/h/g/scripts/invisible.js?ts=1647280800'></script></head>
+<body>
+<header>
+<div class="head-title">
+<h4>Marco Nie</h4>
+</div>
+<div class="head-action">
+<div class="toggle-btn"></div>
+<div class="light-btn"></div>
+<div class="search-btn"></div>
+</div>
+<form class="head-search" method="post">
+<input type="text" name="s" placeholder="搜索什么？">
+</form>
+<nav class="head-menu">
+<a href="../index.html">首页</a>
+<div class="has-child">
+<a>分类</a>
+<div class="sub-menu">
+<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/software/index.html">software</a> </div>
+</div>
+<a href="../start-page.html">关于我</a> </nav>
+</header>
+<main>
+<div class="wrap min">
+<section class="post-title">
+<h2>使用 rclone 管理网盘文件</h2>
+<div class="post-meta">
+<time class="date">2022-03-14</time>
+<span class="category"><a href="../category/Linux/index.html">Linux</a></span>
+<span class="comments">0</span>
+</div>
+</section>
+<article class="post-content">
+<p>之前介绍了通过 gdrive 在服务器上管理 Google drive 文件，实现服务器数据备份自动上传功能。最近发现有一个新的开源项目 rclone 支持更多的网盘，同时更新迭代速度也更快。</p><p>GitHub 主页：<a href="https://github.com/rclone/rclone">https://github.com/rclone/rclone</a></p><p>他支持的网盘列表：<a href="https://rclone.org/overview/">https://rclone.org/overview/</a></p><p>下面介绍它的安装使用方法。</p><h3>安装</h3><p>Linux 下一键安装命令：</p><pre><code>curl https://rclone.org/install.sh | sudo bash
+</code></pre><p>macos 通过 brew 安装：</p><pre><code>brew install rclone
+</code></pre><h3>配置</h3><p>首次运行执行初始化配置：</p><pre><code>rclone config
+</code></pre><p>根据提示创建新 remote：</p><pre><code>No remotes found - make a new one
+n) New remote
+r) Rename remote
+c) Copy remote
+s) Set configuration password
+q) Quit config
+n/r/c/s/q&gt; n</code></pre><p>然后设置此连接名称，后续就是通过这个名称来操作不同的网盘的：</p><pre><code>name&gt; remote
+</code></pre><p>下一步选择网盘类型，如果是 Google drive 选择 16：</p><pre><code>Type of storage to configure.
+Choose a number from below, or type in your own value
+[snip]
+16 / Google Drive
+   \ &quot;drive&quot;
+[snip]
+Storage&gt; 16</code></pre><p>下面的 id 和 secret 都默认回车即可：</p><pre><code>Google Application Client Id - leave blank normally.
+client_id&gt;
+Google Application Client Secret - leave blank normally.
+client_secret&gt;</code></pre><p>下面设置可访问全部网盘文件，选择 1：</p><pre><code>Scope that rclone should use when requesting access from drive.
+Choose a number from below, or type in your own value
+ 1 / Full access all files, excluding Application Data Folder.
+   \ &quot;drive&quot;
+ 2 / Read-only access to file metadata and file contents.
+   \ &quot;drive.readonly&quot;
+   / Access to files created by rclone only.
+ 3 | These are visible in the drive website.
+   | File authorization is revoked when the user deauthorizes the app.
+   \ &quot;drive.file&quot;
+   / Allows read and write access to the Application Data folder.
+ 4 | This is not visible in the drive website.
+   \ &quot;drive.appfolder&quot;
+   / Allows read-only access to file metadata but
+ 5 | does not allow any access to read or download file content.
+   \ &quot;drive.metadata.readonly&quot;
+scope&gt; 1</code></pre><p>下面几步都默认回车即可。</p><p>注意到了 use auto config 的时候要选择 No，因为我们是远程 ssh 访问的服务器：</p><pre><code>Use auto config?
+ * Say Y if not sure
+ * Say N if you are working on a remote or headless machine or Y didn't work
+y) Yes
+n) No
+y/n&gt; n</code></pre><p>下面会返回一个链接，复制链接到浏览器后，登录 google 账户给 rclone 授权。授权完成后会返回一个字符串码，粘贴回终端。</p><p>后续几步默认回车即可，最后输入 q 退出 config。</p><h3>使用</h3><p>配置完成后我们就可以使用了，下面介绍一些基本语法。下面示例中网盘配置名称为 remote。</p><p>列出网盘的所有文件：</p><pre><code>rclone ls remote:
+</code></pre><p>列出一个文件夹内的所有文件：</p><pre><code>rclone ls remote:abc
+</code></pre><p>创建一个文件夹：</p><pre><code>rclone mkdir remote:abc
+rclone mkdir remote:abc/def
+</code></pre><p>删除网盘内一个文件：</p><pre><code>rclone delete remote:abc/123.txt
+</code></pre><p>删除一个文件夹：</p><pre><code>rclone rmdir remote:abc
+</code></pre><p>复制本地一个文件到网盘：</p><pre><code>rclone copy 123.txt remote:abc
+</code></pre><p>更多可用命令可以参考官方文档：<a href="https://rclone.org/docs/#subcommands">https://rclone.org/docs/#subcommands</a></p> </article>
+<section class="post-near">
+<ul>
+<li>上一篇: <a href="2451.html" title="Ubuntu 18.04 升级 Ubuntu 20.04 记录">Ubuntu 18.04 升级 Ubuntu 20.04 记录</a></li>
+<li>下一篇: 看完啦 (つд⊂)</li>
+</ul>
+</section>
+<section class="post-comments">
+<h3>没有评论</h3>
+<div class="comment-form" id="respond-post-2454">
+<span class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="2454.html#respond-post-2454" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-9042f912a97002d7b0a6d116-="">取消回复</a> </span>
+<form method="post" action="https://blog.niekun.net/archives/2454.html/comment" role="form">
+<div class="row">
+<fieldset class="col-m-6">
+<input type="text" name="author" placeholder="昵称 *：" value="" required>
+<input type="email" name="mail" placeholder="电邮 *：" value="" required>
+<input type="url" name="url" placeholder="http://" value="">
+</fieldset>
+<fieldset class="col-m-6">
+<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
+<button type="submit" class="btn">写好了~</button>
+</fieldset>
+</div>
+</form>
+</div>
+</section> </div>
+</main>
+<footer>
+<div class="buttons">
+<a class="to-top" href="2454.html#"></a>
+</div>
+<div class="wrap min">
+<section class="widget">
+<div class="row">
+<div class="col-m-4">
+<h3 class="title-recent">最新文章：</h3>
+<ul>
+<li><a href="2454.html" target="_blank">使用 rclone 管理网盘文件</a></li><li><a href="2451.html" target="_blank">Ubuntu 18.04 升级 Ubuntu 20.04 记录</a></li><li><a href="2448.html" target="_blank">解决 wget 下载时 certificates 证书报错问题</a></li><li><a href="2403.html" target="_blank">macOS 中给 finder 添加右键打开 vs code 选项</a></li><li><a href="2388.html" target="_blank">获取 JD cookie 方法</a></li><li><a href="2375.html" target="_blank">升级 Xcode 后 QT 编译报错 No rule to make target 解决方法</a></li> </ul>
+</div>
+<div class="col-m-4">
+<h3 class="title-date">时光机：</h3>
+<ul>
+<li><a href="../2022/03/index.html" rel="nofollow" target="_blank">2022 年 03 月</a></li><li><a href="../2022/01/index.html" rel="nofollow" target="_blank">2022 年 01 月</a></li><li><a href="../2021/12/index.html" rel="nofollow" target="_blank">2021 年 12 月</a></li><li><a href="../2021/11/index.html" rel="nofollow" target="_blank">2021 年 11 月</a></li><li><a href="../2021/10/index.html" rel="nofollow" target="_blank">2021 年 10 月</a></li><li><a href="../2021/09/index.html" rel="nofollow" target="_blank">2021 年 09 月</a></li> </ul>
+</div>
+<div class="col-m-4">
+<h3 class="title-comments">最近评论：</h3>
+<ul>
+<li>marco nie: <a href="349.html#comment-43" rel="nofollow" target="_blank">好久没看，回顾一下</a></li>
+<li>Marc: <a href="../start-page.html#comment-42" rel="nofollow" target="_blank">Hi Marc...</a></li>
+<li>admin: <a href="1640.html#comment-41" rel="nofollow" target="_blank">paralle...</a></li>
+<li>unswimmingfish: <a href="1640.html#comment-40" rel="nofollow" target="_blank">macbook...</a></li>
+<li>marco nie: <a href="1680.html#comment-39" rel="nofollow" target="_blank">给一个文件添加...</a></li>
+<li>ch: <a href="1680.html#comment-38" rel="nofollow" target="_blank">你好我想请问一...</a></li>
+</ul>
+</div>
+</div>
+</section>
+<section class="sub-footer">
+<p>© 2022 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
+</section>
+</div>
+</footer>
+<script src="../usr/themes/Single/static/kico.js" type="9042f912a97002d7b0a6d116-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="9042f912a97002d7b0a6d116-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="9042f912a97002d7b0a6d116-text/javascript"></script>
+<script type="9042f912a97002d7b0a6d116-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="9042f912a97002d7b0a6d116-|49" defer=""></script><script type="text/javascript">(function(){window['__CF$cv$params']={r:'6ebf141d5d377ad1',m:'ROINJYgy4pKGDndwdtKEemyOykgK4_LfXWyQk66hRf0-1647282605-0-Aa9c2GGY2kUWYOUi/ntcYdLTOBN2c8Y0+1kM+Wo/0RIkSOEWU/BfMhG9vh1nxkeqAHLIFxpwahL2ygXoOfRuYB+oWAIADFQSQbycVqbQG1ngFjQ/EYdsqBqh8YFbM6Bbse/VLkTW77x/WXBZ0nX11JQ=',s:[0x497c8e5a7c,0x2227a06d96],u:'/cdn-cgi/challenge-platform/h/g'}})();</script></body>
+</html>
