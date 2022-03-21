@@ -14,7 +14,7 @@
 <link rel="alternate" type="application/rss+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2100.html" />
 <link rel="alternate" type="application/rdf+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2100.html" />
 <link rel="alternate" type="application/atom+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2100.html" />
-<script type="064f7a1441711c755eba5e15-text/javascript">
+<script type="128ccaf3cc00774479529fb1-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -86,7 +86,7 @@
     };
 })();
 </script>
-<script type="064f7a1441711c755eba5e15-text/javascript">
+<script type="128ccaf3cc00774479529fb1-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -104,32 +104,37 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _iDveU = //'T'
-'67b'+'9cc'//'u'
-+''///*'v'*/'v'
-+//'g'
-'26'+//'U'
-'a5'+//'DAw'
-'1d8'+'3c'//'hys'
-+//'E'
-'4e'+'YT'//'YT'
-+'0'//'aC'
-+//'aBv'
-'7'+//'0j'
-'c'+'48'//'c'
-+//'FEr'
-'954'+//'wf'
-'wf'+'534'//'b9'
-+'15'//'ASA'
-+'d'//'RoW'
-+'1'//'o'
-, _Jd3 = [[17,19],[25,27]];
+    var _sWha = //'kcv'
+'67'+//'hK'
+'hK'+//'l'
+'b9c'+'c26'//'vw'
++'a'//'e'
++'51'//'v0'
++'L'//'L'
++//'5N'
+'5N'+/* 'X'//'X' */''+//'YP'
+'d'+'8'//'lr'
++/* 'YD6'//'YD6' */''+//'cp'
+'3'+'c'//'Ze'
++'Z'//'Z'
++//'oP'
+'4e'+//'LEx'
+'0'+//'rN'
+'7c'+'4'//'Gdf'
++//'OhF'
+'895'+'45'//'5'
++'34'//'v'
++//'MiW'
+'MiW'+'15'//'rnj'
++//'Z'
+'Z'+//'W4f'
+'d1', _lnQl9go = [[2,4],[11,12],[11,13],[15,16],[28,31],[30,31]];
     
-    for (var i = 0; i < _Jd3.length; i ++) {
-        _iDveU = _iDveU.substring(0, _Jd3[i][0]) + _iDveU.substring(_Jd3[i][1]);
+    for (var i = 0; i < _lnQl9go.length; i ++) {
+        _sWha = _sWha.substring(0, _lnQl9go[i][0]) + _sWha.substring(_lnQl9go[i][1]);
     }
 
-    return _iDveU;
+    return _sWha;
 })();
 
         if (null != r) {
@@ -151,7 +156,7 @@
         }
     });
 })();
-</script><script async src='../cdn-cgi/challenge-platform/h/b/scripts/invisible.js?ts=1647799200'></script></head>
+</script><script async src='../cdn-cgi/challenge-platform/h/b/scripts/invisible.js?ts=1647885600'></script></head>
 <body>
 <header>
 <div class="head-title">
@@ -185,7 +190,7 @@
 </div>
 </section>
 <article class="post-content">
-<blockquote>这篇文章上次修改于 399 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<blockquote>这篇文章上次修改于 400 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
 <h3>Event Loop 事件循环</h3><p><strong>event loop</strong> 是我们学习 node.js 中最重要的方面之一。因为它解释了 node.js 如何进行异步动作，同时不会出现 IO 阻塞问题。这也是 node.js 能够变得如此流行的原因之一。</p><p>node.js 代码运行在单进程中，也就是说它在一刻只能执行一个任务。这一限制特性使得我们不用担心任务间冲突问题。我们在变开发中只需要专注于代码本身，同时应避免进程阻塞，例如同步方式等待网络请求，死循环等。</p><p>通常情况下，浏览器中的每个 tab 页面都是都有各自独立的 event loop，防止某个页面的死循环或过高的资源消耗影响到整个浏览器的体验。我们只需要关注于我们的代码运行在一个单一的 event loop 中，编程中要注意到这一点，防止进程阻塞。</p><p>JavaScript 代码中如果有长时间等待 return 返回给 event loop 控制时，任何其他代码将会被阻塞，也会阻塞页面 UI 单元，用户在此期间无法进行点击，滚动等操作。</p><p>几乎所有的 JavaScript 原生 IO 指令都是 non-blocking 非阻塞式的，例如：网络请求，文件读写等，阻塞是一种 exception 例外情况，这也是 JavaScript 大量的使用 callback 方式，以及最近引入的 promise 和 async/await。</p><h4>call stack 调用结构</h4><p>JavaScript 的 call 调用过程的结构遵循 LIFO (Last In, First Out)，也就是总是先响应最近的任务。</p><p>event loop 总是连续的检查 call stack 看是否有任务需要执行。在这个过程中，它会将发现的任务添加到 call stack 中并按顺序执行。</p><p>下面是一个简单的示例：</p><pre><code>const bar = () =&gt; console.log('bar');
 const baz = () =&gt; console.log('baz');
 
@@ -536,7 +541,7 @@ eventEmitter.emit('test2', 1, 200)
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-2100">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2100.html#respond-post-2100" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-064f7a1441711c755eba5e15-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="2100.html#respond-post-2100" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-128ccaf3cc00774479529fb1-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/2100.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -588,9 +593,9 @@ eventEmitter.emit('test2', 1, 200)
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="064f7a1441711c755eba5e15-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="064f7a1441711c755eba5e15-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="064f7a1441711c755eba5e15-text/javascript"></script>
-<script type="064f7a1441711c755eba5e15-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="064f7a1441711c755eba5e15-|49" defer=""></script><script type="text/javascript">(function(){window['__CF$cv$params']={r:'6ef08547afeb7bc2',m:'Ky9dzltn9enq7AxlRnwQmguzw6ms9KGqO82qUr2RnCE-1647801043-0-AUf9jsg202FYmyofGtwA6m5SJ04AcAEcEdzaEcwrd0AJ5tCyl3LQ0mUhkKlzIkhsOFymLoKja3ULpOazhkqmgwF8BAg1vB/7MCxOrg5t5n1hFbuABTLZGvNnfb0zZkB5Em8yVOk00X6YIq7qbtoBo1o=',s:[0xc930020d2c,0x0ec4dfb4ce],u:'/cdn-cgi/challenge-platform/h/b'}})();</script></body>
+<script src="../usr/themes/Single/static/kico.js" type="128ccaf3cc00774479529fb1-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="128ccaf3cc00774479529fb1-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="128ccaf3cc00774479529fb1-text/javascript"></script>
+<script type="128ccaf3cc00774479529fb1-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="128ccaf3cc00774479529fb1-|49" defer=""></script><script type="text/javascript">(function(){window['__CF$cv$params']={r:'6ef8c2afcc1f7c4d',m:'KC4S1WLSgTml7W1yDqFz9PIUDp6qvs66XWkaVe2RogU-1647887444-0-AbQPRT+d+DNSoUjAryb2fsZ/J2VS1MqR/Hz2BJlQMryjyPwml3qqXYKcWBG5WhAX10WpYKue/VvtYbuP9WL/sL+6X8VyN/79rqx5Lp++Y7DR2LCpVFDbV1Kl28h/FB4RkmaKHMcc96Z2TCaFrU1YZi0=',s:[0x93ca79e554,0x404053c0d8],u:'/cdn-cgi/challenge-platform/h/b'}})();</script></body>
 </html>
