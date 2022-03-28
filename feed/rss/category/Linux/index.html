@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2457.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2454.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2451.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2448.html"/>
@@ -18,10 +19,26 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2303.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2294.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2291.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2287.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2457.html">
+<title>安装 phpMyAdmin 管理 MySQL</title>
+<link>https://blog.niekun.net/archives/2457.html</link>
+<dc:date>2022-03-28T09:31:00+08:00</dc:date>
+<description>phpMyAdmin 是一个 php 的免费工具，用来在 web 端管理 MySQL 数据库。它支持大部分的 MySQL 功能，比如：创建数据库，修改数据，管理用户权限，导入导出数据等。官方网站：https://www.phpmyadmin.net/GitHub 主页：https://github.com/phpmyadmin/phpmyadmin下面介绍在 Ubuntu 20.04 的安装及使用过程。安装首先确保已经安装好了 MySQL 和 php：apt install mysql-server php php-fpm php-mysql
+然后安装 phpMyAdmin：apt install phpmyadmin
+安装过程中会提示创建一个 mysql 管理账户 phpmyadmin，一般直接确认即可，然后设置账户密码。如果这一步跳过了创建账户，后期需要手动修改配置文件或手动创建一个 phpmyadmin 管理账户，否则登录可能会报错。配置 nginx安装完成后需要配置代理服务器，我使用的是 nginx，下面是 nginx 的配置文件部分：    location /phpmyadmin {
+        root /usr/share/;
+        index index.php index.html index.htm;
+        location ~ ^/phpmyadmin/(.+\.php)$ {
+            fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+            include fastcgi-php.conf;
+        }
+    }使用配置完成后就可以登陆 phpmyadmin 页面了，登录对应的 mysql 管理账户，可以是安装 phpmyadmin 时创建的账户也可以是我们之前使用 mysql 自己的账户：如果登录后发现下面有报错信息：Access denied for user 'phpmyadmin'@'localhost' (using password: NO)
+可能就是安装的时候跳过了创建 phpmyadmin MySQL 账户的步骤，这里我们可以在终端手动创建报错信息中提示的用户名或者直接修改配置文件中定义的 phpmyadmin 管理账户。修改 /etc/phpmyadmin/config.inc.php，找到如下字段：$cfg['Servers'][$i]['controluser'] = 'user';
+$cfg['Servers'][$i]['controlpass'] = 'password';将上面的用户名密码修改为 MySQL 中存在的账户即可。刷新页面之后应该就没有报错了。手动创建 MySQL 用户可以参考教程：https://blog.niekun.net/archives/23.html#title-3然后我们就可以正常使用 phpmyadmin 管理页面了，这里可以查看 database，导入导出数据等。参考链接phpMyAdmin ERROR: mysqli_real_connect(): (HY000/1045): Access denied for user 'pma'@'localhost' (using password: NO)</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2454.html">
 <title>使用 rclone 管理网盘文件</title>
 <link>https://blog.niekun.net/archives/2454.html</link>
@@ -334,15 +351,5 @@ pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin �
         option netmask   '255.255.255.0'
         list   dns       '192.168.1.1'
         list   dns       '192.168.10.1'参考链接interfaceIPv4</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2287.html">
-<title>Linux 脚本中的 Shebang #!</title>
-<link>https://blog.niekun.net/archives/2287.html</link>
-<dc:date>2021-04-01T16:22:46+08:00</dc:date>
-<description>在 Linux 中，当我们准备运行一个可执行文件时，execve 程序会建立一个新的进程替代当前的进程(如终端下的 bash)，同时决定如何完成这个执行任务。当我们执行一个文本文件时，execve 需要文本文件的开头两个字符为 “#! 读作：shebang，同时跟随一个解释器的路径用来解释后续的脚本文本内容。下面我们举例说明。shell 脚本最常用的就是在 shell 脚本中使用 shebang，下面是一个简单的示例：#!/bin/sh
-echo &quot;Hello, ${USER}&quot;我们定义了此脚本的解释器为 /bin/sh，后续的脚本内容会通过此解释器来运行。实际上 /bin/sh 是当前系统可执行 shell 命令的程序的软链接，大多数情况下它表示 bash，但为了不同系统的兼容性和安全性，我们直接使用此软链接来表示当前系统支持的 shell 可执行程序。同时需要注意的是，可执行文本文件必须有执行权限，当创建一个新的脚本文件时，需要对其设置执行权限：chmod +x test.sh
-其他解释器当然我们可以根据需要定义其他的解释器，而不仅仅是 sh。下面的示例我们将 cat 作为解释器，这样就会输出脚本本身的内容：#!/bin/cat
-Hello World!调用 PATH上面的示例中，我们定义的解释器的绝对路径，但是当我们不知道一个程序的明确的路径时，我们可以通过将解释器定义为 env 程序，并传递实际需要的解释器程序名称，env 会自动在当前用户 PATH 环境变量中查询程序的路径并作为解释器执行脚本。下面我们通过 env 来查询 node 并作为解释器执行 node 脚本：#!/usr/bin/env node
-console.log('Hello world!');以上就是对 shebang 的简单解释。参考链接Using Shebang #! in Linux Scripts</description>
 </item>
 </rdf:RDF>

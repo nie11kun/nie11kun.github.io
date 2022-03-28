@@ -9,12 +9,37 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2472.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2457.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2454.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2451.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2448.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2472.html">
+<title>彩图转黑白 in Photoshop</title>
+<link>https://blog.niekun.net/archives/2472.html</link>
+<dc:date>2022-03-28T14:04:00+08:00</dc:date>
+<description>黑白图片在某些场景下有其独特的风格，在人像摄影中可以体现出一种另类的雕塑感，下面通过实例介绍如何从一个彩色图片处理为一张黑白效果。使用的工具主要是 gradient map 和 camera raw。下面是原始图片：首先在原图上方建立 gradient map 图层，gradient map 的作用是根据图像的亮度分布进行颜色替换：首先将下方的 method 改为 classic，这样过渡效果更加平顺一些：默认是一个反色效果渐变，点击渐变条，修改其属性为左边黑色右边白色：下面我们增加黑白色差效果，调节左侧下方滑块可以使得黑色区域更黑，调节右侧下方滑块可以使得白色区域更白，调节中间滑块可以调节黑白区域范围：调节到合适效果后确认即可，这样我们初步就有了一个效果。下面为了让背景更加黑，我们通过选取提取出背景，创建一个纯黑背景。选中图像图层，选区工具下选中 select and mask：点击 select subject 可以自动选中主体：点击 color aware 和 shift edge 调节选区边沿：确认后可以获取到主体的选取，创建一个 solid color 黑色图层，选中蒙版，ctrl I 反转选区即可：放大我们可以发现主体边沿和背景没有完美的融合，这时可以通过复制刚才的 gradient map 图层强化黑白效果，然后通过笔刷工具将复制的图层只保留主体边沿部分，注意使用笔刷的时候不透明度调节稍微低一些：基本效果已经可以了，下面调节细节部分，首先眼睛需要提亮，新建 curves 图层，提亮曲线后反转蒙版，使用笔刷工具涂抹出眼睛的亮度：黑白图片效果一般在提高锐度的时候会更加具有特点，下面我们通过 camera raw 来做调整。首先快捷键 ctrl shift alt E 盖印图层，然后转换为 smart object 方便后期返回来调整参数：然后点击 filter - camera raw filter 进入编辑模式。为了更加强烈的反差，我首先调节了亮度参数：然后就是锐化的重点 - 提高 clarity 清晰度参数，注意不要调的过高而失真：完成后保存返回 Photoshop，适当调节不透明度使图片更加自然：最终效果如下：</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2457.html">
+<title>安装 phpMyAdmin 管理 MySQL</title>
+<link>https://blog.niekun.net/archives/2457.html</link>
+<dc:date>2022-03-28T09:31:00+08:00</dc:date>
+<description>phpMyAdmin 是一个 php 的免费工具，用来在 web 端管理 MySQL 数据库。它支持大部分的 MySQL 功能，比如：创建数据库，修改数据，管理用户权限，导入导出数据等。官方网站：https://www.phpmyadmin.net/GitHub 主页：https://github.com/phpmyadmin/phpmyadmin下面介绍在 Ubuntu 20.04 的安装及使用过程。安装首先确保已经安装好了 MySQL 和 php：apt install mysql-server php php-fpm php-mysql
+然后安装 phpMyAdmin：apt install phpmyadmin
+安装过程中会提示创建一个 mysql 管理账户 phpmyadmin，一般直接确认即可，然后设置账户密码。如果这一步跳过了创建账户，后期需要手动修改配置文件或手动创建一个 phpmyadmin 管理账户，否则登录可能会报错。配置 nginx安装完成后需要配置代理服务器，我使用的是 nginx，下面是 nginx 的配置文件部分：    location /phpmyadmin {
+        root /usr/share/;
+        index index.php index.html index.htm;
+        location ~ ^/phpmyadmin/(.+\.php)$ {
+            fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+            include fastcgi-php.conf;
+        }
+    }使用配置完成后就可以登陆 phpmyadmin 页面了，登录对应的 mysql 管理账户，可以是安装 phpmyadmin 时创建的账户也可以是我们之前使用 mysql 自己的账户：如果登录后发现下面有报错信息：Access denied for user 'phpmyadmin'@'localhost' (using password: NO)
+可能就是安装的时候跳过了创建 phpmyadmin MySQL 账户的步骤，这里我们可以在终端手动创建报错信息中提示的用户名或者直接修改配置文件中定义的 phpmyadmin 管理账户。修改 /etc/phpmyadmin/config.inc.php，找到如下字段：$cfg['Servers'][$i]['controluser'] = 'user';
+$cfg['Servers'][$i]['controlpass'] = 'password';将上面的用户名密码修改为 MySQL 中存在的账户即可。刷新页面之后应该就没有报错了。手动创建 MySQL 用户可以参考教程：https://blog.niekun.net/archives/23.html#title-3然后我们就可以正常使用 phpmyadmin 管理页面了，这里可以查看 database，导入导出数据等。参考链接phpMyAdmin ERROR: mysqli_real_connect(): (HY000/1045): Access denied for user 'pma'@'localhost' (using password: NO)</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2454.html">
 <title>使用 rclone 管理网盘文件</title>
 <link>https://blog.niekun.net/archives/2454.html</link>
