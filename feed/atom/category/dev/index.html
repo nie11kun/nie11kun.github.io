@@ -21,6 +21,7 @@ xml:base="https://blog.niekun.net/category/dev/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[在运行自动化脚本的时候需要获取到对应网站的登录 cookie，这里介绍通过 chrome 浏览器获取到需要的信息。这里提供的方法仅供用于前端开发测试。]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2388.html" xml:lang="zh-CN"><![CDATA[
 <p>在运行自动化脚本的时候需要获取到对应网站的登录 cookie，这里介绍通过 chrome 浏览器获取到需要的信息。</p><p>这里提供的方法仅供用于前端开发测试。</p><!--more--><p>首先登陆移动端网站：<a href="https://m.jd.com">https://m.jd.com</a></p><p>右键点击 inspect 进入开发者界面，然后点击网页右上角的登录键根据提示需要输入账户信息登录。</p><p>登录成功后在开发栏切换到 network 选项，并且在 filter 中输入 <code>log.gif</code> 过滤出需要的信息：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/28325132.jpg" alt="1.jpg" title="1.jpg"></p><p>选中第一个 log 文件，点击 header 栏，在其中找到 cookie 项：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/1901791235.jpg" alt="2.jpg" title="2.jpg"></p><p>复制其中的内容到剪贴板。</p><p>找到开发页面下方的 console 栏，我们通过简单的 js 脚本提取出上面 cookie 的有效内容：</p><pre><code>var c = '这里粘贴复制好的 cookie';
 var value = c.match(/pt_pin=.+?;/) + c.match(/pt_key=.+?;/);
@@ -39,6 +40,7 @@ copy(value);</code></pre><p>执行完成后此时我们的剪贴板里就已经�
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[https://www.williamlong.info/archives/6627.html]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2352.html" xml:lang="zh-CN"><![CDATA[
 <p><a href="https://www.williamlong.info/archives/6627.html">https://www.williamlong.info/archives/6627.html</a></p>
 ]]></content>
@@ -55,6 +57,7 @@ copy(value);</code></pre><p>执行完成后此时我们的剪贴板里就已经�
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2330.html" xml:lang="zh-CN"><![CDATA[
 <p>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：<br><img src="https://blog.niekun.net/usr/uploads/2021/09/577513986.png" alt="2021-09-03T01:27:34.png" title="2021-09-03T01:27:34.png"></p><!--more--><p>程序代码如下：</p><pre><code>WHILE((R0&gt;=360) OR (R0&lt;0))
     IF R0&gt;=360
@@ -79,6 +82,7 @@ ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大�
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2329.html" xml:lang="zh-CN"><![CDATA[
 <p>react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。</p><h3>containment 包含</h3><p>一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。</p><!--more--><p>这一类的 components 推荐直接使用 <strong>children</strong> props 来直接表示 parent 传递给他们的 elements：</p><pre><code>const FancyBorder = props =&gt; {
     return (
@@ -250,6 +254,7 @@ ReactDOM.render(
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2324.html" xml:lang="zh-CN"><![CDATA[
 <p>大多数情况下，不同的 components 之间需要对同一个变化着的 data 进行响应。推荐将这些 shared state 共享的数据提升到它们最近的 parent component 中，下面详细介绍如何实现这一 function。</p><p>下面创建一个 <strong>temperature calculator</strong> 温度计算器来判断在一个给定的温度下，水是否会沸腾。</p><!--more--><p>首先我们创建一个 <code>BoilingVerdict</code> component作为沸腾裁决器，它接受 celsius 摄氏温度作为一个 prop，然后输出是否足够使水沸腾：</p><pre><code>const BoilingVerdict = (props) =&gt; {
     if (props.celsius &gt;= 100) {
@@ -503,6 +508,7 @@ ReactDOM.render(
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[最近发现通过 GitHub API 可以获取到很多有用的数据，它返回一个 json 格式数据，可以后期解析得到需要的内容。主链接：https://api.github.com/]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2290.html" xml:lang="zh-CN"><![CDATA[
 <p>最近发现通过 GitHub API 可以获取到很多有用的数据，它返回一个 json 格式数据，可以后期解析得到需要的内容。</p><p>主链接：<a href="https://api.github.com/">https://api.github.com/</a></p><!--more--><p>返回内容如下：</p><pre><code>{
   &quot;current_user_url&quot;: &quot;https://api.github.com/user&quot;,
@@ -585,6 +591,7 @@ ReactDOM.render(
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[今天在项目中需要添加一个柱状图，但由于我们的项目是 QT 4.8 的所以不支持 QtCharts。查询了下发现有 QCustomPlot 可以完美的实现需求，使用方法也很简单。官网：https:...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2208.html" xml:lang="zh-CN"><![CDATA[
 <p>今天在项目中需要添加一个柱状图，但由于我们的项目是 QT 4.8 的所以不支持 <strong>QtCharts</strong>。查询了下发现有 <strong>QCustomPlot</strong> 可以完美的实现需求，使用方法也很简单。</p><p>官网：<a href="https://www.qcustomplot.com/">https://www.qcustomplot.com/</a><br>下载：<a href="https://www.qcustomplot.com/index.php/download">https://www.qcustomplot.com/index.php/download</a></p><!--more--><p><strong>QCustomPlot</strong> 只有两个文件 <code>qcustomplot.cpp</code> 和 <code>qcustomplot.h</code>，将其复制到项目目录中并添加到项目中。然后引用头文件即可：</p><pre><code>#include &quot;qcustomplot.h&quot;
 </code></pre><p>我们需要在 ui 中添加一个 widget 然后右键点击控件，选择提升：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1732184362.png" alt="2021-03-19T09:15:23.png" title="2021-03-19T09:15:23.png"></p><p>提升的 class 名称修改为 QCustomPlot：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2440250486.png" alt="2021-03-19T09:16:47.png" title="2021-03-19T09:16:47.png"></p><p>点击 <strong>add</strong> 然后点击 <strong>promote</strong> 即可。</p><p>编译后可以看到图表样式：</p><p>在使用中如果需要根据数据变化刷新渲染的图形，记得在修改数据后调用</p>
@@ -602,6 +609,7 @@ ReactDOM.render(
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[list 列表和 key在 JavaScript 中我们通常使用 map method 来对一个 list 的每个元素进行操作：const numbers = [1, 2, 3, 4, 5];c...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2203.html" xml:lang="zh-CN"><![CDATA[
 <h3>list 列表和 key</h3><p>在 JavaScript 中我们通常使用 <strong>map</strong> method 来对一个 list 的每个元素进行操作：</p><pre><code>const numbers = [1, 2, 3, 4, 5];
 const double = numbers.map((number) =&gt; { return number * 2});
@@ -967,6 +975,7 @@ setTimeout(() =&gt; {
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[在 React 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。和 JavaScript 的相同，React 中也可以使...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2195.html" xml:lang="zh-CN"><![CDATA[
 <p>在 <strong>React</strong> 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。</p><p>和 JavaScript 的相同，React 中也可以使用 conditions 语法来选择性的渲染内容。如使用 if 或 conditional operator 来根据不同 state 状态创建不同 elements 然后让 React 更新 UI 来匹配 DOM。</p><!--more--><p>考虑下面两个 components：</p><pre><code>const UserGreeting = (props) =&gt; {
     return &lt;h1&gt;welcome back&lt;/h1&gt;
@@ -1120,6 +1129,7 @@ ReactDOM.render(
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[events 处理处理 React elements events 和处理 DOM elements 很相似，但有一些语法区别：React events 命名使用 camelCase 规则，而不...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2189.html" xml:lang="zh-CN"><![CDATA[
 <h3>events 处理</h3><p>处理 React elements events 和处理 DOM elements 很相似，但有一些语法区别：</p><ul><li>React events 命名使用 camelCase 规则，而不是 lowercase</li><li>使用 JSX 传入 function 作为 events handler，而不是 string 字符串</li></ul><p>HMTL 中处理 events 示例如下：</p><pre><code>&lt;button onclick=&quot;activateLasers()&quot;&gt;
   Activate Lasers

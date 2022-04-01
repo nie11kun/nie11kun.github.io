@@ -21,6 +21,7 @@ xml:base="https://blog.niekun.net/tag/nginx/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[今天在使用 journalctl 查看 nginx 日志时看到在每次启动服务后会出现一条错误信息：$ journalctl -u nginx...nginx.service: Failed to...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/1763.html" xml:lang="zh-CN"><![CDATA[
 <p>今天在使用 <code>journalctl</code> 查看 nginx 日志时看到在每次启动服务后会出现一条错误信息：</p><pre><code>$ journalctl -u nginx
 ...
@@ -43,6 +44,7 @@ systemctl daemon-reload</code></pre><p>以上处理就可以解决问题。</p><
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。如果使用 nginx 作为反向代理服务器，可以使用 auth_basic 来实现页面加密。环境需求：Linux envnginxap...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/730.html" xml:lang="zh-CN"><![CDATA[
 <p>有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。</p><p>如果使用 <strong>nginx</strong> 作为反向代理服务器，可以使用 <strong>auth_basic</strong> 来实现页面加密。</p><p><strong>环境需求：</strong></p><p>Linux env<br>nginx<br><strong>apache2-utils</strong> (Debian, Ubuntu) or <strong>httpd-tools</strong> (RHEL/CentOS/Oracle Linux)</p><p><strong>安装环境：</strong></p><p>nginx 安装参考：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p>安装 apache2-utils：</p><pre><code>apt-get install apache2-utils
 </code></pre><p><strong>创建账户密码：</strong></p><p>使用了 htpasswd 命令创建用户。</p><p>关于 htpasswd 的详细使用：<a href="https://httpd.apache.org/docs/2.4/programs/htpasswd.html">https://httpd.apache.org/docs/2.4/programs/htpasswd.html</a></p><p>建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：</p><pre><code>htpasswd -c /etc/nginx/users/.adminpasswd user1
@@ -72,6 +74,7 @@ service nginx reload
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[使用 nginx 的 autoindex 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：autoindex 搭建教程参考：https://niekun.net/index.php/arc...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/725.html" xml:lang="zh-CN"><![CDATA[
 <p><img src="https://niekun.net/usr/uploads/2019/12/4133735129.png" alt="2019-12-09T06:50:25.png" title="2019-12-09T06:50:25.png"></p><p>使用 <strong>nginx</strong> 的 <strong>autoindex</strong> 模块可以搭建简单的文件分享页面，但默认的页面比较简陋：<br><img src="https://niekun.net/usr/uploads/2019/12/3380876021.png" alt="2019-12-09T06:48:13.png" title="2019-12-09T06:48:13.png"></p><p><strong>autoindex</strong> 搭建教程参考：<a href="https://niekun.net/index.php/archives/26.html">https://niekun.net/index.php/archives/26.html</a></p><p>如果需要更加美观和丰富的页面，可以使用第三方模块 <strong>fancyindex</strong> 来实现。</p><!--more--><p>fancyindex GitHub 主页：<a href="https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format">https://github.com/aperezdc/ngx-fancyindex#fancyindex-time-format</a></p><blockquote>The Fancy Index module makes possible the generation of file listings, like the built-in autoindex module does, but adding a touch of style.</blockquote><h2>安装</h2><p>使用 fancyindex 首先需要安装带有 fancyindex 模块的 nginx，需要在编译 nginx 的时候加载 fancyindex 源码作为 add-module。</p><p>从源码编译 nginx 及加载 第三方模块教程参考：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p>查看当前安装 nginx 是否包含 fancyindex：</p><pre><code>nginx -V
 </code></pre><h2>使用</h2><p>使用方法很简单，在需要作为共享目录的 location 段，修改如下：</p><pre><code>location /shared {
@@ -108,6 +111,7 @@ service nginx reload
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[nginx rewrite 模块主要应用于修改客户端发起的 url 请求，主要使用场景有两个：1.客户端请求的域名已经已经有了新的地址，需要自动将连接进行转换2.需要根据请求的 url 动态处理...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/195.html" xml:lang="zh-CN"><![CDATA[
 <p>nginx rewrite 模块主要应用于修改客户端发起的 url 请求，主要使用场景有两个：<br>1.客户端请求的域名已经已经有了新的地址，需要自动将连接进行转换<br>2.需要根据请求的 url 动态处理到不同的页面，此处主要使用 try_files 指令</p><!--more--><p>指令有三种：<strong>return</strong>, <strong>rewrite</strong>, and <strong>try_files</strong></p><h2>return</h2><p>这是最简单也最推荐使用的指令，主要应用于将指定的 server 或 location 重定向到另一个固定的 server 或 location。</p><p>一个简单的例子，将客户端请求重定向到新的域名：</p><pre><code>server {
     listen 80;
@@ -150,6 +154,7 @@ location = /images/default.gif {
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[本文主要参考的网站：https://cipherli.sthttps://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.htmlThis...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/187.html" xml:lang="zh-CN"><![CDATA[
 <p><strong>本文主要参考的网站：</strong><br><a href="https://cipherli.st">https://cipherli.st</a><br><a href="https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html">https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html</a></p><blockquote>This tutorial shows you how to set up strong SSL security on the nginx webserver. We do this by updating OpenSSL to the latest version to mitigate attacks like Heartbleed, disabling SSL Compression and EXPORT ciphers to mitigate attacks like FREAK, CRIME and LogJAM, disabling SSLv3 and below because of vulnerabilities in the protocol and we will set up a strong ciphersuite that enables Forward Secrecy when possible. We also enable HSTS and HPKP. This way we have a strong and future proof ssl configuration and we get an A+ on the Qually Labs SSL Test.</blockquote><!--more--><p><strong>本文使用的配置需要相关软件的最低版本要求：</strong><br>Nginx: 1.13.0 -- 升级教程：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a><br>openssl: 1.0.1 -- 升级教程：<a href="https://niekun.net/index.php/archives/183.html">https://niekun.net/index.php/archives/183.html</a></p><p>首先需要生成一个 4096 bit 的 DH parameters：</p><pre><code>openssl dhparam -out /etc/nginx/your.domain/dhparam.pem 4096
 </code></pre><p>编辑 Nginx 配置文件，在server段加入或修改如下：</p><pre><code>ssl_protocols                TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
@@ -185,6 +190,7 @@ service nginx restart
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[如果还没有安装nginx，参考教程：https://niekun.net/index.php/archives/30.html此功能使用的是 Nginx 的 ngx_http_mp4_modul...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/177.html" xml:lang="zh-CN"><![CDATA[
 <p>如果还没有安装nginx，参考教程：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p><strong>此功能使用的是 Nginx 的 ngx_http_mp4_module 模块。</strong></p><p>首先查看当前 nginx 是否已经安装了 ngx_http_mp4_module 模块：</p><pre><code>nginx -v
 </code></pre><p>查看是否已经有了对应模块，一般使用 apt 安装的都集成了此模块。</p><!--more--><p>编辑你的 nginx 配置文件，加入下面的片段：</p><pre><code>location /video {
@@ -208,6 +214,7 @@ service nginx restart
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[将http请求重定向为https，使所有连接都使用安全的ssl。重定向所有http请求以下配置为将所有收到的80端口的请求都重定向到443端口,这会把此ip下的所有域名都转换：server { ...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/118.html" xml:lang="zh-CN"><![CDATA[
 <p>将http请求重定向为https，使所有连接都使用安全的ssl。</p><h2>重定向所有http请求</h2><p>以下配置为将所有收到的80端口的请求都重定向到443端口,这会把此ip下的所有域名都转换：</p><pre><code>server {
     listen           80;
@@ -247,6 +254,7 @@ server {
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[acme.sh 实现了 acme 协议, 可以从 letsencrypt 生成免费的证书.官方说明：https://github.com/Neilpang/acme.sh安装acme.sh安装很...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/34.html" xml:lang="zh-CN"><![CDATA[
 <p>acme.sh 实现了 <code>acme</code> 协议, 可以从 letsencrypt 生成免费的证书.</p><p>官方说明：<a href="https://github.com/Neilpang/acme.sh">https://github.com/Neilpang/acme.sh</a></p><h2>安装acme.sh</h2><p>安装很简单:</p><pre><code>apt-get install curl
 curl  https://get.acme.sh | sh
@@ -289,6 +297,7 @@ export CF_Account_ID=&quot;xxxxxxxxxxxxx&quot;
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[我的VPS上的Nginx记得还是一年前安装的，一直没有升级，最近发现版本都到了1.14了，我的还是1.4，就想做一次升级。由于使用Nginx用到一些配置文件，所以我预计升级会导致配置文件恢复到默...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/30.html" xml:lang="zh-CN"><![CDATA[
 <p>我的VPS上的<code>Nginx</code>记得还是一年前安装的，一直没有升级，最近发现版本都到了1.14了，我的还是1.4，就想做一次升级。</p><p>由于使用<code>Nginx</code>用到一些配置文件，所以我预计升级会导致配置文件恢复到默认，所以查询了一些资料后，安全的做了升级。</p><!--more--><hr><p>备份nginx.conf配置文件：</p><pre><code>cp nginx.conf nginx.conf.bak
 </code></pre><h2>从官方 ppa 源安装</h2><p>我将自定义server放在单独文件夹内 /etc/nginx/my-server/, 所以配置文件是安全的，升级后需要重新在 nginx.conf 里 include 一下即可。</p><p>安装依赖包:</p><pre><code>apt-get install curl gnupg2 ca-certificates lsb-release
@@ -363,6 +372,7 @@ WantedBy=multi-user.target</code></pre><p>重新加载配置文件：</p><pre><c
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<summary type="html"><![CDATA[最近有需求做一个类似网盘的功能，方便共享文件给他人，实际上就是把服务器的一个目录设置为可见。发现Nginx支持这一功能。官方相关文档：http://nginx.org/en/docs/http/...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/26.html" xml:lang="zh-CN"><![CDATA[
 <p>最近有需求做一个类似网盘的功能，方便共享文件给他人，实际上就是把服务器的一个目录设置为可见。发现Nginx支持这一功能。</p><p>官方相关文档：<a href="http://nginx.org/en/docs/http/ngx_http_autoindex_module.html">http://nginx.org/en/docs/http/ngx_http_autoindex_module.html</a></p><p>在service里的新建需要共享目录的location段修改如下：</p><pre><code>location /downloads {
     root /home;

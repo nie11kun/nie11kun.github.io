@@ -19,6 +19,7 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <guid>https://blog.niekun.net/archives/2403.html</guid>
 <pubDate>Thu, 27 Jan 2022 22:00:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
+<description><![CDATA[macOS 中的右键菜单没有像 windows 那样多样的选项，我最常用的是：用 vs code 打开文件夹，新建文本文件等。目前有第三方的软件可以添加这些功能，比如 irightmouse，但...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>macOS 中的右键菜单没有像 windows 那样多样的选项，我最常用的是：<strong>用 vs code 打开文件夹</strong>，<strong>新建文本文件</strong>等。</p><p>目前有第三方的软件可以添加这些功能，比如 irightmouse，但基本都是收费软件，下面介绍如何通过系统自带的 automator 来添加我们需要的功能。</p><!--more--><h3>vs code 菜单</h3><p>首先我们创建一个 <code>Open in Visual Studio Code</code> 的 action。</p><p>打开 Automator，点击 file - new 创建一个 quick action：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/514859828.jpg" alt="1.jpg" title="1.jpg"></p><p>首先修改右边的参数，workflow receives current <strong>files or folders</strong> in <strong>finder</strong>，下面的 image 根据个人喜好修改：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/133095543.jpg" alt="2.jpg" title="2.jpg"></p><p>然后左侧搜索 <strong>run shell script</strong> 双击添加到右侧，修改 pass input：<strong>as arguments</strong>，然后脚本内容如下：</p><pre><code>for f in &quot;$@&quot;
 do
@@ -84,6 +85,7 @@ end tell</code></pre><p>脚本中，定义了新建文件的文件名和扩展�
 <guid>https://blog.niekun.net/archives/2375.html</guid>
 <pubDate>Sun, 19 Dec 2021 13:12:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
+<description><![CDATA[最近升级了 macOS Monterey 同时更新了 Xcode 到最新版，编译 QT 项目的时候发现报错了：No rule to make target 'xxx', needed by 'x...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>最近升级了 macOS Monterey 同时更新了 Xcode 到最新版，编译 QT 项目的时候发现报错了：</p><pre><code>No rule to make target 'xxx', needed by 'xxx'. Stop.</code></pre><p>解决方法就是删除项目<strong>编译输出文件夹</strong>内的隐藏文件 <code>.qmake.stash</code>，删除文件后运行 <strong>build - clean</strong>， <strong>build - run qmake</strong> 重新生成此文件，最后再次重新编译即可。</p>
 ]]></content:encoded>
@@ -97,6 +99,7 @@ end tell</code></pre><p>脚本中，定义了新建文件的文件名和扩展�
 <guid>https://blog.niekun.net/archives/2353.html</guid>
 <pubDate>Fri, 26 Nov 2021 20:31:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
+<description><![CDATA[今年发布的 macOS Monterey 增加了很多新功能，其中一个就是可以通过 AirPlay 将手机屏幕投放到 Mac 上。这个功能挺有意思的，但是当我把我的 MacBook Pro 升级系...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>今年发布的 macOS Monterey 增加了很多新功能，其中一个就是可以通过 AirPlay 将手机屏幕投放到 Mac 上。这个功能挺有意思的，但是当我把我的 MacBook Pro 升级系统后，发现无法使用这个功能，经过查询后发现这些新功能只对较新款的设备开放，这就有点让人吐槽了。<br>但是不放弃的我开始查询是否有大神给不支持的设备添加上这些功能，果然被我找到了，而且是一个挺有名的项目：<strong>OpenCore Legacy Patcher</strong>。</p><!--more--><p><strong>OpenCore Legacy Patcher</strong> 是一个旨在帮助不被苹果官方支持的老版本 Mac 升级到最新系统及特殊功能的项目。为这些老设备提供接近于原生的体验。</p><p>GitHub 地址：<a href="https://github.com/dortania/OpenCore-Legacy-Patcher/">https://github.com/dortania/OpenCore-Legacy-Patcher/</a></p><p>我的是 2015 款 MacBook Pro，系统是支持直接升级到 Monterey 的，就是缺失了一些新功能，也可以使用这个工具来解锁这些限制。</p><h3>下载安装</h3><p>在 release 页面下载最新版，下载 TUI 即可也就是 terminal 版：<br><a href="https://github.com/dortania/OpenCore-Legacy-Patcher/releases">https://github.com/dortania/OpenCore-Legacy-Patcher/releases</a></p><p>下载解压后拖放到 application 文件夹即可完成安装。</p><h3>配置</h3><p>注意在操作前最好做一次 Time Machine 备份系统，以免操作失败后数据丢失。</p><p>打开OpenCore-Patcher 进入配置界面：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/771952879.jpg" alt="1.jpg" title="1.jpg"></p><p>上面提示此设备并不在这个 patcher 列表中，因为它依然可以收到苹果官方的系统支持。但我们依然想利用这个 patcher 来解锁一些功能，所以首先我们需要允许 opencore 运行在此设备上。</p><p>选择 4. patcher settings 回车：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1199003523.jpg" alt="2.jpg" title="2.jpg"></p><p>选择 8. allow opencore on native models 回车后输入 y 确认，修改后 8 选项变为 currently true：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/4193487915.jpg" alt="3.jpg" title="3.jpg"></p><p>输入 q 返回主菜单，可以看到显示当前设备已被支持：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/3356615953.jpg" alt="4.jpg" title="4.jpg"></p><p>如果你的设备本来就已经进入了 opencore 的支持列表，则不需要进行以上操作。</p><p>下一步设置 opencore 的默认启动模式，默认情况下安装 opencore 后每次启动系统会自动跳入引导选择界面，用来选择正常启动还是通过 pathcer 启动。但是这样比较麻烦，一般情况下配置好后，我们希望自动进入 patcher 后的系统，所以我们将自动跳入引导选择界面功能关闭，这样后续依然可以通过启动时按住 option 键来进入引导选择。</p><p>主界面选择 5. patcher settings，然后选择 5. miscellaneous settings：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/573877562.jpg" alt="5.jpg" title="5.jpg"></p><p>选择 1. set showpicker mode:<br><img src="https://blog.niekun.net/usr/uploads/2021/11/2801299974.jpg" alt="14.jpg" title="14.jpg"></p><p>上面会提示此选项的含义，这里输入 n 关闭此功能：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/818715180.jpg" alt="6.jpg" title="6.jpg"></p><p>输入 q 回到主界面。</p><p>下面我们需要将上面的配置的结果 bulid 到系统临时路径中，选择 1. bulid opencore，完成 build 后输入 enter 返回：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/3345384447.jpg" alt="7.jpg" title="7.jpg"></p><p>最后，就需要将刚才 build 的数据写入到 usb 或内部存储器中。</p><p>如果写入到 usb 中，如果需要系统加载那些隐藏功能，就需要插入写好数据的 usb 然后启动系统时按住 option 选择 opencore 引导系统。如果写入系统内部存储器，就无须外部设备了，可以做到正常启动自动加载 patcher。这里介绍直接安装到设备内部存储器。</p><p>主界面选择 2. install opencore to usb/internal drive:<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1527068884.jpg" alt="8.jpg" title="8.jpg"></p><p>输入 0 选择内部存储器：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1700583359.jpg" alt="9.jpg" title="9.jpg"></p><p>在此输入 0 选择 EFI 分区：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/3610085083.jpg" alt="10.jpg" title="10.jpg"></p><p>确认后 opencore 就写入系统中。</p><p>等待完成写入后手动重启系统，启动时按住 option 键进入引导选择界面：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1349064389.jpg" alt="11.jpg" title="11.jpg"></p><p>这里默认是选中系统默认引导的，如果需要后续每次启动都自动进入 opencore boot 引导的话，使用方向键选择到 opencore 图标的 boot 项，然后按住 control 键，此时引导下面会出现一个圆圈，鼠标点击此圆圈代表设置此选项为默认引导项：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/2495783972.jpg" alt="12.jpg" title="12.jpg"></p><p>选择 opencore boot 进入系统后，打开 system preference - sharing：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/4202134834.jpg" alt="15.jpg" title="15.jpg"></p><p>可以看到菜单中多了一个 AirPlay receiver，表明 AirPlay 功能已经成功启动，此时就可以测试手机的 screen mirror 能否监测到 Mac 了。</p><p>后续 OpenCore-Legacy-Patcher 如果有更新了，下载安装最新的 app 后再次通过以上同样的方法来更新补丁即可。</p><h3>查看版本</h3><p>通过命令可以查看当前安装的 opencore 和 opencore legacy patcher 的版本。</p><p>opencore 版本信息：</p><pre><code>% nvram 4D1FDA02-38C7-4A6A-9CC6-4BCCA8B30102:opencore-version
 
@@ -114,6 +117,7 @@ end tell</code></pre><p>脚本中，定义了新建文件的文件名和扩展�
 <guid>https://blog.niekun.net/archives/2305.html</guid>
 <pubDate>Fri, 30 Apr 2021 08:59:42 +0800</pubDate>
 <dc:creator>admin</dc:creator>
+<description><![CDATA[最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。之前我的 MacBook 是通过 ...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。</p><p>之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？</p><p>研究了下果然有解决方案的，基本原理就是<strong>通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘</strong>就可以正常进行备份及还原了。</p><!--more--><h3>创建虚拟磁盘</h3><p>打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/3390003757.png" alt="2021-04-30T00:36:06.png" title="2021-04-30T00:36:06.png"></p><p>设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/4157435921.png" alt="2021-04-30T00:38:02.png" title="2021-04-30T00:38:02.png"></p><p>点击 <strong>存储</strong> 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。</p><p>也可以通过命令行的方式直接生成镜像文件：</p><pre><code>hdiutil create -size 1024g -type SPARSEBUNDLE -fs &quot;HFS+J&quot; TimeMachine.sparsebundle
 </code></pre><p>这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。</p><h3>配置 Time Machine</h3><p>镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 <strong>TimeMachine.sparsebundle</strong> 文件到合适的目录。</p><p>然后我们在 finder 中双击网络驱动器中的 <strong>TimeMachine.sparsebundle</strong> 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。</p><p>然后我们就可以设置 <strong>TimeMachine</strong> 绑定到这个磁盘：</p><pre><code>sudo tmutil setdestination /Volumes/TimeMachine
@@ -133,6 +137,7 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
 <guid>https://blog.niekun.net/archives/2198.html</guid>
 <pubDate>Wed, 03 Mar 2021 21:03:37 +0800</pubDate>
 <dc:creator>admin</dc:creator>
+<description><![CDATA[今天打开一个 QT 项目后进行编译发现报错了，查看了下什么都没有修改就比较奇怪了。根据日志是 boost 库出了问题，报错为：Undefined symbols for architecture...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>今天打开一个 QT 项目后进行编译发现报错了，查看了下什么都没有修改就比较奇怪了。根据日志是 boost 库出了问题，报错为：<strong>Undefined symbols for architecture x86_64</strong>，但是 boost 库是以前编译好的从来没动过。回想起来前几天重新安装了下 command line tool 会不会有关系。</p><!--more--><p>看了下 QT kit 配置里面发现 clang 的设置居然有叹号。重新识别了下系统编译器：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2815337861.png" alt="2021-03-03T12:54:53.png" title="2021-03-03T12:54:53.png"></p><p>然后重建下项目配置：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4082452549.png" alt="2021-03-03T13:01:04.png" title="2021-03-03T13:01:04.png"></p><p>重新编译项目依然有报错。</p><p>最后就是 boost 库的确有问题了。于是我重新编译了一次。居然问题就解决了。</p><p>原来真的是由于系统的 Clang 更新后原来编译的 boost 库不兼容了，在此使用当前系统的 Clang 编译一次就行了。</p><p>boost 库编译方法参考：<a href="https://blog.niekun.net/archives/1174.html">https://blog.niekun.net/archives/1174.html</a></p>
 ]]></content:encoded>
@@ -146,6 +151,7 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
 <guid>https://blog.niekun.net/archives/2040.html</guid>
 <pubDate>Sun, 03 Jan 2021 22:40:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
+<description><![CDATA[随着升级到 macOS Big Sur 后，虚拟机 parallels desktop 也更新到了 16 版本。我当然是继续安装破解版啦。但是安装好后，启动虚拟机会有一个报错：Network I...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>随着升级到 macOS Big Sur 后，虚拟机 parallels desktop 也更新到了 16 版本。我当然是继续安装破解版啦。</p><p>但是安装好后，启动虚拟机会有一个报错：<strong>Network Initialization Failed</strong>，启动后会发现虚拟机无法联网，网络设置中无法正常在各种模式中切换。</p><p>在寻找解决方案期间，了解到了这可能是由于破解的原因，正版用户没有这个问题。网上有人提供了一个方法，执行一条命令就启动虚拟机就可以正常联网了。但是会导致虚拟机无法访问主机的共享目录及无法访问 USB 设备。而且一旦重启 parallels desktop 后又回恢复之前的状态，我也就没有去做。</p><p>这两天看到网上终于有人找到的解决方法，测试后的确可用，所以介绍给大家参考。</p><!--more--><p>解决的方法都是通过修改相关配置文件实现的。首先需要彻底退出 parallels desktop。</p><h3>网络问题</h3><p>修改 <code>/Library/Preferences/Parallels/network.desktop.xml</code> 文件。</p><p>在终端或者 vs code 中打开这个文件，找到 <code>&lt;UseKextless&gt;</code> 标签，将其中的内容改为 0：</p><pre><code>&lt;UseKextless&gt;0&lt;/UseKextless&gt;
 </code></pre><p>注意如果你的这个文件内没有这个标签，则需要在 <code>&lt;ParallelsNetworkConfig&gt;</code> 根标签内手动创建它即可。</p><p>修改完成后保存文件，需要输入账户密码。</p><h3>USB 问题</h3><p>修改 <code>/Library/Preferences/Parallels/dispatcher.desktop.xml</code> 文件。</p><p>在终端或者 vs code 中打开这个文件，找到 <code>&lt;Usb&gt;</code> 标签，将其中的内容改为 1：</p><pre><code>&lt;Usb&gt;1&lt;/Usb&gt;
@@ -161,6 +167,7 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
 <guid>https://blog.niekun.net/archives/1977.html</guid>
 <pubDate>Wed, 16 Dec 2020 22:04:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
+<description><![CDATA[brew 是 macOS 下流行的包管理工具，可以方便的安装各种工具。brew 默认安装路径为：/usr/local/Cellar，然后会在 /usr/local/opt/ 建立所安装的包的软连...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>brew 是 macOS 下流行的包管理工具，可以方便的安装各种工具。</p><p>brew 默认安装路径为：<code>/usr/local/Cellar</code>，然后会在 <code>/usr/local/opt/</code> 建立所安装的包的软连接。</p><p>包安装好后如果不能正常执行，可以建立包的可执行程序的软连接到：<code>/usr/local/bin/</code> 目录。</p><p>比如安装 openssl：</p><pre><code>brew install openssl
 </code></pre><p>安装后包的路径为：<code>/usr/local/Cellar/openssl@1.1/1.1.1h</code>。同时包的软连接在：<code>/usr/local/Cellar/openssl</code>。</p><p>这时候执行命令：</p><pre><code>openssl version
@@ -179,6 +186,7 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
 <guid>https://blog.niekun.net/archives/1966.html</guid>
 <pubDate>Sat, 05 Dec 2020 23:53:15 +0800</pubDate>
 <dc:creator>admin</dc:creator>
+<description><![CDATA[在 Windows 下可以使用 QT 部署工具：windeployqt 来自动提取可执行程序的依赖库，在 macOS 下同样有部署工具：macdeployqt 实现相同的功能。工具路径在 QT ...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>在 Windows 下可以使用 QT 部署工具：windeployqt 来自动提取可执行程序的依赖库，在 macOS 下同样有部署工具：macdeployqt 实现相同的功能。</p><p>工具路径在 QT 安装目录的对应编译器 bin 目录下，如：<code>/Users/marconie/Qt/5.15.2/clang_64/bin/macdeployqt</code></p><p>为了方便使用建议将 bin 目录添加到系统 PATH 中，我的终端是 zsh 添加方法如下：</p><p>打开 <code>~/.zshrc</code> 添加如下内容，可以使用 vim 来操作：</p><pre><code>export PATH=$PATH:/Users/marconie/Qt/5.15.2/clang_64/bin</code></pre><p>编辑完成后关闭文件，刷新源：</p><pre><code>source ~/.zshrc
 </code></pre><p>现在就可以直接使用命令了：</p><pre><code>macdeployqt -h
@@ -196,6 +204,7 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
 <guid>https://blog.niekun.net/archives/1773.html</guid>
 <pubDate>Sat, 26 Sep 2020 21:42:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
+<description><![CDATA[在使用 aira2 的 rpc 下载功能时，默认没有下载完成提示，所以需要手动打开 webui 进行查看。关于 aria2 的使用参考我的教程：https://blog.niekun.net/a...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>在使用 aira2 的 rpc 下载功能时，默认没有下载完成提示，所以需要手动打开 webui 进行查看。</p><p>关于 aria2 的使用参考我的教程：<a href="https://blog.niekun.net/archives/1199.html">https://blog.niekun.net/archives/1199.html</a></p><p>注意到配置文件里有一个：<code>on-download-complete</code> 选项，可以在下载完成后执行脚本，具体解释参考<a href="https://aria2.github.io/manual/en/html/aria2c.html#cmdoption-on-download-complete">官方网页</a></p><p>可以利用这一点，编写一个脚本来触发系统通知，这样就可以知道文件下载完成了。</p><!--more--><h3>on-download-complete</h3><p>在 aria2 下载完成后，执行 <code>on-download-complete</code> 脚本时会自动传递三个参数：</p><ul><li>GID <em>GID is an ID of a download which aria2c uses to identify a particular download</em></li><li>下载文件个数</li><li>文件路径</li></ul><p>示例：</p><pre><code>$ cat hook.sh
 #!/bin/sh
@@ -224,6 +233,7 @@ osascript -e 'display notification &quot;download complete&quot; sound name &quo
 <guid>https://blog.niekun.net/archives/1680.html</guid>
 <pubDate>Tue, 21 Jul 2020 12:37:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
+<description><![CDATA[macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - securit...]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - security 里可以手动允许运行，但是有时候使用这种方法也无法打开，这是由于系统识别到这个 app 可能有问题所以给它加上了 <code>com.apple.quarantine</code> 隔离属性阻止了他的运行。</p><p>如果我们需要运行它，就需要删除 app 的 <code>com.apple.quarantine</code> 属性，可以使用 <code>xattr</code> 来处理。</p><!--more--><p>macOS 上的文件不只有 "normal" 属性，也有 "读", "写", "执行" 等其他属性。常规属性可以用 <code>ls -l myfile</code> 命令来查看。除此之外还可以定义<strong>扩展属性</strong>，扩展属性的修改可以用 <code>xattr</code> 来处理。</p><p>命令语法如下：</p><pre><code>xattr [options] attributes [files]
 </code></pre><p>可用 option：</p><pre><code>   -c  CLear all Atrributes.
