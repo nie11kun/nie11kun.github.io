@@ -6,11 +6,71 @@ xml:base="https://blog.niekun.net/category/Linux/"
 >
 <title type="text">Marco Nie - Linux</title>
 <subtitle type="text"></subtitle>
-<updated>2022-03-28T09:31:00+08:00</updated>
+<updated>2022-04-03T08:50:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/Linux/" />
 <id>https://blog.niekun.net/feed/atom/category/Linux/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" />
+<entry>
+<title type="html"><![CDATA[openwrt 修改进程 Socket 句柄数]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2572.html" />
+<id>https://blog.niekun.net/archives/2572.html</id>
+<updated>2022-04-03T08:50:00+08:00</updated>
+<published>2022-04-03T08:50:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[最近在使用中发现一个软件 log 中出现大量的报错：/core/transport/internet/tcp: failed to accepted raw connections &amp;gt; a...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2572.html" xml:lang="zh-CN"><![CDATA[
+<p>最近在使用中发现一个软件 log 中出现大量的报错：</p><pre><code>/core/transport/internet/tcp: failed to accepted raw connections &gt; accept tcp [::]:18919: accept4: too many open files</code></pre><p>查询后知道这是进程占用的句柄数超出了系统最大值导致的。由于我的系统是 openwrt 所以下面介绍如何修改某个进程的最大句柄数限制。</p><!--more--><p>首先查询当前系统当前的句柄限制值：</p><pre><code>ulimit -n
+
+1024</code></pre><p>也可以查询当前系统的其他所有限制参数：</p><pre><code>ulimit -a</code></pre><p>返回 1024 表示当前系统每个进程的限制值是 1024。</p><p>然后我们查询下当前系统进程中占用情况：</p><pre><code>lsof -n |awk '{print $2}'|sort|uniq -c |sort -nr|more
+
+     8790 2390
+     41 2638
+     27 1914
+     26 1
+     25 2127
+     23 2166
+     23 1976
+     23 1704</code></pre><p>可以看到进程PID号 2390 就占用了 8790 个句柄，这肯定超出了系统限制，我们看看这个 2390 到底是那个程序：</p><pre><code>ps | grep 2390
+
+ 2390 root     5005m S    /usr/bin/v2ray -confdir /etc/v2ray/conf.d
+ 6815 root      1072 R    grep 2390</code></pre><p>发现的确是我报错的那个程序占用了这个进程。</p><p>然后我们查询系统可以设置的最大句柄数：</p><pre><code>cat /proc/sys/fs/file-max
+
+101238</code></pre><p>返回值说明当前系统可以设置最大句柄数为 101238.</p><p>想要修改句柄数需要在对应进程的 procd init script 脚本修改内容，在 start_service 中增加：</p><pre><code>        procd_set_param limits core=&quot;unlimited&quot;
+        procd_set_param limits nofile=&quot;101200&quot;
+        procd_set_param limits nproc=&quot;101200&quot;</code></pre><p>limits 参数可以设置系统的一些限制值，openwrt 可用的限制值名称可以在官方文档找到：<a href="https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters">https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters</a></p><p>以上就将系统限制设置为一个较大的值，修改完成后重启这个进程即可。</p><h3>参考链接</h3><p><a href="https://www.cccitu.com/3827.html">Linux命令：TCP连接高并发时Socket句柄数的修改</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters">procd-init-scripts#service_parameters</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-script-example#advanced_options">procd-init-script-example#advanced_options</a><br><a href="https://blog.niekun.net/archives/2277.html">openwrt procd init script 自启动脚本服务</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2572.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[iptables 配置透明代理注意事项]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2570.html" />
+<id>https://blog.niekun.net/archives/2570.html</id>
+<updated>2022-04-03T08:33:00+08:00</updated>
+<published>2022-04-03T08:33:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[之前介绍过通过 dnsmasq 配合 iptables 实现对 ip 地址的流量过滤，dnsmasq 获取到流量后标记 ipset 然后通过 iptables 识别 ipset 然后将流量送往指...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2570.html" xml:lang="zh-CN"><![CDATA[
+<p>之前介绍过通过 dnsmasq 配合 iptables 实现对 ip 地址的流量过滤，dnsmasq 获取到流量后标记 ipset 然后通过 iptables 识别 ipset 然后将流量送往指定地址。</p><p><a href="https://blog.niekun.net/archives/1872.html">通过 dnsmasq ipset 和 iptables 对域名流量的控制</a><br><a href="https://blog.niekun.net/archives/1863.html">iptables 使用教程</a></p><p>这里面存在一个问题就是流量回环问题，如果处理不好回导致 iptables 规则无限循环，尤其是在配置透明代理时候。</p><pre><code>iptables -t mangle -A PREROUTING -p tcp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A PREROUTING -p udp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A OUTPUT -p tcp -m set --match-set gfwlist dst -j MARK --set-mark 1
+iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set-mark 1</code></pre><p>以上规则会将 指定 list 的流量发送到指定端口并打上 mark 标记，但是从目标地址返回数据后，数据流会再次匹配到以上规则导致再次将流量送往指定端口，导致无限循环。</p><p>处理方法就是在目标地址获取到流量后，给流量打上 mark 标记，然后在 iptables 的最前面加上一条规则识别从目标地址返回的流量，直接 return 流量即可。</p><p>例如目标地址处理后的流量标记为 mark 2，iptables 规则最前面增加一条规则：</p><pre><code>iptables -t mangle -I OUTPUT -j RETURN -m mark --mark 0x02</code></pre><p><code>-I</code> 参数就是将规则放在在路由链的最前面。</p><p>如果是通过脚本的方式配置 iptables，将开始的脚本内容修改如下即可：</p><pre><code>iptables -t mangle -A OUTPUT -j RETURN -m mark --mark 0x02
+
+iptables -t mangle -A PREROUTING -p tcp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A PREROUTING -p udp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A OUTPUT -p tcp -m set --match-set gfwlist dst -j MARK --set-mark 1
+iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set-mark 1</code></pre><p>这样就可以避免流量回环问题。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2570.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[安装 phpMyAdmin 管理 MySQL]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2457.html" />
@@ -360,95 +420,6 @@ HOME=/root
 </code></pre><p>可以根据输出信息使用 kill 结束对应进程，然后就可以正常卸载了。</p><h3>参考链接</h3><p><a href="https://linuxize.com/post/how-to-mount-cifs-windows-share-on-linux/">How to Mount Windows Share on Linux using CIFS</a><br><a href="https://www.systutorials.com/force-linux-unmount-filesystem-reporting-device-busy/">Forcing Linux to Unmount a Filesystem Reporting “device is busy”</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2303.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[ openwrt 时区设置]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2294.html" />
-<id>https://blog.niekun.net/archives/2294.html</id>
-<updated>2021-04-10T13:24:55+08:00</updated>
-<published>2021-04-10T13:24:55+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。首...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2294.html" xml:lang="zh-CN"><![CDATA[
-<p>最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。</p><p>首先在 web 端或直接修改配置文件：<code>/etc/config/system</code> 中的 zone 相关参数：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/2639787103.png" alt="2021-04-10T05:23:23.png" title="2021-04-10T05:23:23.png"></p><p>然后安装对应 zoneinfo：</p><pre><code>opkg update
-opkg install zoneinfo-asia
-</code></pre><p>重启 system 服务：</p><pre><code>/etc/init.d/system restart
-</code></pre><p>然后输出日志日期就正常了。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2294.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[openwrt network 配置]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2291.html" />
-<id>https://blog.niekun.net/archives/2291.html</id>
-<updated>2021-04-10T09:46:44+08:00</updated>
-<published>2021-04-10T09:46:44+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。在默认的 network 配置文件...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2291.html" xml:lang="zh-CN"><![CDATA[
-<p>openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。</p><p>在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。</p><!--more--><p>下面是一个默认的 <code>/etc/config/network</code> 文件内容：</p><pre><code>&quot;/etc/config/network&quot;
-
-config interface 'loopback'
-        option ifname 'lo'
-        option proto 'static'
-        option ipaddr '127.0.0.1'
-        option netmask '255.0.0.0'
-
-config globals 'globals'
-        option ula_prefix 'fd6e:929e:e9ab::/48'
-
-config interface 'lan'
-        option ifname 'eth0'
-        option proto 'static'
-        option ipaddr '192.168.85.1'
-        option netmask '255.255.255.0'
-        option ip6assign '60'
-        option gateway '27.168.1.1'
-
-config interface 'wan'
-        option ifname 'eth1'
-        option proto 'dhcp'
-
-config interface 'wan6'
-        option ifname 'eth1'
-        option proto 'dhcpv6'</code></pre><p>可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，<strong>注意 lan 的 downlink 下级链接会自动开启 dhcp 服务</strong>，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。</p><p>以上默认的 network 配置包含了 global 配置块和 <strong>loopback</strong>，<strong>lan</strong>，<strong>wan</strong> interface 的配置块。这也是最基本的需要配置的网络设置。</p><p>关于 network 配置文件的结构参考：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking">Network basics /etc/config/network</a></p><p>interfaces 配置块定义了对应 interface 具体连接的物理网卡名称和协议类型，通过 <strong>option</strong> 来定义这个 interface 具体参数。</p><p>一个最基本的 interface 配置项需要包含 <strong>proto 协议类型</strong>和 <strong>ifname 网卡名称</strong>，例如：</p><pre><code>config 'interface' 'wan'
-        option 'proto' 'dhcp'
-        option 'ifname' 'eth0.2'</code></pre><ul><li>wan 表示这个 interface 名称</li><li>dhcp 表示协议类型</li><li>eth0.2 表示绑定的物理网卡名称</li></ul><p>常用的 proto 协议类型有：</p><pre><code>static    Static configuration with fixed address and netmask    ip/ifconfig
-dhcp    Address and netmask are assigned by DHCP    udhcpc (Busybox)
-dhcpv6    Address and netmask are assigned by DHCPv6    odhcpc6c
-ppp    PPP protocol - dialup modem connections    pppd
-pppoe    PPP over Ethernet - DSL broadband connection    pppd + plugin rp-pppoe.so
-pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin …</code></pre><p>更多协议介绍：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a></p><p>配置了协议后需要定义详细的 option 选项参数，下面是常用的适用于所有类型协议的 option 可选项：</p><table><thead><tr><th align="center">Name</th><th align="center">Type</th><th>Default Description</th></tr></thead><tbody><tr><td align="center">ifname</td><td align="center">物理网卡名称</td><td>如eth0 eth1 eth2，当定义 type 为 bridge 桥接时，可以是一个集合</td></tr><tr><td align="center">type</td><td align="center">字符串</td><td>如果设置为 bridge，会桥接在 ifname 中定义的物理网卡名称集合</td></tr><tr><td align="center">stp</td><td align="center">boolean</td><td>Only valid for type bridge, enables the Spanning Tree Protocol</td></tr><tr><td align="center">bridge_empty</td><td align="center">boolean</td><td>Only valid for type bridge, enables creating empty bridges</td></tr><tr><td align="center">igmp_snooping</td><td align="center">boolean</td><td>Only valid for type bridge, sets the multicast_snooping kernel setting for a bridge</td></tr><tr><td align="center">macaddr</td><td align="center">mac地址</td><td>Override MAC address of this interface. Example: 62:11:22:aa:bb:cc</td></tr><tr><td align="center">mtu</td><td align="center">number</td><td>Override the default MTU on this interface</td></tr></tbody></table><p>具体到某个 proto 协议会有各自特殊需要定义的 option 参数，下面介绍 static 模式下需要定义的参数：</p><table><thead><tr><th align="center">名称</th><th align="center">类型</th><th>描述</th></tr></thead><tbody><tr><td align="center">ipaddr</td><td align="center">ip address</td><td>IP address</td></tr><tr><td align="center">netmask</td><td align="center">netmask</td><td>子网掩码</td></tr><tr><td align="center">gateway</td><td align="center">ip address</td><td>Default gateway</td></tr><tr><td align="center">broadcast</td><td align="center">ip address</td><td>Broadcast address (autogenerated if not set)</td></tr><tr><td align="center">dns</td><td align="center">list of ip addresses</td><td>DNS server(s)</td></tr><tr><td align="center">dns_search</td><td align="center">list of domain names</td><td>Search list for host-name lookup</td></tr><tr><td align="center">metric</td><td align="center">integer</td><td>Specifies the default route metric to use</td></tr></tbody></table><p>关于 proto 协议的配置项参考：<a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">openwrt IPv4</a></p><h3>示例</h3><p>下面通过示例来介绍一些典型配置模式。</p><p>lan 网络的 Downstream 下层流量配置：</p><pre><code>config interface 'lan'
-        option ifname 'eth1'
-        option proto 'static'
-        option ipaddr '192.168.85.1'
-        option netmask '255.255.255.0'
-        option ip6assign '60'
-        option gateway '27.168.1.1'</code></pre><p>lan 网络的下层链接会自动启用 dhcp 服务。</p><p>lan 网络配置多网卡桥接模式：</p><pre><code>config interface 'lan'
-        option type 'bridge'
-        option ifname 'eth1 eth2 eth3'
-        option proto 'static'
-        option ipaddr '192.168.85.1'
-        option netmask '255.255.255.0'
-        option ip6assign '60'
-        option gateway '27.168.1.1'
-        option dns '1.1.1.1'</code></pre><p>多 dns 配置：</p><pre><code>config interface 'example'
-        option proto     'static'
-        option ifname    'eth0'
-        option ipaddr    '192.168.1.200'
-        option netmask   '255.255.255.0'
-        list   dns       '192.168.1.1'
-        list   dns       '192.168.10.1'</code></pre><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a><br><a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">IPv4</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2291.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
 </entry>
 </feed>

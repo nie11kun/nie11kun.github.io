@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2572.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2570.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2522.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2502.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2480.html"/>
@@ -17,11 +19,47 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2454.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2451.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2448.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2403.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2388.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2572.html">
+<title>openwrt 修改进程 Socket 句柄数</title>
+<link>https://blog.niekun.net/archives/2572.html</link>
+<dc:date>2022-04-03T08:50:00+08:00</dc:date>
+<description>最近在使用中发现一个软件 log 中出现大量的报错：/core/transport/internet/tcp: failed to accepted raw connections &gt; accept tcp [::]:18919: accept4: too many open files查询后知道这是进程占用的句柄数超出了系统最大值导致的。由于我的系统是 openwrt 所以下面介绍如何修改某个进程的最大句柄数限制。首先查询当前系统当前的句柄限制值：ulimit -n
+
+1024也可以查询当前系统的其他所有限制参数：ulimit -a返回 1024 表示当前系统每个进程的限制值是 1024。然后我们查询下当前系统进程中占用情况：lsof -n |awk '{print $2}'|sort|uniq -c |sort -nr|more
+
+     8790 2390
+     41 2638
+     27 1914
+     26 1
+     25 2127
+     23 2166
+     23 1976
+     23 1704可以看到进程PID号 2390 就占用了 8790 个句柄，这肯定超出了系统限制，我们看看这个 2390 到底是那个程序：ps | grep 2390
+
+ 2390 root     5005m S    /usr/bin/v2ray -confdir /etc/v2ray/conf.d
+ 6815 root      1072 R    grep 2390发现的确是我报错的那个程序占用了这个进程。然后我们查询系统可以设置的最大句柄数：cat /proc/sys/fs/file-max
+
+101238返回值说明当前系统可以设置最大句柄数为 101238.想要修改句柄数需要在对应进程的 procd init script 脚本修改内容，在 start_service 中增加：        procd_set_param limits core=&quot;unlimited&quot;
+        procd_set_param limits nofile=&quot;101200&quot;
+        procd_set_param limits nproc=&quot;101200&quot;limits 参数可以设置系统的一些限制值，openwrt 可用的限制值名称可以在官方文档找到：https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters以上就将系统限制设置为一个较大的值，修改完成后重启这个进程即可。参考链接Linux命令：TCP连接高并发时Socket句柄数的修改procd-init-scripts#service_parametersprocd-init-script-example#advanced_optionsopenwrt procd init script 自启动脚本服务</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2570.html">
+<title>iptables 配置透明代理注意事项</title>
+<link>https://blog.niekun.net/archives/2570.html</link>
+<dc:date>2022-04-03T08:33:00+08:00</dc:date>
+<description>之前介绍过通过 dnsmasq 配合 iptables 实现对 ip 地址的流量过滤，dnsmasq 获取到流量后标记 ipset 然后通过 iptables 识别 ipset 然后将流量送往指定地址。通过 dnsmasq ipset 和 iptables 对域名流量的控制iptables 使用教程这里面存在一个问题就是流量回环问题，如果处理不好回导致 iptables 规则无限循环，尤其是在配置透明代理时候。iptables -t mangle -A PREROUTING -p tcp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A PREROUTING -p udp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A OUTPUT -p tcp -m set --match-set gfwlist dst -j MARK --set-mark 1
+iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set-mark 1以上规则会将 指定 list 的流量发送到指定端口并打上 mark 标记，但是从目标地址返回数据后，数据流会再次匹配到以上规则导致再次将流量送往指定端口，导致无限循环。处理方法就是在目标地址获取到流量后，给流量打上 mark 标记，然后在 iptables 的最前面加上一条规则识别从目标地址返回的流量，直接 return 流量即可。例如目标地址处理后的流量标记为 mark 2，iptables 规则最前面增加一条规则：iptables -t mangle -I OUTPUT -j RETURN -m mark --mark 0x02-I 参数就是将规则放在在路由链的最前面。如果是通过脚本的方式配置 iptables，将开始的脚本内容修改如下即可：iptables -t mangle -A OUTPUT -j RETURN -m mark --mark 0x02
+
+iptables -t mangle -A PREROUTING -p tcp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A PREROUTING -p udp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A OUTPUT -p tcp -m set --match-set gfwlist dst -j MARK --set-mark 1
+iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set-mark 1这样就可以避免流量回环问题。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2522.html">
 <title>给T恤添加图案 in Photoshop</title>
 <link>https://blog.niekun.net/archives/2522.html</link>
@@ -150,71 +188,5 @@ ldconfig以上问题都处理完后，再次执行升级命令，一切都正常
 <description>我的服务器上在使用 wget 或者 curl 等网络工具时，每次都提示类似下面的报错：ERROR: cannot verify github.com's certificate, issued by ‘CN=DigiCert High Assurance TLS Hybrid ECC SHA256 2020 CA1,O=DigiCert\\, Inc.,C=US’:
   Unable to locally verify the issuer's authority.
 To connect to github.com insecurely, use `--no-check-certificate'.需要通过参数跳过证书检查，但是这样又有了安全风险。首先尝试更新本地证书文件：update-ca-certificates --verbose --fresh发现问题没有解决，原来是系统缺少了一个指向证书路径 /etc/ssl/certs 的环境变量，尝试添加：export SSL_CERT_DIR=/etc/ssl/certs再次测试 wget 命令，发现问题的确没有了。可以将上面的环境变量添加到系统 shell 配置文件中，我这里是 ~/.bashrc，添加后刷新一下即可：source ~/.bashrc在更新 Ubuntu18.04 到 20.04 时，也是这个问题导致的报错。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2403.html">
-<title>macOS 中给 finder 添加右键打开 vs code 选项</title>
-<link>https://blog.niekun.net/archives/2403.html</link>
-<dc:date>2022-01-27T22:00:00+08:00</dc:date>
-<description>macOS 中的右键菜单没有像 windows 那样多样的选项，我最常用的是：用 vs code 打开文件夹，新建文本文件等。目前有第三方的软件可以添加这些功能，比如 irightmouse，但基本都是收费软件，下面介绍如何通过系统自带的 automator 来添加我们需要的功能。vs code 菜单首先我们创建一个 Open in Visual Studio Code 的 action。打开 Automator，点击 file - new 创建一个 quick action：首先修改右边的参数，workflow receives current files or folders in finder，下面的 image 根据个人喜好修改：然后左侧搜索 run shell script 双击添加到右侧，修改 pass input：as arguments，然后脚本内容如下：for f in &quot;$@&quot;
-do
-    open -a 'Visual Studio Code' &quot;$f&quot;
-done保存脚本即可，命名为 Open in Visual Studio Code，需要保存到当前用户目录下的 library/services 目录下(默认就会保存到这个目录)：然后在 finder 中测试，选中一个文件夹查看右键菜单，在 quick action 中会出现 Open in Visual Studio Code：点击后即可在 vs code 中打开文件或文件夹。copy path 菜单下面我们用同样的方法做一个复制文件或文件夹路径的 action。新建一个 quick action，修改右边的参数，workflow receives current files or folders in finder。然后添加一个 copy to clipboard 的 variable 即可：命名为 Copy Path 并保存即可。此时 finder 中 quick action 菜单中就会有了对应的选项：create new txt file 菜单macOS 中没有右键创建新文件的选项，想要在当前目录中创建一个新文件挺麻烦的，下面我们通过类似的方法来创建一个快捷选项。新建一个 quick action，这里 receives 选择 no input：然后搜索并添加一个 Run AppleScript 变量，修改脚本内容如下：set file_name to &quot;untitled&quot;
-set file_ext to &quot;.txt&quot;
-set is_desktop to false
-
--- get folder path and if we are in desktop (no folder opened)
-try
-    tell application &quot;Finder&quot;
-        set this_folder to (folder of the front Finder window) as alias
-    end tell
-on error
-    -- no open folder windows
-    set this_folder to path to desktop folder as alias
-    set is_desktop to true
-end try
-
--- get the new file name (do not override an already existing file)
-tell application &quot;System Events&quot;
-    set file_list to get the name of every disk item of this_folder
-end tell
-set new_file to file_name &amp; file_ext
-set x to 1
-repeat
-    if new_file is in file_list then
-        set new_file to file_name &amp; &quot; &quot; &amp; x &amp; file_ext
-        set x to x + 1
-    else
-        exit repeat
-    end if
-end repeat
-
--- create and select the new file
-tell application &quot;Finder&quot;
-
-    activate
-    set the_file to make new file at folder this_folder with properties {name:new_file}
-    if is_desktop is false then
-        reveal the_file
-    else
-        select window of desktop
-        set selection to the_file
-        delay 0.1
-    end if
-end tell
-
--- press enter (rename)
-tell application &quot;System Events&quot;
-    tell process &quot;Finder&quot;
-        keystroke return
-    end tell
-end tell脚本中，定义了新建文件的文件名和扩展名，如果修改其他名称可以自行修改。完成后保存即可，名称为 Create New TXT File。保存后在 finder 中我们在任意位置右键会发现没有 quick action 选项，这是因为这个 action 定义中并没有选择输入源，因为新建文件和当前的文件并没有什么关系。此时需要通过左上角的 finder - services 找到我们刚创建的 action：也可以给这个 action 定义快捷键，在 keyboard - shrotcuts - services 中找到这个 action 在后边添加 shortcut 即可：注意第一次运行这个 action 会提示需要授权 finder 的几个权限，根据提示打开即可。参考链接Create a new (.txt) File in Finder - Keyboard ShortcutOSX: how to add a right click option to a folder which opens the folder with an app like VS Code?</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2388.html">
-<title>获取 JD cookie 方法</title>
-<link>https://blog.niekun.net/archives/2388.html</link>
-<dc:date>2022-01-09T18:53:00+08:00</dc:date>
-<description>在运行自动化脚本的时候需要获取到对应网站的登录 cookie，这里介绍通过 chrome 浏览器获取到需要的信息。这里提供的方法仅供用于前端开发测试。首先登陆移动端网站：https://m.jd.com右键点击 inspect 进入开发者界面，然后点击网页右上角的登录键根据提示需要输入账户信息登录。登录成功后在开发栏切换到 network 选项，并且在 filter 中输入 log.gif 过滤出需要的信息：选中第一个 log 文件，点击 header 栏，在其中找到 cookie 项：复制其中的内容到剪贴板。找到开发页面下方的 console 栏，我们通过简单的 js 脚本提取出上面 cookie 的有效内容：var c = '这里粘贴复制好的 cookie';
-var value = c.match(/pt_pin=.+?;/) + c.match(/pt_key=.+?;/);
-copy(value);执行完成后此时我们的剪贴板里就已经复制好了 cookie 信息。手机端可以通过解包 app 来提取 cookie，具体可以参考我的 js 脚本：https://github.com/nie11kun/config-rules/blob/master/Shadowrocket/get_jdcookie.js</description>
 </item>
 </rdf:RDF>
