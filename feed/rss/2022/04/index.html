@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2613.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2611.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2589.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2576.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2572.html"/>
@@ -17,6 +19,73 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2613.html">
+<title>修改虚拟交换机 MTU 提高 esxi 虚拟机网络速度</title>
+<link>https://blog.niekun.net/archives/2613.html</link>
+<dc:date>2022-04-10T12:59:50+08:00</dc:date>
+<description>最近发现我的局域网内网下的网速很慢，只有500M左右，达不到 1000M 的速度。我是通过 ipert3 进行测速的。家里的网络是通过 esxi 下安装的 openwrt，ubuntu 等虚拟机控制的，通过 esxi 管理页面可以看到接口都运行在 1000M 全双工模式下，说明网线链接是没有问题的：经过查询发现可以通过修改虚拟交换机的 mtu 值到 9000 来提高网络吞吐量从而加快网速。修改 mtu进入虚拟交换机栏：点击每一个交换机进入设置界面，点击上面的 edit：将 mtu 设置为 9000，并保存配置：虚拟交换机里修改完后，进入 vmkernel NICs 栏：点击 vmk0 进入设置界面，同样的点击 edit 修改其 mtu 为 9000 并保存：以上就完成了整个虚拟环境 mtu 值的修改，再次通过 iperf3 测速，速率能达到 800M。iperf3 使用下面简单介绍使用 iperf3 测试内网传输速率。首先在接收端以下指令运行在服务模式：iperf3 -s然后再发送端执行以下指令启动测速：iperf3 -c xxx.xxx.xxx.xxx -t 30以上指令中将地址替换为接收端 IP 地址，-t 参数可以设置测速时间，单位为秒。参考链接关于 ESXi 虚拟机间拷贝速度慢的问题IPERF: How to test network Speed,Performance,Bandwidth</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2611.html">
+<title>esxi 配置自定义 ssl 证书</title>
+<link>https://blog.niekun.net/archives/2611.html</link>
+<dc:date>2022-04-10T12:39:50+08:00</dc:date>
+<description>我家里的主机使用 esxi 管理多个 vm 虚拟机，之前的文章介绍过 esxi 的安装及使用：ESXi 的安装与使用，需要安装的可以参考。通过浏览器访问  vcenter 管理界面默认会强制 https 模式，但是访问端并没有安装 vcenter 管理网页的证书，所以会提示不安全的链接，下面介绍如何在 esxi 上安装自定义域名的 ssl 证书，并在客户机上安装。开启 sshesxi 上的操作是通过 ssh 的方式，所以首先需要打开 esxi 的 ssh 访问权限。访问 esxi 管理界面，在 host 菜单栏，选择 action - sevices - enable ssh：打开 ssh 只对本次开机有效，重启 esxi 后会再次默认关闭。然后就可以通过 ssh 访问 esxi。创建证书首先备份当前证书文件，防止修改错误无法恢复，进入 /etc/vmware/ssl 目录，新建 bak 文件夹，将目录内的 rui.crt, rui.csr, rui.key 文件移动到 bak 文件夹内：cd /etc/vmware/ssl
+mkdir bak
+mv rui.* bak/然后在 /etc/vmware/ssl 下新建文件 webclient.cnf 编辑文件内容如下：[ req ]
+
+default_bits = 2048
+
+default_keyfile = rui.key
+
+distinguished_name = req_distinguished_name
+
+encrypt_key = no
+
+prompt = no
+
+string_mask = nombstr
+
+req_extensions = v3_req
+
+[ v3_req ]
+
+basicConstraints = CA:FALSE
+
+keyUsage = digitalSignature, keyEncipherment, dataEncipherment
+
+extendedKeyUsage = serverAuth, clientAuth
+
+subjectAltName = DNS:&lt;esxi.domain.name&gt;, DNS:&lt;esxi&gt;, IP:&lt;xxx.xxx.xxx.xxx&gt; 
+
+[ req_distinguished_name ]
+
+countryName = US
+
+stateOrProvinceName = VA
+
+localityName = SomeCity
+
+0.organizationName = WOW
+
+organizationalUnitName = Software
+
+commonName = &lt;esxi.domain.name&gt;
+
+[ alt_names ]
+
+DNS.1 = &lt;esxi.domain.name&gt;
+
+DNS.2 = &lt;esxi&gt;
+
+IP.1 = &lt;xxx.xxx.xxx.xxx&gt;注意，将以上内容中尖括号&lt;&gt;中的内容替换为你实际的域名和IP地址，不需要保留尖括号。文件修改并保存后，执行下面命令创建证书文件：# 创建加密 key，它用来保证证书生效及运行
+openssl genrsa -out /etc/vmware/ssl/rui.key 2048
+
+# 创建一个证书注册请求文件，会用到上面创建的配置文件信息并保存到 key 中
+openssl req -new -nodes -out /etc/vmware/ssl/rui.csr -keyout /etc/vmware/ssl/rui.key -config /etc/vmware/ssl/webclient.cnf
+
+# 生成证书，使用了 x509 标准格式。其中定义了证书 730 天的有效期，也就是2年，可以根据需要自行更改时间
+openssl x509 -req -days 730 -in /etc/vmware/ssl/rui.csr -signkey /etc/vmware/ssl/rui.key -out /etc/vmware/ssl/rui.crt -extensions v3_req -extfile /etc/vmware/ssl/webclient.cnf以上命令执行完成后，就在目录下生成了 rui.key, rui.csr, rui.crt 三个文件。我们只需要将 rui.crt 证书文件复制到客户机上安装，可以通过任何方式复制出来，例如 sftp，winscp 等。esxi 上需要重启系统后新的证书才能生效。注意重启后 ssh 功能可能需要重新打开。客户端安装证书在 macOS 上安装证书，双击复制出来的 rui.crt 安装即可。安装后需要设置为信任，进入 keychain access 中，在 system 栏点击 certificates 菜单项就能找到刚刚安装的证书，双击证书进入属性，点击 trust 菜单，将 when using this certificate 设置为 always trust 即可，关闭时会提示输入密码。此时我们就可以以 https 访问 esxi web 管理页面并且不会报证书错误了。参考链接How to Replace Your Default ESXi SSL Certificate With a Self-Signed Certificate</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2589.html">
 <title>快速色彩矫正 in Photoshop</title>
 <link>https://blog.niekun.net/archives/2589.html</link>

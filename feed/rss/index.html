@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2613.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2611.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2589.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2576.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2572.html"/>
@@ -17,11 +19,76 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2502.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2480.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2472.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2457.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2454.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2613.html">
+<title>修改虚拟交换机 MTU 提高 esxi 虚拟机网络速度</title>
+<link>https://blog.niekun.net/archives/2613.html</link>
+<dc:date>2022-04-10T12:59:50+08:00</dc:date>
+<description>最近发现我的局域网内网下的网速很慢，只有500M左右，达不到 1000M 的速度。我是通过 ipert3 进行测速的。家里的网络是通过 esxi 下安装的 openwrt，ubuntu 等虚拟机控制的，通过 esxi 管理页面可以看到接口都运行在 1000M 全双工模式下，说明网线链接是没有问题的：经过查询发现可以通过修改虚拟交换机的 mtu 值到 9000 来提高网络吞吐量从而加快网速。修改 mtu进入虚拟交换机栏：点击每一个交换机进入设置界面，点击上面的 edit：将 mtu 设置为 9000，并保存配置：虚拟交换机里修改完后，进入 vmkernel NICs 栏：点击 vmk0 进入设置界面，同样的点击 edit 修改其 mtu 为 9000 并保存：以上就完成了整个虚拟环境 mtu 值的修改，再次通过 iperf3 测速，速率能达到 800M。iperf3 使用下面简单介绍使用 iperf3 测试内网传输速率。首先在接收端以下指令运行在服务模式：iperf3 -s然后再发送端执行以下指令启动测速：iperf3 -c xxx.xxx.xxx.xxx -t 30以上指令中将地址替换为接收端 IP 地址，-t 参数可以设置测速时间，单位为秒。参考链接关于 ESXi 虚拟机间拷贝速度慢的问题IPERF: How to test network Speed,Performance,Bandwidth</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2611.html">
+<title>esxi 配置自定义 ssl 证书</title>
+<link>https://blog.niekun.net/archives/2611.html</link>
+<dc:date>2022-04-10T12:39:50+08:00</dc:date>
+<description>我家里的主机使用 esxi 管理多个 vm 虚拟机，之前的文章介绍过 esxi 的安装及使用：ESXi 的安装与使用，需要安装的可以参考。通过浏览器访问  vcenter 管理界面默认会强制 https 模式，但是访问端并没有安装 vcenter 管理网页的证书，所以会提示不安全的链接，下面介绍如何在 esxi 上安装自定义域名的 ssl 证书，并在客户机上安装。开启 sshesxi 上的操作是通过 ssh 的方式，所以首先需要打开 esxi 的 ssh 访问权限。访问 esxi 管理界面，在 host 菜单栏，选择 action - sevices - enable ssh：打开 ssh 只对本次开机有效，重启 esxi 后会再次默认关闭。然后就可以通过 ssh 访问 esxi。创建证书首先备份当前证书文件，防止修改错误无法恢复，进入 /etc/vmware/ssl 目录，新建 bak 文件夹，将目录内的 rui.crt, rui.csr, rui.key 文件移动到 bak 文件夹内：cd /etc/vmware/ssl
+mkdir bak
+mv rui.* bak/然后在 /etc/vmware/ssl 下新建文件 webclient.cnf 编辑文件内容如下：[ req ]
+
+default_bits = 2048
+
+default_keyfile = rui.key
+
+distinguished_name = req_distinguished_name
+
+encrypt_key = no
+
+prompt = no
+
+string_mask = nombstr
+
+req_extensions = v3_req
+
+[ v3_req ]
+
+basicConstraints = CA:FALSE
+
+keyUsage = digitalSignature, keyEncipherment, dataEncipherment
+
+extendedKeyUsage = serverAuth, clientAuth
+
+subjectAltName = DNS:&lt;esxi.domain.name&gt;, DNS:&lt;esxi&gt;, IP:&lt;xxx.xxx.xxx.xxx&gt; 
+
+[ req_distinguished_name ]
+
+countryName = US
+
+stateOrProvinceName = VA
+
+localityName = SomeCity
+
+0.organizationName = WOW
+
+organizationalUnitName = Software
+
+commonName = &lt;esxi.domain.name&gt;
+
+[ alt_names ]
+
+DNS.1 = &lt;esxi.domain.name&gt;
+
+DNS.2 = &lt;esxi&gt;
+
+IP.1 = &lt;xxx.xxx.xxx.xxx&gt;注意，将以上内容中尖括号&lt;&gt;中的内容替换为你实际的域名和IP地址，不需要保留尖括号。文件修改并保存后，执行下面命令创建证书文件：# 创建加密 key，它用来保证证书生效及运行
+openssl genrsa -out /etc/vmware/ssl/rui.key 2048
+
+# 创建一个证书注册请求文件，会用到上面创建的配置文件信息并保存到 key 中
+openssl req -new -nodes -out /etc/vmware/ssl/rui.csr -keyout /etc/vmware/ssl/rui.key -config /etc/vmware/ssl/webclient.cnf
+
+# 生成证书，使用了 x509 标准格式。其中定义了证书 730 天的有效期，也就是2年，可以根据需要自行更改时间
+openssl x509 -req -days 730 -in /etc/vmware/ssl/rui.csr -signkey /etc/vmware/ssl/rui.key -out /etc/vmware/ssl/rui.crt -extensions v3_req -extfile /etc/vmware/ssl/webclient.cnf以上命令执行完成后，就在目录下生成了 rui.key, rui.csr, rui.crt 三个文件。我们只需要将 rui.crt 证书文件复制到客户机上安装，可以通过任何方式复制出来，例如 sftp，winscp 等。esxi 上需要重启系统后新的证书才能生效。注意重启后 ssh 功能可能需要重新打开。客户端安装证书在 macOS 上安装证书，双击复制出来的 rui.crt 安装即可。安装后需要设置为信任，进入 keychain access 中，在 system 栏点击 certificates 菜单项就能找到刚刚安装的证书，双击证书进入属性，点击 trust 菜单，将 when using this certificate 设置为 always trust 即可，关闭时会提示输入密码。此时我们就可以以 https 访问 esxi web 管理页面并且不会报证书错误了。参考链接How to Replace Your Default ESXi SSL Certificate With a Self-Signed Certificate</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2589.html">
 <title>快速色彩矫正 in Photoshop</title>
 <link>https://blog.niekun.net/archives/2589.html</link>
@@ -95,75 +162,5 @@ iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set
 <link>https://blog.niekun.net/archives/2472.html</link>
 <dc:date>2022-03-28T14:04:00+08:00</dc:date>
 <description>黑白图片在某些场景下有其独特的风格，在人像摄影中可以体现出一种另类的雕塑感，下面通过实例介绍如何从一个彩色图片处理为一张黑白效果。使用的工具主要是 gradient map 和 camera raw。下面是原始图片：首先在原图上方建立 gradient map 图层，gradient map 的作用是根据图像的亮度分布进行颜色替换：首先将下方的 method 改为 classic，这样过渡效果更加平顺一些：默认是一个反色效果渐变，点击渐变条，修改其属性为左边黑色右边白色：下面我们增加黑白色差效果，调节左侧下方滑块可以使得黑色区域更黑，调节右侧下方滑块可以使得白色区域更白，调节中间滑块可以调节黑白区域范围：调节到合适效果后确认即可，这样我们初步就有了一个效果。下面为了让背景更加黑，我们通过选取提取出背景，创建一个纯黑背景。选中图像图层，选区工具下选中 select and mask：点击 select subject 可以自动选中主体：点击 color aware 和 shift edge 调节选区边沿：确认后可以获取到主体的选取，创建一个 solid color 黑色图层，选中蒙版，ctrl I 反转选区即可：放大我们可以发现主体边沿和背景没有完美的融合，这时可以通过复制刚才的 gradient map 图层强化黑白效果，然后通过笔刷工具将复制的图层只保留主体边沿部分，注意使用笔刷的时候不透明度调节稍微低一些：基本效果已经可以了，下面调节细节部分，首先眼睛需要提亮，新建 curves 图层，提亮曲线后反转蒙版，使用笔刷工具涂抹出眼睛的亮度：黑白图片效果一般在提高锐度的时候会更加具有特点，下面我们通过 camera raw 来做调整。首先快捷键 ctrl shift alt E 盖印图层，然后转换为 smart object 方便后期返回来调整参数：然后点击 filter - camera raw filter 进入编辑模式。为了更加强烈的反差，我首先调节了亮度参数：然后就是锐化的重点 - 提高 clarity 清晰度参数，注意不要调的过高而失真：完成后保存返回 Photoshop，适当调节不透明度使图片更加自然：最终效果如下：</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2457.html">
-<title>安装 phpMyAdmin 管理 MySQL</title>
-<link>https://blog.niekun.net/archives/2457.html</link>
-<dc:date>2022-03-28T09:31:00+08:00</dc:date>
-<description>phpMyAdmin 是一个 php 的免费工具，用来在 web 端管理 MySQL 数据库。它支持大部分的 MySQL 功能，比如：创建数据库，修改数据，管理用户权限，导入导出数据等。官方网站：https://www.phpmyadmin.net/GitHub 主页：https://github.com/phpmyadmin/phpmyadmin下面介绍在 Ubuntu 20.04 的安装及使用过程。安装首先确保已经安装好了 MySQL 和 php：apt install mysql-server php php-fpm php-mysql
-然后安装 phpMyAdmin：apt install phpmyadmin
-安装过程中会提示创建一个 mysql 管理账户 phpmyadmin，一般直接确认即可，然后设置账户密码。如果这一步跳过了创建账户，后期需要手动修改配置文件或手动创建一个 phpmyadmin 管理账户，否则登录可能会报错。配置 nginx安装完成后需要配置代理服务器，我使用的是 nginx，下面是 nginx 的配置文件部分：    location /phpmyadmin {
-        root /usr/share/;
-        index index.php index.html index.htm;
-        location ~ ^/phpmyadmin/(.+\.php)$ {
-            fastcgi_pass unix:/run/php/php7.4-fpm.sock;
-            include fastcgi-php.conf;
-        }
-    }使用配置完成后就可以登陆 phpmyadmin 页面了，登录对应的 mysql 管理账户，可以是安装 phpmyadmin 时创建的账户也可以是我们之前使用 mysql 自己的账户：如果登录后发现下面有报错信息：Access denied for user 'phpmyadmin'@'localhost' (using password: NO)
-可能就是安装的时候跳过了创建 phpmyadmin MySQL 账户的步骤，这里我们可以在终端手动创建报错信息中提示的用户名或者直接修改配置文件中定义的 phpmyadmin 管理账户。修改 /etc/phpmyadmin/config.inc.php，找到如下字段：$cfg['Servers'][$i]['controluser'] = 'user';
-$cfg['Servers'][$i]['controlpass'] = 'password';将上面的用户名密码修改为 MySQL 中存在的账户即可。刷新页面之后应该就没有报错了。手动创建 MySQL 用户可以参考教程：https://blog.niekun.net/archives/23.html#title-3然后我们就可以正常使用 phpmyadmin 管理页面了，这里可以查看 database，导入导出数据等。参考链接phpMyAdmin ERROR: mysqli_real_connect(): (HY000/1045): Access denied for user 'pma'@'localhost' (using password: NO)</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2454.html">
-<title>使用 rclone 管理网盘文件</title>
-<link>https://blog.niekun.net/archives/2454.html</link>
-<dc:date>2022-03-14T11:35:31+08:00</dc:date>
-<description>之前介绍了通过 gdrive 在服务器上管理 Google drive 文件，实现服务器数据备份自动上传功能。最近发现有一个新的开源项目 rclone 支持更多的网盘，同时更新迭代速度也更快。GitHub 主页：https://github.com/rclone/rclone他支持的网盘列表：https://rclone.org/overview/下面介绍它的安装使用方法。安装Linux 下一键安装命令：curl https://rclone.org/install.sh | sudo bash
-macos 通过 brew 安装：brew install rclone
-配置首次运行执行初始化配置：rclone config
-根据提示创建新 remote：No remotes found - make a new one
-n) New remote
-r) Rename remote
-c) Copy remote
-s) Set configuration password
-q) Quit config
-n/r/c/s/q&gt; n然后设置此连接名称，后续就是通过这个名称来操作不同的网盘的：name&gt; remote
-下一步选择网盘类型，如果是 Google drive 选择 16：Type of storage to configure.
-Choose a number from below, or type in your own value
-[snip]
-16 / Google Drive
-   \ &quot;drive&quot;
-[snip]
-Storage&gt; 16下面的 id 和 secret 都默认回车即可：Google Application Client Id - leave blank normally.
-client_id&gt;
-Google Application Client Secret - leave blank normally.
-client_secret&gt;下面设置可访问全部网盘文件，选择 1：Scope that rclone should use when requesting access from drive.
-Choose a number from below, or type in your own value
- 1 / Full access all files, excluding Application Data Folder.
-   \ &quot;drive&quot;
- 2 / Read-only access to file metadata and file contents.
-   \ &quot;drive.readonly&quot;
-   / Access to files created by rclone only.
- 3 | These are visible in the drive website.
-   | File authorization is revoked when the user deauthorizes the app.
-   \ &quot;drive.file&quot;
-   / Allows read and write access to the Application Data folder.
- 4 | This is not visible in the drive website.
-   \ &quot;drive.appfolder&quot;
-   / Allows read-only access to file metadata but
- 5 | does not allow any access to read or download file content.
-   \ &quot;drive.metadata.readonly&quot;
-scope&gt; 1下面几步都默认回车即可。注意到了 use auto config 的时候要选择 No，因为我们是远程 ssh 访问的服务器：Use auto config?
- * Say Y if not sure
- * Say N if you are working on a remote or headless machine or Y didn't work
-y) Yes
-n) No
-y/n&gt; n下面会返回一个链接，复制链接到浏览器后，登录 google 账户给 rclone 授权。授权完成后会返回一个字符串码，粘贴回终端。后续几步默认回车即可，最后输入 q 退出 config。使用配置完成后我们就可以使用了，下面介绍一些基本语法。下面示例中网盘配置名称为 remote。列出网盘的所有文件：rclone ls remote:
-列出一个文件夹内的所有文件：rclone ls remote:abc
-创建一个文件夹：rclone mkdir remote:abc
-rclone mkdir remote:abc/def
-删除网盘内一个文件：rclone delete remote:abc/123.txt
-删除一个文件夹：rclone rmdir remote:abc
-复制本地一个文件到网盘：rclone copy 123.txt remote:abc
-更多可用命令可以参考官方文档：https://rclone.org/docs/#subcommands</description>
 </item>
 </rdf:RDF>

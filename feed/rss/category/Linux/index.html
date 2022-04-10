@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2613.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2611.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2572.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2570.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2457.html"/>
@@ -17,11 +19,76 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2448.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2321.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2320.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2310.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2303.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2613.html">
+<title>修改虚拟交换机 MTU 提高 esxi 虚拟机网络速度</title>
+<link>https://blog.niekun.net/archives/2613.html</link>
+<dc:date>2022-04-10T12:59:50+08:00</dc:date>
+<description>最近发现我的局域网内网下的网速很慢，只有500M左右，达不到 1000M 的速度。我是通过 ipert3 进行测速的。家里的网络是通过 esxi 下安装的 openwrt，ubuntu 等虚拟机控制的，通过 esxi 管理页面可以看到接口都运行在 1000M 全双工模式下，说明网线链接是没有问题的：经过查询发现可以通过修改虚拟交换机的 mtu 值到 9000 来提高网络吞吐量从而加快网速。修改 mtu进入虚拟交换机栏：点击每一个交换机进入设置界面，点击上面的 edit：将 mtu 设置为 9000，并保存配置：虚拟交换机里修改完后，进入 vmkernel NICs 栏：点击 vmk0 进入设置界面，同样的点击 edit 修改其 mtu 为 9000 并保存：以上就完成了整个虚拟环境 mtu 值的修改，再次通过 iperf3 测速，速率能达到 800M。iperf3 使用下面简单介绍使用 iperf3 测试内网传输速率。首先在接收端以下指令运行在服务模式：iperf3 -s然后再发送端执行以下指令启动测速：iperf3 -c xxx.xxx.xxx.xxx -t 30以上指令中将地址替换为接收端 IP 地址，-t 参数可以设置测速时间，单位为秒。参考链接关于 ESXi 虚拟机间拷贝速度慢的问题IPERF: How to test network Speed,Performance,Bandwidth</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2611.html">
+<title>esxi 配置自定义 ssl 证书</title>
+<link>https://blog.niekun.net/archives/2611.html</link>
+<dc:date>2022-04-10T12:39:50+08:00</dc:date>
+<description>我家里的主机使用 esxi 管理多个 vm 虚拟机，之前的文章介绍过 esxi 的安装及使用：ESXi 的安装与使用，需要安装的可以参考。通过浏览器访问  vcenter 管理界面默认会强制 https 模式，但是访问端并没有安装 vcenter 管理网页的证书，所以会提示不安全的链接，下面介绍如何在 esxi 上安装自定义域名的 ssl 证书，并在客户机上安装。开启 sshesxi 上的操作是通过 ssh 的方式，所以首先需要打开 esxi 的 ssh 访问权限。访问 esxi 管理界面，在 host 菜单栏，选择 action - sevices - enable ssh：打开 ssh 只对本次开机有效，重启 esxi 后会再次默认关闭。然后就可以通过 ssh 访问 esxi。创建证书首先备份当前证书文件，防止修改错误无法恢复，进入 /etc/vmware/ssl 目录，新建 bak 文件夹，将目录内的 rui.crt, rui.csr, rui.key 文件移动到 bak 文件夹内：cd /etc/vmware/ssl
+mkdir bak
+mv rui.* bak/然后在 /etc/vmware/ssl 下新建文件 webclient.cnf 编辑文件内容如下：[ req ]
+
+default_bits = 2048
+
+default_keyfile = rui.key
+
+distinguished_name = req_distinguished_name
+
+encrypt_key = no
+
+prompt = no
+
+string_mask = nombstr
+
+req_extensions = v3_req
+
+[ v3_req ]
+
+basicConstraints = CA:FALSE
+
+keyUsage = digitalSignature, keyEncipherment, dataEncipherment
+
+extendedKeyUsage = serverAuth, clientAuth
+
+subjectAltName = DNS:&lt;esxi.domain.name&gt;, DNS:&lt;esxi&gt;, IP:&lt;xxx.xxx.xxx.xxx&gt; 
+
+[ req_distinguished_name ]
+
+countryName = US
+
+stateOrProvinceName = VA
+
+localityName = SomeCity
+
+0.organizationName = WOW
+
+organizationalUnitName = Software
+
+commonName = &lt;esxi.domain.name&gt;
+
+[ alt_names ]
+
+DNS.1 = &lt;esxi.domain.name&gt;
+
+DNS.2 = &lt;esxi&gt;
+
+IP.1 = &lt;xxx.xxx.xxx.xxx&gt;注意，将以上内容中尖括号&lt;&gt;中的内容替换为你实际的域名和IP地址，不需要保留尖括号。文件修改并保存后，执行下面命令创建证书文件：# 创建加密 key，它用来保证证书生效及运行
+openssl genrsa -out /etc/vmware/ssl/rui.key 2048
+
+# 创建一个证书注册请求文件，会用到上面创建的配置文件信息并保存到 key 中
+openssl req -new -nodes -out /etc/vmware/ssl/rui.csr -keyout /etc/vmware/ssl/rui.key -config /etc/vmware/ssl/webclient.cnf
+
+# 生成证书，使用了 x509 标准格式。其中定义了证书 730 天的有效期，也就是2年，可以根据需要自行更改时间
+openssl x509 -req -days 730 -in /etc/vmware/ssl/rui.csr -signkey /etc/vmware/ssl/rui.key -out /etc/vmware/ssl/rui.crt -extensions v3_req -extfile /etc/vmware/ssl/webclient.cnf以上命令执行完成后，就在目录下生成了 rui.key, rui.csr, rui.crt 三个文件。我们只需要将 rui.crt 证书文件复制到客户机上安装，可以通过任何方式复制出来，例如 sftp，winscp 等。esxi 上需要重启系统后新的证书才能生效。注意重启后 ssh 功能可能需要重新打开。客户端安装证书在 macOS 上安装证书，双击复制出来的 rui.crt 安装即可。安装后需要设置为信任，进入 keychain access 中，在 system 栏点击 certificates 菜单项就能找到刚刚安装的证书，双击证书进入属性，点击 trust 菜单，将 when using this certificate 设置为 always trust 即可，关闭时会提示输入密码。此时我们就可以以 https 访问 esxi web 管理页面并且不会报证书错误了。参考链接How to Replace Your Default ESXi SSL Certificate With a Self-Signed Certificate</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2572.html">
 <title>openwrt 修改进程 Socket 句柄数</title>
 <link>https://blog.niekun.net/archives/2572.html</link>
@@ -251,76 +318,5 @@ $ cat nop.txt &gt; output.txt 2&gt;&amp;1
 
 $ cat output.txt
 cat: nop.txt: No such file or directory总结有两个地方用来让程序发送输出内容：stdout，stderr可以单独定义两个输出的重定向目的地文件描述器用来识别 stdout (1) 和 stderr (2)command &gt; output 是 command 1&gt; output 的简写通过 &amp;[FILE_DESCRIPTOR] 指向一个文件描述器的重定向目标地址上2&gt;&amp;1 可以将 stderr 重定向到 stdout 同样的重定向地址上。反之亦然。参考链接Understanding Shell Script's idiom: 2&gt;&1In the shell, what does “ 2&gt;&1 ” mean?</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2310.html">
-<title>通过 telegram-cli 命令行发送 telegram 消息</title>
-<link>https://blog.niekun.net/archives/2310.html</link>
-<dc:date>2021-05-18T20:08:00+08:00</dc:date>
-<description>最近需要实现一个自动发送 telegram 消息的功能，GitHub 上发现一个 telegram 第三方的命令行终端：telegram-cli。可以实现我需要的功能。GitHub 主页：https://github.com/vysheng/tg测试平台为 Ubuntu 18.04安装有两种方法安装，第一种是通过 snap 应用商店来安装，第二种是从源码安装。snap 安装需要首先安装 snap 环境：sudo apt install snapd
-然后就可以安装 telegram-cli：sudo snap install telegram-cli
-默认安装路径为：/snap/bin/telegram-cli从源码编译稍微有些麻烦，因为 GitHub 上的源码最近更新是 2016 年，经过我的测试在 make 时会报错，查询后需要增加安装相关依赖库及调整配置选项后才能正常编译。首先安装依赖： sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev libpython-dev zlib1g-dev libgcrypt20-dev make
-下载仓库源码：git clone --recursive https://github.com/vysheng/tg.git &amp;&amp; cd tg
-然后配置 configure：./configure --disable-openssl
-最后编译：make
-编译完成后可执行文件在项目源码的 bin 文件夹内。使用安装完成后需要配置账户信息，输入 telegram-cli 命令：telegram-cli
-会提示输入手机号，验证码和密码等信息，按照提示输入完成后就会登录到 telegram-cli 中了。这时候通过 msg USERNAME message 的模式来给某个对话发送消息了：&gt; msg my_bot test
-USERNAME 可以是某个用户，Bot 或者 channel。可以直接使用其名称或者通过@username的方式定义会话对象。经过我的测试，第一次登录到 telegram-cli 后，直接给某个对象发送消息会提示：error FAIL: 38: can not parse arg #1，但是我的用户名写的是没问题的。这时候需要首先执行一下 dialog_list 会输出当前登录账户的会话列表，可以看到每个会话的对象名称，这时候就可以正常通过使用对象名称或者 @username 来发送消息了。以上的操作都是在登录到 telegram-cli 中进行的，可以通过 quit 或 safe_quit 命令退出 telegram-cli 程序：&gt; quit
-我们也可以直接通过 telegram-cli 命令发送给某个对象消息，需要 -e 参数加执行的命令，例如：telegram-cli -e &quot;msg @username message&quot;
-建议执行时加上 -W参数以加载 dialog 列表，否则可能出现报警：error FAIL: 38: can not parse arg #1：telegram-cli -W -e &quot;msg @username message&quot;
-使用 -D 参数可以关闭输出信息。使用 -U 参数可以自定义命令执行的用户。更多 telegram-cli 可用参数如下：# telegram-cli -h
-telegram-cli Usage
-  --phone/-u                           specify username (would not be asked during authorization)
-  --rsa-key/-k                         specify location of public key (possible multiple entries)
-  --verbosity/-v                       increase verbosity (0-ERROR 1-WARNIN 2-NOTICE 3+-DEBUG-levels)
-  --enable-msg-id/-N                   message num mode
-  --config/-c                          config file name
-  --profile/-p                         use specified profile
-  --log-level/-l                       log level
-  --sync-from-start/-f                 during authorization fetch all messages since registration
-  --disable-auto-accept/-E             disable auto accept of encrypted chats
-  --lua-script/-s                      lua script file
-  --wait-dialog-list/-W                send dialog_list query and wait for answer before reading input
-  --disable-colors/-C                  disable color output
-  --disable-readline/-R                disable readline
-  --alert/-A                           enable bell notifications
-  --daemonize/-d                       daemon mode
-  --logname/-L &lt;log-name&gt;              log file name
-  --username/-U &lt;user-name&gt;            change uid after start
-  --groupname/-G &lt;group-name&gt;          change gid after start
-  --disable-output/-D                  disable output
-  --tcp-port/-P &lt;port&gt;                 port to listen for input commands
-  --udp-socket/-S &lt;socket-name&gt;        unix socket to create
-  --exec/-e &lt;commands&gt;                 make commands end exit
-  --disable-names/-I                   use user and chat IDs in updates instead of names
-  --enable-ipv6/-6                     use ipv6 (may be unstable)
-  --help/-h                            prints this help
-  --accept-any-tcp                     accepts tcp connections from any src (only loopback by default)
-  --disable-link-preview               disables server-side previews to links
-  --bot/-b                             bot mode
-  --json                               prints answers and values in json format
-  --permanent-msg-ids                  use permanent msg ids
-  --permanent-peer-ids                 use permanent peer idscrontab 定时任务可以通过 crontab 设置定时自动发送消息。首先编辑执行脚本，将如下示例代码保存在 test.sh 中：#!/bin/sh
-LOGFILE=&quot;/home/log/submit_code.log&quot;
-
-telegram-cli -U root -W -e &quot;msg USERNAME test&quot; &gt;&gt; ${LOGFILE}以上脚本通过 root 用户执行发送消息，会首先加载 dialog list 然后发送消息，最后退出会话。脚本中我配置了将发送信息保存在 log 文件中，也可以不保存日志，去掉最后的 &gt;&gt; ${LOGFILE} 即可。然后配置 crontab 定时任务，可以参考我的教程：https://blog.niekun.net/archives/461.html需要注意的是通过 snap 安装的 telegram-cli 可执行程序目录默认在 /snap/bin 目录下。需要将路径定义到 crontab 配置文件中才可以正常识别到脚本中的 telegram-cli 命令。编辑 /etc/crontab 文件：SHELL=/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/snap/bin
-HOME=/root
-
-10  9  *  *  * root bash   /path/to/test.sh注意 PATH 参数最后添加的 /snap/bin，如果是通过其他方式安装的 telegram-cli，需要根据实际情况定义可执行程序路径。保存文件后，会自动在 9 点 10 分自动执行 test.sh 脚本。参考链接How to install telegram-clion Ubuntu使用telegram-cli命令行发送信息LXK0301京东签到脚本-自动提交互助码FAIL: 38: can not parse arg #1</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2303.html">
-<title>在 Ubuntu 中加载 smb 共享目录为本地路径</title>
-<link>https://blog.niekun.net/archives/2303.html</link>
-<dc:date>2021-04-29T10:15:00+08:00</dc:date>
-<description>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。访问 smb 共享目录的方法是在文件浏览器中通过：smb://xxx.xxx.xxx.xxx 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。下面介绍在 Ubuntu 中配置。在 Linux 中，可以通过 mount 命令的 cifs 选项将 smb 共享加载到本地驱动器的某个地方。Common Internet File System (CIFS) 是一个网络文件共享协议，它是 smb 的一种格式。安装首先我们安装 CIFS 工具：sudo apt install cifs-utils
-加载加载一个远程 smb 共享和加载本地文件系统类似，使用 mount 命令实现。需要首先创建一个加载目录服务于远程路径：sudo mkdir /mnt/h99_share
-通过下面命令加载某个 smb 共享：sudo mount -t cifs -o username=win_share_user,password=win_share_password //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-其中 username 和 password 是访问远程设备的账户密码，需要在配置 smb 共享时设置好。后面需要定义远程地址及共享目录，最后指定本地映射的目录地址。默认情况下加载的共享目录所有者为 root 且权限为 777。通过 dir_mode 和 file_mode 参数可以自定义挂载的目录权限：sudo mount -t cifs -o username=win_share_user,password=win_share_password,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-如果当前登录用户不是 root 用户，则可能你无法修改共享目录下的内容，可以在挂载时指定用户和用户组：sudo mount -t cifs -o username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755 //xxx.xxx.xxx.xxx/usbshare /mnt/h99_share
-以上示例中，我们设置用户和用户组为 marco，这样当本地用户登录为 marco 时就可以读写共享目录的内容了。自动挂载以上命令挂载的目录在系统重启后会取消。在 /etc/fstab 文件中可以定义指定的路径及文件系统在系统启动时自动挂载。下面我们在此文件中定义自动挂载配置，需要指定远程地址，共享目录以及本地映射地址：# &lt;file system&gt;             &lt;dir&gt;          &lt;type&gt; &lt;options&gt;                                                                                           &lt;dump&gt;  &lt;pass&gt;                             
-//xxx.xxx.xxx.xxx/usbshare  /mnt/h99_share  cifs  username=win_share_user,password=win_share_password,uid=marco,gid=marco,dir_mode=0755,file_mode=0755  0       0配置好 fatab 文件后，我们就可以使用以下命令直接挂载对应远程目录了：sudo mount /mnt/h99_share
-mount 命令会自动读取 /etc/fstab 文件并挂载对应远程地址目录。并且下次系统重启会自动挂载此目录。卸载目录通过 umount 命令可以下载已经加载的文件系统：sudo umount /mnt/h99_share
-如果当前加载的文件正在被其他进程使用，则 umount 卸载会失败，提示文件正忙。查询当前加载目录正在被那个进程使用，可以通过 fuser 命令实现：fuser -m /mnt/h99_share
-可以根据输出信息使用 kill 结束对应进程，然后就可以正常卸载了。参考链接How to Mount Windows Share on Linux using CIFSForcing Linux to Unmount a Filesystem Reporting “device is busy”</description>
 </item>
 </rdf:RDF>
