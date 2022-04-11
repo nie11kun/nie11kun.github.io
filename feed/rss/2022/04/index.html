@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2621.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2613.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2611.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2589.html"/>
@@ -19,6 +20,25 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2621.html">
+<title>systemd 服务加载 env 环境变量</title>
+<link>https://blog.niekun.net/archives/2621.html</link>
+<dc:date>2022-04-11T11:21:00+08:00</dc:date>
+<description>最近在测试中发现，通过 systemd service 启动的 python 脚本无法加载系统 bashrc 内定义的环境变量。需要在 uint 中定义自定义环境变量才能生效。首先建立自定义环境变量文件，如： /etc/env_addon，其中定义需要的环境变量：ENV1=abcd
+ENV2=5678然后在 unit 的 service 块中加入 EnvironmentFile 指向建立的环境变量文件：[Unit]
+Description=demo
+After=network.target nss-lookup.target
+
+[Service]
+User=root
+EnvironmentFile=/etc/env_addon
+ExecStart=/usr/bin/python /path/main.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target重新加载并重启服务：sudo systemctl daemon-reload
+sudo systemctl restart demo.service如果需要系统的 ~/.bashrc 同时加载这个自定义的环境变量文件，可以在 bashrc 中加入下面内容：set -a; source /etc/env_addon; set +a重新加载环境：source ~/.bashrc参考链接：Using a user's .bashrc in a systemd serviceUsing environment variables in systemd units Environment directive</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2613.html">
 <title>修改虚拟交换机 MTU 提高 esxi 虚拟机网络速度</title>
 <link>https://blog.niekun.net/archives/2613.html</link>

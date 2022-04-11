@@ -157,21 +157,28 @@ x = txt.strip()输出：x = 'banana'删除字符串前和后的自定义字符�
 x = txt.strip(&quot;,.grt&quot;)输出： x = 'banana'</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/428.html">
-<title>使用 telegram bot 做一个 YouTube 下载器</title>
+<title>使用 telegram bot 做一个视频下载器</title>
 <link>https://blog.niekun.net/archives/428.html</link>
 <dc:date>2019-10-16T15:56:00+08:00</dc:date>
-<description>需要环境：Linuxpython3python-telegram-botyoutube-dlpython我是用的是 python3.4，使用系统包管理器安装：apt-get install python3.4
+<description>需要环境：Linuxpython3python-telegram-botyt-dlpinstaloaderpython我是用的是 python3.8，使用系统包管理器安装：apt install python3
 如果系统内安装了多个版本的 python，修改 /usr/bin/python 的默认链接，具体修改方法查看此教程：https://niekun.net/index.php/archives/413.htmlpython-telegram-bot安装或升级： pip install python-telegram-bot --upgrade
-youtube-dlGitHub：https://github.com/ytdl-org/youtube-dl安装最新版库：sudo curl -L -k https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
-sudo chmod a+rx /usr/local/bin/youtube-dl如果运行 youtube-dl 报错，可以新建链接到系统程序目录：ln -s /usr/local/bin/youtube-dl /usr/bin/youtube-dl
-升级 youtube-dl 也可以使用 pip 完成：pip install --upgrade youtube-dl
-升级后的可执行文件默认在 pip 目录下，如果使用的 python 是自己编译安装的那需要手动去 python 的 bin 目录下找到 youtube-dl 文件创建软连接到 /usr/local/bin 目录。可能运行报错问题及解决执行脚本后，出现类似如下错误：from tornado.httpserver import HTTPServer from tornado.httpserver import HTTPServer 
+yt-dlp 安装原来的 youtube-dl 最近好久不更新了，发现下载速度极慢，最近切换到 yt-dlp 效果很好。GitHub：https://github.com/yt-dlp/yt-dlppip 方式安装及更新：python3 -m pip install -U yt-dlp
+instaloader 安装instaloader 可以下载 Instagram 的图片或视频。GitHub 主页：https://github.com/instaloader/instaloaderinstaloader 需要 python 3.5 以上。推荐直接安装最新版 python。使用 pip3 安装：pip3 install instaloader --upgrade
+telegram bot首先在 telegram 客户端内添加 BotFatherCreating a new botUse the /newbot command to create a new bot. The BotFather will ask you for a name and username, then generate an authorization token for your new bot.The name of your bot is displayed in contact details and elsewhere.The Username is a short name, to be used in mentions and telegram.me links. Usernames are 5-32 characters long and are case insensitive, but may only include Latin characters, numbers, and underscores. Your bot's username must end in ‘bot’, e.g. ‘tetris_bot’ or ‘TetrisBot’.The token is a string along the lines of 110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw that is required to authorize the bot and send requests to the Bot API. Keep your token secure and store it safely, it can be used by anyone to control your bot.Generating an authorization tokenIf your existing token is compromised or you lost it for some reason, use the /token command to generate a new one.bot 源码我的开源地址：https://github.com/nie11kun/telegram-bot-youtube-downloader使用脚本需要配置两个环境变量：BOT_TOKEN, INS_ACCOUNT。分别是 bot token 和你的 Instagram 用户名。开机自动运行脚本较新的 Linux 发行版可以使用 systemd 来实现自动启动，参考：https://blog.niekun.net/archives/1334.html以下是 telegrambot-downloader.service unit 内容：[Unit]
+Description=telegrambot to download media Service
+After=network.target nss-lookup.target
+
+[Service]
+User=root
+EnvironmentFile=/etc/env_addon
+ExecStart=/usr/bin/python /home/script/telegram-bot-youtube-downloader/main.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target其中 EnvironmentFile 指向了自定义的环境变量文件地址，文件内容如下：BOT_TOKEN=xxxxxxxxxxxxxx
+INS_ACCOUNT=xxxxxx可能运行报错问题及解决执行脚本后，出现类似如下错误：from tornado.httpserver import HTTPServer from tornado.httpserver import HTTPServer 
 syntaxError: invalid syntax可能是 tornado 版本过高，需要进行降级：pip install tornado==4.5.3
-telegram bot首先在 telegram 客户端内添加 BotFatherCreating a new botUse the /newbot command to create a new bot. The BotFather will ask you for a name and username, then generate an authorization token for your new bot.The name of your bot is displayed in contact details and elsewhere.The Username is a short name, to be used in mentions and telegram.me links. Usernames are 5-32 characters long and are case insensitive, but may only include Latin characters, numbers, and underscores. Your bot's username must end in ‘bot’, e.g. ‘tetris_bot’ or ‘TetrisBot’.The token is a string along the lines of 110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw that is required to authorize the bot and send requests to the Bot API. Keep your token secure and store it safely, it can be used by anyone to control your bot.Generating an authorization tokenIf your existing token is compromised or you lost it for some reason, use the /token command to generate a new one.源码地址https://github.com/nie11kun/telegram-bot-youtube-downloader开机自动运行脚本较新的 Linux 发行版可以使用 systemd 来实现自动启动，参考：https://blog.niekun.net/archives/1334.html以下方式适合 Ubuntu 14.04 以下。打开 rc.localvim /etc/init.d/rc.local
-在最后添加：sudo python /your/script/path.py &amp;
-最后使用 "&" 符号功能是让脚本在后台运行，如果要停止脚本需要kill 它的 PID。查看当前脚本的 PID：ps -aux |grep &quot;your.py&quot;
-然后停止脚本：kill %PID
-windows 下可以使用自带的Linux子系统打开 cmd，输入命令：bash，即可打开Linux系统。访问Windows路径：/mnt/your/folder/path注意如果文件夹有空格 " " 在命令行中需要在空格前加转义符 "\"</description>
+</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/413.html">
 <title>Linux / windows 设置默认 python 版本</title>

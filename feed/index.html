@@ -11,8 +11,35 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Sun, 10 Apr 2022 12:59:50 +0800</lastBuildDate>
-<pubDate>Sun, 10 Apr 2022 12:59:50 +0800</pubDate>
+<lastBuildDate>Mon, 11 Apr 2022 11:21:00 +0800</lastBuildDate>
+<pubDate>Mon, 11 Apr 2022 11:21:00 +0800</pubDate>
+<item>
+<title>systemd 服务加载 env 环境变量</title>
+<link>https://blog.niekun.net/archives/2621.html</link>
+<guid>https://blog.niekun.net/archives/2621.html</guid>
+<pubDate>Mon, 11 Apr 2022 11:21:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[最近在测试中发现，通过 systemd service 启动的 python 脚本无法加载系统 bashrc 内定义的环境变量。需要在 uint 中定义自定义环境变量才能生效。首先建立自定义环境...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近在测试中发现，通过 systemd service 启动的 python 脚本无法加载系统 bashrc 内定义的环境变量。需要在 uint 中定义自定义环境变量才能生效。</p><p>首先建立自定义环境变量文件，如： <code>/etc/env_addon</code>，其中定义需要的环境变量：</p><pre><code>ENV1=abcd
+ENV2=5678</code></pre><p>然后在 unit 的 service 块中加入 EnvironmentFile 指向建立的环境变量文件：</p><pre><code>[Unit]
+Description=demo
+After=network.target nss-lookup.target
+
+[Service]
+User=root
+EnvironmentFile=/etc/env_addon
+ExecStart=/usr/bin/python /path/main.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target</code></pre><p>重新加载并重启服务：</p><pre><code>sudo systemctl daemon-reload
+sudo systemctl restart demo.service</code></pre><p>如果需要系统的 <strong>~/.bashrc</strong> 同时加载这个自定义的环境变量文件，可以在 bashrc 中加入下面内容：</p><pre><code>set -a; source /etc/env_addon; set +a</code></pre><p>重新加载环境：</p><pre><code>source ~/.bashrc</code></pre><p><strong>参考链接</strong>：<br><a href="https://stackoverflow.com/questions/49764993/using-a-users-bashrc-in-a-systemd-service">Using a user's .bashrc in a systemd service</a><br><a href="https://www.flatcar.org/docs/latest/setup/systemd/environment-variables/">Using environment variables in systemd units Environment directive</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2621.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
+</item>
 <item>
 <title>修改虚拟交换机 MTU 提高 esxi 虚拟机网络速度</title>
 <link>https://blog.niekun.net/archives/2613.html</link>
@@ -218,20 +245,6 @@ iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2480.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
-</item>
-<item>
-<title>彩图转黑白 in Photoshop</title>
-<link>https://blog.niekun.net/archives/2472.html</link>
-<guid>https://blog.niekun.net/archives/2472.html</guid>
-<pubDate>Mon, 28 Mar 2022 14:04:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[黑白图片在某些场景下有其独特的风格，在人像摄影中可以体现出一种另类的雕塑感，下面通过实例介绍如何从一个彩色图片处理为一张黑白效果。使用的工具主要是 gradient map 和 camera r...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2022/03/3939178568.png" alt="2022-03-28T05:38:15.png" title="2022-03-28T05:38:15.png"></p><p>黑白图片在某些场景下有其独特的风格，在人像摄影中可以体现出一种另类的雕塑感，下面通过实例介绍如何从一个彩色图片处理为一张黑白效果。使用的工具主要是 gradient map 和 camera raw。</p><p>下面是原始图片：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/4128302864.jpg" alt="Black and White - Gradient Map - Sample Image.jpg" title="Black and White - Gradient Map - Sample Image.jpg"></p><p>首先在原图上方建立 gradient map 图层，gradient map 的作用是根据图像的亮度分布进行颜色替换：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/4117532377.png" alt="2022-03-28T05:43:51.png" title="2022-03-28T05:43:51.png"></p><p>首先将下方的 method 改为 classic，这样过渡效果更加平顺一些：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/389677896.png" alt="2022-03-28T05:47:49.png" title="2022-03-28T05:47:49.png"></p><p>默认是一个反色效果渐变，点击渐变条，修改其属性为左边黑色右边白色：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/3910938814.png" alt="2022-03-28T05:46:56.png" title="2022-03-28T05:46:56.png"></p><p>下面我们增加黑白色差效果，调节左侧下方滑块可以使得黑色区域更黑，调节右侧下方滑块可以使得白色区域更白，调节中间滑块可以调节黑白区域范围：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/1041442527.png" alt="2022-03-28T05:50:16.png" title="2022-03-28T05:50:16.png"></p><p>调节到合适效果后确认即可，这样我们初步就有了一个效果。</p><p>下面为了让背景更加黑，我们通过选取提取出背景，创建一个纯黑背景。选中图像图层，选区工具下选中 select and mask：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/2572737743.png" alt="2022-03-28T05:54:09.png" title="2022-03-28T05:54:09.png"></p><p>点击 select subject 可以自动选中主体：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/4005078115.png" alt="2022-03-28T05:55:10.png" title="2022-03-28T05:55:10.png"></p><p>点击 color aware 和 shift edge 调节选区边沿：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/2779694229.png" alt="2022-03-28T05:56:49.png" title="2022-03-28T05:56:49.png"></p><p>确认后可以获取到主体的选取，创建一个 solid color 黑色图层，选中蒙版，ctrl I 反转选区即可：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/3398572673.png" alt="2022-03-28T05:58:39.png" title="2022-03-28T05:58:39.png"></p><p>放大我们可以发现主体边沿和背景没有完美的融合，这时可以通过复制刚才的 gradient map 图层强化黑白效果，然后通过笔刷工具将复制的图层只保留主体边沿部分，注意使用笔刷的时候不透明度调节稍微低一些：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/4030393213.png" alt="2022-03-28T06:10:16.png" title="2022-03-28T06:10:16.png"></p><p>基本效果已经可以了，下面调节细节部分，首先眼睛需要提亮，新建 curves 图层，提亮曲线后反转蒙版，使用笔刷工具涂抹出眼睛的亮度：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/1597724556.png" alt="2022-03-28T06:15:36.png" title="2022-03-28T06:15:36.png"></p><p>黑白图片效果一般在提高锐度的时候会更加具有特点，下面我们通过 camera raw 来做调整。</p><p>首先快捷键 ctrl shift alt E 盖印图层，然后转换为 smart object 方便后期返回来调整参数：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/4247719213.png" alt="2022-03-28T06:19:44.png" title="2022-03-28T06:19:44.png"></p><p>然后点击 filter - camera raw filter 进入编辑模式。</p><p>为了更加强烈的反差，我首先调节了亮度参数：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/2963793412.png" alt="2022-03-28T06:24:52.png" title="2022-03-28T06:24:52.png"></p><p>然后就是锐化的重点 - 提高 clarity 清晰度参数，注意不要调的过高而失真：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/3214151862.png" alt="2022-03-28T06:25:57.png" title="2022-03-28T06:25:57.png"></p><p>完成后保存返回 Photoshop，适当调节不透明度使图片更加自然：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/867381413.png" alt="2022-03-28T06:27:27.png" title="2022-03-28T06:27:27.png"></p><p>最终效果如下：<br><img src="https://blog.niekun.net/usr/uploads/2022/03/4039780371.png" alt="2022-03-28T06:27:53.png" title="2022-03-28T06:27:53.png"></p><!--more-->
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2472.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
 </item>
 </channel>

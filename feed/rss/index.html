@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2621.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2613.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2611.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2589.html"/>
@@ -18,10 +19,28 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2522.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2502.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2480.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2472.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2621.html">
+<title>systemd 服务加载 env 环境变量</title>
+<link>https://blog.niekun.net/archives/2621.html</link>
+<dc:date>2022-04-11T11:21:00+08:00</dc:date>
+<description>最近在测试中发现，通过 systemd service 启动的 python 脚本无法加载系统 bashrc 内定义的环境变量。需要在 uint 中定义自定义环境变量才能生效。首先建立自定义环境变量文件，如： /etc/env_addon，其中定义需要的环境变量：ENV1=abcd
+ENV2=5678然后在 unit 的 service 块中加入 EnvironmentFile 指向建立的环境变量文件：[Unit]
+Description=demo
+After=network.target nss-lookup.target
+
+[Service]
+User=root
+EnvironmentFile=/etc/env_addon
+ExecStart=/usr/bin/python /path/main.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target重新加载并重启服务：sudo systemctl daemon-reload
+sudo systemctl restart demo.service如果需要系统的 ~/.bashrc 同时加载这个自定义的环境变量文件，可以在 bashrc 中加入下面内容：set -a; source /etc/env_addon; set +a重新加载环境：source ~/.bashrc参考链接：Using a user's .bashrc in a systemd serviceUsing environment variables in systemd units Environment directive</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2613.html">
 <title>修改虚拟交换机 MTU 提高 esxi 虚拟机网络速度</title>
 <link>https://blog.niekun.net/archives/2613.html</link>
@@ -156,11 +175,5 @@ iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set
 <link>https://blog.niekun.net/archives/2480.html</link>
 <dc:date>2022-03-29T17:07:00+08:00</dc:date>
 <description>之前介绍过通过高低频率分离可以处理皮肤柔化，它可以方便的单独处理颜色和反差部分。下面介绍通过高低频分离将褶皱的衣服平顺化，同时保持其原有的真实过渡部分。用到的技术主要有：高斯模糊、apply image、linear light、mixer brush tool、patch tool原图如下，可以看到衣服褶皱很明显：首先复制两个图层，分别命名为 color 和 texture：先临时关闭 texture 图层，将 color 图层执行高斯模糊：根据实际情况，调节滑块将主体的布料细节等杂乱色彩柔化，最终基本看不出明显细节：然后打开 texture 图层，执行 image - apply image。layer 选择 下方的 color 图层，混合模式选择 subtract，scale 选择 2，offset 设置为 128，上面设置的意思就是将 texture 图层每个像素都减去下方的 color 图层，将结果减为 0 的部分填充为 50度灰色，scale 影响轮廓范围：然后将 texture 混合模式改为 linear light，我们会发现现在显示的图像和原图是一样的：以上我们就将原图拆解为 color 和 texture 两部分，可以对其进行分别调整。下面我们开始处理褶皱问题，关闭 texture 图层，然后使用 mixer brush tool 将 color 图层颜色分布均匀化处理，这个笔刷可以选取周围图片某个地方的像素，然后在其他地方可以涂抹出相似的颜色。由于需要使用色彩选取功能，首先我们确保选取颜色的时候是 33 或 55 范围而不是单个像素。点击色彩选取工具，将上面的设置为合适数据：然后点击 mixer brush tool，在上面的默认数据基础上将流量调到30左右，将平滑处理降到0：然后使用柔边笔刷，选择一个有褶皱的区域，点击 alt 选取周边一个颜色，开始涂抹需要处理的区域，处理过程中注意不同区域需要尽量选取其周边颜色进行涂抹，这样过度更加自然。涂抹过程中可以打开背景图层观察效果：涂抹完成后打开 texture 查看效果：可以看到很明显的效果，大部分的褶皱都没有了，但是还是可以看到一些线条：但是在 color 图层却不明显，这些线条就是存在于 texture 图层的高频部分，需要在 texture 图层处理它们。使用的方法就是通过污点修复工具将这些线条去掉，选中 texture 图层，这里我使用 patch tool：选取一个需要去除的线条，拖拽到其他完好区域，查看效果：同样的步骤处理其他所有区域，最终效果如下：以上就完成了折痕的处理。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2472.html">
-<title>彩图转黑白 in Photoshop</title>
-<link>https://blog.niekun.net/archives/2472.html</link>
-<dc:date>2022-03-28T14:04:00+08:00</dc:date>
-<description>黑白图片在某些场景下有其独特的风格，在人像摄影中可以体现出一种另类的雕塑感，下面通过实例介绍如何从一个彩色图片处理为一张黑白效果。使用的工具主要是 gradient map 和 camera raw。下面是原始图片：首先在原图上方建立 gradient map 图层，gradient map 的作用是根据图像的亮度分布进行颜色替换：首先将下方的 method 改为 classic，这样过渡效果更加平顺一些：默认是一个反色效果渐变，点击渐变条，修改其属性为左边黑色右边白色：下面我们增加黑白色差效果，调节左侧下方滑块可以使得黑色区域更黑，调节右侧下方滑块可以使得白色区域更白，调节中间滑块可以调节黑白区域范围：调节到合适效果后确认即可，这样我们初步就有了一个效果。下面为了让背景更加黑，我们通过选取提取出背景，创建一个纯黑背景。选中图像图层，选区工具下选中 select and mask：点击 select subject 可以自动选中主体：点击 color aware 和 shift edge 调节选区边沿：确认后可以获取到主体的选取，创建一个 solid color 黑色图层，选中蒙版，ctrl I 反转选区即可：放大我们可以发现主体边沿和背景没有完美的融合，这时可以通过复制刚才的 gradient map 图层强化黑白效果，然后通过笔刷工具将复制的图层只保留主体边沿部分，注意使用笔刷的时候不透明度调节稍微低一些：基本效果已经可以了，下面调节细节部分，首先眼睛需要提亮，新建 curves 图层，提亮曲线后反转蒙版，使用笔刷工具涂抹出眼睛的亮度：黑白图片效果一般在提高锐度的时候会更加具有特点，下面我们通过 camera raw 来做调整。首先快捷键 ctrl shift alt E 盖印图层，然后转换为 smart object 方便后期返回来调整参数：然后点击 filter - camera raw filter 进入编辑模式。为了更加强烈的反差，我首先调节了亮度参数：然后就是锐化的重点 - 提高 clarity 清晰度参数，注意不要调的过高而失真：完成后保存返回 Photoshop，适当调节不透明度使图片更加自然：最终效果如下：</description>
 </item>
 </rdf:RDF>

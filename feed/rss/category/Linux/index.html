@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2621.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2613.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2611.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2572.html"/>
@@ -18,10 +19,28 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2451.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2448.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2321.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2320.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2621.html">
+<title>systemd 服务加载 env 环境变量</title>
+<link>https://blog.niekun.net/archives/2621.html</link>
+<dc:date>2022-04-11T11:21:00+08:00</dc:date>
+<description>最近在测试中发现，通过 systemd service 启动的 python 脚本无法加载系统 bashrc 内定义的环境变量。需要在 uint 中定义自定义环境变量才能生效。首先建立自定义环境变量文件，如： /etc/env_addon，其中定义需要的环境变量：ENV1=abcd
+ENV2=5678然后在 unit 的 service 块中加入 EnvironmentFile 指向建立的环境变量文件：[Unit]
+Description=demo
+After=network.target nss-lookup.target
+
+[Service]
+User=root
+EnvironmentFile=/etc/env_addon
+ExecStart=/usr/bin/python /path/main.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target重新加载并重启服务：sudo systemctl daemon-reload
+sudo systemctl restart demo.service如果需要系统的 ~/.bashrc 同时加载这个自定义的环境变量文件，可以在 bashrc 中加入下面内容：set -a; source /etc/env_addon; set +a重新加载环境：source ~/.bashrc参考链接：Using a user's .bashrc in a systemd serviceUsing environment variables in systemd units Environment directive</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2613.html">
 <title>修改虚拟交换机 MTU 提高 esxi 虚拟机网络速度</title>
 <link>https://blog.niekun.net/archives/2613.html</link>
@@ -288,35 +307,5 @@ tmpfs                   496.5M      1.0M    495.5M   0% /tmp
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
 /dev/sda1                15.7M      3.8M     11.6M  25% /boot
 tmpfs                   512.0K         0    512.0K   0% /dev可以看到 sda3 分区已经正常挂载了，后续可以继续安装需要的各种插件了。参考链接Vmware下openwrt虚拟机扩展根目录大小</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2320.html">
-<title>理解 Linux shell 脚本的 2&amp;gt;&amp;amp;1</title>
-<link>https://blog.niekun.net/archives/2320.html</link>
-<dc:date>2021-05-31T18:33:51+08:00</dc:date>
-<description>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 2&gt;&amp;1，例如：ls foo &gt; /dev/null 2&gt;&amp;1
-下面我们一步步了解下这种结构的含义。I/O redirection 重定向简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 cat 命令打印一个文件的内容到屏幕：$ cat foo.txt
-foo
-bar
-baz我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:$ cat foo.txt &gt; output.txt
-
-$ cat output.txt
-foo
-bar
-baz执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 standard output (stdout)标准输出到一个文件，所以它就不会输出到屏幕了。需要注意的是还有另一个地方：standard error (stderr)标准错误，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：$ cat nop.txt &gt; output.txt
-cat: nop.txt: No such file or directory以上示例中即使我们将 stdout 重定向到一个文件了，由于 output.txt 不存在，stderr 依然会输出错误信息到屏幕。因为我们重定向的只是 stdout 而不包括 stderr。file descriptors 文件描述器一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 stdout 和 stderr 有其各自的文件描述器 id 定义了它们各自的地址。stdout 是 1，stderr 是 2。在之前的示例中，我们可以修改命令为如下结构：cat foo.txt 1&gt; output.txt
-这里的 1 就是 stdout 的文件描述器，通过重定向语法 [FILE_DESCRIPTOR]&gt; 将 stdout 重定向到另一个文件。注意 1&gt; 可以简写为 &gt;。类似的，可以将 stderr 重定向到指定的目的地：$ cat nop.txt 2&gt; error.txt
-
-$ cat error.txt
-cat: nop.txt: No such file or directory这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。下面我们理解下 2&gt;&amp;1 的意义。我们使用 &amp;1 来指向 stdout 的重定向地址，所以 2&gt;&amp;1 表示重定向 stderr 到和 stdout 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 stdout 和 stderr 重定向到同一个文件中：$ cat foo.txt &gt; output.txt 2&gt;&amp;1
-
-$ cat output.txt
-foo
-bar
-baz
-
-$ cat nop.txt &gt; output.txt 2&gt;&amp;1
-
-$ cat output.txt
-cat: nop.txt: No such file or directory总结有两个地方用来让程序发送输出内容：stdout，stderr可以单独定义两个输出的重定向目的地文件描述器用来识别 stdout (1) 和 stderr (2)command &gt; output 是 command 1&gt; output 的简写通过 &amp;[FILE_DESCRIPTOR] 指向一个文件描述器的重定向目标地址上2&gt;&amp;1 可以将 stderr 重定向到 stdout 同样的重定向地址上。反之亦然。参考链接Understanding Shell Script's idiom: 2&gt;&1In the shell, what does “ 2&gt;&1 ” mean?</description>
 </item>
 </rdf:RDF>
