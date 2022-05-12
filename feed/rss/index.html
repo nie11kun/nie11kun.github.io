@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2672.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2642.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2631.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2629.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2589.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2576.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2572.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2570.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2672.html">
+<title>使用曲线匹配颜色 in Photoshop</title>
+<link>https://blog.niekun.net/archives/2672.html</link>
+<dc:date>2022-05-12T10:36:00+08:00</dc:date>
+<description>之前介绍过几种色彩匹配的方法，通过对亮度、颜色、饱和度的进行匹配，也可以通过设置曲线的黑、灰、白场来匹配颜色。下面介绍通过通过提取源图像和目标图像的黑白灰色彩，然后通过曲线将他们进行色彩匹配达到最终的效果。参考教程：精细匹配颜色 in Photoshop简易匹配颜色 in Photoshop用到的技术：曲线，拾色器原图如下：我们的目标是将左边的衣服颜色转换为右边衣服的色彩。首先在背景图层上新建两个空白图层，用来提取两人的衣服的黑白灰色彩信息：通过拾色工具分别拾取两个衣服的黑白灰部区域的色彩，并通过画笔工具记录在两个图层中，注意拾取颜色的时候设置为 3×3 或 5×5：新建曲线图层，放在最上方：首先提取右侧衣服色彩 rgb 信息，快捷键 I 选择拾色工具然后按 shift + alt 键分别在三条色彩上点击，注意操作的时候要选择到最上方的图层，否则拾取的颜色会不对：可以看到面板中保存了三个点位的rgb信息，我们后续需要将左侧的三条色条匹配为这里记录的颜色。下面在曲线图层中操作，我们需要在曲线中找到左侧三条颜色所在的位置，按 shift + ctrl 点击左侧第一条线，在曲线图层中会自动创建一个锚点就是拾取颜色所在的位置，在 rgb，red，green，blue 通道中都会有一个点：同样的方法将左侧三条颜色都在曲线中获取锚点：我们需要在 red green blue 通道的锚点中，将 output 信息修改为目标颜色的对应通道数值，比如右侧第一条亮部 rgb 为：216，92，59。我们就将刚才每个通道的 output 信息修改为这个值：以此类推将左侧三条颜色所在锚点的 output 修改为右侧记录的颜色 rgb 值：将 reference 图层放到曲线上方，可以看到记录的两个衣服色彩的 reference 和 target 图层颜色已经完全一致了：选中拾色器工具，同样的 shift + alt 点击三个之前创建的锚点可以删除它们。下面需要选出左侧衣服部分，临时关闭除背景外的其他图层，使用钢笔工具或其他你常用的工具提取出左侧衣服部分的选区，然后给曲线图层添加图层蒙版：根据实际情况，可以对曲线每个锚点的位置进行微调，以达到最佳效果。最终效果如下：以上就完成了简单的颜色匹配。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2642.html">
 <title>制作水坑效果 in Photoshop</title>
 <link>https://blog.niekun.net/archives/2642.html</link>
@@ -161,19 +167,5 @@ openssl x509 -req -days 730 -in /etc/vmware/ssl/rui.csr -signkey /etc/vmware/ssl
 101238返回值说明当前系统可以设置最大句柄数为 101238.想要修改句柄数需要在对应进程的 procd init script 脚本修改内容，在 start_service 中增加：        procd_set_param limits core=&quot;unlimited&quot;
         procd_set_param limits nofile=&quot;101200&quot;
         procd_set_param limits nproc=&quot;101200&quot;limits 参数可以设置系统的一些限制值，openwrt 可用的限制值名称可以在官方文档找到：https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters以上就将系统限制设置为一个较大的值，修改完成后重启这个进程即可。参考链接Linux命令：TCP连接高并发时Socket句柄数的修改procd-init-scripts#service_parametersprocd-init-script-example#advanced_optionsopenwrt procd init script 自启动脚本服务</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2570.html">
-<title>iptables 配置透明代理注意事项</title>
-<link>https://blog.niekun.net/archives/2570.html</link>
-<dc:date>2022-04-03T08:33:00+08:00</dc:date>
-<description>之前介绍过通过 dnsmasq 配合 iptables 实现对 ip 地址的流量过滤，dnsmasq 获取到流量后标记 ipset 然后通过 iptables 识别 ipset 然后将流量送往指定地址。通过 dnsmasq ipset 和 iptables 对域名流量的控制iptables 使用教程这里面存在一个问题就是流量回环问题，如果处理不好回导致 iptables 规则无限循环，尤其是在配置透明代理时候。iptables -t mangle -A PREROUTING -p tcp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
-iptables -t mangle -A PREROUTING -p udp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
-iptables -t mangle -A OUTPUT -p tcp -m set --match-set gfwlist dst -j MARK --set-mark 1
-iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set-mark 1以上规则会将 指定 list 的流量发送到指定端口并打上 mark 标记，但是从目标地址返回数据后，数据流会再次匹配到以上规则导致再次将流量送往指定端口，导致无限循环。处理方法就是在目标地址获取到流量后，给流量打上 mark 标记，然后在 iptables 的最前面加上一条规则识别从目标地址返回的流量，直接 return 流量即可。例如目标地址处理后的流量标记为 mark 2，iptables 规则最前面增加一条规则：iptables -t mangle -I OUTPUT -j RETURN -m mark --mark 0x02-I 参数就是将规则放在在路由链的最前面。如果是通过脚本的方式配置 iptables，将开始的脚本内容修改如下即可：iptables -t mangle -A OUTPUT -j RETURN -m mark --mark 0x02
-
-iptables -t mangle -A PREROUTING -p tcp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
-iptables -t mangle -A PREROUTING -p udp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
-iptables -t mangle -A OUTPUT -p tcp -m set --match-set gfwlist dst -j MARK --set-mark 1
-iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set-mark 1这样就可以避免流量回环问题。</description>
 </item>
 </rdf:RDF>
