@@ -9,11 +9,33 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2703.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2672.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2642.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2703.html">
+<title>Ubuntu 开启 RDP 远程连接</title>
+<link>https://blog.niekun.net/archives/2703.html</link>
+<dc:date>2022-05-23T10:18:00+08:00</dc:date>
+<description>之前介绍过通过安装 TightVNC vnc server 远程连接 Ubuntu 桌面的教程，Windows 下常用的是 RDP 方式远程，使用体验非常流畅，不占用带宽。Linux 下也可以通过安装 Xrdp 的方式实现 rdp 连接。参考教程：Ubuntu desktop 配置 vnc serverxrdp 是对 Windows rdp 协议的开源实现。安装我的系统是 Ubuntu desktop 20.04，首先需要保证有一个已经安装的桌面环境，desktop 版默认是 genome，也可以安装其他的如 xfce：sudo apt install ubuntu-desktop安装 xrdp：sudo apt install xrdp安装完成后，xrdp 会自动启动，可以通过命令查看状态：$  sudo systemctl status xrdp
+ 
+● xrdp.service - xrdp daemon
+     Loaded: loaded (/lib/systemd/system/xrdp.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2022-05-23 09:50:43 CST; 20min ago
+       Docs: man:xrdp(8)
+             man:xrdp.ini(5)
+    Process: 83586 ExecStartPre=/bin/sh /usr/share/xrdp/socksetup (code=exited, status=0/SUCCESS)
+    Process: 83594 ExecStart=/usr/sbin/xrdp $XRDP_OPTIONS (code=exited, status=0/SUCCESS)
+   Main PID: 83595 (xrdp)
+      Tasks: 2 (limit: 9459)
+     Memory: 26.4M
+     CGroup: /system.slice/xrdp.service
+             ├─83595 /usr/sbin/xrdp
+             └─83597 /usr/sbin/xrdp默认 rdp 端口为 3389.配置xrdp 安装后，会自动将一个 ssl key ssl-cert-snakeoil.key 放入 /etc/ssl/private/ 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：sudo adduser xrdp ssl-cert默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 /etc/xrdp/startwm.sh 文件，在文件最后的 test -x /etc/X11/Xsession 前面加入如下内容：unset DBUS_SESSION_BUS_ADDRESS
+unset XDG_RUNTIME_DIR重启 xrdp 服务：sudo systemctl restart xrdp现在就可以正常通过 rdp 连接到 Ubuntu了。参考链接How to Install Xrdp on Ubuntu 20.04</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2672.html">
 <title>使用曲线匹配颜色 in Photoshop</title>
 <link>https://blog.niekun.net/archives/2672.html</link>

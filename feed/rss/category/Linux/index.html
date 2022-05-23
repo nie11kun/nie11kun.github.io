@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2703.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2621.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2613.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2611.html"/>
@@ -18,10 +19,30 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2454.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2451.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2448.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2321.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2703.html">
+<title>Ubuntu 开启 RDP 远程连接</title>
+<link>https://blog.niekun.net/archives/2703.html</link>
+<dc:date>2022-05-23T10:18:00+08:00</dc:date>
+<description>之前介绍过通过安装 TightVNC vnc server 远程连接 Ubuntu 桌面的教程，Windows 下常用的是 RDP 方式远程，使用体验非常流畅，不占用带宽。Linux 下也可以通过安装 Xrdp 的方式实现 rdp 连接。参考教程：Ubuntu desktop 配置 vnc serverxrdp 是对 Windows rdp 协议的开源实现。安装我的系统是 Ubuntu desktop 20.04，首先需要保证有一个已经安装的桌面环境，desktop 版默认是 genome，也可以安装其他的如 xfce：sudo apt install ubuntu-desktop安装 xrdp：sudo apt install xrdp安装完成后，xrdp 会自动启动，可以通过命令查看状态：$  sudo systemctl status xrdp
+ 
+● xrdp.service - xrdp daemon
+     Loaded: loaded (/lib/systemd/system/xrdp.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2022-05-23 09:50:43 CST; 20min ago
+       Docs: man:xrdp(8)
+             man:xrdp.ini(5)
+    Process: 83586 ExecStartPre=/bin/sh /usr/share/xrdp/socksetup (code=exited, status=0/SUCCESS)
+    Process: 83594 ExecStart=/usr/sbin/xrdp $XRDP_OPTIONS (code=exited, status=0/SUCCESS)
+   Main PID: 83595 (xrdp)
+      Tasks: 2 (limit: 9459)
+     Memory: 26.4M
+     CGroup: /system.slice/xrdp.service
+             ├─83595 /usr/sbin/xrdp
+             └─83597 /usr/sbin/xrdp默认 rdp 端口为 3389.配置xrdp 安装后，会自动将一个 ssl key ssl-cert-snakeoil.key 放入 /etc/ssl/private/ 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：sudo adduser xrdp ssl-cert默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 /etc/xrdp/startwm.sh 文件，在文件最后的 test -x /etc/X11/Xsession 前面加入如下内容：unset DBUS_SESSION_BUS_ADDRESS
+unset XDG_RUNTIME_DIR重启 xrdp 服务：sudo systemctl restart xrdp现在就可以正常通过 rdp 连接到 Ubuntu了。参考链接How to Install Xrdp on Ubuntu 20.04</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2621.html">
 <title>systemd 服务加载 env 环境变量</title>
 <link>https://blog.niekun.net/archives/2621.html</link>
@@ -250,62 +271,5 @@ ldconfig以上问题都处理完后，再次执行升级命令，一切都正常
 <description>我的服务器上在使用 wget 或者 curl 等网络工具时，每次都提示类似下面的报错：ERROR: cannot verify github.com's certificate, issued by ‘CN=DigiCert High Assurance TLS Hybrid ECC SHA256 2020 CA1,O=DigiCert\\, Inc.,C=US’:
   Unable to locally verify the issuer's authority.
 To connect to github.com insecurely, use `--no-check-certificate'.需要通过参数跳过证书检查，但是这样又有了安全风险。首先尝试更新本地证书文件：update-ca-certificates --verbose --fresh发现问题没有解决，原来是系统缺少了一个指向证书路径 /etc/ssl/certs 的环境变量，尝试添加：export SSL_CERT_DIR=/etc/ssl/certs再次测试 wget 命令，发现问题的确没有了。可以将上面的环境变量添加到系统 shell 配置文件中，我这里是 ~/.bashrc，添加后刷新一下即可：source ~/.bashrc在更新 Ubuntu18.04 到 20.04 时，也是这个问题导致的报错。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2321.html">
-<title>openwrt 扩展根目录空间</title>
-<link>https://blog.niekun.net/archives/2321.html</link>
-<dc:date>2021-06-22T21:40:00+08:00</dc:date>
-<description>我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：root@OpenWrt:~# df -h
-Filesystem                Size      Used Available Use% Mounted on
-/dev/root               252.0M    241.4M      5.5M  98% /rom
-tmpfs                   496.5M     68.0K    496.4M   0% /tmp
-/dev/sda1                15.7M      3.8M     11.6M  25% /boot
-/dev/sda1                15.7M      3.8M     11.6M  25% /boot
-tmpfs                   512.0K         0    512.0K   0% /dev其中 /dev/root 是系统固件目录，不用考虑。/dev/sda* 就是系统实际可用的硬盘空间。我明明分配了 5 GB 空间给 openwrt 但是由于系统分区是在下载的固件中定义好的，所以其余空间就没有被识别。由于默认存储空间过小，当安装了过多的插件后，会提示空间不足导致无法安装更多插件：verify_pkg_installable: Only have 0kb available on filesystem /overlay, pkg luci-app-openvpn needs 9
-opkg_install_cmd: Cannot install package luci-app-openvpn下面介绍如何将剩余空间挂在到 openwrt 中。首先安装需要的插件，注意顺序不能错：opkg update
-opkg install block-mount e2fsprogs
-opkg update
-opkg install fdisk blkid然后配置存储空间，注意 fdisk 指令后的几个选项：fdisk -l
-
-fdisk /dev/sda
-m
-n
-p
-&lt;默认,回车&gt; //–&gt;分区号为3
-&lt;默认,回车&gt;
-&lt;默认,回车&gt;
-w
-
-reboot重启后，格式化刚才建立的分区：mkfs.ext4 /dev/sda3
-reboot重启后配置 fstab：uci add fstab mount
-
-# 将下面第一行命令输出的 UUID 替换第二行命令后的 UUID
-blkid -s UUID /dev/sda3 | cut -d\&quot; -f2
-uci set fstab.@mount[-1].uuid=UUID
-
-uci set fstab.@mount[-1].options=rw,sync,noatime
-uci set fstab.@mount[-1].fstype=ext4
-uci set fstab.@mount[-1].enabled_fsck=1
-uci set fstab.@mount[-1].enabled=1
-uci set fstab.@mount[-1].target=/
-uci set fstab.@mount[-1].device=/dev/sda3
-uci commit fstab然后根目录复制到新的分区下：mkdir /mnt/sda3
-mount /dev/sda3 /mnt/sda3
-mkdir -p /tmp/cproot
-mount --bind / /tmp/cproot
-tar -C /tmp/cproot -cvf - . | tar -C /mnt/sda3 -xf -
-
-umount /tmp/cproot
-umount /mnt/sda3然后启用引导：/etc/init.d/fstab enable
-/etc/init.d/fstab start
-
-reboot重启后再次查看系统分区信息：root@OpenWrt:~# df -h
-Filesystem                Size      Used Available Use% Mounted on
-/dev/root               252.0M    241.4M      5.5M  98% /rom
-tmpfs                   496.5M      1.0M    495.5M   0% /tmp
-/dev/sda3                 4.6G    257.2M      4.1G   6% /
-/dev/sda1                15.7M      3.8M     11.6M  25% /boot
-/dev/sda1                15.7M      3.8M     11.6M  25% /boot
-tmpfs                   512.0K         0    512.0K   0% /dev可以看到 sda3 分区已经正常挂载了，后续可以继续安装需要的各种插件了。参考链接Vmware下openwrt虚拟机扩展根目录大小</description>
 </item>
 </rdf:RDF>

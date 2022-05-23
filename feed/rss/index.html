@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2703.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2672.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2642.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2631.html"/>
@@ -18,10 +19,30 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2611.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2589.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2576.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2572.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2703.html">
+<title>Ubuntu 开启 RDP 远程连接</title>
+<link>https://blog.niekun.net/archives/2703.html</link>
+<dc:date>2022-05-23T10:18:00+08:00</dc:date>
+<description>之前介绍过通过安装 TightVNC vnc server 远程连接 Ubuntu 桌面的教程，Windows 下常用的是 RDP 方式远程，使用体验非常流畅，不占用带宽。Linux 下也可以通过安装 Xrdp 的方式实现 rdp 连接。参考教程：Ubuntu desktop 配置 vnc serverxrdp 是对 Windows rdp 协议的开源实现。安装我的系统是 Ubuntu desktop 20.04，首先需要保证有一个已经安装的桌面环境，desktop 版默认是 genome，也可以安装其他的如 xfce：sudo apt install ubuntu-desktop安装 xrdp：sudo apt install xrdp安装完成后，xrdp 会自动启动，可以通过命令查看状态：$  sudo systemctl status xrdp
+ 
+● xrdp.service - xrdp daemon
+     Loaded: loaded (/lib/systemd/system/xrdp.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2022-05-23 09:50:43 CST; 20min ago
+       Docs: man:xrdp(8)
+             man:xrdp.ini(5)
+    Process: 83586 ExecStartPre=/bin/sh /usr/share/xrdp/socksetup (code=exited, status=0/SUCCESS)
+    Process: 83594 ExecStart=/usr/sbin/xrdp $XRDP_OPTIONS (code=exited, status=0/SUCCESS)
+   Main PID: 83595 (xrdp)
+      Tasks: 2 (limit: 9459)
+     Memory: 26.4M
+     CGroup: /system.slice/xrdp.service
+             ├─83595 /usr/sbin/xrdp
+             └─83597 /usr/sbin/xrdp默认 rdp 端口为 3389.配置xrdp 安装后，会自动将一个 ssl key ssl-cert-snakeoil.key 放入 /etc/ssl/private/ 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：sudo adduser xrdp ssl-cert默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 /etc/xrdp/startwm.sh 文件，在文件最后的 test -x /etc/X11/Xsession 前面加入如下内容：unset DBUS_SESSION_BUS_ADDRESS
+unset XDG_RUNTIME_DIR重启 xrdp 服务：sudo systemctl restart xrdp现在就可以正常通过 rdp 连接到 Ubuntu了。参考链接How to Install Xrdp on Ubuntu 20.04</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2672.html">
 <title>使用曲线匹配颜色 in Photoshop</title>
 <link>https://blog.niekun.net/archives/2672.html</link>
@@ -143,29 +164,5 @@ openssl x509 -req -days 730 -in /etc/vmware/ssl/rui.csr -signkey /etc/vmware/ssl
 <link>https://blog.niekun.net/archives/2576.html</link>
 <dc:date>2022-04-09T09:49:46+08:00</dc:date>
 <description>人像处理中皮肤修复是很重要也很浪费时间的步骤，之前介绍了通过频率分离的方法处理，下面介绍一种快速有效的皮肤修复方法。PHP频率分离处理皮肤 in PhotoshopPhotoshop 皮肤处理进阶使用到的技术：反转图像、vivid light、high pass 高反差保留、高斯模糊原图如下：复制原图图层，转换为 smart object 方便后期调整，快捷键 ctrl I 反转图像：混合模式改为 vivid light：选择 filter - other - high pass：设置合适数值，使面部细节模糊，痘痘消失：选择 gilter - blur - 高斯模糊，调整数值使得面部细节纹理恢复，但面部瑕疵消失：此时这个图层就完成了面部瑕疵的修复，但我们只需要这种处理对面部需要的地方生效，所以按住 alt 点击建立图层蒙版，然后用白色笔刷工具刷出需要处理的皮肤部分：最终效果如下：</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2572.html">
-<title>openwrt 修改进程 Socket 句柄数</title>
-<link>https://blog.niekun.net/archives/2572.html</link>
-<dc:date>2022-04-03T08:50:00+08:00</dc:date>
-<description>最近在使用中发现一个软件 log 中出现大量的报错：/core/transport/internet/tcp: failed to accepted raw connections &gt; accept tcp [::]:18919: accept4: too many open files查询后知道这是进程占用的句柄数超出了系统最大值导致的。由于我的系统是 openwrt 所以下面介绍如何修改某个进程的最大句柄数限制。首先查询当前系统当前的句柄限制值：ulimit -n
-
-1024也可以查询当前系统的其他所有限制参数：ulimit -a返回 1024 表示当前系统每个进程的限制值是 1024。然后我们查询下当前系统进程中占用情况：lsof -n |awk '{print $2}'|sort|uniq -c |sort -nr|more
-
-     8790 2390
-     41 2638
-     27 1914
-     26 1
-     25 2127
-     23 2166
-     23 1976
-     23 1704可以看到进程PID号 2390 就占用了 8790 个句柄，这肯定超出了系统限制，我们看看这个 2390 到底是那个程序：ps | grep 2390
-
- 2390 root     5005m S    /usr/bin/v2ray -confdir /etc/v2ray/conf.d
- 6815 root      1072 R    grep 2390发现的确是我报错的那个程序占用了这个进程。然后我们查询系统可以设置的最大句柄数：cat /proc/sys/fs/file-max
-
-101238返回值说明当前系统可以设置最大句柄数为 101238.想要修改句柄数需要在对应进程的 procd init script 脚本修改内容，在 start_service 中增加：        procd_set_param limits core=&quot;unlimited&quot;
-        procd_set_param limits nofile=&quot;101200&quot;
-        procd_set_param limits nproc=&quot;101200&quot;limits 参数可以设置系统的一些限制值，openwrt 可用的限制值名称可以在官方文档找到：https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters以上就将系统限制设置为一个较大的值，修改完成后重启这个进程即可。参考链接Linux命令：TCP连接高并发时Socket句柄数的修改procd-init-scripts#service_parametersprocd-init-script-example#advanced_optionsopenwrt procd init script 自启动脚本服务</description>
 </item>
 </rdf:RDF>
