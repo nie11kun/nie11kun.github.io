@@ -36,7 +36,12 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
      CGroup: /system.slice/xrdp.service
              ├─83595 /usr/sbin/xrdp
              └─83597 /usr/sbin/xrdp</code></pre><p>默认 rdp 端口为 3389.</p><h3>配置</h3><p>xrdp 安装后，会自动将一个 ssl key <code>ssl-cert-snakeoil.key</code> 放入 <code>/etc/ssl/private/</code> 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：</p><pre><code>sudo adduser xrdp ssl-cert</code></pre><p>默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 <code>/etc/xrdp/startwm.sh</code> 文件，在文件最后的 <code>test -x /etc/X11/Xsession</code> 前面加入如下内容：</p><pre><code>unset DBUS_SESSION_BUS_ADDRESS
-unset XDG_RUNTIME_DIR</code></pre><p>重启 xrdp 服务：</p><pre><code>sudo systemctl restart xrdp</code></pre><p>现在就可以正常通过 rdp 连接到 Ubuntu了。</p><h3>参考链接</h3><p><a href="https://www.tecmint.com/install-xrdp-on-ubuntu/">How to Install Xrdp on Ubuntu 20.04</a></p>
+unset XDG_RUNTIME_DIR</code></pre><p>重启 xrdp 服务：</p><pre><code>sudo systemctl restart xrdp</code></pre><p>现在就可以正常通过 rdp 连接到 Ubuntu了。</p><p>在使用中，我出现了输入用户密码后停留在解锁界面无法登录进去的问题，经过查询 xdrp 目前不可以同时在多个设备上尝试登录。同时登录 xrdp 的用户如果和正常在主机上登录的是同一个用户，需要删除 <code>dbus-user-session</code> 包，用 <code>dbus-x11</code> 代替。第三点，需要保证 gdm3 运行，执行下面的命令：</p><pre><code>sudo apt remove dbus-user-session
+sudo apt install dbus-x11
+
+sudo systemctl set-default graphical
+sudo systemctl isolate graphical</code></pre><p>重启 xrdp 服务：</p><pre><code>sudo systemctl restart xrdp</code></pre><p>此时应该就可以正常通过 rdp 客户端链接 ubuntu 界面了。</p><p>但是我测试发现，第一次登录进去没问题，关闭后过一会儿再次尝试链接发现卡在登录界面没反应了，尝试执行如下命令：</p><pre><code>echo xfce4-session &gt; $HOME/.xsession
+chmod +x .xsession</code></pre><p>发现问题似乎解决了，但是调用的事 xfce 桌面环境。</p><h3>远程登录</h3><p>在局域网下访问比较流畅，但是在外网下发现没法达到 Windows rdp 流畅的效果。解决方法可以是在外网通过 rdp 链接一个局域网下 Windows 设备，然后在 Windows 设备下通过 rdp 链接局域网内的 ubuntu 设备。</p><h3>参考链接</h3><p><a href="https://www.tecmint.com/install-xrdp-on-ubuntu/">How to Install Xrdp on Ubuntu 20.04</a><br><a href="https://github.com/neutrinolabs/xrdp/issues/1795#issuecomment-859471779">Xrdp stuck on login, after password is entered, unblocked if I unlock from the ubuntu rdp server</a><br><a href="https://github.com/neutrinolabs/xrdp/wiki/Debian-dbus-user-session-package">Using the console and XRDP together in Debian / Ubuntu / Mint</a><br><a href="https://github.com/neutrinolabs/xrdp/issues/1412#issuecomment-730311330">XRDP session immediately closes after loggin in</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2703.html#comments</comments>

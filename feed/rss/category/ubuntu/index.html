@@ -36,7 +36,12 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
      CGroup: /system.slice/xrdp.service
              ├─83595 /usr/sbin/xrdp
              └─83597 /usr/sbin/xrdp默认 rdp 端口为 3389.配置xrdp 安装后，会自动将一个 ssl key ssl-cert-snakeoil.key 放入 /etc/ssl/private/ 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：sudo adduser xrdp ssl-cert默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 /etc/xrdp/startwm.sh 文件，在文件最后的 test -x /etc/X11/Xsession 前面加入如下内容：unset DBUS_SESSION_BUS_ADDRESS
-unset XDG_RUNTIME_DIR重启 xrdp 服务：sudo systemctl restart xrdp现在就可以正常通过 rdp 连接到 Ubuntu了。参考链接How to Install Xrdp on Ubuntu 20.04</description>
+unset XDG_RUNTIME_DIR重启 xrdp 服务：sudo systemctl restart xrdp现在就可以正常通过 rdp 连接到 Ubuntu了。在使用中，我出现了输入用户密码后停留在解锁界面无法登录进去的问题，经过查询 xdrp 目前不可以同时在多个设备上尝试登录。同时登录 xrdp 的用户如果和正常在主机上登录的是同一个用户，需要删除 dbus-user-session 包，用 dbus-x11 代替。第三点，需要保证 gdm3 运行，执行下面的命令：sudo apt remove dbus-user-session
+sudo apt install dbus-x11
+
+sudo systemctl set-default graphical
+sudo systemctl isolate graphical重启 xrdp 服务：sudo systemctl restart xrdp此时应该就可以正常通过 rdp 客户端链接 ubuntu 界面了。但是我测试发现，第一次登录进去没问题，关闭后过一会儿再次尝试链接发现卡在登录界面没反应了，尝试执行如下命令：echo xfce4-session &gt; $HOME/.xsession
+chmod +x .xsession发现问题似乎解决了，但是调用的事 xfce 桌面环境。远程登录在局域网下访问比较流畅，但是在外网下发现没法达到 Windows rdp 流畅的效果。解决方法可以是在外网通过 rdp 链接一个局域网下 Windows 设备，然后在 Windows 设备下通过 rdp 链接局域网内的 ubuntu 设备。参考链接How to Install Xrdp on Ubuntu 20.04Xrdp stuck on login, after password is entered, unblocked if I unlock from the ubuntu rdp serverUsing the console and XRDP together in Debian / Ubuntu / MintXRDP session immediately closes after loggin in</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2451.html">
 <title>Ubuntu 18.04 升级 Ubuntu 20.04 记录</title>

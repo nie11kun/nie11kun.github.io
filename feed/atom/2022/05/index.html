@@ -6,11 +6,75 @@ xml:base="https://blog.niekun.net/2022/05/"
 >
 <title type="text">Marco Nie - 2022年5月</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2022-05-23T10:18:00+08:00</updated>
+<updated>2022-05-25T08:56:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/2022/05/" />
 <id>https://blog.niekun.net/feed/atom/2022/05/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2022/05/" />
+<entry>
+<title type="html"><![CDATA[esxi 配置 GPU 显卡直通给虚拟机使用]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2705.html" />
+<id>https://blog.niekun.net/archives/2705.html</id>
+<updated>2022-05-25T08:56:00+08:00</updated>
+<published>2022-05-25T08:56:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[最近在我家里的 Ubuntu 上安装了 jellyfin 媒体中心，发现局域网内播放高码率视频卡顿严重，原因是默认设置的是软解码导致 cpu 负载很高，在设置里可以开启硬件解码，但是配置后发现播...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2705.html" xml:lang="zh-CN"><![CDATA[
+<p>最近在我家里的 Ubuntu 上安装了 jellyfin 媒体中心，发现局域网内播放高码率视频卡顿严重，原因是默认设置的是软解码导致 cpu 负载很高，在设置里可以开启硬件解码，但是配置后发现播放视频会报错：</p><blockquote>客户端配置文件存在问题，服务器未发送兼容的媒体格式</blockquote><p>看后台 log 日志，发现在 ffmpeg 解码时有如下报错信息：</p><pre><code>[AVHWDeviceContext @ 0x558b80b15a80] libva: vaGetDriverNameByIndex() failed with unknown libva error, driver_name = (null)
+[AVHWDeviceContext @ 0x558b80b15a80] Failed to initialise VAAPI connection: -1 (unknown libva error).
+Device creation failed: -5.
+Failed to set value 'vaapi=va:/dev/dri/renderD128' for option 'init_hw_device': Input/output error
+Error parsing global options: Input/output error</code></pre><!--more--><h3>查找原因</h3><p>测试在 docker-compose.yml 中开启全部权限，配置 root PUID PGID，以及映射 GPU 设备给 docker：</p><pre><code>    environment:
+      - PUID=0
+      - PGID=0
+    devices:
+      - /dev/dri:/dev/dri
+    privileged: true</code></pre><p>重启容器后依然会报错。</p><p>报错信息显示无法读取 gpu 驱动名称，这应该不是 docker 的问题，在主机上测试 <code>vainfo</code> 也会报错：</p><pre><code>$ vainfo
+error: can't connect to X server!
+libva info: VA-API version 1.14.0
+libva error: vaGetDriverNameByIndex() failed with unknown libva error, driver_name = (null)
+vaInitialize failed with error code -1 (unknown libva error),exit</code></pre><p>报错内容和 jellyfin 的日志类似，测试添加环境变量强制指定驱动名称：</p><pre><code>export LIBVA_DRIVER_NAME=iHD</code></pre><p>再次 vainfo：</p><pre><code>$ vainfo
+error: can't connect to X server!
+libva info: VA-API version 1.14.0
+libva info: User environment variable requested driver 'iHD'
+libva info: Trying to open /usr/local/lib/dri/iHD_drv_video.so
+libva info: Found init function __vaDriverInit_1_14
+DRM_IOCTL_I915_GEM_APERTURE failed: Invalid argument
+Assuming 131072kB available aperture size.
+May lead to reduced performance or incorrect rendering.
+get chip id failed: -1 [22]
+param: 4, val: 0
+libva error: /usr/local/lib/dri/iHD_drv_video.so init failed
+libva info: va_openDriver() returns 18
+vaInitialize failed with error code 18 (invalid parameter),exit</code></pre><p>现在看来应该是其他问题了，经过查询，esxi 默认是分配了虚拟显卡给虚拟机，导致虚拟机无法调用 gpu 底层的一些功能，从而导致 ffmpeg 等工具硬件解码失效。处理办法就是在 esxi 上配置显卡直通，然后添加给对应虚拟机直接调用硬件资源。</p><h3>显卡直通</h3><p>显卡直通应该就可以解决上面的问题，但是当我直接进入 esxi 控制台设备管理中却找不到 GPU 设备，原因是 esxi 本身也需要显卡来保证其图形界面的工作，所以在 pci 设备中就默认不可以配置它直通，我们需要通过 ssh 登录 esxi 后台，关闭 GPU 调用，然后手动添加 pci 设备信息，然后就可以在控制台配置直通了。</p><p>通过 ssh 登录 esxi，输入如下命令取消显卡占用，注意取消后就不能连接显示器访问 esxi 后台图形界面了：</p><pre><code>esxcli system settings kernel set -s vga -v FALSE</code></pre><p>后期如果需要取消显卡直通或者登录图形后台需要重新开启显卡调用：</p><pre><code>esxcli system settings kernel set -s vga -v TRUE</code></pre><p>然后修改 <strong>passthru.map</strong> 添加 PCIE 设备 ID 信息。</p><p>终端命令行执行：</p><pre><code>lspci -v
+</code></pre><p>找到显卡设备ID，如图所示：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/3352280738.png" alt="2022-05-25T00:39:59.png" title="2022-05-25T00:39:59.png"></p><p><strong>8086:9bc8</strong> 就是显卡设备 ID，其中 8086 是供应商 ID，也就是代表 Intel，9bc8 就是这块显卡的设备硬件 ID。</p><p>修改<strong>/etc/vmware/passthru.map</strong> 文件，在最底部增加以下信息：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/244215120.png" alt="2022-05-25T00:41:31.png" title="2022-05-25T00:41:31.png"></p><p>完成后保存并退出，然后重启 esxi。</p><p>重启完成后就可以从控制台 pci 设备中找到显卡了：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/1706081722.png" alt="2022-05-25T00:42:58.png" title="2022-05-25T00:42:58.png"></p><p>配置好直通后，给对应虚拟机配置显卡。</p><p>首先编辑虚拟机，CPU虚拟化这三个选项全部取消，未取消开启虚拟机会报错：由于硬件或软件支持不可用,因此无法为 0:2.0 注册设备 <strong>pciPassthru0</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/3232202527.png" alt="2022-05-25T00:44:00.png" title="2022-05-25T00:44:00.png"></p><p>内存勾选<strong>预留所有客户机内存（全部锁定）</strong>选项，不勾选启动虚拟机会报错：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/3432325478.png" alt="2022-05-25T00:44:56.png" title="2022-05-25T00:44:56.png"></p><p>最后添加显卡：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/19783185.png" alt="2022-05-25T00:45:30.png" title="2022-05-25T00:45:30.png"><br><img src="https://blog.niekun.net/usr/uploads/2022/05/3251442515.png" alt="2022-05-25T00:45:40.png" title="2022-05-25T00:45:40.png"></p><p>然后配置虚拟机自定义参数：</p><p>进入<strong>虚拟机选项 → 高级 → 配置参数 → 编辑配置</strong>添加以下参数：</p><pre><code>  键                            值</code></pre><p>hypervisor.cpuid.v0                 FALSE</p><p>此参数的作用：不让操作系统识别是在虚拟机环境运行，一般直通独立显卡需要这样设置，核显可忽略，但设置也无妨。</p><p>如下图所示：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/1105053334.png" alt="2022-05-25T00:47:09.png" title="2022-05-25T00:47:09.png"><br><img src="https://blog.niekun.net/usr/uploads/2022/05/1984221498.png" alt="2022-05-25T00:47:24.png" title="2022-05-25T00:47:24.png"><br><img src="https://blog.niekun.net/usr/uploads/2022/05/323988867.png" alt="2022-05-25T00:47:35.png" title="2022-05-25T00:47:35.png"></p><p>由于虚拟机默认有一个虚拟显卡，我们又添加了一个直通显卡，现在就有了两个显卡，但我们只想要直通的显卡工作，可以在配置参数里添加一行 <strong>svga.present to FALSE</strong>:<br><img src="https://blog.niekun.net/usr/uploads/2022/05/4078790044.png" alt="2022-05-25T00:52:18.png" title="2022-05-25T00:52:18.png"></p><p>这样操作后，我们开启虚拟机后再 <code>/dev/dri</code> 目录下就只会有一个 renderD128：</p><pre><code>&lt;&gt; ls -l /dev/dri/
+total 0
+crw-rw---- 1 root video 226,   0 Oct 23 20:41 card0
+crw-rw---- 1 root video 226, 128 Oct 23 20:41 renderD128</code></pre><p>查看 pci 设备信息：</p><pre><code>&lt;&gt; sudo lspci -v -s  04:00.0
+04:00.0 VGA compatible controller: Intel Corporation HD Graphics 530 (rev 06) (prog-if 00 [VGA controller])
+    Subsystem: Hewlett-Packard Company Device 82bf
+    Physical Slot: 161
+    Flags: bus master, fast devsel, latency 64, IRQ 67
+    Memory at fc000000 (64-bit, non-prefetchable) [size=16M]
+    Memory at d0000000 (64-bit, prefetchable) [size=256M]
+    I/O ports at 7000 [size=64]
+    Expansion ROM at &lt;unassigned&gt; [disabled]
+    Capabilities: [40] Vendor Specific Information: Len=0c &lt;?&gt;
+    Capabilities: [70] Express Endpoint, MSI 00
+    Capabilities: [ac] MSI: Enable+ Count=1/1 Maskable- 64bit-
+    Capabilities: [d0] Power Management version 2
+    Capabilities: [100] Process Address Space ID (PASID)
+    Capabilities: [200] Address Translation Service (ATS)
+    Capabilities: [300] Page Request Interface (PRI)
+    Kernel driver in use: i915
+    Kernel modules: i915</code></pre><p>这样显卡就直接直通给了虚拟机，注意这样配置后包括 esxi 本身和其他虚拟机就没有显卡可用了，导致没有图形界面。</p><h3>参考链接</h3><p><a href="https://nucfans.com/p/4622.html">ESXI 7.02 Intel 核心显卡直通开启3D加速</a><br><a href="https://elatov.github.io/2018/04/esxi-65-passthrough-video-card-to-plex-vm/#disabling-primary-video-card-on-a-vm">ESXi 6.5 Passthrough Video Card/GPU to Plex VM</a><br><a href="https://www.reddit.com/r/PleX/comments/n913ui/hw_transcoding_vaapi_intel_not_working/">HW Transcoding - VAAPI - Intel not working</a><br><a href="https://techzone.vmware.com/resource/deploying-hardware-accelerated-graphics-vmware-horizon-7">Deploying Hardware-Accelerated Graphics with VMware Horizon</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2705.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2022/05/" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Ubuntu 开启 RDP 远程连接]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2703.html" />
@@ -38,7 +102,12 @@ xml:base="https://blog.niekun.net/2022/05/"
      CGroup: /system.slice/xrdp.service
              ├─83595 /usr/sbin/xrdp
              └─83597 /usr/sbin/xrdp</code></pre><p>默认 rdp 端口为 3389.</p><h3>配置</h3><p>xrdp 安装后，会自动将一个 ssl key <code>ssl-cert-snakeoil.key</code> 放入 <code>/etc/ssl/private/</code> 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：</p><pre><code>sudo adduser xrdp ssl-cert</code></pre><p>默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 <code>/etc/xrdp/startwm.sh</code> 文件，在文件最后的 <code>test -x /etc/X11/Xsession</code> 前面加入如下内容：</p><pre><code>unset DBUS_SESSION_BUS_ADDRESS
-unset XDG_RUNTIME_DIR</code></pre><p>重启 xrdp 服务：</p><pre><code>sudo systemctl restart xrdp</code></pre><p>现在就可以正常通过 rdp 连接到 Ubuntu了。</p><h3>参考链接</h3><p><a href="https://www.tecmint.com/install-xrdp-on-ubuntu/">How to Install Xrdp on Ubuntu 20.04</a></p>
+unset XDG_RUNTIME_DIR</code></pre><p>重启 xrdp 服务：</p><pre><code>sudo systemctl restart xrdp</code></pre><p>现在就可以正常通过 rdp 连接到 Ubuntu了。</p><p>在使用中，我出现了输入用户密码后停留在解锁界面无法登录进去的问题，经过查询 xdrp 目前不可以同时在多个设备上尝试登录。同时登录 xrdp 的用户如果和正常在主机上登录的是同一个用户，需要删除 <code>dbus-user-session</code> 包，用 <code>dbus-x11</code> 代替。第三点，需要保证 gdm3 运行，执行下面的命令：</p><pre><code>sudo apt remove dbus-user-session
+sudo apt install dbus-x11
+
+sudo systemctl set-default graphical
+sudo systemctl isolate graphical</code></pre><p>重启 xrdp 服务：</p><pre><code>sudo systemctl restart xrdp</code></pre><p>此时应该就可以正常通过 rdp 客户端链接 ubuntu 界面了。</p><p>但是我测试发现，第一次登录进去没问题，关闭后过一会儿再次尝试链接发现卡在登录界面没反应了，尝试执行如下命令：</p><pre><code>echo xfce4-session &gt; $HOME/.xsession
+chmod +x .xsession</code></pre><p>发现问题似乎解决了，但是调用的事 xfce 桌面环境。</p><h3>远程登录</h3><p>在局域网下访问比较流畅，但是在外网下发现没法达到 Windows rdp 流畅的效果。解决方法可以是在外网通过 rdp 链接一个局域网下 Windows 设备，然后在 Windows 设备下通过 rdp 链接局域网内的 ubuntu 设备。</p><h3>参考链接</h3><p><a href="https://www.tecmint.com/install-xrdp-on-ubuntu/">How to Install Xrdp on Ubuntu 20.04</a><br><a href="https://github.com/neutrinolabs/xrdp/issues/1795#issuecomment-859471779">Xrdp stuck on login, after password is entered, unblocked if I unlock from the ubuntu rdp server</a><br><a href="https://github.com/neutrinolabs/xrdp/wiki/Debian-dbus-user-session-package">Using the console and XRDP together in Debian / Ubuntu / Mint</a><br><a href="https://github.com/neutrinolabs/xrdp/issues/1412#issuecomment-730311330">XRDP session immediately closes after loggin in</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2703.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2022/05/" thr:count="0"/>
