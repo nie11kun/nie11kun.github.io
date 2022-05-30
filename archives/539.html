@@ -15,7 +15,7 @@
 <link rel="alternate" type="application/rss+xml" title="使用 frp 实现内网穿透/远程管理/文件服务器 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/539.html" />
 <link rel="alternate" type="application/rdf+xml" title="使用 frp 实现内网穿透/远程管理/文件服务器 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/539.html" />
 <link rel="alternate" type="application/atom+xml" title="使用 frp 实现内网穿透/远程管理/文件服务器 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/539.html" />
-<script type="56c0b9dd460b5ee5fd21dede-text/javascript">
+<script type="cf22587bb09186027ef79260-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -87,7 +87,7 @@
     };
 })();
 </script>
-<script type="56c0b9dd460b5ee5fd21dede-text/javascript">
+<script type="cf22587bb09186027ef79260-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -105,32 +105,32 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _5yjiz = '808'//'B'
-+//'JW'
-'328'+'199'//'IwE'
-+'96f'//'56Y'
-+//'7D'
-'9e'+'0c2'//'Y'
-+//'uo'
-'a'+//'h'
-'7ff'+'N'//'N'
-+'e'//'rp'
-+'b5'//'f'
-+'7fc'//'eIG'
-+//'q'
-'4'+'DMQ'//'DMQ'
-+//'h'
-'h'+'Q'//'Q'
-+//'mtx'
-'31d'+/* 'W'//'W' */''+//'sI'
-'sI'+//'Wo'
-'1', _YlMZ198 = [[21,22],[28,31],[28,29],[28,29],[31,33]];
+    var _bob = '8'//'j'
++''///*'CLd'*/'CLd'
++'0'//'We'
++'832'//'vVF'
++//'02'
+'81'+//'gLZ'
+'99'+//'Xm'
+'96f'+'XXx'//'XXx'
++//'mx'
+'9'+//'Y'
+'e0c'+'Np'//'Np'
++//'h7'
+'h7'+//'6i'
+'2a7'+//'V3'
+'ffe'+//'YVq'
+'b'+'57f'//'06i'
++//'Ppp'
+'c'+'43'//'y'
++'1d1'//'D'
+, _dAvbY = [[12,15],[16,18],[16,18]];
     
-    for (var i = 0; i < _YlMZ198.length; i ++) {
-        _5yjiz = _5yjiz.substring(0, _YlMZ198[i][0]) + _5yjiz.substring(_YlMZ198[i][1]);
+    for (var i = 0; i < _dAvbY.length; i ++) {
+        _bob = _bob.substring(0, _dAvbY[i][0]) + _bob.substring(_dAvbY[i][1]);
     }
 
-    return _5yjiz;
+    return _bob;
 })();
 
         if (null != r) {
@@ -154,7 +154,7 @@
 })();
 </script><link rel="stylesheet" href="../usr/plugins/YoduBGM/css/player.css?2022"><style>@media only screen and (max-width:766px){.ymusic{display:none}}</style>
 <style>bgm{top: 60px;}</style>
-<script async src='../cdn-cgi/challenge-platform/h/b/scripts/invisible.js?ts=1653847200'></script></head>
+<script async src='../cdn-cgi/challenge-platform/h/b/scripts/invisible.js?ts=1653926400'></script></head>
 <body>
 <header>
 <div class="head-title">
@@ -334,7 +334,7 @@ type = http
 # 客户端 http 页面的地址和端口
 local_ip = 127.0.0.1
 local_port = 80
-use_encryption = false
+use_encryption = true
 use_compression = true
 # 如果服务端域名为 niekun.net, 可以通过链接访问 web01: http://web01.niekun.net:8080，此子域名需要在域名服务商处进行 DNS 解析
 subdomain = web01
@@ -401,8 +401,30 @@ subdomain = test333
 plugin = http2https
 plugin_local_addr = 127.0.0.1:443
 plugin_host_header_rewrite = 127.0.0.1
-plugin_header_X-From-Where = frp</code></pre><p>执行以下命令启动：</p><pre><code>path/to/frpc -c path/to/frpc.ini
-</code></pre><h2>测试</h2><h3>访问内网 ssh</h3><pre><code>ssh -oPort=6006 <a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9feaecfaedf1fef2fadfe7b1e7b1e7b1e7">[email&#160;protected]</a>
+plugin_header_X-From-Where = frp
+
+# 点对点内外穿透，不经过服务端 需要访问和被访问两台设备都安装 frp 并配置 frpc
+# 客户端1-配置内网需要被访问的服务
+[p2p_tcp]
+type = xtcp
+sk = abcdefg          # 配置访问密钥
+local_ip = 127.0.0.1
+local_port = 22       # 需要转发的本地服务端口
+use_encryption = true
+use_compression = true
+
+# 点对点内外穿透 
+# 客户端2-访问客户端1的服务
+[p2p_tcp_visitor]
+role = visitor
+type = xtcp
+server_name = p2p_tcp   # 需要和客户端1配置的名称一致
+sk = abcdefg            # 需要和客户端1配置的密钥一致
+bind_addr = 127.0.0.1
+bind_port = 9001        # 定义一个本地端口，后期可以通过访问这个本地端口访问客户端1的服务
+use_encryption = true
+use_compression = true</code></pre><p>执行以下命令启动：</p><pre><code>path/to/frpc -c path/to/frpc.ini
+</code></pre><h2>测试</h2><h3>访问内网 ssh</h3><pre><code>ssh -oPort=6006 <a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7c090f190e121d11193c04520452045204">[email&#160;protected]</a>
 </code></pre><p>IP 为远程服务器的 IP，username 为内网设备的用户名。输入后提示密码，也为内网设备 ssh 密码。</p><h3>web 服务</h3><pre><code>http://web01.niekun.net:6002
 </code></pre><p>如果设置有用户名密码，会提示口令，然后进入 web 页面。</p><h3>frps 控制面板</h3><pre><code>http://xxx.xxx.xxx.xxx:6004
 </code></pre><h3>文件服务器</h3><p>通过浏览器访问 <code>http://xxx.xxx.xxx.xxx:6020/static/</code> 来查看位于 <code>/tmp/file</code> 目录下的文件，会要求输入已设置好的用户名和密码。</p><h3>转发 DNS 查询请求</h3><p>通过 dig 测试 UDP 包转发是否成功，预期会返回 www.baidu.com 域名的解析结果:</p><pre><code>dig @xxx.xxx.xxx.xxx -p 6033 www.baidu.com
@@ -470,7 +492,7 @@ WantedBy=multi-user.target</code></pre><p><strong>注意如果是服务端需要
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-539">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="539.html#respond-post-539" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-56c0b9dd460b5ee5fd21dede-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="539.html#respond-post-539" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-cf22587bb09186027ef79260-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/539.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -522,11 +544,11 @@ WantedBy=multi-user.target</code></pre><p><strong>注意如果是服务端需要
 </section>
 </div>
 </footer>
-<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../usr/themes/Single/static/kico.js" type="56c0b9dd460b5ee5fd21dede-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="56c0b9dd460b5ee5fd21dede-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="56c0b9dd460b5ee5fd21dede-text/javascript"></script>
-<script type="56c0b9dd460b5ee5fd21dede-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-56c0b9dd460b5ee5fd21dede-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="56c0b9dd460b5ee5fd21dede-text/javascript">
+<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../usr/themes/Single/static/kico.js" type="cf22587bb09186027ef79260-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="cf22587bb09186027ef79260-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="cf22587bb09186027ef79260-text/javascript"></script>
+<script type="cf22587bb09186027ef79260-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-cf22587bb09186027ef79260-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="cf22587bb09186027ef79260-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -535,6 +557,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="56c0b9dd460b5ee5fd21dede-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="56c0b9dd460b5ee5fd21dede-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="56c0b9dd460b5ee5fd21dede-|49" defer=""></script><script type="text/javascript">(function(){window['__CF$cv$params']={r:'71314ff5c95330e9',m:'aKUWBYPnBdmQFWg9_WVbDBRjiKa3Q9rEPfeIIpk9epU-1653849142-0-ATVnhyVvOdnf8snExRZlqtaAVOGnWLNiFsOGtM+F9ooG040Vi5PHV3e2TDEiHPnRTgXxZNcmSFnRMyMC2JYBqq7cPICGU4Jo1EqTPwEasSdo6H20wFGXhQNAu2H3Pj23mTRh7QZZYq5y1vqaVf4SSz4=',s:[0x63797e1f13,0xe9179776fc],u:'/cdn-cgi/challenge-platform/h/b'}})();</script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="cf22587bb09186027ef79260-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="cf22587bb09186027ef79260-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="cf22587bb09186027ef79260-|49" defer=""></script><script type="text/javascript">(function(){window['__CF$cv$params']={r:'71398b05fa6f7c91',m:'bVya8s1C2Mgqa3rqkv6w1R5t_ecXeV.6UIzS_imlo9s-1653935448-0-ATtJtfHFEXEr6YynoqUYLIQA68NoF/ozcFfA6JGYTXkHRw+KE/kHrKOhgl/PDySSVo+ab8CYXTdOfOMKFhRcbG7mPCtkw7rxj69xK0jctEPjLoNBo4W1TtZWumAbJkQfj5zTKfQMQwEplc5e1JYTLvo=',s:[0x8395ed385a,0xbc833f06e4],u:'/cdn-cgi/challenge-platform/h/b'}})();</script></body>
 </html>

@@ -169,7 +169,7 @@ type = http
 # 客户端 http 页面的地址和端口
 local_ip = 127.0.0.1
 local_port = 80
-use_encryption = false
+use_encryption = true
 use_compression = true
 # 如果服务端域名为 niekun.net, 可以通过链接访问 web01: http://web01.niekun.net:8080，此子域名需要在域名服务商处进行 DNS 解析
 subdomain = web01
@@ -236,7 +236,29 @@ subdomain = test333
 plugin = http2https
 plugin_local_addr = 127.0.0.1:443
 plugin_host_header_rewrite = 127.0.0.1
-plugin_header_X-From-Where = frp</code></pre><p>执行以下命令启动：</p><pre><code>path/to/frpc -c path/to/frpc.ini
+plugin_header_X-From-Where = frp
+
+# 点对点内外穿透，不经过服务端 需要访问和被访问两台设备都安装 frp 并配置 frpc
+# 客户端1-配置内网需要被访问的服务
+[p2p_tcp]
+type = xtcp
+sk = abcdefg          # 配置访问密钥
+local_ip = 127.0.0.1
+local_port = 22       # 需要转发的本地服务端口
+use_encryption = true
+use_compression = true
+
+# 点对点内外穿透 
+# 客户端2-访问客户端1的服务
+[p2p_tcp_visitor]
+role = visitor
+type = xtcp
+server_name = p2p_tcp   # 需要和客户端1配置的名称一致
+sk = abcdefg            # 需要和客户端1配置的密钥一致
+bind_addr = 127.0.0.1
+bind_port = 9001        # 定义一个本地端口，后期可以通过访问这个本地端口访问客户端1的服务
+use_encryption = true
+use_compression = true</code></pre><p>执行以下命令启动：</p><pre><code>path/to/frpc -c path/to/frpc.ini
 </code></pre><h2>测试</h2><h3>访问内网 ssh</h3><pre><code>ssh -oPort=6006 username@x.x.x.x
 </code></pre><p>IP 为远程服务器的 IP，username 为内网设备的用户名。输入后提示密码，也为内网设备 ssh 密码。</p><h3>web 服务</h3><pre><code>http://web01.niekun.net:6002
 </code></pre><p>如果设置有用户名密码，会提示口令，然后进入 web 页面。</p><h3>frps 控制面板</h3><pre><code>http://xxx.xxx.xxx.xxx:6004
