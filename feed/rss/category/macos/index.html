@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2727.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2403.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2375.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2353.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1977.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1966.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1773.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1680.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2727.html">
+<title>安装内核插件修复第三方 SSD 导致 MacBook 待机耗电大问题</title>
+<link>https://blog.niekun.net/archives/2727.html</link>
+<dc:date>2022-06-26T13:05:33+08:00</dc:date>
+<description>前几年给我的 MacBook Pro 2015 升级了 512G SSD 硬盘，什么都挺好就是合盖待机耗电量很大，一晚上基本就跑了 20% 电量，之前也研究过解决方法，还写过几篇博客：使用 OpenCore Legacy Patcher 为 2015 款 MacBook Pro 激活 AirPlay，macOS 电源管理修复 MacBook 休眠耗电大问题，但是最后都发现问题依旧。今天在国外苹果论坛上看到有人介绍通过安装一些内核插件降低待机时候 ssd 的功率从而解决耗电问题https://discussions.apple.com/thread/252167491：1) Get the newest firmware, where power management is already better and/or some sleep/wake issues are resolveda) Either by upgrading to Big Sur (or in Catalina, Mojave the latest security updates) with your original SSD insideORb) Upgrading Boot ROM Version without upgrading to Big Sur2) Install tools which significantly lower the idle wattage for 3rd party SSDsa) SsdPmEnablerb) NVMeFix plugin inside liluc) a+b combined reach an even lower wattage in most cases主要是第二条介绍的几个内核插件，SsdPmEnabler, lilu, NVMeFix都是在 GitHub 上的开源软件，三个都是提供 .kext 文件，需要将 .kext 文件复制到系统路径 /Library/Extensions，重启系统即可。后续我会测试是否有效。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2403.html">
 <title>macOS 中给 finder 添加右键打开 vs code 选项</title>
 <link>https://blog.niekun.net/archives/2403.html</link>
@@ -163,34 +169,5 @@ Bottle.aiff    Glass.aiff    Ping.aiff    Sosumi.aifPop.aiff 这个声音就是�
 音频提示除了显示系统通知外，也可以用音频提示，使用 say 命令来完成。osascript -e 'say &quot;Hello World!&quot;'
 提示信息将不显示而是语音播报出来。aria2 下载完成提示脚本download-complete.sh#!/bin/sh
 osascript -e 'display notification &quot;download complete&quot; sound name &quot;Pop.aiff&quot;'参考连接：https://code-maven.com/display-notification-from-the-mac-command-line</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1680.html">
-<title>xattr 命令清除 app 的隔离属性</title>
-<link>https://blog.niekun.net/archives/1680.html</link>
-<dc:date>2020-07-21T12:37:00+08:00</dc:date>
-<description>macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - security 里可以手动允许运行，但是有时候使用这种方法也无法打开，这是由于系统识别到这个 app 可能有问题所以给它加上了 com.apple.quarantine 隔离属性阻止了他的运行。如果我们需要运行它，就需要删除 app 的 com.apple.quarantine 属性，可以使用 xattr 来处理。macOS 上的文件不只有 "normal" 属性，也有 "读", "写", "执行" 等其他属性。常规属性可以用 ls -l myfile 命令来查看。除此之外还可以定义扩展属性，扩展属性的修改可以用 xattr 来处理。命令语法如下：xattr [options] attributes [files]
-可用 option：   -c  CLear all Atrributes.
-   -d  Delete the given attribute.
-   -h  Help.
-   -l  By default, the first two command forms either display just the attribute names or
-       values, respectively. The -l option causes both the attribute names and corresponding
-       values to be displayed. For hex display of values, the output is preceeded with the hex
-       offset values and followed by ASCII display, enclosed by '|'.
-   -p  Print the value associated with the given attribute.
-   -r  If a file argument is a directory, act as if the entire contents of the directory
-       recursively were also specified (so that every file in the directory tree is acted upon).
-   -s  If a file argument is a symbolic link, act on the symbolic link itself, rather than
-       the file that the symbolic link points at.
-   -v  Force the the file name to be displayed, even for a single file.
-   -w  Write a given attribute name with a value.
-   -x  Force the attribute value to be displayed in the hexadecimal representation.   显示一个文件的存在的扩展属性：xattr myfile
-显示一个文件的存在的扩展属性及这个属性的值：xattr -l myfile
-给一个文件添加 com.example.color 属性：xattr -w com.example.color myfile
-清除一个文件的 com.example.color 属性：xattr -d com.example.color myfile
-清除一个文件夹内所有文件的 com.example.color 属性：xattr -d -r com.example.color mydir
-清除一个文件的所有扩展属性：xattr -c myfile
-对于被屏蔽的 app 需要清除com.apple.quarantine  这一属性，处理过程如下：首先查看 app 的现有属性：xattr /path/to/MyApp.app
-如果返回的结果有 com.apple.quarantine 属性则执行下面命令删除：sudo xattr -r -d com.apple.quarantine /path/to/MyApp.app
-执行后就可以正常打开 app 了。</description>
 </item>
 </rdf:RDF>
