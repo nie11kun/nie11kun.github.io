@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2742.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2731.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2727.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2705.html"/>
@@ -18,10 +19,88 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2631.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2629.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2621.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2613.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2742.html">
+<title>Joplin server 搭建</title>
+<link>https://blog.niekun.net/archives/2742.html</link>
+<dc:date>2022-07-14T08:19:00+08:00</dc:date>
+<description>joplin 是一款开源笔记应用，全平台适用，支持多种云端同步方式。最近体验了下感觉不错，尤其是可以自行搭建 server 服务端保存数据，适合喜欢管理整个数据流程的人士。下面介绍如何在服务器通过 docker 搭建 joplin server 的方法。joplin 官网：https://joplinapp.org/GitHub 主页：https://github.com/laurent22/joplin各个平台客户端下载：https://joplinapp.org/download/我的服务器系统平台是 Ubuntu 20.04。docker 环境安装首先如果安装过老版的 docker 先卸载:sudo apt-get remove docker docker-engine docker.io containerd runc
+安装基础环境： sudo apt-get update
+ sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release添加 docker 官方 GPG key：sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo &quot;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot; | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null安装 docker 和 docker-compose： sudo apt-get update
+ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugindocker 配置为非 root 用户，解决执行命令需要 sudo：sudo groupadd docker
+sudo usermod -aG docker $USER
+su - ${USER}配置 docker-compose通过 docker-compose 可以方便的配置 docker 容器设置及多容器之间数据交互。新建 joplin 文件夹用来存放配置 docker-compose.yml 以及 .env 环境变量文件，我喜欢放在 opt 路径下：mkdir /opt/docker/joplin
+cd /opt/docker/joplin
+新建环境变量文件 .env 内容如下：APP_BASE_URL=https://joplin.your.site
+APP_PORT=22300
+# 
+DB_CLIENT=postgres
+POSTGRES_PASSWORD=PASSWORD
+POSTGRES_DATABASE=joplin
+POSTGRES_USER=USERNAME
+POSTGRES_PORT=5432
+POSTGRES_HOST=localhost上面的配置中需要自行修改几项：APP_BASE_URL 修改为你实际访问 joplin 服务的外网地址，需要提前配置好 dns 映射，我是通过 cloudflare 管理的POSTGRES_PASSWORD 修改数据库密码POSTGRES_USER 修改数据库用户名新建 docker-compose.yml 内容如下：version: '3'
+services:
+    db:
+        image: postgres:13
+        volumes:
+            - ./data/postgres:/var/lib/postgresql/data
+        ports:
+            - &quot;5432:5432&quot;
+        restart: unless-stopped
+        environment:
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_DB=${POSTGRES_DATABASE}
+        network_mode: host
+    app:
+        image: joplin/server:latest
+        depends_on:
+            - db
+        ports:
+            - &quot;22300:22300&quot;
+        restart: unless-stopped
+        environment:
+            - APP_PORT=${APP_PORT}
+            - APP_BASE_URL=${APP_BASE_URL}
+            - DB_CLIENT=${DB_CLIENT}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - POSTGRES_DATABASE=${POSTGRES_DATABASE}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PORT=${POSTGRES_PORT}
+            - POSTGRES_HOST=${POSTGRES_HOST}
+        network_mode: hostdocker-compose 会自动调用同一路径下的 .env 文件中定义的环境变量。完成配置后启动容器：docker-compose up -d
+nginx 配置外网访问上面定义的 url 后，需要通过反向代理将数据流传给 joplin server 端口 22300，我使用的是 nginx 配置如下：server {
+    listen        443 ssl http2;
+    listen        [::]:443 ssl http2;
+    server_name   joplin.your.site;
+    include       my-server/ssl; 加入 ssl 相关配置
+
+    location / {
+        proxy_pass          http://127.0.0.1:22300;
+        proxy_redirect      off;
+
+        proxy_set_header    Host              $host;
+        proxy_set_header    X-Real-IP         $remote_addr;
+        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Proto $scheme;
+        proxy_set_header    Upgrade           $http_upgrade;
+        proxy_set_header    Connection        &quot;upgrade&quot;;
+        proxy_http_version  1.1;
+    }
+}完成后重启 nginx：systemctl restart nginx
+访问配置好 docker 和 nginx 后就可以访问上面设置的 url 访问 joplin 了，默认会自动创建一个用户 admin@localhost，密码是 admin。第一次登录进去后最好修改下默认管理员密码，还可以创建多个账户。如果要适用账户的邮件服务，需要额外配置 SMTP 相关的内容，这里不做介绍，新建账户的激活邮件可以在管理菜单中找到，没有配置邮件服务的话无法发送成功，可以手动将邮件中的账户激活链接发送给别人。如果登录网址无法访问网页，可能是 docker 配置有问题，可以通过 log 查看是否有报错信息：docker container list # 查询到容器的 ID
+docker logs ID # 通过 joplin 的容器 ID 查询其日志
+插件joplin 桌面版支持安装插件，第三方插件有很多，可以在下面链接查找：Joplin Plugin Repository参考链接nstall Docker Engine on UbuntuHow To Install and Use Docker on Ubuntu 20.04docker logsjoplin server installdocker-compose.server.yml.env-sample</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2731.html">
 <title>Gradient 渐变色研究</title>
 <link>https://blog.niekun.net/archives/2731.html</link>
@@ -156,11 +235,5 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target重新加载并重启服务：sudo systemctl daemon-reload
 sudo systemctl restart demo.service如果需要系统的 ~/.bashrc 同时加载这个自定义的环境变量文件，可以在 bashrc 中加入下面内容：set -a; source /etc/env_addon; set +a重新加载环境：source ~/.bashrc参考链接：Using a user's .bashrc in a systemd serviceUsing environment variables in systemd units Environment directive</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2613.html">
-<title>修改虚拟交换机 MTU 提高 esxi 虚拟机网络速度</title>
-<link>https://blog.niekun.net/archives/2613.html</link>
-<dc:date>2022-04-10T12:59:50+08:00</dc:date>
-<description>最近发现我的局域网内网下的网速很慢，只有500M左右，达不到 1000M 的速度。我是通过 ipert3 进行测速的。家里的网络是通过 esxi 下安装的 openwrt，ubuntu 等虚拟机控制的，通过 esxi 管理页面可以看到接口都运行在 1000M 全双工模式下，说明网线链接是没有问题的：经过查询发现可以通过修改虚拟交换机的 mtu 值到 9000 来提高网络吞吐量从而加快网速。修改 mtu进入虚拟交换机栏：点击每一个交换机进入设置界面，点击上面的 edit：将 mtu 设置为 9000，并保存配置：虚拟交换机里修改完后，进入 vmkernel NICs 栏：点击 vmk0 进入设置界面，同样的点击 edit 修改其 mtu 为 9000 并保存：以上就完成了整个虚拟环境 mtu 值的修改，再次通过 iperf3 测速，速率能达到 800M。iperf3 使用下面简单介绍使用 iperf3 测试内网传输速率。首先在接收端以下指令运行在服务模式：iperf3 -s然后再发送端执行以下指令启动测速：iperf3 -c xxx.xxx.xxx.xxx -t 30以上指令中将地址替换为接收端 IP 地址，-t 参数可以设置测速时间，单位为秒。参考链接关于 ESXi 虚拟机间拷贝速度慢的问题IPERF: How to test network Speed,Performance,Bandwidth</description>
 </item>
 </rdf:RDF>
