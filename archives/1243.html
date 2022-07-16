@@ -15,7 +15,7 @@
 <link rel="alternate" type="application/rss+xml" title="Typecho 配合 Nginx 设置伪静态链接 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1243.html" />
 <link rel="alternate" type="application/rdf+xml" title="Typecho 配合 Nginx 设置伪静态链接 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1243.html" />
 <link rel="alternate" type="application/atom+xml" title="Typecho 配合 Nginx 设置伪静态链接 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1243.html" />
-<script type="8644cea4ef1705884ff9bbf7-text/javascript">
+<script type="11d75eb46cc5422f861de4da-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -87,7 +87,7 @@
     };
 })();
 </script>
-<script type="8644cea4ef1705884ff9bbf7-text/javascript">
+<script type="11d75eb46cc5422f861de4da-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -105,29 +105,38 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _z7BL3Q = 'b8'//'wKC'
-+'b'//'biz'
-+'5cf'//'j0'
-+'4b0'//'g21'
-+//'6t'
-'f2'+//'xHw'
-'33'+'d0d'//'qmX'
-+'6af'//'X'
-+'eh'//'eh'
-+//'a'
-'a'+//'S'
-'0f'+'e7'//'WuH'
-+//'r3T'
-'506'+//'8'
-'d3b'+'5b'//'ZXU'
-+//'KTq'
-'8', _Gf6 = [[19,21],[19,20]];
+    var _TdG = //'KpU'
+'b'+''///*'a6h'*/'a6h'
++'8b5'//'OEq'
++''///*'F'*/'F'
++''///*'3'*/'3'
++//'FA2'
+'cf4'+''///*'GL'*/'GL'
++//'4'
+'b'+'0f'//'Gn'
++//'Ej'
+'233'+//'FEs'
+'d'+'0d6'//'d'
++//'R'
+'a'+//'c'
+'f0f'+//'aWv'
+'e'+/* 'g'//'g' */''+//'HTK'
+'7'+//'yfc'
+'506'+/* 'j'//'j' */''+//'Fl'
+'d3'+''///*'Z'*/'Z'
++'b'//'iWS'
++''///*'y4'*/'y4'
++'5b'//'P4'
++/* 't2N'//'t2N' */''+''///*'B'*/'B'
++'Ar'//'Ar'
++'8'//'4L'
+, _7Wp = [[31,33]];
     
-    for (var i = 0; i < _Gf6.length; i ++) {
-        _z7BL3Q = _z7BL3Q.substring(0, _Gf6[i][0]) + _z7BL3Q.substring(_Gf6[i][1]);
+    for (var i = 0; i < _7Wp.length; i ++) {
+        _TdG = _TdG.substring(0, _7Wp[i][0]) + _TdG.substring(_7Wp[i][1]);
     }
 
-    return _z7BL3Q;
+    return _TdG;
 })();
 
         if (null != r) {
@@ -185,7 +194,7 @@
 </div>
 </section>
 <article class="post-content">
-<blockquote>这篇文章上次修改于 865 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<blockquote>这篇文章上次修改于 866 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
 <p>由于 typecho 是一个动态网页，每篇文章都 URL 都是形如：<a href="https://niekun.net/index.php/archives/192.html">https://niekun.net/index.php/archives/192.html</a></p><p>这种包含 php 的动态网站首先不太美观链接比较长，而且在搜索引擎索引时也对动态链接不太友好。所以需要将以上链接形式进行处理，使网页看起来更像静态链接，形如：<a href="https://niekun.net/archives/192.html">https://niekun.net/archives/192.html</a>。</p><h3>typecho 设置</h3><p>进入 typecho 后台管理，点击 <strong>设置 - 永久链接</strong>：<br><img src="https://niekun.net/usr/uploads/2020/03/4211582110.png" alt="2020-03-03T13:54:41.png" title="2020-03-03T13:54:41.png"></p><p>是否启用地址重写功能，选择 <strong>启用</strong> 然后保存设置，可能会跳出提示框提示未检测到系统支持地址重写，再次选择启用然后保存设置：<br><img src="https://niekun.net/usr/uploads/2020/03/2003571025.png" alt="2020-03-03T13:55:45.png" title="2020-03-03T13:55:45.png"></p><p>设置后系统就会将链接里的 <strong>index.php</strong> 去掉了，但是这时候如果直接访问文章 URL 的话会出错，因为网站实际链接还是原始的动态链接，下面通过 nginx 的 rewrite 把缺失的 <strong>index.php</strong> 再给他补回去，这样访问就没问题了。</p><h3>Nginx rewrite</h3><p>我使用的反向代理是 Nginx，使用 ngx_http_rewrite_module 进行重定向，可以完成我们期望的效果。</p><p>由于我的域名下有除 blog 外其他的网站，所以我将 rewrite 模块放在 <code>location /</code> 下，使重定向不影响其他 location 段。将 <code>location /</code> 段添加如下内容：</p><pre><code>if (!-e $request_filename) {
     rewrite ^(.*)$ /index.php$1 last;
 }</code></pre><p>使用 if 判断当前请求的 URL 下文件/文件夹是否存在，如果不存在则执行 rewrite，<code>!-e</code> 表示不存在文件/文件夹/链接。<br>rewrite 的过程是：将 $URI 也就是域名后的链接前加上 <code>/index.php</code>，这时候就恢复到原始动态链接了。<br>last 就是 rewrite 完成后将结果 URL 输出重新进行 location 匹配。</p><p>关于 nginx if 语法参考：<a href="https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#if">https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#if</a><br>关于 nginx rewrite 的使用参考：<a href="https://niekun.net/archives/195.html">https://niekun.net/archives/195.html</a></p><p>修改完成后测试及重启 nginx：</p><pre><code>service nginx configtest
@@ -203,7 +212,7 @@ service nginx reload
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-1243">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1243.html#respond-post-1243" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-8644cea4ef1705884ff9bbf7-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="1243.html#respond-post-1243" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-11d75eb46cc5422f861de4da-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/1243.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -255,11 +264,11 @@ service nginx reload
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="8644cea4ef1705884ff9bbf7-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="8644cea4ef1705884ff9bbf7-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="8644cea4ef1705884ff9bbf7-text/javascript"></script>
-<script type="8644cea4ef1705884ff9bbf7-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-8644cea4ef1705884ff9bbf7-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="8644cea4ef1705884ff9bbf7-text/javascript">
+<script src="../usr/themes/Single/static/kico.js" type="11d75eb46cc5422f861de4da-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="11d75eb46cc5422f861de4da-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="11d75eb46cc5422f861de4da-text/javascript"></script>
+<script type="11d75eb46cc5422f861de4da-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-11d75eb46cc5422f861de4da-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="11d75eb46cc5422f861de4da-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -268,6 +277,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="8644cea4ef1705884ff9bbf7-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="8644cea4ef1705884ff9bbf7-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="8644cea4ef1705884ff9bbf7-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'72b493641ca87c1e',m:'Ei0sTMZhFePI2EJUUQC.N4NvEHa0jRX5rd9waFXTFeg-1657909893-0-AffRwvkLEyjesDvSPFDXkufuOppCQRkjpA+z6gz1qTHUjxkIKpgdJALQnIuReYJHZ6r+KHLQY5NEVjapfDDNYPV2oOH532rZURUB15w+spn2Z6IYxEJefi42UehuEprUK5l93DNkbhiSc+lGjZjRk4o=',s:[0xb647d00fed,0x7b9d933146],u:'/cdn-cgi/challenge-platform/h/g'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/g/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="11d75eb46cc5422f861de4da-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="11d75eb46cc5422f861de4da-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="11d75eb46cc5422f861de4da-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'72bcd0b869027ae7',m:'7JLB7fKzhTwZkf.7kZIR2dF9oW_PDJ4M.pcPQiC28vM-1657996291-0-AbCNH13ffAwTufFBb3/OY3W6/pQgkOXkW2Fl+HHCnmOM4tqtQRgVWhRKVBwaXff32/Td9Gk5Ra0V3kEzAs1GreXZlgt5FKrGdhPWf3v/r+/67MN31y4S95aSA9+tbVmiyZgUf2iYm5Vyxjy4IglXr84=',s:[0x9c937e0c91,0xee8713464f],u:'/cdn-cgi/challenge-platform/h/g'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/g/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
