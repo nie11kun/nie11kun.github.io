@@ -6,11 +6,64 @@ xml:base="https://blog.niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2022-07-14T08:19:00+08:00</updated>
+<updated>2022-08-07T14:08:23+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/" />
 <id>https://blog.niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[自建 RustDesk server]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2744.html" />
+<id>https://blog.niekun.net/archives/2744.html</id>
+<updated>2022-08-07T14:08:23+08:00</updated>
+<published>2022-08-07T14:08:23+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[RustDesk 是一款开源的跨平台远程桌面软件，类似于 TeamViewer 的 UI 样式，但它是完全免费的。RustDesk 提供了 3 个免费的转发服务器，会根据你的地理位置自动选择最快...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2744.html" xml:lang="zh-CN"><![CDATA[
+<p>RustDesk 是一款开源的跨平台远程桌面软件，类似于 TeamViewer 的 UI 样式，但它是完全免费的。</p><p>RustDesk 提供了 3 个免费的转发服务器，会根据你的地理位置自动选择最快的，一般使用足够了，如果对安全性有担忧，它们也提供了 server 端应用，可以自建转发服务器。下面就对搭建 server 端做一些介绍。</p><p>RustDesk GitHub 主页：<a href="https://github.com/rustdesk/rustdesk">https://github.com/rustdesk/rustdesk</a><br>RustDesk Server GitHub 主页：<a href="https://github.com/rustdesk/rustdesk-server">https://github.com/rustdesk/rustdesk-server</a></p><p>服务器平台：ubuntu 20.04</p><!--more--><h3>安装 server</h3><p>我是通过 docker 安装的 server 端，这样最快速简单。</p><p>关于 docker 和 docker compose 的安装可以参考我之前的文章：<a href="https://blog.niekun.net/archives/2742.html#title-1">https://blog.niekun.net/archives/2742.html#title-1</a></p><p><strong>docker-compose.yml</strong> 文件内容如下：</p><pre><code>version: '3'
+
+networks:
+  rustdesk-net:
+    external: false
+
+services:
+  hbbs:
+    container_name: hbbs
+    ports:
+      - 21115:21115
+      - 21116:21116
+      - 21116:21116/udp
+      - 21118:21118
+    image: rustdesk/rustdesk-server:latest
+    command: hbbs -r 127.0.0.1:21117
+    volumes:
+      - ./data:/root
+    networks:
+      - rustdesk-net
+    depends_on:
+      - hbbr
+    restart: unless-stopped
+
+  hbbr:
+    container_name: hbbr
+    ports:
+      - 21117:21117
+      - 21119:21119
+    image: rustdesk/rustdesk-server:latest
+    command: hbbr
+    volumes:
+      - ./data:/root
+    networks:
+      - rustdesk-net
+    restart: unless-stopped</code></pre><p>默认监听的是 21117 端口，客户端默认也是链接服务器的这个端口。这里配置监听本地 127.0.0.1。实际在通过域名或 IP 访问服务器时依然可以连接上服务。如果修改这里的默认端口，则在客户端设置的时候也需要指定此端口。</p><p>启动服务：</p><pre><code>docker-compose up -d
+</code></pre><p>此时在客户端设置 ID server：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/43407160.jpg" alt="1.jpg" title="1.jpg"></p><p>在第一行填入服务器 IP 地址即可：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/2720143847.jpg" alt="2.jpg" title="2.jpg"></p><p>确认后，如果下方状态栏显示 <strong>ready</strong> 表示服务器链接正常：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/4049467528.jpg" alt="3.jpg" title="3.jpg"></p><h3>配置域名访问</h3><p>如果想要使用域名作为 server id，只需要在你的域名服务器里加上一条自定义的域名 NS 解析即可，如：rust.abc.com。</p><p>注意如果你使用的是 cloudflare 服务，由于它在启用 CDN 后只支持少数端口的转发，而我们需要使用的是 21115 - 21119 这些端口，所以需要在 dns 配置时取消这个自定义域名的<strong>小黄云</strong>，只使用其 dns 服务：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/1547842714.jpg" alt="4.jpg" title="4.jpg"></p><p>关于 cloudflare 的网络端口转发相关的信息参考官网内容：<a href="https://developers.cloudflare.com/fundamentals/get-started/reference/network-ports/">Network ports</a></p><p>自定义域名配置好后，就可以在客户端的 ID server 中使用域名链接了。方法和上面介绍的用服务器 IP 设置的方法相同。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2744.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Joplin server 搭建]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2742.html" />
@@ -303,36 +356,6 @@ chmod +x .xsession</code></pre><p>发现问题似乎解决了，但是调用的�
 <p>之前介绍过几种锐化方法：</p><ul><li>smart sharpen 配合 darken 和 lighten 混合模式</li><li>通过 overlay 配合 high pass 的方式锐化</li><li>通过频率分离，复制 texture 图层的方式</li></ul><p>下面介绍另一种通过 vivid light 配合高斯模糊的方式锐化且效果很好。</p><!--more--><p>首先复制两份原图，改名为 normal 和 vivid light：<br><img src="https://blog.niekun.net/usr/uploads/2022/04/2371117545.png" alt="2022-04-13T01:54:48.png" title="2022-04-13T01:54:48.png"></p><p>将 vivid light 图层 ctr I 反转图像，然后混合模式修改为 vivid light，并将图层设置为 smart object 方便后期调整：<br><img src="https://blog.niekun.net/usr/uploads/2022/04/3057092689.png" alt="2022-04-13T01:55:53.png" title="2022-04-13T01:55:53.png"></p><p>vivid 图层选择高斯模糊，调整数值到能够提取出细节：<br><img src="https://blog.niekun.net/usr/uploads/2022/04/1396839348.png" alt="2022-04-13T01:57:28.png" title="2022-04-13T01:57:28.png"></p><p>将 vivid 和 normal 图层合并为一个组，将组的混合模式修改为 overlay：<br><img src="https://blog.niekun.net/usr/uploads/2022/04/3392384066.png" alt="2022-04-13T01:59:25.png" title="2022-04-13T01:59:25.png"></p><p>这样整个图像就锐化了，根据实际情况配合蒙版调整锐化区域。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2629.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[systemd 服务加载 env 环境变量]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2621.html" />
-<id>https://blog.niekun.net/archives/2621.html</id>
-<updated>2022-04-11T11:21:00+08:00</updated>
-<published>2022-04-11T11:21:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[最近在测试中发现，通过 systemd service 启动的 python 脚本无法加载系统 bashrc 内定义的环境变量。需要在 uint 中定义自定义环境变量才能生效。首先建立自定义环境...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2621.html" xml:lang="zh-CN"><![CDATA[
-<p>最近在测试中发现，通过 systemd service 启动的 python 脚本无法加载系统 bashrc 内定义的环境变量。需要在 uint 中定义自定义环境变量才能生效。</p><p>首先建立自定义环境变量文件，如： <code>/etc/env_addon</code>，其中定义需要的环境变量：</p><pre><code>ENV1=abcd
-ENV2=5678</code></pre><p>然后在 unit 的 service 块中加入 EnvironmentFile 指向建立的环境变量文件：</p><pre><code>[Unit]
-Description=demo
-After=network.target nss-lookup.target
-
-[Service]
-User=root
-EnvironmentFile=/etc/env_addon
-ExecStart=/usr/bin/python /path/main.py
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target</code></pre><p>重新加载并重启服务：</p><pre><code>sudo systemctl daemon-reload
-sudo systemctl restart demo.service</code></pre><p>如果需要系统的 <strong>~/.bashrc</strong> 同时加载这个自定义的环境变量文件，可以在 bashrc 中加入下面内容：</p><pre><code>set -a; source /etc/env_addon; set +a</code></pre><p>重新加载环境：</p><pre><code>source ~/.bashrc</code></pre><p><strong>参考链接</strong>：<br><a href="https://stackoverflow.com/questions/49764993/using-a-users-bashrc-in-a-systemd-service">Using a user's .bashrc in a systemd service</a><br><a href="https://www.flatcar.org/docs/latest/setup/systemd/environment-variables/">Using environment variables in systemd units Environment directive</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2621.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" thr:count="0"/>
 </entry>
 </feed>

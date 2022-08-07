@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2744.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2213.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2205.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2191.html"/>
@@ -18,10 +19,51 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1506.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1489.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1378.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1443.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2744.html">
+<title>自建 RustDesk server</title>
+<link>https://blog.niekun.net/archives/2744.html</link>
+<dc:date>2022-08-07T14:08:23+08:00</dc:date>
+<description>RustDesk 是一款开源的跨平台远程桌面软件，类似于 TeamViewer 的 UI 样式，但它是完全免费的。RustDesk 提供了 3 个免费的转发服务器，会根据你的地理位置自动选择最快的，一般使用足够了，如果对安全性有担忧，它们也提供了 server 端应用，可以自建转发服务器。下面就对搭建 server 端做一些介绍。RustDesk GitHub 主页：https://github.com/rustdesk/rustdeskRustDesk Server GitHub 主页：https://github.com/rustdesk/rustdesk-server服务器平台：ubuntu 20.04安装 server我是通过 docker 安装的 server 端，这样最快速简单。关于 docker 和 docker compose 的安装可以参考我之前的文章：https://blog.niekun.net/archives/2742.html#title-1docker-compose.yml 文件内容如下：version: '3'
+
+networks:
+  rustdesk-net:
+    external: false
+
+services:
+  hbbs:
+    container_name: hbbs
+    ports:
+      - 21115:21115
+      - 21116:21116
+      - 21116:21116/udp
+      - 21118:21118
+    image: rustdesk/rustdesk-server:latest
+    command: hbbs -r 127.0.0.1:21117
+    volumes:
+      - ./data:/root
+    networks:
+      - rustdesk-net
+    depends_on:
+      - hbbr
+    restart: unless-stopped
+
+  hbbr:
+    container_name: hbbr
+    ports:
+      - 21117:21117
+      - 21119:21119
+    image: rustdesk/rustdesk-server:latest
+    command: hbbr
+    volumes:
+      - ./data:/root
+    networks:
+      - rustdesk-net
+    restart: unless-stopped默认监听的是 21117 端口，客户端默认也是链接服务器的这个端口。这里配置监听本地 127.0.0.1。实际在通过域名或 IP 访问服务器时依然可以连接上服务。如果修改这里的默认端口，则在客户端设置的时候也需要指定此端口。启动服务：docker-compose up -d
+此时在客户端设置 ID server：在第一行填入服务器 IP 地址即可：确认后，如果下方状态栏显示 ready 表示服务器链接正常：配置域名访问如果想要使用域名作为 server id，只需要在你的域名服务器里加上一条自定义的域名 NS 解析即可，如：rust.abc.com。注意如果你使用的是 cloudflare 服务，由于它在启用 CDN 后只支持少数端口的转发，而我们需要使用的是 21115 - 21119 这些端口，所以需要在 dns 配置时取消这个自定义域名的小黄云，只使用其 dns 服务：关于 cloudflare 的网络端口转发相关的信息参考官网内容：Network ports自定义域名配置好后，就可以在客户端的 ID server 中使用域名链接了。方法和上面介绍的用服务器 IP 设置的方法相同。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2213.html">
 <title>ESXi 的安装与使用</title>
 <link>https://blog.niekun.net/archives/2213.html</link>
@@ -275,164 +317,5 @@ http{
     fastcgi_param HTTP_X-FORWARED-FOR $proxy_add_x_forwarded_for;
     fastcgi_param HOST $http_host;
 }$fastcgi_split_path_info 用来将 请求 url 拆分成两部分：php 文件之前的 $fastcgi_script_name 和之后的部分：$fastcgi_path_infofastcgi_pass 定义真正的用来处理 FastCGI 代理的服务，一般默认地址为：127.0.0.1:9000，可自定义指定为特定版本的phpfastcgi_param 定义 FastCGI 参数fastcgi_params 一般在 nginx 配置目录下，包含了常用的 php 需要设定的参数。总结下和 http 语法区别：fastcgi_pass 类似于 proxy_passfastcgi_param  类似于 proxy_set_header，注意 fastcgi_param 添加 http 请求头信息要加上 HTTP_ 前缀，如：HTTP_X-FORWARED-FOR关于 FastCGI 的详细分析参考：Understanding and Implementing FastCGI Proxying in NginxuWSGI web 服务器uWSGI 是一个独立的 web 服务器，和 nginx 是一个类型的应用。一般 uWSGI 作为后端服务器使用，用 nginx 代理来访问。uWSGI 可以用来部署 python 应用。之前我学习 django 的时候就使用过这个。未完待续。。。参考链接ngx_http_proxy_module 模块所有指令NGINX Reverse ProxyHTTP Load BalancingSecuring HTTP Traffic to Upstream Servers使用nginx的proxy_bind选项配置透明的反向代理Mapping Headers in Nginxngx_http_fastcgi_module 模块所有指令[]()</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1443.html">
-<title>百度云网盘直链获取及下载</title>
-<link>https://blog.niekun.net/archives/1443.html</link>
-<dc:date>2020-03-27T11:46:00+08:00</dc:date>
-<description>众所周知，现在百度盘非会员下载速度十分慢，还要求必须使用他的客户端下载，我的资料现在也基本不会存在百度云了。但是在下载已经保存在上面的资源或者网络别人分享的资源，还是偶尔要用到，而我又对百度十分的讨厌，也不会去充值会员，所以研究了下如何解决非会员的限速问题。BaiduPCS-GoBaiduPCS-Go 是我之前一直使用的工具，他是 GO 语言编写的命令行工具，需要登录你的账号使用，集成下载/上传等功能。就是一个第三方命令行客户端。他可以设置缓存/并发数/user agent等，理论上可以加速下载。GitHub 主页(作者已删除)：https://github.com/iikira/BaiduPCS-Gofork：https://github.com/Erope/BaiduPCS-Go可以下载 release 页面发布的版本，也可以使用源码自己编译，go 语言编译教程参考我的文章：https://blog.niekun.net/archives/468.html打开 BaiduPCS-Go 客户端，进入命令行界面，登录完成后可以输入 help 指令查看支持的命令。----
-  BaiduPCS-Go - 百度网盘客户端 for windows/amd64
-
-USAGE:
-  BaiduPCS-Go.exe [global options] command [command options] [arguments...]
-
-VERSION:
-  v3.6.1-devel
-
-DESCRIPTION:
-  BaiduPCS-Go 使用Go语言编写的百度网盘命令行客户端, 为操作百度网盘, 提供实用功能.
-  具体功能, 参见 COMMANDS 列表
-
-  特色:
-    网盘内列出文件和目录, 支持通配符匹配路径;
-    下载网盘内文件, 支持网盘内目录 (文件夹) 下载, 支持多个文件或目录下载, 支持断点续传和高并发高速下载.
-
-  ---------------------------------------------------
-  前往 https://github.com/iikira/BaiduPCS-Go 以获取更多帮助信息!
-  前往 https://github.com/iikira/BaiduPCS-Go/releases 以获取程序更新信息!
-  ---------------------------------------------------
-
-  交流反馈:
-    提交Issue: https://github.com/iikira/BaiduPCS-Go/issues
-    邮箱: i@mail.iikira.com
-
-AUTHOR:
-  iikira/BaiduPCS-Go: https://github.com/iikira/BaiduPCS-Go
-
-COMMANDS:
-    tool           工具箱
-    help, h, ?, ？  Shows a list of commands or help for one command
-  其他:
-    bg           管理后台任务
-    clear, cls   清空控制台
-    env          显示程序环境变量
-    run          执行系统命令
-    sumfile, sf  获取本地文件的秒传信息
-    update       检测程序更新
-  百度帐号:
-    login    登录百度账号
-    loglist  列出帐号列表
-    logout   退出百度帐号
-    su       切换百度帐号
-    who      获取当前帐号
-  百度网盘:
-    cd                      切换工作目录
-    cp                      拷贝文件/目录
-    createsuperfile, csf    手动分片上传—合并分片文件
-    download, d             下载文件/目录
-    export, ep              导出文件/目录
-    fixmd5                  修复文件MD5
-    locate, lt              获取下载直链
-    ls, l, ll               列出目录
-    match                   测试通配符
-    meta                    获取文件/目录的元信息
-    mkdir                   创建目录
-    mv                      移动/重命名文件/目录
-    offlinedl, clouddl, od  离线下载
-    pwd                     输出工作目录
-    quota                   获取网盘配额
-    rapidupload, ru         手动秒传文件
-    recycle                 回收站
-    rm                      删除文件/目录
-    search, s               搜索文件
-    share                   分享文件/目录
-    tree, t                 列出目录的树形图
-    upload, u               上传文件/目录
-  配置:
-    config  显示和修改程序配置项
-
-GLOBAL OPTIONS:
-  --verbose      启用调试 [%BAIDUPCS_GO_VERBOSE%]
-  --help, -h     show help
-  --version, -v  print the version
-
-COPYRIGHT:
-  (c) 2016-2019 iikira.执行 login 指令，登录百度账户，根据提示输入密码及验证码。登录完成后可以使用 ls cd 等命令来访问目录及文件。执行 config 命令查看当前配置信息：运行 BaiduPCS-Go config set 可进行设置配置
-
-当前配置:
-  名称                 值             描述                                             建议值                                                                                                                     
-  appid             421937       百度 PCS 应用ID
-  cache_size      256.00KB      下载缓存, 如果硬盘占用高或下载速度慢, 请尝试 调大此值     1KB ~ 256KB                                                                                                                
-  max_parallel         64       下载最大并发量                                         50 ~ 500                                                                                                                   
-  max_upload_parallel  64       上传最大并发量                                         1 ~ 100                                                                                                                    
-  max_download_load    3         同时进行下载文件的最大数                               1 ~ 5                                                                                                                      
-  max_download_rate    不限制    限制最大下载速度, 0代表不限制
-  max_upload_rate      不限制    限制最大上传速度, 0代表不限制
-  savedir      C:\Users\Marco Nie\Downloads          下载文件的储存目录
-  enable_https         true      启用 https                                             true                                                                                                                       
-  user_agent           Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36  Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36      浏览器标识
-  pcs_ua                         PCS 浏览器标识
-  pan_ua     netdisk;2.2.51.6;netdisk;10.0.63;PC;android-android    Pan 浏览器标识    netdisk;2.2.51.6;netdisk;10.0.63;PC;android-android                 
-  proxy                         设置代理, 支持 http/socks5 代理
-  local_addrs                   设置本地网卡地址, 多个地址用逗号隔开执行 config set --名称=value 可以修改设置值。下载指令是 d file_name。我当前使用 BaiduPCS-Go 速度非常慢，在下载时使用参数 --verbose 和 --status 查看详细信息，发现链接都是错误的，经过查询发现可能是 appid 的问题，我的账号可能上了黑名单了，需要修改 appid 来修复。找了半天网上提供的 appid 都没法用，这个 python 小程序可以扫描可用的 appid：https://gist.github.com/pcmid/5818b1165bc3f5f2088e19299278a613from __future__ import print_function
-
-import requests
-import threading
-
-import sys
-
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-
-class GetterTread(threading.Thread):
-    def __init__(self, thread_id, app_id, times=1000):
-        threading.Thread.__init__(self)
-
-        self.__thread_id = thread_id
-
-        self.__URL = &quot;http://pcs.baidu.com/rest/2.0/pcs/file?app_id={}&amp;method=list&amp;path=%2F&quot;
-
-        with open(&quot;./BDUSS.txt&quot;) as f:
-            BDUSS = f.readline()
-            self.__COOKIES = {&quot;BDUSS&quot;: BDUSS}
-
-        self.app_id = app_id
-        self.times = times
-
-    def run(self):
-        current_id = self.app_id
-        while current_id - self.app_id &lt; self.times:  # 250000:
-            url = self.__URL.format(current_id)
-
-            try:
-                r = requests.get(url, cookies=self.__COOKIES)
-                if r.status_code == 200:
-                    print(current_id)
-            except Exception:
-                eprint(&quot;Exception: &quot; + str(current_id))
-
-            current_id += 1
-            # print(&quot;id &quot; + str(self.__thread_id) + &quot; over&quot;)
-
-
-if __name__ == '__main__':
-
-    start_app_id = 300000
-    times = 1000
-
-    threads_list = []
-
-    while start_app_id &lt; 500000:
-        thread = GetterTread(start_app_id, start_app_id, times)
-        thread.start()
-        threads_list.append(thread)
-        start_app_id += times
-
-    # print(&quot;size: &quot; + str(len(threads_list)))
-
-    for thread in threads_list:
-        thread.join()需要在目录下放一个 BDUSS.txt，里面填上你的账号的 BDUSS 获取 BDUSS 的方法参考网盘直链下载助手BaiduPCS-Go 慢慢失效后，我开始找寻其他的有效方法，发现有一个网盘直链下载助手挺好用的。官网：https://www.baiduyun.wiki/GitHub 主页：https://github.com/syhyz1990/baiduyun这是一个油猴脚本，需要在 chrome 安装 Tampermonkey 脚本管理器，在 chrome 安装 tampermonkey安装好管理器后，访问 GitHub脚本，会自动跳转到 tampermonkey 安装界面，然后点击安装即可。进入百度云盘，会出现一个下载助手按钮：勾选想要下载的资源，点击下载助手，里面有几个选项：第一个是直接获取 api 下载链接，可以在浏览器或其他下载软件粘贴链接即可下载：第二个是 aria2 下载链接，可以导入 aria2 进行下载，关于 aria2 的安装参考我的教程：https://blog.niekun.net/archives/1199.html安装好 aria2 后还需要安装网盘万能助手 chrome 插件才能使用这个功能。插件地址：https://www.baiduyun.wiki/download.html插件安装步骤：下载好 zip 包后解压到文件夹chrome 访问：chrome://extensions/ 右边打开 develop mode，点击 load unpacked 打开解压的文件夹就自动安装了关闭 develop mode重启浏览器第三个是远程 aria2 rpc 下载，也是需要安装 aria2 并启用 rpc，然后点击 rpc 配置，设置参数：点击显示链接可以直接发送到 aria2：下载客户端推荐：aria2：https://blog.niekun.net/archives/1199.htmlIDM：https://www.internetdownloadmanager.com/ 可以设置最大链接数到 32 来提高下载速度 download - option - connectionxdown：https://xdown.org/ 可以识别 aria2 的链接</description>
 </item>
 </rdf:RDF>

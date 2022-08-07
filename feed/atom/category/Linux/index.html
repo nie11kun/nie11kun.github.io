@@ -6,11 +6,64 @@ xml:base="https://blog.niekun.net/category/Linux/"
 >
 <title type="text">Marco Nie - Linux</title>
 <subtitle type="text"></subtitle>
-<updated>2022-07-14T08:19:00+08:00</updated>
+<updated>2022-08-07T14:08:23+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/Linux/" />
 <id>https://blog.niekun.net/feed/atom/category/Linux/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" />
+<entry>
+<title type="html"><![CDATA[自建 RustDesk server]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2744.html" />
+<id>https://blog.niekun.net/archives/2744.html</id>
+<updated>2022-08-07T14:08:23+08:00</updated>
+<published>2022-08-07T14:08:23+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[RustDesk 是一款开源的跨平台远程桌面软件，类似于 TeamViewer 的 UI 样式，但它是完全免费的。RustDesk 提供了 3 个免费的转发服务器，会根据你的地理位置自动选择最快...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2744.html" xml:lang="zh-CN"><![CDATA[
+<p>RustDesk 是一款开源的跨平台远程桌面软件，类似于 TeamViewer 的 UI 样式，但它是完全免费的。</p><p>RustDesk 提供了 3 个免费的转发服务器，会根据你的地理位置自动选择最快的，一般使用足够了，如果对安全性有担忧，它们也提供了 server 端应用，可以自建转发服务器。下面就对搭建 server 端做一些介绍。</p><p>RustDesk GitHub 主页：<a href="https://github.com/rustdesk/rustdesk">https://github.com/rustdesk/rustdesk</a><br>RustDesk Server GitHub 主页：<a href="https://github.com/rustdesk/rustdesk-server">https://github.com/rustdesk/rustdesk-server</a></p><p>服务器平台：ubuntu 20.04</p><!--more--><h3>安装 server</h3><p>我是通过 docker 安装的 server 端，这样最快速简单。</p><p>关于 docker 和 docker compose 的安装可以参考我之前的文章：<a href="https://blog.niekun.net/archives/2742.html#title-1">https://blog.niekun.net/archives/2742.html#title-1</a></p><p><strong>docker-compose.yml</strong> 文件内容如下：</p><pre><code>version: '3'
+
+networks:
+  rustdesk-net:
+    external: false
+
+services:
+  hbbs:
+    container_name: hbbs
+    ports:
+      - 21115:21115
+      - 21116:21116
+      - 21116:21116/udp
+      - 21118:21118
+    image: rustdesk/rustdesk-server:latest
+    command: hbbs -r 127.0.0.1:21117
+    volumes:
+      - ./data:/root
+    networks:
+      - rustdesk-net
+    depends_on:
+      - hbbr
+    restart: unless-stopped
+
+  hbbr:
+    container_name: hbbr
+    ports:
+      - 21117:21117
+      - 21119:21119
+    image: rustdesk/rustdesk-server:latest
+    command: hbbr
+    volumes:
+      - ./data:/root
+    networks:
+      - rustdesk-net
+    restart: unless-stopped</code></pre><p>默认监听的是 21117 端口，客户端默认也是链接服务器的这个端口。这里配置监听本地 127.0.0.1。实际在通过域名或 IP 访问服务器时依然可以连接上服务。如果修改这里的默认端口，则在客户端设置的时候也需要指定此端口。</p><p>启动服务：</p><pre><code>docker-compose up -d
+</code></pre><p>此时在客户端设置 ID server：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/43407160.jpg" alt="1.jpg" title="1.jpg"></p><p>在第一行填入服务器 IP 地址即可：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/2720143847.jpg" alt="2.jpg" title="2.jpg"></p><p>确认后，如果下方状态栏显示 <strong>ready</strong> 表示服务器链接正常：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/4049467528.jpg" alt="3.jpg" title="3.jpg"></p><h3>配置域名访问</h3><p>如果想要使用域名作为 server id，只需要在你的域名服务器里加上一条自定义的域名 NS 解析即可，如：rust.abc.com。</p><p>注意如果你使用的是 cloudflare 服务，由于它在启用 CDN 后只支持少数端口的转发，而我们需要使用的是 21115 - 21119 这些端口，所以需要在 dns 配置时取消这个自定义域名的<strong>小黄云</strong>，只使用其 dns 服务：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/1547842714.jpg" alt="4.jpg" title="4.jpg"></p><p>关于 cloudflare 的网络端口转发相关的信息参考官网内容：<a href="https://developers.cloudflare.com/fundamentals/get-started/reference/network-ports/">Network ports</a></p><p>自定义域名配置好后，就可以在客户端的 ID server 中使用域名链接了。方法和上面介绍的用服务器 IP 设置的方法相同。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2744.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Joplin server 搭建]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2742.html" />
@@ -408,70 +461,6 @@ iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set
 $cfg['Servers'][$i]['controlpass'] = 'password';</code></pre><p>将上面的用户名密码修改为 MySQL 中存在的账户即可。刷新页面之后应该就没有报错了。</p><p>手动创建 MySQL 用户可以参考教程：<a href="https://blog.niekun.net/archives/23.html#title-3">https://blog.niekun.net/archives/23.html#title-3</a></p><p>然后我们就可以正常使用 phpmyadmin 管理页面了，这里可以查看 database，导入导出数据等。</p><h3>参考链接</h3><p><a href="https://stackoverflow.com/questions/46736319/phpmyadmin-error-mysqli-real-connect-hy000-1045-access-denied-for-user-p">phpMyAdmin ERROR: mysqli_real_connect(): (HY000/1045): Access denied for user 'pma'@'localhost' (using password: NO)</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2457.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[使用 rclone 管理网盘文件]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2454.html" />
-<id>https://blog.niekun.net/archives/2454.html</id>
-<updated>2022-03-14T11:35:31+08:00</updated>
-<published>2022-03-14T11:35:31+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[之前介绍了通过 gdrive 在服务器上管理 Google drive 文件，实现服务器数据备份自动上传功能。最近发现有一个新的开源项目 rclone 支持更多的网盘，同时更新迭代速度也更快。G...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2454.html" xml:lang="zh-CN"><![CDATA[
-<p>之前介绍了通过 gdrive 在服务器上管理 Google drive 文件，实现服务器数据备份自动上传功能。最近发现有一个新的开源项目 rclone 支持更多的网盘，同时更新迭代速度也更快。</p><p>GitHub 主页：<a href="https://github.com/rclone/rclone">https://github.com/rclone/rclone</a></p><p>他支持的网盘列表：<a href="https://rclone.org/overview/">https://rclone.org/overview/</a></p><p>下面介绍它的安装使用方法。</p><!--more--><h3>安装</h3><p>Linux 下一键安装命令：</p><pre><code>curl https://rclone.org/install.sh | sudo bash
-</code></pre><p>macos 通过 brew 安装：</p><pre><code>brew install rclone
-</code></pre><h3>配置</h3><p>首次运行执行初始化配置：</p><pre><code>rclone config
-</code></pre><p>根据提示创建新 remote：</p><pre><code>No remotes found - make a new one
-n) New remote
-r) Rename remote
-c) Copy remote
-s) Set configuration password
-q) Quit config
-n/r/c/s/q&gt; n</code></pre><p>然后设置此连接名称，后续就是通过这个名称来操作不同的网盘的：</p><pre><code>name&gt; remote
-</code></pre><p>下一步选择网盘类型，如果是 Google drive 选择 16：</p><pre><code>Type of storage to configure.
-Choose a number from below, or type in your own value
-[snip]
-16 / Google Drive
-   \ &quot;drive&quot;
-[snip]
-Storage&gt; 16</code></pre><p>下面的 id 和 secret 都默认回车即可：</p><pre><code>Google Application Client Id - leave blank normally.
-client_id&gt;
-Google Application Client Secret - leave blank normally.
-client_secret&gt;</code></pre><p>下面设置可访问全部网盘文件，选择 1：</p><pre><code>Scope that rclone should use when requesting access from drive.
-Choose a number from below, or type in your own value
- 1 / Full access all files, excluding Application Data Folder.
-   \ &quot;drive&quot;
- 2 / Read-only access to file metadata and file contents.
-   \ &quot;drive.readonly&quot;
-   / Access to files created by rclone only.
- 3 | These are visible in the drive website.
-   | File authorization is revoked when the user deauthorizes the app.
-   \ &quot;drive.file&quot;
-   / Allows read and write access to the Application Data folder.
- 4 | This is not visible in the drive website.
-   \ &quot;drive.appfolder&quot;
-   / Allows read-only access to file metadata but
- 5 | does not allow any access to read or download file content.
-   \ &quot;drive.metadata.readonly&quot;
-scope&gt; 1</code></pre><p>下面几步都默认回车即可。</p><p>注意到了 use auto config 的时候要选择 No，因为我们是远程 ssh 访问的服务器：</p><pre><code>Use auto config?
- * Say Y if not sure
- * Say N if you are working on a remote or headless machine or Y didn't work
-y) Yes
-n) No
-y/n&gt; n</code></pre><p>下面会返回一个链接，复制链接到浏览器后，登录 google 账户给 rclone 授权。授权完成后会返回一个字符串码，粘贴回终端。</p><p>后续几步默认回车即可，最后输入 q 退出 config。</p><h3>使用</h3><p>配置完成后我们就可以使用了，下面介绍一些基本语法。下面示例中网盘配置名称为 remote。</p><p>列出网盘的所有文件：</p><pre><code>rclone ls remote:
-</code></pre><p>列出一个文件夹内的所有文件：</p><pre><code>rclone ls remote:abc
-</code></pre><p>创建一个文件夹：</p><pre><code>rclone mkdir remote:abc
-rclone mkdir remote:abc/def
-</code></pre><p>删除网盘内一个文件：</p><pre><code>rclone delete remote:abc/123.txt
-</code></pre><p>删除一个文件夹：</p><pre><code>rclone rmdir remote:abc
-</code></pre><p>复制本地一个文件到网盘：</p><pre><code>rclone copy 123.txt remote:abc
-</code></pre><p>更多可用命令可以参考官方文档：<a href="https://rclone.org/docs/#subcommands">https://rclone.org/docs/#subcommands</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2454.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
 </entry>
 </feed>

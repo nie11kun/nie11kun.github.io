@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2744.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2742.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2731.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2727.html"/>
@@ -18,10 +19,51 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2642.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2631.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2629.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2621.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2744.html">
+<title>自建 RustDesk server</title>
+<link>https://blog.niekun.net/archives/2744.html</link>
+<dc:date>2022-08-07T14:08:23+08:00</dc:date>
+<description>RustDesk 是一款开源的跨平台远程桌面软件，类似于 TeamViewer 的 UI 样式，但它是完全免费的。RustDesk 提供了 3 个免费的转发服务器，会根据你的地理位置自动选择最快的，一般使用足够了，如果对安全性有担忧，它们也提供了 server 端应用，可以自建转发服务器。下面就对搭建 server 端做一些介绍。RustDesk GitHub 主页：https://github.com/rustdesk/rustdeskRustDesk Server GitHub 主页：https://github.com/rustdesk/rustdesk-server服务器平台：ubuntu 20.04安装 server我是通过 docker 安装的 server 端，这样最快速简单。关于 docker 和 docker compose 的安装可以参考我之前的文章：https://blog.niekun.net/archives/2742.html#title-1docker-compose.yml 文件内容如下：version: '3'
+
+networks:
+  rustdesk-net:
+    external: false
+
+services:
+  hbbs:
+    container_name: hbbs
+    ports:
+      - 21115:21115
+      - 21116:21116
+      - 21116:21116/udp
+      - 21118:21118
+    image: rustdesk/rustdesk-server:latest
+    command: hbbs -r 127.0.0.1:21117
+    volumes:
+      - ./data:/root
+    networks:
+      - rustdesk-net
+    depends_on:
+      - hbbr
+    restart: unless-stopped
+
+  hbbr:
+    container_name: hbbr
+    ports:
+      - 21117:21117
+      - 21119:21119
+    image: rustdesk/rustdesk-server:latest
+    command: hbbr
+    volumes:
+      - ./data:/root
+    networks:
+      - rustdesk-net
+    restart: unless-stopped默认监听的是 21117 端口，客户端默认也是链接服务器的这个端口。这里配置监听本地 127.0.0.1。实际在通过域名或 IP 访问服务器时依然可以连接上服务。如果修改这里的默认端口，则在客户端设置的时候也需要指定此端口。启动服务：docker-compose up -d
+此时在客户端设置 ID server：在第一行填入服务器 IP 地址即可：确认后，如果下方状态栏显示 ready 表示服务器链接正常：配置域名访问如果想要使用域名作为 server id，只需要在你的域名服务器里加上一条自定义的域名 NS 解析即可，如：rust.abc.com。注意如果你使用的是 cloudflare 服务，由于它在启用 CDN 后只支持少数端口的转发，而我们需要使用的是 21115 - 21119 这些端口，所以需要在 dns 配置时取消这个自定义域名的小黄云，只使用其 dns 服务：关于 cloudflare 的网络端口转发相关的信息参考官网内容：Network ports自定义域名配置好后，就可以在客户端的 ID server 中使用域名链接了。方法和上面介绍的用服务器 IP 设置的方法相同。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2742.html">
 <title>Joplin server 搭建</title>
 <link>https://blog.niekun.net/archives/2742.html</link>
@@ -216,24 +258,5 @@ chmod +x .xsession发现问题似乎解决了，但是调用的事 xfce 桌面�
 <link>https://blog.niekun.net/archives/2629.html</link>
 <dc:date>2022-04-13T10:01:00+08:00</dc:date>
 <description>之前介绍过几种锐化方法：smart sharpen 配合 darken 和 lighten 混合模式通过 overlay 配合 high pass 的方式锐化通过频率分离，复制 texture 图层的方式下面介绍另一种通过 vivid light 配合高斯模糊的方式锐化且效果很好。首先复制两份原图，改名为 normal 和 vivid light：将 vivid light 图层 ctr I 反转图像，然后混合模式修改为 vivid light，并将图层设置为 smart object 方便后期调整：vivid 图层选择高斯模糊，调整数值到能够提取出细节：将 vivid 和 normal 图层合并为一个组，将组的混合模式修改为 overlay：这样整个图像就锐化了，根据实际情况配合蒙版调整锐化区域。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2621.html">
-<title>systemd 服务加载 env 环境变量</title>
-<link>https://blog.niekun.net/archives/2621.html</link>
-<dc:date>2022-04-11T11:21:00+08:00</dc:date>
-<description>最近在测试中发现，通过 systemd service 启动的 python 脚本无法加载系统 bashrc 内定义的环境变量。需要在 uint 中定义自定义环境变量才能生效。首先建立自定义环境变量文件，如： /etc/env_addon，其中定义需要的环境变量：ENV1=abcd
-ENV2=5678然后在 unit 的 service 块中加入 EnvironmentFile 指向建立的环境变量文件：[Unit]
-Description=demo
-After=network.target nss-lookup.target
-
-[Service]
-User=root
-EnvironmentFile=/etc/env_addon
-ExecStart=/usr/bin/python /path/main.py
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target重新加载并重启服务：sudo systemctl daemon-reload
-sudo systemctl restart demo.service如果需要系统的 ~/.bashrc 同时加载这个自定义的环境变量文件，可以在 bashrc 中加入下面内容：set -a; source /etc/env_addon; set +a重新加载环境：source ~/.bashrc参考链接：Using a user's .bashrc in a systemd serviceUsing environment variables in systemd units Environment directive</description>
 </item>
 </rdf:RDF>
