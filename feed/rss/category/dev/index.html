@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2749.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2388.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2352.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2330.html"/>
@@ -18,10 +19,71 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2208.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2203.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2195.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2189.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2749.html">
+<title>Miniflux 搭建自己的 RSS 服务系统</title>
+<link>https://blog.niekun.net/archives/2749.html</link>
+<dc:date>2022-08-12T14:50:00+08:00</dc:date>
+<description>一直在使用 feedly 作为 rss 订阅器阅读文章，基本可以满足我的需求，但是部分站点只能预览摘要，想要阅读全文还打开文章链接。最近发现一个开源免费的 rss 系统，他的特点就是轻量无多于内容，致力于阅读体验。同时我发现他的一些独有功能，可以在文章只显示摘要时，有一个下载全文的选项，这样就实现了大部分文章在 rss 阅读器中就可以阅读全文的需求了。Miniflux 需要自己部署在服务器上，它提供了多种安装方法，最简单的就是 docker 方式，避免手动配置环境及数据库等步骤。我的系统环境：Ubuntu server 20.04Miniflux 官网：https://miniflux.app/GitHub 主页：https://github.com/miniflux/v2安装这里介绍通过 docker compose 安装的方法，关于 docker 环境的部署参考我的教程：https://blog.niekun.net/archives/2742.html#title-1新建 miniflux 文件夹用来放置相关配置：mkdir miniflux
+cd miniflux
+然后建立 docker-compose.yml 配置文件，内容如下：version: '3.4'
+services:
+  miniflux:
+    image: ${MINIFLUX_IMAGE:-miniflux/miniflux:latest}
+    container_name: miniflux
+    restart: always
+    ports:
+      - &quot;18080:8080&quot;
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://miniflux:secret@db/miniflux?sslmode=disable
+      - BASE_URL=https://miniflux.your.domain
+      - RUN_MIGRATIONS=1
+      - CREATE_ADMIN=1
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=test123
+      - DEBUG=1
+    # Optional health check:
+    # healthcheck:
+    #  test: [&quot;CMD&quot;, &quot;/usr/bin/miniflux&quot;, &quot;-healthcheck&quot;, &quot;auto&quot;]
+  db:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=miniflux
+      - POSTGRES_PASSWORD=secret
+    volumes:
+      - miniflux-db:/var/lib/postgresql/data
+    healthcheck:
+      test: [&quot;CMD&quot;, &quot;pg_isready&quot;, &quot;-U&quot;, &quot;miniflux&quot;]
+      interval: 10s
+      start_period: 30s
+volumes:
+  miniflux-db:其中需要自行根据实际情况修改一些内容：port 端口的主机映射，这里我使用了 18080 映射容器内的 8080 端口BASE_URL 设置需要访问 miniflux 服务的域名地址，后面需要配置反向代理ADMIN_USERNAME 设置管理员用户名ADMIN_PASSWORD  设置管理员用户密码敏感的环境变量值可以单独放在同配置文件路径下的 .env 文件中，上面的 docker 安装教程中有介绍。注意 DATABASE_URL 地址中的 postgres 用户名密码对应于 POSTGRES_USER 和 POSTGRES_PASSWORD 的值，需要保持一致。然后就可以启动容器：docker-compose up -d
+反代配置首先如果需要解析到二级域名下，先要在 ns 服务端添加二级域名的 A 记录，然后才能正常解析 url。使用域名访问 miniflux 服务，需要通过主机使用的反代软件配置解析，我服务器使用的是 nginx，下面介绍配置方法。给 nginx 配置添加如下内容：server {
+    listen        443 ssl http2;
+    listen        [::]:443 ssl http2;
+    server_name   miniflux.your.domain;
+    include       my-server/ssl;
+
+    location / {
+        proxy_pass          http://127.0.0.1:18080;
+        proxy_redirect      off;
+
+        proxy_set_header    Host              $host;
+        proxy_set_header    X-Forwarded-Host  $host;
+        proxy_set_header    X-Real-IP         $remote_addr;
+        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Proto $scheme;
+        proxy_set_header    Upgrade           $http_upgrade;
+        proxy_set_header    Connection        &quot;upgrade&quot;;
+        proxy_http_version  1.1;
+    }
+}以上配置需要根据实际情况修改监听端口及 domain，由于之前配置的 miniflux 的映射端口是 18080，所以反代到本地的对应端口即可。以上 miniflux 和 nginx 反代配置完成后应该就可以访问 https://miniflux.your.domain 了。用户名密码就是 docker 配置文件中定义的管理员账户及密码：使用如果某一篇文章不显示全文，只需要点击文章顶部的 download 按钮即可加载全文：miniflux 提供了丰富的 api 接口可供二次开发使用，通过简单的请求就可以获取到文章的各种信息，返回数据为 json 格式。官方 api 文档参考：https://miniflux.app/docs/api.html</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2388.html">
 <title>获取 JD cookie 方法</title>
 <link>https://blog.niekun.net/archives/2388.html</link>
@@ -1030,81 +1092,5 @@ ReactDOM.render(
     &lt;Page /&gt;,
     document.getElementById('root')
 );在 render method 中 return null 不会影响到 component 的 lifecycle method。例如每次更新 componentDidUpdate 依然会被自动调用。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2189.html">
-<title>React 入门教程之五 -- Event</title>
-<link>https://blog.niekun.net/archives/2189.html</link>
-<dc:date>2021-02-25T17:23:00+08:00</dc:date>
-<description>events 处理处理 React elements events 和处理 DOM elements 很相似，但有一些语法区别：React events 命名使用 camelCase 规则，而不是 lowercase使用 JSX 传入 function 作为 events handler，而不是 string 字符串HMTL 中处理 events 示例如下：&lt;button onclick=&quot;activateLasers()&quot;&gt;
-  Activate Lasers
-&lt;/button&gt;React 中示例如下：&lt;button onClick={activateLasers}&gt;
-  Activate Lasers
-&lt;/button&gt;注意它们的区别之处一个是 event 名称，一个是 handler 定义方式。另一个区别是在 React 中不能通过 return false 的方式防止 events 的默认行为，需要明确的调用 preventDefault method 来实现。例如在一个 html 页面中定义一个 a tag 并取消其默认打开新页面的行为，实现如下：&lt;a href=&quot;#&quot; onclick=&quot;console.log('The link was clicked.'); return false&quot;&gt;
-  Click me
-&lt;/a&gt;React 中实现同样功能代码如下：class Link extends React.Component {
-    constructor(props) {
-        super(props);
-        this.handleClick = this.handleClick.bind(this);
-    }
-    handleClick(e) {
-        e.preventDefault();
-        console.log('clicked me');
-    }
-    render() {
-        return (
-            &lt;a href='#' onClick={this.handleClick}&gt;click me&lt;/a&gt;
-        )
-    }
-}e 表示 synthetic 综合的 event，当前哪个 event 触发了 e 就表示哪一个。使用 bind 绑定 的 method 在调用时会自动将 e 传入 method。下面会对 bind 是什么作出解释。React events 同原生的 events 不完全相同，查看所有可用的 events 查看官方介绍：https://reactjs.org/docs/events.html在 React 中一般情况下不需要通过调用 addEventListener 来给 element 添加 event listener。直接在 element 初始化时为其设置 event listener 即可。当通过 class 来定义 component 时 event handler 一般是一个 class method，例如上面示例的 handleClick。下面的示例我们构建一个 Toggle component 可以让用户通过一个 button 来切换 ON/OFF 状态：const React = require('react')
-const ReactDOM = require('react-dom')
-
-class Toggle extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { isToggleOn: true };
-        this.handleClick = this.handleClick.bind(this);
-    }
-    handleClick() {
-        this.setState({ isToggleOn: !this.state.isToggleOn });
-    }
-    render() {
-        return (&lt;button onClick={this.handleClick}&gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }
-}
-
-ReactDOM.render(&lt;
-    Toggle /&gt;,
-    document.getElementById('root')
-);在 JSX callback 中使用 this 需要特别注意，JavaScript class 的 methods 默认是相互隔离的，如果没有主动 bind 捆绑 method 到 this，在另一个 method 中使用 this.method 会报错 undefined。如果调用 method 时不写括号() 例如：onClick={this.handleClick} 则需要提前 bind 这个 method 到 this 中，如上面的示例，bind 语法如下：this.handleClick = this.handleClick.bind(this);
-一般将其放在 constructor 中，这样初始化中就会自动执行，当然也可以在调用时直接定义：&lt;button onClick={this.handleClick.bind(this)}&gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;
-如果不想使用 bind 语法来处理，那么还有两种方式来处理 class 中 methods 互相隔离这个问题。第一种叫做 class fields syntax 语法，通过使用 arrow function 的模式定义 method，这样就可以通过通过 this.method 的方法调用 method：    constructor(props) {
-        super(props);
-        this.state = { isToggleOn: true };
-    }
-    handleClick = () =&gt; {
-        this.setState({ isToggleOn: !this.state.isToggleOn });
-    }
-    render() {
-        return (&lt;button onClick={this.handleClick} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }这样就不需要在 constructor 中定义 bind 同时可以在 callback 中直接调用 this.handleClick。但是需要注意目前这只是 React 实验性的语法，不一定保证以后会一直可用。第二种是在 callback 中通过 arrow function 的模式调用 method：    handleClick() {
-        this.setState({ isToggleOn: !this.state.isToggleOn });
-    }
-    render() {
-        return (&lt;button onClick={() =&gt; this.handleClick()} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }注意这种方法需要在 method 名称后加括号()。这种方法的缺点是当每次重新 render 渲染时都会创建新的 callback。当这个 callback 包含传给其 child component 的 props 时，可能会导致 child 重新被渲染。通常情况下推荐使用 constructor 定义 bind 或者使用 class fields syntax 语法来避免这些性能问题。给 event handler 传入数据有时候需要给 event handler 传入附加的参数，如下面示例 button 点击时输出一个输入数据到终端：    handleClick(a, e) {
-        this.setState({ isToggleOn: !this.state.isToggleOn });
-        console.log(e._reactName);
-        console.log(a);
-    }
-    render() {
-        return (&lt;button onClick={this.handleClick.bind(this, 'aaa')} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }上面的示例将字符串 aaa 作为 handleClick 的传入参数，并将 bind 绑定过程直接放在 callback 中，这样就不需要在 constructor 中进行 bind 定义了。通过 bind 绑定后会自动将 e：synthetic 综合的 event 作为第二个参数传入 function，e._reactName 返回 event 名称。上面的示例也可以通过 arrow function 在 callback 中定义实现：    handleClick(a, e) {
-        this.setState({ isToggleOn: !this.state.isToggleOn });
-        console.log(e._reactName);
-        console.log(a);
-    }
-    render() {
-        return (&lt;button onClick={(e) =&gt; this.handleClick('aaa', e)} &gt; { this.state.isToggleOn ? 'ON' : 'OFF'} &lt;/button&gt;);
-    }上面的示例中 e 依然表示 synthetic event。两种方法都会将 e 作为第二个参数传入。在 arrow function 中我们可以清晰地看到数据的位置，但是通过 bind 的方式会将有些参数自动转发过去。</description>
 </item>
 </rdf:RDF>

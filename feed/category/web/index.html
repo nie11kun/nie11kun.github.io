@@ -11,8 +11,78 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/web/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Sun, 09 Jan 2022 18:53:00 +0800</lastBuildDate>
-<pubDate>Sun, 09 Jan 2022 18:53:00 +0800</pubDate>
+<lastBuildDate>Fri, 12 Aug 2022 14:50:00 +0800</lastBuildDate>
+<pubDate>Fri, 12 Aug 2022 14:50:00 +0800</pubDate>
+<item>
+<title>Miniflux 搭建自己的 RSS 服务系统</title>
+<link>https://blog.niekun.net/archives/2749.html</link>
+<guid>https://blog.niekun.net/archives/2749.html</guid>
+<pubDate>Fri, 12 Aug 2022 14:50:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[一直在使用 feedly 作为 rss 订阅器阅读文章，基本可以满足我的需求，但是部分站点只能预览摘要，想要阅读全文还打开文章链接。最近发现一个开源免费的 rss 系统，他的特点就是轻量无多于内...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>一直在使用 feedly 作为 rss 订阅器阅读文章，基本可以满足我的需求，但是部分站点只能预览摘要，想要阅读全文还打开文章链接。最近发现一个开源免费的 rss 系统，他的特点就是轻量无多于内容，致力于阅读体验。同时我发现他的一些独有功能，可以在文章只显示摘要时，有一个下载全文的选项，这样就实现了大部分文章在 rss 阅读器中就可以阅读全文的需求了。</p><p>Miniflux 需要自己部署在服务器上，它提供了多种安装方法，最简单的就是 docker 方式，避免手动配置环境及数据库等步骤。</p><p>我的系统环境：Ubuntu server 20.04</p><p>Miniflux 官网：<a href="https://miniflux.app/">https://miniflux.app/</a><br>GitHub 主页：<a href="https://github.com/miniflux/v2">https://github.com/miniflux/v2</a></p><!--more--><h3>安装</h3><p>这里介绍通过 docker compose 安装的方法，关于 docker 环境的部署参考我的教程：<a href="https://blog.niekun.net/archives/2742.html#title-1">https://blog.niekun.net/archives/2742.html#title-1</a></p><p>新建 miniflux 文件夹用来放置相关配置：</p><pre><code>mkdir miniflux
+cd miniflux
+</code></pre><p>然后建立 docker-compose.yml 配置文件，内容如下：</p><pre><code>version: '3.4'
+services:
+  miniflux:
+    image: ${MINIFLUX_IMAGE:-miniflux/miniflux:latest}
+    container_name: miniflux
+    restart: always
+    ports:
+      - &quot;18080:8080&quot;
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://miniflux:secret@db/miniflux?sslmode=disable
+      - BASE_URL=https://miniflux.your.domain
+      - RUN_MIGRATIONS=1
+      - CREATE_ADMIN=1
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=test123
+      - DEBUG=1
+    # Optional health check:
+    # healthcheck:
+    #  test: [&quot;CMD&quot;, &quot;/usr/bin/miniflux&quot;, &quot;-healthcheck&quot;, &quot;auto&quot;]
+  db:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=miniflux
+      - POSTGRES_PASSWORD=secret
+    volumes:
+      - miniflux-db:/var/lib/postgresql/data
+    healthcheck:
+      test: [&quot;CMD&quot;, &quot;pg_isready&quot;, &quot;-U&quot;, &quot;miniflux&quot;]
+      interval: 10s
+      start_period: 30s
+volumes:
+  miniflux-db:</code></pre><p>其中需要自行根据实际情况修改一些内容：</p><ul><li>port 端口的主机映射，这里我使用了 18080 映射容器内的 8080 端口</li><li>BASE_URL 设置需要访问 miniflux 服务的域名地址，后面需要配置反向代理</li><li>ADMIN_USERNAME 设置管理员用户名</li><li>ADMIN_PASSWORD  设置管理员用户密码</li></ul><p>敏感的环境变量值可以单独放在同配置文件路径下的 <code>.env</code> 文件中，上面的 docker 安装教程中有介绍。</p><p>注意 DATABASE_URL 地址中的 postgres 用户名密码对应于 POSTGRES_USER 和 POSTGRES_PASSWORD 的值，需要保持一致。</p><p>然后就可以启动容器：</p><pre><code>docker-compose up -d
+</code></pre><h3>反代配置</h3><p>首先如果需要解析到二级域名下，先要在 ns 服务端添加二级域名的 A 记录，然后才能正常解析 url。</p><p>使用域名访问 miniflux 服务，需要通过主机使用的反代软件配置解析，我服务器使用的是 nginx，下面介绍配置方法。</p><p>给 nginx 配置添加如下内容：</p><pre><code>server {
+    listen        443 ssl http2;
+    listen        [::]:443 ssl http2;
+    server_name   miniflux.your.domain;
+    include       my-server/ssl;
+
+    location / {
+        proxy_pass          http://127.0.0.1:18080;
+        proxy_redirect      off;
+
+        proxy_set_header    Host              $host;
+        proxy_set_header    X-Forwarded-Host  $host;
+        proxy_set_header    X-Real-IP         $remote_addr;
+        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Proto $scheme;
+        proxy_set_header    Upgrade           $http_upgrade;
+        proxy_set_header    Connection        &quot;upgrade&quot;;
+        proxy_http_version  1.1;
+    }
+}</code></pre><p>以上配置需要根据实际情况修改监听端口及 domain，由于之前配置的 miniflux 的映射端口是 18080，所以反代到本地的对应端口即可。</p><p>以上 miniflux 和 nginx 反代配置完成后应该就可以访问 <a href="https://miniflux.your.domain">https://miniflux.your.domain</a> 了。用户名密码就是 docker 配置文件中定义的管理员账户及密码：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/4289742324.png" alt="2022-08-12T06:47:50.png" title="2022-08-12T06:47:50.png"></p><h3>使用</h3><p>如果某一篇文章不显示全文，只需要点击文章顶部的 download 按钮即可加载全文：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/966087234.png" alt="2022-08-12T06:47:12.png" title="2022-08-12T06:47:12.png"></p><p>miniflux 提供了丰富的 api 接口可供二次开发使用，通过简单的请求就可以获取到文章的各种信息，返回数据为 json 格式。</p><p>官方 api 文档参考：<a href="https://miniflux.app/docs/api.html">https://miniflux.app/docs/api.html</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2749.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/web/</wfw:commentRss>
+</item>
 <item>
 <title>获取 JD cookie 方法</title>
 <link>https://blog.niekun.net/archives/2388.html</link>
@@ -1479,50 +1549,6 @@ const element = &lt;h1&gt;{title}&lt;/h1&gt;;</code></pre><p>默认情况下 Rea
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2183.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/category/web/</wfw:commentRss>
-</item>
-<item>
-<title>React 入门教程之二 -- hello world</title>
-<link>https://blog.niekun.net/archives/2176.html</link>
-<guid>https://blog.niekun.net/archives/2176.html</guid>
-<pubDate>Wed, 24 Feb 2021 12:40:18 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[下面我们通过创建 Create React App 介绍 React 的基本语法。通过上一节介绍的方法创建一个新程序 my-app-1:npx create-react-app my-app-1...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>下面我们通过创建 <strong>Create React App</strong> 介绍 React 的基本语法。</p><p>通过上一节介绍的方法创建一个新程序 <strong>my-app-1</strong>:</p><pre><code>npx create-react-app my-app-1
-cd my-app-1</code></pre><p>关于创建新项目及可能出现的问题参考上一篇：<a href="https://blog.niekun.net/archives/2175.html">https://blog.niekun.net/archives/2175.html</a></p><p><strong>Create React App</strong> 官方教程：<a href="https://create-react-app.dev/docs/documentation-intro">https://create-react-app.dev/docs/documentation-intro</a></p><!--more--><h3>项目结构</h3><p>程序目录结构如下：</p><pre><code>my-app-1
-├── README.md
-├── node_modules
-├── package.json
-├── .gitignore
-├── public
-│   ├── favicon.ico
-│   ├── index.html
-│   ├── logo192.png
-│   ├── logo512.png
-│   ├── manifest.json
-│   └── robots.txt
-└── src
-    ├── App.css
-    ├── App.js
-    ├── App.test.js
-    ├── index.css
-    ├── index.js
-    ├── logo.svg
-    ├── serviceWorker.js
-    └── setupTests.js</code></pre><p>对于一个项目而言，下面两个文件是必须的:</p><ul><li><strong>public/index.html</strong> 是页面的模板文件;</li><li><strong>src/index.js</strong> 是 JavaScript 入口文件.</li></ul><p>其他文件可以根据需要添加，删除或重命名。</p><p>可以在 src 目录下建立子目录，为了加快 build 编译项目的速度，只有在 src 目录下的文件才会被 webpack 处理。所以需要将所有的 js 和 css 文件放在 src 目录下，否则 webpack 打包器不会识别到它们。</p><p>只有在 public 目录下的文件才会被 <strong>public/index.html</strong> 文件识别到。</p><p>所以所有的项目文件都需要放在 public 和 src 目录下，与项目无关的文件可以放在上级路径内，例如项目说明文件等。</p><h3>可用脚本指令</h3><p>在项目目录下，可以执行如下命令。</p><h4>npm start</h4><p>开发模式下运行 app：</p><pre><code>npm start
-</code></pre><p>打开 <a href="http://localhost:3000">http://localhost:3000</a> 可以查看效果。对代码作出修改后页面会自动重新加载。</p><h4>npm test</h4><p>交互模式下运行 test 运行器。更多介绍参考：<a href="https://create-react-app.dev/docs/running-tests">https://create-react-app.dev/docs/running-tests</a></p><h4>npm run build</h4><p>编译项目程序到 build 目录下，会自动将 React 转换为产品模式，并优化项目结构以提高性能。代码是经过 minified 最小化处理过的，文件名都包含 hashes 以在客户端能够及时识别更新。</p><p>更多 build 参考：<a href="https://create-react-app.dev/docs/production-build">https://create-react-app.dev/docs/production-build</a></p><h3>清理项目</h3><p>默认使用的模板是 cra-template，包含一个基本的页面和 React component，我们先将项目清理掉不需要的内容。</p><p>打开 public 目录下的 index.html 可以看到 body 块内定义了：</p><pre><code>&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
-</code></pre><p>index.html 内可以使用 <strong>%PUBLIC_URL%</strong> 表示 public 目录地址。</p><p>删除 src 目录内所有文件，并新建 index.js 文件。</p><p>运行程序：</p><pre><code>npm start
-</code></pre><p>会自动在浏览器打开项目。</p><h3>hello world</h3><p>最简单的 <strong>React</strong> 示例如下，将代码加入 <strong>index.js</strong> 文件：</p><pre><code>const React = require('react')
-const ReactDOM = require('react-dom')
-
-ReactDOM.render(
-    &lt;h1&gt;hello world&lt;/h1&gt;,
-    document.getElementById('root')
-);</code></pre><p>保存文件后刷新浏览器页面查看效果。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2176.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/category/web/</wfw:commentRss>
 </item>
 </channel>
