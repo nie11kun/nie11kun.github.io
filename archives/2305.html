@@ -14,7 +14,7 @@
 <link rel="alternate" type="application/rss+xml" title="配置外部网络存储器作为 Time Machine 备份 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2305.html" />
 <link rel="alternate" type="application/rdf+xml" title="配置外部网络存储器作为 Time Machine 备份 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2305.html" />
 <link rel="alternate" type="application/atom+xml" title="配置外部网络存储器作为 Time Machine 备份 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2305.html" />
-<script type="c5f75dc9bc339aa407a6fe52-text/javascript">
+<script type="05ade6a801d85b5dbecdcb45-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -86,7 +86,7 @@
     };
 })();
 </script>
-<script type="c5f75dc9bc339aa407a6fe52-text/javascript">
+<script type="05ade6a801d85b5dbecdcb45-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -104,35 +104,34 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _IwWrc = '0a'//'d77'
-+//'Qf'
-'36'+/* 'R'//'R' */''+'84'//'jIk'
-+'79'//'xem'
-+'a'//'SPq'
-+//'qT'
-'64'+'8'//'y'
-+//'R'
-'389'+'93'//'G'
-+//'Hla'
-'Hla'+'4'//'PeR'
-+//'b'
-'8'+//'76'
-'d'+'a8'//'r'
-+//'J'
-'J'+'65'//'t'
-+//'h'
-'h'+'503'//'V'
-+'b4'//'sO'
-+//'C'
-'3'+/* '2'//'2' */''+//'z'
-'b'+//'fd'
-'f', _nHQXLS = [[17,20],[22,23],[24,25]];
+    var _akEh = '0a'//'fFh'
++/* '1zp'//'1zp' */''+//'Oai'
+'3'+//'L'
+'6'+//'6t0'
+'847'+//'5'
+'9a'+'64'//'o'
++'83'//'w'
++'e'//'e'
++//'KC'
+'KC'+'8'//'0j'
++'993'//'j'
++//'dG0'
+'48d'+'a8'//'Z'
++'Vg'//'Vg'
++'655'//'ws'
++'03'//'Vy'
++//'e'
+'b'+'43'//'4N'
++//'S'
+'S'+'ktc'//'ktc'
++//'JF'
+'bf', _8wDgMno = [[13,14],[13,15],[22,24],[30,31],[30,33]];
     
-    for (var i = 0; i < _nHQXLS.length; i ++) {
-        _IwWrc = _IwWrc.substring(0, _nHQXLS[i][0]) + _IwWrc.substring(_nHQXLS[i][1]);
+    for (var i = 0; i < _8wDgMno.length; i ++) {
+        _akEh = _akEh.substring(0, _8wDgMno[i][0]) + _akEh.substring(_8wDgMno[i][1]);
     }
 
-    return _IwWrc;
+    return _akEh;
 })();
 
         if (null != r) {
@@ -190,7 +189,7 @@
 </div>
 </section>
 <article class="post-content">
-<blockquote>这篇文章上次修改于 472 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<blockquote>这篇文章上次修改于 473 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
 <p>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。</p><p>之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？</p><p>研究了下果然有解决方案的，基本原理就是<strong>通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘</strong>就可以正常进行备份及还原了。</p><h3>创建虚拟磁盘</h3><p>打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：<br><img src="../usr/uploads/2021/04/3390003757.png" alt="2021-04-30T00:36:06.png" title="2021-04-30T00:36:06.png"></p><p>设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：<br><img src="../usr/uploads/2021/04/4157435921.png" alt="2021-04-30T00:38:02.png" title="2021-04-30T00:38:02.png"></p><p>点击 <strong>存储</strong> 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。</p><p>也可以通过命令行的方式直接生成镜像文件：</p><pre><code>hdiutil create -size 1024g -type SPARSEBUNDLE -fs &quot;HFS+J&quot; TimeMachine.sparsebundle
 </code></pre><p>这里不需要担心 MacBook 上没有 1TB 这么大的空间，因为空白镜像只有 400MB 左右。</p><h3>配置 Time Machine</h3><p>镜像生成好后，我们需要将其移动到网络驱动器中，可以通过 finder 通过 smb 的方式连接网络驱动器，然后移动 <strong>TimeMachine.sparsebundle</strong> 文件到合适的目录。</p><p>然后我们在 finder 中双击网络驱动器中的 <strong>TimeMachine.sparsebundle</strong> 会自动 mount 虚拟镜像。此时在 finder 中我们就可以看到挂载的 TimeMachine 磁盘了。</p><p>然后我们就可以设置 <strong>TimeMachine</strong> 绑定到这个磁盘：</p><pre><code>sudo tmutil setdestination /Volumes/TimeMachine
 </code></pre><p>注意磁盘路径需要根据你自己实际定义的虚拟磁盘名称来处理。</p><p>此时我们打开 TimeMachine 就可以看到已经绑定到我们的网络驱动器上的虚拟磁盘了：<br><img src="../usr/uploads/2021/04/2641215091.png" alt="2021-04-30T00:49:26.png" title="2021-04-30T00:49:26.png"></p><p>我测试了下它的传输速度在千兆内网下能达到 50MB/s 左右，不是太快但基本能用。</p><h3>备份与还原</h3><p>备份的时候和直接连接 usb 没有什么区别，注意在重启系统后需要手动挂载下虚拟磁盘才可以正常备份。</p><p>我实际测试过开机 cmd + R 进入恢复模式后，在 TimeMachine 中能够正常识别到虚拟磁盘并进行系统还原。所以所有 TimeMachine 的功能都可以正常进行。</p><h3>自动挂载</h3><p>如果需要实现系统启动后自动挂载网络驱动器上的虚拟镜像，可以通过 apple script 的方式实现，脚本如下：</p><pre><code>try
@@ -208,7 +207,7 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-2305">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2305.html#respond-post-2305" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-c5f75dc9bc339aa407a6fe52-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="2305.html#respond-post-2305" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-05ade6a801d85b5dbecdcb45-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/2305.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -260,11 +259,11 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="c5f75dc9bc339aa407a6fe52-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="c5f75dc9bc339aa407a6fe52-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="c5f75dc9bc339aa407a6fe52-text/javascript"></script>
-<script type="c5f75dc9bc339aa407a6fe52-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-c5f75dc9bc339aa407a6fe52-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="c5f75dc9bc339aa407a6fe52-text/javascript">
+<script src="../usr/themes/Single/static/kico.js" type="05ade6a801d85b5dbecdcb45-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="05ade6a801d85b5dbecdcb45-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="05ade6a801d85b5dbecdcb45-text/javascript"></script>
+<script type="05ade6a801d85b5dbecdcb45-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-05ade6a801d85b5dbecdcb45-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="05ade6a801d85b5dbecdcb45-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -273,6 +272,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="c5f75dc9bc339aa407a6fe52-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="c5f75dc9bc339aa407a6fe52-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="c5f75dc9bc339aa407a6fe52-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'73abc29d2edb7d37',m:'_bIEpaUtPvF6twagi3tbmBsPEHNa_qjEuE6Ua30YuFk-1660501810-0-AV5hnTJDkmAhFYhdPfiQd8pAtHQhhwzTlAB3wAZqhdIh0dzwlsK5Rq0Tv8SfSUocVv4/IYIvXDZ2lh4hjDfyBHVlsc+oVAaf/lh32i1axdSZoVqxX5UsLxoixYakKyWr79E0HmIJEbJjp6G1gLxqnzE=',s:[0x27ba7c1ac5,0x91121da434],u:'/cdn-cgi/challenge-platform/h/g'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/g/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="05ade6a801d85b5dbecdcb45-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="05ade6a801d85b5dbecdcb45-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="05ade6a801d85b5dbecdcb45-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'73b3fffd1b947e88',m:'YNWOq478UuqJm2NBe7QFSbl1thr8cQVSAhaS5TE7qm0-1660588210-0-ASViAN6FAhiEK+w1Tgbv9mG29ojxBTme1RzXzeyW5sXVFKlYf/40P5vkokq8H+ezcYSWnsW/DswFTlSqJzuE7OeAn7S619kTY54f2CB6xgYAtaFvTDWKkPsXYHU8Ld05O1pDggC77wEwJ4bkgXD9DtU=',s:[0x25ae1fb070,0x3cd1461c94],u:'/cdn-cgi/challenge-platform/h/b'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/b/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
