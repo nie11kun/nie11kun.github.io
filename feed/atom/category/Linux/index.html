@@ -6,11 +6,64 @@ xml:base="https://blog.niekun.net/category/Linux/"
 >
 <title type="text">Marco Nie - Linux</title>
 <subtitle type="text"></subtitle>
-<updated>2022-08-12T14:50:00+08:00</updated>
+<updated>2022-09-16T09:28:45+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/Linux/" />
 <id>https://blog.niekun.net/feed/atom/category/Linux/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" />
+<entry>
+<title type="html"><![CDATA[Ubuntu 安装 FTP server]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2769.html" />
+<id>https://blog.niekun.net/archives/2769.html</id>
+<updated>2022-09-16T09:28:45+08:00</updated>
+<published>2022-09-16T09:28:45+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。系统平台：Ubuntu server 20.04]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2769.html" xml:lang="zh-CN"><![CDATA[
+<p>虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。</p><p>系统平台：Ubuntu server 20.04</p><!--more--><h3>安装 vsftpd</h3><p>主要是通过 vsftpd 实现 ftp 功能的，首先安装：</p><pre><code>apt update &amp;&amp; apt install vsftpd
+</code></pre><p>安装好后，vsftpd 会自动启动，可以查看当前运行状态：</p><pre><code>systemctl status vsftpd
+
+● vsftpd.service - vsftpd FTP server
+     Loaded: loaded (/lib/systemd/system/vsftpd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2020-04-27 19:35:30 IST; 13s ago
+   Main PID: 54532 (vsftpd)
+      Tasks: 1 (limit: 1137)
+     Memory: 652.0K
+     CGroup: /system.slice/vsftpd.service
+             └─54532 /usr/sbin/vsftpd /etc/vsftpd.conf
+
+Apr 27 19:35:30 ubuntu systemd[1]: Starting vsftpd FTP server...
+Apr 27 19:35:30 ubuntu systemd[1]: Started vsftpd FTP server.</code></pre><p>设置为开机自动启动：</p><pre><code>systemctl enable vsftpd
+</code></pre><h3>创建 ftp 用户</h3><p>默认安装好后，会自动创建一个 ftp 用户，这个用户经过我测试无法登录 ftp 服务，这里我们自己创建一个新用户用于登录 ftp，这里创建用户名为 ftpuser：</p><pre><code>adduser ftpuser
+</code></pre><p>期间会提示输入创建用户的密码。</p><p>我们只需要这个新用户登录 ftp 不需要它能够访问 ssh 服务，所以下面我们将这个用户排除在 ssh 用户之外，编辑 <code>/etc/ssh/sshd_config</code> 文件，在最后一行添加以下内容：</p><pre><code>DenyUsers ftpuser</code></pre><p>保存后重启 ssh 服务：</p><pre><code>sudo service sshd restart
+</code></pre><h3>ftp 目录及权限</h3><p>我们新建一个用于 ftp 的目录：</p><pre><code>mkdir /home/www/ftp
+</code></pre><p>将此目录所有者设置为上面创建的 ftpuser：</p><pre><code>chown -R ftpuser:ftpuser /home/www/ftp
+</code></pre><p>默认情况下 ftp 目录的根路径不允许有<strong>写权限</strong>，否则链接的时候会报错，所以我们取消这个文件夹的对应权限：</p><pre><code>chmod a-w /home/www/ftp
+</code></pre><p>如果想要上传文件，我们可以在这个文件夹内新建一个文件夹专门用来上传：</p><pre><code>mkdir /home/www/ftp/uploads
+</code></pre><p>同样的文件夹所有者为 ftpuser：</p><pre><code>chown -R ftpuser:ftpuser /home/www/ftp/uploads
+</code></pre><h3>vsftpd 配置文件</h3><p>vsftpd 配置文件路径为：<code>/etc/vsftpd.conf</code>，打开并修改如下设置，最后一行配置文件中没有的话需要自己创建一下：</p><pre><code>listen=NO
+listen_ipv6=YES
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+local_umask=022
+dirmessage_enable=YES
+use_localtime=YES
+xferlog_enable=YES
+connect_from_port_20=YES
+chroot_local_user=YES
+secure_chroot_dir=/var/run/vsftpd/empty
+pam_service_name=vsftpd
+
+local_root=/home/www/ftp</code></pre><p>修改完成后重启服务：</p><pre><code>systemctl restart vsftpd
+</code></pre><p>此时就可以使用 ftp 客户端连接到 ftp 服务器了。</p><p>为了更加安全，推荐配置 ssl 证书，可以参考：<a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/#id-7-secure-ftp-with-tls-recommended">Secure FTP with TLS (Recommended)</a></p><p>以上就是 ftp server 的简单安装及配置教程。</p><h3>参考链接</h3><p><a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/">How To Install an FTP server (vsftpd) on Ubuntu 20.04/20.10</a><br><a href="https://ubuntu.com/server/docs/service-ftp">FTP Server</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2769.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Miniflux 搭建自己的 RSS 服务系统]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2749.html" />
@@ -482,31 +535,6 @@ openssl x509 -req -days 730 -in /etc/vmware/ssl/rui.csr -signkey /etc/vmware/ssl
         procd_set_param limits nproc=&quot;101200&quot;</code></pre><p>limits 参数可以设置系统的一些限制值，openwrt 可用的限制值名称可以在官方文档找到：<a href="https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters">https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters</a></p><p>以上就将系统限制设置为一个较大的值，修改完成后重启这个进程即可。</p><h3>参考链接</h3><p><a href="https://www.cccitu.com/3827.html">Linux命令：TCP连接高并发时Socket句柄数的修改</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters">procd-init-scripts#service_parameters</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-script-example#advanced_options">procd-init-script-example#advanced_options</a><br><a href="https://blog.niekun.net/archives/2277.html">openwrt procd init script 自启动脚本服务</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2572.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[iptables 配置透明代理注意事项]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2570.html" />
-<id>https://blog.niekun.net/archives/2570.html</id>
-<updated>2022-04-03T08:33:00+08:00</updated>
-<published>2022-04-03T08:33:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[之前介绍过通过 dnsmasq 配合 iptables 实现对 ip 地址的流量过滤，dnsmasq 获取到流量后标记 ipset 然后通过 iptables 识别 ipset 然后将流量送往指...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2570.html" xml:lang="zh-CN"><![CDATA[
-<p>之前介绍过通过 dnsmasq 配合 iptables 实现对 ip 地址的流量过滤，dnsmasq 获取到流量后标记 ipset 然后通过 iptables 识别 ipset 然后将流量送往指定地址。</p><p><a href="https://blog.niekun.net/archives/1872.html">通过 dnsmasq ipset 和 iptables 对域名流量的控制</a><br><a href="https://blog.niekun.net/archives/1863.html">iptables 使用教程</a></p><p>这里面存在一个问题就是流量回环问题，如果处理不好回导致 iptables 规则无限循环，尤其是在配置透明代理时候。</p><pre><code>iptables -t mangle -A PREROUTING -p tcp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
-iptables -t mangle -A PREROUTING -p udp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
-iptables -t mangle -A OUTPUT -p tcp -m set --match-set gfwlist dst -j MARK --set-mark 1
-iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set-mark 1</code></pre><p>以上规则会将 指定 list 的流量发送到指定端口并打上 mark 标记，但是从目标地址返回数据后，数据流会再次匹配到以上规则导致再次将流量送往指定端口，导致无限循环。</p><p>处理方法就是在目标地址获取到流量后，给流量打上 mark 标记，然后在 iptables 的最前面加上一条规则识别从目标地址返回的流量，直接 return 流量即可。</p><p>例如目标地址处理后的流量标记为 mark 2，iptables 规则最前面增加一条规则：</p><pre><code>iptables -t mangle -I OUTPUT -j RETURN -m mark --mark 0x02</code></pre><p><code>-I</code> 参数就是将规则放在在路由链的最前面。</p><p>如果是通过脚本的方式配置 iptables，将开始的脚本内容修改如下即可：</p><pre><code>iptables -t mangle -A OUTPUT -j RETURN -m mark --mark 0x02
-
-iptables -t mangle -A PREROUTING -p tcp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
-iptables -t mangle -A PREROUTING -p udp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
-iptables -t mangle -A OUTPUT -p tcp -m set --match-set gfwlist dst -j MARK --set-mark 1
-iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set-mark 1</code></pre><p>这样就可以避免流量回环问题。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2570.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
 </entry>
 </feed>

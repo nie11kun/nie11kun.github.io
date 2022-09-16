@@ -6,11 +6,64 @@ xml:base="https://blog.niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2022-09-15T15:04:00+08:00</updated>
+<updated>2022-09-16T09:28:45+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/" />
 <id>https://blog.niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[Ubuntu 安装 FTP server]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2769.html" />
+<id>https://blog.niekun.net/archives/2769.html</id>
+<updated>2022-09-16T09:28:45+08:00</updated>
+<published>2022-09-16T09:28:45+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。系统平台：Ubuntu server 20.04]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2769.html" xml:lang="zh-CN"><![CDATA[
+<p>虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。</p><p>系统平台：Ubuntu server 20.04</p><!--more--><h3>安装 vsftpd</h3><p>主要是通过 vsftpd 实现 ftp 功能的，首先安装：</p><pre><code>apt update &amp;&amp; apt install vsftpd
+</code></pre><p>安装好后，vsftpd 会自动启动，可以查看当前运行状态：</p><pre><code>systemctl status vsftpd
+
+● vsftpd.service - vsftpd FTP server
+     Loaded: loaded (/lib/systemd/system/vsftpd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2020-04-27 19:35:30 IST; 13s ago
+   Main PID: 54532 (vsftpd)
+      Tasks: 1 (limit: 1137)
+     Memory: 652.0K
+     CGroup: /system.slice/vsftpd.service
+             └─54532 /usr/sbin/vsftpd /etc/vsftpd.conf
+
+Apr 27 19:35:30 ubuntu systemd[1]: Starting vsftpd FTP server...
+Apr 27 19:35:30 ubuntu systemd[1]: Started vsftpd FTP server.</code></pre><p>设置为开机自动启动：</p><pre><code>systemctl enable vsftpd
+</code></pre><h3>创建 ftp 用户</h3><p>默认安装好后，会自动创建一个 ftp 用户，这个用户经过我测试无法登录 ftp 服务，这里我们自己创建一个新用户用于登录 ftp，这里创建用户名为 ftpuser：</p><pre><code>adduser ftpuser
+</code></pre><p>期间会提示输入创建用户的密码。</p><p>我们只需要这个新用户登录 ftp 不需要它能够访问 ssh 服务，所以下面我们将这个用户排除在 ssh 用户之外，编辑 <code>/etc/ssh/sshd_config</code> 文件，在最后一行添加以下内容：</p><pre><code>DenyUsers ftpuser</code></pre><p>保存后重启 ssh 服务：</p><pre><code>sudo service sshd restart
+</code></pre><h3>ftp 目录及权限</h3><p>我们新建一个用于 ftp 的目录：</p><pre><code>mkdir /home/www/ftp
+</code></pre><p>将此目录所有者设置为上面创建的 ftpuser：</p><pre><code>chown -R ftpuser:ftpuser /home/www/ftp
+</code></pre><p>默认情况下 ftp 目录的根路径不允许有<strong>写权限</strong>，否则链接的时候会报错，所以我们取消这个文件夹的对应权限：</p><pre><code>chmod a-w /home/www/ftp
+</code></pre><p>如果想要上传文件，我们可以在这个文件夹内新建一个文件夹专门用来上传：</p><pre><code>mkdir /home/www/ftp/uploads
+</code></pre><p>同样的文件夹所有者为 ftpuser：</p><pre><code>chown -R ftpuser:ftpuser /home/www/ftp/uploads
+</code></pre><h3>vsftpd 配置文件</h3><p>vsftpd 配置文件路径为：<code>/etc/vsftpd.conf</code>，打开并修改如下设置，最后一行配置文件中没有的话需要自己创建一下：</p><pre><code>listen=NO
+listen_ipv6=YES
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+local_umask=022
+dirmessage_enable=YES
+use_localtime=YES
+xferlog_enable=YES
+connect_from_port_20=YES
+chroot_local_user=YES
+secure_chroot_dir=/var/run/vsftpd/empty
+pam_service_name=vsftpd
+
+local_root=/home/www/ftp</code></pre><p>修改完成后重启服务：</p><pre><code>systemctl restart vsftpd
+</code></pre><p>此时就可以使用 ftp 客户端连接到 ftp 服务器了。</p><p>为了更加安全，推荐配置 ssl 证书，可以参考：<a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/#id-7-secure-ftp-with-tls-recommended">Secure FTP with TLS (Recommended)</a></p><p>以上就是 ftp server 的简单安装及配置教程。</p><h3>参考链接</h3><p><a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/">How To Install an FTP server (vsftpd) on Ubuntu 20.04/20.10</a><br><a href="https://ubuntu.com/server/docs/service-ftp">FTP Server</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2769.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Windows 配置 FTP 服务器]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2757.html" />
@@ -396,23 +449,6 @@ chmod +x .xsession</code></pre><p>发现问题似乎解决了，但是调用的�
 <p><img src="https://blog.niekun.net/usr/uploads/2022/05/2965344295.png" alt="2022-05-12T01:50:32.png" title="2022-05-12T01:50:32.png"><br>之前介绍过几种色彩匹配的方法，通过对亮度、颜色、饱和度的进行匹配，也可以通过设置曲线的黑、灰、白场来匹配颜色。下面介绍通过通过提取源图像和目标图像的黑白灰色彩，然后通过曲线将他们进行色彩匹配达到最终的效果。</p><p>参考教程：<br><a href="https://blog.niekun.net/archives/680.html">精细匹配颜色 in Photoshop</a><br><a href="https://blog.niekun.net/archives/691.html">简易匹配颜色 in Photoshop</a></p><p>用到的技术：曲线，拾色器</p><!--more--><p>原图如下：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/4227986356.png" alt="2022-05-12T01:52:28.png" title="2022-05-12T01:52:28.png"></p><p>我们的目标是将左边的衣服颜色转换为右边衣服的色彩。</p><p>首先在背景图层上新建两个空白图层，用来提取两人的衣服的黑白灰色彩信息：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/189434051.png" alt="2022-05-12T02:35:57.png" title="2022-05-12T02:35:57.png"></p><p>通过拾色工具分别拾取两个衣服的黑白灰部区域的色彩，并通过画笔工具记录在两个图层中，注意拾取颜色的时候设置为 3×3 或 5×5：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/3544724699.png" alt="2022-05-12T02:40:27.png" title="2022-05-12T02:40:27.png"><br><img src="https://blog.niekun.net/usr/uploads/2022/05/308610655.png" alt="2022-05-12T02:40:42.png" title="2022-05-12T02:40:42.png"></p><p>新建曲线图层，放在最上方：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/2311187890.png" alt="2022-05-12T02:42:15.png" title="2022-05-12T02:42:15.png"></p><p>首先提取右侧衣服色彩 rgb 信息，快捷键 I 选择拾色工具然后按 shift + alt 键分别在三条色彩上点击，注意操作的时候要选择到最上方的图层，否则拾取的颜色会不对：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/331668660.png" alt="2022-05-12T02:48:26.png" title="2022-05-12T02:48:26.png"></p><p>可以看到面板中保存了三个点位的rgb信息，我们后续需要将左侧的三条色条匹配为这里记录的颜色。</p><p>下面在曲线图层中操作，我们需要在曲线中找到左侧三条颜色所在的位置，按 shift + ctrl 点击左侧第一条线，在曲线图层中会自动创建一个锚点就是拾取颜色所在的位置，在 rgb，red，green，blue 通道中都会有一个点：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/3550273877.png" alt="2022-05-12T02:53:06.png" title="2022-05-12T02:53:06.png"><br><img src="https://blog.niekun.net/usr/uploads/2022/05/2123676973.png" alt="2022-05-12T02:53:23.png" title="2022-05-12T02:53:23.png"><br><img src="https://blog.niekun.net/usr/uploads/2022/05/451596522.png" alt="2022-05-12T02:53:44.png" title="2022-05-12T02:53:44.png"></p><p>同样的方法将左侧三条颜色都在曲线中获取锚点：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/685607622.png" alt="2022-05-12T03:01:37.png" title="2022-05-12T03:01:37.png"></p><p>我们需要在 red green blue 通道的锚点中，将 output 信息修改为目标颜色的对应通道数值，比如右侧第一条亮部 rgb 为：216，92，59。我们就将刚才每个通道的 output 信息修改为这个值：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/308199194.png" alt="2022-05-12T02:58:28.png" title="2022-05-12T02:58:28.png"></p><p>以此类推将左侧三条颜色所在锚点的 output 修改为右侧记录的颜色 rgb 值：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/1412283846.png" alt="2022-05-12T03:03:41.png" title="2022-05-12T03:03:41.png"></p><p>将 reference 图层放到曲线上方，可以看到记录的两个衣服色彩的 reference 和 target 图层颜色已经完全一致了：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/3872104491.png" alt="2022-05-12T03:05:13.png" title="2022-05-12T03:05:13.png"></p><p>选中拾色器工具，同样的 shift + alt 点击三个之前创建的锚点可以删除它们。</p><p>下面需要选出左侧衣服部分，临时关闭除背景外的其他图层，使用钢笔工具或其他你常用的工具提取出左侧衣服部分的选区，然后给曲线图层添加图层蒙版：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/2430549175.png" alt="2022-05-12T03:09:46.png" title="2022-05-12T03:09:46.png"></p><p>根据实际情况，可以对曲线每个锚点的位置进行微调，以达到最佳效果。</p><p>最终效果如下：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/116183390.png" alt="2022-05-12T03:15:55.png" title="2022-05-12T03:15:55.png"></p><p>以上就完成了简单的颜色匹配。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2672.html#comments" thr:count="1" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" thr:count="1"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[制作水坑效果 in Photoshop]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2642.html" />
-<id>https://blog.niekun.net/archives/2642.html</id>
-<updated>2022-05-07T14:53:00+08:00</updated>
-<published>2022-05-07T14:53:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[今天介绍给晴朗路面添加雨天水坑效果，实际效果还不错。用到的技术：vanishing point，channel，puddle texture材质。]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2642.html" xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2022/05/3454525268.png" alt="2022-05-07T06:30:42.png" title="2022-05-07T06:30:42.png"></p><p>今天介绍给晴朗路面添加雨天水坑效果，实际效果还不错。</p><p>用到的技术：vanishing point，channel，puddle texture材质。</p><!--more--><p>原图如下：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/3137131938.png" alt="2022-05-07T06:34:42.png" title="2022-05-07T06:34:42.png"></p><p>首先我们创建路面部分的立体平面，选择 filter - vanishing point：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/1362261339.png" alt="2022-05-07T06:36:49.png" title="2022-05-07T06:36:49.png"></p><p>点击 create plant tool：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/2812973481.png" alt="2022-05-07T06:40:46.png" title="2022-05-07T06:40:46.png"></p><p>根据路面形状，通过点击绘制出一个大致的梯形，注意如果轨迹不符合路面形状会显示为红色：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/1679968172.png" alt="2022-05-07T06:42:23.png" title="2022-05-07T06:42:23.png"></p><p>拖拽线段扩展到整个路面：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/3316359648.png" alt="2022-05-07T06:43:34.png" title="2022-05-07T06:43:34.png"></p><p>以上就完成了平面的构建，点击确认返回。</p><p>首先复制背景图层。</p><p>然后我们通过钢笔工具或者其他工具建立地面的选区：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/1402794448.png" alt="2022-05-07T06:47:59.png" title="2022-05-07T06:47:59.png"></p><p>给复制的图层建立图层蒙版：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/951008614.png" alt="2022-05-07T06:53:54.png" title="2022-05-07T06:53:54.png"></p><p>然后解锁蒙版和图层的锁，否则后面颠倒图层蒙版也会动：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/2525946237.png" alt="2022-05-07T06:56:50.png" title="2022-05-07T06:56:50.png"></p><p>然后选中图层而不是蒙版，点击 edit - transform - flip vertical：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/4274866273.png" alt="2022-05-07T06:58:20.png" title="2022-05-07T06:58:20.png"></p><p>调整图层位置到合适：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/222031413.png" alt="2022-05-07T06:59:03.png" title="2022-05-07T06:59:03.png"></p><p>然后临时关闭路面倒影的图层，我们制作水坑的效果。</p><p>首先需要一个水坑素材图片，如下图：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/1926304447.png" alt="2022-05-07T07:00:57.png" title="2022-05-07T07:00:57.png"></p><p>导入 ps 后选中材质图层，按住 ctrl 点击图层全选材质图层，点击 ctrl c 复制图层，然后就可以关闭材质图层了：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/1066803471.png" alt="2022-05-07T07:02:23.png" title="2022-05-07T07:02:23.png"></p><p>新建一个空白图层，再次打开 vanishing point，按 ctrl v 复制材质图层到界面：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/1408343792.png" alt="2022-05-07T07:04:18.png" title="2022-05-07T07:04:18.png"></p><p>首先按ctrl T适当缩小图像，然后拖拽图层到下方创建的平面内：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/292082319.png" alt="2022-05-07T07:05:57.png" title="2022-05-07T07:05:57.png"></p><p>按住 ctrl 拖拽图层，复制多个图层铺满整个路面：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/918686170.png" alt="2022-05-07T07:07:04.png" title="2022-05-07T07:07:04.png"></p><p>完成后点击确认返回 ps，会将填充的平面内容在新图层上：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/2386401779.png" alt="2022-05-07T07:07:33.png" title="2022-05-07T07:07:33.png"></p><p>我们需要利用涂层的黑白部分反差作为模拟水滩效果，所以首先提高图层反差，新建曲线图层并设置只影响材质图层，提高亮部：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/694459945.png" alt="2022-05-07T07:13:18.png" title="2022-05-07T07:13:18.png"></p><p>然后临时关闭其他图层，只保留材质图层：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/2252142406.png" alt="2022-05-07T07:14:17.png" title="2022-05-07T07:14:17.png"></p><p>进入通道，选择一个通道按住 ctrl 点击通道获取选区：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/4040686630.png" alt="2022-05-07T07:15:15.png" title="2022-05-07T07:15:15.png"></p><p>然后关闭材质图层，打开背景图层和路面反转图层，并将反转图层单独建立一个组：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/802640037.png" alt="2022-05-07T07:16:40.png" title="2022-05-07T07:16:40.png"></p><p>选中组，点击创建蒙版：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/2853149168.png" alt="2022-05-07T07:17:12.png" title="2022-05-07T07:17:12.png"></p><p>这样我们就有了基本效果啦。</p><p>下面微调效果，首先倒影是在路面上形成的，所以他的颜色分布也应该符合路面的色彩分布，所以我们在反转组内建立一个 gradient map 图层并锁定之影响下方图层：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/1502050116.png" alt="2022-05-07T07:20:46.png" title="2022-05-07T07:20:46.png"></p><p>修改 map 颜色，亮部选区一个路面上较量区域的色彩，同样的暗部选取一个路面较暗的区域色彩，注意选择 3×3 拾取颜色：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/3742793332.png" alt="2022-05-07T07:23:13.png" title="2022-05-07T07:23:13.png"></p><p>根据情况调节 gradient map 不透明度：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/3937721709.png" alt="2022-05-07T07:24:26.png" title="2022-05-07T07:24:26.png"></p><p>水坑里的倒影一般会有一定的模糊，我们先将倒影图层转换为 smart object 然后选 filter - blur galley - path blur：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/2108128443.png" alt="2022-05-07T07:26:48.png" title="2022-05-07T07:26:48.png"></p><p>根据情况可以适当加强一下饱和度，新建 vibrate 图层，调节饱和度：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/3681898173.png" alt="2022-05-07T07:28:05.png" title="2022-05-07T07:28:05.png"></p><p>最终效果对比：<br><img src="https://blog.niekun.net/usr/uploads/2022/05/145471677.png" alt="2022-05-07T07:30:20.png" title="2022-05-07T07:30:20.png"></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2642.html#comments" thr:count="1" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" thr:count="1"/>
 </entry>
 </feed>

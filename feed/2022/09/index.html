@@ -11,8 +11,58 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/2022/09/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Thu, 15 Sep 2022 15:04:00 +0800</lastBuildDate>
-<pubDate>Thu, 15 Sep 2022 15:04:00 +0800</pubDate>
+<lastBuildDate>Fri, 16 Sep 2022 09:28:45 +0800</lastBuildDate>
+<pubDate>Fri, 16 Sep 2022 09:28:45 +0800</pubDate>
+<item>
+<title>Ubuntu 安装 FTP server</title>
+<link>https://blog.niekun.net/archives/2769.html</link>
+<guid>https://blog.niekun.net/archives/2769.html</guid>
+<pubDate>Fri, 16 Sep 2022 09:28:45 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。系统平台：Ubuntu server 20.04]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。</p><p>系统平台：Ubuntu server 20.04</p><!--more--><h3>安装 vsftpd</h3><p>主要是通过 vsftpd 实现 ftp 功能的，首先安装：</p><pre><code>apt update &amp;&amp; apt install vsftpd
+</code></pre><p>安装好后，vsftpd 会自动启动，可以查看当前运行状态：</p><pre><code>systemctl status vsftpd
+
+● vsftpd.service - vsftpd FTP server
+     Loaded: loaded (/lib/systemd/system/vsftpd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2020-04-27 19:35:30 IST; 13s ago
+   Main PID: 54532 (vsftpd)
+      Tasks: 1 (limit: 1137)
+     Memory: 652.0K
+     CGroup: /system.slice/vsftpd.service
+             └─54532 /usr/sbin/vsftpd /etc/vsftpd.conf
+
+Apr 27 19:35:30 ubuntu systemd[1]: Starting vsftpd FTP server...
+Apr 27 19:35:30 ubuntu systemd[1]: Started vsftpd FTP server.</code></pre><p>设置为开机自动启动：</p><pre><code>systemctl enable vsftpd
+</code></pre><h3>创建 ftp 用户</h3><p>默认安装好后，会自动创建一个 ftp 用户，这个用户经过我测试无法登录 ftp 服务，这里我们自己创建一个新用户用于登录 ftp，这里创建用户名为 ftpuser：</p><pre><code>adduser ftpuser
+</code></pre><p>期间会提示输入创建用户的密码。</p><p>我们只需要这个新用户登录 ftp 不需要它能够访问 ssh 服务，所以下面我们将这个用户排除在 ssh 用户之外，编辑 <code>/etc/ssh/sshd_config</code> 文件，在最后一行添加以下内容：</p><pre><code>DenyUsers ftpuser</code></pre><p>保存后重启 ssh 服务：</p><pre><code>sudo service sshd restart
+</code></pre><h3>ftp 目录及权限</h3><p>我们新建一个用于 ftp 的目录：</p><pre><code>mkdir /home/www/ftp
+</code></pre><p>将此目录所有者设置为上面创建的 ftpuser：</p><pre><code>chown -R ftpuser:ftpuser /home/www/ftp
+</code></pre><p>默认情况下 ftp 目录的根路径不允许有<strong>写权限</strong>，否则链接的时候会报错，所以我们取消这个文件夹的对应权限：</p><pre><code>chmod a-w /home/www/ftp
+</code></pre><p>如果想要上传文件，我们可以在这个文件夹内新建一个文件夹专门用来上传：</p><pre><code>mkdir /home/www/ftp/uploads
+</code></pre><p>同样的文件夹所有者为 ftpuser：</p><pre><code>chown -R ftpuser:ftpuser /home/www/ftp/uploads
+</code></pre><h3>vsftpd 配置文件</h3><p>vsftpd 配置文件路径为：<code>/etc/vsftpd.conf</code>，打开并修改如下设置，最后一行配置文件中没有的话需要自己创建一下：</p><pre><code>listen=NO
+listen_ipv6=YES
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+local_umask=022
+dirmessage_enable=YES
+use_localtime=YES
+xferlog_enable=YES
+connect_from_port_20=YES
+chroot_local_user=YES
+secure_chroot_dir=/var/run/vsftpd/empty
+pam_service_name=vsftpd
+
+local_root=/home/www/ftp</code></pre><p>修改完成后重启服务：</p><pre><code>systemctl restart vsftpd
+</code></pre><p>此时就可以使用 ftp 客户端连接到 ftp 服务器了。</p><p>为了更加安全，推荐配置 ssl 证书，可以参考：<a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/#id-7-secure-ftp-with-tls-recommended">Secure FTP with TLS (Recommended)</a></p><p>以上就是 ftp server 的简单安装及配置教程。</p><h3>参考链接</h3><p><a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/">How To Install an FTP server (vsftpd) on Ubuntu 20.04/20.10</a><br><a href="https://ubuntu.com/server/docs/service-ftp">FTP Server</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2769.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/2022/09/</wfw:commentRss>
+</item>
 <item>
 <title>Windows 配置 FTP 服务器</title>
 <link>https://blog.niekun.net/archives/2757.html</link>

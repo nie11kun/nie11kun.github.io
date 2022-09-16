@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ubuntu 安装 FTP server - Marco Nie</title>
+<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
+<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
+<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
+<link href="https://cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
+<meta property="og:site_name" content="Marco Nie">
+<meta property="og:title" content="Ubuntu 安装 FTP server" />
+<meta name="description" content="虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。系统平台：Ubuntu server 20.04" />
+<link rel="alternate" type="application/rss+xml" title="Ubuntu 安装 FTP server &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2769.html" />
+<link rel="alternate" type="application/rdf+xml" title="Ubuntu 安装 FTP server &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2769.html" />
+<link rel="alternate" type="application/atom+xml" title="Ubuntu 安装 FTP server &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2769.html" />
+<script type="9792133bb4e9568b69232bdf-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (id) {
+            return document.getElementById(id);
+        },
+    
+        create : function (tag, attr) {
+            var el = document.createElement(tag);
+        
+            for (var key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+
+        reply : function (cid, coid) {
+            var comment = this.dom(cid), parent = comment.parentNode,
+                response = this.dom('respond-post-2769'), input = this.dom('comment-parent'),
+                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
+                textarea = response.getElementsByTagName('textarea')[0];
+
+            if (null == input) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent',
+                    'id'   : 'comment-parent'
+                });
+
+                form.appendChild(input);
+            }
+
+            input.setAttribute('value', coid);
+
+            if (null == this.dom('comment-form-place-holder')) {
+                var holder = this.create('div', {
+                    'id' : 'comment-form-place-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+
+            comment.appendChild(response);
+            this.dom('cancel-comment-reply-link').style.display = '';
+
+            if (null != textarea && 'text' == textarea.name) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            var response = this.dom('respond-post-2769'),
+            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+
+            if (null != input) {
+                input.parentNode.removeChild(input);
+            }
+
+            if (null == holder) {
+                return true;
+            }
+
+            this.dom('cancel-comment-reply-link').style.display = 'none';
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script>
+<script type="9792133bb4e9568b69232bdf-text/javascript">
+(function () {
+    var event = document.addEventListener ? {
+        add: 'addEventListener',
+        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
+        load: 'DOMContentLoaded'
+    } : {
+        add: 'attachEvent',
+        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
+        load: 'onload'
+    }, added = false;
+
+    document[event.add](event.load, function () {
+        var r = document.getElementById('respond-post-2769'),
+            input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = '_';
+        input.value = (function () {
+    var _u4oe = //'MQv'
+'84'+/* '0'//'0' */''+//'i'
+'11c'+//'53d'
+'2ce'+'1a3'//'dq'
++//'5F'
+'e5e'+'b5c'//'Z'
++''///*'1r3'*/'1r3'
++//'tD'
+'tD'+'5'//'5'
++/* '3WU'//'3WU' */''+//'R'
+'R'+'d4'//'L'
++//'TZT'
+'8b'+'UlW'//'UlW'
++'d01'//'cR'
++//'qAM'
+'32'+//'g'
+'d0c'+''///*'VQ'*/'VQ'
++//'jGD'
+'ec0', _63Xyh = [[17,19],[17,18],[17,18],[21,24]];
+    
+    for (var i = 0; i < _63Xyh.length; i ++) {
+        _u4oe = _u4oe.substring(0, _63Xyh[i][0]) + _u4oe.substring(_63Xyh[i][1]);
+    }
+
+    return _u4oe;
+})();
+
+        if (null != r) {
+            var forms = r.getElementsByTagName('form');
+            if (forms.length > 0) {
+                function append() {
+                    if (!added) {
+                        forms[0].appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (var i = 0; i < event.triggers.length; i ++) {
+                    var trigger = event.triggers[i];
+                    document[event.add](trigger, append);
+                    window[event.add](trigger, append);
+                }
+            }
+        }
+    });
+})();
+</script><link rel="stylesheet" href="../usr/plugins/YoduBGM/css/player.css?2022"><style>@media only screen and (max-width:766px){.ymusic{display:none}}</style>
+<style>bgm{top: 60px;}</style>
+</head>
+<body>
+<header>
+<div class="head-title">
+<h4>Marco Nie</h4>
+</div>
+<div class="head-action">
+<div class="toggle-btn"></div>
+<div class="light-btn"></div>
+<div class="search-btn"></div>
+</div>
+<form class="head-search" method="post">
+<input type="text" name="s" placeholder="搜索什么？">
+</form>
+<nav class="head-menu">
+<a href="../index.html">首页</a>
+<div class="has-child">
+<a>分类</a>
+<div class="sub-menu">
+<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/software/index.html">software</a> </div>
+</div>
+<a href="../start-page.html">关于我</a> </nav>
+</header>
+<main>
+<div class="wrap min">
+<section class="post-title">
+<h2>Ubuntu 安装 FTP server</h2>
+<div class="post-meta">
+<time class="date">2022-09-16</time>
+<span class="category"><a href="../category/Linux/index.html">Linux</a></span>
+<span class="comments">0</span>
+</div>
+</section>
+<article class="post-content">
+<p>虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。</p><p>系统平台：Ubuntu server 20.04</p><h3>安装 vsftpd</h3><p>主要是通过 vsftpd 实现 ftp 功能的，首先安装：</p><pre><code>apt update &amp;&amp; apt install vsftpd
+</code></pre><p>安装好后，vsftpd 会自动启动，可以查看当前运行状态：</p><pre><code>systemctl status vsftpd
+
+● vsftpd.service - vsftpd FTP server
+     Loaded: loaded (/lib/systemd/system/vsftpd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2020-04-27 19:35:30 IST; 13s ago
+   Main PID: 54532 (vsftpd)
+      Tasks: 1 (limit: 1137)
+     Memory: 652.0K
+     CGroup: /system.slice/vsftpd.service
+             └─54532 /usr/sbin/vsftpd /etc/vsftpd.conf
+
+Apr 27 19:35:30 ubuntu systemd[1]: Starting vsftpd FTP server...
+Apr 27 19:35:30 ubuntu systemd[1]: Started vsftpd FTP server.</code></pre><p>设置为开机自动启动：</p><pre><code>systemctl enable vsftpd
+</code></pre><h3>创建 ftp 用户</h3><p>默认安装好后，会自动创建一个 ftp 用户，这个用户经过我测试无法登录 ftp 服务，这里我们自己创建一个新用户用于登录 ftp，这里创建用户名为 ftpuser：</p><pre><code>adduser ftpuser
+</code></pre><p>期间会提示输入创建用户的密码。</p><p>我们只需要这个新用户登录 ftp 不需要它能够访问 ssh 服务，所以下面我们将这个用户排除在 ssh 用户之外，编辑 <code>/etc/ssh/sshd_config</code> 文件，在最后一行添加以下内容：</p><pre><code>DenyUsers ftpuser</code></pre><p>保存后重启 ssh 服务：</p><pre><code>sudo service sshd restart
+</code></pre><h3>ftp 目录及权限</h3><p>我们新建一个用于 ftp 的目录：</p><pre><code>mkdir /home/www/ftp
+</code></pre><p>将此目录所有者设置为上面创建的 ftpuser：</p><pre><code>chown -R ftpuser:ftpuser /home/www/ftp
+</code></pre><p>默认情况下 ftp 目录的根路径不允许有<strong>写权限</strong>，否则链接的时候会报错，所以我们取消这个文件夹的对应权限：</p><pre><code>chmod a-w /home/www/ftp
+</code></pre><p>如果想要上传文件，我们可以在这个文件夹内新建一个文件夹专门用来上传：</p><pre><code>mkdir /home/www/ftp/uploads
+</code></pre><p>同样的文件夹所有者为 ftpuser：</p><pre><code>chown -R ftpuser:ftpuser /home/www/ftp/uploads
+</code></pre><h3>vsftpd 配置文件</h3><p>vsftpd 配置文件路径为：<code>/etc/vsftpd.conf</code>，打开并修改如下设置，最后一行配置文件中没有的话需要自己创建一下：</p><pre><code>listen=NO
+listen_ipv6=YES
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+local_umask=022
+dirmessage_enable=YES
+use_localtime=YES
+xferlog_enable=YES
+connect_from_port_20=YES
+chroot_local_user=YES
+secure_chroot_dir=/var/run/vsftpd/empty
+pam_service_name=vsftpd
+
+local_root=/home/www/ftp</code></pre><p>修改完成后重启服务：</p><pre><code>systemctl restart vsftpd
+</code></pre><p>此时就可以使用 ftp 客户端连接到 ftp 服务器了。</p><p>为了更加安全，推荐配置 ssl 证书，可以参考：<a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/#id-7-secure-ftp-with-tls-recommended">Secure FTP with TLS (Recommended)</a></p><p>以上就是 ftp server 的简单安装及配置教程。</p><h3>参考链接</h3><p><a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/">How To Install an FTP server (vsftpd) on Ubuntu 20.04/20.10</a><br><a href="https://ubuntu.com/server/docs/service-ftp">FTP Server</a></p> </article>
+<section class="post-near">
+<ul>
+<li>上一篇: <a href="2757.html" title="Windows 配置 FTP 服务器">Windows 配置 FTP 服务器</a></li>
+<li>下一篇: 看完啦 (つд⊂)</li>
+</ul>
+</section>
+<section class="post-comments">
+<h3>没有评论</h3>
+<div class="comment-form" id="respond-post-2769">
+<span class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="2769.html#respond-post-2769" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-9792133bb4e9568b69232bdf-="">取消回复</a> </span>
+<form method="post" action="https://blog.niekun.net/archives/2769.html/comment" role="form">
+<div class="row">
+<fieldset class="col-m-6">
+<input type="text" name="author" placeholder="昵称 *：" value="" required>
+<input type="email" name="mail" placeholder="电邮 *：" value="" required>
+<input type="url" name="url" placeholder="http://" value="">
+</fieldset>
+<fieldset class="col-m-6">
+<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
+<button type="submit" class="btn">写好了~</button>
+</fieldset>
+</div>
+</form>
+</div>
+</section> </div>
+</main>
+<footer>
+<div class="buttons">
+<a class="to-top" href="2769.html#"></a>
+</div>
+<div class="wrap min">
+<section class="widget">
+<div class="row">
+<div class="col-m-4">
+<h3 class="title-recent">最新文章：</h3>
+<ul>
+<li><a href="2769.html" target="_blank">Ubuntu 安装 FTP server</a></li><li><a href="2757.html" target="_blank">Windows 配置 FTP 服务器</a></li><li><a href="2749.html" target="_blank">Miniflux 搭建自己的 RSS 服务系统</a></li><li><a href="2744.html" target="_blank">自建 RustDesk server</a></li><li><a href="2742.html" target="_blank">Joplin server 搭建</a></li><li><a href="2731.html" target="_blank">Gradient 渐变色研究</a></li> </ul>
+</div>
+<div class="col-m-4">
+<h3 class="title-date">时光机：</h3>
+<ul>
+<li><a href="../2022/09/index.html" rel="nofollow" target="_blank">2022 年 09 月</a></li><li><a href="../2022/08/index.html" rel="nofollow" target="_blank">2022 年 08 月</a></li><li><a href="../2022/07/index.html" rel="nofollow" target="_blank">2022 年 07 月</a></li><li><a href="../2022/06/index.html" rel="nofollow" target="_blank">2022 年 06 月</a></li><li><a href="../2022/05/index.html" rel="nofollow" target="_blank">2022 年 05 月</a></li><li><a href="../2022/04/index.html" rel="nofollow" target="_blank">2022 年 04 月</a></li> </ul>
+</div>
+<div class="col-m-4">
+<h3 class="title-comments">最近评论：</h3>
+<ul>
+<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<li>ahxinny: <a href="2672.html#comment-47" rel="nofollow" target="_blank">再弄一个两个人...</a></li>
+<li>ahxinny: <a href="2642.html#comment-45" rel="nofollow" target="_blank">电影中下雨是消...</a></li>
+<li>ahxinny: <a href="2502.html#comment-44" rel="nofollow" target="_blank">脸蛋好像不是很漂亮。</a></li>
+<li>marco nie: <a href="349.html#comment-43" rel="nofollow" target="_blank">好久没看，回顾一下</a></li>
+<li>Marc: <a href="../start-page.html#comment-42" rel="nofollow" target="_blank">Hi Marc...</a></li>
+</ul>
+</div>
+</div>
+</section>
+<section class="sub-footer">
+<p>© 2022 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
+</section>
+</div>
+</footer>
+<script src="../usr/themes/Single/static/kico.js" type="9792133bb4e9568b69232bdf-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="9792133bb4e9568b69232bdf-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="9792133bb4e9568b69232bdf-text/javascript"></script>
+<script type="9792133bb4e9568b69232bdf-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-9792133bb4e9568b69232bdf-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="9792133bb4e9568b69232bdf-text/javascript">
+var yaudio = new Audio();
+yaudio.controls = true;
+var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
+var a=0;
+var sj=musicArr[a];
+yaudio.src=sj.mp3;
+yaudio.volume = 0.68;
+</script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="9792133bb4e9568b69232bdf-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="9792133bb4e9568b69232bdf-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="9792133bb4e9568b69232bdf-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'74bbabd82d6d52fb',m:'OkGZ..JRzcNFaZCGzIZ16tT0erz7hrJSfWPWNdSTm5s-1663353004-0-AW+Gwg19cyj13UlZrcKTucsPqVP/+e1YavbcwJRO+WiWGyzPKngsihuKkHv5Oip0ZbDCSJBWSTKCP0tzgqpV6x9pMZo6N5ej9EutyRmXavy8/NZ3oAooR341SCzRu6XAlTaFMwTBN8tAr54HWHk6h9w=',s:[0x39d508a062,0xaf581acd52],u:'/cdn-cgi/challenge-platform/h/b'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/b/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+</html>
