@@ -14,7 +14,7 @@
 <link rel="alternate" type="application/rss+xml" title="828D 执行程序提示：等待插补缓冲 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2330.html" />
 <link rel="alternate" type="application/rdf+xml" title="828D 执行程序提示：等待插补缓冲 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2330.html" />
 <link rel="alternate" type="application/atom+xml" title="828D 执行程序提示：等待插补缓冲 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2330.html" />
-<script type="3cdb7b6aa496eb42e158f3f5-text/javascript">
+<script type="fa7d8ec5114a9d3c211626dd-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -86,7 +86,7 @@
     };
 })();
 </script>
-<script type="3cdb7b6aa496eb42e158f3f5-text/javascript">
+<script type="fa7d8ec5114a9d3c211626dd-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -104,38 +104,42 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _4xoK = 'vv'//'vv'
-+//'ih'
-'93'+//'8TE'
-'8TE'+'6c'//'B'
-+'cb0'//'m7k'
-+'f3b'//'WIn'
-+'b'//'B'
-+//'9'
-'01'+//'ZZq'
-'7b'+'kM'//'kM'
-+//'7'
-'8'+''///*'5V'*/'5V'
-+//'Cl6'
-'51'+//'zo'
-'0'+'fb'//'DJ'
-+'d'//'Cnu'
-+'8vN'//'8vN'
-+'e'//'o'
-+''///*'MU'*/'MU'
-+'vys'//'vys'
-+//'S'
-'c3e'+'b30'//'U3'
-+'2'//'4'
-+//'e77'
-'9'+//'uv'
-'f', _NSoN = [[0,2],[2,5],[15,17],[22,25],[23,26]];
+    var _IZ1 = ''///*'To'*/'To'
++'9'//'E'
++''///*'1'*/'1'
++//'JXX'
+'36'+//'By2'
+'c'+//'n1m'
+'cb0'+//'Fo1'
+'f3'+'MV'//'MV'
++'bb'//'b'
++'mZt'//'mZt'
++//'e1O'
+'0'+//'0AT'
+'17'+'b'//'i'
++//'E'
+'8'+//'5xE'
+'5'+''///*'Z'*/'Z'
++/* 'ff'//'ff' */''+//'UmD'
+'UmD'+//'yR'
+'1'+//'Wj'
+'0f'+//'c'
+'b'+//'AX7'
+'d'+'ec3'//'B6'
++'eb3'//'c'
++'eK'//'eK'
++''///*'dv'*/'dv'
++//'Ak'
+'Ak'+//'s'
+'029'+//'MX'
+'MX'+//'wI3'
+'f', _AsqCe = [[9,11],[11,14],[17,20],[28,30],[28,30],[31,33]];
     
-    for (var i = 0; i < _NSoN.length; i ++) {
-        _4xoK = _4xoK.substring(0, _NSoN[i][0]) + _4xoK.substring(_NSoN[i][1]);
+    for (var i = 0; i < _AsqCe.length; i ++) {
+        _IZ1 = _IZ1.substring(0, _AsqCe[i][0]) + _IZ1.substring(_AsqCe[i][1]);
     }
 
-    return _4xoK;
+    return _IZ1;
 })();
 
         if (null != r) {
@@ -193,7 +197,7 @@
 </div>
 </section>
 <article class="post-content">
-<blockquote>这篇文章上次修改于 412 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<blockquote>这篇文章上次修改于 413 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
 <p>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：<br><img src="../usr/uploads/2021/09/577513986.png" alt="2021-09-03T01:27:34.png" title="2021-09-03T01:27:34.png"></p><p>程序代码如下：</p><pre><code>WHILE((R0&gt;=360) OR (R0&lt;0))
     IF R0&gt;=360
         R0=R0-360
@@ -204,7 +208,7 @@
     ENDIF
 ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大于等于 0 小于 360 之间。理论上无论给 R0 赋予任何初值，执行以上代码后都可以将其自动计算为需要的结果。</p><p>在分析后发现，出现以上报警的原因是程序在此 while 循环中无法跳出。随即从这里下手寻找问题点。</p><p>在经过给 R0 赋予一些特殊的初值，然后执行程序后发现，当初值为 -0.0000000001 或 359.999999999 时无法跳出循环，R0 的值一直在这两者之间跳动，猜测应该是数控系统精度判断 359.999999999 等于 360，导致 <code>IF R0&gt;=360</code> 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。</p><p>找到了问题点解决就很简单了，只需要将 <code>R0=R0-360</code> 修改为 <code>R0=R0-360.00001</code> 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。</p><p>出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。</p> </article>
 <section class="post-near">
-<ul>
+ <ul>
 <li>上一篇: <a href="2329.html" title="React 入门教程之九 -- composition 模块化 和 inheritance 继承">React 入门教程之九 -- composition 模块化 和 inheritance 继承</a></li>
 <li>下一篇: <a href="2340.html" title="解除 Windows 11 TPM 或 CPU 限制">解除 Windows 11 TPM 或 CPU 限制</a></li>
 </ul>
@@ -213,7 +217,7 @@ ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大�
 <h3>已有 2 条评论</h3>
 <div class="comment-form" id="respond-post-2330">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2330.html#respond-post-2330" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-3cdb7b6aa496eb42e158f3f5-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="2330.html#respond-post-2330" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-fa7d8ec5114a9d3c211626dd-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/2330.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -233,7 +237,7 @@ ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大�
 <img class="avatar" src="https://q.qlogo.cn/g?b=qq&nk=1256781518&s=100" alt="" /> <div class="comment-meta">
 <span class="comment-author">ahxinny</span>
 <time class="comment-time">2021.09.03</time>
-<span class="comment-reply"><a href="2330.html?replyTo=31#respond-post-2330" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-31', 31);" data-cf-modified-3cdb7b6aa496eb42e158f3f5-=""><i class="fa fa-reply" title="回复"></i></a></span>
+<span class="comment-reply"><a href="2330.html?replyTo=31#respond-post-2330" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-31', 31);" data-cf-modified-fa7d8ec5114a9d3c211626dd-=""><i class="fa fa-reply" title="回复"></i></a></span>
 </div>
 <div class="comment-content">
 <p>
@@ -244,7 +248,7 @@ ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大�
 <img class="avatar" src="https://q.qlogo.cn/g?b=qq&nk=1256781518&s=100" alt="" /> <div class="comment-meta">
 <span class="comment-author">ahxinny</span>
 <time class="comment-time">2021.09.05</time>
-<span class="comment-reply"><a href="2330.html?replyTo=32#respond-post-2330" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-32', 32);" data-cf-modified-3cdb7b6aa496eb42e158f3f5-=""><i class="fa fa-reply" title="回复"></i></a></span>
+<span class="comment-reply"><a href="2330.html?replyTo=32#respond-post-2330" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-32', 32);" data-cf-modified-fa7d8ec5114a9d3c211626dd-=""><i class="fa fa-reply" title="回复"></i></a></span>
 </div>
 <div class="comment-content">
 <p>
@@ -289,11 +293,11 @@ ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大�
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="3cdb7b6aa496eb42e158f3f5-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="3cdb7b6aa496eb42e158f3f5-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="3cdb7b6aa496eb42e158f3f5-text/javascript"></script>
-<script type="3cdb7b6aa496eb42e158f3f5-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-3cdb7b6aa496eb42e158f3f5-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="3cdb7b6aa496eb42e158f3f5-text/javascript">
+<script src="../usr/themes/Single/static/kico.js" type="fa7d8ec5114a9d3c211626dd-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="fa7d8ec5114a9d3c211626dd-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="fa7d8ec5114a9d3c211626dd-text/javascript"></script>
+<script type="fa7d8ec5114a9d3c211626dd-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-fa7d8ec5114a9d3c211626dd-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="fa7d8ec5114a9d3c211626dd-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -302,6 +306,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="3cdb7b6aa496eb42e158f3f5-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="3cdb7b6aa496eb42e158f3f5-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="3cdb7b6aa496eb42e158f3f5-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'75e44d90ac2c7b3d',m:'1Z7A1xSZbhKNufMA05n6quOmdKrkqlKnCYv_v0BgeEw-1666463413-0-AcW8VUurAgoUTTxislKHbdCxWFNGNYLdJbGyWPwM4simGh5eZ7Y+/i9+pjSQBh7xJ0ZadZp3MBv/yyHY1V8IHzxCfVkW+Gw7VpmtiA/m683Ywl8USXc9IQn+xulJeBuJ7QYRCsB9cnRUx2Ne0kgoIHE=',s:[0x06159585ac,0xd15910480d],u:'/cdn-cgi/challenge-platform/h/g'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/g/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="fa7d8ec5114a9d3c211626dd-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="fa7d8ec5114a9d3c211626dd-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="fa7d8ec5114a9d3c211626dd-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'75ec8ae42b450cb7',m:'Tv11BjvNVT3w3U9iEsAVQsmJgII.gN9TRTlnJHbUwOo-1666549811-0-AaVv7pHfmQtjspu2ApxtF+njDiP/YFauqFAjpgaWS4URh1sfUxMJ9mxTelzVlNn3PVuVkj90+1FI7sQJ8t9TcRclopdbh8dU0iUbCAkmRp77ZqLGwSLc1/6/d3bu82eVoPvFuBgxrreElfz9kAUe9sQ=',s:[0xa985eb9d70,0xa6cf6dd398],u:'/cdn-cgi/challenge-platform/h/g'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/g/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
