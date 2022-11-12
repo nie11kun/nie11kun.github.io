@@ -181,8 +181,8 @@ volumes:
 <title type="html"><![CDATA[自建 RustDesk server]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2744.html" />
 <id>https://blog.niekun.net/archives/2744.html</id>
-<updated>2022-08-07T14:08:23+08:00</updated>
-<published>2022-08-07T14:08:23+08:00</published>
+<updated>2022-08-07T14:08:00+08:00</updated>
+<published>2022-08-07T14:08:00+08:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
@@ -204,7 +204,7 @@ services:
       - 21116:21116/udp
       - 21118:21118
     image: rustdesk/rustdesk-server:latest
-    command: hbbs -r 127.0.0.1:21117
+    command: hbbs -r xxx.xxx.xxx.xxx:21117
     volumes:
       - ./data:/root
     networks:
@@ -224,8 +224,9 @@ services:
       - ./data:/root
     networks:
       - rustdesk-net
-    restart: unless-stopped</code></pre><p>默认监听的是 21117 端口，客户端默认也是链接服务器的这个端口。这里配置监听本地 127.0.0.1。实际在通过域名或 IP 访问服务器时依然可以连接上服务。如果修改这里的默认端口，则在客户端设置的时候也需要指定此端口。</p><p>启动服务：</p><pre><code>docker-compose up -d
-</code></pre><p>此时在客户端设置 ID server：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/43407160.jpg" alt="1.jpg" title="1.jpg"></p><p>在第一行填入服务器 IP 地址即可：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/2720143847.jpg" alt="2.jpg" title="2.jpg"></p><p>确认后，如果下方状态栏显示 <strong>ready</strong> 表示服务器链接正常：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/4049467528.jpg" alt="3.jpg" title="3.jpg"></p><h3>配置域名访问</h3><p>如果想要使用域名作为 server id，只需要在你的域名服务器里加上一条自定义的域名 NS 解析即可，如：rust.abc.com。</p><p>注意如果你使用的是 cloudflare 服务，由于它在启用 CDN 后只支持少数端口的转发，而我们需要使用的是 21115 - 21119 这些端口，所以需要在 dns 配置时取消这个自定义域名的<strong>小黄云</strong>，只使用其 dns 服务：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/1547842714.jpg" alt="4.jpg" title="4.jpg"></p><p>关于 cloudflare 的网络端口转发相关的信息参考官网内容：<a href="https://developers.cloudflare.com/fundamentals/get-started/reference/network-ports/">Network ports</a></p><p>自定义域名配置好后，就可以在客户端的 ID server 中使用域名链接了。方法和上面介绍的用服务器 IP 设置的方法相同。</p>
+    restart: unless-stopped</code></pre><p>这里配置 hbbs IP 地址需要设置为中继服务器的 IP 或域名，否则无法链接。默认监听的是 21117 端口，客户端默认也是链接服务器的这个端口。如果修改这里的默认端口，则在客户端设置的时候也需要指定此端口。</p><p>启动服务：</p><pre><code>docker-compose up -d
+</code></pre><p>此时在客户端设置 ID server：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/43407160.jpg" alt="1.jpg" title="1.jpg"></p><p>在第一行填入服务器 IP 地址即可：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/2720143847.jpg" alt="2.jpg" title="2.jpg"></p><p>确认后，如果下方状态栏显示 <strong>ready</strong> 表示服务器链接正常：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/4049467528.jpg" alt="3.jpg" title="3.jpg"></p><h3>配置域名访问</h3><p>如果想要使用域名作为 server id，需要在你的域名服务器里加上一条自定义的域名 NS 解析，如：rust.abc.com。</p><p>注意如果你使用的是 cloudflare 服务，由于它在启用 CDN 后只支持少数端口的转发，而我们需要使用的是 21115 - 21119 这些端口，所以需要在 dns 配置时取消这个自定义域名的<strong>小黄云</strong>，只使用其 dns 服务：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/1547842714.jpg" alt="4.jpg" title="4.jpg"></p><p>关于 cloudflare 的网络端口转发相关的信息参考官网内容：<a href="https://developers.cloudflare.com/fundamentals/get-started/reference/network-ports/">Network ports</a></p><p>自定义域名配置好后，修改 <strong>docker-compose.yml</strong> 配置文件中定义的地址为指定域名：</p><pre><code>command: hbbs -r rust.abc.com:21117
+</code></pre><p>重启容器后就可以在客户端的 ID server 中使用域名链接了。方法和上面介绍的用服务器 IP 设置的方法相同。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2744.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" thr:count="0"/>
