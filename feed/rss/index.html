@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2777.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2770.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2769.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2757.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2731.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2727.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2705.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2703.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2777.html">
+<title>白色背景灰色水印去除 in Photoshop</title>
+<link>https://blog.niekun.net/archives/2777.html</link>
+<dc:date>2022-12-02T10:20:09+08:00</dc:date>
+<description>在网络中经常遇到下载的图片上带有水印，一般都是重复文字带有透明度然后铺满整个图片。一般没有快捷方法去除，只能印章工具或或者选区工具进行智能填充，但如果背景是纯白色，水印是透明灰度文字的话可以快速去除。原图如上所示，背景是白色，水印文字是没有颜色的灰度色彩。首先选区工具选取纯白部分的文字，ctrl J 复制选中部分：然后点击 ctrl i 反转复制的图层：将图层混合模式改为 color dodge：此时会发现那个地方的水印没有了，ctrl J 复制此图层，将其拖拽到其他水印地方也会恢复其水印下方的色彩：</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2770.html">
 <title>命令行激活 Windows 密钥</title>
 <link>https://blog.niekun.net/archives/2770.html</link>
@@ -331,31 +337,5 @@ crw-rw---- 1 root video 226, 128 Oct 23 20:41 renderD128查看 pci 设备信息�
     Capabilities: [300] Page Request Interface (PRI)
     Kernel driver in use: i915
     Kernel modules: i915这样显卡就直接直通给了虚拟机，注意这样配置后包括 esxi 本身和其他虚拟机就没有显卡可用了，导致没有图形界面。参考链接ESXI 7.02 Intel 核心显卡直通开启3D加速ESXi 6.5 Passthrough Video Card/GPU to Plex VMHW Transcoding - VAAPI - Intel not workingDeploying Hardware-Accelerated Graphics with VMware HorizonEsxi 6.7核显直通问题求教各位恩山大神Name: UHD Graphics 630</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2703.html">
-<title>Ubuntu 开启 RDP 远程连接</title>
-<link>https://blog.niekun.net/archives/2703.html</link>
-<dc:date>2022-05-23T10:18:00+08:00</dc:date>
-<description>之前介绍过通过安装 TightVNC vnc server 远程连接 Ubuntu 桌面的教程，Windows 下常用的是 RDP 方式远程，使用体验非常流畅，不占用带宽。Linux 下也可以通过安装 Xrdp 的方式实现 rdp 连接。参考教程：Ubuntu desktop 配置 vnc serverxrdp 是对 Windows rdp 协议的开源实现。安装我的系统是 Ubuntu desktop 20.04，首先需要保证有一个已经安装的桌面环境，desktop 版默认是 genome，也可以安装其他的如 xfce：sudo apt install ubuntu-desktop安装 xrdp：sudo apt install xrdp安装完成后，xrdp 会自动启动，可以通过命令查看状态：$  sudo systemctl status xrdp
- 
-● xrdp.service - xrdp daemon
-     Loaded: loaded (/lib/systemd/system/xrdp.service; enabled; vendor preset: enabled)
-     Active: active (running) since Mon 2022-05-23 09:50:43 CST; 20min ago
-       Docs: man:xrdp(8)
-             man:xrdp.ini(5)
-    Process: 83586 ExecStartPre=/bin/sh /usr/share/xrdp/socksetup (code=exited, status=0/SUCCESS)
-    Process: 83594 ExecStart=/usr/sbin/xrdp $XRDP_OPTIONS (code=exited, status=0/SUCCESS)
-   Main PID: 83595 (xrdp)
-      Tasks: 2 (limit: 9459)
-     Memory: 26.4M
-     CGroup: /system.slice/xrdp.service
-             ├─83595 /usr/sbin/xrdp
-             └─83597 /usr/sbin/xrdp默认 rdp 端口为 3389.配置xrdp 安装后，会自动将一个 ssl key ssl-cert-snakeoil.key 放入 /etc/ssl/private/ 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：sudo adduser xrdp ssl-cert默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 /etc/xrdp/startwm.sh 文件，在文件最后的 test -x /etc/X11/Xsession 前面加入如下内容：unset DBUS_SESSION_BUS_ADDRESS
-unset XDG_RUNTIME_DIR重启 xrdp 服务：sudo systemctl restart xrdp现在就可以正常通过 rdp 连接到 Ubuntu了。在使用中，我出现了输入用户密码后停留在解锁界面无法登录进去的问题，经过查询 xdrp 目前不可以同时在多个设备上尝试登录。同时登录 xrdp 的用户如果和正常在主机上登录的是同一个用户，需要删除 dbus-user-session 包，用 dbus-x11 代替。第三点，需要保证 gdm3 运行，执行下面的命令：sudo apt remove dbus-user-session
-sudo apt install dbus-x11
-
-sudo systemctl set-default graphical
-sudo systemctl isolate graphical重启 xrdp 服务：sudo systemctl restart xrdp此时应该就可以正常通过 rdp 客户端链接 ubuntu 界面了。但是我测试发现，第一次登录进去没问题，关闭后过一会儿再次尝试链接发现卡在登录界面没反应了，尝试执行如下命令：echo xfce4-session &gt; $HOME/.xsession
-chmod +x .xsession发现问题似乎解决了，但是调用的事 xfce 桌面环境。远程登录在局域网下访问比较流畅，但是在外网下发现没法达到 Windows rdp 流畅的效果。解决方法可以是在外网通过 rdp 链接一个局域网下 Windows 设备，然后在 Windows 设备下通过 rdp 链接局域网内的 ubuntu 设备。参考链接How to Install Xrdp on Ubuntu 20.04Xrdp stuck on login, after password is entered, unblocked if I unlock from the ubuntu rdp serverUsing the console and XRDP together in Debian / Ubuntu / MintXRDP session immediately closes after loggin in</description>
 </item>
 </rdf:RDF>
