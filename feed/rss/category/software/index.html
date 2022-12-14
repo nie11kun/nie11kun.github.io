@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2784.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2744.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2213.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2205.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1547.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1506.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1489.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1378.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2784.html">
+<title>chrome 内置翻译工具流量走代理配置</title>
+<link>https://blog.niekun.net/archives/2784.html</link>
+<dc:date>2022-12-14T08:54:19+08:00</dc:date>
+<description>从下半年开始发现 chrome 系统内置的网页翻译工具就开始抽风，然后彻底不能翻译了，查了下其流量 url 是 translate.googleapis.com，将 url 配置到我的代理列表中走 switchyomega 依然无法访问。经过查询发现 chrome 翻译的流量只能走系统代理，这就有点麻烦了。开始使用了修改 hosts 的方式指定到国内可用 ip 上，但是使用并不长久，没几天就又不可用了。家里电脑可以在 openwrt 路由上配置好代理，比较简单，但是想要在本机上直接配置就不太方便了，需要设置系统为全局代理，但我又不想这样做。今天发现 proxifier 居然可以指定 hosts 配置代理，测试了下居然可行：如果之前在系统 hosts 文件添加过 translate.googleapis.com 的定向需要先将其删除，设置好后重启 chrome 发现网页翻译可以正常使用了。参考链接chrome自带的翻译工具无法使用代理#264Chrome 右键翻译，怎么 fix？</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2744.html">
 <title>自建 RustDesk server</title>
 <link>https://blog.niekun.net/archives/2744.html</link>
@@ -184,139 +190,5 @@ proxy 地址为 v2ray http 监听地址。启动 pandownload 测试是否启动�
         echo 'remote_port: $remote_port';
     }
 }default_type text/plain 指令设置响应内容的格式，不设置的话浏览器访问会返回下载文件而不是网页。执行 curl 127.0.0.1/echo 或浏览器访问 127.0.0.1/echo 路径就会看到 echo 定义的内容。**注意如果在 echo 指令下面定义了其他 html 页面或者 proxy_pass 反向代理，则 echo 的内容会被覆盖，如果 echo 指令在  location 段的最后，则会显示 echo 指令的内容。**</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1378.html">
-<title>NGINX Reverse Proxy 反向代理的使用</title>
-<link>https://blog.niekun.net/archives/1378.html</link>
-<dc:date>2020-03-30T11:05:00+08:00</dc:date>
-<description>Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有：  HTTP，FastCGI, uwsgi, SCGI, and memcached。不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：https://blog.niekun.net/archives/195.html下面介绍 ngx_http_proxy_module 模块的使用方式。语法proxy_pass 指令将请求转发到其他代理服务器。转发一个 http 请求到另一个地址：location /some/path/ {
-    proxy_pass http://www.example.com/link/;
-}以上示例将访问 location 段的请求转发到特定地址，这里有几个规则需要注意：1.代理地址如果不写明 location 段，则转发请求 location 到新的地址：location /some/path/ {
-    proxy_pass http://www.example.com;
-}以上规则下，访问 /some/path/.test.html 时，会转发到 http://www.example.com/some/path/.test.htmllocation ~ \.php {
-    proxy_pass http://127.0.0.1:8000;
-}以上规则下，访问 /some/path/test.php 时，会转发到 127.0.0.1:8000/some/path/test.php2.代理地址包含新的 location 时会替换掉请求 location 部分：location /some/path/ {
-    proxy_pass http://www.example.com/new/;
-}以上规则下，访问 /some/path/test.html 时，会转发到 http://www.example.com/new/test.html，注意 http://www.example.com/ 和 http://www.example.com 不同，也属于包含根路径 location 段的。proxy_pass 语法用来转发给 http 服务，还支持转发给其他协议的服务：fastcgi_pass 转发给 FastCGI server 如 php 服务uwsgi_pass 转发给 uwsgi server 如 python 服务scgi_pass 转发给 SCGI servermemcached_pass 转发给 memcached server转发的服务地址可以用一个 upstream 组来实现负载均衡：http {
-    upstream backend {
-        server backend1.example.com;
-        server backend2.example.com;
-        server 192.0.0.1 backup;
-    }
-    
-    server {
-        ...
-        location / {
-            proxy_pass http://backend;
-        }
-    }
-}以上是一个简单的负载均衡代理转发示例。关于 upstream 详细使用参考官方教程proxy_redirect 响应头 location/refresh 重定向当上游服务器返回的响应是重定向或刷新请求（如HTTP响应码是301或者302）时，proxy_redirect可以重设HTTP头部的location/Refresh 字段。语法结构：proxy_redirect default;
-proxy_redirect off;
-proxy_redirect redirect replacement;
-默认设置是：proxy_redirect default。http 响应头的 location 段 HTTP Location 是在两种情况使用在响应头中：要求网页浏览器加载其他网页(域名转址)。在这种情况下，应该使用HTTP状态码3xx发送Location头。提供有关新创建资源位置的信息。在这种情况下，应该使用HTTP状态码201或202发送Location头。通过修改 location 可以让客户端接收到响应后，访问重定向到新的 location。更详细的关于重定向/刷新请求头概念，需要理解 http 协议的结构，查看我的教程：HTTP 协议结构如果设置：server {listen 8080;
-servername frontend;
-
-proxy_redirect http://localhost:8000/two/ http://frontend:8080/one/;
-...}代理服务器返回的 http 头信息：HTTP/1.1 302 Found
-Location: http://localhost:8000/two/some/uri/
-则返回给客户端的 Location 段被重写为: http://frontend:8080/one/some/uri/，客户端接收到后就会去重新访问这个新的地址。server 名也可以被省略：proxy_redirect http://localhost:8000/two/ /
-以上指令返回给客户端的 Location 段被重写为: http://frontend:8080/some/uri/proxy_redirect 默认设置值为：default，它会自动根据 server location 段和 proxy_pass 地址来修改头信息，以下两种写法效果一样：location /one/ {
-    proxy_pass     http://localhost:8000/two/;
-    proxy_redirect default;
-
-location /one/ {
-    proxy_pass     http://localhost:8000/two/;
-    proxy_redirect http://localhost:8000/two/ /one/;以上两种写法都是将返回 location 头信息中 http://localhost:8000/two/ 修改为 http://frontend:8080/one/redirect 和 replacement 都可以包含参数：proxy_redirect http://$proxy_host:8000/ $scheme$host:$server_port/;
-rederect 可以使用正则匹配：proxy_redirect ~^(http://[^:]+):\d+(/.+)$ $1$2;
-proxy_redirect ~*/user/([^/]+)/(.+)$      http://$1.example.com/$2;
-可以同时写多个 proxy_redirect 指令来处理不同的重定向地址。使用 proxy_redirect off 具有最高优先级，会取消当前同一级的所有 proxy_redirect 指令。一个完整例子：server {
-    listen           8080;
-    server_name      127.0.0.1;
-
-    location /return {
-        return 301 https://niekun.net;
-    }
-    location /proxy {
-        proxy_pass  $scheme://$http_host/return;
-        proxy_redirect https://niekun.net /echo;
-    }
-    location /echo {
-        default_type text/plain;
-        echo 'remote address: $remote_addr';
-    }
-}代理过程：客户端访问：http://127.0.0.1:8080/proxynginx 转发到：http://127.0.0.1:8080/return代理服务器响应 301 重定向到：https://niekun.net，http 头的 location 值为：https://niekun.netnginx 将 http 头的 location 修改为：http://127.0.0.1:8080/echonginx 将修改后的响应内容发送给客户端客户端根据响应再次访问：http://127.0.0.1:8080/echo转发请求头信息默认情况下，nginx 反向代理时会舍弃原始请求头中的空字符串项，并重新设定两个请求头内容：Host 和 Connection：Host -&gt; $proxy_host  也就是 proxy_pass 里的 hostConnection -&gt; close关于 http 请求头 header 的可定义的项目参考我的教程：HTTP 协议结构想要设置或修改传递给代理服务的请求头，使用 proxy_set_header 指令：location /some/path/ {
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header Accept-Encoding &quot;&quot;;
-    proxy_pass http://localhost:8000;
-}以上示例的处理结果是：设置 Host 为本 server 的host 地址而不是转发地址设置 X-Real-IP 为客户端 IP 地址，用来识别访问服务的客户信息清空 Accept-Encoding 的内容mapping headers 动态请求头内容proxy_set_header 支持使用内部变量来定义，也可以使用 map 指令配合自定义参数来根据请求清空动态设置相关 header 内容，注意 map 指令要写在 http 段：map $http_cloudfront_forwarded_proto $cloudfront_proto {
-    default &quot;http&quot;;
-    https &quot;https&quot;;
-}
-server {
-    ...
-    location / {
-        proxy_set_header X-Forwarded-Proto $cloudfront_proto;
-        proxy_pass http://app;
-        proxy_redirect off;
-        ...
-    }
-}以上示例中 $http_cloudfront_forwarded_proto 是已知变量，$cloudfront_proto 是我自定义的变量，使用 map 指令来根据前者的值设置后者的值，然后在 proxy_set_header 设置。map 指令支持以两个因变量来给终变量赋值,语法示例如下：map &quot;$http_cloudfront_forwarded_proto:$http_x_forwarded_proto&quot; $cloudfront_proto {
-    default &quot;http&quot;;
-    &quot;:https&quot; &quot;https&quot;;
-    &quot;https:&quot; &quot;https&quot;;
-    &quot;https:http&quot; &quot;https&quot;;
-    &quot;http:https&quot; &quot;https&quot;;
-    &quot;https:https&quot; &quot;https&quot;;
-}如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。客户端也可以伪造 X-Forwarded-For 信息，使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：map $http_x_forwarded_for  $client_real_ip {
-    default                         $remote_addr;
-    ~^(([0-9\.]+),\s?)*([0-9\.]+)$  $3;
-}
-
-server {
-    echo 'remote address: $client_real_ip';
-}如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。关于 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 参考我的文章：获取用户真实 IP in Nginxbuffers 缓存区默认情况下 nginx 缓存来自 proxy server 的响应内容。nginx 会一直在内部缓存来自代理服务器的响应内容直到内容接收完成，然后才发送给客户端。缓存能够帮助减轻客户端的压力，但会浪费服务器的资源和响应。但是打开缓存功能的另一个好处是当客户端再次进行一个缓存过的请求时，nginx 可以快速的返回已经在缓存区的内容。使用 proxy_buffering 指令控制缓存打开/关闭。默认是 on 状态。proxy_buffers 指令控制缓存区数量和缓存大小。第一个来自代理服务器的响应会缓存到单独的区域，proxy_buffer_size 指令控制这一区域的大小：location /some/path/ {
-    proxy_buffers 16 4k;
-    proxy_buffer_size 2k;
-    proxy_pass http://localhost:8000;
-}以上示例会给 来自代理服务器：http://localhost:8000 的响应建立 16 个缓存区，每个区域 4kb 空间，第一个响应缓存区 2kb 空间。如果关闭缓存，来自代理服务器的响应会即时发送给客户端，对于想要快速响应的使用场景可以关闭缓存：location /some/path/ {
-    proxy_buffering off;
-    proxy_pass http://localhost:8000;
-}设置出口 IP 地址默认情况下 nginx 向 proxy 上游发起请求连接，代理服务器看到的请求 IP 地址来自 nignx 服务器地址。有时候 web 服务器会设置只允许特定 IP 地址的访问，可以通过 proxy_bind 指令来修改，nginx 用户必须是 root 才行：user root;
-...
-http{
-    ...
-    server {
-        location /app1/ {
-            proxy_bind proxy_bind $remote_addr transparent;
-            proxy_pass http://example.com/app1/;
-        }
-    }
-}以上示例中，代理服务器看到的请求来源就会是真正的访问客户端 IP 地址,也就是实现了透明代理。nginx 配置后还需要配置 iptables 路由表来处理代理服务器响应内容：新建一个链，把过来的tcp包都打上标记。新建一个路由表100，让有标记的包都走表100。在路由表100加入一个默认路由，把所有包都扔到lo网卡上去。      #### 新建一个 DIVERT 给包打标签
-     sudo iptables -t mangle -N DIVERT;
-     sudo iptables -t mangle -A DIVERT -j MARK --set-mark 1;
-     sudo iptables -t mangle -A DIVERT -j ACCEPT;
-
-     #### 把tcp的包给DIVERT处理
-     sudo iptables -t mangle -A PREROUTING -p tcp -m socket -j DIVERT;
-
-     #### 有标签的包去查名为 100 的路由表
-     sudo ip rule add fwmark 1 lookup 100
-
-     #### 100的路由表里就一条默认路由，把所有包都扔到lo网卡上去
-     sudo ip route add local 0.0.0.0/0 dev lo table 100;具体实现我还不太懂，后期再研究下。以上就是 http 代理服务器基本使用，下面简单介绍其他集中代理服务器的语法。fastcgi 代理服务器Nginx must rely on a separate PHP processor to handle PHP requests. Most often, this processing is handled with php-fpm, a PHP processor that has been extensively tested to work with Nginx.简单说就是 FastCGI 实现了使用 Nginx 代理 php 请求的过程，将请求转发给 php-fpm：php 进程管理器。location / {
-    fastcgi_pass  localhost:9000;
-    # fastcgi_pass unix:/run/php/php7.3-fpm.sock;
-    fastcgi_index index.php;
-    
-    fastcgi_split_path_info ^(.+?\.php)(.*)$;
-    try_files $fastcgi_script_name =404;
-    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    include fastcgi_params;
-
-    fastcgi_param HTTP_X-REAL-IP $remote_addr;
-    fastcgi_param HTTP_X-FORWARED-FOR $proxy_add_x_forwarded_for;
-    fastcgi_param HOST $http_host;
-}$fastcgi_split_path_info 用来将 请求 url 拆分成两部分：php 文件之前的 $fastcgi_script_name 和之后的部分：$fastcgi_path_infofastcgi_pass 定义真正的用来处理 FastCGI 代理的服务，一般默认地址为：127.0.0.1:9000，可自定义指定为特定版本的phpfastcgi_param 定义 FastCGI 参数fastcgi_params 一般在 nginx 配置目录下，包含了常用的 php 需要设定的参数。总结下和 http 语法区别：fastcgi_pass 类似于 proxy_passfastcgi_param  类似于 proxy_set_header，注意 fastcgi_param 添加 http 请求头信息要加上 HTTP_ 前缀，如：HTTP_X-FORWARED-FOR关于 FastCGI 的详细分析参考：Understanding and Implementing FastCGI Proxying in NginxuWSGI web 服务器uWSGI 是一个独立的 web 服务器，和 nginx 是一个类型的应用。一般 uWSGI 作为后端服务器使用，用 nginx 代理来访问。uWSGI 可以用来部署 python 应用。之前我学习 django 的时候就使用过这个。未完待续。。。参考链接ngx_http_proxy_module 模块所有指令NGINX Reverse ProxyHTTP Load BalancingSecuring HTTP Traffic to Upstream Servers使用nginx的proxy_bind选项配置透明的反向代理Mapping Headers in Nginxngx_http_fastcgi_module 模块所有指令[]()</description>
 </item>
 </rdf:RDF>
