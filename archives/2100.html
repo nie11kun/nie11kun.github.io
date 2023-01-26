@@ -14,7 +14,7 @@
 <link rel="alternate" type="application/rss+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2100.html" />
 <link rel="alternate" type="application/rdf+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2100.html" />
 <link rel="alternate" type="application/atom+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2100.html" />
-<script type="8495a4b8c4d75cfd068beb0e-text/javascript">
+<script type="2449e6a19d3bb5dba8c82655-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -86,7 +86,7 @@
     };
 })();
 </script>
-<script type="8495a4b8c4d75cfd068beb0e-text/javascript">
+<script type="2449e6a19d3bb5dba8c82655-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -104,33 +104,41 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _8C21 = //'SNl'
-'67b'+//'R'
-'9cc'+'26'//'sN'
-+''///*'J'*/'J'
-+//'K'
-'a5'+//'nM'
-'1d8'+//'Cb8'
-'3c4'+//'uN'
-'e0'+''///*'wPV'*/'wPV'
-+//'ud'
-'ud'+/* 'j1z'//'j1z' */''+'7c4'//'Jl'
-+''///*'Wc'*/'Wc'
-+'8'//'Vv'
-+//'eXF'
-'9'+//'GL'
-'54'+//'71'
-'71'+//'t'
-'5'+/* 'Fi1'//'Fi1' */''+//'Iah'
-'34'+//'s'
-'1'+'5d1'//'PNL'
-, _zq6 = [[18,20],[25,27]];
+    var _MzknWn = '6'//'nq3'
++/* 'lb1'//'lb1' */''+//'pWe'
+'pWe'+//'n'
+'7'+'b'//'T'
++//'I1'
+'9c'+//'xZ'
+'c'+'26'//'p'
++//'dph'
+'a'+''///*'s'*/'s'
++/* 'O'//'O' */''+'omS'//'omS'
++''///*'k'*/'k'
++'51'//'Or'
++//'j'
+'d8'+//'RuL'
+'3'+'c'//'52'
++//'2l3'
+'4'+'e'//'jLh'
++''///*'9'*/'9'
++'MyE'//'MyE'
++//'R'
+'07'+//'qAJ'
+'c4'+/* 't'//'t' */''+//'V'
+'V'+'895'//'UI'
++'453'//'t'
++'41'//'gp'
++'5d'//'rU'
++//'E'
+'E'+'1'//'ZBs'
+, _xjA6tk = [[1,4],[9,12],[17,20],[21,22],[31,32]];
     
-    for (var i = 0; i < _zq6.length; i ++) {
-        _8C21 = _8C21.substring(0, _zq6[i][0]) + _8C21.substring(_zq6[i][1]);
+    for (var i = 0; i < _xjA6tk.length; i ++) {
+        _MzknWn = _MzknWn.substring(0, _xjA6tk[i][0]) + _MzknWn.substring(_xjA6tk[i][1]);
     }
 
-    return _8C21;
+    return _MzknWn;
 })();
 
         if (null != r) {
@@ -188,7 +196,7 @@
 </div>
 </section>
 <article class="post-content">
-<blockquote>这篇文章上次修改于 710 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<blockquote>这篇文章上次修改于 711 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
 <h3>Event Loop 事件循环</h3><p><strong>event loop</strong> 是我们学习 node.js 中最重要的方面之一。因为它解释了 node.js 如何进行异步动作，同时不会出现 IO 阻塞问题。这也是 node.js 能够变得如此流行的原因之一。</p><p>node.js 代码运行在单进程中，也就是说它在一刻只能执行一个任务。这一限制特性使得我们不用担心任务间冲突问题。我们在变开发中只需要专注于代码本身，同时应避免进程阻塞，例如同步方式等待网络请求，死循环等。</p><p>通常情况下，浏览器中的每个 tab 页面都是都有各自独立的 event loop，防止某个页面的死循环或过高的资源消耗影响到整个浏览器的体验。我们只需要关注于我们的代码运行在一个单一的 event loop 中，编程中要注意到这一点，防止进程阻塞。</p><p>JavaScript 代码中如果有长时间等待 return 返回给 event loop 控制时，任何其他代码将会被阻塞，也会阻塞页面 UI 单元，用户在此期间无法进行点击，滚动等操作。</p><p>几乎所有的 JavaScript 原生 IO 指令都是 non-blocking 非阻塞式的，例如：网络请求，文件读写等，阻塞是一种 exception 例外情况，这也是 JavaScript 大量的使用 callback 方式，以及最近引入的 promise 和 async/await。</p><h4>call stack 调用结构</h4><p>JavaScript 的 call 调用过程的结构遵循 LIFO (Last In, First Out)，也就是总是先响应最近的任务。</p><p>event loop 总是连续的检查 call stack 看是否有任务需要执行。在这个过程中，它会将发现的任务添加到 call stack 中并按顺序执行。</p><p>下面是一个简单的示例：</p><pre><code>const bar = () =&gt; console.log('bar');
 const baz = () =&gt; console.log('baz');
 
@@ -539,7 +547,7 @@ eventEmitter.emit('test2', 1, 200)
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-2100">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2100.html#respond-post-2100" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-8495a4b8c4d75cfd068beb0e-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="2100.html#respond-post-2100" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-2449e6a19d3bb5dba8c82655-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/2100.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -591,11 +599,11 @@ eventEmitter.emit('test2', 1, 200)
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="8495a4b8c4d75cfd068beb0e-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="8495a4b8c4d75cfd068beb0e-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="8495a4b8c4d75cfd068beb0e-text/javascript"></script>
-<script type="8495a4b8c4d75cfd068beb0e-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-8495a4b8c4d75cfd068beb0e-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="8495a4b8c4d75cfd068beb0e-text/javascript">
+<script src="../usr/themes/Single/static/kico.js" type="2449e6a19d3bb5dba8c82655-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="2449e6a19d3bb5dba8c82655-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="2449e6a19d3bb5dba8c82655-text/javascript"></script>
+<script type="2449e6a19d3bb5dba8c82655-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-2449e6a19d3bb5dba8c82655-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="2449e6a19d3bb5dba8c82655-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -604,6 +612,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="8495a4b8c4d75cfd068beb0e-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="8495a4b8c4d75cfd068beb0e-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="8495a4b8c4d75cfd068beb0e-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'78f314a36c5e7d03',m:'fBsagDg2gfIvIX8zcPqOJhjGDmD8ncGqCt.Pe_HKiDk-1674671432-0-AQgY+sf8orVtTW/ll0gWhDdN90m+LxTEo2J3WkMdZDCjOT2Ss2w3rw8aS77MuBm/k6aSVQBqWFvoV2UXnyXtpYVLOEMZLcvx5ENEY/PyhCJIR7DEAtXu5gVfMMIn7FDUOKaxE5xbYt5TzGcOKnAZBcA=',s:[0xb2d73cd832,0x2b868a13dd],u:'/cdn-cgi/challenge-platform/h/g'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/g/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="2449e6a19d3bb5dba8c82655-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="2449e6a19d3bb5dba8c82655-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="2449e6a19d3bb5dba8c82655-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'78fb5278def92ac7',m:'u_NgOVbykqd6rKwqMA1DhqwXwA5znwzQvztj.q5CjVY-1674757851-0-AbKIzpMib0AXV/h7AI/+8l+BDCdZQCQLdNBpV/4+yMgqR6CDbqD6ofdDH3/Fpr5aZ9bsvMbk8xJ8mHw9Bzz+aPZcREph1CLqmDZAGTSAsjAj68z4zssR1Zv+qanZRhkyCR79RLUicFAs8eRl8SJ1594=',s:[0x8ec4171496,0xb4ce76c73e],u:'/cdn-cgi/challenge-platform/h/g'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/g/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
