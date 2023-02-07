@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2787.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2784.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2777.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2770.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2744.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2742.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2731.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2727.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2787.html">
+<title>自动蒙版快速拆分图像各个元素 in Photoshop</title>
+<link>https://blog.niekun.net/archives/2787.html</link>
+<dc:date>2023-02-07T15:02:43+08:00</dc:date>
+<description>图片中有时候想要单独调整某个部分，可以通过选区工具钢笔工具等选取出来。但是当场景比较复杂或者需要单独调整多个元素时，就很耗费时间了，新版的 Photoshop 提供了快捷的方法来一键生成主要个体的 mask 蒙版。导入图片后点击 layer - mask all objects：等待处理完成就会自动生成识别到的个体的单独蒙版：此时就可以利用这些蒙版来单独修改特定区域的色彩了：</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2784.html">
 <title>chrome 内置翻译工具流量走代理配置</title>
 <link>https://blog.niekun.net/archives/2784.html</link>
@@ -283,11 +289,5 @@ docker logs ID # 通过 joplin 的容器 ID 查询其日志
 <link>https://blog.niekun.net/archives/2731.html</link>
 <dc:date>2022-07-06T11:44:00+08:00</dc:date>
 <description>图片中经常可以使用到渐变色，两个颜色形成自然过渡效果，在实际体验中可以发现，有时候渐变色看起来很舒服，有时候看起来比较别扭，下面分析一下其中原因。下图是两个颜色组成的渐变效果，它们两端的颜色都一样，但是效果相差很多：明显左边的看起来更加舒服，右边的比较生硬。我们知道每个颜色都是 RGB 的组合，通常 RGB 各自有 256 种变化范围，它们之间的组合产生了各种颜色：在 Photoshop 中选取一种颜色的方法有四种：RGB，HSB，LAB，CMYK。最常用的就是 RGB 和 HSB，下面主要围绕这两种方法介绍。不同于 RGB，HSB 或 HSV 拾取一种颜色是通过 H色相，S饱和度，B亮度确定的：当我们需要创建两个颜色的渐变图时，如果使用 RGB 模式，则它们的渐变过程是直接从两个颜色之间直线过渡。而使用 HSB 模式，它们的渐变过程是围绕 H色相环过渡到目标颜色：所以 RGB 模式就会穿过中间的灰色地带，效果就是过渡中颜色变淡变暗，这也就是看起开不舒服的原因。而 HSB 模式下饱和度和亮度都保持不变，只是色相发生变化，从而整体色彩持续保持鲜艳，呈现的效果就是看起来舒服。Photoshop 中创建渐变时，提供了 3 种模式可供选择，还原了 RGB 模式 和 HSB 模式的规则，分别是：perceptual，linear，classic：各种模式区别为：linear 最接近 HSB 模式，保证了过渡时候的饱和度和亮度，反映出颜色最鲜艳perceptual 在过渡中保证亮度稳定，但是降低了饱和度classic 在过渡中保证了饱和度稳定，但是降低了亮度三者对比图如下：实际使用中根据需要选择合适效果。参考链接：https://twitter.com/finmoorhouse/status/1543580508508065794</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2727.html">
-<title>安装内核插件修复第三方 SSD 导致 MacBook 待机耗电大问题</title>
-<link>https://blog.niekun.net/archives/2727.html</link>
-<dc:date>2022-06-26T13:05:33+08:00</dc:date>
-<description>前几年给我的 MacBook Pro 2015 升级了 512G SSD 硬盘，什么都挺好就是合盖待机耗电量很大，一晚上基本就跑了 20% 电量，之前也研究过解决方法，还写过几篇博客：使用 OpenCore Legacy Patcher 为 2015 款 MacBook Pro 激活 AirPlay，macOS 电源管理修复 MacBook 休眠耗电大问题，但是最后都发现问题依旧。今天在国外苹果论坛上看到有人介绍通过安装一些内核插件降低待机时候 ssd 的功率从而解决耗电问题https://discussions.apple.com/thread/252167491：1) Get the newest firmware, where power management is already better and/or some sleep/wake issues are resolveda) Either by upgrading to Big Sur (or in Catalina, Mojave the latest security updates) with your original SSD insideORb) Upgrading Boot ROM Version without upgrading to Big Sur2) Install tools which significantly lower the idle wattage for 3rd party SSDsa) SsdPmEnablerb) NVMeFix plugin inside liluc) a+b combined reach an even lower wattage in most cases主要是第二条介绍的几个内核插件，SsdPmEnabler, lilu, NVMeFix都是在 GitHub 上的开源软件，三个都是提供 .kext 文件，需要将 .kext 文件复制到系统路径 /Library/Extensions，重启系统即可。后续我会测试是否有效。</description>
 </item>
 </rdf:RDF>
