@@ -14,7 +14,7 @@
 <link rel="alternate" type="application/rss+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2100.html" />
 <link rel="alternate" type="application/rdf+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2100.html" />
 <link rel="alternate" type="application/atom+xml" title="node.js 入门教程之四 -- Event Loop 和 asynchronous &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2100.html" />
-<script type="ce291216ee74689124503f74-text/javascript">
+<script type="a8e3dfb039eccfecf4dd2ac2-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (id) {
@@ -86,7 +86,7 @@
     };
 })();
 </script>
-<script type="ce291216ee74689124503f74-text/javascript">
+<script type="a8e3dfb039eccfecf4dd2ac2-text/javascript">
 (function () {
     var event = document.addEventListener ? {
         add: 'addEventListener',
@@ -104,42 +104,34 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _OP0e = /* 'G2'//'G2' */''+'67'//'8s'
-+''///*'U'*/'U'
-+//'J'
-'J'+//'e'
-'b9'+//'8'
-'cc'+'26'//'qka'
-+'a51'//'VRn'
-+//'4xx'
-'d8'+/* 'dw'//'dw' */''+'3c4'//'f'
-+'EVi'//'EVi'
-+//'VZ'
-'VZ'+//'0d4'
-'e'+//'KO'
-'07'+/* '9'//'9' */''+//'D'
-'c'+//'JdL'
-'48'+''///*'ady'*/'ady'
-+''///*'EU'*/'EU'
-+/* 's'//'s' */''+//'z'
-'9'+//'0m3'
-'5'+'453'//'DLR'
-+'4'//'GHa'
-+'15'//'l3'
-+//'1'
-'d'+'XH'//'XH'
-+/* 'gW'//'gW' */''+//'VUE'
-'VUE'+''///*'wC'*/'wC'
-+'QX'//'QX'
-+'jt'//'jt'
-+'1'//'GH'
-, _vTF = [[2,3],[16,19],[16,18],[31,33],[31,34],[31,33],[31,33]];
+    var _9LB = '67'//'bnP'
++'b'//'xWj'
++'s2'//'s2'
++'9'//'rN'
++'cc2'//'xCG'
++//'Mv'
+'6a'+//'WYs'
+'51'+//'Qh'
+'d83'+'c'//'5o'
++'4e'//'iBY'
++//'y'
+'y'+'07'//'s'
++'c'//'eln'
++//'n'
+'48'+''///*'Km'*/'Km'
++'95'//'1'
++'4'//'X'
++//'EU'
+'534'+//'cy'
+'15d'+'baJ'//'baJ'
++'1'//'MQP'
+, _5rav = [[3,5],[17,18],[31,34]];
     
-    for (var i = 0; i < _vTF.length; i ++) {
-        _OP0e = _OP0e.substring(0, _vTF[i][0]) + _OP0e.substring(_vTF[i][1]);
+    for (var i = 0; i < _5rav.length; i ++) {
+        _9LB = _9LB.substring(0, _5rav[i][0]) + _9LB.substring(_5rav[i][1]);
     }
 
-    return _OP0e;
+    return _9LB;
 })();
 
         if (null != r) {
@@ -197,7 +189,7 @@
 </div>
 </section>
 <article class="post-content">
-<blockquote>这篇文章上次修改于 778 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<blockquote>这篇文章上次修改于 782 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
 <h3>Event Loop 事件循环</h3><p><strong>event loop</strong> 是我们学习 node.js 中最重要的方面之一。因为它解释了 node.js 如何进行异步动作，同时不会出现 IO 阻塞问题。这也是 node.js 能够变得如此流行的原因之一。</p><p>node.js 代码运行在单进程中，也就是说它在一刻只能执行一个任务。这一限制特性使得我们不用担心任务间冲突问题。我们在变开发中只需要专注于代码本身，同时应避免进程阻塞，例如同步方式等待网络请求，死循环等。</p><p>通常情况下，浏览器中的每个 tab 页面都是都有各自独立的 event loop，防止某个页面的死循环或过高的资源消耗影响到整个浏览器的体验。我们只需要关注于我们的代码运行在一个单一的 event loop 中，编程中要注意到这一点，防止进程阻塞。</p><p>JavaScript 代码中如果有长时间等待 return 返回给 event loop 控制时，任何其他代码将会被阻塞，也会阻塞页面 UI 单元，用户在此期间无法进行点击，滚动等操作。</p><p>几乎所有的 JavaScript 原生 IO 指令都是 non-blocking 非阻塞式的，例如：网络请求，文件读写等，阻塞是一种 exception 例外情况，这也是 JavaScript 大量的使用 callback 方式，以及最近引入的 promise 和 async/await。</p><h4>call stack 调用结构</h4><p>JavaScript 的 call 调用过程的结构遵循 LIFO (Last In, First Out)，也就是总是先响应最近的任务。</p><p>event loop 总是连续的检查 call stack 看是否有任务需要执行。在这个过程中，它会将发现的任务添加到 call stack 中并按顺序执行。</p><p>下面是一个简单的示例：</p><pre><code>const bar = () =&gt; console.log('bar');
 const baz = () =&gt; console.log('baz');
 
@@ -548,7 +540,7 @@ eventEmitter.emit('test2', 1, 200)
 <h3>没有评论</h3>
 <div class="comment-form" id="respond-post-2100">
 <span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2100.html#respond-post-2100" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-ce291216ee74689124503f74-="">取消回复</a> </span>
+<a id="cancel-comment-reply-link" href="2100.html#respond-post-2100" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-a8e3dfb039eccfecf4dd2ac2-="">取消回复</a> </span>
 <form method="post" action="https://blog.niekun.net/archives/2100.html/comment" role="form">
 <div class="row">
 <fieldset class="col-m-6">
@@ -576,7 +568,7 @@ eventEmitter.emit('test2', 1, 200)
 <h3 class="title-recent">最新文章：</h3>
 <ul>
 <li><a href="2787.html" target="_blank">自动蒙版快速拆分图像各个元素 in Photoshop</a></li><li><a href="2784.html" target="_blank">chrome 内置翻译工具流量走代理配置</a></li><li><a href="2777.html" target="_blank">白色背景灰色水印去除 in Photoshop</a></li><li><a href="2770.html" target="_blank">命令行激活 Windows 密钥</a></li><li><a href="2769.html" target="_blank">Ubuntu 安装 FTP server</a></li><li><a href="2757.html" target="_blank">Windows 配置 FTP 服务器</a></li> </ul>
- </div>
+</div>
 <div class="col-m-4">
 <h3 class="title-date">时光机：</h3>
 <ul>
@@ -600,11 +592,11 @@ eventEmitter.emit('test2', 1, 200)
 </section>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="ce291216ee74689124503f74-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="ce291216ee74689124503f74-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="ce291216ee74689124503f74-text/javascript"></script>
-<script type="ce291216ee74689124503f74-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-ce291216ee74689124503f74-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="ce291216ee74689124503f74-text/javascript">
+<script src="../usr/themes/Single/static/kico.js" type="a8e3dfb039eccfecf4dd2ac2-text/javascript"></script>
+<script src="../usr/themes/Single/static/single.js" type="a8e3dfb039eccfecf4dd2ac2-text/javascript"></script>
+<script src="../usr/themes/Single/static/prism.js" type="a8e3dfb039eccfecf4dd2ac2-text/javascript"></script>
+<script type="a8e3dfb039eccfecf4dd2ac2-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-a8e3dfb039eccfecf4dd2ac2-=""><i id="ydmc"></i></a></bgm><script data-no-instant type="a8e3dfb039eccfecf4dd2ac2-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -613,6 +605,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="ce291216ee74689124503f74-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="ce291216ee74689124503f74-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="ce291216ee74689124503f74-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'7b2362184a7608ce',m:'nbkoz124wwG90YUu2P3L.UH9bcYXhZwtKWLBYQDwmvE-1680546630-0-AZYnWPVwmejuGAGFsQdWbSFMfDwCP3ltAbOlclEWyQ8f6UlzZwWvk4ie5JUygc2lLYOmWFrp6ry2FBNW+74wfSI+aZfPFEKgmWOWwEDtwbwerZFrp7ZVaf3h1Lf9mZihw+XxwAaPJIFg42a8kX0nEzM=',s:[0xe946edf2fe,0xa1551a6825],u:'/cdn-cgi/challenge-platform/h/b'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/b/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="a8e3dfb039eccfecf4dd2ac2-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="a8e3dfb039eccfecf4dd2ac2-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="a8e3dfb039eccfecf4dd2ac2-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'7b445873ccb17c8f',m:'u1rMDlUivaNVMi26fp0c.kzwlc_B_2ttn9XBlf92bao-1680892265-0-AY8JbZPeX35/qw3Nb62AZ2QAKPP6jGZ/aqQyLcLDua6emEfKbimmH4YG/3Thv/TiCj258yMgUX0jnp0VsGfbiSSZNCEectwcBqC6U9eGOY7bXLFlUFzuJyGPsHwp+YRSgQQ6Ke9c5SFa9wrcUCihr+U=',s:[0x33c1ad0932,0x86406c0238],u:'/cdn-cgi/challenge-platform/h/b'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/b/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
