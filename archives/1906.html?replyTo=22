@@ -1,7 +1,11 @@
 <!DOCTYPE html>
+
 <html>
+
 <head>
+    
 <meta charset="UTF-8">
+    
 <title>两个子网间网络互访的原理 - Marco Nie</title>
     <link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
     <link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
@@ -104,30 +108,37 @@
         input.type = 'hidden';
         input.name = '_';
         input.value = (function () {
-    var _uF6ZR = '41'//'DA'
-+'3'//'VBa'
-+'82a'//'GOs'
-+//'c'
-'c'+//'QB'
-'d43'+//'I'
-'2'+'b'//'dZD'
-+//'HG'
-'61d'+/* '5'//'5' */''+//'ve'
-'130'+'e17'//'5Dz'
-+//'S'
-'f50'+'E3k'//'E3k'
-+'cf'//'6X'
-+'a'//'r'
-+//'jc'
-'e8'+'8e1'//'j'
-+'5'//'c'
-, _3re = [[6,7],[23,26]];
+    var _lUODMV7 = //'PlC'
+'4'+//'e'
+'13'+//'XG'
+'82'+/* 'H7a'//'H7a' */''+//'HIW'
+'ad4'+/* 'JfE'//'JfE' */''+//'D5'
+'3'+//'s2'
+'2'+'b'//'nVw'
++//'Xoq'
+'61'+//'fF'
+'fF'+''///*'xLD'*/'xLD'
++//'H'
+'d'+'ry'//'ry'
++'130'//'NNY'
++//'2BV'
+'e17'+'f50'//'Kvn'
++'cfa'//'1'
++''///*'y'*/'y'
++'e'//'1'
++//'eM'
+'88'+'e1'//'Xz'
++/* 'Riw'//'Riw' */''+'K'//'K'
++'M'//'M'
++/* 'wI'//'wI' */''+''///*'Rs'*/'Rs'
++/* 'uB4'//'uB4' */''+'5'//'3E'
+, _VIw = [[13,15],[14,16],[31,32],[31,32]];
     
-    for (var i = 0; i < _3re.length; i ++) {
-        _uF6ZR = _uF6ZR.substring(0, _3re[i][0]) + _uF6ZR.substring(_3re[i][1]);
+    for (var i = 0; i < _VIw.length; i ++) {
+        _lUODMV7 = _lUODMV7.substring(0, _VIw[i][0]) + _lUODMV7.substring(_VIw[i][1]);
     }
 
-    return _uF6ZR;
+    return _lUODMV7;
 })();
 
         if (null != r) {
@@ -186,7 +197,7 @@
             </div>
         </section>
         <article class="post-content">
-            <blockquote>这篇文章上次修改于 886 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+            <blockquote>这篇文章上次修改于 887 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
             <p>之前我介绍过子网，子网掩码，网关等基本概念解析，可以参考：<a href="1885.html">https://blog.niekun.net/archives/1885.html</a></p><p>在不同子网下的设备是不能直接访问的，因为他们在不同的网段内，比如：</p><p><img src="../usr/uploads/2020/11/246904444.gif" alt="FbdOD.gif" title="FbdOD.gif"></p><ul><li>路由 A 下有子网 192.168.1.0/24</li><li>路由 B 下有子网 192.168.3.0/24</li><li>设备 james：192.168.1.10/24 网关：192.168.1.1</li><li>设备 Johnny：192.168.3.10/24 网关：192.168.3.1</li><li>两个路由的 wan 网口在同一网段：192.168.2.0/24 下</li></ul><p>正常情况下路由 A 下的设备无法访问路由 B 下的设备，因为他们在不同的子网网段下。</p><p>路由 A 有两个网段：192.168.1.0 和 192.168.2.0，所以它可以同时看见这两个网段的设备，但是它并不知道 192.168.3.0 这一网段的存在。同样的道理，路由 B 并不知道 192.168.1.0 这一网段的存在。</p><p>当你给一个设备添加一个路由表 route table，就可以告诉它有其他网段可以进行访问，同时需要告诉它一个可以访问到这个新网段的网关，这样就可以访问到其他网段了。</p><p>例如让路由 A 访问到路由 B 的子网 192.168.3.0 可以通过给路由 A 添加新的路由表来实现，使用 ip route 命令：</p><pre><code>ip route add 192.168.3.0/24 via 192.168.2.2</code></pre><p>以上命令的意义是添加路由 B 子网的路由表 192.168.3.0/24，网关地址是路由 B 的 wan 地址 192.168.2.2。</p><p>因为路由 B 可以访问到两个网络 192.168.2.0 和 192.168.3.0，而路由 A 和路由 B 通过 192.168.2.0 互访，所以通过给路由 A 添加以上路由表然后网关地址为路由 B 和外部通信的地址，这样路由 A 就可以访问到路由 B 的子网了。</p><p>现在路由 A 可以访问到路由 B 的子网了，那么路由 A 下的设备如何访问路由 B 的子网设备呢？原理是相同的，可以通过给设备添加路由 B 子网的路由表，然后由于路由 A 已经可以访问 路由 B 子网了，所以将网关地址设置为路由 A 地址即可：</p><pre><code>ip route add 192.168.3.0/24 via 192.168.1.1</code></pre><p>在路由 A 下的 James 执行以上命令后，就可以访问到路由 B 下的 Johnny 了。</p><p>同样的原理，在路由 B 上设置路由表及网关就可以实现子网互访了。</p><p>参考链接：<br><a href="https://serverfault.com/questions/171551/help-me-understand-the-ip-route-command-for-cisco-routers">understand the 'ip route' command for cisco routers</a></p>        </article>
         <section class="post-near">
             <ul>
@@ -287,5 +298,5 @@ yaudio.volume = 0.68;
 </script>
 <script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant></script><script src="../usr/plugins/YoduBGM/js/prbug.js"></script>
 
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="f68b1fa6b5be2c08b65863ce-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'7b96be79aedc2b88',m:'9.krND7RrYku5eshojIkzoGgnFL1VbwVgQ0y_QPGykY-1681756276-0-AYqK8W5NhC/MrV/3b7aiD+GIAuaR+b/zzt4fedUZruyL',u:'/cdn-cgi/challenge-platform/h/b'};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/invisible.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="c7b6a3de2d961906e0fd4226-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'7b9efbbe0b9e0fd0',m:'NZwDYZdFsXW7UumDajhfGRtaZ9CYibwCSDA1H9ksVKY-1681842672-0-AUYpu/7twhX9IMehjpXBcHZm2Vv9mUc7+WQww7QzHceM',u:'/cdn-cgi/challenge-platform/h/b'};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/invisible.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
