@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2819.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2804.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2795.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2787.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2769.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2757.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2749.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2744.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2819.html">
+<title>Photoshop 离线安装 neural filters 文件</title>
+<link>https://blog.niekun.net/archives/2819.html</link>
+<dc:date>2023-05-26T08:27:00+08:00</dc:date>
+<description>neural filters 是 Photoshop 最新的 AI 技术，但是需要登录账号以及订阅正版软件。最近发现网上分享的版本可以实现这一功能，但是我自己试验了一下其中的 filters 都需要在线下载，但是不知道由于盗版的原因还是网络的原因，一直下载失败，搜索后发现可以将别人打包好的这些 filters 文件直接放入 ps 固定目录即可。V24 版 Photoshop neural filters 下载：https://krakenfiles.com/view/Gp1hmKDnC7/file.htmlhttps://krakenfiles.com/view/9DM2lJKAOs/file.html下载后解压，将其中的所有文件和文件夹放入，注意不同版本 PS 需要路径中的数字不同：Windows 系统：%APPDATA%\Adobe\UXP\PluginsStorage\PHSP\24\Internal\com.adobe.nfp.gallery\PluginDatamacOS 系统：~/Library/Application Support/Adobe/UXP/PluginsStorage/PHSP/24/Internal/com.adobe.nfp.gallery/PluginData重新打开 Photoshop，通过 help - sign in 登录 adobe 账号，然后就可以打开 filters - neural filters 了。参考链接：https://www.reddit.com/r/GenP/comments/yd26z4/neural_filters_not_downloading/https://blog.niekun.net/archives/1187.html</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2804.html">
 <title>通过 AI + Photoshop 修复偏色图片</title>
 <link>https://blog.niekun.net/archives/2804.html</link>
@@ -173,48 +179,5 @@ volumes:
         proxy_http_version  1.1;
     }
 }以上配置需要根据实际情况修改监听端口及 domain，由于之前配置的 miniflux 的映射端口是 18080，所以反代到本地的对应端口即可。以上 miniflux 和 nginx 反代配置完成后应该就可以访问 https://miniflux.your.domain 了。用户名密码就是 docker 配置文件中定义的管理员账户及密码：使用如果某一篇文章不显示全文，只需要点击文章顶部的 download 按钮即可加载全文：miniflux 提供了丰富的 api 接口可供二次开发使用，通过简单的请求就可以获取到文章的各种信息，返回数据为 json 格式。官方 api 文档参考：https://miniflux.app/docs/api.html</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2744.html">
-<title>自建 RustDesk server</title>
-<link>https://blog.niekun.net/archives/2744.html</link>
-<dc:date>2022-08-07T14:08:00+08:00</dc:date>
-<description>RustDesk 是一款开源的跨平台远程桌面软件，类似于 TeamViewer 的 UI 样式，但它是完全免费的。RustDesk 提供了 3 个免费的转发服务器，会根据你的地理位置自动选择最快的，一般使用足够了，如果对安全性有担忧，它们也提供了 server 端应用，可以自建转发服务器。下面就对搭建 server 端做一些介绍。RustDesk GitHub 主页：https://github.com/rustdesk/rustdeskRustDesk Server GitHub 主页：https://github.com/rustdesk/rustdesk-server服务器平台：ubuntu 20.04安装 server我是通过 docker 安装的 server 端，这样最快速简单。关于 docker 和 docker compose 的安装可以参考我之前的文章：https://blog.niekun.net/archives/2742.html#title-1docker-compose.yml 文件内容如下：version: '3'
-
-networks:
-  rustdesk-net:
-    external: false
-
-services:
-  hbbs:
-    container_name: hbbs
-    ports:
-      - 21115:21115
-      - 21116:21116
-      - 21116:21116/udp
-      - 21118:21118
-    image: rustdesk/rustdesk-server:latest
-    command: hbbs -r xxx.xxx.xxx.xxx:21117
-    volumes:
-      - ./data:/root
-    networks:
-      - rustdesk-net
-    depends_on:
-      - hbbr
-    restart: unless-stopped
-
-  hbbr:
-    container_name: hbbr
-    ports:
-      - 21117:21117
-      - 21119:21119
-    image: rustdesk/rustdesk-server:latest
-    command: hbbr
-    volumes:
-      - ./data:/root
-    networks:
-      - rustdesk-net
-    restart: unless-stopped这里配置 hbbs IP 地址需要设置为中继服务器的 IP 或域名，否则无法链接。默认监听的是 21117 端口，客户端默认也是链接服务器的这个端口。如果修改这里的默认端口，则在客户端设置的时候也需要指定此端口。启动服务：docker-compose up -d
-此时在客户端设置 ID server：在第一行填入服务器 IP 地址即可：确认后，如果下方状态栏显示 ready 表示服务器链接正常：配置域名访问如果想要使用域名作为 server id，需要在你的域名服务器里加上一条自定义的域名 NS 解析，如：rust.abc.com。注意如果你使用的是 cloudflare 服务，由于它在启用 CDN 后只支持少数端口的转发，而我们需要使用的是 21115 - 21119 这些端口，所以需要在 dns 配置时取消这个自定义域名的小黄云，只使用其 dns 服务：关于 cloudflare 的网络端口转发相关的信息参考官网内容：Network ports自定义域名配置好后，修改 docker-compose.yml 配置文件中定义的地址为指定域名：command: hbbs -r rust.abc.com:21117
-重启容器后就可以在客户端的 ID server 中使用域名链接了。方法和上面介绍的用服务器 IP 设置的方法相同。</description>
 </item>
 </rdf:RDF>
