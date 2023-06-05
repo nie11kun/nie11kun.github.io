@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2822.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2819.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2804.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2795.html"/>
@@ -18,10 +19,20 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2770.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2769.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2757.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2749.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2822.html">
+<title>Linux 创建新用户并授予 root</title>
+<link>https://blog.niekun.net/archives/2822.html</link>
+<dc:date>2023-06-05T16:54:00+08:00</dc:date>
+<description>Linux 默认会有一个 root 用户，但日常直接使用 root 有一定安全隐患，所以通常情况下我们习惯于创建一个新用户来登录使用，下面介绍常规的建立流程。建立新用户 vpsadmin：adduser vpsadmin
+输入以上命令后会提示输入用户密码，完成后用户 vpsadmin 就建立完成了。安装 sudo 功能(sudo 就是在关键时刻，让普通账户临时获得 root 的能力):apt update &amp;&amp; apt install sudo
+把 vpsadmin 用户加入 sudo 名单里:visudo
+执行后会打开相关配置文件，在 # User privilege specification 栏后加入一行配置即可：# User privilege specification
+
+vpsadmin ALL=(ALL) NOPASSWD: ALL注意以上配置中 NOPASSWD 的意思是在使用 root 权限的时候无需输入 root 密码，这样在使用中可以不用频繁的输入密码。如果你想要遵循常规的使用 sudo 时都输入密码，将配置改为：vpsadmin ALL=(ALL:ALL) ALL 即可。重新登录用户即可完成配置查看效果。参考链接：安全防护篇</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2819.html">
 <title>Photoshop 离线安装 neural filters 文件</title>
 <link>https://blog.niekun.net/archives/2819.html</link>
@@ -116,68 +127,5 @@ local_root=/home/www/ftp修改完成后重启服务：systemctl restart vsftpd
 <link>https://blog.niekun.net/archives/2757.html</link>
 <dc:date>2022-09-15T15:04:00+08:00</dc:date>
 <description>Windows 10 以上系统自带 FTP server，可以简单的搭建一个局域网内应用的 FTP 服务器。下面介绍具体操作流程。搜索 windows feature 打开功能开关配置界面：开启如下 ftp 相关选项，确认后等待安装完成：搜索 Administrative Tools：双击 Internet Information Services (IIS) Manager:sites 上右键点击 add ftp site：设置名称及共享路径：选择无 ssl：选择 basic 验证以及指定可登录 FTP 的用户，设置读写权限：可以单独建立一个用户用来登录 ftp，建立账户可以参考我的教程：https://blog.niekun.net/archives/2103.html#title-4设置完成后，点击完成即可。然后配置防火墙例外，搜索 allow an app through windows firewall:在列表中找到 ftp server 并打勾即可：以上就完成了 Windows 端 ftp 服务器的搭建，可以使用 ftp 客户端登录此 ftp 服务器了。参考链接：How to set up and manage an FTP server on Windows 10</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2749.html">
-<title>Miniflux 搭建自己的 RSS 服务系统</title>
-<link>https://blog.niekun.net/archives/2749.html</link>
-<dc:date>2022-08-12T14:50:00+08:00</dc:date>
-<description>一直在使用 feedly 作为 rss 订阅器阅读文章，基本可以满足我的需求，但是部分站点只能预览摘要，想要阅读全文还打开文章链接。最近发现一个开源免费的 rss 系统，他的特点就是轻量无多于内容，致力于阅读体验。同时我发现他的一些独有功能，可以在文章只显示摘要时，有一个下载全文的选项，这样就实现了大部分文章在 rss 阅读器中就可以阅读全文的需求了。Miniflux 需要自己部署在服务器上，它提供了多种安装方法，最简单的就是 docker 方式，避免手动配置环境及数据库等步骤。我的系统环境：Ubuntu server 20.04Miniflux 官网：https://miniflux.app/GitHub 主页：https://github.com/miniflux/v2安装这里介绍通过 docker compose 安装的方法，关于 docker 环境的部署参考我的教程：https://blog.niekun.net/archives/2742.html#title-1新建 miniflux 文件夹用来放置相关配置：mkdir miniflux
-cd miniflux
-然后建立 docker-compose.yml 配置文件，内容如下：version: '3.4'
-services:
-  miniflux:
-    image: ${MINIFLUX_IMAGE:-miniflux/miniflux:latest}
-    container_name: miniflux
-    restart: always
-    ports:
-      - &quot;18080:8080&quot;
-    depends_on:
-      - db
-    environment:
-      - DATABASE_URL=postgres://miniflux:secret@db/miniflux?sslmode=disable
-      - BASE_URL=https://miniflux.your.domain
-      - RUN_MIGRATIONS=1
-      - CREATE_ADMIN=1
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=test123
-      - DEBUG=1
-    # Optional health check:
-    # healthcheck:
-    #  test: [&quot;CMD&quot;, &quot;/usr/bin/miniflux&quot;, &quot;-healthcheck&quot;, &quot;auto&quot;]
-  db:
-    image: postgres:latest
-    container_name: postgres
-    restart: always
-    environment:
-      - POSTGRES_USER=miniflux
-      - POSTGRES_PASSWORD=secret
-    volumes:
-      - miniflux-db:/var/lib/postgresql/data
-    healthcheck:
-      test: [&quot;CMD&quot;, &quot;pg_isready&quot;, &quot;-U&quot;, &quot;miniflux&quot;]
-      interval: 10s
-      start_period: 30s
-volumes:
-  miniflux-db:其中需要自行根据实际情况修改一些内容：port 端口的主机映射，这里我使用了 18080 映射容器内的 8080 端口BASE_URL 设置需要访问 miniflux 服务的域名地址，后面需要配置反向代理ADMIN_USERNAME 设置管理员用户名ADMIN_PASSWORD  设置管理员用户密码敏感的环境变量值可以单独放在同配置文件路径下的 .env 文件中，上面的 docker 安装教程中有介绍。注意 DATABASE_URL 地址中的 postgres 用户名密码对应于 POSTGRES_USER 和 POSTGRES_PASSWORD 的值，需要保持一致。然后就可以启动容器：docker-compose up -d
-反代配置首先如果需要解析到二级域名下，先要在 ns 服务端添加二级域名的 A 记录，然后才能正常解析 url。使用域名访问 miniflux 服务，需要通过主机使用的反代软件配置解析，我服务器使用的是 nginx，下面介绍配置方法。给 nginx 配置添加如下内容：server {
-    listen        443 ssl http2;
-    listen        [::]:443 ssl http2;
-    server_name   miniflux.your.domain;
-    include       my-server/ssl;
-
-    location / {
-        proxy_pass          http://127.0.0.1:18080;
-        proxy_redirect      off;
-
-        proxy_set_header    Host              $host;
-        proxy_set_header    X-Forwarded-Host  $host;
-        proxy_set_header    X-Real-IP         $remote_addr;
-        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header    X-Forwarded-Proto $scheme;
-        proxy_set_header    Upgrade           $http_upgrade;
-        proxy_set_header    Connection        &quot;upgrade&quot;;
-        proxy_http_version  1.1;
-    }
-}以上配置需要根据实际情况修改监听端口及 domain，由于之前配置的 miniflux 的映射端口是 18080，所以反代到本地的对应端口即可。以上 miniflux 和 nginx 反代配置完成后应该就可以访问 https://miniflux.your.domain 了。用户名密码就是 docker 配置文件中定义的管理员账户及密码：使用如果某一篇文章不显示全文，只需要点击文章顶部的 download 按钮即可加载全文：miniflux 提供了丰富的 api 接口可供二次开发使用，通过简单的请求就可以获取到文章的各种信息，返回数据为 json 格式。官方 api 文档参考：https://miniflux.app/docs/api.html</description>
 </item>
 </rdf:RDF>

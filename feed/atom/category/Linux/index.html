@@ -6,11 +6,33 @@ xml:base="https://blog.niekun.net/category/Linux/"
 >
 <title type="text">Marco Nie - Linux</title>
 <subtitle type="text"></subtitle>
-<updated>2022-09-16T09:28:45+08:00</updated>
+<updated>2023-06-05T16:54:00+08:00</updated>
 <generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/Linux/" />
 <id>https://blog.niekun.net/feed/atom/category/Linux/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" />
+<entry>
+<title type="html"><![CDATA[Linux 创建新用户并授予 root]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2822.html" />
+<id>https://blog.niekun.net/archives/2822.html</id>
+<updated>2023-06-05T16:54:00+08:00</updated>
+<published>2023-06-05T16:54:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[Linux 默认会有一个 root 用户，但日常直接使用 root 有一定安全隐患，所以通常情况下我们习惯于创建一个新用户来登录使用，下面介绍常规的建立流程。建立新用户 vpsadmin：add...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/2822.html" xml:lang="zh-CN"><![CDATA[
+<p>Linux 默认会有一个 root 用户，但日常直接使用 root 有一定安全隐患，所以通常情况下我们习惯于创建一个新用户来登录使用，下面介绍常规的建立流程。</p><p><strong>建立新用户 vpsadmin：</strong></p><pre><code>adduser vpsadmin
+</code></pre><p>输入以上命令后会提示输入用户密码，完成后用户 <strong>vpsadmin</strong> 就建立完成了。</p><p><strong>安装 sudo 功能(sudo 就是在关键时刻，让普通账户临时获得 root 的能力):</strong></p><pre><code>apt update &amp;&amp; apt install sudo
+</code></pre><p>把 <strong>vpsadmin</strong> 用户加入 <strong>sudo</strong> 名单里:</p><pre><code>visudo
+</code></pre><p>执行后会打开相关配置文件，在 <code># User privilege specification</code> 栏后加入一行配置即可：</p><pre><code># User privilege specification
+
+vpsadmin ALL=(ALL) NOPASSWD: ALL</code></pre><p>注意以上配置中 <code>NOPASSWD</code> 的意思是在使用 <strong>root</strong> 权限的时候无需输入 <strong>root</strong> 密码，这样在使用中可以不用频繁的输入密码。如果你想要遵循常规的使用 <code>sudo</code> 时都输入密码，将配置改为：<code>vpsadmin ALL=(ALL:ALL) ALL</code> 即可。</p><p>重新登录用户即可完成配置查看效果。</p><p>参考链接：<br><a href="https://xtls.github.io/document/level-0/ch04-security.html">安全防护篇</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2822.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Ubuntu 安装 FTP server]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2769.html" />
@@ -373,7 +395,7 @@ crw-rw---- 1 root video 226, 128 Oct 23 20:41 renderD128</code></pre><p>查看 p
      Memory: 26.4M
      CGroup: /system.slice/xrdp.service
              ├─83595 /usr/sbin/xrdp
-             └─83597 /usr/sbin/xrdp</code></pre><p>默认 rdp 端口为 3389.</p><h3>配置</h3><p>xrdp 安装后，会自动将一个 ssl key <code>ssl-cert-snakeoil.key</code> 放入 <code>/etc/ssl/private/</code> 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：</p><pre><code>sudo adduser xrdp ssl-cert</code></pre><p>默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 <code>/etc/xrdp/startwm.sh</code> 文件，在文件最后的 <code>test -x /etc/X11/Xsession</code> 前面加入如下内容：</p><pre><code>unset DBUS_SESSION_BUS_ADDRESS
+             └─83597 /usr/sbin/xrdp</code></pre><p>默认 rdp 端口为 3389.</p><h3>配置</h3><p>xrdp 安装后，会自动创建一个新系统用户 <code>xrdp</code>，并且将一个 ssl key <code>ssl-cert-snakeoil.key</code> 放入 <code>/etc/ssl/private/</code> 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：</p><pre><code>sudo adduser xrdp ssl-cert</code></pre><p>默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 <code>/etc/xrdp/startwm.sh</code> 文件，在文件最后的 <code>test -x /etc/X11/Xsession</code> 前面加入如下内容：</p><pre><code>unset DBUS_SESSION_BUS_ADDRESS
 unset XDG_RUNTIME_DIR</code></pre><p>重启 xrdp 服务：</p><pre><code>sudo systemctl restart xrdp</code></pre><p>现在就可以正常通过 rdp 连接到 Ubuntu了。</p><p>在使用中，我出现了输入用户密码后停留在解锁界面无法登录进去的问题，经过查询 xdrp 目前不可以同时在多个设备上尝试登录。同时登录 xrdp 的用户如果和正常在主机上登录的是同一个用户，需要删除 <code>dbus-user-session</code> 包，用 <code>dbus-x11</code> 代替。第三点，需要保证 gdm3 运行，执行下面的命令：</p><pre><code>sudo apt remove dbus-user-session
 sudo apt install dbus-x11
 
@@ -501,41 +523,6 @@ openssl req -new -nodes -out /etc/vmware/ssl/rui.csr -keyout /etc/vmware/ssl/rui
 openssl x509 -req -days 730 -in /etc/vmware/ssl/rui.csr -signkey /etc/vmware/ssl/rui.key -out /etc/vmware/ssl/rui.crt -extensions v3_req -extfile /etc/vmware/ssl/webclient.cnf</code></pre><p>以上命令执行完成后，就在目录下生成了 <strong>rui.key, rui.csr, rui.crt</strong> 三个文件。我们只需要将 <strong>rui.crt</strong> 证书文件复制到客户机上安装，可以通过任何方式复制出来，例如 sftp，winscp 等。</p><p><strong>esxi 上需要重启系统后新的证书才能生效。</strong>注意重启后 ssh 功能可能需要重新打开。</p><h3>客户端安装证书</h3><p>在 macOS 上安装证书，双击复制出来的 rui.crt 安装即可。安装后需要设置为信任，进入 keychain access 中，在 system 栏点击 certificates 菜单项就能找到刚刚安装的证书，双击证书进入属性，点击 trust 菜单，将 when using this certificate 设置为 always trust 即可，关闭时会提示输入密码。</p><p>此时我们就可以以 https 访问 esxi web 管理页面并且不会报证书错误了。</p><h3>参考链接</h3><p><a href="https://www.vmwareblog.org/replace-default-esxi-ssl-certificate-self-signed-certificate-101-introduction/">How to Replace Your Default ESXi SSL Certificate With a Self-Signed Certificate</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2611.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[openwrt 修改进程 Socket 句柄数]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2572.html" />
-<id>https://blog.niekun.net/archives/2572.html</id>
-<updated>2022-04-03T08:50:00+08:00</updated>
-<published>2022-04-03T08:50:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[最近在使用中发现一个软件 log 中出现大量的报错：/core/transport/internet/tcp: failed to accepted raw connections &amp;gt; a...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2572.html" xml:lang="zh-CN"><![CDATA[
-<p>最近在使用中发现一个软件 log 中出现大量的报错：</p><pre><code>/core/transport/internet/tcp: failed to accepted raw connections &gt; accept tcp [::]:18919: accept4: too many open files</code></pre><p>查询后知道这是进程占用的句柄数超出了系统最大值导致的。由于我的系统是 openwrt 所以下面介绍如何修改某个进程的最大句柄数限制。</p><!--more--><p>首先查询当前系统当前的句柄限制值：</p><pre><code>ulimit -n
-
-1024</code></pre><p>也可以查询当前系统的其他所有限制参数：</p><pre><code>ulimit -a</code></pre><p>返回 1024 表示当前系统每个进程的限制值是 1024。</p><p>然后我们查询下当前系统进程中占用情况：</p><pre><code>lsof -n |awk '{print $2}'|sort|uniq -c |sort -nr|more
-
-     8790 2390
-     41 2638
-     27 1914
-     26 1
-     25 2127
-     23 2166
-     23 1976
-     23 1704</code></pre><p>可以看到进程PID号 2390 就占用了 8790 个句柄，这肯定超出了系统限制，我们看看这个 2390 到底是那个程序：</p><pre><code>ps | grep 2390
-
- 2390 root     5005m S    /usr/bin/v2ray -confdir /etc/v2ray/conf.d
- 6815 root      1072 R    grep 2390</code></pre><p>发现的确是我报错的那个程序占用了这个进程。</p><p>然后我们查询系统可以设置的最大句柄数：</p><pre><code>cat /proc/sys/fs/file-max
-
-101238</code></pre><p>返回值说明当前系统可以设置最大句柄数为 101238.</p><p>想要修改句柄数需要在对应进程的 procd init script 脚本修改内容，在 start_service 中增加：</p><pre><code>        procd_set_param limits core=&quot;unlimited&quot;
-        procd_set_param limits nofile=&quot;101200&quot;
-        procd_set_param limits nproc=&quot;101200&quot;</code></pre><p>limits 参数可以设置系统的一些限制值，openwrt 可用的限制值名称可以在官方文档找到：<a href="https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters">https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters</a></p><p>以上就将系统限制设置为一个较大的值，修改完成后重启这个进程即可。</p><h3>参考链接</h3><p><a href="https://www.cccitu.com/3827.html">Linux命令：TCP连接高并发时Socket句柄数的修改</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters">procd-init-scripts#service_parameters</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-script-example#advanced_options">procd-init-script-example#advanced_options</a><br><a href="https://blog.niekun.net/archives/2277.html">openwrt procd init script 自启动脚本服务</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2572.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Linux/" thr:count="0"/>
 </entry>
 </feed>
