@@ -11,10 +11,32 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Mon, 05 Jun 2023 16:54:00 +0800</lastBuildDate>
-<pubDate>Mon, 05 Jun 2023 16:54:00 +0800</pubDate>
+<lastBuildDate>Thu, 08 Jun 2023 13:16:00 +0800</lastBuildDate>
+<pubDate>Thu, 08 Jun 2023 13:16:00 +0800</pubDate>
 <item>
-<title>Linux 创建新用户并授予 root</title>
+<title>bash 脚本中使用 ssh 登录并执行命令</title>
+<link>https://blog.niekun.net/archives/2826.html</link>
+<guid>https://blog.niekun.net/archives/2826.html</guid>
+<pubDate>Thu, 08 Jun 2023 13:16:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[通过 ssh 可以远程登录服务器并执行相关操作，常用指令如下：ssh user@address -p 22执行命令后会提示输入用户密码才能最终进入。如果在脚本中我们需要通过 ssh 登录用户并执...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>通过 ssh 可以远程登录服务器并执行相关操作，常用指令如下：</p><pre><code>ssh user@address -p 22
+</code></pre><p>执行命令后会提示输入用户密码才能最终进入。</p><p>如果在脚本中我们需要通过 ssh 登录用户并执行相关命令的话就有些麻烦了。</p><p>可以通过安装 <strong>sshpass</strong> 的方式在脚本中定义 ssh 密码，从而解决需求。</p><p>安装 <strong>sshpass</strong>：</p><pre><code>apt install sshpass
+</code></pre><p>使用：</p><pre><code>sshpass -p password ssh user@address -p 22
+</code></pre><p>通过以上命令就可以直接在一行中定义 ssh 密码从而自动登录了。</p><p>在脚本中如果需要执行相关命令可以将命令写在 <code>''</code> 中：</p><pre><code>sshpass -p password ssh user@address 'cd /tmp; ls; touch test.txt'
+</code></pre><p>如果要执行的命令较长可以分开写，用 <code>EOF</code> 追加输入，就不用写引号了：</p><pre><code>sshpass -p password ssh user@address &lt;&lt; EOF
+cd /tmp
+ls
+touch test.txt
+EOF</code></pre><p>注意结尾也要换行写 <code>EOF</code> 作为追加结束的标识。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2826.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
+</item>
+<item>
+<title>Linux 创建新用户并授予 root 权限</title>
 <link>https://blog.niekun.net/archives/2822.html</link>
 <guid>https://blog.niekun.net/archives/2822.html</guid>
 <pubDate>Mon, 05 Jun 2023 16:54:00 +0800</pubDate>
@@ -25,8 +47,9 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 </code></pre><p>输入以上命令后会提示输入用户密码，完成后用户 <strong>vpsadmin</strong> 就建立完成了。</p><p><strong>安装 sudo 功能(sudo 就是在关键时刻，让普通账户临时获得 root 的能力):</strong></p><pre><code>apt update &amp;&amp; apt install sudo
 </code></pre><p>把 <strong>vpsadmin</strong> 用户加入 <strong>sudo</strong> 名单里:</p><pre><code>visudo
 </code></pre><p>执行后会打开相关配置文件，在 <code># User privilege specification</code> 栏后加入一行配置即可：</p><pre><code># User privilege specification
+root    ALL=(ALL:ALL) ALL
 
-vpsadmin ALL=(ALL) NOPASSWD: ALL</code></pre><p>注意以上配置中 <code>NOPASSWD</code> 的意思是在使用 <strong>root</strong> 权限的时候无需输入 <strong>root</strong> 密码，这样在使用中可以不用频繁的输入密码。如果你想要遵循常规的使用 <code>sudo</code> 时都输入密码，将配置改为：<code>vpsadmin ALL=(ALL:ALL) ALL</code> 即可。</p><p>重新登录用户即可完成配置查看效果。</p><p>参考链接：<br><a href="https://xtls.github.io/document/level-0/ch04-security.html">安全防护篇</a></p>
+vpsadmin ALL=(ALL) NOPASSWD: ALL</code></pre><p>最上面的 <strong>root</strong> 表示能使用 sudo 命令的用户：</p><ul><li>第一个ALL表示允许使用sudo的主机；</li><li>第二个ALL及第三个ALL表示用户组及用户；</li><li>第四个ALL表示sudo可执行的命令，即所有命令；</li><li>在有的系统中也简写做：root ALL=(ALL) ALL</li></ul><p>最下面我们自己添加的 <strong>vpsadmin</strong> 是需要授权可以使用 <strong>root</strong> 权限的用户，配置中 <code>NOPASSWD</code> 的意思是在使用 <strong>root</strong> 权限的时候在命令前输入 <strong>sudo</strong> 即可，确认后无需输入 <strong>root</strong> 密码，这样在使用中可以不用频繁的输入密码。如果你想要遵循常规的使用 <code>sudo</code> 时都输入密码，将配置改为：<code>vpsadmin ALL=(ALL:ALL) ALL</code> 即可。</p><p>重新登录用户即可完成配置查看效果。</p><p>参考链接：<br><a href="https://xtls.github.io/document/level-0/ch04-security.html">安全防护篇</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2822.html#comments</comments>
@@ -139,7 +162,7 @@ vpsadmin ALL=(ALL) NOPASSWD: ALL</code></pre><p>注意以上配置中 <code>NOPA
 <title>Ubuntu 安装 FTP server</title>
 <link>https://blog.niekun.net/archives/2769.html</link>
 <guid>https://blog.niekun.net/archives/2769.html</guid>
-<pubDate>Fri, 16 Sep 2022 09:28:45 +0800</pubDate>
+<pubDate>Fri, 16 Sep 2022 09:28:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <description><![CDATA[虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。系统平台：Ubuntu server 20.04]]></description>
 <content:encoded xml:lang="zh-CN"><![CDATA[
@@ -178,25 +201,12 @@ chroot_local_user=YES
 secure_chroot_dir=/var/run/vsftpd/empty
 pam_service_name=vsftpd
 
-local_root=/home/www/ftp</code></pre><p>修改完成后重启服务：</p><pre><code>systemctl restart vsftpd
-</code></pre><p>此时就可以使用 ftp 客户端连接到 ftp 服务器了。</p><p>为了更加安全，推荐配置 ssl 证书，可以参考：<a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/#id-7-secure-ftp-with-tls-recommended">Secure FTP with TLS (Recommended)</a></p><p>以上就是 ftp server 的简单安装及配置教程。</p><h3>参考链接</h3><p><a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/">How To Install an FTP server (vsftpd) on Ubuntu 20.04/20.10</a><br><a href="https://ubuntu.com/server/docs/service-ftp">FTP Server</a></p>
+local_root=/home/www/ftp
+#allow_writeable_chroot=YES</code></pre><p>修改完成后重启服务：</p><pre><code>systemctl restart vsftpd
+</code></pre><p>此时就可以使用 ftp 客户端连接到 ftp 服务器了。</p><p>如果登录的时候提示：<strong>500 oops vsftpd refusing to run with writable root inside chroot()</strong>，报错，则简单的方法就是在 <code>/etc/vsftpd.conf</code> 添加一句：<code>allow_writeable_chroot=YES</code>，然后重启 vsftpd 服务即可。</p><p>为了更加安全，推荐配置 ssl 证书，可以参考：<a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/#id-7-secure-ftp-with-tls-recommended">Secure FTP with TLS (Recommended)</a></p><p>以上就是 ftp server 的简单安装及配置教程。</p><h3>参考链接</h3><p><a href="https://devanswers.co/install-ftp-server-vsftpd-ubuntu-20-04/">How To Install an FTP server (vsftpd) on Ubuntu 20.04/20.10</a><br><a href="https://ubuntu.com/server/docs/service-ftp">FTP Server</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2769.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
-</item>
-<item>
-<title>Windows 配置 FTP 服务器</title>
-<link>https://blog.niekun.net/archives/2757.html</link>
-<guid>https://blog.niekun.net/archives/2757.html</guid>
-<pubDate>Thu, 15 Sep 2022 15:04:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[Windows 10 以上系统自带 FTP server，可以简单的搭建一个局域网内应用的 FTP 服务器。下面介绍具体操作流程。搜索 windows feature 打开功能开关配置界面：]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>Windows 10 以上系统自带 FTP server，可以简单的搭建一个局域网内应用的 FTP 服务器。下面介绍具体操作流程。</p><p>搜索 windows feature 打开功能开关配置界面：<br><img src="https://blog.niekun.net/usr/uploads/2022/09/3236706010.png" alt="2022-09-15T06:50:53.png" title="2022-09-15T06:50:53.png"></p><!--more--><p>开启如下 ftp 相关选项，确认后等待安装完成：<br><img src="https://blog.niekun.net/usr/uploads/2022/09/3759793436.png" alt="2022-09-15T06:51:58.png" title="2022-09-15T06:51:58.png"></p><p>搜索 Administrative Tools：<br><img src="https://blog.niekun.net/usr/uploads/2022/09/4127207686.png" alt="2022-09-15T06:53:05.png" title="2022-09-15T06:53:05.png"></p><p>双击 Internet Information Services (IIS) Manager:<br><img src="https://blog.niekun.net/usr/uploads/2022/09/2046309272.png" alt="2022-09-15T06:53:58.png" title="2022-09-15T06:53:58.png"></p><p>sites 上右键点击 add ftp site：<br><img src="https://blog.niekun.net/usr/uploads/2022/09/205395891.png" alt="2022-09-15T06:55:25.png" title="2022-09-15T06:55:25.png"></p><p>设置名称及共享路径：<br><img src="https://blog.niekun.net/usr/uploads/2022/09/1391443548.png" alt="2022-09-15T06:56:18.png" title="2022-09-15T06:56:18.png"></p><p>选择无 ssl：<br><img src="https://blog.niekun.net/usr/uploads/2022/09/2363422074.png" alt="2022-09-15T06:56:43.png" title="2022-09-15T06:56:43.png"></p><p>选择 basic 验证以及指定可登录 FTP 的用户，设置读写权限：<br><img src="https://blog.niekun.net/usr/uploads/2022/09/2397564596.png" alt="2022-09-15T06:57:40.png" title="2022-09-15T06:57:40.png"></p><p>可以单独建立一个用户用来登录 ftp，建立账户可以参考我的教程：<a href="https://blog.niekun.net/archives/2103.html#title-4">https://blog.niekun.net/archives/2103.html#title-4</a></p><p>设置完成后，点击完成即可。</p><p>然后配置防火墙例外，搜索 allow an app through windows firewall:<br><img src="https://blog.niekun.net/usr/uploads/2022/09/4066124525.png" alt="2022-09-15T06:59:18.png" title="2022-09-15T06:59:18.png"></p><p>在列表中找到 ftp server 并打勾即可：<br><img src="https://blog.niekun.net/usr/uploads/2022/09/3519377408.png" alt="2022-09-15T07:00:53.png" title="2022-09-15T07:00:53.png"></p><p>以上就完成了 Windows 端 ftp 服务器的搭建，可以使用 ftp 客户端登录此 ftp 服务器了。</p><p><strong>参考链接：</strong><br><a href="https://www.windowscentral.com/how-set-ftp-server-windows-10">How to set up and manage an FTP server on Windows 10</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2757.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
 </item>
 </channel>

@@ -9,19 +9,35 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2826.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2822.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2826.html">
+<title>bash 脚本中使用 ssh 登录并执行命令</title>
+<link>https://blog.niekun.net/archives/2826.html</link>
+<dc:date>2023-06-08T13:16:00+08:00</dc:date>
+<description>通过 ssh 可以远程登录服务器并执行相关操作，常用指令如下：ssh user@address -p 22
+执行命令后会提示输入用户密码才能最终进入。如果在脚本中我们需要通过 ssh 登录用户并执行相关命令的话就有些麻烦了。可以通过安装 sshpass 的方式在脚本中定义 ssh 密码，从而解决需求。安装 sshpass：apt install sshpass
+使用：sshpass -p password ssh user@address -p 22
+通过以上命令就可以直接在一行中定义 ssh 密码从而自动登录了。在脚本中如果需要执行相关命令可以将命令写在 '' 中：sshpass -p password ssh user@address 'cd /tmp; ls; touch test.txt'
+如果要执行的命令较长可以分开写，用 EOF 追加输入，就不用写引号了：sshpass -p password ssh user@address &lt;&lt; EOF
+cd /tmp
+ls
+touch test.txt
+EOF注意结尾也要换行写 EOF 作为追加结束的标识。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2822.html">
-<title>Linux 创建新用户并授予 root</title>
+<title>Linux 创建新用户并授予 root 权限</title>
 <link>https://blog.niekun.net/archives/2822.html</link>
 <dc:date>2023-06-05T16:54:00+08:00</dc:date>
 <description>Linux 默认会有一个 root 用户，但日常直接使用 root 有一定安全隐患，所以通常情况下我们习惯于创建一个新用户来登录使用，下面介绍常规的建立流程。建立新用户 vpsadmin：adduser vpsadmin
 输入以上命令后会提示输入用户密码，完成后用户 vpsadmin 就建立完成了。安装 sudo 功能(sudo 就是在关键时刻，让普通账户临时获得 root 的能力):apt update &amp;&amp; apt install sudo
 把 vpsadmin 用户加入 sudo 名单里:visudo
 执行后会打开相关配置文件，在 # User privilege specification 栏后加入一行配置即可：# User privilege specification
+root    ALL=(ALL:ALL) ALL
 
-vpsadmin ALL=(ALL) NOPASSWD: ALL注意以上配置中 NOPASSWD 的意思是在使用 root 权限的时候无需输入 root 密码，这样在使用中可以不用频繁的输入密码。如果你想要遵循常规的使用 sudo 时都输入密码，将配置改为：vpsadmin ALL=(ALL:ALL) ALL 即可。重新登录用户即可完成配置查看效果。参考链接：安全防护篇</description>
+vpsadmin ALL=(ALL) NOPASSWD: ALL最上面的 root 表示能使用 sudo 命令的用户：第一个ALL表示允许使用sudo的主机；第二个ALL及第三个ALL表示用户组及用户；第四个ALL表示sudo可执行的命令，即所有命令；在有的系统中也简写做：root ALL=(ALL) ALL最下面我们自己添加的 vpsadmin 是需要授权可以使用 root 权限的用户，配置中 NOPASSWD 的意思是在使用 root 权限的时候在命令前输入 sudo 即可，确认后无需输入 root 密码，这样在使用中可以不用频繁的输入密码。如果你想要遵循常规的使用 sudo 时都输入密码，将配置改为：vpsadmin ALL=(ALL:ALL) ALL 即可。重新登录用户即可完成配置查看效果。参考链接：安全防护篇</description>
 </item>
 </rdf:RDF>

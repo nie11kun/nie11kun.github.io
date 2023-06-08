@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2826.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2822.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2769.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2749.html"/>
@@ -18,25 +19,39 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2703.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2621.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2613.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2611.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2826.html">
+<title>bash 脚本中使用 ssh 登录并执行命令</title>
+<link>https://blog.niekun.net/archives/2826.html</link>
+<dc:date>2023-06-08T13:16:00+08:00</dc:date>
+<description>通过 ssh 可以远程登录服务器并执行相关操作，常用指令如下：ssh user@address -p 22
+执行命令后会提示输入用户密码才能最终进入。如果在脚本中我们需要通过 ssh 登录用户并执行相关命令的话就有些麻烦了。可以通过安装 sshpass 的方式在脚本中定义 ssh 密码，从而解决需求。安装 sshpass：apt install sshpass
+使用：sshpass -p password ssh user@address -p 22
+通过以上命令就可以直接在一行中定义 ssh 密码从而自动登录了。在脚本中如果需要执行相关命令可以将命令写在 '' 中：sshpass -p password ssh user@address 'cd /tmp; ls; touch test.txt'
+如果要执行的命令较长可以分开写，用 EOF 追加输入，就不用写引号了：sshpass -p password ssh user@address &lt;&lt; EOF
+cd /tmp
+ls
+touch test.txt
+EOF注意结尾也要换行写 EOF 作为追加结束的标识。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2822.html">
-<title>Linux 创建新用户并授予 root</title>
+<title>Linux 创建新用户并授予 root 权限</title>
 <link>https://blog.niekun.net/archives/2822.html</link>
 <dc:date>2023-06-05T16:54:00+08:00</dc:date>
 <description>Linux 默认会有一个 root 用户，但日常直接使用 root 有一定安全隐患，所以通常情况下我们习惯于创建一个新用户来登录使用，下面介绍常规的建立流程。建立新用户 vpsadmin：adduser vpsadmin
 输入以上命令后会提示输入用户密码，完成后用户 vpsadmin 就建立完成了。安装 sudo 功能(sudo 就是在关键时刻，让普通账户临时获得 root 的能力):apt update &amp;&amp; apt install sudo
 把 vpsadmin 用户加入 sudo 名单里:visudo
 执行后会打开相关配置文件，在 # User privilege specification 栏后加入一行配置即可：# User privilege specification
+root    ALL=(ALL:ALL) ALL
 
-vpsadmin ALL=(ALL) NOPASSWD: ALL注意以上配置中 NOPASSWD 的意思是在使用 root 权限的时候无需输入 root 密码，这样在使用中可以不用频繁的输入密码。如果你想要遵循常规的使用 sudo 时都输入密码，将配置改为：vpsadmin ALL=(ALL:ALL) ALL 即可。重新登录用户即可完成配置查看效果。参考链接：安全防护篇</description>
+vpsadmin ALL=(ALL) NOPASSWD: ALL最上面的 root 表示能使用 sudo 命令的用户：第一个ALL表示允许使用sudo的主机；第二个ALL及第三个ALL表示用户组及用户；第四个ALL表示sudo可执行的命令，即所有命令；在有的系统中也简写做：root ALL=(ALL) ALL最下面我们自己添加的 vpsadmin 是需要授权可以使用 root 权限的用户，配置中 NOPASSWD 的意思是在使用 root 权限的时候在命令前输入 sudo 即可，确认后无需输入 root 密码，这样在使用中可以不用频繁的输入密码。如果你想要遵循常规的使用 sudo 时都输入密码，将配置改为：vpsadmin ALL=(ALL:ALL) ALL 即可。重新登录用户即可完成配置查看效果。参考链接：安全防护篇</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2769.html">
 <title>Ubuntu 安装 FTP server</title>
 <link>https://blog.niekun.net/archives/2769.html</link>
-<dc:date>2022-09-16T09:28:45+08:00</dc:date>
+<dc:date>2022-09-16T09:28:00+08:00</dc:date>
 <description>虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。系统平台：Ubuntu server 20.04安装 vsftpd主要是通过 vsftpd 实现 ftp 功能的，首先安装：apt update &amp;&amp; apt install vsftpd
 安装好后，vsftpd 会自动启动，可以查看当前运行状态：systemctl status vsftpd
 
@@ -72,8 +87,9 @@ chroot_local_user=YES
 secure_chroot_dir=/var/run/vsftpd/empty
 pam_service_name=vsftpd
 
-local_root=/home/www/ftp修改完成后重启服务：systemctl restart vsftpd
-此时就可以使用 ftp 客户端连接到 ftp 服务器了。为了更加安全，推荐配置 ssl 证书，可以参考：Secure FTP with TLS (Recommended)以上就是 ftp server 的简单安装及配置教程。参考链接How To Install an FTP server (vsftpd) on Ubuntu 20.04/20.10FTP Server</description>
+local_root=/home/www/ftp
+#allow_writeable_chroot=YES修改完成后重启服务：systemctl restart vsftpd
+此时就可以使用 ftp 客户端连接到 ftp 服务器了。如果登录的时候提示：500 oops vsftpd refusing to run with writable root inside chroot()，报错，则简单的方法就是在 /etc/vsftpd.conf 添加一句：allow_writeable_chroot=YES，然后重启 vsftpd 服务即可。为了更加安全，推荐配置 ssl 证书，可以参考：Secure FTP with TLS (Recommended)以上就是 ftp server 的简单安装及配置教程。参考链接How To Install an FTP server (vsftpd) on Ubuntu 20.04/20.10FTP Server</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2749.html">
 <title>Miniflux 搭建自己的 RSS 服务系统</title>
@@ -364,66 +380,5 @@ sudo systemctl restart demo.service如果需要系统的 ~/.bashrc 同时加载�
 <link>https://blog.niekun.net/archives/2613.html</link>
 <dc:date>2022-04-10T12:59:50+08:00</dc:date>
 <description>最近发现我的局域网内网下的网速很慢，只有500M左右，达不到 1000M 的速度。我是通过 ipert3 进行测速的。家里的网络是通过 esxi 下安装的 openwrt，ubuntu 等虚拟机控制的，通过 esxi 管理页面可以看到接口都运行在 1000M 全双工模式下，说明网线链接是没有问题的：经过查询发现可以通过修改虚拟交换机的 mtu 值到 9000 来提高网络吞吐量从而加快网速。修改 mtu进入虚拟交换机栏：点击每一个交换机进入设置界面，点击上面的 edit：将 mtu 设置为 9000，并保存配置：虚拟交换机里修改完后，进入 vmkernel NICs 栏：点击 vmk0 进入设置界面，同样的点击 edit 修改其 mtu 为 9000 并保存：以上就完成了整个虚拟环境 mtu 值的修改，再次通过 iperf3 测速，速率能达到 800M。iperf3 使用下面简单介绍使用 iperf3 测试内网传输速率。首先在接收端以下指令运行在服务模式：iperf3 -s然后再发送端执行以下指令启动测速：iperf3 -c xxx.xxx.xxx.xxx -t 30以上指令中将地址替换为接收端 IP 地址，-t 参数可以设置测速时间，单位为秒。参考链接关于 ESXi 虚拟机间拷贝速度慢的问题IPERF: How to test network Speed,Performance,Bandwidth</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2611.html">
-<title>esxi 配置自定义 ssl 证书</title>
-<link>https://blog.niekun.net/archives/2611.html</link>
-<dc:date>2022-04-10T12:39:50+08:00</dc:date>
-<description>我家里的主机使用 esxi 管理多个 vm 虚拟机，之前的文章介绍过 esxi 的安装及使用：ESXi 的安装与使用，需要安装的可以参考。通过浏览器访问  vcenter 管理界面默认会强制 https 模式，但是访问端并没有安装 vcenter 管理网页的证书，所以会提示不安全的链接，下面介绍如何在 esxi 上安装自定义域名的 ssl 证书，并在客户机上安装。开启 sshesxi 上的操作是通过 ssh 的方式，所以首先需要打开 esxi 的 ssh 访问权限。访问 esxi 管理界面，在 host 菜单栏，选择 action - sevices - enable ssh：打开 ssh 只对本次开机有效，重启 esxi 后会再次默认关闭。然后就可以通过 ssh 访问 esxi。创建证书首先备份当前证书文件，防止修改错误无法恢复，进入 /etc/vmware/ssl 目录，新建 bak 文件夹，将目录内的 rui.crt, rui.csr, rui.key 文件移动到 bak 文件夹内：cd /etc/vmware/ssl
-mkdir bak
-mv rui.* bak/然后在 /etc/vmware/ssl 下新建文件 webclient.cnf 编辑文件内容如下：[ req ]
-
-default_bits = 2048
-
-default_keyfile = rui.key
-
-distinguished_name = req_distinguished_name
-
-encrypt_key = no
-
-prompt = no
-
-string_mask = nombstr
-
-req_extensions = v3_req
-
-[ v3_req ]
-
-basicConstraints = CA:FALSE
-
-keyUsage = digitalSignature, keyEncipherment, dataEncipherment
-
-extendedKeyUsage = serverAuth, clientAuth
-
-subjectAltName = DNS:&lt;esxi.domain.name&gt;, DNS:&lt;esxi&gt;, IP:&lt;xxx.xxx.xxx.xxx&gt; 
-
-[ req_distinguished_name ]
-
-countryName = US
-
-stateOrProvinceName = VA
-
-localityName = SomeCity
-
-0.organizationName = WOW
-
-organizationalUnitName = Software
-
-commonName = &lt;esxi.domain.name&gt;
-
-[ alt_names ]
-
-DNS.1 = &lt;esxi.domain.name&gt;
-
-DNS.2 = &lt;esxi&gt;
-
-IP.1 = &lt;xxx.xxx.xxx.xxx&gt;注意，将以上内容中尖括号&lt;&gt;中的内容替换为你实际的域名和IP地址，不需要保留尖括号。文件修改并保存后，执行下面命令创建证书文件：# 创建加密 key，它用来保证证书生效及运行
-openssl genrsa -out /etc/vmware/ssl/rui.key 2048
-
-# 创建一个证书注册请求文件，会用到上面创建的配置文件信息并保存到 key 中
-openssl req -new -nodes -out /etc/vmware/ssl/rui.csr -keyout /etc/vmware/ssl/rui.key -config /etc/vmware/ssl/webclient.cnf
-
-# 生成证书，使用了 x509 标准格式。其中定义了证书 730 天的有效期，也就是2年，可以根据需要自行更改时间
-openssl x509 -req -days 730 -in /etc/vmware/ssl/rui.csr -signkey /etc/vmware/ssl/rui.key -out /etc/vmware/ssl/rui.crt -extensions v3_req -extfile /etc/vmware/ssl/webclient.cnf以上命令执行完成后，就在目录下生成了 rui.key, rui.csr, rui.crt 三个文件。我们只需要将 rui.crt 证书文件复制到客户机上安装，可以通过任何方式复制出来，例如 sftp，winscp 等。esxi 上需要重启系统后新的证书才能生效。注意重启后 ssh 功能可能需要重新打开。客户端安装证书在 macOS 上安装证书，双击复制出来的 rui.crt 安装即可。安装后需要设置为信任，进入 keychain access 中，在 system 栏点击 certificates 菜单项就能找到刚刚安装的证书，双击证书进入属性，点击 trust 菜单，将 when using this certificate 设置为 always trust 即可，关闭时会提示输入密码。此时我们就可以以 https 访问 esxi web 管理页面并且不会报证书错误了。参考链接How to Replace Your Default ESXi SSL Certificate With a Self-Signed Certificate</description>
 </item>
 </rdf:RDF>
