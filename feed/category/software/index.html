@@ -11,8 +11,26 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/software/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Wed, 14 Dec 2022 08:54:19 +0800</lastBuildDate>
-<pubDate>Wed, 14 Dec 2022 08:54:19 +0800</pubDate>
+<lastBuildDate>Wed, 16 Aug 2023 15:33:14 +0800</lastBuildDate>
+<pubDate>Wed, 16 Aug 2023 15:33:14 +0800</pubDate>
+<item>
+<title>codesys 中使用 DIN 66025 标准编写 CNC 程序</title>
+<link>https://blog.niekun.net/archives/2835.html</link>
+<guid>https://blog.niekun.net/archives/2835.html</guid>
+<pubDate>Wed, 16 Aug 2023 15:33:14 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[下面介绍 DIN 66025 标准下编写 codesys CNC 程序的一些基本规则。结构基本格式如下：% MyProgramN10 G01 X100 Y100 F100  (comment)N...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>下面介绍 DIN 66025 标准下编写 codesys CNC 程序的一些基本规则。</p><h3>结构</h3><p>基本格式如下：</p><pre><code>% MyProgram
+N10 G01 X100 Y100 F100  (comment)
+N20 M8 G01 Z40 F20
+N30 G03 X-100 R200 F100
+N40 SubPrg{5}</code></pre><p>规则：</p><ul><li>以 % 标记程序头名称，也可以不写</li><li>每行代码都是一个 block，每个 block 都需要以 block number 开头，如：<code>N10</code></li><li>一行只能定义一个 G 代码，G90  G01 需要单独两行写</li><li>M 代码可以和 G 代码一行</li><li>小括号 <code>()</code> 中可以定义注释</li><li>子程序传递参数用大括号 <code>{}</code> 定义</li></ul><p>可用 G代码可以查询：<a href="https://content.helpme-codesys.com/en/CODESYS%20SoftMotion/_sm_cnc_din66025_basics.html">https://content.helpme-codesys.com/en/CODESYS%20SoftMotion/_sm_cnc_din66025_basics.html</a></p><h3>暂停</h3><p>语法：</p><pre><code>N10 G4 T5  (停留5秒)</code></pre><h3>M 代码</h3>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2835.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/software/</wfw:commentRss>
+</item>
 <item>
 <title>chrome 内置翻译工具流量走代理配置</title>
 <link>https://blog.niekun.net/archives/2784.html</link>
@@ -237,29 +255,6 @@ DEPENDPATH += &quot;/path/to/boost_1_72_0&quot;</code></pre><p><code>LIBS</code>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/1506.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/category/software/</wfw:commentRss>
-</item>
-<item>
-<title>使用 echo 模块输出 nginx 变量</title>
-<link>https://blog.niekun.net/archives/1489.html</link>
-<guid>https://blog.niekun.net/archives/1489.html</guid>
-<pubDate>Mon, 30 Mar 2020 15:43:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[最近在学习 nginx 的反向代理，在处理请求和响应的时候，需要处理 header 头信息用到了很多 nignx 变量，但是在传递给代理服务器时，我不知道我设置的 proxy_set_heade...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>最近在学习 nginx 的反向代理，在处理请求和响应的时候，需要处理 header 头信息用到了很多 nignx 变量，但是在传递给代理服务器时，我不知道我设置的 proxy_set_header 等信息是否设置正确，以及其他用到的变量到底当前值是多少我也不知道。调试起来很费劲。</p><p>发现一个第三方 nginx 模块：<strong>echo</strong>，可以方便的输出信息，利用这一模块可以实现变量值读取到 html，调试方便了很多。</p><p>echo GitHub 主页：<a href="https://github.com/openresty/echo-nginx-module">https://github.com/openresty/echo-nginx-module</a></p><!--more--><h3>编译</h3><p>echo 模块需要从源码编译 nginx 时使用指令：<code>--add-module=</code> 加入，源码编译 nginx 及加入第三方模块参考我的教程：<a href="https://blog.niekun.net/archives/30.html">Nginx 安装/编译教程</a></p><h3>使用</h3><p>echo 使用命令很简单：</p><pre><code>server{
-    listen 80;
-    server_name 127.0.0.1;
-
-    location /echo {
-        default_type text/plain;
-        echo 'remote address: $remote_addr';
-        echo 'remote_port: $remote_port';
-    }
-}</code></pre><p>default_type text/plain 指令设置响应内容的格式，不设置的话浏览器访问会返回下载文件而不是网页。</p><p>执行 <code>curl 127.0.0.1/echo</code> 或浏览器访问 127.0.0.1/echo 路径就会看到 echo 定义的内容。</p><p>**注意如果在 echo 指令下面定义了其他 html 页面或者 proxy_pass 反向代理，则 echo 的内容会被覆盖，如果 echo 指令在 <br> location 段的最后，则会显示 echo 指令的内容。**</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/1489.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/category/software/</wfw:commentRss>
 </item>
 </channel>
