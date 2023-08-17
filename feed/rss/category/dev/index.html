@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2835.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2833.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2829.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2749.html"/>
@@ -18,10 +19,133 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2329.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2324.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2290.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2208.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2835.html">
+<title>codesys 中使用 DIN 66025 标准编写 CNC 程序</title>
+<link>https://blog.niekun.net/archives/2835.html</link>
+<dc:date>2023-08-16T15:33:00+08:00</dc:date>
+<description>下面介绍 DIN 66025 标准下编写 codesys CNC 程序的一些基本规则。结构基本格式如下：% MyProgram
+N10 G01 X100 Y100 F100  (comment)
+N20 M8 G01 Z40 F20
+N30 G03 X-100 R200 F100
+N40 SubPrg{5}规则：以 % 标记程序头名称，也可以不写每行代码都是一个 block，每个 block 都需要以 block number 开头，如：N10一行只能定义一个 G 代码，G90  G01 需要单独两行写M 代码可以和 G 代码一行小括号 () 中可以定义注释子程序传递参数用大括号 {} 定义可用 G代码可以查询：DIN 66025 Fundamentals暂停语法：N10 G4 T5  (停留5秒)M 功能当 cnc 程序中编写一个 M 功能时，如 M8，在 SMC_Interpolator 功能块中的 wM 会输出调用的 M 功能编号 8，同时会在此功能块等待输入确认信号 bAcknM 为 true 并且清空 wM 信号，在此期间插补器会停留在原地等待。如果需要在执行 M 功能的时候不中断当前正在进行的插补器动作，需要设置并执行 SMC_PreAcknowledgeM 功能块。但是如果M功能有传递参数 K L 等则不可激活此预完成功能，否则传递参数POU接收不到。如要执行下面 cnc 程序：N15 G1 X10 F100
+N20 M8
+N21 G1 X50 F100
+N70 M30POU 代码加入如下:VAR
+    fbIpo       : SMC_Interpolator;   //插补器功能块
+    fbPreAckM     : SM3_CNC.SMC_PreAcknowledgeMFunction;  //M 功能预完成功能  可不中断插补器动作  如果M功能有传递参数 则不可激活此功能
+END_VAR
+
+***************************************
+
+IF fbIpo.wM = 8 THEN
+    gVars.lrR3 := 5;       //M功能需要执行的动作
+    fbIpo(bAcknM:=TRUE);   //执行玩动作后触发完成信号
+END_IF
+
+fbPreAckM(bEnable:=TRUE,iM:=8,poqDataIn:=fbCheckVel.poqDataOut);  //激活指定M功能预完成  如果M功能有传递参数 则不可激活此功能可以在 CNC 程序调用 M 功能时定义传递参数，供POU使用，使用关键词 K L 即可。同时需要定义 SMC_GetMParameters 功能块获取到参数值，这里需要注意此功能块必须和 SMC_Interpolator 处于同一周期中，否则可能读取失败，建议同  SMC_Interpolator 定义在一个 POU 中。带传递参数的 M 功能 CNC 程序示例如下：N20 M8 K7以上示例 POU 修改如下：VAR
+    fbIpo          : SMC_Interpolator;   //插补器功能块
+    //fbPreAckM    : SMC_PreAcknowledgeMFunction; //屏蔽
+
+    fbGetMPara    : SMC_GetMParameters;
+END_VAR
+
+***************************************
+
+IF fbIpo.wM = 8 THEN
+    gVars.lrR3 := fbGetMPara.dK;;    //读取到 K 传递参数的数据
+    fbIpo(bAcknM:=TRUE);             //执行玩动作后触发完成信号
+END_IF
+
+//fbPreAckM(bEnable:=TRUE,iM:=8,poqDataIn:=fbCheckVel.poqDataOut);  //屏蔽
+
+fbGetMPara(Interpolator:=fbIpo,bEnable:=TRUE);跳转有两种跳转方法，第一种是引用行号来跳转，可以定义从某一个程序段跳转到另一个程序段以及跳转的循环次数。第二种是通过自定义标记位来跳转，可以不用管行号，缺点是只能向后跳转以及不可循环跳转。行号跳转语法：G20 L KL 定义需要跳转到的指定行号，K 定义跳转循环次数，当为 0 时停止跳转。当不写 K 时系统会模式使用内部变量计数。此功能需要配合赋值命令 G36 G37 使用。使用内部变量计数示例：N00 G36 D5              (设置内部变量初始为5 变量值为0时跳转关闭)
+N10 G91                 (增量模式)
+N20 G01 X10 Y10 F100    (每个循环移动的距离)
+N30 G37 D-1             (给内部变量值减1)
+N40 G20 L20             (内部变量值没到0时返回继续循环 N20)
+N70 M30使用自定义变量计数的示例：N00 G36 O$R1$ D5        (设置变量R1初始为5 变量值为0时跳转关闭)
+N10 G91                 (增量模式)
+N20 G01 X10 Y10 F100    (每个循环移动的距离)
+N30 G37 O$R1$ D-1       (给变量R1值减1)
+N40 G20 L20 K$R1$       (变量R1值没到0时返回继续循环 N20)
+N70 M30G36 命令给变量赋值，G37 命令修改变量值。此跳转命令有局限性，不可嵌套跳转，不可设置 K 值为常数，如：K2 写法是错误的。自定义标记跳转：N00 G20 L?4              (定义需要跳转到标记 4 只能索引到此程序后的标记  如果没有找到标记则程序停在此处)
+N05 L!5                  (定义标记位置5)
+N10 G1 X100 F100
+N20 G1 Y100 L!4 F100     (定义标记位置4)
+N70 M30L? 定义需要跳转到的目标标记，L! 定义目标标记位。索引数字可以是任意整数，目标标记 L! 可以和 G 代码一行也可以单独一行定义。使用自定义标记跳转时需要注意只能跳转到后面的程序行。移动速度可以通过 F 控制轴移动速度，E 控制加速度及减速度。示例：N10 G01 X100 Y50 F100 E10 E-20注意 E 后面设置负数就是设置减速度。使用自定义变量支持定义自定义全局变量并在 cnc 程序中使用，通过 G36 G37 给变量赋值。首先需要在 GVL 中对变量进行定义：{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+    wVarsCount            : WORD:= 5;
+END_VAR
+
+VAR_GLOBAL
+    lrR1                : LREAL := 0;
+    lrR2                : LREAL := 0;
+    lrR3                : LREAL := 0;
+    
+    strVar1                : STRING;
+    
+    lrSpeed             : SM3_CNC.SMC_M_PARAMETERS;
+    
+    astVar                : ARRAY[0..wVarsCount] OF SMC_SingleVar := [
+                                                    (strVarName := 'R1', pAdr := ADR(lrR1), eVarType := SMC_VARTYPE.SMC_TYPE_LREAL),
+                                                    (strVarName := 'R2', pAdr := ADR(lrR2), eVarType := SMC_VARTYPE.SMC_TYPE_LREAL),
+                                                    (strVarName := 'R3', pAdr := ADR(lrR3), eVarType := SMC_VARTYPE.SMC_TYPE_LREAL),
+                                                    (strVarName := 'STR1', pAdr := ADR(strVar1), eVarType := SMC_VARTYPE.SMC_TYPE_STRING),
+                                                    (strVarName := 'SPeed', pAdr := ADR(lrSpeed), eVarType := SMC_VARTYPE.SMC_TYPE_USERDEF)
+                                                    ];
+    
+    stVarList            : SMC_VARLIST := (wNumberVars := wVarsCount, psvVarList := ADR(astVar));
+END_VAR然后再 POU 中的 SMC_ReadNCFile2 功能块指定 SMC_VARLIST 地址:VAR
+    fbReadFile    : SMC_ReadNCFile2;
+END_VAR
+
+************************************
+
+fbReadFile(pvl := ADR(gVars.stVarList));变量类型支持 int lreal string 等各种类型，cnc 程序中使用 GVL 里 strVarName 定义的名称。cnc 程序调用语法：$&lt;Variablenname&gt;$通过 $ 包围变量名称即可，示例如下：N50 G01 Y50 + $R2$ F300G36 可以给变量赋值，G37 可以修改变量值：N00 G36 O$R1$ D5        (设置变量R1初始为5)
+N10 G37 O$R1$ D-1       (给变量R1值减1)
+
+N20 G36 O$STR1$ D'NAME'              (设置字符串变量初始)
+N30 G37 O$STR1$ D'=MARCO'            (给字符串变量值添加字符)子程序子程序调用支持无参数和带参数传递的模式，传递参数类型支持：BOOL, LREAL, 和 STRING，且必须使用 SMC_ReadNCFile2 和 SMC_NCInterpreter 来解码程序。子程序文件扩展名必须是 .cnc。子程序存储路径需要在 SMC_ReadNCFile2 中指定,支持定义4个目录作为子程序索引：VAR
+    aSubProgramDirs    : ARRAY[0..4] OF STRING[174]  := ['_cnc', ''];
+    fbReadFile         : SMC_ReadNCFile2;
+END_VAR
+
+****************************
+
+fbReadFile(aSubProgramDirs := aSubProgramDirs);子程序框架语法如下：SUBPROGRAM SUB_PROG_1{#VAR1:LREAL,#VAR2:STRING}
+N20 G01 X#VAR1 Y#VAR1 F100
+END_SUBPROGRAM如果有传递参数则需要写在大括号 {} 中定义。井号 # 表示定义的局部变量名称，可在子程序中使用。子程序调用方式如下：SUB_PROG_1{}                    (无传递参数的子程序调用)
+N55 SUB_PROG_1{$R3$,'ABC'}      (有传递参数的子程序调用)SMC_NCInterpreter 功能块中的 aActivePrograms : ARRAY[0..9] OF STRING 存储程序级嵌套，aActivePrograms[0] 存储当前运行程序名称，aActivePrograms[1] 存储即将调用的子程序名称。数学表达式想要支持更多的计数表达式，必须使用 SMC_ReadNCFile2 和 SMC_NCInterpreter 来解码程序。常用的加减乘除三角函数都是支持的，注意需要使用大括号 {} 来控制计算层级。给变量赋值还是需要使用 G36 G37 实现。示例如下:N00 G36 O$STR1$ D CONCAT{'NAME','=MARCO'}           (链接两个字符串)
+N35 G36 O$R1$ D SIN{30/180*PI}                      (三角函数单位为弧度, PI 表示 3.1415926)
+N36 G36 O$R2$ D SQRT{$R1$} * 3
+N40 G01 X 100 / 3 * 2
+N70 M30支持的运算符号如下：支持的运算功能如下：本地局部变量上面介绍了如何定义全局变量，需要在 POU 中定义然后才能在 cnc 程序中使用。也可以定义在程序内部使用的局部变量，每个子程序内最多可以定义 21 个局部变量。使用关键词 LET 定义变量，主程序中必须定义在程序最开头，子程序中必须定义在子程序名称下一行，不需要写 N 行号。定义语法如下：LET &lt;FormalParam&gt; [:= &lt;InitialValue&gt;]
+
+&lt;FormalParam&gt; ::= &lt;ParamName&gt; : &lt;ParamType&gt;
+&lt;ParamName&gt;   ::= #[a-zA-Z0-9_]+
+
+&lt;ParamType&gt; ::= LREAL | BOOL | STRING ; 字符串最大255字节示例如下：%VAR_TEST
+LET #VAR1 : LREAL
+LET #VAR2 : LREAL := 3
+LET #VAR3 : LREAL := #VAR2 - 1
+LET #VAR4 : BOOL := #VAR1 &gt; #VAR2
+LET #VAR5 : STRING
+
+N00 G36 O#VAR5 D'TEST'
+N05 G36 O$STR1$ D#VAR5
+N10 X#VAR2 +100 Y#VAR3 +50 F100
+
+N55 SUB_PROG_1{$R3$,'ABC'}
+
+N70 M30SUBPROGRAM SUB_PROG_1{#VAR1:LREAL,#VAR2:STRING}
+LET #AAA : LREAL := 10
+N10 G91
+N20 G01 X#VAR1 + #AAA Y#VAR1 F100
+END_SUBPROGRAM以上就是 codesys 中使用 DIN 66025 标准编写 CNC 程序的基本语法及功能讲解，更多功能参考：CNC Language in DIN 66025</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2833.html">
 <title>codesys 模拟运行时外部G代码文件调用</title>
 <link>https://blog.niekun.net/archives/2833.html</link>
@@ -600,12 +724,5 @@ ReactDOM.render(
   &quot;created_at&quot;: &quot;2015-04-07T06:53:16Z&quot;,
   &quot;updated_at&quot;: &quot;2021-03-15T08:45:12Z&quot;
 }更多使用方法可以自己研究下。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2208.html">
-<title>QT 中通过 QCustomPlot widget 绘制可视化曲线表</title>
-<link>https://blog.niekun.net/archives/2208.html</link>
-<dc:date>2021-03-19T17:24:46+08:00</dc:date>
-<description>今天在项目中需要添加一个柱状图，但由于我们的项目是 QT 4.8 的所以不支持 QtCharts。查询了下发现有 QCustomPlot 可以完美的实现需求，使用方法也很简单。官网：https://www.qcustomplot.com/下载：https://www.qcustomplot.com/index.php/downloadQCustomPlot 只有两个文件 qcustomplot.cpp 和 qcustomplot.h，将其复制到项目目录中并添加到项目中。然后引用头文件即可：#include &quot;qcustomplot.h&quot;
-我们需要在 ui 中添加一个 widget 然后右键点击控件，选择提升：提升的 class 名称修改为 QCustomPlot：点击 add 然后点击 promote 即可。编译后可以看到图表样式：在使用中如果需要根据数据变化刷新渲染的图形，记得在修改数据后调用</description>
 </item>
 </rdf:RDF>
