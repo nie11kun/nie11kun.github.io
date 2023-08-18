@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2840.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2835.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2833.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2829.html"/>
@@ -18,10 +19,31 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2804.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2795.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2787.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2784.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2840.html">
+<title>codesys 定义断电保持型变量</title>
+<link>https://blog.niekun.net/archives/2840.html</link>
+<dc:date>2023-08-18T14:09:00+08:00</dc:date>
+<description>无论是在 gvl 或者 pou 中都可以定义变量，默认情况下这些变量在系统重启后数据都会丢失。某些情况下我们希望变量值可以保持，系统重启后可以直接使用原数据，可以在变量定义块中通过关键词 RETAIN 和 PERSISTENT 来实现。RETAIN 可以在热重启后保持数据：In a POU:
+
+VAR RETAIN
+ iRem1 : INT;
+END_VAR
+
+*******************
+
+In a GVL:
+
+VAR_GLOBAL RETAIN
+ gvarRem1 : INT;
+END_VAR以下情况下 RETAIN 数据会被重置：the command Reset originthe command Reset cold (as opposed to persistent variables)a repeated program downloadPERSISTENT 可以在热重启和冷重启后保持数据：VAR_GLOBAL PERSISTENT
+ iVarPers1 : DINT;
+ bVarPers : BOOL;
+ PLC_PRG.PERS: INT;
+END_VAR以下情况下 PERSISTENT 数据会被重置：the command Reset origin从 CODESYS V3.3.0.1 开始声明一个 VAR_GLOBAL PERSISTENT 等效于 VAR_GLOBAL PERSISTENT RETAIN or VAR_GLOBAL RETAIN PERSISTENT。以下是各种变量定义模式下数据保持情况：   after online commandVARVAR RETAINVAR PERSISTENTReset warm xxCold reset  xReset origin  Download  xOnline Changexxx参考链接: Remanent Variables - RETAIN, PERSISTENT</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2835.html">
 <title>codesys 中使用 DIN 66025 标准编写 CNC 程序</title>
 <link>https://blog.niekun.net/archives/2835.html</link>
@@ -207,11 +229,5 @@ vpsadmin ALL=(ALL) NOPASSWD: ALL最上面的 root 表示能使用 sudo 命令的
 <link>https://blog.niekun.net/archives/2787.html</link>
 <dc:date>2023-02-07T15:02:43+08:00</dc:date>
 <description>图片中有时候想要单独调整某个部分，可以通过选区工具钢笔工具等选取出来。但是当场景比较复杂或者需要单独调整多个元素时，就很耗费时间了，新版的 Photoshop 提供了快捷的方法来一键生成主要个体的 mask 蒙版。导入图片后点击 layer - mask all objects：等待处理完成就会自动生成识别到的个体的单独蒙版：此时就可以利用这些蒙版来单独修改特定区域的色彩了：</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2784.html">
-<title>chrome 内置翻译工具流量走代理配置</title>
-<link>https://blog.niekun.net/archives/2784.html</link>
-<dc:date>2022-12-14T08:54:19+08:00</dc:date>
-<description>从下半年开始发现 chrome 系统内置的网页翻译工具就开始抽风，然后彻底不能翻译了，查了下其流量 url 是 translate.googleapis.com，将 url 配置到我的代理列表中走 switchyomega 依然无法访问。经过查询发现 chrome 翻译的流量只能走系统代理，这就有点麻烦了。开始使用了修改 hosts 的方式指定到国内可用 ip 上，但是使用并不长久，没几天就又不可用了。家里电脑可以在 openwrt 路由上配置好代理，比较简单，但是想要在本机上直接配置就不太方便了，需要设置系统为全局代理，但我又不想这样做。今天发现 proxifier 居然可以指定 hosts 配置代理，测试了下居然可行：如果之前在系统 hosts 文件添加过 translate.googleapis.com 的定向需要先将其删除，设置好后重启 chrome 发现网页翻译可以正常使用了。参考链接chrome自带的翻译工具无法使用代理#264Chrome 右键翻译，怎么 fix？</description>
 </item>
 </rdf:RDF>

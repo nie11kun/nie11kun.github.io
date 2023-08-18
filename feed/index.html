@@ -11,8 +11,38 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Wed, 16 Aug 2023 15:33:00 +0800</lastBuildDate>
-<pubDate>Wed, 16 Aug 2023 15:33:00 +0800</pubDate>
+<lastBuildDate>Fri, 18 Aug 2023 14:09:00 +0800</lastBuildDate>
+<pubDate>Fri, 18 Aug 2023 14:09:00 +0800</pubDate>
+<item>
+<title>codesys 定义断电保持型变量</title>
+<link>https://blog.niekun.net/archives/2840.html</link>
+<guid>https://blog.niekun.net/archives/2840.html</guid>
+<pubDate>Fri, 18 Aug 2023 14:09:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[无论是在 gvl 或者 pou 中都可以定义变量，默认情况下这些变量在系统重启后数据都会丢失。某些情况下我们希望变量值可以保持，系统重启后可以直接使用原数据，可以在变量定义块中通过关键词 RET...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>无论是在 gvl 或者 pou 中都可以定义变量，默认情况下这些变量在系统重启后数据都会丢失。某些情况下我们希望变量值可以保持，系统重启后可以直接使用原数据，可以在变量定义块中通过关键词 <strong>RETAIN</strong> 和 <strong>PERSISTENT</strong> 来实现。</p><p><strong>RETAIN</strong> 可以在热重启后保持数据：</p><pre><code>In a POU:
+
+VAR RETAIN
+ iRem1 : INT;
+END_VAR
+
+*******************
+
+In a GVL:
+
+VAR_GLOBAL RETAIN
+ gvarRem1 : INT;
+END_VAR</code></pre><p>以下情况下 <strong>RETAIN</strong> 数据会被重置：</p><ul><li>the command Reset origin</li><li>the command Reset cold (as opposed to persistent variables)</li><li>a repeated program download</li></ul><p><strong>PERSISTENT</strong> 可以在热重启和冷重启后保持数据：</p><pre><code>VAR_GLOBAL PERSISTENT
+ iVarPers1 : DINT;
+ bVarPers : BOOL;
+ PLC_PRG.PERS: INT;
+END_VAR</code></pre><p>以下情况下 <strong>PERSISTENT</strong> 数据会被重置：</p><ul><li>the command Reset origin</li></ul><p>从 CODESYS V3.3.0.1 开始声明一个 <code>VAR_GLOBAL PERSISTENT</code> 等效于 <code>VAR_GLOBAL PERSISTENT RETAIN</code> or <code>VAR_GLOBAL RETAIN PERSISTENT</code>。</p><p>以下是各种变量定义模式下数据保持情况：</p><table><thead><tr><th align="center"> </th><th align="center"> </th><th align="center"> </th></tr></thead><tbody><tr><td align="center">after online command</td><td align="center">VAR</td><td align="center">VAR RETAIN</td><td>VAR PERSISTENT</td></tr><tr><td align="center">Reset warm</td><td align="center"> </td><td align="center">x</td><td>x</td></tr><tr><td align="center">Cold reset</td><td align="center"> </td><td align="center"> </td><td>x</td></tr><tr><td align="center">Reset origin</td><td align="center"> </td><td align="center"> </td></tr><tr><td align="center">Download</td><td align="center"> </td><td align="center"> </td><td>x</td></tr><tr><td align="center">Online Change</td><td align="center">x</td><td align="center">x</td><td>x</td></tr></tbody></table><p>参考链接: <a href="https://help.codesys.com/api-content/2/codesys/3.5.12.0/en/_cds_vartypes_retain_persistent/#retain-variables">Remanent Variables - RETAIN, PERSISTENT</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2840.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
+</item>
 <item>
 <title>codesys 中使用 DIN 66025 标准编写 CNC 程序</title>
 <link>https://blog.niekun.net/archives/2835.html</link>
@@ -269,20 +299,6 @@ vpsadmin ALL=(ALL) NOPASSWD: ALL</code></pre><p>最上面的 <strong>root</stron
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2787.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
-</item>
-<item>
-<title>chrome 内置翻译工具流量走代理配置</title>
-<link>https://blog.niekun.net/archives/2784.html</link>
-<guid>https://blog.niekun.net/archives/2784.html</guid>
-<pubDate>Wed, 14 Dec 2022 08:54:19 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[从下半年开始发现 chrome 系统内置的网页翻译工具就开始抽风，然后彻底不能翻译了，查了下其流量 url 是 translate.googleapis.com，将 url 配置到我的代理列表中...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>从下半年开始发现 chrome 系统内置的网页翻译工具就开始抽风，然后彻底不能翻译了，查了下其流量 url 是 <code>translate.googleapis.com</code>，将 url 配置到我的代理列表中走 switchyomega 依然无法访问。</p><p>经过查询发现 chrome 翻译的流量只能走系统代理，这就有点麻烦了。开始使用了修改 hosts 的方式指定到国内可用 ip 上，但是使用并不长久，没几天就又不可用了。</p><p>家里电脑可以在 openwrt 路由上配置好代理，比较简单，但是想要在本机上直接配置就不太方便了，需要设置系统为全局代理，但我又不想这样做。</p><p>今天发现 proxifier 居然可以指定 hosts 配置代理，测试了下居然可行：<br><img src="https://blog.niekun.net/usr/uploads/2022/12/2596947788.png" alt="2022-12-14T00:51:50.png" title="2022-12-14T00:51:50.png"></p><p>如果之前在系统 hosts 文件添加过 <code>translate.googleapis.com</code> 的定向需要先将其删除，设置好后重启 chrome 发现网页翻译可以正常使用了。</p><h3>参考链接</h3><p><a href="https://github.com/feliscatus/switchyomega/issues/264#issuecomment-377439133">chrome自带的翻译工具无法使用代理#264</a><br><a href="https://www.v2ex.com/t/889119">Chrome 右键翻译，怎么 fix？</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2784.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/</wfw:commentRss>
 </item>
 </channel>
