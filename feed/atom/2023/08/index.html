@@ -60,22 +60,25 @@ END_VAR</code></pre><p>以下情况下 <strong>PERSISTENT</strong> 数据会被�
 N10 G01 X100 Y100 F100  (comment)
 N20 M8 G01 Z40 F20
 N30 G03 X-100 R200 F100
-N40 SubPrg{5}</code></pre><p>规则：</p><ul><li>以 % 标记程序头名称，也可以不写</li><li>每行代码都是一个 block，每个 block 都需要以 block number 开头，如：<code>N10</code></li><li>一行只能定义一个 G 代码，G90  G01 需要单独两行写</li><li>M 代码可以和 G 代码一行</li><li>小括号 <code>()</code> 中可以定义注释</li><li>子程序传递参数用大括号 <code>{}</code> 定义</li></ul><p>可用 G代码可以查询：<a href="https://content.helpme-codesys.com/en/CODESYS%20SoftMotion/_sm_cnc_din66025_basics.html">DIN 66025 Fundamentals</a></p><h3>暂停</h3><p>语法：</p><pre><code>N10 G4 T5  (停留5秒)</code></pre><h3>M 功能</h3><p>当 cnc 程序中编写一个 M 功能时，如 M8，在 <code>SMC_Interpolator</code> 功能块中的 <code>wM</code> 会输出调用的 M 功能编号 8，同时会在此功能块等待输入确认信号 <code>bAcknM</code> 为 <strong>true</strong> 并且清空 <code>wM</code> 信号，在此期间插补器会停留在原地等待。</p><p>如果需要在执行 M 功能的时候不中断当前正在进行的插补器动作，需要设置并执行 <code>SMC_PreAcknowledgeM</code> 功能块。但是如果M功能有传递参数 K L 等则不可激活此预完成功能，否则传递参数POU接收不到。</p><p>如要执行下面 cnc 程序：</p><pre><code>N15 G1 X10 F100
+N40 SubPrg{5}</code></pre><p>规则：</p><ul><li>以 % 标记程序头名称，也可以不写</li><li>每行代码都是一个 block，每个 block 都需要以 block number 开头，如：<code>N10</code></li><li>一行只能定义一个 G 代码，G90  G01 需要单独两行写</li><li>M 代码可以和 G 代码一行</li><li>小括号 <code>()</code> 中可以定义注释</li><li>子程序传递参数用大括号 <code>{}</code> 定义</li></ul><p>可用 G代码可以查询：<a href="https://content.helpme-codesys.com/en/CODESYS%20SoftMotion/_sm_cnc_din66025_basics.html">DIN 66025 Fundamentals</a></p><h3>暂停</h3><p>语法：</p><pre><code>N10 G4 T5  (停留5秒)</code></pre><h3>M 功能</h3><p>当 cnc 程序中编写一个 M 功能时，如 M8，在 <code>SMC_Interpolator</code> 功能块中的 <code>wM</code> 会输出调用的 M 功能编号 8，同时会在此功能块等待输入确认信号 <code>bAcknM</code> 为 <strong>true</strong> 并且清空 <code>wM</code> 信号，在此期间插补器会停留在原地等待。</p><p>如果需要在执行 M 功能的时候不中断当前正在进行的插补器动作，需要设置并执行 <code>SMC_PreAcknowledgeM</code> 功能块。但是如果M功能有传递参数 K L 等则不可激活此预完成功能，否则传递参数POU接收不到。</p><p>注意 M 功能编号中 <strong>65533–65535</strong> 是内部保留的，其他都是可以自定义的,包括 <code>M30</code>。</p><p>如要执行下面 cnc 程序：</p><pre><code>N15 G1 X10 F100
 N20 M8
 N21 G1 X50 F100
-N70 M30</code></pre><p>POU 代码加入如下:</p><pre><code>VAR
+N30 M30</code></pre><p>POU 代码加入如下:</p><pre><code>VAR
     fbIpo       : SMC_Interpolator;   //插补器功能块
     fbPreAckM     : SM3_CNC.SMC_PreAcknowledgeMFunction;  //M 功能预完成功能  可不中断插补器动作  如果M功能有传递参数 则不可激活此功能
 END_VAR
 
 ***************************************
 
-IF fbIpo.wM = 8 THEN
-    gVars.lrR3 := 5;       //M功能需要执行的动作
+IF fbIpo.wM = 30 THEN
     fbIpo(bAcknM:=TRUE);   //执行玩动作后触发完成信号
 END_IF
 
-fbPreAckM(bEnable:=TRUE,iM:=8,poqDataIn:=fbCheckVel.poqDataOut);  //激活指定M功能预完成  如果M功能有传递参数 则不可激活此功能</code></pre><p>可以在 CNC 程序调用 M 功能时定义传递参数，供POU使用，使用关键词 <code>K</code> <code>L</code> 即可。同时需要定义 <code>SMC_GetMParameters</code> 功能块获取到参数值，这里需要注意此功能块必须和 <code>SMC_Interpolator</code> 处于同一周期中，否则可能读取失败，建议同  <code>SMC_Interpolator</code> 定义在一个 POU 中。</p><p>带传递参数的 M 功能 CNC 程序示例如下：</p><pre><code>N20 M8 K7</code></pre><p>以上示例 POU 修改如下：</p><pre><code>VAR
+fbPreAckM(bEnable:=TRUE,iM:=8,poqDataIn:=fbCheckVel.poqDataOut);  //激活指定M功能预完成  如果M功能有传递参数 则不可激活此功能
+IF fbIpo.wM = 8 THEN
+    gVars.lrR3 := 5;       //M功能需要执行的动作
+    fbIpo(bAcknM:=TRUE);   //执行玩动作后触发完成信号
+END_IF</code></pre><p>可以在 CNC 程序调用 M 功能时定义传递参数，供POU使用，使用关键词 <code>K</code> <code>L</code> 即可。同时需要定义 <code>SMC_GetMParameters</code> 功能块获取到参数值，这里需要注意此功能块必须和 <code>SMC_Interpolator</code> 处于同一周期中，否则可能读取失败，建议同  <code>SMC_Interpolator</code> 定义在一个 POU 中。</p><p>带传递参数的 M 功能 CNC 程序示例如下：</p><pre><code>N20 M8 K7</code></pre><p>以上示例 POU 修改如下：</p><pre><code>VAR
     fbIpo          : SMC_Interpolator;   //插补器功能块
     //fbPreAckM    : SMC_PreAcknowledgeMFunction; //屏蔽
 
@@ -84,28 +87,24 @@ END_VAR
 
 ***************************************
 
+//fbPreAckM(bEnable:=TRUE,iM:=8,poqDataIn:=fbCheckVel.poqDataOut);  //屏蔽
 IF fbIpo.wM = 8 THEN
     gVars.lrR3 := fbGetMPara.dK;;    //读取到 K 传递参数的数据
     fbIpo(bAcknM:=TRUE);             //执行玩动作后触发完成信号
 END_IF
 
-//fbPreAckM(bEnable:=TRUE,iM:=8,poqDataIn:=fbCheckVel.poqDataOut);  //屏蔽
-
 fbGetMPara(Interpolator:=fbIpo,bEnable:=TRUE);</code></pre><h3>跳转</h3><p>有两种跳转方法，第一种是引用行号来跳转，可以定义从某一个程序段跳转到另一个程序段以及跳转的循环次数。第二种是通过自定义标记位来跳转，可以不用管行号，缺点是只能向后跳转以及不可循环跳转。</p><p><strong>行号跳转语法：</strong></p><pre><code>G20 L K</code></pre><p><code>L</code> 定义需要跳转到的指定行号，<code>K</code> 定义跳转循环次数，当为 0 时停止跳转。当不写 <code>K</code> 时系统会模式使用内部变量计数。此功能需要配合赋值命令 <code>G36</code> <code>G37</code> 使用。</p><p>使用内部变量计数示例：</p><pre><code>N00 G36 D5              (设置内部变量初始为5 变量值为0时跳转关闭)
 N10 G91                 (增量模式)
 N20 G01 X10 Y10 F100    (每个循环移动的距离)
 N30 G37 D-1             (给内部变量值减1)
-N40 G20 L20             (内部变量值没到0时返回继续循环 N20)
-N70 M30</code></pre><p>使用自定义变量计数的示例：</p><pre><code>N00 G36 O$R1$ D5        (设置变量R1初始为5 变量值为0时跳转关闭)
+N40 G20 L20             (内部变量值没到0时返回继续循环 N20)</code></pre><p>使用自定义变量计数的示例：</p><pre><code>N00 G36 O$R1$ D5        (设置变量R1初始为5 变量值为0时跳转关闭)
 N10 G91                 (增量模式)
 N20 G01 X10 Y10 F100    (每个循环移动的距离)
 N30 G37 O$R1$ D-1       (给变量R1值减1)
-N40 G20 L20 K$R1$       (变量R1值没到0时返回继续循环 N20)
-N70 M30</code></pre><p><code>G36</code> 命令给变量赋值，<code>G37</code> 命令修改变量值。</p><p>此跳转命令有局限性，不可嵌套跳转，不可设置 K 值为常数，如：<code>K2</code> 写法是错误的。</p><p><strong>自定义标记跳转：</strong></p><pre><code>N00 G20 L?4              (定义需要跳转到标记 4 只能索引到此程序后的标记  如果没有找到标记则程序停在此处)
+N40 G20 L20 K$R1$       (变量R1值没到0时返回继续循环 N20)</code></pre><p><code>G36</code> 命令给变量赋值，<code>G37</code> 命令修改变量值。</p><p>此跳转命令有局限性，不可嵌套跳转，不可设置 K 值为常数，如：<code>K2</code> 写法是错误的。</p><p><strong>自定义标记跳转：</strong></p><pre><code>N00 G20 L?4              (定义需要跳转到标记 4 只能索引到此程序后的标记  如果没有找到标记则程序停在此处)
 N05 L!5                  (定义标记位置5)
 N10 G1 X100 F100
-N20 G1 Y100 L!4 F100     (定义标记位置4)
-N70 M30</code></pre><p><code>L?</code> 定义需要跳转到的目标标记，<code>L!</code> 定义目标标记位。索引数字可以是任意整数，目标标记 <code>L!</code> 可以和 G 代码一行也可以单独一行定义。</p><p>使用自定义标记跳转时需要注意只能跳转到后面的程序行。</p><h3>移动速度</h3><p>可以通过 <code>F</code> 控制轴移动速度，<code>E</code> 控制加速度及减速度。</p><p>示例：</p><pre><code>N10 G01 X100 Y50 F100 E10 E-20</code></pre><p>注意 <code>E</code> 后面设置负数就是设置减速度。</p><h3>使用自定义变量</h3><p>支持定义自定义全局变量并在 cnc 程序中使用，通过 G36 G37 给变量赋值。</p><p>首先需要在 GVL 中对变量进行定义：</p><pre><code>{attribute 'qualified_only'}
+N20 G1 Y100 L!4 F100     (定义标记位置4)</code></pre><p><code>L?</code> 定义需要跳转到的目标标记，<code>L!</code> 定义目标标记位。索引数字可以是任意整数，目标标记 <code>L!</code> 可以和 G 代码一行也可以单独一行定义。</p><p>使用自定义标记跳转时需要注意只能跳转到后面的程序行。</p><h3>移动速度</h3><p>可以通过 <code>F</code> 控制轴移动速度，<code>E</code> 控制加速度及减速度。</p><p>示例：</p><pre><code>N10 G01 X100 Y50 F100 E10 E-20</code></pre><p>注意 <code>E</code> 后面设置负数就是设置减速度。</p><h3>使用自定义变量</h3><p>支持定义自定义全局变量并在 cnc 程序中使用，通过 G36 G37 给变量赋值。</p><p>首先需要在 GVL 中对变量进行定义：</p><pre><code>{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
     wVarsCount            : WORD:= 5;
 END_VAR
@@ -151,8 +150,7 @@ END_SUBPROGRAM</code></pre><p>如果有传递参数则需要写在大括号 <cod
 N55 SUB_PROG_1{$R3$,'ABC'}      (有传递参数的子程序调用)</code></pre><p><code>SMC_NCInterpreter</code> 功能块中的 <code>aActivePrograms : ARRAY[0..9] OF STRING</code> 存储程序级嵌套，<code>aActivePrograms[0]</code> 存储当前运行程序名称，<code>aActivePrograms[1]</code> 存储即将调用的子程序名称。</p><h3>数学表达式</h3><p>想要支持更多的计数表达式，必须使用 <code>SMC_ReadNCFile2</code> 和 <code>SMC_NCInterpreter</code> 来解码程序。</p><p>常用的加减乘除三角函数都是支持的，注意需要使用大括号 <code>{}</code> 来控制计算层级。给变量赋值还是需要使用 G36 G37 实现。</p><p>示例如下:</p><pre><code>N00 G36 O$STR1$ D CONCAT{'NAME','=MARCO'}           (链接两个字符串)
 N35 G36 O$R1$ D SIN{30/180*PI}                      (三角函数单位为弧度, PI 表示 3.1415926)
 N36 G36 O$R2$ D SQRT{$R1$} * 3
-N40 G01 X 100 / 3 * 2
-N70 M30</code></pre><p>支持的运算符号如下：<br><img src="https://blog.niekun.net/usr/uploads/2023/08/2578673165.png" alt="2023-08-17T03:09:32.png" title="2023-08-17T03:09:32.png"></p><p>支持的运算功能如下：<br><img src="https://blog.niekun.net/usr/uploads/2023/08/59595384.png" alt="2023-08-17T03:10:20.png" title="2023-08-17T03:10:20.png"></p><h3>本地局部变量</h3><p>上面介绍了如何定义全局变量，需要在 POU 中定义然后才能在 cnc 程序中使用。也可以定义在程序内部使用的局部变量，每个子程序内最多可以定义 21 个局部变量。</p><p>使用关键词 <code>LET</code> 定义变量，主程序中必须定义在程序最开头，子程序中必须定义在子程序名称下一行，不需要写 N 行号。</p><p>定义语法如下：</p><pre><code>LET &lt;FormalParam&gt; [:= &lt;InitialValue&gt;]
+N40 G01 X 100 / 3 * 2</code></pre><p>支持的运算符号如下：<br><img src="https://blog.niekun.net/usr/uploads/2023/08/2578673165.png" alt="2023-08-17T03:09:32.png" title="2023-08-17T03:09:32.png"></p><p>支持的运算功能如下：<br><img src="https://blog.niekun.net/usr/uploads/2023/08/59595384.png" alt="2023-08-17T03:10:20.png" title="2023-08-17T03:10:20.png"></p><h3>本地局部变量</h3><p>上面介绍了如何定义全局变量，需要在 POU 中定义然后才能在 cnc 程序中使用。也可以定义在程序内部使用的局部变量，每个子程序内最多可以定义 21 个局部变量。</p><p>使用关键词 <code>LET</code> 定义变量，主程序中必须定义在程序最开头，子程序中必须定义在子程序名称下一行，不需要写 N 行号。</p><p>定义语法如下：</p><pre><code>LET &lt;FormalParam&gt; [:= &lt;InitialValue&gt;]
 
 &lt;FormalParam&gt; ::= &lt;ParamName&gt; : &lt;ParamType&gt;
 &lt;ParamName&gt;   ::= #[a-zA-Z0-9_]+
@@ -168,9 +166,7 @@ N00 G36 O#VAR5 D'TEST'
 N05 G36 O$STR1$ D#VAR5
 N10 X#VAR2 +100 Y#VAR3 +50 F100
 
-N55 SUB_PROG_1{$R3$,'ABC'}
-
-N70 M30</code></pre><pre><code>SUBPROGRAM SUB_PROG_1{#VAR1:LREAL,#VAR2:STRING}
+N55 SUB_PROG_1{$R3$,'ABC'}</code></pre><pre><code>SUBPROGRAM SUB_PROG_1{#VAR1:LREAL,#VAR2:STRING}
 LET #AAA : LREAL := 10
 N10 G91
 N20 G01 X#VAR1 + #AAA Y#VAR1 F100
