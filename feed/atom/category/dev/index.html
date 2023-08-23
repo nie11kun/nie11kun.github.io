@@ -176,7 +176,7 @@ END_SUBPROGRAM</code></pre><p>以上就是 codesys 中使用 DIN 66025 标准编
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/dev/" thr:count="1"/>
 </entry>
 <entry>
-<title type="html"><![CDATA[codesys 模拟运行时外部G代码文件调用]]></title>
+<title type="html"><![CDATA[codesys 运行时调用外部G代码文件的编程路径]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2833.html" />
 <id>https://blog.niekun.net/archives/2833.html</id>
 <updated>2023-08-15T10:12:00+08:00</updated>
@@ -185,9 +185,9 @@ END_SUBPROGRAM</code></pre><p>以上就是 codesys 中使用 DIN 66025 标准编
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
-<summary type="html"><![CDATA[在电脑上进行运动控制模拟时，如果需要调用外部G代码程序，在定义路径地址的时候不能使用绝对地址，模拟环境下的程序运行目录为 C:\ProgramData\CODESYS\Simulation\Pl...]]></summary>
+<summary type="html"><![CDATA[在下载到真实设备上和 simulation 模式时，调试时需要引用的路径是不一样的。不管是哪种模式下，codesys 本身运行的一个容器环境根目录是如下：PlcLogic 文件夹是 POU 运行...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2833.html" xml:lang="zh-CN"><![CDATA[
-<p>在电脑上进行运动控制模拟时，如果需要调用外部G代码程序，在定义路径地址的时候不能使用绝对地址，模拟环境下的程序运行目录为 <code>C:\ProgramData\CODESYS\Simulation\PlcLogic\</code>。</p><p>将G代码程序文件放入上述目录下使用即可调用，如：</p><pre><code>strFileName    : STRING(120) := 'NCReadFromFile.txt';</code></pre><p>一般可以新建一个子路径 <code>_cnc</code> 将程序都放入其中：</p><pre><code>strFileName    : STRING(120) := '_cnc/NCReadFromFile.txt';</code></pre><p>注意每次重启 codesys IDE 会重置 <code>C:\ProgramData\CODESYS\Simulation\PlcLogic\</code> 目录，需要重新复制程序进来。</p>
+<p>在下载到真实设备上和 simulation 模式时，调试时需要引用的路径是不一样的。</p><p>不管是哪种模式下，codesys 本身运行的一个容器环境根目录是如下：<br><img src="https://blog.niekun.net/usr/uploads/2023/08/1073642256.png" alt="2023-08-23T07:03:29.png" title="2023-08-23T07:03:29.png"></p><p><strong>PlcLogic</strong> 文件夹是 POU 运行的根目录，所有 G 代码文件的索引都是以此目录为根目录的。在程序中定义路径地址的时候只需要写 POU 根目录的子路径即可。</p><h3>simulation 模拟</h3><p>在电脑上进行运动控制模拟时，如果需要调用外部G代码程序，模拟环境下的程序运行根目录为 <code>C:\ProgramData\CODESYS\Simulation\PlcLogic\</code>。</p><p>将G代码程序文件放入上述目录下使用即可调用，如：</p><pre><code>strFileName    : STRING(120) := 'NCReadFromFile.txt';</code></pre><p>一般可以新建一个子路径 <code>_cnc</code> 将程序都放入其中：</p><pre><code>strFileName    : STRING(120) := '_cnc/NCReadFromFile.txt';</code></pre><p>注意每次重启 codesys IDE 会重置 <code>C:\ProgramData\CODESYS\Simulation\PlcLogic\</code> 目录，需要重新复制程序进来。</p><h3>真实设备</h3><p>首先需要知道工控机安装的是什么类型的控制器：<br><img src="https://blog.niekun.net/usr/uploads/2023/08/3689185421.png" alt="2023-08-23T07:18:32.png" title="2023-08-23T07:18:32.png"></p><p>information 菜单下可以查看当前控制器类型：<br><img src="https://blog.niekun.net/usr/uploads/2023/08/1534414997.png" alt="2023-08-23T07:20:03.png" title="2023-08-23T07:20:03.png"></p><p>windows 下 codesys runtime 安装路径为：<code>C:\ProgramData\CODESYS</code>，目录中包含所有已经安装的各种类型的控制器，每个控制器类型都有其单独目录：<br><img src="https://blog.niekun.net/usr/uploads/2023/08/4093866504.png" alt="2023-08-23T07:21:48.png" title="2023-08-23T07:21:48.png"></p><p>进入需要的控制器目录后，就可以看到运行 codesys 的容器文件夹了：<br><img src="https://blog.niekun.net/usr/uploads/2023/08/835428107.png" alt="2023-08-23T07:22:46.png" title="2023-08-23T07:22:46.png"></p><p>这个文件夹就是 codesys 在控制器上的运行环境，</p><p>只需要将 G 文件放入 <strong>PlcLogic</strong> 文件夹下，同时 POU 中路径只需要定义此根路径的子目录即可。</p><p>也可以通过 IDE 在线传输文件到控制器指定目录：<br><img src="https://blog.niekun.net/usr/uploads/2023/08/3408349129.png" alt="2023-08-23T07:25:20.png" title="2023-08-23T07:25:20.png"></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2833.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/dev/" thr:count="0"/>
