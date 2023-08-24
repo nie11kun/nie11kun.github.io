@@ -17,10 +17,10 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 </items>
 </channel>
 <item rdf:about="https://blog.niekun.net/archives/2840.html">
-<title>codesys 定义断电保持型变量</title>
+<title>codesys 定义重启可保持型变量</title>
 <link>https://blog.niekun.net/archives/2840.html</link>
 <dc:date>2023-08-18T14:09:00+08:00</dc:date>
-<description>无论是在 gvl 或者 pou 中都可以定义变量，默认情况下这些变量在系统重启后数据都会丢失。某些情况下我们希望变量值可以保持，系统重启后可以直接使用原数据，可以在变量定义块中通过关键词 RETAIN 和 PERSISTENT 来实现。RETAIN 可以在热重启后保持数据：In a POU:
+<description>无论是在 gvl 或者 pou 中都可以定义变量，默认情况下这些变量在系统重启后数据都会丢失。某些情况下我们希望变量值可以保持，系统重启后原数据也不丢失。可以在变量定义块中通过关键词 RETAIN 和 PERSISTENT 来实现。注意 PERSISTENT 类型变量必须定义在单独的 Persistent Variables 类型 object 才能生效。而不是通常的 GVL object。RETAINRETAIN 可以在热重启后保持数据：In a POU:
 
 VAR RETAIN
  iRem1 : INT;
@@ -32,11 +32,11 @@ In a GVL:
 
 VAR_GLOBAL RETAIN
  gvarRem1 : INT;
-END_VAR以下情况下 RETAIN 数据会被重置：the command Reset originthe command Reset cold (as opposed to persistent variables)a repeated program downloadPERSISTENT 可以在热重启和冷重启后保持数据：VAR_GLOBAL PERSISTENT
+END_VAR以下情况下 RETAIN 数据会被重置：the command Reset originthe command Reset cold (as opposed to persistent variables)a repeated program downloadPERSISTENT首先需要新建 Persistent Variables 类型 object 会放在 task 子目录下：然后会自动创建 VAR_GLOBAL PERSISTENT RETAIN 类型全局变量文件。PERSISTENT 可以在热重启和冷重启后保持数据：VAR_GLOBAL PERSISTENT
  iVarPers1 : DINT;
  bVarPers : BOOL;
  PLC_PRG.PERS: INT;
-END_VAR以下情况下 PERSISTENT 数据会被重置：the command Reset origin从 CODESYS V3.3.0.1 开始声明一个 VAR_GLOBAL PERSISTENT 等效于 VAR_GLOBAL PERSISTENT RETAIN or VAR_GLOBAL RETAIN PERSISTENT。以下是各种变量定义模式下数据保持情况：   after online commandVARVAR RETAINVAR PERSISTENTReset warm xxCold reset  xReset origin  Download  xOnline Changexxx参考链接: Remanent Variables - RETAIN, PERSISTENT</description>
+END_VAR以下情况下 PERSISTENT 数据会被重置：the command Reset origin从 CODESYS V3.3.0.1 开始声明一个 VAR_GLOBAL PERSISTENT 等效于 VAR_GLOBAL PERSISTENT RETAIN or VAR_GLOBAL RETAIN PERSISTENT。以下是各种变量定义模式下数据保持情况：   after online commandVARVAR RETAINVAR PERSISTENTReset warm xxCold reset  xReset origin  Download  xOnline Changexxx参考链接Remanent Variables - RETAIN, PERSISTENTREMANENT VARIABLES: RETAIN VS PERSISTENT RETAIN</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2835.html">
 <title>codesys 中使用 DIN 66025 标准编写 CNC 程序</title>
@@ -90,21 +90,21 @@ N30 G37 O$R1$ D-1       (给变量R1值减1)
 N40 G20 L20 K$R1$       (变量R1值没到0时返回继续循环 N20)G36 命令给变量赋值，G37 命令修改变量值。此跳转命令有局限性，不可嵌套跳转，不可设置 K 值为常数，如：K2 写法是错误的。自定义标记跳转：N00 G20 L?4              (定义需要跳转到标记 4 只能索引到此程序后的标记  如果没有找到标记则程序停在此处)
 N05 L!5                  (定义标记位置5)
 N10 G1 X100 F100
-N20 G1 Y100 L!4 F100     (定义标记位置4)L? 定义需要跳转到的目标标记，L! 定义目标标记位。索引数字可以是任意整数，目标标记 L! 可以和 G 代码一行也可以单独一行定义。使用自定义标记跳转时需要注意只能跳转到后面的程序行。移动速度可以通过 F 控制轴移动速度，E 控制加速度及减速度。示例：N10 G01 X100 Y50 F100 E10 E-20注意 E 后面设置负数就是设置减速度。使用自定义变量支持定义自定义全局变量并在 cnc 程序中使用，通过 G36 G37 给变量赋值。首先需要在 GVL 中对变量进行定义：{attribute 'qualified_only'}
+N20 G1 Y100 L!4 F100     (定义标记位置4)L? 定义需要跳转到的目标标记，L! 定义目标标记位。索引数字可以是任意整数，目标标记 L! 可以和 G 代码一行也可以单独一行定义。使用自定义标记跳转时需要注意只能跳转到后面的程序行。移动速度可以通过 F 控制轴移动速度，E 控制加速度及减速度。示例：N10 G01 X100 Y50 F100 E10 E-20注意 E 后面设置负数就是设置减速度。全局自定义变量支持定义自定义全局变量并在 cnc 程序中使用，通过 G36 G37 给变量赋值。首先需要在 GVL 中对变量进行定义：{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
     wVarsCount            : WORD:= 5;
 END_VAR
 
 VAR_GLOBAL
-    lrR1                : LREAL := 0;
-    lrR2                : LREAL := 0;
-    lrR3                : LREAL := 0;
+    lrR1                            : LREAL := 0;
+    lrR2                            : LREAL := 0;
+    lrR3                            : LREAL := 0;
     
-    strVar1                : STRING;
+    strVar1                         : STRING;
     
-    lrSpeed             : SM3_CNC.SMC_M_PARAMETERS;
+    lrSpeed                         : SM3_CNC.SMC_M_PARAMETERS; // M functions custom transfer parameter
     
-    astVar                : ARRAY[0..wVarsCount] OF SMC_SingleVar := [
+    astVar                : ARRAY[0..wVarsCount-1] OF SMC_SingleVar := [
                                                     (strVarName := 'R1', pAdr := ADR(lrR1), eVarType := SMC_VARTYPE.SMC_TYPE_LREAL),
                                                     (strVarName := 'R2', pAdr := ADR(lrR2), eVarType := SMC_VARTYPE.SMC_TYPE_LREAL),
                                                     (strVarName := 'R3', pAdr := ADR(lrR3), eVarType := SMC_VARTYPE.SMC_TYPE_LREAL),
@@ -119,11 +119,11 @@ END_VAR
 
 ************************************
 
-fbReadFile(pvl := ADR(gVars.stVarList));变量类型支持 int lreal string 等各种类型，cnc 程序中使用 GVL 里 strVarName 定义的名称。cnc 程序调用语法：$&lt;Variablenname&gt;$通过 $ 包围变量名称即可，示例如下：N50 G01 Y50 + $R2$ F300G36 可以给变量赋值，G37 可以修改变量值：N00 G36 O$R1$ D5        (设置变量R1初始为5)
+fbReadFile(pvl := ADR(gVars.stVarList));变量类型支持 int lreal string 等各种类型，cnc 程序中使用 GVL 里 strVarName 定义的名称。不支持定义 array 数组类型变量。cnc 程序调用语法：$&lt;Variablenname&gt;$通过 $ 包围变量名称即可，示例如下：N50 G01 Y50 + $R2$ F300G36 可以给变量赋值，G37 可以修改变量值：N00 G36 O$R1$ D5        (设置变量R1初始为5)
 N10 G37 O$R1$ D-1       (给变量R1值减1)
 
 N20 G36 O$STR1$ D'NAME'              (设置字符串变量初始)
-N30 G37 O$STR1$ D'=MARCO'            (给字符串变量值添加字符)子程序子程序调用支持无参数和带参数传递的模式，传递参数类型支持：BOOL, LREAL, 和 STRING，且必须使用 SMC_ReadNCFile2 和 SMC_NCInterpreter 来解码程序。子程序文件扩展名必须是 .cnc。子程序存储路径需要在 SMC_ReadNCFile2 中指定,支持定义4个目录作为子程序索引：VAR
+N30 G37 O$STR1$ D'=MARCO'            (给字符串变量值添加字符)如果需要重启可保持型变量，需要将变量单独定义在 Persistent Variables 类型 object 中，具体参考：codesys 定义重启可保持型变量子程序子程序调用支持无参数和带参数传递的模式，传递参数类型支持：BOOL, LREAL, 和 STRING，且必须使用 SMC_ReadNCFile2 和 SMC_NCInterpreter 来解码程序。子程序文件扩展名必须是 .cnc。子程序存储路径需要在 SMC_ReadNCFile2 中指定,支持定义4个目录作为子程序索引：VAR
     aSubProgramDirs    : ARRAY[0..4] OF STRING[174]  := ['_cnc', ''];
     fbReadFile         : SMC_ReadNCFile2;
 END_VAR
