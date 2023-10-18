@@ -11,8 +11,22 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/dev/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Fri, 22 Sep 2023 10:33:32 +0800</lastBuildDate>
-<pubDate>Fri, 22 Sep 2023 10:33:32 +0800</pubDate>
+<lastBuildDate>Wed, 18 Oct 2023 17:13:10 +0800</lastBuildDate>
+<pubDate>Wed, 18 Oct 2023 17:13:10 +0800</pubDate>
+<item>
+<title>Siemens 系统计算精度设置影响程序运行问题</title>
+<link>https://blog.niekun.net/archives/2858.html</link>
+<guid>https://blog.niekun.net/archives/2858.html</guid>
+<pubDate>Wed, 18 Oct 2023 17:13:10 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<description><![CDATA[最近的工作中遇到使用带刀具的轨迹运动中，由于轨迹是通过1000多个离散点构成的，每个点之间距离很短，由于 sinumerik one 系统默认的线性计算精度是每毫米 1000 各单位，导致刀具轨...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近的工作中遇到使用带刀具的轨迹运动中，由于轨迹是通过1000多个离散点构成的，每个点之间距离很短，由于 sinumerik one 系统默认的线性计算精度是每毫米 1000 各单位，导致刀具轨迹报错提示可能有碰撞危险。通过提高系统计算精度可以解决此问题。</p><p>相关系统变量：</p><ul><li>通用机床数据 10200 线性位置的计算精度</li><li>通用机床数据 10210 角位置的计算精度</li></ul><p>sinumerik one 及 840D sl 系统以上参数默认值为 1000，828D 系统默认值为 1000000。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2858.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/dev/</wfw:commentRss>
+</item>
 <item>
 <title>codesys 使用占位符定义界面变量显示格式</title>
 <link>https://blog.niekun.net/archives/2857.html</link>
@@ -343,175 +357,6 @@ ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大�
 ]]></content:encoded>
 <slash:comments>2</slash:comments>
 <comments>https://blog.niekun.net/archives/2330.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/category/dev/</wfw:commentRss>
-</item>
-<item>
-<title>React 入门教程之九 -- composition 模块化 和 inheritance 继承</title>
-<link>https://blog.niekun.net/archives/2329.html</link>
-<guid>https://blog.niekun.net/archives/2329.html</guid>
-<pubDate>Sun, 29 Aug 2021 13:35:29 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<description><![CDATA[react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>react 有一套完善了 composition 构造模型，推荐使用 composition 代替 inheritance 来在 components 之间复用代码。下面介绍在开发的具体场景中常常需要用到 inheritance 的地方如何用 composition 解决。</p><h3>containment 包含</h3><p>一些 components 并不直接知道他们的 children 具体是什么。在 Sidebar 或 Dialog 中可以体现，它们只是一个 box 容器，他的内容可能是变化的。</p><!--more--><p>这一类的 components 推荐直接使用 <strong>children</strong> props 来直接表示 parent 传递给他们的 elements：</p><pre><code>const FancyBorder = props =&gt; {
-    return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
-            {props.children}
-        &lt;/div&gt;
-    );
-}</code></pre><p><code>props.children</code> 表示所有在调用此 component 时放在其元素中的内容。</p><p>然后我们创建一个 component 来调用上面的 FancyBorder：</p><pre><code>const WelcomeDialog = () =&gt; {
-    return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;Welcome&lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
-                thank you for check this page.
-            &lt;/p&gt;
-        &lt;/FancyBorder&gt;
-    )
-}</code></pre><p>任何在 <strong>FancyBorder</strong> 标签中的内容都会作为 <strong>children</strong> prop 传入 <strong>FancyBorder</strong> 中，然后通过 props.children 进行渲染。</p><p>但通常情况下我们的 compenent 可能会有多个 “入口”，此时我们就需要定义自己的 convention 声明来替代 children：</p><pre><code>const React = require('react')
-const ReactDOM = require('react-dom')
-
-const SplitPane = (props) =&gt; {
-    return (
-        &lt;div className='SplitPane'&gt;
-            &lt;div className='Splitpane-left'&gt;
-                {props.left}
-            &lt;/div&gt;
-            &lt;div className='Splitpane-right'&gt;
-                {props.right}
-            &lt;/div&gt;
-        &lt;/div&gt;
-    )
-}
-
-const Contacts = () =&gt; {
-    return (
-        &lt;div&gt;
-            &lt;h1&gt;marco&lt;/h1&gt;
-        &lt;/div&gt;
-    )
-}
-
-const Chat = () =&gt; {
-    return (
-        &lt;div&gt;
-            &lt;p&gt;this is a test&lt;/p&gt;
-        &lt;/div&gt;
-    )
-}
-
-const App = () =&gt; {
-    return (
-        &lt;SplitPane
-            left={
-                &lt;Contacts /&gt;
-            }
-            right={
-                &lt;Chat /&gt;
-            }
-        /&gt;
-    )
-}
-
-ReactDOM.render(
-    &lt;App /&gt;,
-    document.getElementById('root')
-);</code></pre><p>可以看到，我们可以将 component 像其他属性一样传递，这里 Contacts 和 Chat 就作为 left 和 right 的数据传递给 SplitPane 使用。</p><h3>specialization 特殊化</h3><p>一些场景下，我们会将某个 component 看作另一个 component 的特殊情况，例如上面示例中的 WelcomeDialog 可以看做是 Dialog 的特殊情况。在 react 中我们通常通过给一个 generic 泛用的 component 配置 props 的方式构成另一个 special component：</p><pre><code>const React = require('react')
-const ReactDOM = require('react-dom')
-
-const FancyBorder = props =&gt; {
-    return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
-            {props.children}
-        &lt;/div&gt;
-    );
-}
-
-const Dialog = props =&gt; {
-    return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;
-                {props.title}
-            &lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
-                {props.message}
-            &lt;/p&gt;
-        &lt;/FancyBorder&gt;
-    )
-}
-const WelcomeDialog = () =&gt; {
-    return (
-        &lt;Dialog 
-            title='Welcome'
-            message='welcome to this party'
-        /&gt;
-    )
-}
-
-ReactDOM.render(
-    &lt;WelcomeDialog /&gt;,
-    document.getElementById('root')
-);</code></pre><p>我们也可以通过 class 的方式定义 component：</p><pre><code>const React = require('react')
-const ReactDOM = require('react-dom')
-
-const FancyBorder = props =&gt; {
-    return (
-        &lt;div className={`FancyBorder FancyBorder-${props.color}`}&gt;
-            {props.children}
-        &lt;/div&gt;
-    );
-}
-
-const Dialog = props =&gt; {
-    return (
-        &lt;FancyBorder color='red'&gt;
-            &lt;h1 className='Dialog-title'&gt;
-                {props.title}
-            &lt;/h1&gt;
-            &lt;p className='Dialog-message'&gt;
-                {props.message}
-            &lt;/p&gt;
-            {props.children}
-        &lt;/FancyBorder&gt;
-    )
-}
-
-class SignUpDialog extends React.Component {
-    constructor(props) {
-        super(props);
-        this.handleChangle = this.handleChangle.bind(this);
-        this.handleSignup = this.handleSignup.bind(this);
-        this.state = {login: ''};
-    }
-
-    handleChangle(e) {
-        this.setState({login: e.target.value});
-    }
-
-    handleSignup() {
-        alert(`welcome guys, ${this.state.login}`)
-    }
-
-    render () {
-        return (
-            &lt;Dialog
-                title='Sport game'
-                message='welcome to this game'
-            &gt;
-                &lt;input value={this.state.login} onChange={this.handleChangle} /&gt;
-                &lt;button onClick={this.handleSignup}&gt;Sign me up&lt;/button&gt;
-            &lt;/Dialog&gt;
-        )
-    }
-}
-
-ReactDOM.render(
-    &lt;SignUpDialog /&gt;,
-    document.getElementById('root')
-);</code></pre><p>这里我们使用了自定义 props 和 <strong>children</strong> props 来构建了 <strong>SignUpDialog</strong> component，根据实际场景灵活使用。</p><p>props 和 composition 提供了灵活性来自定义一个 component 的样式/行为，且更加安全和精确。需要注意的是 component 可能会接收到 arbitrary 抽象 props，包括原始<strong>二进制数据/elements/functions</strong> 等。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2329.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/category/dev/</wfw:commentRss>
 </item>
 </channel>
