@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2866.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2861.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2860.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2858.html"/>
@@ -18,10 +19,22 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2833.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2829.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2826.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2822.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/2866.html">
+<title>使用 TinyPNG API 批量压缩图片尺寸</title>
+<link>https://blog.niekun.net/archives/2866.html</link>
+<dc:date>2024-01-17T09:36:22+08:00</dc:date>
+<description>TinyPNG 是一个提供图片压缩服务的网站，可以直接在其官方网站上上传并压缩 png 或 jpg 图片，同时它也提供第三方使用的 api。下面介绍使用其 api 开发的 tinifier，可以在命令行中将指定文件夹内的所有图片批量压缩。TinyPNG 官网：https://tinypng.com/tinifier 主页：https://github.com/tarampampam/tinifierapi 申请：https://tinypng.com/developers首先申请一个自己的 api，每个账户每月有 500 次请求的免费额度。在上面的 api 申请网页中输入邮箱申请即可，打开邮件回复的链接进入个人主页，在 api 栏可以看到或新建 api：github release 页面下载 tinifier 最新版，注意需要在 cli 命令行中使用。为了方便在 windows 下调用，可以将程序路径加入系统 path 中。linux 可以添加一个软链接到 /usr/local/bin 中。可用命令：compress 压缩指令-h 帮助-k 指定 api key  也可以使用 TINYPNG_API_KEY 环境变量预设，用逗号 , 隔开多个 key-e 指定目录中需要压缩的图片类型-r 递归搜索指定的目录文件夹的子文件夹-t 指定压缩时的线程数示例：# 压缩一个图片
+tinifier compress -k 'YOUR-API-KEY-GOES-HERE' ./img.png
+
+#压缩一个目录中的所有 png 图片
+tinifier compress -k 'YOUR-API-KEY-GOES-HERE' -e png ./images-directory
+
+# 使用20线程压缩所有 png jpg 格式的图片并循环搜索所有子文件夹
+tinifier compress -k 'YOUR-API-KEY-GOES-HERE' -e png -e jpg -e PNG -e JPG -t 20 -r ./some-dir以上就是通过 tinyPNG api 批量压缩本地图片的基本用法。实际使用中及大幅度的减小了本地图片磁盘占用量。建议使用时提前设置好 API 的系统环境变量，可以更加方便的使用压缩命令。参考：systemd 服务加载 env 环境变量Windows 环境变量</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2861.html">
 <title>ffmpeg 常用视频格式转换命令</title>
 <link>https://blog.niekun.net/archives/2861.html</link>
@@ -225,17 +238,5 @@ cd /tmp
 ls
 touch test.txt
 EOF注意结尾也要换行写 EOF 作为追加结束的标识。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2822.html">
-<title>Linux 创建新用户并授予 root 权限</title>
-<link>https://blog.niekun.net/archives/2822.html</link>
-<dc:date>2023-06-05T16:54:00+08:00</dc:date>
-<description>Linux 默认会有一个 root 用户，但日常直接使用 root 有一定安全隐患，所以通常情况下我们习惯于创建一个新用户来登录使用，下面介绍常规的建立流程。建立新用户 vpsadmin：adduser vpsadmin
-输入以上命令后会提示输入用户密码，完成后用户 vpsadmin 就建立完成了。安装 sudo 功能(sudo 就是在关键时刻，让普通账户临时获得 root 的能力):apt update &amp;&amp; apt install sudo
-把 vpsadmin 用户加入 sudo 名单里:visudo
-执行后会打开相关配置文件，在 # User privilege specification 栏后加入一行配置即可：# User privilege specification
-root    ALL=(ALL:ALL) ALL
-
-vpsadmin ALL=(ALL) NOPASSWD: ALL最上面的 root 表示能使用 sudo 命令的用户：第一个ALL表示允许使用sudo的主机；第二个ALL及第三个ALL表示用户组及用户；第四个ALL表示sudo可执行的命令，即所有命令；在有的系统中也简写做：root ALL=(ALL) ALL最下面我们自己添加的 vpsadmin 是需要授权可以使用 root 权限的用户，配置中 NOPASSWD 的意思是在使用 root 权限的时候在命令前输入 sudo 即可，确认后无需输入 root 密码，这样在使用中可以不用频繁的输入密码。如果你想要遵循常规的使用 sudo 时都输入密码，将配置改为：vpsadmin ALL=(ALL:ALL) ALL 即可。重新登录用户即可完成配置查看效果。参考链接：安全防护篇</description>
 </item>
 </rdf:RDF>
