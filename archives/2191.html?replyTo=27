@@ -1,66 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>修复 vs code 下保存文件会自动 format 代码的问题 - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="修复 vs code 下保存文件会自动 format 代码的问题" />
-<meta name="description" content="今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>修复 vs code 下保存文件会自动 format 代码的问题 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="2191.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="修复 vs code 下保存文件会自动 format 代码的问题 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2191.html" />
 <link rel="alternate" type="application/rdf+xml" title="修复 vs code 下保存文件会自动 format 代码的问题 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2191.html" />
 <link rel="alternate" type="application/atom+xml" title="修复 vs code 下保存文件会自动 format 代码的问题 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2191.html" />
-<script type="b7b27d8b7114f0f30205e341-text/javascript">
+<meta name="description" content="今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：" />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/2191.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="修复 vs code 下保存文件会自动 format 代码的问题" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：" />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="3fcbf899460814ca47744081-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-2191'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-2191'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-2191-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-2191-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -68,86 +107,76 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-2191'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-2191'),
+                holder = this.dom('#respond-post-2191-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="b7b27d8b7114f0f30205e341-text/javascript">
+</script><script type="3fcbf899460814ca47744081-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-2191'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _cqHyBh = //'iEm'
-'iEm'+'7'//'J'
-+'p6'//'p6'
-+//'lhf'
-'94f'+'d3'//'0w'
-+'U6Z'//'U6Z'
-+'6c9'//'im'
-+'f3'//'M74'
-+'8'//'5md'
-+''///*'PX'*/'PX'
-+//'wls'
-'4'+//'nji'
-'95e'+//'Ixf'
-'335'+/* '4xZ'//'4xZ' */''+//'N'
-'f'+'1e8'//'V'
-+//'d'
-'b1'+//'zG'
-'6'+''///*'Tpb'*/'Tpb'
-+/* 'gq'//'gq' */''+//'b5L'
-'dd7'+'3'//'X'
-+//'4hI'
-'4d', _ujCAC = [[0,3],[1,3],[6,9]];
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-2191');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _G7Am = '79'//'D'
++/* 'ZUQ'//'ZUQ' */''+//'MCk'
+'4fd'+'uW8'//'uW8'
++''///*'0f'*/'0f'
++'36c'//'E'
++'9f3'//'YU0'
++''///*'2'*/'2'
++'849'//'3'
++'5e'//'735'
++'33'//'4'
++'5'//'kx'
++''///*'kMc'*/'kMc'
++'nt'//'nt'
++//'HS'
+'f1e'+'u'//'u'
++'8b1'//'g1'
++/* 'pqV'//'pqV' */''+'6'//'bIf'
++'d'//'8d'
++//'GJ'
+'d73'+//'w'
+'4'+//'g8o'
+'d', _xiuCnE = [[5,8],[19,21],[22,23]];
     
-    for (var i = 0; i < _ujCAC.length; i ++) {
-        _cqHyBh = _cqHyBh.substring(0, _ujCAC[i][0]) + _cqHyBh.substring(_ujCAC[i][1]);
+    for (var i = 0; i < _xiuCnE.length; i ++) {
+        _G7Am = _G7Am.substring(0, _xiuCnE[i][0]) + _G7Am.substring(_xiuCnE[i][1]);
     }
 
-    return _cqHyBh;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _G7Am;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -157,120 +186,116 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
-</div>
-<a href="../start-page.html">关于我</a> </nav>
-</header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>修复 vs code 下保存文件会自动 format 代码的问题</h2>
-<div class="post-meta">
-<time class="date">2021-02-25</time>
-<span class="category"><a href="../category/software/index.html">software</a></span>
-<span class="comments">1</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 1057 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
-<p>今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：<br><img src="../usr/uploads/2021/02/175565695.png" alt="2021-02-25T12:40:56.png" title="2021-02-25T12:40:56.png"></p><p>经过查询发现时由于安装的 <strong>JS-CSS-HTML Formatter</strong> 插件默认会在保存文件时对文件格式进行处理。但是堆 React 代码的自动处理有问题导致无法正常进行开发。</p><p>只需要修改其配置文件将保存文件时自动处理关掉即可。</p><p>快捷键 <strong>cmd + shift + p</strong> 打开控制器，输入 formatter：<br><img src="../usr/uploads/2021/02/1966900753.png" alt="2021-02-25T12:44:41.png" title="2021-02-25T12:44:41.png"></p><p>点击 formatter config 修改配置文件，将第一句 <strong>"onSave": true</strong> 改为 <strong>false</strong> 保存即可。</p><p>需要重启 vscode 才能生效。</p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="2189.html" title="React 入门教程之五 -- Event">React 入门教程之五 -- Event</a></li>
-<li>下一篇: <a href="2195.html" title="React 入门教程之六 -- Conditional Rendering">React 入门教程之六 -- Conditional Rendering</a></li>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
 </ul>
-</section>
-<section class="post-comments" id="comments">
-<h3>只有一条评论 (QwQ)</h3>
-<div class="comment-form" id="respond-post-2191">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2191.html#respond-post-2191" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-b7b27d8b7114f0f30205e341->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/2191.html/comment?parent=27" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+</nav>
 </div>
+</header>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="2191.html" itemprop="url">修复 vs code 下保存文件会自动 format 代码的问题</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2021-02-25T20:46:37+08:00" itemprop="datePublished">2021-02-25</time></li>
+<li class="feather-folder"><a href="../category/software/index.html">software</a></li>
+<li class="feather-message"><a href="2191.html#comments" itemprop="discussionUrl">1 条评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：<br><img src="../usr/uploads/2021/02/175565695.png" alt="2021-02-25T12:40:56.png" title="2021-02-25T12:40:56.png"></p><p>经过查询发现时由于安装的 <strong>JS-CSS-HTML Formatter</strong> 插件默认会在保存文件时对文件格式进行处理。但是堆 React 代码的自动处理有问题导致无法正常进行开发。</p><p>只需要修改其配置文件将保存文件时自动处理关掉即可。</p><p>快捷键 <strong>cmd + shift + p</strong> 打开控制器，输入 formatter：<br><img src="../usr/uploads/2021/02/1966900753.png" alt="2021-02-25T12:44:41.png" title="2021-02-25T12:44:41.png"></p><p>点击 formatter config 修改配置文件，将第一句 <strong>"onSave": true</strong> 改为 <strong>false</strong> 保存即可。</p><p>需要重启 vscode 才能生效。</p> <p itemprop="keywords">标签：无</p>
+</div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="2189.html" title="React 入门教程之五 -- Event">React 入门教程之五 -- Event</a></li>
+<li class="next"><a href="2195.html" title="React 入门教程之六 -- Conditional Rendering">React 入门教程之六 -- Conditional Rendering</a></li>
+</ul>
+</nav>
+<div id="comments">
+<h2 class="text-center">1 条评论</h2>
+<ol class="comment-list"> <li itemscope itemtype="http://schema.org/UserComments" id="comment-27" class="comment-body comment-parent comment-odd">
+<div class="comment-author" itemprop="creator" itemscope itemtype="http://schema.org/Person">
+<span itemprop="image">
+<img class="avatar" loading="lazy" src="https://secure.gravatar.com/avatar/bd9d424c6030a1fd023ef27802d3a615?s=64&amp;r=G&amp;d=identicon" alt="ahxinny" width="64" height="64" /> </span>
+<cite class="fn" itemprop="name">ahxinny</cite>
+</div>
+<div class="comment-meta">
+<a href="2191.html#comment-27">
+<time itemprop="commentTime" datetime="2021-03-08T11:30:04+08:00">March 8th, 2021 at 11:30 am</time>
+</a>
+</div>
+<div class="comment-content" itemprop="commentText">
+<p>编程会随时出现报错，与环境关系很大。有时软件升级会造成系统不兼容或者系统崩溃。这段时间真的弄了好多东西，太辛苦了。</p> </div>
+<div class="comment-reply">
+<a href="2191.html?replyTo=27#respond-post-2191" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-27', 27, this);" data-cf-modified-3fcbf899460814ca47744081->回复</a> </div>
+</li>
+</ol>
+<nav></nav>
+<div id="respond-post-2191" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="2191.html#respond-post-2191" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-3fcbf899460814ca47744081->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/2191.html/comment?parent=27" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-<div class="comment-list">
-<div class="comment-single" id="comment-27">
-<img class="avatar" src="https://q.qlogo.cn/g?b=qq&nk=1256781518&s=100" alt /> <div class="comment-meta">
-<span class="comment-author">ahxinny</span>
-<time class="comment-time">2021.03.08</time>
-<span class="comment-reply"><a href="2191.html?replyTo=27#respond-post-2191" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-27', 27);" data-cf-modified-b7b27d8b7114f0f30205e341-><i class="fa fa-reply" title="回复"></i></a></span>
-</div>
-<div class="comment-content">
-<p>
-编程会随时出现报错，与环境关系很大。有时软件升级会造成系统不兼容或者系统崩溃。这段时间真的弄了好多东西，太辛苦了。 </p>
 </div>
 </div>
-</div>
-</section> </div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="2191.html?replyTo=27#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
 </ul>
-</div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
+</ul>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="b7b27d8b7114f0f30205e341-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="b7b27d8b7114f0f30205e341-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="b7b27d8b7114f0f30205e341-text/javascript"></script>
-<script type="b7b27d8b7114f0f30205e341-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-b7b27d8b7114f0f30205e341-><i id="ydmc"></i></a></bgm><script data-no-instant type="b7b27d8b7114f0f30205e341-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-3fcbf899460814ca47744081-><i id="ydmc"></i></a></bgm><script data-no-instant type="3fcbf899460814ca47744081-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -279,7 +304,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="b7b27d8b7114f0f30205e341-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="b7b27d8b7114f0f30205e341-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="b7b27d8b7114f0f30205e341-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470ae4cafa07c35',t:'MTcwNTUxNjM0Ni40NDQwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470ae4cafa07c35","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="3fcbf899460814ca47744081-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="3fcbf899460814ca47744081-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="3fcbf899460814ca47744081-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478e8f778ef14ea',t:'MTcwNTYwMjYzNS40NzMwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478e8f778ef14ea","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

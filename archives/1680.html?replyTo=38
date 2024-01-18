@@ -1,66 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>xattr 命令清除 app 的隔离属性 - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="xattr 命令清除 app 的隔离属性" />
-<meta name="description" content="macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - securit..." />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>xattr 命令清除 app 的隔离属性 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="1680.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="xattr 命令清除 app 的隔离属性 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1680.html" />
 <link rel="alternate" type="application/rdf+xml" title="xattr 命令清除 app 的隔离属性 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1680.html" />
 <link rel="alternate" type="application/atom+xml" title="xattr 命令清除 app 的隔离属性 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1680.html" />
-<script type="474defe88149303f32e7b9ba-text/javascript">
+<meta name="description" content="macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - securit..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/1680.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="xattr 命令清除 app 的隔离属性" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - securit..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="7d3b7985059eba863ba2b924-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-1680'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-1680'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-1680-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-1680-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -68,85 +107,74 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-1680'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-1680'),
+                holder = this.dom('#respond-post-1680-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="474defe88149303f32e7b9ba-text/javascript">
+</script><script type="7d3b7985059eba863ba2b924-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-1680'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _TBkLz = /* 'UUx'//'UUx' */''+//'lak'
-'4'+/* '4cF'//'4cF' */''+//'y5T'
-'6a'+''///*'hW'*/'hW'
-+//'o'
-'39c'+'1e5'//'t5'
-+'d'//'Xrc'
-+'S'//'S'
-+//'W'
-'a'+'62e'//'x3'
-+//'Y6G'
-'91'+'98'//'Y'
-+'6be'//'m'
-+''///*'aOo'*/'aOo'
-+//'4Rw'
-'b37'+''///*'YY'*/'YY'
-+'NC'//'NC'
-+'cb'//'PDr'
-+'5c'//'D0'
-+//'L1'
-'3'+'d62'//'i'
-, _xybn = [[10,11],[24,26]];
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-1680');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _RdDd8lN = //'y7'
+'46'+'a3'//'0'
++//'kk'
+'9'+//'CUF'
+'c'+'1'//'U'
++'e'//'jS'
++'5da'//'F'
++/* '46'//'46' */''+//'Fy'
+'62'+//'lYx'
+'lYx'+//'cp'
+'e91'+//'2H'
+'9'+//'qm'
+'8'+''///*'x'*/'x'
++'6b'//'MD'
++//'jzb'
+'e'+'b37'//'AZ'
++'cb5'//'30'
++//'IB'
+'c3'+'d62'//'Ta'
+, _BOk0pp = [[13,16]];
     
-    for (var i = 0; i < _xybn.length; i ++) {
-        _TBkLz = _TBkLz.substring(0, _xybn[i][0]) + _TBkLz.substring(_xybn[i][1]);
+    for (var i = 0; i < _BOk0pp.length; i ++) {
+        _RdDd8lN = _RdDd8lN.substring(0, _BOk0pp[i][0]) + _RdDd8lN.substring(_BOk0pp[i][1]);
     }
 
-    return _TBkLz;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _RdDd8lN;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -156,39 +184,55 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
+</ul>
+</nav>
 </div>
-<a href="../start-page.html">关于我</a> </nav>
 </header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>xattr 命令清除 app 的隔离属性</h2>
-<div class="post-meta">
-<time class="date">2020-07-21</time>
-<span class="category"><a href="../category/macos/index.html">macOS</a></span>
-<span class="comments">3</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 1276 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="1680.html" itemprop="url">xattr 命令清除 app 的隔离属性</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-07-21T12:37:00+08:00" itemprop="datePublished">2020-07-21</time></li>
+<li class="feather-folder"><a href="../category/macos/index.html">macOS</a></li>
+<li class="feather-message"><a href="1680.html#comments" itemprop="discussionUrl">3 条评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
 <p>macOS 中如果安装一些修改版或破解版软件，通过拖拽方式放到 application 目录，在打开 app 的时候可能提示程序无法运行，通常我们在系统 preference - security 里可以手动允许运行，但是有时候使用这种方法也无法打开，这是由于系统识别到这个 app 可能有问题所以给它加上了 <code>com.apple.quarantine</code> 隔离属性阻止了他的运行。</p><p>如果我们需要运行它，就需要删除 app 的 <code>com.apple.quarantine</code> 属性，可以使用 <code>xattr</code> 来处理。</p><p>macOS 上的文件不只有 "normal" 属性，也有 "读", "写", "执行" 等其他属性。常规属性可以用 <code>ls -l myfile</code> 命令来查看。除此之外还可以定义<strong>扩展属性</strong>，扩展属性的修改可以用 <code>xattr</code> 来处理。</p><p>命令语法如下：</p><pre><code>xattr [options] attributes [files]
 </code></pre><p>可用 option：</p><pre><code>   -c  CLear all Atrributes.
    -d  Delete the given attribute.
@@ -212,109 +256,103 @@
 </code></pre><p>清除一个文件的所有扩展属性：</p><pre><code>xattr -c myfile
 </code></pre><hr><p>对于被屏蔽的 app 需要清除<code>com.apple.quarantine</code> 这一属性，处理过程如下：</p><p>首先查看 app 的现有属性：</p><pre><code>xattr /path/to/MyApp.app
 </code></pre><p>如果返回的结果有 <code>com.apple.quarantine</code> 属性则执行下面命令删除：</p><pre><code>sudo xattr -r -d com.apple.quarantine /path/to/MyApp.app
-</code></pre><p>执行后就可以正常打开 app 了。</p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="1677.html" title="cinema 4D 快捷键">cinema 4D 快捷键</a></li>
-<li>下一篇: <a href="1684.html" title="使用 opencv 处理图像">使用 opencv 处理图像</a></li>
-</ul>
-</section>
-<section class="post-comments" id="comments">
-<h3>已有 3 条评论</h3>
-<div class="comment-form" id="respond-post-1680">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1680.html#respond-post-1680" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-474defe88149303f32e7b9ba->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/1680.html/comment?parent=38" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+</code></pre><p>执行后就可以正常打开 app 了。</p> <p itemprop="keywords">标签：无</p>
 </div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="1677.html" title="cinema 4D 快捷键">cinema 4D 快捷键</a></li>
+<li class="next"><a href="1684.html" title="使用 opencv 处理图像">使用 opencv 处理图像</a></li>
+</ul>
+</nav>
+<div id="comments">
+<h2 class="text-center">3 条评论</h2>
+<ol class="comment-list"> <li itemscope itemtype="http://schema.org/UserComments" id="comment-38" class="comment-body comment-parent comment-odd">
+<div class="comment-author" itemprop="creator" itemscope itemtype="http://schema.org/Person">
+<span itemprop="image">
+<img class="avatar" loading="lazy" src="https://secure.gravatar.com/avatar/2f6a570d60d3e99365415b3b4f63c5a6?s=64&amp;r=G&amp;d=identicon" alt="ch" width="64" height="64" /> </span>
+<cite class="fn" itemprop="name">ch</cite>
+</div>
+<div class="comment-meta">
+<a href="1680.html#comment-38">
+<time itemprop="commentTime" datetime="2021-10-17T10:41:39+08:00">October 17th, 2021 at 10:41 am</time>
+</a>
+</div>
+<div class="comment-content" itemprop="commentText">
+<p>你好我想请问一下怎么恢复quarantine的属性呢 我删除了所有的隔离属性</p> </div>
+<div class="comment-reply">
+<a href="1680.html?replyTo=38#respond-post-1680" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-38', 38, this);" data-cf-modified-7d3b7985059eba863ba2b924->回复</a> </div>
+<div class="comment-children" itemprop="discusses">
+<ol class="comment-list"> <li itemscope itemtype="http://schema.org/UserComments" id="comment-39" class="comment-body comment-child comment-level-odd comment-odd">
+<div class="comment-author" itemprop="creator" itemscope itemtype="http://schema.org/Person">
+<span itemprop="image">
+<img class="avatar" loading="lazy" src="https://secure.gravatar.com/avatar/63bdbad7bac37dc8df15cbb643dec74f?s=64&amp;r=G&amp;d=identicon" alt="marco nie" width="64" height="64" /> </span>
+<cite class="fn" itemprop="name">marco nie</cite>
+</div>
+<div class="comment-meta">
+<a href="1680.html#comment-39">
+<time itemprop="commentTime" datetime="2021-10-19T09:31:28+08:00">October 19th, 2021 at 09:31 am</time>
+</a>
+</div>
+<div class="comment-content" itemprop="commentText">
+<p>给一个文件添加 com.example.color 属性：</p><p>xattr -w com.example.color myfile</p> </div>
+<div class="comment-reply">
+<a href="1680.html?replyTo=39#respond-post-1680" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-39', 39, this);" data-cf-modified-7d3b7985059eba863ba2b924->回复</a> </div>
+<div class="comment-children" itemprop="discusses">
+<ol class="comment-list"> <li itemscope itemtype="http://schema.org/UserComments" id="comment-57" class="comment-body comment-child comment-level-even comment-odd">
+<div class="comment-author" itemprop="creator" itemscope itemtype="http://schema.org/Person">
+<span itemprop="image">
+<img class="avatar" loading="lazy" src="https://secure.gravatar.com/avatar/0a57bdc997c651e726510fdf0dd9ddee?s=64&amp;r=G&amp;d=identicon" alt="人生如戏" width="64" height="64" /> </span>
+<cite class="fn" itemprop="name">人生如戏</cite>
+</div>
+<div class="comment-meta">
+<a href="1680.html#comment-57">
+<time itemprop="commentTime" datetime="2023-06-12T18:08:45+08:00">June 12th, 2023 at 06:08 pm</time>
+</a>
+</div>
+<div class="comment-content" itemprop="commentText">
+<p>您好，试了一下。不行，添加不上。而且没有提示。。。您知道该怎么添加吗？</p> </div>
+<div class="comment-reply">
+<a href="1680.html?replyTo=57#respond-post-1680" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-57', 57, this);" data-cf-modified-7d3b7985059eba863ba2b924->回复</a> </div>
+</li>
+</ol> </div>
+</li>
+</ol> </div>
+</li>
+</ol>
+<nav></nav>
+<div id="respond-post-1680" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="1680.html#respond-post-1680" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-7d3b7985059eba863ba2b924->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/1680.html/comment?parent=38" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-<div class="comment-list">
-<div class="comment-single" id="comment-38">
-<img class="avatar" loading="lazy" src="https://secure.gravatar.com/avatar/2f6a570d60d3e99365415b3b4f63c5a6?s=150&amp;r=G&amp;d=robohash" alt="ch" width="150" height="150" /> <div class="comment-meta">
-<span class="comment-author">ch</span>
-<time class="comment-time">2021.10.17</time>
-<span class="comment-reply"><a href="1680.html?replyTo=38#respond-post-1680" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-38', 38);" data-cf-modified-474defe88149303f32e7b9ba-><i class="fa fa-reply" title="回复"></i></a></span>
-</div>
-<div class="comment-content">
-<p>
-你好我想请问一下怎么恢复quarantine的属性呢 我删除了所有的隔离属性 </p>
 </div>
 </div>
-<div class="comment-single comment-child" id="comment-39">
-<img class="avatar" loading="lazy" src="https://secure.gravatar.com/avatar/63bdbad7bac37dc8df15cbb643dec74f?s=150&amp;r=G&amp;d=robohash" alt="marco nie" width="150" height="150" /> <div class="comment-meta">
-<span class="comment-author">marco nie</span>
-<time class="comment-time">2021.10.19</time>
-<span class="comment-reply"><a href="1680.html?replyTo=39#respond-post-1680" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-39', 39);" data-cf-modified-474defe88149303f32e7b9ba-><i class="fa fa-reply" title="回复"></i></a></span>
-</div>
-<div class="comment-content">
-<p>
-<a href="1680.html?replyTo=38#comment-38">@ch</a> 给一个文件添加 com.example.color 属性：xattr -w com.example.color myfile </p>
-</div>
-</div>
-<div class="comment-single comment-child" id="comment-57">
-<img class="avatar" src="https://q.qlogo.cn/g?b=qq&nk=52122628&s=100" alt /> <div class="comment-meta">
-<span class="comment-author">人生如戏</span>
-<time class="comment-time">7 个月前</time>
-<span class="comment-reply"><a href="1680.html?replyTo=57#respond-post-1680" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-57', 57);" data-cf-modified-474defe88149303f32e7b9ba-><i class="fa fa-reply" title="回复"></i></a></span>
-</div>
-<div class="comment-content">
-<p>
-<a href="1680.html?replyTo=38#comment-39">@marco nie</a> 您好，试了一下。不行，添加不上。而且没有提示。。。您知道该怎么添加吗？ </p>
-</div>
-</div>
-</div>
-</section> </div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="1680.html?replyTo=38#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
+</ul>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
 </ul>
 </div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
-</div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="474defe88149303f32e7b9ba-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="474defe88149303f32e7b9ba-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="474defe88149303f32e7b9ba-text/javascript"></script>
-<script type="474defe88149303f32e7b9ba-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-474defe88149303f32e7b9ba-><i id="ydmc"></i></a></bgm><script data-no-instant type="474defe88149303f32e7b9ba-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-7d3b7985059eba863ba2b924-><i id="ydmc"></i></a></bgm><script data-no-instant type="7d3b7985059eba863ba2b924-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -323,7 +361,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="474defe88149303f32e7b9ba-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="474defe88149303f32e7b9ba-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="474defe88149303f32e7b9ba-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470abc9a94c0cd3',t:'MTcwNTUxNjI0My41NjcwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470abc9a94c0cd3","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="7d3b7985059eba863ba2b924-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="7d3b7985059eba863ba2b924-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="7d3b7985059eba863ba2b924-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478e9823d1a0fb8',t:'MTcwNTYwMjY1Ny42NzgwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478e9823d1a0fb8","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

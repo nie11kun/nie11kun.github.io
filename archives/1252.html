@@ -1,67 +1,106 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>Git 命令行基本操作 - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="Git 命令行基本操作" />
-<meta name="description" content="updated 23-04-06分享一个通过游戏的方式学习 git 常用命令的网站：https://learngitbranching.js.org/Git 是目前世界上最流行的版本控制工具，它..." />
-<meta name="keywords" content="git,git命令hang" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git 命令行基本操作 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="1252.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="Git 命令行基本操作 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1252.html" />
 <link rel="alternate" type="application/rdf+xml" title="Git 命令行基本操作 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1252.html" />
 <link rel="alternate" type="application/atom+xml" title="Git 命令行基本操作 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1252.html" />
-<script type="e6ce78c1b2f6d410a87fd8f8-text/javascript">
+<meta name="description" content="updated 23-04-06分享一个通过游戏的方式学习 git 常用命令的网站：https://learngitbranching.js.org/Git 是目前世界上最流行的版本控制工具，它..." />
+<meta name="keywords" content="git,git命令hang" />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/1252.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="Git 命令行基本操作" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="updated 23-04-06分享一个通过游戏的方式学习 git 常用命令的网站：https://learngitbranching.js.org/Git 是目前世界上最流行的版本控制工具，它..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="5dd3e92e4ee9bfa904f29f18-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-1252'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-1252'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-1252-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-1252-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -69,83 +108,73 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-1252'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-1252'),
+                holder = this.dom('#respond-post-1252-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="e6ce78c1b2f6d410a87fd8f8-text/javascript">
+</script><script type="5dd3e92e4ee9bfa904f29f18-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-1252'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _gpj = //'eiM'
-'eiM'+//'29'
-'452'+//'y'
-'6'+'81a'//'Wf'
-+//'T'
-'T'+//'rO'
-'7d3'+//'ZP'
-'d0'+'t'//'t'
-+'2ce'//'x'
-+'b7'//'XO'
-+'da2'//'Ot'
-+'607'//'y'
-+/* 'Vf'//'Vf' */''+'9'//'46W'
-+//'aBT'
-'373'+//'qF5'
-'0'+/* 'ipm'//'ipm' */''+'997'//'C'
-+//'GMd'
-'GMd'+//'Re'
-'0', _dIBT = [[0,3],[7,8],[12,13],[31,34]];
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-1252');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _i5WQv4E = //'c'
+'c'+'45'//'7s'
++'268'//'xoA'
++'1'//'4'
++'a7d'//'Dc'
++//'nt'
+'3d'+//'ZFR'
+'02c'+'e'//'yz'
++//'Z'
+'b7'+//'9f'
+'da2'+'60'//'AlB'
++'7'//'oV'
++''///*'BdF'*/'BdF'
++'93'//'idf'
++//'2Ss'
+'730'+//'pg'
+'997'+''///*'zg'*/'zg'
++//'w'
+'0', _DSQJf = [[0,1]];
     
-    for (var i = 0; i < _dIBT.length; i ++) {
-        _gpj = _gpj.substring(0, _dIBT[i][0]) + _gpj.substring(_dIBT[i][1]);
+    for (var i = 0; i < _DSQJf.length; i ++) {
+        _i5WQv4E = _i5WQv4E.substring(0, _DSQJf[i][0]) + _i5WQv4E.substring(_DSQJf[i][1]);
     }
 
-    return _gpj;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _i5WQv4E;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -155,39 +184,55 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
+</ul>
+</nav>
 </div>
-<a href="../start-page.html">关于我</a> </nav>
 </header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>Git 命令行基本操作</h2>
-<div class="post-meta">
-<time class="date">2020-03-04</time>
-<span class="category"><a href="../category/software/index.html">software</a></span>
-<span class="comments">0</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 287 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="1252.html" itemprop="url">Git 命令行基本操作</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-03-04T09:53:00+08:00" itemprop="datePublished">2020-03-04</time></li>
+<li class="feather-folder"><a href="../category/software/index.html">software</a></li>
+<li class="feather-message"><a href="1252.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
 <p><img src="https://niekun.net/usr/uploads/2020/03/2690364336.png" alt="2020-03-04T00:56:38.png" title="2020-03-04T00:56:38.png"></p><blockquote>updated 23-04-06</blockquote><p><strong>分享一个通过游戏的方式学习 git 常用命令的网站：<a href="https://learngitbranching.js.org/">https://learngitbranching.js.org/</a></strong></p><hr><p>Git 是目前世界上最流行的版本控制工具，它可以记录历史操作和协同工作。</p><blockquote>Git is a free and open source distributed version control system designed to handle everything from small to very large projects with speed and efficiency.</blockquote><p>下面介绍 Git 命令行工具的安装和使用。</p><h3>Git 安装</h3><h4>Windows</h4><p>从官网下载最新的安装包，然后在本地安装即可：<a href="https://git-scm.com/download/win">https://git-scm.com/download/win</a></p><p>安装完成后，打开 cmd 或 powershell 敲入下面命令确认安装成功：</p><pre><code>git version
 </code></pre><h4>Linux</h4><p>官网介绍：<a href="https://git-scm.com/download/linux">https://git-scm.com/download/linux</a></p><p>可以使用 apt 来安装：</p><pre><code>apt-get install git
 </code></pre><p>如果 apt 安装的版本太旧，可以添加官方源来安装最新版：</p><pre><code>add-apt-repository ppa:git-core/ppa
@@ -211,7 +256,7 @@ git checkout file
 git checkout .</code></pre><h4>staged</h4><p>对于已经使用 <code>git add</code> stage 的文件，需要使用 reset 指令来撤销 stage：</p><pre><code>git reset
 </code></pre><p>然后如果要撤销修改使用上面 untracked 的方法。</p><h4>commited</h4><p>对于已经使用 <code>git commit</code> 命令保存快照时，需要将 HEAD 指定到原来的：</p><pre><code>git reset --soft HEAD^
 </code></pre><p>这样就返回到 staged 的状态了，进一步的返回，参考上面 staged 的步骤。</p><h3>状态查询</h3><p>查询当前仓库的状态，对于进一步操作很有必要，可以看到那些文件进行了修改，还没有 track，保存的快照没有 push 等。</p><p>执行以下命令：</p><pre><code>git status
-</code></pre><h3>本地和远程仓库同步</h3><p>如果本地仓库和远程服务器绑定，可以在两个直接进行推送和拉取。</p><h4>初始用户设定</h4><p>要和远程仓库同步数据，需要设定本地用户信息，如: email username 等，远程仓库会根据归类代码历史是属于哪个用户的：</p><pre><code>git config --global user.email &quot;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0c7563794c69746d617c6069226f6361">[email&#160;protected]</a>&quot;
+</code></pre><h3>本地和远程仓库同步</h3><p>如果本地仓库和远程服务器绑定，可以在两个直接进行推送和拉取。</p><h4>初始用户设定</h4><p>要和远程仓库同步数据，需要设定本地用户信息，如: email username 等，远程仓库会根据归类代码历史是属于哪个用户的：</p><pre><code>git config --global user.email &quot;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b7ced8c2f7d2cfd6dac7dbd299d4d8da">[email&#160;protected]</a>&quot;
 git config --global user.name &quot;Your Name&quot;
 git config --global push.default simple</code></pre><h4>缓存 GitHub 密码信息-credential</h4><p>默认向远程服务器推送的时候，需要输入账户密码，为了便于操作，可以将账户信息缓存在本地。</p><p>教程参考：<a href="https://niekun.net/archives/444.html">https://niekun.net/archives/444.html</a></p><h4>绑定远程仓库</h4><p>复制远程仓库地址：<br><img src="https://niekun.net/usr/uploads/2020/03/2585005533.png" alt="2020-03-04T01:07:16.png" title="2020-03-04T01:07:16.png"></p><p>在本地添加远程仓库，origin 分支就代表远程仓库：</p><pre><code>git remote add origin https://github.com/nie11kun/TestGit.git
 </code></pre><p>将本地 master 分支推送到 origin 分支也就是远程分支，如果远程仓库是空的，使用 <code>-u</code> 参数来初始化，将本地 master 和 远程 master 分支绑定：</p><pre><code>git push -u origin master
@@ -219,24 +264,24 @@ git config --global push.default simple</code></pre><h4>缓存 GitHub 密码信�
 </code></pre><h4>推送本地存档到远程</h4><pre><code>git push
 </code></pre><h3>Git log 查看提交历史</h3><p>每次提交的 commit 都会产生一个记录信息，在仓库维护中经常需要查看历史记录，可以使用 <code>git log</code> 命令来处理。</p><pre><code>$ git log
 commit ca82a6dff817ec66f44342007202690a93763949
-Author: Scott Chacon &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7300101b12101c1d331416165e1e121a1f5d101c1e">[email&#160;protected]</a>&gt;
+Author: Scott Chacon &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3645555e57555958765153531b5b575f5a1855595b">[email&#160;protected]</a>&gt;
 Date:   Mon Mar 17 21:52:11 2008 -0700
 
     changed the version number
 
 commit 085bb3bcb608e1e8451d4b2432f8ecbe6306e7e7
-Author: Scott Chacon &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="96e5f5fef7f5f9f8d6f1f3f3bbfbf7fffab8f5f9fb">[email&#160;protected]</a>&gt;
+Author: Scott Chacon &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3241515a53515d5c725557571f5f535b5e1c515d5f">[email&#160;protected]</a>&gt;
 Date:   Sat Mar 15 16:40:33 2008 -0700
 
     removed unnecessary test
 
 commit a11bef06a3f659402fe7563abf99ad00de2209e6
-Author: Scott Chacon &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6516060d04060a0b250200004808040c094b060a08">[email&#160;protected]</a>&gt;
+Author: Scott Chacon &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5221313a33313d3c123537377f3f333b3e7c313d3f">[email&#160;protected]</a>&gt;
 Date:   Sat Mar 15 10:31:28 2008 -0700
 
     first commit</code></pre><p>执行命令后会返回每个提交的 commit 的相关信息：<strong>SHA-1 校验，作者，提交日期，提交说明</strong>等，最新的提交排在最前面。</p><p>点击回车键可以进行翻页，输入 <code>q</code> 退出 log。</p><p>默认返回的信息比较多，我们可以配合其他命令参数来过滤出我们需要的日志信息。</p><h4>--patch 差异对比</h4><p>当需要查看每条 commit 具体修改的文件内容时可以使用 log 的 <code>--patch</code> 或 <code>-p</code> 参数，会列出那些文件进行了修改，具体修改的地方，删除的部分前有减号<code>-</code>，添加的部分前有加号<code>+</code>：</p><pre><code>$ git log --patch
 commit ca82a6dff817ec66f44342007202690a93763949
-Author: Scott Chacon &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4f3c2c272e2c20210f282a2a62222e2623612c2022">[email&#160;protected]</a>&gt;
+Author: Scott Chacon &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a1d2c2c9c0c2cecfe1c6c4c48cccc0c8cd8fc2cecc">[email&#160;protected]</a>&gt;
 Date:   Mon Mar 17 21:52:11 2008 -0700
 
     changed the version number
@@ -251,7 +296,7 @@ index a874b73..8f94139 100644
 +    s.version   =   &quot;0.1.1&quot;
      s.author    =   &quot;Scott Chacon&quot;</code></pre><h4>--stat 统计信息</h4><p>如果想要知道每条 commit 对那些文件进行了处理，可以使用 log 的 <code>--stat</code> 参数。</p><pre><code>$ git log --stat
 commit dfe5904bb6f55dbeb3807d (HEAD -&gt; branch_NK, origin/branch_NK)
-Author: Marco Nie &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2b4c425f435e496b45424e405e4505454e5f">[email&#160;protected]</a>&gt;
+Author: Marco Nie &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="98fff1ecf0edfad8f6f1fdf3edf6b6f6fdec">[email&#160;protected]</a>&gt;
 Date:   Wed May 27 12:04:00 2020 +0800
 
     FIX
@@ -260,7 +305,7 @@ Date:   Wed May 27 12:04:00 2020 +0800
  1 file changed, 9 insertions(+), 3 deletions(-)
 
 commit 6b0d30b6819971eb7545
-Author: Marco Nie &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="07606e736f726547696e626c726929696273">[email&#160;protected]</a>&gt;
+Author: Marco Nie &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="eb8c829f839e89ab85828e809e85c5858e9f">[email&#160;protected]</a>&gt;
 Date:   Sun May 24 15:17:47 2020 +0800
 
     update
@@ -300,7 +345,7 @@ a11bef0 - Scott Chacon, 6 years ago : first commit</code></pre><p>使用自定�
 * d6016bc require time for xmlschema
 *  11d191e Merge branch 'defunkt' into local</code></pre><p>以上的 log 可以看到中间一部分的 commit 来自其他分支然后合并到了主分支里的过程。</p><h3>回到以前的版本</h3><p>当我们需要从当前的版本回到以前的某的状态时，有两种方法：<strong>reset</strong> 和 <strong>revert</strong>。</p><p><strong>reset</strong> 是完全退回到以前某个 commit 的状态，这会撤销这个 commit 之后所有的信息，相当于完全恢复到之前的状态。<br><img src="../usr/uploads/2020/06/702222758.png" alt="2020-06-07T06:48:42.png" title="2020-06-07T06:48:42.png"></p><p><strong>revert</strong> 并不是撤销而是提交一个新的 commit 将所有文件修改成某个特定 commit 的状态。<br><img src="../usr/uploads/2020/06/564457103.png" alt="2020-06-07T06:49:06.png" title="2020-06-07T06:49:06.png"></p><p>可以通过 sha-1 来判断是 reset 还是 revert。</p><p>通常我们通过 <code>git log</code> 来查看历史信息，找到需要回退到的 commit sha-1 哈希值，然后执行命令进行回退.</p><h4>reset</h4><p>使用 <code>git log --stat</code> 查看提交历史，找到需要回退的 commit 的 sha-1：</p><pre><code>$ git log --stat
 commit dfe5904bb6f55dbeb3807d5da78dc5a66460fccf (HEAD -&gt; branch_NK, origin/branch_NK)
-Author: Marco Nie &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3f58564b574a5d7f51565a544a5111515a4b">[email&#160;protected]</a>&gt;
+Author: Marco Nie &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="11767865796473517f78747a647f3f7f7465">[email&#160;protected]</a>&gt;
 Date:   Wed May 27 12:04:00 2020 +0800
 
     FIX
@@ -309,7 +354,7 @@ Date:   Wed May 27 12:04:00 2020 +0800
  1 file changed, 9 insertions(+), 3 deletions(-)
 
 commit 6b0d30b6819971eb7545bde1d864ce0c29e0f5dc
-Author: Marco Nie &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="06616f726e736446686f636d736828686372">[email&#160;protected]</a>&gt;
+Author: Marco Nie &lt;<a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="baddd3ced2cfd8fad4d3dfd1cfd494d4dfce">[email&#160;protected]</a>&gt;
 Date:   Sun May 24 15:17:47 2020 +0800
 
     update
@@ -322,76 +367,48 @@ Date:   Sun May 24 15:17:47 2020 +0800
 </code></pre><h4>revert</h4><p>同样的方法，使用 <code>git log --stat</code> 查看提交历史，找到需要回退的 commit 的 sha-1。</p><p>使用 <code>git revert -n sha-1</code> 返回这个状态，并使用 <code>git commit -m </code> 提交修改:</p><pre><code>git revert -n 6b0d30b6819971eb7545bde1d864ce0c29e0f5dc
 git commit -m &quot;revert&quot;
 </code></pre><p>注意:这里可能会出现冲突，那么需要手动修改冲突的文件。而且要 <code>git add</code> 文件名。</p><p>此时可以用 <code>git log</code> 查看本地的版本信息，可见多生成了一个新的版本.</p><p>最后正常推送到远程：</p><pre><code>git push
-</code></pre><h3>参考链接</h3><p><a href="https://git-scm.com/book/zh/v2/Git-%E5%9F%BA%E7%A1%80-%E6%9F%A5%E7%9C%8B%E6%8F%90%E4%BA%A4%E5%8E%86%E5%8F%B2">Git 基础 - 查看提交历史</a></p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="1249.html" title="关于手机端无法使用 typecho 的搜索框解决">关于手机端无法使用 typecho 的搜索框解决</a></li>
-<li>下一篇: <a href="1257.html" title="Nginx 可用指令和变量索引">Nginx 可用指令和变量索引</a></li>
-</ul>
-</section>
-<section class="post-tags">
-<a href="../tag/git/index.html">git</a><a href="../tag/git命令hang/index.html">git命令hang</a> </section>
-<section class="post-comments" id="comments">
-<h3>没有评论</h3>
-<div class="comment-form" id="respond-post-1252">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1252.html#respond-post-1252" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-e6ce78c1b2f6d410a87fd8f8->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/1252.html/comment" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+</code></pre><h3>参考链接</h3><p><a href="https://git-scm.com/book/zh/v2/Git-%E5%9F%BA%E7%A1%80-%E6%9F%A5%E7%9C%8B%E6%8F%90%E4%BA%A4%E5%8E%86%E5%8F%B2">Git 基础 - 查看提交历史</a></p> <p itemprop="keywords">标签：<a href="../tag/git/index.html">git</a>, <a href="../tag/git命令hang/index.html">git命令hang</a></p>
 </div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="1249.html" title="关于手机端无法使用 typecho 的搜索框解决">关于手机端无法使用 typecho 的搜索框解决</a></li>
+<li class="next"><a href="1257.html" title="Nginx 可用指令和变量索引">Nginx 可用指令和变量索引</a></li>
+</ul>
+</nav>
+<div id="comments">
+<div id="respond-post-1252" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="1252.html#respond-post-1252" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-5dd3e92e4ee9bfa904f29f18->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/1252.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-</section> </div>
+</div>
+</div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="1252.html#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
+</ul>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
 </ul>
 </div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
-</div>
 </footer>
-<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../usr/themes/Single/static/kico.js" type="e6ce78c1b2f6d410a87fd8f8-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="e6ce78c1b2f6d410a87fd8f8-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="e6ce78c1b2f6d410a87fd8f8-text/javascript"></script>
-<script type="e6ce78c1b2f6d410a87fd8f8-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-e6ce78c1b2f6d410a87fd8f8-><i id="ydmc"></i></a></bgm><script data-no-instant type="e6ce78c1b2f6d410a87fd8f8-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-5dd3e92e4ee9bfa904f29f18-><i id="ydmc"></i></a></bgm><script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-no-instant type="5dd3e92e4ee9bfa904f29f18-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -400,7 +417,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="e6ce78c1b2f6d410a87fd8f8-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="e6ce78c1b2f6d410a87fd8f8-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="e6ce78c1b2f6d410a87fd8f8-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470acedce620ffc',t:'MTcwNTUxNjI5MC4zMzIwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470acedce620ffc","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="5dd3e92e4ee9bfa904f29f18-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="5dd3e92e4ee9bfa904f29f18-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="5dd3e92e4ee9bfa904f29f18-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478e907d99a14ea',t:'MTcwNTYwMjYzOC4xMDAwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478e907d99a14ea","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

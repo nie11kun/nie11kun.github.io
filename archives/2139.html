@@ -1,66 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理 - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理" />
-<meta name="description" content="由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。我的流程是：VMwar..." />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="2139.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2139.html" />
 <link rel="alternate" type="application/rdf+xml" title="Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2139.html" />
 <link rel="alternate" type="application/atom+xml" title="Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2139.html" />
-<script type="70a7d9286b989287185f3f33-text/javascript">
+<meta name="description" content="由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。我的流程是：VMwar..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/2139.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。我的流程是：VMwar..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="fb47f0a93e68accf8a9512d1-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-2139'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-2139'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-2139-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-2139-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -68,85 +107,76 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-2139'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-2139'),
+                holder = this.dom('#respond-post-2139-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="70a7d9286b989287185f3f33-text/javascript">
+</script><script type="fb47f0a93e68accf8a9512d1-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-2139'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _7h69k = //'VYj'
-'22'+//'vi'
-'80'+//'CNo'
-'0db'+//'uqd'
-'f9'+''///*'A'*/'A'
-+'95'//'keq'
-+'06'//'p8j'
-+/* 'nt'//'nt' */''+//'xqy'
-'5fa'+'36'//'srM'
-+''///*'87'*/'87'
-+''///*'e'*/'e'
-+//'pC'
-'a8'+'K'//'K'
-+'9c0'//'LcJ'
-+//'c'
-'211'+'8e'//'2'
-+//'eJv'
-'c0'+'2'//'2v'
-+''///*'OH'*/'OH'
-+'d'//'lx'
-, _jqzePA5 = [[20,21]];
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-2139');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _WDWukzC = ''///*'kY'*/'kY'
++'v'//'v'
++//'sHO'
+'22'+''///*'3R'*/'3R'
++'800'//'E'
++'d'//'qe'
++'bf9'//'j'
++'950'//'Urn'
++//'Pp'
+'65f'+//'SoR'
+'a3'+//'y3S'
+'6a'+''///*'EvH'*/'EvH'
++//'nH'
+'nH'+'rW'//'rW'
++'89'//'Hx'
++'c'//'f'
++'02'//'Z'
++//'C'
+'118'+//'HiH'
+'ec0'+//'CB'
+'2'+'d'//'8L'
+, _KQi1fX6 = [[0,1],[19,21],[19,21]];
     
-    for (var i = 0; i < _jqzePA5.length; i ++) {
-        _7h69k = _7h69k.substring(0, _jqzePA5[i][0]) + _7h69k.substring(_jqzePA5[i][1]);
+    for (var i = 0; i < _KQi1fX6.length; i ++) {
+        _WDWukzC = _WDWukzC.substring(0, _KQi1fX6[i][0]) + _WDWukzC.substring(_KQi1fX6[i][1]);
     }
 
-    return _7h69k;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _WDWukzC;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -156,109 +186,99 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
+</ul>
+</nav>
 </div>
-<a href="../start-page.html">关于我</a> </nav>
 </header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理</h2>
-<div class="post-meta">
-<time class="date">2021-02-07</time>
-<span class="category"><a href="../category/js/index.html">javascript</a>，<a href="../category/Windows/index.html">Windows</a></span>
-<span class="comments">0</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 1075 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="2139.html" itemprop="url">Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2021-02-07T11:07:10+08:00" itemprop="datePublished">2021-02-07</time></li>
+<li class="feather-folder"><a href="../category/Windows/index.html">Windows</a>, <a href="../category/js/index.html">javascript</a></li>
+<li class="feather-message"><a href="2139.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
 <p>由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。</p><p>我的流程是：</p><ul><li>VMware 安装 Ubuntu</li><li>共享 Windows 下的文件夹给 Ubuntu 作为开发目录</li><li>Windows 下使用 vs code 通过 ssh 方式远程连接 Ubuntu</li></ul><p>通过远程连接的方式在 Windows 下做 node.js 开发实际体验很好。但是在通过 npm 安装某些包时常常会有报错出现，错误日志大概意思就是说无法给 node_modules 文件夹内安装的库文件添加软连接到系统路径。</p><p>网上查询后发现了问题原因，我的开发目录实际是在 Windows 下的，Windows 和 Linux 有着不一样的文件系统和路径格式，所以 npm 在安装某些包含 bin 可执行文件的第三方库时，会默认自动创建相关文件的软链接到 Linux 系统路径，这样就就报错了。</p><p>如果要坚持使用共享目录的形式做开发，那么需要设置在 npm 安装新库时使用参数 <code>--no-bin-links</code> 告诉系统不要自动创建软连接，语法如下：</p><pre><code>npm install cowsay --no-bin-links
 </code></pre><p>这样就会跳过相关步骤。</p><p>也可以设置到 npm 配置中，这样以后安装的包都会默认不创建 bin 的软连接了：</p><pre><code>npm config set bin-links false
-</code></pre><p>当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。</p><p>参考链接：<a href="https://github.com/npm/npm/issues/2221">https://github.com/npm/npm/issues/2221</a></p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="2137.html" title="node.js 入门教程之五 -- HTTP request and response">node.js 入门教程之五 -- HTTP request and response</a></li>
-<li>下一篇: <a href="2140.html" title="node.js 入门教程之六 -- FileSystem">node.js 入门教程之六 -- FileSystem</a></li>
-</ul>
-</section>
-<section class="post-comments" id="comments">
-<h3>没有评论</h3>
-<div class="comment-form" id="respond-post-2139">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2139.html#respond-post-2139" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-70a7d9286b989287185f3f33->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/2139.html/comment" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+</code></pre><p>当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。</p><p>参考链接：<a href="https://github.com/npm/npm/issues/2221">https://github.com/npm/npm/issues/2221</a></p> <p itemprop="keywords">标签：无</p>
 </div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="2137.html" title="node.js 入门教程之五 -- HTTP request and response">node.js 入门教程之五 -- HTTP request and response</a></li>
+<li class="next"><a href="2140.html" title="node.js 入门教程之六 -- FileSystem">node.js 入门教程之六 -- FileSystem</a></li>
+</ul>
+</nav>
+<div id="comments">
+<div id="respond-post-2139" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="2139.html#respond-post-2139" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-fb47f0a93e68accf8a9512d1->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/2139.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-</section> </div>
+</div>
+</div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="2139.html#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
+</ul>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
 </ul>
 </div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
-</div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="70a7d9286b989287185f3f33-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="70a7d9286b989287185f3f33-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="70a7d9286b989287185f3f33-text/javascript"></script>
-<script type="70a7d9286b989287185f3f33-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-70a7d9286b989287185f3f33-><i id="ydmc"></i></a></bgm><script data-no-instant type="70a7d9286b989287185f3f33-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-fb47f0a93e68accf8a9512d1-><i id="ydmc"></i></a></bgm><script data-no-instant type="fb47f0a93e68accf8a9512d1-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -267,7 +287,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="70a7d9286b989287185f3f33-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="70a7d9286b989287185f3f33-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="70a7d9286b989287185f3f33-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470ab416d5a0cd3',t:'MTcwNTUxNjIyMS43NzcwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470ab416d5a0cd3","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="fb47f0a93e68accf8a9512d1-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="fb47f0a93e68accf8a9512d1-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="fb47f0a93e68accf8a9512d1-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478e8559a0c14ea',t:'MTcwNTYwMjYwOS41ODkwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478e8559a0c14ea","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

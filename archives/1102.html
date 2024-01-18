@@ -1,66 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>图片的校直 in lightroom - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="图片的校直 in lightroom" />
-<meta name="description" content="我们拍摄的照片会由于手持角度/镜头广角变形/拍摄角度等原因导致本来应该是平直的地方倾斜，下面介绍如何在 lightroom 中进行修复。" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片的校直 in lightroom | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="1102.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="图片的校直 in lightroom &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1102.html" />
 <link rel="alternate" type="application/rdf+xml" title="图片的校直 in lightroom &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1102.html" />
 <link rel="alternate" type="application/atom+xml" title="图片的校直 in lightroom &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1102.html" />
-<script type="23e91e38186a51a77e47a6bc-text/javascript">
+<meta name="description" content="我们拍摄的照片会由于手持角度/镜头广角变形/拍摄角度等原因导致本来应该是平直的地方倾斜，下面介绍如何在 lightroom 中进行修复。" />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/1102.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="图片的校直 in lightroom" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="我们拍摄的照片会由于手持角度/镜头广角变形/拍摄角度等原因导致本来应该是平直的地方倾斜，下面介绍如何在 lightroom 中进行修复。" />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="12d25952d01d43b934e4bc22-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-1102'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-1102'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-1102-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-1102-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -68,84 +107,82 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-1102'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-1102'),
+                holder = this.dom('#respond-post-1102-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="23e91e38186a51a77e47a6bc-text/javascript">
+</script><script type="12d25952d01d43b934e4bc22-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-1102'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _RgYf = ''///*'N5p'*/'N5p'
-+//'pP1'
-'3'+//'NC'
-'a7'+'89'//'dQS'
-+'5'//'OI'
-+//'Jgy'
-'7'+'5b4'//'7q'
-+//'X'
-'0d'+//'mi'
-'0'+//'l'
-'d7d'+//'uSp'
-'d0'+'462'//'ir'
-+'9'//'H'
-+//'IM0'
-'e'+//'Ay'
-'73'+//'a'
-'4'+//'pK7'
-'0e'+'efa'//'g'
-+//'dmk'
-'d', _NeDxJn = [];
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-1102');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _Ylevx = //'pp'
+'3a7'+'J'//'J'
++'89'//'lkK'
++'5'//'t'
++//'J'
+'7'+//'6xr'
+'5b'+''///*'C'*/'C'
++//'U2V'
+'4'+'0d0'//'QQ8'
++//'CjK'
+'CjK'+'d'//'vv'
++'7dd'//'3e'
++'04'//'FSe'
++'o'//'o'
++//'WDD'
+'62'+//'hb'
+'hb'+''///*'MQ'*/'MQ'
++//'1'
+'9'+'e'//'K'
++//'3gb'
+'7'+//'Y4'
+'3'+//'5'
+'4'+'0ee'//'6J'
++'f'//'hSI'
++//'O9a'
+'O9a'+'a'//'d'
++'d'//'Zw'
+, _i86 = [[3,4],[13,16],[19,20],[21,23],[30,33]];
     
-    for (var i = 0; i < _NeDxJn.length; i ++) {
-        _RgYf = _RgYf.substring(0, _NeDxJn[i][0]) + _RgYf.substring(_NeDxJn[i][1]);
+    for (var i = 0; i < _i86.length; i ++) {
+        _Ylevx = _Ylevx.substring(0, _i86[i][0]) + _Ylevx.substring(_i86[i][1]);
     }
 
-    return _RgYf;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _Ylevx;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -155,107 +192,97 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
-</div>
-<a href="../start-page.html">关于我</a> </nav>
-</header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>图片的校直 in lightroom</h2>
-<div class="post-meta">
-<time class="date">2020-02-21</time>
-<span class="category"><a href="../category/lr/index.html">lightroom</a></span>
-<span class="comments">0</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 1427 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
-<p><img src="https://niekun.net/usr/uploads/2020/02/1912029132.png" alt="2020-02-21T03:44:09.png" title="2020-02-21T03:44:09.png"></p><p>我们拍摄的照片会由于手持角度/镜头广角变形/拍摄角度等原因导致本来应该是平直的地方倾斜，下面介绍如何在 lightroom 中进行修复。</p><p>对于不同的倾斜情况有三种方法进行修复：straighten tool，transform，lens correction</p><h4>　straighten tool</h4><p>选择 crop，点击 straighten tool，然后在倾斜的垂直/水平线条的地方拉一条线，就可以将图片进行旋转校直：<br><img src="https://niekun.net/usr/uploads/2020/02/3214192058.png" alt="2020-02-21T04:29:29.png" title="2020-02-21T04:29:29.png"><br><img src="https://niekun.net/usr/uploads/2020/02/1342282601.png" alt="2020-02-21T04:31:11.png" title="2020-02-21T04:31:11.png"></p><p>矫正好检查没问题后，按 enter 确认。</p><h4>transform</h4><p>如果经过上面的 straighten tool 调整后，图片的部分地方矫正了，但依然有其他地方是倾斜的，这就需要通过变形 transform 工具来调整了，例如下面的图片，经过 straighten tool 后依然有些应该是正直的地方是倾斜的：<br><img src="https://niekun.net/usr/uploads/2020/02/170672577.png" alt="2020-02-21T04:35:02.png" title="2020-02-21T04:35:02.png"></p><p>点击右侧 transform 调出菜单：<br><img src="https://niekun.net/usr/uploads/2020/02/323909262.png" alt="2020-02-21T04:37:02.png" title="2020-02-21T04:37:02.png"></p><p>点击左上角图标，在图片中需要校直的地方拖动出直线，最多能建立 4 条调整线：<br><img src="https://niekun.net/usr/uploads/2020/02/804936480.png" alt="2020-02-21T04:38:13.png" title="2020-02-21T04:38:13.png"><br><img src="https://niekun.net/usr/uploads/2020/02/1607542264.png" alt="2020-02-21T04:39:16.png" title="2020-02-21T04:39:16.png"></p><p>经过计算变形，就可以使图片矫正。</p><h4>lens correction</h4><p>有些镜头由于设计或光学特性，拍摄出来的照片会发生畸变，lightroom 内置了自动校正功能，能够识别绝大多数拍摄设备进行还原。<br>点击 lens correction，选择 enable auto corrections，就可以自动校正图像了：<br><img src="https://niekun.net/usr/uploads/2020/02/757783914.png" alt="2020-02-21T04:42:19.png" title="2020-02-21T04:42:19.png"></p><p>下方可以看到识别到的拍摄设备信息，如果没有识别到，可以进行手动选择然后就可以自动矫正了：<br><img src="https://niekun.net/usr/uploads/2020/02/1368252143.png" alt="2020-02-21T04:44:13.png" title="2020-02-21T04:44:13.png"></p><p>由于选择自动矫正后，会占用较多的系统资源，所以建议最后进行这一步操作。</p><p>以上就是照片矫正校直的常用方法。</p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="1095.html" title="同步编辑 100 张照片 in ligthroom">同步编辑 100 张照片 in ligthroom</a></li>
-<li>下一篇: <a href="1112.html" title="Windows 10 语言包的安装及界面语言替换">Windows 10 语言包的安装及界面语言替换</a></li>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
 </ul>
-</section>
-<section class="post-comments" id="comments">
-<h3>没有评论</h3>
-<div class="comment-form" id="respond-post-1102">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1102.html#respond-post-1102" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-23e91e38186a51a77e47a6bc->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/1102.html/comment" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+</nav>
 </div>
+</header>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="1102.html" itemprop="url">图片的校直 in lightroom</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-02-21T12:45:33+08:00" itemprop="datePublished">2020-02-21</time></li>
+<li class="feather-folder"><a href="../category/lr/index.html">lightroom</a></li>
+<li class="feather-message"><a href="1102.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p><img src="https://niekun.net/usr/uploads/2020/02/1912029132.png" alt="2020-02-21T03:44:09.png" title="2020-02-21T03:44:09.png"></p><p>我们拍摄的照片会由于手持角度/镜头广角变形/拍摄角度等原因导致本来应该是平直的地方倾斜，下面介绍如何在 lightroom 中进行修复。</p><p>对于不同的倾斜情况有三种方法进行修复：straighten tool，transform，lens correction</p><h4>　straighten tool</h4><p>选择 crop，点击 straighten tool，然后在倾斜的垂直/水平线条的地方拉一条线，就可以将图片进行旋转校直：<br><img src="https://niekun.net/usr/uploads/2020/02/3214192058.png" alt="2020-02-21T04:29:29.png" title="2020-02-21T04:29:29.png"><br><img src="https://niekun.net/usr/uploads/2020/02/1342282601.png" alt="2020-02-21T04:31:11.png" title="2020-02-21T04:31:11.png"></p><p>矫正好检查没问题后，按 enter 确认。</p><h4>transform</h4><p>如果经过上面的 straighten tool 调整后，图片的部分地方矫正了，但依然有其他地方是倾斜的，这就需要通过变形 transform 工具来调整了，例如下面的图片，经过 straighten tool 后依然有些应该是正直的地方是倾斜的：<br><img src="https://niekun.net/usr/uploads/2020/02/170672577.png" alt="2020-02-21T04:35:02.png" title="2020-02-21T04:35:02.png"></p><p>点击右侧 transform 调出菜单：<br><img src="https://niekun.net/usr/uploads/2020/02/323909262.png" alt="2020-02-21T04:37:02.png" title="2020-02-21T04:37:02.png"></p><p>点击左上角图标，在图片中需要校直的地方拖动出直线，最多能建立 4 条调整线：<br><img src="https://niekun.net/usr/uploads/2020/02/804936480.png" alt="2020-02-21T04:38:13.png" title="2020-02-21T04:38:13.png"><br><img src="https://niekun.net/usr/uploads/2020/02/1607542264.png" alt="2020-02-21T04:39:16.png" title="2020-02-21T04:39:16.png"></p><p>经过计算变形，就可以使图片矫正。</p><h4>lens correction</h4><p>有些镜头由于设计或光学特性，拍摄出来的照片会发生畸变，lightroom 内置了自动校正功能，能够识别绝大多数拍摄设备进行还原。<br>点击 lens correction，选择 enable auto corrections，就可以自动校正图像了：<br><img src="https://niekun.net/usr/uploads/2020/02/757783914.png" alt="2020-02-21T04:42:19.png" title="2020-02-21T04:42:19.png"></p><p>下方可以看到识别到的拍摄设备信息，如果没有识别到，可以进行手动选择然后就可以自动矫正了：<br><img src="https://niekun.net/usr/uploads/2020/02/1368252143.png" alt="2020-02-21T04:44:13.png" title="2020-02-21T04:44:13.png"></p><p>由于选择自动矫正后，会占用较多的系统资源，所以建议最后进行这一步操作。</p><p>以上就是照片矫正校直的常用方法。</p> <p itemprop="keywords">标签：无</p>
+</div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="1095.html" title="同步编辑 100 张照片 in ligthroom">同步编辑 100 张照片 in ligthroom</a></li>
+<li class="next"><a href="1112.html" title="Windows 10 语言包的安装及界面语言替换">Windows 10 语言包的安装及界面语言替换</a></li>
+</ul>
+</nav>
+<div id="comments">
+<div id="respond-post-1102" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="1102.html#respond-post-1102" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-12d25952d01d43b934e4bc22->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/1102.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-</section> </div>
+</div>
+</div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="1102.html#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
 </ul>
-</div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
+</ul>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="23e91e38186a51a77e47a6bc-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="23e91e38186a51a77e47a6bc-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="23e91e38186a51a77e47a6bc-text/javascript"></script>
-<script type="23e91e38186a51a77e47a6bc-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-23e91e38186a51a77e47a6bc-><i id="ydmc"></i></a></bgm><script data-no-instant type="23e91e38186a51a77e47a6bc-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-12d25952d01d43b934e4bc22-><i id="ydmc"></i></a></bgm><script data-no-instant type="12d25952d01d43b934e4bc22-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -264,7 +291,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="23e91e38186a51a77e47a6bc-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="23e91e38186a51a77e47a6bc-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="23e91e38186a51a77e47a6bc-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470ab36dbeb0cd3',t:'MTcwNTUxNjIyMC4xMDcwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470ab36dbeb0cd3","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="12d25952d01d43b934e4bc22-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="12d25952d01d43b934e4bc22-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="12d25952d01d43b934e4bc22-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478ea63fcff7c49',t:'MTcwNTYwMjY5My44MDEwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478ea63fcff7c49","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

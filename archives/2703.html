@@ -1,66 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>Ubuntu 开启 RDP 远程连接 - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="Ubuntu 开启 RDP 远程连接" />
-<meta name="description" content="之前介绍过通过安装 TightVNC vnc server 远程连接 Ubuntu 桌面的教程，Windows 下常用的是 RDP 方式远程，使用体验非常流畅，不占用带宽。Linux 下也可以通..." />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ubuntu 开启 RDP 远程连接 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="2703.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="Ubuntu 开启 RDP 远程连接 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2703.html" />
 <link rel="alternate" type="application/rdf+xml" title="Ubuntu 开启 RDP 远程连接 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2703.html" />
 <link rel="alternate" type="application/atom+xml" title="Ubuntu 开启 RDP 远程连接 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2703.html" />
-<script type="d50ffc510af4bc639a500ff5-text/javascript">
+<meta name="description" content="之前介绍过通过安装 TightVNC vnc server 远程连接 Ubuntu 桌面的教程，Windows 下常用的是 RDP 方式远程，使用体验非常流畅，不占用带宽。Linux 下也可以通..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/2703.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="Ubuntu 开启 RDP 远程连接" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="之前介绍过通过安装 TightVNC vnc server 远程连接 Ubuntu 桌面的教程，Windows 下常用的是 RDP 方式远程，使用体验非常流畅，不占用带宽。Linux 下也可以通..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="25b60dce08b1301da39021d9-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-2703'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-2703'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-2703-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-2703-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -68,86 +107,74 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-2703'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-2703'),
+                holder = this.dom('#respond-post-2703-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="d50ffc510af4bc639a500ff5-text/javascript">
+</script><script type="25b60dce08b1301da39021d9-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-2703'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _n6Ur = '1'//'c1'
-+'ae'//'bS'
-+'f3d'//'J'
-+'Six'//'Six'
-+'4pF'//'4pF'
-+//'hj'
-'hj'+'30'//'C8'
-+'e4'//'qn'
-+''///*'Q'*/'Q'
-+//'A'
-'eb7'+//'5de'
-'5a'+'TA'//'TA'
-+'d'//'O7'
-+'08'//'g4'
-+//'Dp'
-'6a'+'Q'//'Q'
-+'f82'//'7jt'
-+'b'//'alu'
-+//'p'
-'6df'+/* 'Kph'//'Kph' */''+//'G'
-'893'+/* 'W'//'W' */''+//'Y'
-'93', _8rSb4 = [[6,9],[6,9],[6,8],[15,17],[20,21]];
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-2703');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _mDSX = '1a'//'CKb'
++''///*'3'*/'3'
++'e'//'pEm'
++//'h3K'
+'f3'+'d'//'J'
++'30e'//'Nb'
++//'eE'
+'4'+//'caj'
+'e'+//'qy'
+'b75'+//'2'
+'ad0'+//'ymv'
+'86a'+//'WCU'
+'f8'+//'0'
+'2b'+'6df'//'H'
++'f5'//'f5'
++'89'//'D'
++//'5W'
+'39'+''///*'nVm'*/'nVm'
++'3'//'s'
+, _1w7K4G = [[27,29]];
     
-    for (var i = 0; i < _8rSb4.length; i ++) {
-        _n6Ur = _n6Ur.substring(0, _8rSb4[i][0]) + _n6Ur.substring(_8rSb4[i][1]);
+    for (var i = 0; i < _1w7K4G.length; i ++) {
+        _mDSX = _mDSX.substring(0, _1w7K4G[i][0]) + _mDSX.substring(_1w7K4G[i][1]);
     }
 
-    return _n6Ur;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _mDSX;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -157,39 +184,55 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
+</ul>
+</nav>
 </div>
-<a href="../start-page.html">关于我</a> </nav>
 </header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>Ubuntu 开启 RDP 远程连接</h2>
-<div class="post-meta">
-<time class="date">2022-05-23</time>
-<span class="category"><a href="../category/ubuntu/index.html">ubuntu</a></span>
-<span class="comments">0</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 227 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="2703.html" itemprop="url">Ubuntu 开启 RDP 远程连接</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2022-05-23T10:18:00+08:00" itemprop="datePublished">2022-05-23</time></li>
+<li class="feather-folder"><a href="../category/ubuntu/index.html">ubuntu</a></li>
+<li class="feather-message"><a href="2703.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
 <p>之前介绍过通过安装 TightVNC vnc server 远程连接 Ubuntu 桌面的教程，Windows 下常用的是 RDP 方式远程，使用体验非常流畅，不占用带宽。Linux 下也可以通过安装 Xrdp 的方式实现 rdp 连接。</p><p>参考教程：<a href="2281.html">Ubuntu desktop 配置 vnc server</a></p><p>xrdp 是对 Windows rdp 协议的开源实现。</p><h3>安装</h3><p>我的系统是 Ubuntu desktop 20.04，首先需要保证有一个已经安装的桌面环境，desktop 版默认是 genome，也可以安装其他的如 xfce：</p><pre><code>sudo apt install ubuntu-desktop</code></pre><p>安装 xrdp：</p><pre><code>sudo apt install xrdp</code></pre><p>安装完成后，xrdp 会自动启动，可以通过命令查看状态：</p><pre><code>$  sudo systemctl status xrdp
  
 ● xrdp.service - xrdp daemon
@@ -210,74 +253,48 @@ sudo apt install dbus-x11
 
 sudo systemctl set-default graphical
 sudo systemctl isolate graphical</code></pre><p>重启 xrdp 服务：</p><pre><code>sudo systemctl restart xrdp</code></pre><p>此时应该就可以正常通过 rdp 客户端链接 ubuntu 界面了。</p><p>但是我测试发现，第一次登录进去没问题，关闭后过一会儿再次尝试链接发现卡在登录界面没反应了，尝试执行如下命令：</p><pre><code>echo xfce4-session &gt; $HOME/.xsession
-chmod +x .xsession</code></pre><p>发现问题似乎解决了，但是调用的事 xfce 桌面环境。</p><h3>远程登录</h3><p>在局域网下访问比较流畅，但是在外网下发现没法达到 Windows rdp 流畅的效果。解决方法可以是在外网通过 rdp 链接一个局域网下 Windows 设备，然后在 Windows 设备下通过 rdp 链接局域网内的 ubuntu 设备。</p><h3>参考链接</h3><p><a href="https://www.tecmint.com/install-xrdp-on-ubuntu/">How to Install Xrdp on Ubuntu 20.04</a><br><a href="https://github.com/neutrinolabs/xrdp/issues/1795#issuecomment-859471779">Xrdp stuck on login, after password is entered, unblocked if I unlock from the ubuntu rdp server</a><br><a href="https://github.com/neutrinolabs/xrdp/wiki/Debian-dbus-user-session-package">Using the console and XRDP together in Debian / Ubuntu / Mint</a><br><a href="https://github.com/neutrinolabs/xrdp/issues/1412#issuecomment-730311330">XRDP session immediately closes after loggin in</a></p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="2672.html" title="使用曲线匹配颜色 in Photoshop">使用曲线匹配颜色 in Photoshop</a></li>
-<li>下一篇: <a href="2705.html" title="esxi 配置 GPU 显卡直通给虚拟机使用">esxi 配置 GPU 显卡直通给虚拟机使用</a></li>
-</ul>
-</section>
-<section class="post-comments" id="comments">
-<h3>没有评论</h3>
-<div class="comment-form" id="respond-post-2703">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2703.html#respond-post-2703" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-d50ffc510af4bc639a500ff5->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/2703.html/comment" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+chmod +x .xsession</code></pre><p>发现问题似乎解决了，但是调用的事 xfce 桌面环境。</p><h3>远程登录</h3><p>在局域网下访问比较流畅，但是在外网下发现没法达到 Windows rdp 流畅的效果。解决方法可以是在外网通过 rdp 链接一个局域网下 Windows 设备，然后在 Windows 设备下通过 rdp 链接局域网内的 ubuntu 设备。</p><h3>参考链接</h3><p><a href="https://www.tecmint.com/install-xrdp-on-ubuntu/">How to Install Xrdp on Ubuntu 20.04</a><br><a href="https://github.com/neutrinolabs/xrdp/issues/1795#issuecomment-859471779">Xrdp stuck on login, after password is entered, unblocked if I unlock from the ubuntu rdp server</a><br><a href="https://github.com/neutrinolabs/xrdp/wiki/Debian-dbus-user-session-package">Using the console and XRDP together in Debian / Ubuntu / Mint</a><br><a href="https://github.com/neutrinolabs/xrdp/issues/1412#issuecomment-730311330">XRDP session immediately closes after loggin in</a></p> <p itemprop="keywords">标签：无</p>
 </div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="2672.html" title="使用曲线匹配颜色 in Photoshop">使用曲线匹配颜色 in Photoshop</a></li>
+<li class="next"><a href="2705.html" title="esxi 配置 GPU 显卡直通给虚拟机使用">esxi 配置 GPU 显卡直通给虚拟机使用</a></li>
+</ul>
+</nav>
+<div id="comments">
+<div id="respond-post-2703" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="2703.html#respond-post-2703" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-25b60dce08b1301da39021d9->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/2703.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-</section> </div>
+</div>
+</div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="2703.html#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
+</ul>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
 </ul>
 </div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
-</div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="d50ffc510af4bc639a500ff5-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="d50ffc510af4bc639a500ff5-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="d50ffc510af4bc639a500ff5-text/javascript"></script>
-<script type="d50ffc510af4bc639a500ff5-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-d50ffc510af4bc639a500ff5-><i id="ydmc"></i></a></bgm><script data-no-instant type="d50ffc510af4bc639a500ff5-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-25b60dce08b1301da39021d9-><i id="ydmc"></i></a></bgm><script data-no-instant type="25b60dce08b1301da39021d9-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -286,7 +303,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="d50ffc510af4bc639a500ff5-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="d50ffc510af4bc639a500ff5-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="d50ffc510af4bc639a500ff5-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470ab1d2e710cd3',t:'MTcwNTUxNjIxNS45NzcwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470ab1d2e710cd3","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="25b60dce08b1301da39021d9-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="25b60dce08b1301da39021d9-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="25b60dce08b1301da39021d9-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478e8e92d9514ea',t:'MTcwNTYwMjYzMy4yMDcwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478e8e92d9514ea","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

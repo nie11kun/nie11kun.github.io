@@ -1,66 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>openwrt 修改进程 Socket 句柄数 - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="openwrt 修改进程 Socket 句柄数" />
-<meta name="description" content="最近在使用中发现一个软件 log 中出现大量的报错：/core/transport/internet/tcp: failed to accepted raw connections &amp;gt; a..." />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>openwrt 修改进程 Socket 句柄数 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="2572.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="openwrt 修改进程 Socket 句柄数 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2572.html" />
 <link rel="alternate" type="application/rdf+xml" title="openwrt 修改进程 Socket 句柄数 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2572.html" />
 <link rel="alternate" type="application/atom+xml" title="openwrt 修改进程 Socket 句柄数 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2572.html" />
-<script type="0551bae5eb798d5005b3595e-text/javascript">
+<meta name="description" content="最近在使用中发现一个软件 log 中出现大量的报错：/core/transport/internet/tcp: failed to accepted raw connections &amp;gt; a..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/2572.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="openwrt 修改进程 Socket 句柄数" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="最近在使用中发现一个软件 log 中出现大量的报错：/core/transport/internet/tcp: failed to accepted raw connections &amp;gt; a..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="9b159e294e90692cfc63a8b1-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-2572'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-2572'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-2572-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-2572-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -68,89 +107,74 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-2572'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-2572'),
+                holder = this.dom('#respond-post-2572-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="0551bae5eb798d5005b3595e-text/javascript">
+</script><script type="9b159e294e90692cfc63a8b1-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-2572'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _N7G1 = ''///*'2t'*/'2t'
-+//'8d'
-'8d'+'wP'//'wP'
-+'0'//'87h'
-+'eb'//'2'
-+'d'//'z'
-+'4'//'om'
-+//'teV'
-'3'+//'6Jm'
-'d'+//'2'
-'f3'+'aa'//'P'
-+//'W'
-'445'+//'PMe'
-'61'+//'VhT'
-'2'+//'Ei'
-'e5d'+''///*'Y'*/'Y'
-+''///*'RJ'*/'RJ'
-+'5'//'zI'
-+'ef'//'S'
-+'b2'//'c56'
-+//'j'
-'57'+'8c1'//'5HV'
-+'CX'//'CX'
-+'91'//'KKX'
-, _BzyN7eo = [[0,2],[0,2],[30,32]];
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-2572');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _N3ZGkmF = '0'//'YaV'
++//'tcu'
+'ebd'+'43'//'x'
++//'U'
+'df'+'3'//'h8v'
++'a'//'Oq'
++//'XQ'
+'XQ'+/* 'Cqg'//'Cqg' */''+//'0'
+'a'+'4'//'4Ty'
++//'p'
+'4'+'5'//'Hp'
++//'llr'
+'612'+'e5'//'x'
++//'Xf'
+'d5e'+'fb2'//'n'
++//'I'
+'578'+/* 'J7u'//'J7u' */''+//'s33'
+'c19'+//'a01'
+'a01'+'1'//'EC'
+, _vd3dJTm = [[10,12],[31,34]];
     
-    for (var i = 0; i < _BzyN7eo.length; i ++) {
-        _N7G1 = _N7G1.substring(0, _BzyN7eo[i][0]) + _N7G1.substring(_BzyN7eo[i][1]);
+    for (var i = 0; i < _vd3dJTm.length; i ++) {
+        _N3ZGkmF = _N3ZGkmF.substring(0, _vd3dJTm[i][0]) + _N3ZGkmF.substring(_vd3dJTm[i][1]);
     }
 
-    return _N7G1;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _N3ZGkmF;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -160,39 +184,55 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
+</ul>
+</nav>
 </div>
-<a href="../start-page.html">关于我</a> </nav>
 </header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>openwrt 修改进程 Socket 句柄数</h2>
-<div class="post-meta">
-<time class="date">2022-04-03</time>
-<span class="category"><a href="../category/Linux/index.html">Linux</a></span>
-<span class="comments">0</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 655 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="2572.html" itemprop="url">openwrt 修改进程 Socket 句柄数</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2022-04-03T08:50:00+08:00" itemprop="datePublished">2022-04-03</time></li>
+<li class="feather-folder"><a href="../category/Linux/index.html">Linux</a></li>
+<li class="feather-message"><a href="2572.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
 <p>最近在使用中发现一个软件 log 中出现大量的报错：</p><pre><code>/core/transport/internet/tcp: failed to accepted raw connections &gt; accept tcp [::]:18919: accept4: too many open files</code></pre><p>查询后知道这是进程占用的句柄数超出了系统最大值导致的。由于我的系统是 openwrt 所以下面介绍如何修改某个进程的最大句柄数限制。</p><p>首先查询当前系统当前的句柄限制值：</p><pre><code>ulimit -n
 
 1024</code></pre><p>也可以查询当前系统的其他所有限制参数：</p><pre><code>ulimit -a</code></pre><p>返回 1024 表示当前系统每个进程的限制值是 1024。</p><p>然后我们查询下当前系统进程中占用情况：</p><pre><code>lsof -n |awk '{print $2}'|sort|uniq -c |sort -nr|more
@@ -211,74 +251,48 @@
 
 101238</code></pre><p>返回值说明当前系统可以设置最大句柄数为 101238.</p><p>想要修改句柄数需要在对应进程的 procd init script 脚本修改内容，在 start_service 中增加：</p><pre><code>        procd_set_param limits core=&quot;unlimited&quot;
         procd_set_param limits nofile=&quot;101200&quot;
-        procd_set_param limits nproc=&quot;101200&quot;</code></pre><p>limits 参数可以设置系统的一些限制值，openwrt 可用的限制值名称可以在官方文档找到：<a href="https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters">https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters</a></p><p>以上就将系统限制设置为一个较大的值，修改完成后重启这个进程即可。</p><h3>参考链接</h3><p><a href="https://www.cccitu.com/3827.html">Linux命令：TCP连接高并发时Socket句柄数的修改</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters">procd-init-scripts#service_parameters</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-script-example#advanced_options">procd-init-script-example#advanced_options</a><br><a href="2277.html">openwrt procd init script 自启动脚本服务</a></p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="2570.html" title="iptables 配置透明代理注意事项">iptables 配置透明代理注意事项</a></li>
-<li>下一篇: <a href="2576.html" title="快速皮肤修复 in Photoshop">快速皮肤修复 in Photoshop</a></li>
-</ul>
-</section>
-<section class="post-comments" id="comments">
-<h3>没有评论</h3>
-<div class="comment-form" id="respond-post-2572">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2572.html#respond-post-2572" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-0551bae5eb798d5005b3595e->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/2572.html/comment" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+        procd_set_param limits nproc=&quot;101200&quot;</code></pre><p>limits 参数可以设置系统的一些限制值，openwrt 可用的限制值名称可以在官方文档找到：<a href="https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters">https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters</a></p><p>以上就将系统限制设置为一个较大的值，修改完成后重启这个进程即可。</p><h3>参考链接</h3><p><a href="https://www.cccitu.com/3827.html">Linux命令：TCP连接高并发时Socket句柄数的修改</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-scripts#service_parameters">procd-init-scripts#service_parameters</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-script-example#advanced_options">procd-init-script-example#advanced_options</a><br><a href="2277.html">openwrt procd init script 自启动脚本服务</a></p> <p itemprop="keywords">标签：无</p>
 </div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="2570.html" title="iptables 配置透明代理注意事项">iptables 配置透明代理注意事项</a></li>
+<li class="next"><a href="2576.html" title="快速皮肤修复 in Photoshop">快速皮肤修复 in Photoshop</a></li>
+</ul>
+</nav>
+<div id="comments">
+<div id="respond-post-2572" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="2572.html#respond-post-2572" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-9b159e294e90692cfc63a8b1->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/2572.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-</section> </div>
+</div>
+</div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="2572.html#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
+</ul>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
 </ul>
 </div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
-</div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="0551bae5eb798d5005b3595e-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="0551bae5eb798d5005b3595e-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="0551bae5eb798d5005b3595e-text/javascript"></script>
-<script type="0551bae5eb798d5005b3595e-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-0551bae5eb798d5005b3595e-><i id="ydmc"></i></a></bgm><script data-no-instant type="0551bae5eb798d5005b3595e-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-9b159e294e90692cfc63a8b1-><i id="ydmc"></i></a></bgm><script data-no-instant type="9b159e294e90692cfc63a8b1-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -287,7 +301,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="0551bae5eb798d5005b3595e-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="0551bae5eb798d5005b3595e-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="0551bae5eb798d5005b3595e-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470abd8bd480cd3',t:'MTcwNTUxNjI0NS45ODYwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470abd8bd480cd3","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="9b159e294e90692cfc63a8b1-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="9b159e294e90692cfc63a8b1-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="9b159e294e90692cfc63a8b1-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478e8ea7f7814ea',t:'MTcwNTYwMjYzMy40MDAwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478e8ea7f7814ea","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

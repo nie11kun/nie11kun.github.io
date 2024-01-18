@@ -1,66 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>子网-子网掩码-子网地址的含义解析 - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="子网-子网掩码-子网地址的含义解析" />
-<meta name="description" content="互联网设备之间是通过分配给每台主机的 IP 地址实现访问的，当前是以 32 位 IPv4 地址作为标准。为了便于使用，每 8 位用点.来隔开，习惯使用十进制形式表示，如：192.168.88.3..." />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>子网-子网掩码-子网地址的含义解析 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="1885.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="子网-子网掩码-子网地址的含义解析 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1885.html" />
 <link rel="alternate" type="application/rdf+xml" title="子网-子网掩码-子网地址的含义解析 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1885.html" />
 <link rel="alternate" type="application/atom+xml" title="子网-子网掩码-子网地址的含义解析 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1885.html" />
-<script type="6e5717486f1749d50e453be3-text/javascript">
+<meta name="description" content="互联网设备之间是通过分配给每台主机的 IP 地址实现访问的，当前是以 32 位 IPv4 地址作为标准。为了便于使用，每 8 位用点.来隔开，习惯使用十进制形式表示，如：192.168.88.3..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/1885.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="子网-子网掩码-子网地址的含义解析" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="互联网设备之间是通过分配给每台主机的 IP 地址实现访问的，当前是以 32 位 IPv4 地址作为标准。为了便于使用，每 8 位用点.来隔开，习惯使用十进制形式表示，如：192.168.88.3..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="15b880e5abde8060df34841b-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-1885'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-1885'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-1885-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-1885-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -68,83 +107,75 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-1885'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-1885'),
+                holder = this.dom('#respond-post-1885-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="6e5717486f1749d50e453be3-text/javascript">
+</script><script type="15b880e5abde8060df34841b-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-1885'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _FTn4x = //'FnE'
-'c'+//'civ'
-'3d5'+//'Mo'
-'f'+//'b'
-'e36'+'e7a'//'Fwz'
-+//'y'
-'5'+'c2'//'s'
-+//'lAJ'
-'lAJ'+//'Xrm'
-'63d'+//'WJq'
-'9c'+'f48'//'dhP'
-+'7'//'i8'
-+'f7'//'tJB'
-+'14'//'59u'
-+//'j'
-'6'+//'Kve'
-'Kve'+'a91'//'hp'
-+'7'//'RCY'
-, _ndmT0fg = [[14,17],[28,31]];
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-1885');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _ejzpz = //'V1'
+'c3'+''///*'tcJ'*/'tcJ'
++//'Xq'
+'Xq'+/* 'SXI'//'SXI' */''+//'Cvw'
+'d5'+'fe3'//'LF'
++'6'//'X'
++'e'//'Lw'
++'7a'//'q'
++'5c'//'ANo'
++//'Re'
+'263'+'d'//'lei'
++'E'//'E'
++/* 'u8'//'u8' */''+'9'//'5'
++'cf4'//'l'
++//'E'
+'8'+'7f7'//'Vwu'
++//'TH'
+'1'+//'P'
+'46a'+//'GBH'
+'91'+'7'//'0Rq'
+, _qoP0P3 = [[2,4],[17,18]];
     
-    for (var i = 0; i < _ndmT0fg.length; i ++) {
-        _FTn4x = _FTn4x.substring(0, _ndmT0fg[i][0]) + _FTn4x.substring(_ndmT0fg[i][1]);
+    for (var i = 0; i < _qoP0P3.length; i ++) {
+        _ejzpz = _ejzpz.substring(0, _qoP0P3[i][0]) + _ejzpz.substring(_qoP0P3[i][1]);
     }
 
-    return _FTn4x;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _ejzpz;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -154,39 +185,55 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
+</ul>
+</nav>
 </div>
-<a href="../start-page.html">关于我</a> </nav>
 </header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>子网-子网掩码-子网地址的含义解析</h2>
-<div class="post-meta">
-<time class="date">2020-10-27</time>
-<span class="category"><a href="../category/web/index.html">web</a></span>
-<span class="comments">1</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 1176 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="1885.html" itemprop="url">子网-子网掩码-子网地址的含义解析</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-10-27T22:32:00+08:00" itemprop="datePublished">2020-10-27</time></li>
+<li class="feather-folder"><a href="../category/web/index.html">web</a></li>
+<li class="feather-message"><a href="1885.html#comments" itemprop="discussionUrl">1 条评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
 <p>互联网设备之间是通过分配给每台主机的 IP 地址实现访问的，当前是以 32 位 IPv4 地址作为标准。为了便于使用，每 8 位用点<code>.</code>来隔开，习惯使用十进制形式表示，如：192.168.88.3</p><pre><code>Decimal  192         168         88           3
 Binary   11000000    10101000    01011000     00000011</code></pre><p>理论上可以分配 2 的 32 次方个 IP 地址。</p><h3>子网</h3><p>IP 地址可以划分为多个子集，也就是子网。比如一个路由器上连接的设备就在一个子网系统下，每个设备分配的 IP 地址就是子网网段内的地址。</p><p>子网的优势是设备间的访问更加直接，内部设备不需要连接子网以外的网络就可以实现内部互通。管理员对子网内的维护也更加方便，不会影响子网外的网络。</p><p>子网的 IP 段是一个连续的区间，如：192.168.1.0～192.168.1.255，在这个子网内的主机分配的 IP 地址最后一段就在 0～255 之间，其中第一个 192.168.0.0 是子网地址，最后一个 192.168.1.255 是广播地址，这两个地址是默认占用的，不能分配给主机使用。</p><h3>子网掩码</h3><p>子网掩码是为了能更加方便清晰的表达子网网段范围而被使用的。</p><p>一个典型的子网掩码格式：<code>255.255.255.128</code>，写成二进制如下：<code>11111111.11111111.11111111.10000000</code></p><p>如果子网内的一个主机 IP 地址为：192.168.88.3，我们和子网掩码按位进行<code>与</code>操作：</p><pre><code>192.168.88.3     11000000    10101000    01011000    00000011
 255.255.255.128  11111111    11111111    11111111    10000000
@@ -199,87 +246,67 @@ Binary   11000000    10101000    01011000     00000011</code></pre><p>理论上�
 11111000    248
 11111100    252
 11111110    254
-11111111    255</code></pre><p>以上就是子网系统的简单介绍。</p><h3>参考连接</h3><p><a href="https://www.ionos.com/digitalguide/server/know-how/subnetting-how-do-subnets-work/">Use subnetting to get the most out of your network</a><br><a href="https://www.ionos.com/digitalguide/server/know-how/broadcast-address/">What is a broadcast address and how does it work?</a><br><a href="https://blog.csdn.net/lihchweb/article/details/81226452">IP地址，子网掩码计算子网地址，广播地址，子网划分</a></p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="1872.html" title="通过 dnsmasq  ipset 和 iptables 对域名流量的控制">通过 dnsmasq ipset 和 iptables 对域名流量的控制</a></li>
-<li>下一篇: <a href="1893.html" title="VMware 虚拟机磁盘文件合并">VMware 虚拟机磁盘文件合并</a></li>
-</ul>
-</section>
-<section class="post-comments" id="comments">
-<h3>只有一条评论 (QwQ)</h3>
-<div class="comment-form" id="respond-post-1885">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1885.html#respond-post-1885" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-6e5717486f1749d50e453be3->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/1885.html/comment" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+11111111    255</code></pre><p>以上就是子网系统的简单介绍。</p><h3>参考连接</h3><p><a href="https://www.ionos.com/digitalguide/server/know-how/subnetting-how-do-subnets-work/">Use subnetting to get the most out of your network</a><br><a href="https://www.ionos.com/digitalguide/server/know-how/broadcast-address/">What is a broadcast address and how does it work?</a><br><a href="https://blog.csdn.net/lihchweb/article/details/81226452">IP地址，子网掩码计算子网地址，广播地址，子网划分</a></p> <p itemprop="keywords">标签：无</p>
 </div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="1872.html" title="通过 dnsmasq  ipset 和 iptables 对域名流量的控制">通过 dnsmasq ipset 和 iptables 对域名流量的控制</a></li>
+<li class="next"><a href="1893.html" title="VMware 虚拟机磁盘文件合并">VMware 虚拟机磁盘文件合并</a></li>
+</ul>
+</nav>
+<div id="comments">
+<h2 class="text-center">1 条评论</h2>
+<ol class="comment-list"> <li itemscope itemtype="http://schema.org/UserComments" id="comment-23" class="comment-body comment-parent comment-odd">
+<div class="comment-author" itemprop="creator" itemscope itemtype="http://schema.org/Person">
+<span itemprop="image">
+<img class="avatar" loading="lazy" src="https://secure.gravatar.com/avatar/bd9d424c6030a1fd023ef27802d3a615?s=64&amp;r=G&amp;d=identicon" alt="ahxinny" width="64" height="64" /> </span>
+<cite class="fn" itemprop="name">ahxinny</cite>
+</div>
+<div class="comment-meta">
+<a href="1885.html#comment-23">
+<time itemprop="commentTime" datetime="2020-11-13T11:40:11+08:00">November 13th, 2020 at 11:40 am</time>
+</a>
+</div>
+<div class="comment-content" itemprop="commentText">
+<p>学习了。哈哈哈！</p> </div>
+<div class="comment-reply">
+<a href="1885.html?replyTo=23#respond-post-1885" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-23', 23, this);" data-cf-modified-15b880e5abde8060df34841b->回复</a> </div>
+</li>
+</ol>
+<nav></nav>
+<div id="respond-post-1885" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="1885.html#respond-post-1885" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-15b880e5abde8060df34841b->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/1885.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-<div class="comment-list">
-<div class="comment-single" id="comment-23">
-<img class="avatar" src="https://q.qlogo.cn/g?b=qq&nk=1256781518&s=100" alt /> <div class="comment-meta">
-<span class="comment-author">ahxinny</span>
-<time class="comment-time">2020.11.13</time>
-<span class="comment-reply"><a href="1885.html?replyTo=23#respond-post-1885" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-23', 23);" data-cf-modified-6e5717486f1749d50e453be3-><i class="fa fa-reply" title="回复"></i></a></span>
-</div>
-<div class="comment-content">
-<p>
-学习了。哈哈哈！ </p>
 </div>
 </div>
-</div>
-</section> </div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="1885.html#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
+</ul>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
 </ul>
 </div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
-</div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="6e5717486f1749d50e453be3-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="6e5717486f1749d50e453be3-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="6e5717486f1749d50e453be3-text/javascript"></script>
-<script type="6e5717486f1749d50e453be3-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-6e5717486f1749d50e453be3-><i id="ydmc"></i></a></bgm><script data-no-instant type="6e5717486f1749d50e453be3-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-15b880e5abde8060df34841b-><i id="ydmc"></i></a></bgm><script data-no-instant type="15b880e5abde8060df34841b-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -288,7 +315,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="6e5717486f1749d50e453be3-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="6e5717486f1749d50e453be3-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="6e5717486f1749d50e453be3-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470add3a8470ffc',t:'MTcwNTUxNjMyNy4wOTIwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470add3a8470ffc","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="15b880e5abde8060df34841b-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="15b880e5abde8060df34841b-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="15b880e5abde8060df34841b-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478e9574eb60fb8',t:'MTcwNTYwMjY1MC44MTEwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478e9574eb60fb8","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

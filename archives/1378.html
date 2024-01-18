@@ -1,66 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>NGINX Reverse Proxy 反向代理的使用 - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="NGINX Reverse Proxy 反向代理的使用" />
-<meta name="description" content="Proxying is typically used to distribute the load among several servers, seamlessly show content ..." />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NGINX Reverse Proxy 反向代理的使用 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="1378.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="NGINX Reverse Proxy 反向代理的使用 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1378.html" />
 <link rel="alternate" type="application/rdf+xml" title="NGINX Reverse Proxy 反向代理的使用 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1378.html" />
 <link rel="alternate" type="application/atom+xml" title="NGINX Reverse Proxy 反向代理的使用 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1378.html" />
-<script type="5468a9f71d77bfe4b7ca864f-text/javascript">
+<meta name="description" content="Proxying is typically used to distribute the load among several servers, seamlessly show content ..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/1378.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="NGINX Reverse Proxy 反向代理的使用" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="Proxying is typically used to distribute the load among several servers, seamlessly show content ..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="f14e2295f9d185587c6411a9-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-1378'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-1378'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-1378-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-1378-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -68,91 +107,74 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-1378'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-1378'),
+                holder = this.dom('#respond-post-1378-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="5468a9f71d77bfe4b7ca864f-text/javascript">
+</script><script type="f14e2295f9d185587c6411a9-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-1378'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _UnFqB = /* 'ia'//'ia' */''+//'7F'
-'801'+'d'//'s'
-+//'6'
-'0'+''///*'y8O'*/'y8O'
-+//'S'
-'S'+''///*'vq'*/'vq'
-+'a08'//'j'
-+//'1U'
-'022'+'6'//'n'
-+//'Q'
-'Q'+'00'//'esE'
-+//'x'
-'x'+//'i'
-'b0'+'5'//'hu'
-+'Y'//'Y'
-+'7c'//'31M'
-+'5'//'Z'
-+'ab'//'Tv1'
-+//'yYL'
-'6'+//'aB'
-'aB'+'1db'//'phh'
-+//'k9'
-'f2'+'99'//'nP'
-+'Uh'//'Uh'
-+''///*'NV'*/'NV'
-+//'zEM'
-'3f', _AZlO = [[5,6],[12,13],[14,15],[17,18],[23,25],[30,32]];
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-1378');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _EWfOW5 = '801'//'i'
++//'GQ'
+'d0'+'a0'//'2'
++'80'//'6'
++//'bed'
+'22'+'60'//'rb'
++//'Fy8'
+'Fy8'+''///*'Y'*/'Y'
++''///*'k'*/'k'
++/* 'h'//'h' */''+'0'//'UfY'
++'75'//'75'
++'b05'//'Li'
++//'i'
+'7c'+'5ab'//'b'
++//'Vj'
+'6'+//'hk'
+'1d'+'bf2'//'h'
++'9'//'2x'
++'93f'//'zgh'
+, _MmNMtwk = [[13,16],[14,16]];
     
-    for (var i = 0; i < _AZlO.length; i ++) {
-        _UnFqB = _UnFqB.substring(0, _AZlO[i][0]) + _UnFqB.substring(_AZlO[i][1]);
+    for (var i = 0; i < _MmNMtwk.length; i ++) {
+        _EWfOW5 = _EWfOW5.substring(0, _MmNMtwk[i][0]) + _EWfOW5.substring(_MmNMtwk[i][1]);
     }
 
-    return _UnFqB;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _EWfOW5;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -162,39 +184,55 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
+</ul>
+</nav>
 </div>
-<a href="../start-page.html">关于我</a> </nav>
 </header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>NGINX Reverse Proxy 反向代理的使用</h2>
-<div class="post-meta">
-<time class="date">2020-03-30</time>
-<span class="category"><a href="../category/Linux/index.html">Linux</a>，<a href="../category/web/index.html">web</a>，<a href="../category/software/index.html">software</a></span>
-<span class="comments">0</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 1388 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="1378.html" itemprop="url">NGINX Reverse Proxy 反向代理的使用</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-03-30T11:05:00+08:00" itemprop="datePublished">2020-03-30</time></li>
+<li class="feather-folder"><a href="../category/Linux/index.html">Linux</a>, <a href="../category/web/index.html">web</a>, <a href="../category/software/index.html">software</a></li>
+<li class="feather-message"><a href="1378.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
 <blockquote>Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.</blockquote><p>nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有： <strong> HTTP，FastCGI, uwsgi, SCGI, and memcached。</strong></p><p>不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：<a href="195.html">https://blog.niekun.net/archives/195.html</a></p><p>下面介绍 ngx_http_proxy_module 模块的使用方式。</p><h3>语法</h3><p>proxy_pass 指令将请求转发到其他代理服务器。</p><p>转发一个 http 请求到另一个地址：</p><pre><code>location /some/path/ {
     proxy_pass http://www.example.com/link/;
 }</code></pre><p>以上示例将访问 location 段的请求转发到特定地址，这里有几个规则需要注意：</p><p>1.代理地址如果不写明 location 段，则转发请求 location 到新的地址：</p><pre><code>location /some/path/ {
@@ -323,74 +361,48 @@ http{
     fastcgi_param HTTP_X-REAL-IP $remote_addr;
     fastcgi_param HTTP_X-FORWARED-FOR $proxy_add_x_forwarded_for;
     fastcgi_param HOST $http_host;
-}</code></pre><ul><li>$fastcgi_split_path_info 用来将 请求 url 拆分成两部分：php 文件之前的 $fastcgi_script_name 和之后的部分：$fastcgi_path_info</li><li>fastcgi_pass 定义真正的用来处理 FastCGI 代理的服务，一般默认地址为：127.0.0.1:9000，可自定义指定为特定版本的php</li><li>fastcgi_param 定义 FastCGI 参数</li><li>fastcgi_params 一般在 nginx 配置目录下，包含了常用的 php 需要设定的参数。</li></ul><p>总结下和 http 语法区别：</p><ul><li>fastcgi_pass 类似于 proxy_pass</li><li>fastcgi_param 类似于 proxy_set_header，注意 fastcgi_param 添加 http 请求头信息要加上 <code>HTTP_</code> 前缀，如：<code>HTTP_X-FORWARED-FOR</code></li></ul><p>关于 FastCGI 的详细分析参考：<a href="https://www.digitalocean.com/community/tutorials/understanding-and-implementing-fastcgi-proxying-in-nginx">Understanding and Implementing FastCGI Proxying in Nginx</a></p><h3>uWSGI web 服务器</h3><p>uWSGI 是一个独立的 web 服务器，和 nginx 是一个类型的应用。一般 uWSGI 作为后端服务器使用，用 nginx 代理来访问。</p><p>uWSGI 可以用来部署 python 应用。之前我学习 django 的时候就使用过这个。</p><p>未完待续。。。</p><h3>参考链接</h3><p><a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html">ngx_http_proxy_module 模块所有指令</a><br><a href="https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/">NGINX Reverse Proxy</a><br><a href="https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/">HTTP Load Balancing</a><br><a href="https://docs.nginx.com/nginx/admin-guide/security-controls/securing-http-traffic-upstream/">Securing HTTP Traffic to Upstream Servers</a><br><a href="https://pengpengxp.github.io/archive/before-2018-11-10/2017-06-27-%E4%BD%BF%E7%94%A8nginx%E7%9A%84proxy_bind%E9%80%89%E9%A1%B9%E9%85%8D%E7%BD%AE%E9%80%8F%E6%98%8E%E7%9A%84%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86.html">使用nginx的proxy_bind选项配置透明的反向代理</a><br><a href="https://serversforhackers.com/c/nginx-mapping-headers">Mapping Headers in Nginx</a><br><a href="https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass">ngx_http_fastcgi_module 模块所有指令</a><br>[]()</p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="1455.html" title="进阶锐化控制 in Photoshop">进阶锐化控制 in Photoshop</a></li>
-<li>下一篇: <a href="1489.html" title="使用 echo 模块输出 nginx 变量">使用 echo 模块输出 nginx 变量</a></li>
-</ul>
-</section>
-<section class="post-comments" id="comments">
-<h3>没有评论</h3>
-<div class="comment-form" id="respond-post-1378">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1378.html#respond-post-1378" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-5468a9f71d77bfe4b7ca864f->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/1378.html/comment" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+}</code></pre><ul><li>$fastcgi_split_path_info 用来将 请求 url 拆分成两部分：php 文件之前的 $fastcgi_script_name 和之后的部分：$fastcgi_path_info</li><li>fastcgi_pass 定义真正的用来处理 FastCGI 代理的服务，一般默认地址为：127.0.0.1:9000，可自定义指定为特定版本的php</li><li>fastcgi_param 定义 FastCGI 参数</li><li>fastcgi_params 一般在 nginx 配置目录下，包含了常用的 php 需要设定的参数。</li></ul><p>总结下和 http 语法区别：</p><ul><li>fastcgi_pass 类似于 proxy_pass</li><li>fastcgi_param 类似于 proxy_set_header，注意 fastcgi_param 添加 http 请求头信息要加上 <code>HTTP_</code> 前缀，如：<code>HTTP_X-FORWARED-FOR</code></li></ul><p>关于 FastCGI 的详细分析参考：<a href="https://www.digitalocean.com/community/tutorials/understanding-and-implementing-fastcgi-proxying-in-nginx">Understanding and Implementing FastCGI Proxying in Nginx</a></p><h3>uWSGI web 服务器</h3><p>uWSGI 是一个独立的 web 服务器，和 nginx 是一个类型的应用。一般 uWSGI 作为后端服务器使用，用 nginx 代理来访问。</p><p>uWSGI 可以用来部署 python 应用。之前我学习 django 的时候就使用过这个。</p><p>未完待续。。。</p><h3>参考链接</h3><p><a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html">ngx_http_proxy_module 模块所有指令</a><br><a href="https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/">NGINX Reverse Proxy</a><br><a href="https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/">HTTP Load Balancing</a><br><a href="https://docs.nginx.com/nginx/admin-guide/security-controls/securing-http-traffic-upstream/">Securing HTTP Traffic to Upstream Servers</a><br><a href="https://pengpengxp.github.io/archive/before-2018-11-10/2017-06-27-%E4%BD%BF%E7%94%A8nginx%E7%9A%84proxy_bind%E9%80%89%E9%A1%B9%E9%85%8D%E7%BD%AE%E9%80%8F%E6%98%8E%E7%9A%84%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86.html">使用nginx的proxy_bind选项配置透明的反向代理</a><br><a href="https://serversforhackers.com/c/nginx-mapping-headers">Mapping Headers in Nginx</a><br><a href="https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass">ngx_http_fastcgi_module 模块所有指令</a><br>[]()</p> <p itemprop="keywords">标签：无</p>
 </div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="1455.html" title="进阶锐化控制 in Photoshop">进阶锐化控制 in Photoshop</a></li>
+<li class="next"><a href="1489.html" title="使用 echo 模块输出 nginx 变量">使用 echo 模块输出 nginx 变量</a></li>
+</ul>
+</nav>
+<div id="comments">
+<div id="respond-post-1378" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="1378.html#respond-post-1378" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-f14e2295f9d185587c6411a9->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/1378.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-</section> </div>
+</div>
+</div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="1378.html#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
+</ul>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
 </ul>
 </div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
-</div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="5468a9f71d77bfe4b7ca864f-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="5468a9f71d77bfe4b7ca864f-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="5468a9f71d77bfe4b7ca864f-text/javascript"></script>
-<script type="5468a9f71d77bfe4b7ca864f-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-5468a9f71d77bfe4b7ca864f-><i id="ydmc"></i></a></bgm><script data-no-instant type="5468a9f71d77bfe4b7ca864f-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-f14e2295f9d185587c6411a9-><i id="ydmc"></i></a></bgm><script data-no-instant type="f14e2295f9d185587c6411a9-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -399,7 +411,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="5468a9f71d77bfe4b7ca864f-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="5468a9f71d77bfe4b7ca864f-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="5468a9f71d77bfe4b7ca864f-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470ace919410ffc',t:'MTcwNTUxNjI4OS41NzEwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470ace919410ffc","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="f14e2295f9d185587c6411a9-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="f14e2295f9d185587c6411a9-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="f14e2295f9d185587c6411a9-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478e88ade9c14ea',t:'MTcwNTYwMjYxOC4xMDYwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478e88ade9c14ea","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

@@ -1,66 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>JavaScript 入门教程之一 -- 总览 - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="JavaScript 入门教程之一 -- 总览" />
-<meta name="description" content="JavaScript（通常缩写为JS）是一种高级的、解释型的编程语言。JavaScript是一门基于原型、函数先行的语言，是一门多范式的语言，它支持面向对象程序设计，命令式编程，以及函数式编程。..." />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript 入门教程之一 -- 总览 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="1979.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="JavaScript 入门教程之一 -- 总览 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1979.html" />
 <link rel="alternate" type="application/rdf+xml" title="JavaScript 入门教程之一 -- 总览 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1979.html" />
 <link rel="alternate" type="application/atom+xml" title="JavaScript 入门教程之一 -- 总览 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1979.html" />
-<script type="4f84f2ed0b0b9150a2ff0f97-text/javascript">
+<meta name="description" content="JavaScript（通常缩写为JS）是一种高级的、解释型的编程语言。JavaScript是一门基于原型、函数先行的语言，是一门多范式的语言，它支持面向对象程序设计，命令式编程，以及函数式编程。..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/1979.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="JavaScript 入门教程之一 -- 总览" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="JavaScript（通常缩写为JS）是一种高级的、解释型的编程语言。JavaScript是一门基于原型、函数先行的语言，是一门多范式的语言，它支持面向对象程序设计，命令式编程，以及函数式编程。..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="8dab49cce02fd07b27c6c8ca-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-1979'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-1979'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-1979-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-1979-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -68,84 +107,81 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-1979'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-1979'),
+                holder = this.dom('#respond-post-1979-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="4f84f2ed0b0b9150a2ff0f97-text/javascript">
+</script><script type="8dab49cce02fd07b27c6c8ca-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-1979'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _PK2cvr6 = //'ju'
-'0'+//'Ds'
-'de5'+/* 'ii'//'ii' */''+'0'//'hjL'
-+'c'//'5K'
-+//'QJl'
-'QJl'+'9c'//'8'
-+//'6P'
-'5af'+//'Oj'
-'d'+'GCI'//'GCI'
-+'6'//'4'
-+'e'//'0BO'
-+//'o8P'
-'a'+'3b7'//'5'
-+//'55'
-'ea'+'395'//'28'
-+//'rd'
-'3f0'+//'X'
-'6'+'0c9'//'BJa'
-+//'Pf'
-'d5', _LGQIN = [[6,9],[12,15]];
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-1979');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _18ZG = //'2'
+'0de'+'50'//'1c'
++//'J'
+'c9'+//'kX'
+'c5a'+/* 'JzM'//'JzM' */''+//'0'
+'f'+//'Eij'
+'d'+/* 'hD'//'hD' */''+/* 'K'//'K' */''+//'LTX'
+'LTX'+'6ea'//'p'
++//'sO0'
+'3b'+'7e'//'kP'
++'a3'//'k'
++//'PC'
+'9'+//'B'
+'5'+//'ett'
+'3'+'f'//'yDp'
++''///*'1J'*/'1J'
++'060'//'Z'
++//'2'
+'c9d'+/* 'Nj4'//'Nj4' */''+'XW9'//'XW9'
++''///*'t'*/'t'
++/* 'c'//'c' */''+'JeC'//'JeC'
++'s'//'s'
++/* 'do'//'do' */''+'e'//'e'
++'EW'//'EW'
++/* 'bJi'//'bJi' */''+'Lr'//'Lr'
++'5'//'dB0'
+, _ZDYFLOl = [[12,15],[31,34],[31,34],[31,32],[31,32],[31,33],[31,33]];
     
-    for (var i = 0; i < _LGQIN.length; i ++) {
-        _PK2cvr6 = _PK2cvr6.substring(0, _LGQIN[i][0]) + _PK2cvr6.substring(_LGQIN[i][1]);
+    for (var i = 0; i < _ZDYFLOl.length; i ++) {
+        _18ZG = _18ZG.substring(0, _ZDYFLOl[i][0]) + _18ZG.substring(_ZDYFLOl[i][1]);
     }
 
-    return _PK2cvr6;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _18ZG;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -155,39 +191,55 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
+</ul>
+</nav>
 </div>
-<a href="../start-page.html">关于我</a> </nav>
 </header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>JavaScript 入门教程之一 -- 总览</h2>
-<div class="post-meta">
-<time class="date">2020-12-17</time>
-<span class="category"><a href="../category/js/index.html">javascript</a></span>
-<span class="comments">0</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 1127 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="1979.html" itemprop="url">JavaScript 入门教程之一 -- 总览</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-12-17T10:31:00+08:00" itemprop="datePublished">2020-12-17</time></li>
+<li class="feather-folder"><a href="../category/js/index.html">javascript</a></li>
+<li class="feather-message"><a href="1979.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
 <blockquote>JavaScript（通常缩写为JS）是一种高级的、解释型的编程语言。JavaScript是一门基于原型、函数先行的语言，是一门多范式的语言，它支持面向对象程序设计，命令式编程，以及函数式编程。最初命名为 Mocha，1995年9月在 Netscape Navigator 2.0 的 Beta 版中改名为 LiveScript，同年12月，Netscape Navigator 2.0 Beta 3 中部署时被重命名为 JavaScript，当时网景公司与昇阳电脑公司组成的开发联盟为了让这门语言搭上 Java 这个编程语言“热词”，因此将其临时改名为 JavaScript，日后这成为大众对这门语言有诸多误解的原因之一。</blockquote><p>不同于服务器端脚本语言，例如 PHP 与 ASP，JavaScript 主要被作为客户端脚本语言在用户的浏览器上运行，不需要服务器的支持。所以在早期程序员比较青睐于 JavaScript 以减少对服务器的负担，而与此同时也带来另一个问题：安全性。而随着服务器变得强大，现在的程序员更喜欢运行于服务端的脚本以保证安全，但 JavaScript 仍然以其跨平台、容易上手等优势大行其道。同时，有些特殊功能（如AJAX）必须依赖 JavaScript 在客户端进行支持。随着引擎如 V8 和框架如 Node.js 的发展，及其事件驱动及异步 IO 等特性，JavaScript 逐渐被用来编写服务器端程序。且在近几年中，Node.js 的出世，让 JavaScript 也具有了一定的服务器功能。</p><h3>我们的第一个 JavaScript</h3><p>我们首先来了解一些基本概念，给 web 网页加上 JavaScript。</p><p>在 web 上，JavaScript 位于 HTML document 内，可以在任意位置。js 内容使用 <code>&lt;script&gt;</code> 和 <code>&lt;/script&gt;</code> 包围起来：</p><pre><code>&lt;script&gt;
    ...
 &lt;/script&gt;</code></pre><p>让我们使用 JavaScript 在网页上打印出一个 <strong>Hello World</strong>，新建一个 html 文件，内容如下：</p><pre><code>&lt;!DOCTYPE html&gt;
@@ -221,74 +273,48 @@ var b = 1.1;</code></pre><p>变量分配的数据类型可以任意修改，例�
 </code></pre><h4>string</h4><p>使用 string 可以来存储及操作文本信息。使用引号来包裹内容，单引号<code>'</code> 或双引号<code>&quot;</code> 都可以：</p><pre><code>var a = 'marco';
 var b = &quot;john&quot;;</code></pre><p>如果要在 string 内部使用也引号，可以通过内外使用不同的单双引号来实现，js 会自动区分：</p><pre><code>var a = &quot;this is a 'test'&quot;;
 </code></pre><p>如果内外想要使用同一个引号形式可以在内部使用转义符 <code>\</code> 来实现：</p><pre><code>a = &quot;this \&quot;is\&quot; a \&quot;other\&quot; test&quot;;
-</code></pre><p>转义符可以将特殊字符作为普通字符使用，也可以实现特殊功能，一些列表是常用的转码：<br><img src="../usr/uploads/2020/12/3151408178.png" alt="3.png" title="3.png"></p><p><strong>注意字符串的包裹分号需要前后统一，起始用了单引号结尾也必须使用单引号，否则会报错。</strong></p><h3>Boolean</h3><p>Boolean 只有两种结果：true 和 false。</p><p>如果你需要一种只有两种可能的结果的数据类型，就可以使用 Boolean：</p><pre><code>var isActive = true;</code></pre><p>注意 Boolean 类型的值如果是：0 (zero), null, undefined, empty string 则都是 false，其他如果有一个真实数据的都为 true。</p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="1977.html" title="brew 安装路径">brew 安装路径</a></li>
-<li>下一篇: <a href="1985.html" title="JavaScript 入门教程之二 -- 基本概念">JavaScript 入门教程之二 -- 基本概念</a></li>
-</ul>
-</section>
-<section class="post-comments" id="comments">
-<h3>没有评论</h3>
-<div class="comment-form" id="respond-post-1979">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1979.html#respond-post-1979" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-4f84f2ed0b0b9150a2ff0f97->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/1979.html/comment" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+</code></pre><p>转义符可以将特殊字符作为普通字符使用，也可以实现特殊功能，一些列表是常用的转码：<br><img src="../usr/uploads/2020/12/3151408178.png" alt="3.png" title="3.png"></p><p><strong>注意字符串的包裹分号需要前后统一，起始用了单引号结尾也必须使用单引号，否则会报错。</strong></p><h3>Boolean</h3><p>Boolean 只有两种结果：true 和 false。</p><p>如果你需要一种只有两种可能的结果的数据类型，就可以使用 Boolean：</p><pre><code>var isActive = true;</code></pre><p>注意 Boolean 类型的值如果是：0 (zero), null, undefined, empty string 则都是 false，其他如果有一个真实数据的都为 true。</p> <p itemprop="keywords">标签：无</p>
 </div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="1977.html" title="brew 安装路径">brew 安装路径</a></li>
+<li class="next"><a href="1985.html" title="JavaScript 入门教程之二 -- 基本概念">JavaScript 入门教程之二 -- 基本概念</a></li>
+</ul>
+</nav>
+<div id="comments">
+<div id="respond-post-1979" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="1979.html#respond-post-1979" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-8dab49cce02fd07b27c6c8ca->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/1979.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-</section> </div>
+</div>
+</div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="1979.html#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
+</ul>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
 </ul>
 </div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
-</div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="4f84f2ed0b0b9150a2ff0f97-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="4f84f2ed0b0b9150a2ff0f97-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="4f84f2ed0b0b9150a2ff0f97-text/javascript"></script>
-<script type="4f84f2ed0b0b9150a2ff0f97-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-4f84f2ed0b0b9150a2ff0f97-><i id="ydmc"></i></a></bgm><script data-no-instant type="4f84f2ed0b0b9150a2ff0f97-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-8dab49cce02fd07b27c6c8ca-><i id="ydmc"></i></a></bgm><script data-no-instant type="8dab49cce02fd07b27c6c8ca-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -297,7 +323,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="4f84f2ed0b0b9150a2ff0f97-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="4f84f2ed0b0b9150a2ff0f97-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="4f84f2ed0b0b9150a2ff0f97-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470acce3d960cd3',t:'MTcwNTUxNjI4NS4yNjcwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470acce3d960cd3","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="8dab49cce02fd07b27c6c8ca-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="8dab49cce02fd07b27c6c8ca-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="8dab49cce02fd07b27c6c8ca-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478e94cbe1914ea',t:'MTcwNTYwMjY0OS4xMjAwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478e94cbe1914ea","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

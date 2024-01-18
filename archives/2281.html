@@ -1,66 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>Ubuntu desktop 配置 vnc server - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="Ubuntu desktop 配置 vnc server" />
-<meta name="description" content="通过 VNC(Virtual Network Computing) 可以使用一个图形化的界面来访问远程服务器。这样对服务器的操作可以更加便捷直观。下面我们在 Ubuntu 上安装 TightVN..." />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ubuntu desktop 配置 vnc server | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="2281.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="Ubuntu desktop 配置 vnc server &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2281.html" />
 <link rel="alternate" type="application/rdf+xml" title="Ubuntu desktop 配置 vnc server &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2281.html" />
 <link rel="alternate" type="application/atom+xml" title="Ubuntu desktop 配置 vnc server &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2281.html" />
-<script type="dcdc112ea5a4d88f47dc22e1-text/javascript">
+<meta name="description" content="通过 VNC(Virtual Network Computing) 可以使用一个图形化的界面来访问远程服务器。这样对服务器的操作可以更加便捷直观。下面我们在 Ubuntu 上安装 TightVN..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/2281.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="Ubuntu desktop 配置 vnc server" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="通过 VNC(Virtual Network Computing) 可以使用一个图形化的界面来访问远程服务器。这样对服务器的操作可以更加便捷直观。下面我们在 Ubuntu 上安装 TightVN..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="384b6b6a1b56f07f42b75f6f-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-2281'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-2281'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-2281-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-2281-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -68,87 +107,77 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-2281'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-2281'),
+                holder = this.dom('#respond-post-2281-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="dcdc112ea5a4d88f47dc22e1-text/javascript">
+</script><script type="384b6b6a1b56f07f42b75f6f-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-2281'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _ZCnn0T = '6ff'//'Q'
-+//'zG'
-'c'+//'Nhe'
-'9c'+//'fr'
-'453'+'msE'//'msE'
-+'e8'//'x5r'
-+'34'//'2y'
-+'675'//'uPW'
-+//'9'
-'5'+'e66'//'ULv'
-+//'p'
-'7b'+'f'//'v'
-+//'JK'
-'JK'+''///*'g'*/'g'
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-2281');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _1G0HiNP = '6f'//'n8'
++'4oV'//'4oV'
++'fc'//'Iut'
++//'Cp'
+'9'+//'ERQ'
+'c'+//'jM'
+'4'+'e'//'e'
++'53'//'b1y'
++//'7'
+'e8'+'34'//'K'
++'67'//'1Xo'
++//'pI'
+'5'+//'gO'
+'5e'+'66'//'b'
++'7b'//'l1'
++'f44'//'bP'
 +//'s'
-'4'+'457'//'UW'
-+//'J0'
-'0'+'q0l'//'q0l'
-+'1'//'5ZI'
-+/* 'gRY'//'gRY' */''+'d'//'J'
-+//'s'
-'s'+//'YEz'
-'1a', _bC21qY = [[9,12],[23,25],[28,31],[30,31]];
+'5'+//'x28'
+'7'+//'kl'
+'kl'+//'r'
+'01d'+'1'//'F'
++'a'//'Gb7'
+, _Wkn = [[2,5],[7,8],[27,29]];
     
-    for (var i = 0; i < _bC21qY.length; i ++) {
-        _ZCnn0T = _ZCnn0T.substring(0, _bC21qY[i][0]) + _ZCnn0T.substring(_bC21qY[i][1]);
+    for (var i = 0; i < _Wkn.length; i ++) {
+        _1G0HiNP = _1G0HiNP.substring(0, _Wkn[i][0]) + _1G0HiNP.substring(_Wkn[i][1]);
     }
 
-    return _ZCnn0T;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _1G0HiNP;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -158,39 +187,55 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
+</ul>
+</nav>
 </div>
-<a href="../start-page.html">关于我</a> </nav>
 </header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>Ubuntu desktop 配置 vnc server</h2>
-<div class="post-meta">
-<time class="date">2021-03-31</time>
-<span class="category"><a href="../category/Linux/index.html">Linux</a></span>
-<span class="comments">0</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 846 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="2281.html" itemprop="url">Ubuntu desktop 配置 vnc server</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2021-03-31T11:26:00+08:00" itemprop="datePublished">2021-03-31</time></li>
+<li class="feather-folder"><a href="../category/Linux/index.html">Linux</a></li>
+<li class="feather-message"><a href="2281.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
 <p>通过 VNC(Virtual Network Computing) 可以使用一个图形化的界面来访问远程服务器。这样对服务器的操作可以更加便捷直观。</p><p>下面我们在 Ubuntu 上安装 TightVNC vnc server 并通过更加安全的 SSH tunnel 来连接服务器。</p><p>环境需求：</p><ul><li>远程主机 Ubuntu desktop 20.04</li><li>关闭 ufw 防火墙或配置允许 openssh 远程连接</li><li>本地设备 vnc 客户端需要支持 SSH tunnels 连接，如： TightVNC, RealVNC, or UltraVNC.</li></ul><h3>安装桌面环境</h3><p>如果安装的是 Ubuntu server，它默认并没有按照桌面环境，开机后就显示一个 shell 环境。如果是 Ubuntu desktop 版本则默认安装了 Ubuntu desktop 桌面环境。</p><p>如果我们需要远程访问 vnc，最好选择一个轻量级的桌面环境，这样访问的时候会流畅很多，推荐安装 xfce。</p><p>在后续章节，会介绍安装其他桌面环境的方法，如：GNOME，LXDE，KDE。</p><p>首先安装 xfce 及其增强包：</p><pre><code>sudo apt install xfce4 xfce4-goodies
 </code></pre><p>安装过程中会提示需要选择 xfce 的一个默认 display manager 显示管理器，它是用来在登录系统时的一个图像界面来输入用户及密码的，由于我们只是使用 xfce 来连接 vnc 客户端，且此时已经登陆了对应账户了，所以这里我们任意选择一个显示管理器即可。</p><p>可以通过命令查看当前系统已经安装的桌面环境：</p><pre><code>ls /usr/share/xsessions/
 
@@ -234,7 +279,7 @@ X-Ubuntu-Gettext-Domain=gnome-session-3.0</code></pre><p>可以看到启动命�
 TryExec=/usr/bin/gnome-shell</code></pre><p>在 xstartup 自定义配置中加入以上两条即可。</p><p>然后给配置文件添加执行权限：</p><pre><code>chmod +x ~/.vnc/xstartup
 </code></pre><p>然后我们重新启动 vncserver：</p><pre><code>vncserver -localhost
 </code></pre><p>注意这里我们添加了 <code>-localhost</code> 参数，意味着此 vnc 服务只可以在本机内被连接。如果不添加这个参数，则开放所有网络连接。</p><p>我们这里只打开本地网络连接服务，然后通过 ssh tunnel 在远程和本地建立安全的连接并转发 vnc 本地端口。</p><h3>连接</h3><p>vnc 本身并不支持通过一些安全的协议进行连接，下面我们通过 ssh tunnel 隧道在本地和远程主机间建立一个安全的链接，然后告诉 vnc 客户端使用这个安全隧道连接远程服务器。</p><p>上面我们已经启动了一个 vncserver 在 5901 端口，它可以在本地网络内被连接但无法被外部网络连接。</p><p>首先我们通过 ssh 在本地和远程建立一个安全链接，并转发远程主机的 localhost 及端口到本地的特定端口：</p><pre><code>ssh -L 59000:localhost:5901 -C -N -l user xxx.xxx.xxx.xxx
-</code></pre><p>以上命令意义如下：</p><ul><li><code>-L 59000:localhost:5901</code>：使用 <code>-L</code> 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。</li><li><code>-C</code> 参数用来启用传输数据压缩，可以提高传输效率</li><li><code>-N</code> 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用</li><li><code>-l</code> 定义远程主机的用户名和 IP 地址</li></ul><p>ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 <code>localhost:59000</code>：<br><img src="../usr/uploads/2021/03/1735491420.png" alt="2021-03-31T03:03:51.png" title="2021-03-31T03:03:51.png"></p><p>输入我们之前创建的 vnc 密码后就连接到远程服务器了：<br><img src="../usr/uploads/2021/03/3227212438.png" alt="2021-03-31T03:04:33.png" title="2021-03-31T03:04:33.png"></p><p>当然也可以不使用 ssh tunnel ，但是需要取消 <code>-localhost</code> 参数，就可以直接连接 vnc server。</p><h3>配置 vnc systemd 服务</h3><p>为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。</p><p>在 <code>/usr/lib/systemd/system</code> 目录下新建文件 <code><a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7f09111c0c1a0d091a0d3f510c1a0d09161c1a">[email&#160;protected]</a></code>，其中的 <code>@</code> 可以让我们在操作此服务时添加传递参数，在配置文件中使用 <code>%1</code> 可以读取这个参数。</p><p>内容如下：</p><pre><code>[Unit]
+</code></pre><p>以上命令意义如下：</p><ul><li><code>-L 59000:localhost:5901</code>：使用 <code>-L</code> 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。</li><li><code>-C</code> 参数用来启用传输数据压缩，可以提高传输效率</li><li><code>-N</code> 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用</li><li><code>-l</code> 定义远程主机的用户名和 IP 地址</li></ul><p>ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 <code>localhost:59000</code>：<br><img src="../usr/uploads/2021/03/1735491420.png" alt="2021-03-31T03:03:51.png" title="2021-03-31T03:03:51.png"></p><p>输入我们之前创建的 vnc 密码后就连接到远程服务器了：<br><img src="../usr/uploads/2021/03/3227212438.png" alt="2021-03-31T03:04:33.png" title="2021-03-31T03:04:33.png"></p><p>当然也可以不使用 ssh tunnel ，但是需要取消 <code>-localhost</code> 参数，就可以直接连接 vnc server。</p><h3>配置 vnc systemd 服务</h3><p>为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。</p><p>在 <code>/usr/lib/systemd/system</code> 目录下新建文件 <code><a href="../cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f0869e93839582869582b0de83958286999395">[email&#160;protected]</a></code>，其中的 <code>@</code> 可以让我们在操作此服务时添加传递参数，在配置文件中使用 <code>%1</code> 可以读取这个参数。</p><p>内容如下：</p><pre><code>[Unit]
 Description=Start TightVNC server at startup
 After=syslog.target network.target
 
@@ -272,74 +317,48 @@ vncconfig -iconic &amp;
 
 gnome-session --builtin --session=gnome-flashback-metacity --disable-acceleration-check --debug &amp;
 nautilus &amp;
-gnome-terminal &amp;</code></pre><p>重启 vncserver 服务，连接可以查看效果。</p><h3>参考链接</h3><p><a href="https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-vnc-on-ubuntu-20-04">How to Install and Configure VNC on Ubuntu 20.04</a><br><a href="https://www.raspberrypi.org/forums/viewtopic.php?t=216725">VNC grey screen, x cursor, nothing helps</a><br><a href="https://askubuntu.com/questions/800302/vncserver-grey-screen-ubuntu-16-04-lts">vncserver grey screen ubuntu 16.04 LTS</a><br><a href="https://bytexd.com/how-to-install-configure-vnc-server-on-ubuntu-20-04/">How to Install & Configure VNC Server on Ubuntu 20.04</a><br><a href="https://askubuntu.com/questions/1285420/how-to-properly-configure-xstartup-file-for-tightvnc-with-ubuntu-20-04-lts-gnome">How to properly configure xstartup file for TightVNC with Ubuntu 20.04 LTS GNOME environment</a></p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="2278.html" title="openwrt 配置 LuCI ssl 证书">openwrt 配置 LuCI ssl 证书</a></li>
-<li>下一篇: <a href="2287.html" title="Linux 脚本中的 Shebang #!">Linux 脚本中的 Shebang #!</a></li>
-</ul>
-</section>
-<section class="post-comments" id="comments">
-<h3>没有评论</h3>
-<div class="comment-form" id="respond-post-2281">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2281.html#respond-post-2281" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-dcdc112ea5a4d88f47dc22e1->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/2281.html/comment" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+gnome-terminal &amp;</code></pre><p>重启 vncserver 服务，连接可以查看效果。</p><h3>参考链接</h3><p><a href="https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-vnc-on-ubuntu-20-04">How to Install and Configure VNC on Ubuntu 20.04</a><br><a href="https://www.raspberrypi.org/forums/viewtopic.php?t=216725">VNC grey screen, x cursor, nothing helps</a><br><a href="https://askubuntu.com/questions/800302/vncserver-grey-screen-ubuntu-16-04-lts">vncserver grey screen ubuntu 16.04 LTS</a><br><a href="https://bytexd.com/how-to-install-configure-vnc-server-on-ubuntu-20-04/">How to Install & Configure VNC Server on Ubuntu 20.04</a><br><a href="https://askubuntu.com/questions/1285420/how-to-properly-configure-xstartup-file-for-tightvnc-with-ubuntu-20-04-lts-gnome">How to properly configure xstartup file for TightVNC with Ubuntu 20.04 LTS GNOME environment</a></p> <p itemprop="keywords">标签：无</p>
 </div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="2278.html" title="openwrt 配置 LuCI ssl 证书">openwrt 配置 LuCI ssl 证书</a></li>
+<li class="next"><a href="2287.html" title="Linux 脚本中的 Shebang #!">Linux 脚本中的 Shebang #!</a></li>
+</ul>
+</nav>
+<div id="comments">
+<div id="respond-post-2281" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="2281.html#respond-post-2281" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-384b6b6a1b56f07f42b75f6f->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/2281.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-</section> </div>
+</div>
+</div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="2281.html#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
+</ul>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
 </ul>
 </div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
-</div>
 </footer>
-<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../usr/themes/Single/static/kico.js" type="dcdc112ea5a4d88f47dc22e1-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="dcdc112ea5a4d88f47dc22e1-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="dcdc112ea5a4d88f47dc22e1-text/javascript"></script>
-<script type="dcdc112ea5a4d88f47dc22e1-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-dcdc112ea5a4d88f47dc22e1-><i id="ydmc"></i></a></bgm><script data-no-instant type="dcdc112ea5a4d88f47dc22e1-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-384b6b6a1b56f07f42b75f6f-><i id="ydmc"></i></a></bgm><script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-no-instant type="384b6b6a1b56f07f42b75f6f-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -348,7 +367,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="dcdc112ea5a4d88f47dc22e1-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="dcdc112ea5a4d88f47dc22e1-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="dcdc112ea5a4d88f47dc22e1-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470abe53f340cd3',t:'MTcwNTUxNjI0OC4wMjAwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470abe53f340cd3","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="384b6b6a1b56f07f42b75f6f-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="384b6b6a1b56f07f42b75f6f-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="384b6b6a1b56f07f42b75f6f-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478e8e99e4c14ea',t:'MTcwNTYwMjYzMy4yNjMwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478e8e99e4c14ea","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

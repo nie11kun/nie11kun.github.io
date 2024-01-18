@@ -1,66 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
-<title>在 Final Cut Pro 中管理渲染文件 - Marco Nie</title>
-<link rel="icon" href="https://niekun.net/favicon.ico" sizes="192x192" />
-<link href="../usr/themes/Single/static/kico.css" rel="stylesheet" type="text/css" />
-<link href="../usr/themes/Single/static/single.css" rel="stylesheet" type="text/css" />
-<link href="https://fastly.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1" />
-<meta property="og:site_name" content="Marco Nie">
-<meta property="og:title" content="在 Final Cut Pro 中管理渲染文件" />
-<meta name="description" content="渲染就是为项目中 Final Cut Pro 无法实时播放的部分创建临时视频和音频渲染文件的过程。当添加效果、转场、发生器、字幕和其他项目时，您将需要对它们进行渲染才能以高质量进行播放。在时间线..." />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在 Final Cut Pro 中管理渲染文件 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="1593.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
 <link rel="alternate" type="application/rss+xml" title="在 Final Cut Pro 中管理渲染文件 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1593.html" />
 <link rel="alternate" type="application/rdf+xml" title="在 Final Cut Pro 中管理渲染文件 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1593.html" />
 <link rel="alternate" type="application/atom+xml" title="在 Final Cut Pro 中管理渲染文件 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1593.html" />
-<script type="b65e0bd754bb7baef3d30cd2-text/javascript">
+<meta name="description" content="渲染就是为项目中 Final Cut Pro 无法实时播放的部分创建临时视频和音频渲染文件的过程。当添加效果、转场、发生器、字幕和其他项目时，您将需要对它们进行渲染才能以高质量进行播放。在时间线..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/1593.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="在 Final Cut Pro 中管理渲染文件" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="渲染就是为项目中 Final Cut Pro 无法实时播放的部分创建临时视频和音频渲染文件的过程。当添加效果、转场、发生器、字幕和其他项目时，您将需要对它们进行渲染才能以高质量进行播放。在时间线..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="6ba6bfa7e50cb7a8fd7691b4-text/javascript">
 (function () {
     window.TypechoComment = {
-        dom : function (id) {
-            return document.getElementById(id);
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
         },
     
         create : function (tag, attr) {
-            var el = document.createElement(tag);
+            const el = document.createElement(tag);
         
-            for (var key in attr) {
+            for (const key in attr) {
                 el.setAttribute(key, attr[key]);
             }
         
             return el;
         },
-
-        reply : function (cid, coid) {
-            var comment = this.dom(cid), parent = comment.parentNode,
-                response = this.dom('respond-post-1593'), input = this.dom('comment-parent'),
-                form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-                textarea = response.getElementsByTagName('textarea')[0];
-
-            if (null == input) {
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
                 input = this.create('input', {
                     'type' : 'hidden',
-                    'name' : 'parent',
-                    'id'   : 'comment-parent'
+                    'name' : 'parent'
                 });
 
                 form.appendChild(input);
             }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
 
-            input.setAttribute('value', coid);
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-1593'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
 
-            if (null == this.dom('comment-form-place-holder')) {
-                var holder = this.create('div', {
-                    'id' : 'comment-form-place-holder'
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-1593-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-1593-holder'
                 });
 
                 response.parentNode.insertBefore(holder, response);
             }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
 
-            comment.appendChild(response);
-            this.dom('cancel-comment-reply-link').style.display = '';
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
 
-            if (null != textarea && 'text' == textarea.name) {
+            if (null != textarea) {
                 textarea.focus();
             }
 
@@ -68,88 +107,74 @@
         },
 
         cancelReply : function () {
-            var response = this.dom('respond-post-1593'),
-            holder = this.dom('comment-form-place-holder'), input = this.dom('comment-parent');
+            const response = this.dom('#respond-post-1593'),
+                holder = this.dom('#respond-post-1593-holder');
 
-            if (null != input) {
-                input.parentNode.removeChild(input);
-            }
+            this.inputParent(response, false);
 
-            if (null == holder) {
+            if (null === holder) {
                 return true;
             }
 
-            this.dom('cancel-comment-reply-link').style.display = 'none';
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
             holder.parentNode.insertBefore(response, holder);
             return false;
         }
     };
 })();
-</script>
-<script type="b65e0bd754bb7baef3d30cd2-text/javascript">
+</script><script type="6ba6bfa7e50cb7a8fd7691b4-text/javascript">
 (function () {
-    var event = document.addEventListener ? {
-        add: 'addEventListener',
-        triggers: ['scroll', 'mousemove', 'keyup', 'touchstart'],
-        load: 'DOMContentLoaded'
-    } : {
-        add: 'attachEvent',
-        triggers: ['onfocus', 'onmousemove', 'onkeyup', 'ontouchstart'],
-        load: 'onload'
-    }, added = false;
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
 
-    document[event.add](event.load, function () {
-        var r = document.getElementById('respond-post-1593'),
-            input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_';
-        input.value = (function () {
-    var _ra0 = 'f8c'//'j'
-+'UY'//'UY'
-+'yA'//'yA'
-+//'F'
-'e6'+//'hV'
-'e5'+'3'//'FBz'
-+'PF'//'PF'
-+//'o'
-'e'+//'UFY'
-'7c'+'58'//'a'
-+/* 'p'//'p' */''+'a99'//'NrM'
-+'6c'//'LT'
-+'4a'//'g'
-+//'l'
-'b'+'4'//'X'
-+'d'//'H8g'
-+'86'//'cy1'
-+'d8'//'v'
-+//'t'
-'ba9'+''///*'6'*/'6'
-+''///*'gQA'*/'gQA'
-+//'RtC'
-'9'+/* '1'//'1' */''+//'3fI'
-'1', _XuPV5w = [[3,5],[3,5],[8,10]];
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-1593');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _MxjV35u = //'suX'
+'f'+'8ce'//'f'
++'6e'//'R'
++'53e'//'G'
++/* 'o0g'//'o0g' */''+//'P8'
+'7'+//'6O'
+'6O'+'c5'//'o'
++//'RHG'
+'8a'+//'rV6'
+'996'+//'UXr'
+'c'+''///*'u'*/'u'
++'4'//'nc'
++//'4w'
+'ab4'+//'p'
+'d8'+//'gw'
+'6'+'d8b'//'xe'
++'rtV'//'rtV'
++//'8'
+'a'+'991'//'v'
+, _zJ8u = [[10,12],[28,31]];
     
-    for (var i = 0; i < _XuPV5w.length; i ++) {
-        _ra0 = _ra0.substring(0, _XuPV5w[i][0]) + _ra0.substring(_XuPV5w[i][1]);
+    for (var i = 0; i < _zJ8u.length; i ++) {
+        _MxjV35u = _MxjV35u.substring(0, _zJ8u[i][0]) + _MxjV35u.substring(_zJ8u[i][1]);
     }
 
-    return _ra0;
-})();
-
-        if (null != r) {
-            var forms = r.getElementsByTagName('form');
-            if (forms.length > 0) {
+    return _MxjV35u;
+})();;
+ 
+            if (form) {
                 function append() {
                     if (!added) {
-                        forms[0].appendChild(input);
+                        form.appendChild(input);
                         added = true;
                     }
                 }
             
-                for (var i = 0; i < event.triggers.length; i ++) {
-                    var trigger = event.triggers[i];
-                    document[event.add](trigger, append);
-                    window[event.add](trigger, append);
+                for (const event of events) {
+                    window.addEventListener(event, append);
                 }
             }
         }
@@ -159,107 +184,97 @@
 <style>bgm{top: 60px;}</style>
 </head>
 <body>
-<header>
-<div class="head-title">
-<h4>Marco Nie</h4>
-</div>
-<div class="head-action">
-<div class="toggle-btn"></div>
-<div class="light-btn"></div>
-<div class="search-btn"></div>
-</div>
-<form class="head-search" method="post">
-<input type="text" name="s" placeholder="搜索什么？">
-</form>
-<nav class="head-menu">
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
 <a href="../index.html">首页</a>
-<div class="has-child">
-<a href="javascript:void(0)">分类</a>
-<div class="sub-menu">
-<a href="../category/Linux/index.html">Linux</a><a href="../category/ubuntu/index.html">ubuntu</a><a href="../category/photo/index.html">Photograph</a><a href="../category/media/index.html">media process</a><a href="../category/ps/index.html">photoshop</a><a href="../category/fxp/index.html">final cut pro</a><a href="../category/lr/index.html">lightroom</a><a href="../category/c4d/index.html">cinema 4D</a><a href="../category/Windows/index.html">Windows</a><a href="../category/macos/index.html">macOS</a><a href="../category/hardware/index.html">hardware</a><a href="../category/router/index.html">router</a><a href="../category/a73/index.html">SONY A7M3</a><a href="../category/essay/index.html">essay</a><a href="../category/other/index.html">other</a><a href="../category/dev/index.html">Development</a><a href="../category/cpp/index.html">c++</a><a href="../category/py/index.html">python</a><a href="../category/go/index.html">go</a><a href="../category/siemens/index.html">siemens</a><a href="../category/web/index.html">web</a><a href="../category/html/index.html">html</a><a href="../category/css/index.html">css</a><a href="../category/js/index.html">javascript</a><a href="../category/node/index.html">node.js</a><a href="../category/react/index.html">react</a><a href="../category/codesys/index.html">CODESYS</a><a href="../category/software/index.html">software</a> </div>
-</div>
-<a href="../start-page.html">关于我</a> </nav>
-</header>
-<main>
-<div class="wrap min">
-<section class="post-title">
-<h2>在 Final Cut Pro 中管理渲染文件</h2>
-<div class="post-meta">
-<time class="date">2020-07-05</time>
-<span class="category"><a href="../category/fxp/index.html">final cut pro</a></span>
-<span class="comments">0</span>
-</div>
-</section>
-<article class="post-content">
-<blockquote>这篇文章上次修改于 1292 天前，可能其部分内容已经发生变化，如有疑问可询问作者。</blockquote>
-<p>渲染就是为项目中 Final Cut Pro 无法实时播放的部分创建临时视频和音频渲染文件的过程。当添加<strong>效果、转场、发生器、字幕</strong>和其他项目时，您将需要对它们进行渲染才能以高质量进行播放。</p><p>在时间线中，需要渲染的片段上方将出现一条浅灰色点线。<br><img src="../usr/uploads/2020/07/4269995666.png" alt="2020-07-05T06:12:33.png" title="2020-07-05T06:12:33.png"></p><p>Final Cut Pro 默认是打开实时渲染的，可以在 preference - playback 里看到 rendering：<br><img src="../usr/uploads/2020/07/410002084.png" alt="2020-07-05T06:15:50.png" title="2020-07-05T06:15:50.png"></p><p>渲染文件默认将储存到项目文件内。可以打开项目设置查看：<br><img src="../usr/uploads/2020/07/1554615253.png" alt="2020-07-05T06:18:48.png" title="2020-07-05T06:18:48.png"></p><p>随着时间的推移，渲染文件会累积，并占用储存空间，项目文件会越来越大：<br><img src="../usr/uploads/2020/07/3908364157.png" alt="2020-07-05T06:21:07.png" title="2020-07-05T06:21:07.png"></p><p>如果要释放储存空间，您可以删除所选事件中未使用的渲染文件或者删除所选项目或事件的所有渲染文件。您还可以删除给定资源库的所有渲染文件。原始媒体文件将不会删除，因此您始终可以从原始媒体中重新生成渲染文件。</p><p>选中项目文件，点击 file - delete generated library files：<br><img src="../usr/uploads/2020/07/889744413.png" alt="2020-07-05T06:21:45.png" title="2020-07-05T06:21:45.png"></p><p>在弹出的对话框中，可以选择删除未使用的文件或者全部渲染文件：<br><img src="../usr/uploads/2020/07/866884754.png" alt="2020-07-05T06:22:38.png" title="2020-07-05T06:22:38.png"></p><p><strong>如果选择了删除全部渲染文件，如果设置里打开了自动渲染，则删除后会立刻开始生成新的渲染文件。</strong></p><p>删除后可以看到项目文件小了很多：<br><img src="../usr/uploads/2020/07/524037119.png" alt="2020-07-05T06:24:33.png" title="2020-07-05T06:24:33.png"></p><p>如果打开了自动渲染，可以看到系统开始新的渲染了：<br><img src="../usr/uploads/2020/07/1071406095.png" alt="2020-07-05T06:19:52.png" title="2020-07-05T06:19:52.png"></p><p>如果不想自动渲染，可以关闭设置里的自动渲染，然后在需要的时候手动进行渲染，首先在设置里关闭自动渲染，然后在需要进行渲染的时候，点击 modify - render all 系统就会开始渲染 timeline 的项目了：<br><img src="../usr/uploads/2020/07/1094078703.png" alt="2020-07-05T06:27:56.png" title="2020-07-05T06:27:56.png"></p><p>参考文章：</p><p><a href="https://support.apple.com/zh-cn/guide/final-cut-pro/ver68a8c250/mac">在 Final Cut Pro 中管理渲染文件</a><br><a href="https://support.apple.com/zh-cn/guide/final-cut-pro/verb8e60ab7/10.4.7/mac/10.14">Final Cut Pro 中的“播放”偏好设置</a></p> </article>
-<section class="post-near">
-<ul>
-<li>上一篇: <a href="1586.html" title="在 Final Cut Pro 中将片段重新链接到媒体文件">在 Final Cut Pro 中将片段重新链接到媒体文件</a></li>
-<li>下一篇: <a href="1618.html" title="修复图片污迹 in Photoshop">修复图片污迹 in Photoshop</a></li>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
 </ul>
-</section>
-<section class="post-comments" id="comments">
-<h3>没有评论</h3>
-<div class="comment-form" id="respond-post-1593">
-<span class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="1593.html#respond-post-1593" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-b65e0bd754bb7baef3d30cd2->取消回复</a> </span>
-<form method="post" action="https://blog.niekun.net/archives/1593.html/comment" role="form">
-<div class="row">
-<fieldset class="col-m-6">
-<input type="text" name="author" placeholder="昵称 *：" value required>
-<input type="email" name="mail" placeholder="电邮 *：" value required>
-<input type="url" name="url" placeholder="http://" value>
-</fieldset>
-<fieldset class="col-m-6">
-<textarea rows="3" name="text" id="textarea" placeholder="快来评论吧 (*≧ω≦)ﾉ" required></textarea>
-<button type="submit" class="btn">写好了~</button>
-</fieldset>
+</nav>
 </div>
+</header>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="1593.html" itemprop="url">在 Final Cut Pro 中管理渲染文件</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-07-05T14:31:00+08:00" itemprop="datePublished">2020-07-05</time></li>
+<li class="feather-folder"><a href="../category/fxp/index.html">final cut pro</a></li>
+<li class="feather-message"><a href="1593.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>渲染就是为项目中 Final Cut Pro 无法实时播放的部分创建临时视频和音频渲染文件的过程。当添加<strong>效果、转场、发生器、字幕</strong>和其他项目时，您将需要对它们进行渲染才能以高质量进行播放。</p><p>在时间线中，需要渲染的片段上方将出现一条浅灰色点线。<br><img src="../usr/uploads/2020/07/4269995666.png" alt="2020-07-05T06:12:33.png" title="2020-07-05T06:12:33.png"></p><p>Final Cut Pro 默认是打开实时渲染的，可以在 preference - playback 里看到 rendering：<br><img src="../usr/uploads/2020/07/410002084.png" alt="2020-07-05T06:15:50.png" title="2020-07-05T06:15:50.png"></p><p>渲染文件默认将储存到项目文件内。可以打开项目设置查看：<br><img src="../usr/uploads/2020/07/1554615253.png" alt="2020-07-05T06:18:48.png" title="2020-07-05T06:18:48.png"></p><p>随着时间的推移，渲染文件会累积，并占用储存空间，项目文件会越来越大：<br><img src="../usr/uploads/2020/07/3908364157.png" alt="2020-07-05T06:21:07.png" title="2020-07-05T06:21:07.png"></p><p>如果要释放储存空间，您可以删除所选事件中未使用的渲染文件或者删除所选项目或事件的所有渲染文件。您还可以删除给定资源库的所有渲染文件。原始媒体文件将不会删除，因此您始终可以从原始媒体中重新生成渲染文件。</p><p>选中项目文件，点击 file - delete generated library files：<br><img src="../usr/uploads/2020/07/889744413.png" alt="2020-07-05T06:21:45.png" title="2020-07-05T06:21:45.png"></p><p>在弹出的对话框中，可以选择删除未使用的文件或者全部渲染文件：<br><img src="../usr/uploads/2020/07/866884754.png" alt="2020-07-05T06:22:38.png" title="2020-07-05T06:22:38.png"></p><p><strong>如果选择了删除全部渲染文件，如果设置里打开了自动渲染，则删除后会立刻开始生成新的渲染文件。</strong></p><p>删除后可以看到项目文件小了很多：<br><img src="../usr/uploads/2020/07/524037119.png" alt="2020-07-05T06:24:33.png" title="2020-07-05T06:24:33.png"></p><p>如果打开了自动渲染，可以看到系统开始新的渲染了：<br><img src="../usr/uploads/2020/07/1071406095.png" alt="2020-07-05T06:19:52.png" title="2020-07-05T06:19:52.png"></p><p>如果不想自动渲染，可以关闭设置里的自动渲染，然后在需要的时候手动进行渲染，首先在设置里关闭自动渲染，然后在需要进行渲染的时候，点击 modify - render all 系统就会开始渲染 timeline 的项目了：<br><img src="../usr/uploads/2020/07/1094078703.png" alt="2020-07-05T06:27:56.png" title="2020-07-05T06:27:56.png"></p><p>参考文章：</p><p><a href="https://support.apple.com/zh-cn/guide/final-cut-pro/ver68a8c250/mac">在 Final Cut Pro 中管理渲染文件</a><br><a href="https://support.apple.com/zh-cn/guide/final-cut-pro/verb8e60ab7/10.4.7/mac/10.14">Final Cut Pro 中的“播放”偏好设置</a></p> <p itemprop="keywords">标签：无</p>
+</div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="1586.html" title="在 Final Cut Pro 中将片段重新链接到媒体文件">在 Final Cut Pro 中将片段重新链接到媒体文件</a></li>
+<li class="next"><a href="1618.html" title="修复图片污迹 in Photoshop">修复图片污迹 in Photoshop</a></li>
+</ul>
+</nav>
+<div id="comments">
+<div id="respond-post-1593" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="1593.html#respond-post-1593" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-6ba6bfa7e50cb7a8fd7691b4->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/1593.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
 </form>
 </div>
-</section> </div>
+</div>
+</div>
 </main>
-<footer>
-<div class="buttons">
-<a class="to-top" href="1593.html#"></a>
-</div>
-<div class="wrap min">
-<section class="widget">
-<div class="row">
-<div class="col-m-4">
-<h3 class="title-recent">最新文章：</h3>
-<ul>
-<li><a href="2866.html" target="_blank">使用 TinyPNG API 批量压缩图片尺寸</a></li><li><a href="2861.html" target="_blank">ffmpeg 常用视频格式转换命令</a></li><li><a href="2860.html" target="_blank">Windows 下虚拟机安装 MacOS</a></li><li><a href="2858.html" target="_blank">Siemens 系统计算精度设置影响程序运行问题</a></li><li><a href="2857.html" target="_blank">codesys 使用占位符定义界面变量显示格式</a></li><li><a href="2840.html" target="_blank">codesys 定义重启可保持型变量</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-date">时光机：</h3>
-<ul>
-<li><a href="../2024/01/index.html" rel="nofollow" target="_blank">2024 年 01 月</a></li><li><a href="../2023/11/index.html" rel="nofollow" target="_blank">2023 年 11 月</a></li><li><a href="../2023/10/index.html" rel="nofollow" target="_blank">2023 年 10 月</a></li><li><a href="../2023/09/index.html" rel="nofollow" target="_blank">2023 年 09 月</a></li><li><a href="../2023/08/index.html" rel="nofollow" target="_blank">2023 年 08 月</a></li><li><a href="../2023/06/index.html" rel="nofollow" target="_blank">2023 年 06 月</a></li> </ul>
-</div>
-<div class="col-m-4">
-<h3 class="title-comments">最近评论：</h3>
-<ul>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="1187.html#pingback-62" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>使用 TinyPNG API 批量压缩图片尺寸 - Marco Nie: <a href="2621.html#pingback-61" rel="nofollow" target="_blank">[...]ti...</a></li>
-<li>ahxinny: <a href="2835.html#comment-59" rel="nofollow" target="_blank">很好。不过做起...</a></li>
-<li>人生如戏: <a href="1680.html#comment-57" rel="nofollow" target="_blank">您好，试了一下...</a></li>
-<li>ahxinny: <a href="2777.html#comment-52" rel="nofollow" target="_blank">现在有好多下载...</a></li>
-<li>ahxinny: <a href="2731.html#comment-51" rel="nofollow" target="_blank">高。以前用RG...</a></li>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
 </ul>
-</div>
-</div>
-</section>
-<section class="sub-footer">
-<p>© 2024 <a href="../index.html">Marco Nie</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Single" target="_blank" rel="nofollow">Single</a>.</p>
-</section>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
+</ul>
 </div>
 </footer>
-<script src="../usr/themes/Single/static/kico.js" type="b65e0bd754bb7baef3d30cd2-text/javascript"></script>
-<script src="../usr/themes/Single/static/single.js" type="b65e0bd754bb7baef3d30cd2-text/javascript"></script>
-<script src="../usr/themes/Single/static/prism.js" type="b65e0bd754bb7baef3d30cd2-text/javascript"></script>
-<script type="b65e0bd754bb7baef3d30cd2-text/javascript">var single = new Paul_Single({copyright: false, night: true});</script>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-b65e0bd754bb7baef3d30cd2-><i id="ydmc"></i></a></bgm><script data-no-instant type="b65e0bd754bb7baef3d30cd2-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-6ba6bfa7e50cb7a8fd7691b4-><i id="ydmc"></i></a></bgm><script data-no-instant type="6ba6bfa7e50cb7a8fd7691b4-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -268,7 +283,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="b65e0bd754bb7baef3d30cd2-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="b65e0bd754bb7baef3d30cd2-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="b65e0bd754bb7baef3d30cd2-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8470ab32c85e0cd3',t:'MTcwNTUxNjIxOS40MzQwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8470ab32c85e0cd3","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="6ba6bfa7e50cb7a8fd7691b4-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="6ba6bfa7e50cb7a8fd7691b4-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="6ba6bfa7e50cb7a8fd7691b4-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8478e9759f150fb8',t:'MTcwNTYwMjY1NS42NjIwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8478e9759f150fb8","version":"2023.10.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>
