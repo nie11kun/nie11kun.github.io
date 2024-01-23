@@ -66,6 +66,44 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../archives/118.html" itemprop="url">重定向 HTTP to HTTPS in Nginx</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2019-02-26T21:21:00+08:00" itemprop="datePublished">2019-02-26</time></li>
+<li class="feather-folder"><a href="../../category/Linux/index.html">Linux</a>, <a href="../../category/web/index.html">web</a></li>
+<li class="feather-message"><a href="../../archives/118.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>将http请求重定向为https，使所有连接都使用安全的ssl。</p><h2>重定向所有http请求</h2><p>以下配置为将所有收到的80端口的请求都重定向到443端口,这会把此ip下的所有域名都转换：</p><pre><code>server {
+    listen           80;
+    listen           [::]:80;
+    server_name      _;
+    return           301 https://$host$request_uri;
+}</code></pre><p>listen 80 default_server 表示这是唯一监听80端口的server块<br>server_name _ 表示监听所有使用的域名</p><h2>重定向特定域名</h2><p>以下配置为重定向特定域名的请求，此方式适用于此ip下绑定多个域名的情况：</p><pre><code>server {
+    listen           80;
+    listen           [::]:80;
+    server_name      your.domain;
+    return           301 https://your.domain$request_uri;
+}</code></pre><h2>443 server block</h2><p>设定我们的域名只接收443端口的访问：</p><pre><code>server {
+    listen                443 ssl default_server;
+    listen                [::]:443 ssl;
+    server_name           foo.com;
+}
+
+server {
+    listen                443 ssl;
+    listen                [::]:443 ssl;
+    server_name           bar.com;
+}
+
+...
+</code></pre><p>只能设置一个域名为default_server。</p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../archives/100.html" itemprop="url">macOS使用brew安装的模块提示命令不存在的解决方法</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -139,32 +177,6 @@ const char* c_childDir = s_childDir.c_str();
 <blockquote>Project V 是一个工具集合，它可以帮助你打造专属的基础通信网络。Project V 的核心工具称为V2Ray，其主要负责网络协议和功能的实现，与其它 Project V 通信。V2Ray 可以单独运行，也可以和其它工具配合，以提供简便的操作流程。</blockquote><p>GitHub：<a href="https://github.com/v2ray/v2ray-core">https://github.com/v2ray/v2ray-core</a><br>官网：<a href="https://www.v2ray.com">https://www.v2ray.com</a><br>客户端下载：<a href="https://github.com/v2ray/v2ray-core/releases">https://github.com/v2ray/v2ray-core/releases</a></p><p class="more"><a href="../../archives/80.html" title="V2ray install guide">阅读全文</a></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../archives/64.html" itemprop="url">HTML5视频嵌入test</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2019-02-19T14:50:00+08:00" itemprop="datePublished">2019-02-19</time></li>
-<li class="feather-folder"><a href="../../category/web/index.html">web</a></li>
-<li class="feather-message"><a href="../../archives/64.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p>测试视频：</p><iframe class="movie" width="100%" src="https://player.bilibili.com/player.html?aid=44031474&amp;cid=77121958&amp;page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-<video controls class="movie" width="100%">
-<source src="https://blog.niekun.net/page/70/myuploads/PianistAtPublic.mp4" type="video/mp4">
-video is not supported
-</video>
-<script type="119b37a338dbdd6d06336a7b-text/javascript">   
-    var x = document.getElementsByClassName("movie");
-    var i;
-    for (i = 0; i < x.length; i++) {
-        x[i].style.height=x[i].scrollWidth*9/16+"px";
-    }
-</script><p>官方文档：<a href="https://html.spec.whatwg.org/#the-video-element">https://html.spec.whatwg.org/#the-video-element</a></p> </div>
-</article>
-<hr class="post-separator">
 <nav><ul class="page-navigator"><li class="prev"><a href="../69/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../68/index.html">68</a></li><li><a href="../69/index.html">69</a></li><li class="current"><a href="index.html">70</a></li><li><a href="../71/index.html">71</a></li><li><a href="../72/index.html">72</a></li><li><a href="../73/index.html">73</a></li><li class="next"><a href="../71/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
@@ -180,7 +192,7 @@ video is not supported
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-119b37a338dbdd6d06336a7b-><i id="ydmc"></i></a></bgm><script data-no-instant type="119b37a338dbdd6d06336a7b-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-a22f98d1cd55ba4666fb11a3-><i id="ydmc"></i></a></bgm><script data-no-instant type="a22f98d1cd55ba4666fb11a3-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -189,7 +201,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="119b37a338dbdd6d06336a7b-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="119b37a338dbdd6d06336a7b-text/javascript"></script>
-<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="119b37a338dbdd6d06336a7b-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8499de685b63091d',t:'MTcwNTk0ODIzMy4xMjgwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8499de685b63091d","version":"2024.1.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="a22f98d1cd55ba4666fb11a3-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="a22f98d1cd55ba4666fb11a3-text/javascript"></script>
+<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="a22f98d1cd55ba4666fb11a3-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'84a21bd00eb47c5b',t:'MTcwNjAzNDYzNC4zNTEwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"84a21bd00eb47c5b","version":"2024.1.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>
