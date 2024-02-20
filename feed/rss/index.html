@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Google-One.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/iCloud.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2866.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2861.html"/>
@@ -17,11 +19,27 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2857.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2840.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2835.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2833.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2829.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html">
+<title>WSA (Windows Subsystem for Android) 的安装及使用</title>
+<link>https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html</link>
+<dc:date>2024-02-20T15:47:00+08:00</dc:date>
+<description>之前介绍过 Windows10 安装 wsl 的教程，可以方便的在 Windows 下使用 Ubuntu 系统。今天介绍安装 wsa 用来在 Windows 下使用 Android 系统及安装第三方 apk。安装wsa 没有在官方的 store 中提供，这里使用开源的 WSA-Script 很方便的一键安装。GitHub 主页：https://github.com/YT-Advanced/WSA-Script在 release 页面下载最新打包的版本：https://github.com/YT-Advanced/WSA-Script/releases/latest我需要使用 google play 框架及 root 权限，所以下载的是框出来的版本：下载好解压到一个特定的目录，运行 Run.bat，期间会提示需要管理员权限以及提示收集信息的对话框，点击确认即可。安装完成后会自动运行 Windows Subsystem For Android™ 应用。设置代理如果需要使用 play 商店，就需要配置代理服务。如果本机有代理工具的话，可以让 wsa 直接调用本机代理。这里需要使用 adb 工具，下载链接：https://dl.google.com/android/repository/platform-tools-latest-windows.zip解压压缩包，可以看到其中有一个 adb.exe，可以将目录添加到系统 path 以方便在 terminal 调用。首先需要设置 wsa 打开开发者模式，进入设置打开选项：默认 wsa 是运行在本地的 58526 端口的。建立一个 powershell 脚本，如：wsaproxy.ps1，内容如下：$WinNetIP=$(Get-NetIPAddress -InterfaceAlias 'vEthernet (WSLCore)' -AddressFamily IPV4) # get android network gateway addr
+adb connect 127.0.0.1:58526 # android port
+adb shell settings put global http_proxy &quot;$($WinNetIP.IPAddress):1082&quot; # local proxy port第一次执行会弹出对话框是否信任外部访问，点击允许即可。以上脚本会获取到 wsa 所在网卡的网关地址，然后用 adb 连接到 wsa，最后配置代理，注意脚本里的本地代理端口修改为实际值即可。运行脚本即可让 wsa 配置好代理服务。以后只需要执行这个脚本就可以自动设置代理。如果需要取消代理运行下面命令即可：adb shell settings put global http_proxy :0安装 apk推荐直接在 play 商店安装应用程序，如果需要安装自己下载的第三方 apk，直接使用 adb 工具即可。安装命令：adb connect 127.0.0.1:58526
+adb install xxx.apk参考链接Windows Android 子系统 WSA 代理设置方法教程WSA (Windows Subsystem for Android) 使用 Windows 上的代理[]()</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Google-One.html">
+<title>订阅土耳其区 Google One</title>
+<link>https://blog.niekun.net/archives/Google-One.html</link>
+<dc:date>2024-02-20T15:10:00+08:00</dc:date>
+<description>最近发现我的 google drive 免费空间也用满了，但平时有很多服务比如 Google photos，服务器备份等都需要用到它，所以想付费购买一些空间。目前 google 把订阅都整合到了 google one 中了，而且不在中国提供订阅服务。和 iCloud 类似，目前土区的订阅最便宜，所以就研究了下如何订阅到土区。我使用的是 app store 上的订阅，所以依然用到了土区的 apple 账户以及 ios 设备，关于如何建立土区账号以及充值参考：国区使用土耳其区 iCloud 家庭共享。Google 账户需要修改到土耳其区，首先进入 https://payments.google.com/点击 settings 可以看到区域信息：这里我已经修改到了土耳其区域了，如果不是的话需要点击区域旁边的按钮修改，会提示让你创建一个新的 profile：根据提示一步步设置即可，重点是选择土耳其：然后根据提示设置一个土耳其地址信息即可，参考地址：Osman Kavuncu Cad
+Kenarcık Sk. No2
+38090
+Kayseri付款信息可以不写。建立完成后我们需要将原来的那个 profile 删掉，避免引起混乱。如果有多个 profile 会在右上角显示切换按钮，我这里已经删除过了所以是空白的：切换到原来的 profile 后下拉到最下面点击删除，需要注意的是删除这个 profile 不会影响账户上的照片文件等信息，但会删除之前的一些购买付款信息：此时账户就完成了转换到土区的操作。然后在 ios 设备上用土区账号登陆 app store，注意不是登录 icloud。登录后我们打开 google drive 或者 google one app 点击管理存储：就可以看到各种套餐的信息了，都是以土耳其货币里拉为单位的，选择合适的套餐点击购买即可使用账户中的余额订阅。我选择的是 100GB 年付套餐，一年 120里拉，折合 28 人民币，还是不错的。注意及时充值土区账户，如果余额不足可能导致订阅失效。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/iCloud.html">
 <title>国区使用土耳其区 iCloud 家庭共享</title>
 <link>https://blog.niekun.net/archives/iCloud.html</link>
@@ -222,17 +240,5 @@ LET #AAA : LREAL := 10
 N10 G91
 N20 G01 X#VAR1 + #AAA Y#VAR1 F100
 END_SUBPROGRAM以上就是 codesys 中使用 DIN 66025 标准编写 CNC 程序的基本语法及功能讲解，更多功能参考：CNC Language in DIN 66025</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2833.html">
-<title>codesys 运行时调用外部G代码文件的编程路径</title>
-<link>https://blog.niekun.net/archives/2833.html</link>
-<dc:date>2023-08-15T10:12:00+08:00</dc:date>
-<description>在下载到真实设备上和 simulation 模式时，调试时需要引用的路径是不一样的。不管是哪种模式下，codesys 本身运行的一个容器环境根目录是如下：PlcLogic 文件夹是 POU 运行的根目录，所有 G 代码文件的索引都是以此目录为根目录的。在程序中定义路径地址的时候只需要写 POU 根目录的子路径即可。simulation 模拟在电脑上进行运动控制模拟时，如果需要调用外部G代码程序，模拟环境下的程序运行根目录为 C:\ProgramData\CODESYS\Simulation\PlcLogic\。将G代码程序文件放入上述目录下使用即可调用，如：strFileName    : STRING(120) := 'NCReadFromFile.txt';一般可以新建一个子路径 _cnc 将程序都放入其中：strFileName    : STRING(120) := '_cnc/NCReadFromFile.txt';注意每次重启 codesys IDE 会重置 C:\ProgramData\CODESYS\Simulation\PlcLogic\ 目录，需要重新复制程序进来。真实设备首先需要知道工控机安装的是什么类型的控制器：information 菜单下可以查看当前控制器类型：windows 下 codesys runtime 安装路径为：C:\ProgramData\CODESYS，目录中包含所有已经安装的各种类型的控制器，每个控制器类型都有其单独目录：进入需要的控制器目录后，就可以看到运行 codesys 的容器文件夹了：这个文件夹就是 codesys 在控制器上的运行环境，只需要将 G 文件放入 PlcLogic 文件夹下，同时 POU 中路径只需要定义此根路径的子目录即可。也可以通过 IDE 在线传输文件到控制器指定目录：</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2829.html">
-<title>codesys 项目修改依赖库的版本</title>
-<link>https://blog.niekun.net/archives/2829.html</link>
-<dc:date>2023-08-15T08:08:54+08:00</dc:date>
-<description>打开一个别人的项目后编译，发现出现 The library &quot;caa behaviour model, 3.5.19.0 (caa technical workgroup)&quot; was created with the unknown compiler version &quot;3.5.16.30&quot; 的报错：但是我已经选择下载了缺失的库了，查询后发现是我的 codesys 版本过高，下载的对应库版本也高，而项目之前创建的时候可能是基于低版本库的，需要手动切换回对应版本的库即可。library manager 下选择 placeholders 定位到报错的那个库：双击后显示版本菜单，选择对应低版本的选项：再次编译报错就会消失。</description>
 </item>
 </rdf:RDF>

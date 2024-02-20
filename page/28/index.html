@@ -66,6 +66,60 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../archives/1903.html" itemprop="url">MySQL 用户密码规则配置</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-11-11T10:37:00+08:00" itemprop="datePublished">2020-11-11</time></li>
+<li class="feather-folder"><a href="../../category/Linux/index.html">Linux</a></li>
+<li class="feather-message"><a href="../../archives/1903.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>在创建 MySQL 用户时需要设置密码，有时候输入输入密码后会提示创建失败，密码设置 policy 错误。这是因为当前设置的密码和 MySQL 密码创建规则不符，可以查看当前规定的密码规则也可以进行修改。</p><p>进入 MySQL 执行下面命令：</p><pre><code>SHOW VARIABLES LIKE 'validate_password%';
+</code></pre><p>会列出密码创建相关参数：</p><pre><code>mysql&gt; SHOW VARIABLES LIKE 'validate_password%';
++--------------------------------------+--------+
+| Variable_name                        | Value  |
++--------------------------------------+--------+
+| validate_password_check_user_name    | ON     |
+| validate_password_dictionary_file    |        |
+| validate_password_length             | 8      |
+| validate_password_mixed_case_count   | 1      |
+| validate_password_number_count       | 1      |
+| validate_password_policy             | MEDIUM |
+| validate_password_special_char_count | 1      |
++--------------------------------------+--------+
+7 rows in set (0.03 sec)</code></pre><p>其中 <code>validate_password_length</code> 是密码位数，<code>validate_password_special_char_count</code> 是密码包含特殊字符。可以通过命令修改参数值来改变密码规则，例如：</p><p>取消特殊字符：</p><pre><code>SET GLOBAL validate_password_special_char_count= 0;
+</code></pre><p>修改后可以测试再次建立用户设置密码。</p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="../../archives/1900.html" itemprop="url">MySQL 8.0 修改用户密码加密方式</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-11-11T09:41:00+08:00" itemprop="datePublished">2020-11-11</time></li>
+<li class="feather-folder"><a href="../../category/Linux/index.html">Linux</a></li>
+<li class="feather-message"><a href="../../archives/1900.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>MySQL 8.0 默认创建的用户密码加密方式为：caching_sha2_password，有些应用在连接时由于不兼容会导致报错，可以修改为 MySQL 5 使用的加密方式：sha256_password。</p><p>创建用户：</p><pre><code>create user &quot;newuser&quot;@&quot;localhost&quot; identified by &quot;PASSWORD&quot;;
+</code></pre><p>授予全部数据库权限：</p><pre><code>grant all privileges on *.* to 'newuser'@'localhost';
+</code></pre><p>修改成原来的加密方式：</p><pre><code>alter user &quot;newuser&quot;@&quot;localhost&quot; identified with mysql_native_password by 'PASSWORD';
+</code></pre><p>刷新权限：</p><pre><code>    FLUSH PRIVILEGES;
+</code></pre><p>查看已建立的用户及加密方式：</p><pre><code>SELECT user,authentication_string,plugin,host FROM mysql.user;
+</code></pre><p>显示如下：</p><pre><code>+------------------+------------------------------------------------------------------------+---
+| user             | authentication_string                         | plugin                | host      |
++------------------+------------------------------------------------------------------------+-----
+| marco            | *D51541FCBC8DD8E                              | mysql_native_password | localhost |
+| root             |                                               | auth_socket           | localhost |
++------------------+------------------------------------------------------------------------+---------</code></pre><p>以上就是修改用户密码加密方式的方法。</p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../archives/1899.html" itemprop="url">MySQL 5.7 升级 8.0</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -115,38 +169,7 @@ apt install mysql-server
 <p>C++ 是一种跨平台的编程语言，用来创建高性能的应用程序，如操作系统，聊天软件，浏览器，游戏等。c++ 源自于 c 语言，并且很大程度上使用了 c 语言的设计理念。</p><p>下面用几篇文章介绍 c++ 的基础用法。</p><p class="more"><a href="../../archives/1894.html" title="C++ 入门教程之一 -- 基础概念">阅读全文</a></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../archives/1893.html" itemprop="url">VMware 虚拟机磁盘文件合并</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2020-11-05T16:39:01+08:00" itemprop="datePublished">2020-11-05</time></li>
-<li class="feather-folder"><a href="../../category/Windows/index.html">Windows</a></li>
-<li class="feather-message"><a href="../../archives/1893.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p>在创建 VMware workstation 虚拟机时，在磁盘选项上会提示选择创建单个虚拟磁盘文件或分割为多个文件。我喜欢使用单个文件，因为选择多个文件会在虚拟机目录下建立许多类似的 vmdk 文件，不太方便复制到其他地方。而且在导入 macOS 下的 VMware fusion 时会报错，所以推荐使用单个磁盘文件。</p><p>当现有的虚拟机已经是使用多个文件形式的话，可以使用 VMware workstation 附带的 vmware-vdiskmanager.exe 工具来进行合并。</p><p class="more"><a href="../../archives/1893.html" title="VMware 虚拟机磁盘文件合并">阅读全文</a></p> </div>
-</article>
-<hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../archives/1885.html" itemprop="url">子网-子网掩码-子网地址的含义解析</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2020-10-27T22:32:00+08:00" itemprop="datePublished">2020-10-27</time></li>
-<li class="feather-folder"><a href="../../category/web/index.html">web</a></li>
-<li class="feather-message"><a href="../../archives/1885.html#comments" itemprop="discussionUrl">1 条评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p>互联网设备之间是通过分配给每台主机的 IP 地址实现访问的，当前是以 32 位 IPv4 地址作为标准。为了便于使用，每 8 位用点<code>.</code>来隔开，习惯使用十进制形式表示，如：192.168.88.3</p><pre><code>Decimal  192         168         88           3
-Binary   11000000    10101000    01011000     00000011</code></pre><p>理论上可以分配 2 的 32 次方个 IP 地址。</p><p class="more"><a href="../../archives/1885.html" title="子网-子网掩码-子网地址的含义解析">阅读全文</a></p> </div>
-</article>
-<hr class="post-separator">
-<nav><ul class="page-navigator"><li class="prev"><a href="../27/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../26/index.html">26</a></li><li><a href="../27/index.html">27</a></li><li class="current"><a href="index.html">28</a></li><li><a href="../29/index.html">29</a></li><li><a href="../30/index.html">30</a></li><li><span>...</span></li><li><a href="../73/index.html">73</a></li><li class="next"><a href="../29/index.html">后一页</a></li></ul></nav>
+<nav><ul class="page-navigator"><li class="prev"><a href="../27/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../26/index.html">26</a></li><li><a href="../27/index.html">27</a></li><li class="current"><a href="index.html">28</a></li><li><a href="../29/index.html">29</a></li><li><a href="../30/index.html">30</a></li><li><span>...</span></li><li><a href="../74/index.html">74</a></li><li class="next"><a href="../29/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
 <footer class="site-footer container-fluid">
@@ -161,7 +184,7 @@ Binary   11000000    10101000    01011000     00000011</code></pre><p>理论上�
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-94708e9b428cb8531eb894dc-><i id="ydmc"></i></a></bgm><script data-no-instant type="94708e9b428cb8531eb894dc-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-098b720ad2f235a93090f735-><i id="ydmc"></i></a></bgm><script data-no-instant type="098b720ad2f235a93090f735-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -170,7 +193,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="94708e9b428cb8531eb894dc-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="94708e9b428cb8531eb894dc-text/javascript"></script>
-<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="94708e9b428cb8531eb894dc-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'858097529d662ebf',t:'MTcwODM2NzUzMi4xMTEwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"858097529d662ebf","version":"2024.2.0","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="098b720ad2f235a93090f735-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="098b720ad2f235a93090f735-text/javascript"></script>
+<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="098b720ad2f235a93090f735-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'8588d541bdbe7cf5',t:'MTcwODQ1Mzk1NC45NDEwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"8588d541bdbe7cf5","version":"2024.2.1","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>
