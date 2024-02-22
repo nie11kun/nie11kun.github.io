@@ -67,6 +67,21 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../../archives/1378.html" itemprop="url">NGINX Reverse Proxy 反向代理的使用</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-03-30T11:05:00+08:00" itemprop="datePublished">2020-03-30</time></li>
+<li class="feather-folder"><a href="../index.html">Linux</a>, <a href="../../web/index.html">web</a>, <a href="../../software/index.html">software</a></li>
+<li class="feather-message"><a href="../../../archives/1378.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<blockquote>Proxying is typically used to distribute the load among several servers, seamlessly show content from different websites, or pass requests for processing to application servers over protocols other than HTTP.</blockquote><p>nginx 可以将一个客户端的请求反向代理到其他地址/端口，从客户端上看不到代理过程。方向代理的常用来处理服务器上部署的多个网络服务，根据请求呈现不同网页内容，转发请求到其他应用程序等。支持转发的协议有： <strong> HTTP，FastCGI, uwsgi, SCGI, and memcached。</strong></p><p>不同于 nginx 的重定向 return/rewrite/try_fiels 功能，反向代理对于客户端是不可见的，关于重定向的语法参考：<a href="../../../archives/195.html">https://blog.niekun.net/archives/195.html</a></p><p>下面介绍 ngx_http_proxy_module 模块的使用方式。</p><p class="more"><a href="../../../archives/1378.html" title="NGINX Reverse Proxy 反向代理的使用">阅读全文</a></p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../../archives/1376.html" itemprop="url">traceroute 路由 IP 查看</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -124,40 +139,6 @@
 <p><img src="../../../usr/uploads/2020/03/4046207363.png" alt="2020-03-13T03:42:47.png" title="2020-03-13T03:42:47.png"><br>虽然 Windows 10 自带有 WSL，可以安装 Linux 系统，但是在实际使用中发现还是有很多限制的。所以想要完整的 Linux 系统，还是安装了虚拟机。</p><p>WSL 开启参考：<a href="../../../archives/1148.html">https://blog.niekun.net/archives/1148.html</a></p><p>我使用的是 VMware workstation 安装了 Ubuntu 18.04 LTS。安装过程中与遇到了一些问题，需要特别的进行处理，在此做一下记录。</p><p class="more"><a href="../../../archives/1316.html" title="Windows 下 VMware 安装 Ubuntu 虚拟机">阅读全文</a></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../../archives/1296.html" itemprop="url">获取用户真实 IP in Nginx</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2020-03-06T15:00:00+08:00" itemprop="datePublished">2020-03-06</time></li>
-<li class="feather-folder"><a href="../index.html">Linux</a></li>
-<li class="feather-message"><a href="../../../archives/1296.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p>对于没有连代理访问网站的用户或者没有加 CDN 的网站，可以直接在 Nginx 中用 deny 命令来拒绝某个 IP 的访问，<strong>$remote_addr</strong> 存储了当前链接用户的 IP:<a href="https://nginx.org/en/docs/http/ngx_http_access_module.html#deny">https://nginx.org/en/docs/http/ngx_http_access_module.html#deny</a></p><pre><code>location / {
-    deny  192.168.1.1;
-    allow 192.168.1.0/24;
-    allow 10.1.1.0/16;
-    allow 2001:0db8::/32;
-    deny  all;
-}</code></pre><p>如果用户访问时加了代理或者网站有 CDN，$remote_addr 的值就不是用户真实 IP 了。</p><p>$remote_addr 变量默认读取 $proxy_add_x_forwarded_for 变量最后一个 IP 地址，一般情况下这个就是客户端原始 IP，但当网站加了 CDN，最后一个 IP 就成了 CDN 分配的 IP，如用户本地 IP为：<code>1.81.218.204</code>，访问没有加 CDN 的网站：</p><pre><code>$remote_addr：1.81.218.204
-$http_x_forwarded_for: 1.81.218.204
-$proxy_add_x_forwarded_for: 1.81.218.204
-</code></pre><p>如果网站加了 CDN 返回信息如下：</p><pre><code>$remote_addr：172.69.34.194
-$http_x_forwarded_for: 1.81.218.204
-$proxy_add_x_forwarded_for: 1.81.218.204, 172.69.34.194
-</code></pre><p>可以看到 $remote_addr 发生了变化。$http_x_forwarded_for 的值没有包含 CDN 代理 IP。</p><p>客户端也可以伪造 X-Forwarded-For 信息，如下使用 curl -H 参数设置头信息：</p><pre><code>curl https://info.niekun.net -H 'X-Forwarded-For: 2.2.2.2' -H 'X-Forwarded-For: 3.3.3.3'
-</code></pre><p>这时候 nginx 的变量就发生了变化：</p><pre><code>$remote_addr：172.69.34.194
-$http_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204
-$proxy_add_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204, 172.69.34.194
-</code></pre><p>可以看到 $http_x_forwarded_for 和 $proxy_add_x_forwarded_for 变量值都附加上了伪造的信息。</p><p>根据观察 $http_x_forwarded_for 的最后一个 IP，永远是真实的用户 IP，可以进行提取。</p><p>使用 map 指令提取用户真实 IP，注意 map 指令要写在配置文件的 http 段：</p><pre><code>map $http_x_forwarded_for  $client_real_ip {
-    default                         $remote_addr;
-    ~^(([0-9\.]+),\s?)*([0-9\.]+)$  $3;
-}</code></pre><p>如果 $http_x_forwarded_for 没有匹配到则赋值为 $remote_addr，如果匹配到了则提取最后一个 IP。$client_real_ip 变量就是真是客户端的 IP 地址。</p> </div>
-</article>
-<hr class="post-separator">
 <nav><ul class="page-navigator"><li class="prev"><a href="../11/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../10/index.html">10</a></li><li><a href="../11/index.html">11</a></li><li class="current"><a href="index.html">12</a></li><li><a href="../13/index.html">13</a></li><li><a href="../14/index.html">14</a></li><li><span>...</span></li><li><a href="../24/index.html">24</a></li><li class="next"><a href="../13/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
@@ -173,7 +154,7 @@ $proxy_add_x_forwarded_for: 2.2.2.2, 3.3.3.3, 1.81.218.204, 172.69.34.194
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-f3d23114199b379e8cfe0b38-><i id="ydmc"></i></a></bgm><script data-no-instant type="f3d23114199b379e8cfe0b38-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-613800cd2c926654837d3dd7-><i id="ydmc"></i></a></bgm><script data-no-instant type="613800cd2c926654837d3dd7-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -182,7 +163,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="f3d23114199b379e8cfe0b38-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="f3d23114199b379e8cfe0b38-text/javascript"></script>
-<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="f3d23114199b379e8cfe0b38-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'859111f18f273157',t:'MTcwODU0MDMyNi43MTkwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"859111f18f273157","version":"2024.2.1","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="613800cd2c926654837d3dd7-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="613800cd2c926654837d3dd7-text/javascript"></script>
+<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="613800cd2c926654837d3dd7-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'85994f4fe9597ead',t:'MTcwODYyNjcyNi40OTAwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"85994f4fe9597ead","version":"2024.2.1","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>
