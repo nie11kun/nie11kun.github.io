@@ -19,10 +19,10 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 </items>
 </channel>
 <item rdf:about="https://blog.niekun.net/archives/ethercat.html">
-<title>添加 ethercat 轴的步骤</title>
+<title>RTE runtime添加 ethercat master 的步骤</title>
 <link>https://blog.niekun.net/archives/ethercat.html</link>
 <dc:date>2024-02-23T15:41:00+08:00</dc:date>
-<description>codesys 下添加 ethercat 驱动器的方法。建立一个支持 softmotion 的设备添加 ethercat master softmotion 主站  （会自动添加 ethercat_task 任务 不可删除)扫描并连接到控制器配置 ethercat master 网卡，RTE 版 runtime 需要选择适配 codesys 的网卡下载程序到控制器退出登录 扫描从站并添加如果设备描述文件没有在系统内置库中 需要手动导入描述文件然后才能扫描识别给扫描到的从站添加 cia402 轴配置电子齿轮比</description>
+<description>codesys 配置 rte runtime 添加 ethercat 组件的方法。主要步骤为：安装 RTE runtime安装适配网卡驱动添加 ethercat master 设备安装 RTE runtime首先需要配置工控机啊 BIOS 设置，将一些超线程，电源管理等选项关掉：关闭超线程：关闭BIOS 中激活的所有节能选项Intel Speed Step动态节能技术EIST智能降频C-States省电模式PowerNow动态调整CPU的工作频率和电压Hibernation休眠MWAIT停用可能导致系统管理中断的所有内容BIOS self tests BIOS自检USB Legacy Device Support 传统USB设备支持然后就可以安装 RTE，官网下载需要的 runtime 安装包，注意区分 x86 还是 x64 设备。我下载的是 **CODESYS Control RTE SL （×86Windows 实时）。官网下载地址：http://store.codesys.cn/codesys/store/index.html在工控机上解压并安装需要的 RTE runtime，基本都是直接下一步即可，期间注意选择带不带 softmotion：Control RTE 文件路径：C:\Program Files\CODESYS\CODESYS Control RTE3Control RTE 安装路径：C:\ProgramData\CODESYS\CODESYSControlRTEV3网卡驱动支持的网卡：Systems with Windows and CODESYS Control RTE (Real-time SoftPLC):Realtek® 8139 (CmpRTL81x9Mpd)Realtek RTL8139 and compatible Ethernet-Controller, as well 8100/8110Realtek 8169 (CmpRTL8169Mpd)Realtek 8169/810, RTL8111B / RTL8111DIntel® EtherExpressPro1000 (CmpEt1000Drv) --- All gigabit adapters from IntelIntel EtherExpress PRO/100 (CmpEt100Drv)  --- All 100 Mbit adapters from Intel一般情况下 intel 的千兆网卡都可以安装 CmpEt1000Drv 驱动。首先进入设备管理器，选择需要更新 codesys 驱动的网卡，右键选择更新驱动：选择从本地查找驱动程序：选择从磁盘安装，从 RTE 文件路径找到对应的驱动目录并安装：右键选择 plc configuration：在 components manager 中在最后一个空行中填入安装的驱动名称，这里我填的是 CmpEt1000Drv：确定并重启 plc 即可完成网卡驱动的安装及配置。添加 ethercat master在codesys 开发项目中进行以下操作。建立一个支持 softmotion 的设备添加 ethercat master softmotion 主站  （会自动添加 ethercat_task 任务 不可删除)扫描并连接到控制器配置 ethercat master 网卡，RTE 版 runtime 需要选择适配 codesys 的网卡下载程序到控制器，如果上面没有在 components manager 中添加网卡组件的话，这里下载会报错退出登录 扫描从站并添加如果设备描述文件没有在系统内置库中 需要手动导入描述文件然后才能扫描识别给扫描到的从站添加 cia402 轴配置电子齿轮比以上就是 RTE runtime 版添加 ethercat master 主站的简单方法。参考链接：Control RTE SL and profinet connections</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2857.html">
 <title>codesys 使用占位符定义界面变量显示格式</title>
