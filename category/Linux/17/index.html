@@ -67,6 +67,26 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../../archives/543.html" itemprop="url">Linux 查询程序或文件位置 which/find/locate</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2019-11-26T11:42:00+08:00" itemprop="datePublished">2019-11-26</time></li>
+<li class="feather-folder"><a href="../index.html">Linux</a></li>
+<li class="feather-message"><a href="../../../archives/543.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>经常忘记将一些文件放在什么，或者安装一个应用程序后不知道准确的安装路径。使用命令可以进行查询：</p><h2>which</h2><pre><code>which python
+</code></pre><p><code>which</code> 命令可用来查询 app 安装位置，返回值为路径。</p><h2>find</h2><pre><code>find / -name file -type f
+</code></pre><p>斜线：/ 代表从系统根目录查找，也可以定义特定的目录开始搜索<br>-name：代表只找文件名匹配，不找文件内的字符串<br>-iname：代表文件名不区分大小写<br>-type：搜索的文件类型 <code>f</code> 代表只找文件不找文件夹匹配，<code>l</code> 代表软链接文件<br>-mtime：指定查找日期天数<br>-exec：查找后执行 command 命令，注意最后要有分号 <code>;</code></p><p>例如，查找指定目录三天前的文件，然后删除文件：</p><pre><code>find /temp/* -mtime +2 -exec rm -rf {} \;
+</code></pre><p>-mtime 使用加号 <code>+</code> 代表指定日期前查找，减号 <code>-</code> 代表指定日期内查找。查找天数为取整关系，例如 2.5 天前的文件会被包含在 -mtime -2 内而不在 -mtime +2 内。</p><p>-exec 指令后跟需要执行的命令。</p><p>查询已知文件名的文件的所有位置，<code>find</code> 命令直接从文件系统 filesystem 查找文件，速度可能会比较慢，但优点是找到的文件当前肯定在系统内。</p><h2>locate</h2><p><code>locate</code> 用来根据文件名寻找文件，它和 <code>find</code> 命令不同点是，<code>find</code> 从当前文件系统直接查找匹配，而 <code>locate</code> 命令会有一个背景进程，记录当前所有文件名到一个数据库文件中，当新建或删除一个文件时会动态更新这个数据库。当使用 <code>locate</code> 命令查找文件时，会从这个数据库里查找，这样速度会相比 <code>find</code> 快很多。</p><p>语法：</p><pre><code>locate [option] strFile
+</code></pre><p>strFile：将匹配所有包含此字符串的文件</p><p>option：<br>-i：不区分大小写<br>-c：输出匹配到的文件的个数</p><p>对于一些刚刚建立的文件，可能数据库没有更新到，所以无法通过命令查找到，这时候可以手动更新数据库：</p><pre><code>sudo updatedb
+</code></pre> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../../archives/534.html" itemprop="url">cat 命令 in Linux</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -133,28 +153,6 @@ linux-generic-lts-xenial</code></pre><p>等价于：</p><pre><code>sudo apt-get 
 </code></pre><p>-m, –mirror 等价于 -r -N -l inf -nr<br>-p：下载所有html文件适合显示的元素<br>-k, –convert-links 转换非相对链接为相对链接,将文档链接都转换成本地的</p><p>-r, –recursive 递归下载－－慎用!<br>-N, –timestamping 不要重新下载文件除非比本地文件新<br>-l, –level=NUMBER 最大递归深度 (inf 或 0 代表无穷).<br>-nr, –dont-remove-listing 不移走 `.listing’文件</p><p>curl 也是类似的工具，参考：<a href="../../../archives/216.html">https://blog.niekun.net/archives/216.html</a></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../../archives/482.html" itemprop="url">hostname 与 hosts 文件功能分析</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2019-11-13T08:41:00+08:00" itemprop="datePublished">2019-11-13</time></li>
-<li class="feather-folder"><a href="../index.html">Linux</a></li>
-<li class="feather-message"><a href="../../../archives/482.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<h3>hostname</h3><p>Linux/windows 系统的设备都会有一个 hostname，也就是设备的名称，执行命令可以查看当前名称：</p><pre><code>hostname
-</code></pre><p>这一名称会在终端命令头显示：</p><pre><code>root@niekun-bandwagon:~#
-</code></pre><p>root 是当前登陆用户名，niekun-bandwagon 就是本机设备名称。可以执行 <code>whoami</code> 命令查看当前登陆用户名：</p><pre><code>whoami
-</code></pre><p>想要修改 hostname 可以编辑 /etc/hostname 将里面名称换为你想要修改的名字即可，重启系统生效新的 hostname。</p><h3>hosts</h3><p>hosts 文件作用是将 hostname 映射到本地 IP 地址，可以定义多个 hostnames 和 IP 的对应关系。</p><p>Linux 系统路径是：/etc/hosts<br>windows 系统路径是：c:\Windows\System32\Drivers\etc\hosts</p><pre><code>Marcos_Router /home/root]# cat /etc/hosts
-127.0.0.1 localhost.localdomain localhost
-192.168.123.1 Marcos_Router.lan Marcos_Router
-192.168.123.1 my.router
-192.168.123.1 my.pdcn</code></pre><p>以上是我路由的 hosts 文件内容，访问 my.router 就相当于访问 192.168.123.1</p><h3>局域网通过 hostname 访问其他设备</h3><p>连接到同一局域网的设备都会分配一个内网 IP 地址，比如：<br>路由器地址：192.168.0.1<br>设备 A 地址：192.168.0.2<br>设备 B 地址：192.168.0.3</p><p>在设备 A 上操作：要访问路由器可以通过访问：192.168.0.1，访问设备 B 通过地址：192.168.0.3</p><p>如果想要使用各自设备的 hostname 来访问就需要设置 hosts 了。</p><p>在设备 A 上的 hosts 文件加入如下内容：<br>192.168.0.1 my.router<br>192.168.0.1 machine.b</p><p>修改完成后要访问路由器可以通过访问：my.router，访问设备 B 通过地址：machine.b (注意如果在浏览器里直接访问 hostname 要加上 http:// 前缀，不然可能访问不到)</p><p>另一个简单的方法是直接在路由器上设置各个设备的 IP 地址映射的 hostname，这样就不需要在每个设备上设置了。</p><p>在路由器的 DHCP 列表里根据 MAC 地址区分设备，单独设置设备的名称即可，不过一般会自动识别到设备的 hostname，默认直接就可以使用了。</p> </div>
-</article>
-<hr class="post-separator">
 <nav><ul class="page-navigator"><li class="prev"><a href="../16/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../15/index.html">15</a></li><li><a href="../16/index.html">16</a></li><li class="current"><a href="index.html">17</a></li><li><a href="../18/index.html">18</a></li><li><a href="../19/index.html">19</a></li><li><span>...</span></li><li><a href="../24/index.html">24</a></li><li class="next"><a href="../18/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
@@ -170,7 +168,7 @@ linux-generic-lts-xenial</code></pre><p>等价于：</p><pre><code>sudo apt-get 
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-dd60de12abe259aceeeb4563-><i id="ydmc"></i></a></bgm><script data-no-instant type="dd60de12abe259aceeeb4563-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-e2670b902b8f895d0dad28b4-><i id="ydmc"></i></a></bgm><script data-no-instant type="e2670b902b8f895d0dad28b4-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -179,7 +177,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="dd60de12abe259aceeeb4563-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="dd60de12abe259aceeeb4563-text/javascript"></script>
-<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="dd60de12abe259aceeeb4563-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'85ebb4e0cad40908',t:'MTcwOTQ5MDcxOC45MTcwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"85ebb4e0cad40908","version":"2024.2.4","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="e2670b902b8f895d0dad28b4-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="e2670b902b8f895d0dad28b4-text/javascript"></script>
+<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="e2670b902b8f895d0dad28b4-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'85f3f26209717ba3',t:'MTcwOTU3NzEyNC4yNDQwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"85f3f26209717ba3","version":"2024.2.4","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

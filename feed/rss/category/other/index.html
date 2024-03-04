@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>杂文</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/immich.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Ubuntu-20-04-ppa.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Google-One.html"/>
@@ -18,10 +19,17 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2348.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2053.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/883.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/461.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/immich.html">
+<title>服务器部署 immich 照片备份工具</title>
+<link>https://blog.niekun.net/archives/immich.html</link>
+<dc:date>2024-03-04T09:30:00+08:00</dc:date>
+<description>目前有很多的云备份服务可以使用，比如 icloud，google photos 等。immich 是一款实现类似功能的本地部署工具，将数据都存储在自己本地服务器上，拥有完善的手机端 app 可以方便的同步备份手机图片。GitHub 主页：https://github.com/immich-app/immich官网教程：https://immich.app/docs/overview/introduction/安装服务端使用 docker compose 安装，新建一个 immich 文件夹，下载 docker-compose.yml 和 .env 文件到文件夹：wget https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
+wget -O .env https://github.com/immich-app/immich/releases/latest/download/example.env打开 .env 文件配置环境变量，主要就是配置备份路径和数据库密码，修改 UPLOAD_LOCATION 和 DB_PASSWORD。启动容器：docker compose up -d后续更新只需要进入 immich 文件夹执行下面命令即可：docker compose pull &amp;&amp; docker compose up -d
+docker-compose.yml 文件中默认将 3001 端口映射到了本地 2283 端口，3001就是服务端访问端口号。下面是所有可用的端口，根据需要可以修改 docker-compose 文件映射到本地：PORTWeb Port3000webSERVER_PORTServer Port3001serverMICROSERVICES_PORTMicroservices Port3002microservicesMACHINE_LEARNING_HOSTMachine Learning Host0.0.0.0machine learningMACHINE_LEARNING_PORTMachine Learning Port3003machine learning配置账户网页端访问：http://you.machine.ip:2283 进入配置页面，根据提示建立一个管理员账户，后续可以在管理员账户中建立其他子账户供其他人使用。登录 app下载手机端 app，ios 直接在 app store 搜索 immich 下载，安卓在 github 发布页下载 apk：https://github.com/immich-app/immich/releases在手机端输入以下网址进入：http://you.machine.ip:2283/api然后就可以配置需要备份的手机端图片文件夹了。外网访问服务器在本地，如果要外网域名远程访问图库，需要一些额外的配置，我这里是通过 cloudflare 配置子域名，nginx 配置反向代理到 frps，最后本地服务器 frpc 配置本地 2283 端口绑定到远程域名访问即可。可以参考我之前的关于 frp 的教程：https://blog.niekun.net/archives/539.html</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/Ubuntu-20-04-ppa.html">
 <title>Ubuntu 20.04 添加第三方 ppa</title>
 <link>https://blog.niekun.net/archives/Ubuntu-20-04-ppa.html</link>
@@ -117,32 +125,5 @@ gcc -v我升级到了 6.5，参考链接：https://gist.github.com/application20
 这种方法适合一些依赖少的小型程序。方法二，将自定义安装目录加入系统 $PATH 中。export PATH=&quot;/opt/node/bin:${PATH}&quot;
 echo $PATH在系统 $PATH 前添加程序路径，这样 shell 就可以识别到命令了。注意这样修改 PATH 只会在当前 shell 生效，关闭后自动恢复默认，如果需要永久修改需要修改文件：/.bashrc，具体教程参考：https://niekun.net/index.php/archives/97.html删除程序通过以上方法编译和安装的程序，删除就很简单了：rm -rf /opt/node-v18.3.0
 如果修改了 PATH，需要删掉 PATH 中添加的内容。如果是添加了软连接，需要删掉链接文件：find /usr/local/bin -type l -iname node以上就是在 Linux 上从源码编译安装程序的简单过程。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/461.html">
-<title>使用 crontab 设置 Linux 定时任务</title>
-<link>https://blog.niekun.net/archives/461.html</link>
-<dc:date>2019-11-08T11:49:00+08:00</dc:date>
-<description>crontab 是 Linux 的一个执行定时任务的程序。当前用户配置 crontab 配置情况：crontab -l
-编辑用户配置文件：crontab -e
-以上命令是将设置写入用户级配置文件，以下方法可以直接修改系统级配置。system wide 配置文件地址：/etc/crontab配置文件文件格式：SHELL=/bin/bash
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-MAILTO=root
-HOME=/root
-
-30  1  *  *  * root bash /root/backup.sh前几个设置是 corn 执行环境设置，尤其是 PATH 和 HOME 需要正确设置才能保证部分命令正确执行。# Example of job definition:
-# .---------------- minute (0 - 59)
-# |  .------------- hour (0 - 23)
-# |  |  .---------- day of month (1 - 31)
-# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
-# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
-# |  |  |  |  |
-# *  *  *  *  * user-name command to be executed
-30  1  *  *  * root bash /root/backup.sh以上指令代表每天 1:30 执行脚本。每个字段的写法可以有多种类型：单一数字 数字段 数字组 数字间隔单一数字，指定时间点运行：30  1  *  *  * root bash /root/backup.sh
-数字段，指定时间段运行：30  1-6  *  *  * root bash /root/backup.sh
-数字组，指定多个时间点运行:30  1,3,5  *  *  * root bash /root/backup.sh
-数字间隔，指定每隔多少时间执行：*/30  *  *  *  * root bash /root/backup.sh
-0  */3  *  *  * root bash /root/backup.sh
-加载环境变量：默认情况下，crontab 里的定时任务不能调用 .bashrc 或者在其他自定义 env 文件中定义的环境变量，导致脚本手动执行的时候没问题，自动定时运行就会出错。解决方法就是在 crontab 文件中定义环境变量，或者指定加载某个环境变量文件即可。方法一：在定时任务中直接定义环境变量* * * * * root LEARNING_FROM=baeldung LANG=es_US bash /etc/test.sh方法二：通过 bash -l -c 以 login shell 方式运行脚本，这样会运行时自动加载 /etc/profile, ~/.bash_pofile, ~/.bash_login, ~/.profile 这几个配置文件* * * * * root bash -l -c /etc/test.sh注意以上方法依然没有加载 ~/.bashrc 文件，如果需要加载这个文件则需要通过 BASH_ENV 加载：* * * * * root BASH_ENV=~/.bashrc bash -l -c /etc/test.sh以上指令就相当于加载了所有的系统级初始化配置文件了。方法三：通过 BASH_ENV 加载自定义环境变量文件* * * * * root BASH_ENV=/etc/env_addon bash /etc/test.shenv_addon 中是一些自定义的环境变量，如：ENV1=abcd
-ENV2=5678参考链接：How to Load Environment Variables in a Cron Job</description>
 </item>
 </rdf:RDF>

@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/immich.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/ethercat.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Ubuntu-20-04-ppa.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html"/>
@@ -18,10 +19,17 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2861.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2860.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2858.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2857.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/immich.html">
+<title>服务器部署 immich 照片备份工具</title>
+<link>https://blog.niekun.net/archives/immich.html</link>
+<dc:date>2024-03-04T09:30:00+08:00</dc:date>
+<description>目前有很多的云备份服务可以使用，比如 icloud，google photos 等。immich 是一款实现类似功能的本地部署工具，将数据都存储在自己本地服务器上，拥有完善的手机端 app 可以方便的同步备份手机图片。GitHub 主页：https://github.com/immich-app/immich官网教程：https://immich.app/docs/overview/introduction/安装服务端使用 docker compose 安装，新建一个 immich 文件夹，下载 docker-compose.yml 和 .env 文件到文件夹：wget https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
+wget -O .env https://github.com/immich-app/immich/releases/latest/download/example.env打开 .env 文件配置环境变量，主要就是配置备份路径和数据库密码，修改 UPLOAD_LOCATION 和 DB_PASSWORD。启动容器：docker compose up -d后续更新只需要进入 immich 文件夹执行下面命令即可：docker compose pull &amp;&amp; docker compose up -d
+docker-compose.yml 文件中默认将 3001 端口映射到了本地 2283 端口，3001就是服务端访问端口号。下面是所有可用的端口，根据需要可以修改 docker-compose 文件映射到本地：PORTWeb Port3000webSERVER_PORTServer Port3001serverMICROSERVICES_PORTMicroservices Port3002microservicesMACHINE_LEARNING_HOSTMachine Learning Host0.0.0.0machine learningMACHINE_LEARNING_PORTMachine Learning Port3003machine learning配置账户网页端访问：http://you.machine.ip:2283 进入配置页面，根据提示建立一个管理员账户，后续可以在管理员账户中建立其他子账户供其他人使用。登录 app下载手机端 app，ios 直接在 app store 搜索 immich 下载，安卓在 github 发布页下载 apk：https://github.com/immich-app/immich/releases在手机端输入以下网址进入：http://you.machine.ip:2283/api然后就可以配置需要备份的手机端图片文件夹了。外网访问服务器在本地，如果要外网域名远程访问图库，需要一些额外的配置，我这里是通过 cloudflare 配置子域名，nginx 配置反向代理到 frps，最后本地服务器 frpc 配置本地 2283 端口绑定到远程域名访问即可。可以参考我之前的关于 frp 的教程：https://blog.niekun.net/archives/539.html</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/ethercat.html">
 <title>RTE runtime添加 ethercat master 的步骤</title>
 <link>https://blog.niekun.net/archives/ethercat.html</link>
@@ -98,20 +106,5 @@ mpg 转 mp4：ffmpeg -i in.mpg -c:v libx264 -c:a aac -crf 20 -preset:v veryslow 
 <link>https://blog.niekun.net/archives/2858.html</link>
 <dc:date>2023-10-18T17:13:10+08:00</dc:date>
 <description>最近的工作中遇到使用带刀具的轨迹运动中，由于轨迹是通过1000多个离散点构成的，每个点之间距离很短，由于 sinumerik one 系统默认的线性计算精度是每毫米 1000 各单位，导致刀具轨迹报错提示可能有碰撞危险。通过提高系统计算精度可以解决此问题。相关系统变量：通用机床数据 10200 线性位置的计算精度通用机床数据 10210 角位置的计算精度sinumerik one 及 840D sl 系统以上参数默认值为 1000，828D 系统默认值为 1000000。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2857.html">
-<title>codesys 使用占位符定义界面变量显示格式</title>
-<link>https://blog.niekun.net/archives/2857.html</link>
-<dc:date>2023-09-22T10:33:32+08:00</dc:date>
-<description>在编程中我们会使用各种类型的变量进行逻辑运算，不同类型其默认数据精度取值不一样，比如浮点型变量文本占位符为 %f 默认小数位数 6 位，但实际只想显示 3 位小数，此时就需要将界面变量的占位符进行设置以满足需求。int 整型语法：% &lt;标记&gt; &lt;最小显示数字个数&gt; &lt;类型&gt;
-标记：定义数据显示模式，可选项：- 当定义最小显示数字个数时 居左显示，+ 显示数据正负号，0 当定义最小显示数字个数时空缺位显示 0最小显示数字个数：定义最少占据几个数字空间，默认数据位数不够时留空类型：显示数据类型，如：d十进制, b二进制, o八进制, x十六进制示例：%-5d：最小显示位数5位，且居左对齐显示，例如数据值为123时：`123  `
-%+d：显示数据正负号,例如数据值为123时：`+123`
-%05d：最小显示位数5位，且空缺位显示0，例如数据值为234时：`00234`
-
-%08b：显示8位数的二进制模式，例如数据值为255时：`11111111`
-%04x：显示4位数的十六进制模式，例如数据值为15时：`000f`float 浮点型语法：% &lt;标记&gt; &lt;最小显示数字个数&gt; . &lt;精度&gt; f
-标记：定义数据显示模式，可选项：- 当定义最小显示数字个数时 居左显示，+ 显示数据正负号，0 当定义最小显示数字个数时空缺位显示 0最小显示数字个数：定义最少占据几个数字空间，包括小数位，默认数据位数不够时留空，不定义时默认为 %1.6f精度：小数位的显示精度示例：%-12.9f：显示12位数字 9位小数，且居左显示
-%+6.3f：显示6位数字3位小数，且显示正负号标记
-%06.3f：显示6位数字3位小数，且空缺位补0显示参考链接Placeholders with Format Definition</description>
 </item>
 </rdf:RDF>

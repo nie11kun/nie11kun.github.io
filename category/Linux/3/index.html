@@ -67,6 +67,34 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../../archives/2621.html" itemprop="url">systemd 服务加载 env 环境变量</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2022-04-11T11:21:00+08:00" itemprop="datePublished">2022-04-11</time></li>
+<li class="feather-folder"><a href="../index.html">Linux</a></li>
+<li class="feather-message"><a href="../../../archives/2621.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>最近在测试中发现，通过 systemd service 启动的 python 脚本无法加载系统 bashrc 内定义的环境变量。需要在 uint 中定义自定义环境变量才能生效。</p><p>首先建立自定义环境变量文件，如： <code>/etc/env_addon</code>，其中定义需要的环境变量：</p><pre><code>ENV1=abcd
+ENV2=5678</code></pre><p>然后在 unit 的 service 块中加入 EnvironmentFile 指向建立的环境变量文件：</p><pre><code>[Unit]
+Description=demo
+After=network.target nss-lookup.target
+
+[Service]
+User=root
+EnvironmentFile=/etc/env_addon
+ExecStart=/usr/bin/python /path/main.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target</code></pre><p>重新加载并重启服务：</p><pre><code>sudo systemctl daemon-reload
+sudo systemctl restart demo.service</code></pre><p>如果需要系统的 <strong>~/.bashrc</strong> 同时加载这个自定义的环境变量文件，可以在 bashrc 中加入下面内容：</p><pre><code>set -a; source /etc/env_addon; set +a</code></pre><p>重新加载环境：</p><pre><code>source ~/.bashrc</code></pre><p><strong>参考链接</strong>：<br><a href="https://stackoverflow.com/questions/49764993/using-a-users-bashrc-in-a-systemd-service">Using a user's .bashrc in a systemd service</a><br><a href="https://www.flatcar.org/docs/latest/setup/systemd/environment-variables/">Using environment variables in systemd units Environment directive</a></p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../../archives/2613.html" itemprop="url">修改虚拟交换机 MTU 提高 esxi 虚拟机网络速度</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -132,21 +160,6 @@ iptables -t mangle -A OUTPUT -p tcp -m set --match-set gfwlist dst -j MARK --set
 iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set-mark 1</code></pre><p>这样就可以避免流量回环问题。</p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../../archives/2457.html" itemprop="url">安装 phpMyAdmin 管理 MySQL</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2022-03-28T09:31:00+08:00" itemprop="datePublished">2022-03-28</time></li>
-<li class="feather-folder"><a href="../index.html">Linux</a></li>
-<li class="feather-message"><a href="../../../archives/2457.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p>phpMyAdmin 是一个 php 的免费工具，用来在 web 端管理 MySQL 数据库。它支持大部分的 MySQL 功能，比如：创建数据库，修改数据，管理用户权限，导入导出数据等。</p><p>官方网站：<a href="https://www.phpmyadmin.net/">https://www.phpmyadmin.net/</a><br>GitHub 主页：<a href="https://github.com/phpmyadmin/phpmyadmin">https://github.com/phpmyadmin/phpmyadmin</a></p><p>下面介绍在 Ubuntu 20.04 的安装及使用过程。</p><p class="more"><a href="../../../archives/2457.html" title="安装 phpMyAdmin 管理 MySQL">阅读全文</a></p> </div>
-</article>
-<hr class="post-separator">
 <nav><ul class="page-navigator"><li class="prev"><a href="../2/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><a href="../2/index.html">2</a></li><li class="current"><a href="index.html">3</a></li><li><a href="../4/index.html">4</a></li><li><a href="../5/index.html">5</a></li><li><span>...</span></li><li><a href="../24/index.html">24</a></li><li class="next"><a href="../4/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
@@ -162,7 +175,7 @@ iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-1c9ff9d00d1ef561028957b8-><i id="ydmc"></i></a></bgm><script data-no-instant type="1c9ff9d00d1ef561028957b8-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-3a150e0b80e25f45b3bd9862-><i id="ydmc"></i></a></bgm><script data-no-instant type="3a150e0b80e25f45b3bd9862-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -171,7 +184,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="1c9ff9d00d1ef561028957b8-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="1c9ff9d00d1ef561028957b8-text/javascript"></script>
-<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="1c9ff9d00d1ef561028957b8-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'85ebb28be8682f63',t:'MTcwOTQ5MDYyMy40MTcwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"85ebb28be8682f63","version":"2024.2.4","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="3a150e0b80e25f45b3bd9862-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="3a150e0b80e25f45b3bd9862-text/javascript"></script>
+<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="3a150e0b80e25f45b3bd9862-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'85f3eff80988101f',t:'MTcwOTU3NzAyNS4zNTgwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"85f3eff80988101f","version":"2024.2.4","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>
