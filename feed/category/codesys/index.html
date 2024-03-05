@@ -32,7 +32,7 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <title>codesys 使用占位符定义界面变量显示格式</title>
 <link>https://blog.niekun.net/archives/2857.html</link>
 <guid>https://blog.niekun.net/archives/2857.html</guid>
-<pubDate>Fri, 22 Sep 2023 10:33:32 +0800</pubDate>
+<pubDate>Fri, 22 Sep 2023 10:33:00 +0800</pubDate>
 <dc:creator>admin</dc:creator>
 <category><![CDATA[CODESYS]]></category>
 <description><![CDATA[在编程中我们会使用各种类型的变量进行逻辑运算，不同类型其默认数据精度取值不一样，比如浮点型变量文本占位符为 %f 默认小数位数 6 位，但实际只想显示 3 位小数，此时就需要将界面变量的占位符进...]]></description>
@@ -46,7 +46,23 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 %04x：显示4位数的十六进制模式，例如数据值为15时：`000f`</code></pre><h3>float 浮点型</h3><p>语法：</p><pre><code>% &lt;标记&gt; &lt;最小显示数字个数&gt; . &lt;精度&gt; f
 </code></pre><ul><li>标记：定义数据显示模式，可选项：<code>-</code> 当定义最小显示数字个数时 居左显示，<code>+</code> 显示数据正负号，<code>0</code> 当定义最小显示数字个数时空缺位显示 0</li><li>最小显示数字个数：定义最少占据几个数字空间，包括小数位，默认数据位数不够时留空，不定义时默认为 <code>%1.6f</code></li><li>精度：小数位的显示精度</li></ul><p>示例：</p><pre><code>%-12.9f：显示12位数字 9位小数，且居左显示
 %+6.3f：显示6位数字3位小数，且显示正负号标记
-%06.3f：显示6位数字3位小数，且空缺位补0显示</code></pre><h3>参考链接</h3><p><a href="https://content.helpme-codesys.com/en/CODESYS%20Visualization/_visu_placeholder_with_formatting_sequence_in_a_string.html">Placeholders with Format Definition</a></p>
+%06.3f：显示6位数字3位小数，且空缺位补0显示</code></pre><h3>时间类型</h3><p>语法：</p><pre><code>%t[ &lt;text&gt; &lt;time in unit&gt; &lt;text&gt; ]
+</code></pre><p>示例：</p><pre><code>// 定义一个时间变量并给其赋值
+ltTimeSpan : LTIME := LTIME#1D2H3M4S5MS6US7NS;
+
+在一个 label 中定义：
+text variable 设置：PLC_PRG.ltTimeSpan
+text 占位符设置：Time span: %t[d] d
+输出结果：Time span: 1 d</code></pre><p>可用的占位符：<code>%t[d]</code> 天，<code>%t[dd]</code> 两位数字的天，<code>%t[H]</code> 小时，<code>%t[HH]</code> 两位数字小时，<code>%t[m]</code>分钟，<code>%t[mm]</code> 两位数分钟，<code>%t[s]</code> 秒，<code>%t[ss]</code> 两位数秒。</p><p>也可以组合起来使用：</p><pre><code>TEXT 占位符设置：%t[Value: dd-HH:mm:ss:ms:us:ns]
+输出结果：Value: 01-02:03:04:005:006:007</code></pre><p>如果不定义 label 的 text variable 属性，则会输出系统当前时间。</p><h3>日期类型</h3><p>语法：</p><pre><code>%t[ &lt;date and time unit&gt; ]
+</code></pre><p>和时间类型类似的用法，下面举例说明：</p><pre><code>//定义一个 date 类型变量
+dateBy : DATE := DATE#2021-02-12;
+
+在一个 label 中定义：
+text variable 设置：PLC_PRG.dateBy
+text 占位符设置：Date: %t[yyyy-MM-dd dddd]
+输出结果：Date: 2/12/2021 Friday</code></pre><p>可用占位符：%t[yyyy] 年，%t[yy] 两位数年，%t[y]一位数年，%t[MMMM] 英文月份，%t[MMM]英文简写月份，%t[MM]月份，%t[ddddd] 一周的第几天，%t[dddd]英文周几，%t[dd]一个月的第几天，%t[jjj]一年中的第几天，</p><p>如果不定义 label 的 text variable 属性，则会输出系统当前日期。</p><h3>字符</h3><p>语法：</p><pre><code>%s
+</code></pre><h3>参考链接</h3><p><a href="https://content.helpme-codesys.com/en/CODESYS%20Visualization/_visu_placeholder_with_formatting_sequence_in_a_string.html">Placeholders with Format Definition</a></p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2857.html#comments</comments>

@@ -27,7 +27,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/2857.html">
 <title>codesys 使用占位符定义界面变量显示格式</title>
 <link>https://blog.niekun.net/archives/2857.html</link>
-<dc:date>2023-09-22T10:33:32+08:00</dc:date>
+<dc:date>2023-09-22T10:33:00+08:00</dc:date>
 <description>在编程中我们会使用各种类型的变量进行逻辑运算，不同类型其默认数据精度取值不一样，比如浮点型变量文本占位符为 %f 默认小数位数 6 位，但实际只想显示 3 位小数，此时就需要将界面变量的占位符进行设置以满足需求。int 整型语法：% &lt;标记&gt; &lt;最小显示数字个数&gt; &lt;类型&gt;
 标记：定义数据显示模式，可选项：- 当定义最小显示数字个数时 居左显示，+ 显示数据正负号，0 当定义最小显示数字个数时空缺位显示 0最小显示数字个数：定义最少占据几个数字空间，默认数据位数不够时留空类型：显示数据类型，如：d十进制, b二进制, o八进制, x十六进制示例：%-5d：最小显示位数5位，且居左对齐显示，例如数据值为123时：`123  `
 %+d：显示数据正负号,例如数据值为123时：`+123`
@@ -37,7 +37,23 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 %04x：显示4位数的十六进制模式，例如数据值为15时：`000f`float 浮点型语法：% &lt;标记&gt; &lt;最小显示数字个数&gt; . &lt;精度&gt; f
 标记：定义数据显示模式，可选项：- 当定义最小显示数字个数时 居左显示，+ 显示数据正负号，0 当定义最小显示数字个数时空缺位显示 0最小显示数字个数：定义最少占据几个数字空间，包括小数位，默认数据位数不够时留空，不定义时默认为 %1.6f精度：小数位的显示精度示例：%-12.9f：显示12位数字 9位小数，且居左显示
 %+6.3f：显示6位数字3位小数，且显示正负号标记
-%06.3f：显示6位数字3位小数，且空缺位补0显示参考链接Placeholders with Format Definition</description>
+%06.3f：显示6位数字3位小数，且空缺位补0显示时间类型语法：%t[ &lt;text&gt; &lt;time in unit&gt; &lt;text&gt; ]
+示例：// 定义一个时间变量并给其赋值
+ltTimeSpan : LTIME := LTIME#1D2H3M4S5MS6US7NS;
+
+在一个 label 中定义：
+text variable 设置：PLC_PRG.ltTimeSpan
+text 占位符设置：Time span: %t[d] d
+输出结果：Time span: 1 d可用的占位符：%t[d] 天，%t[dd] 两位数字的天，%t[H] 小时，%t[HH] 两位数字小时，%t[m]分钟，%t[mm] 两位数分钟，%t[s] 秒，%t[ss] 两位数秒。也可以组合起来使用：TEXT 占位符设置：%t[Value: dd-HH:mm:ss:ms:us:ns]
+输出结果：Value: 01-02:03:04:005:006:007如果不定义 label 的 text variable 属性，则会输出系统当前时间。日期类型语法：%t[ &lt;date and time unit&gt; ]
+和时间类型类似的用法，下面举例说明：//定义一个 date 类型变量
+dateBy : DATE := DATE#2021-02-12;
+
+在一个 label 中定义：
+text variable 设置：PLC_PRG.dateBy
+text 占位符设置：Date: %t[yyyy-MM-dd dddd]
+输出结果：Date: 2/12/2021 Friday可用占位符：%t[yyyy] 年，%t[yy] 两位数年，%t[y]一位数年，%t[MMMM] 英文月份，%t[MMM]英文简写月份，%t[MM]月份，%t[ddddd] 一周的第几天，%t[dddd]英文周几，%t[dd]一个月的第几天，%t[jjj]一年中的第几天，如果不定义 label 的 text variable 属性，则会输出系统当前日期。字符语法：%s
+参考链接Placeholders with Format Definition</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2840.html">
 <title>codesys 定义重启可保持型变量</title>
