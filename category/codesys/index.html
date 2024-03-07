@@ -67,16 +67,59 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../archives/codesys-enum.html" itemprop="url">codesys enum 枚举数据类型单元的使用</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2024-03-07T08:21:07+08:00" itemprop="datePublished">2024-03-07</time></li>
+<li class="feather-folder"><a href="../other/index.html">other</a>, <a href="index.html">CODESYS</a></li>
+<li class="feather-message"><a href="../../archives/codesys-enum.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>enum 类型的 dut 可以定义一组属性及其值，调用的时候可以方便的通过写其属性名称得到属性的值，也可以获取到属性本身的名称。</p><p>下面举一个例子说明：</p><pre><code>{attribute 'qualified_only'}            // 必须先写类型名称再写属性名称 (例如 eColor.Red)
+// {attribute 'strict'}                 //取消 'strict' 以允许转换 UDINT 数据类型
+{attribute 'to_string'}                 // 运行字符串转换 (例如 TO_STRING(eColor.Red) = 'Red')
+TYPE eColor :
+(
+    Red         := 16#FFFF0000,
+    Green       := 16#FF00FF00,
+    Blue        := 16#FF0000FF
+    Yellow      := 16#FFFFFF00,
+) UDINT;                                // 声明 UDINT 作为 int 整形类型
+END_TYPE
+
+// 定义一些变量
+    ColorVar1   : eColor;
+    ColorVar2   : eColor;
+    ColorName   : STRING;
+    ColorValue  : UDINT;
+
+    ColorVar1 := eColor.Green;            // ColorVar1 = 16#FF00FF00
+    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Green';
+    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FF00FF00
+
+    ColorVar2 := 16#FF00FF00;             // ColorVar2.Green
+    ColorName := TO_STRING(ColorVar2);    // ColorName = 'Green';
+    ColorValue := TO_UDINT(ColorVar2);    // ColorValue = 16#FF00FF00
+
+    ColorVar1 := ColorVar2 OR eColor.Red; // 按位相与得到 Yellow=16#FFFFFF00
+    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Yellow';
+    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FFFFFF00</code></pre><p>以上示例列举了常用的 enum 类型可进行的数据交互方式。</p><p><code>eColor.Green</code> 可以获取enum类型属性的值，并可以赋值给其他对应 enum 实例<br><code>TO_STRING(ColorVar1)</code> 可以转换获取 enum 实例当前值对应属性名称字符串</p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../archives/codesys.html" itemprop="url">codesys 常见编译及下载时报错解决方法</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2024-03-06T16:35:08+08:00" itemprop="datePublished">2024-03-06</time></li>
+<li class="feather-calendar"><time datetime="2024-03-06T16:35:00+08:00" itemprop="datePublished">2024-03-06</time></li>
 <li class="feather-folder"><a href="../other/index.html">other</a>, <a href="index.html">CODESYS</a></li>
 <li class="feather-message"><a href="../../archives/codesys.html#comments" itemprop="discussionUrl">暂无评论</a></li>
 </ul>
 </header>
 <div class="entry-content fmt" itemprop="articleBody">
-<h3>No source code available for this object</h3><p>下载时出现此报警，原因是 task 任务中对 gou 的排序有问题，放在前面的 pou 中使用了后面 pou 才设定好的数据，需要重新排列 task 任务序列：<br><img src="../../usr/uploads/2024/03/1281212428.png" alt="image.png" title="image.png"></p> </div>
+<h3>No source code available for this object</h3><p>下载时出现此报警，原因是 task 任务中对 gou 的排序有问题，放在前面的 pou 中使用了后面 pou 才设定好的数据，需要重新排列 task 任务序列：<br><img src="../../usr/uploads/2024/03/1281212428.png" alt="image.png" title="image.png"></p><h3>SMC_FB_CALLED_FROM_WRONG_TASK</h3><p><code>mc_power</code> <code>mc_jog</code> 等控制轴的功能块，一运行就报错 <strong>SMC_FB_CALLED_FROM_WRONG_TASK</strong>，可能是不同的 pou 放在了多个 task 任务中，循环中内部有了冲突，将所有的 pou 放在同一个 task 中就可以解决问题。</p> </div>
 </article>
 <hr class="post-separator">
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -124,25 +167,6 @@
 <p>无论是在 gvl 或者 pou 中都可以定义变量，默认情况下这些变量在系统重启后数据都会丢失。某些情况下我们希望变量值可以保持，系统重启后原数据也不丢失。可以在变量定义块中通过关键词 <strong>RETAIN</strong> 和 <strong>PERSISTENT</strong> 来实现。</p><p>注意 <strong>PERSISTENT</strong> 类型变量必须定义在单独的 <strong>Persistent Variables</strong> 类型 object 才能生效。而不是通常的 <strong>GVL</strong> object。</p><p class="more"><a href="../../archives/2840.html" title="codesys 定义重启可保持型变量">阅读全文</a></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../archives/2835.html" itemprop="url">codesys 中使用 DIN 66025 标准编写 CNC 程序</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2023-08-16T15:33:00+08:00" itemprop="datePublished">2023-08-16</time></li>
-<li class="feather-folder"><a href="index.html">CODESYS</a></li>
-<li class="feather-message"><a href="../../archives/2835.html#comments" itemprop="discussionUrl">1 条评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p>下面介绍 DIN 66025 标准下编写 codesys CNC 程序的一些基本规则。</p><h3>结构</h3><p>基本格式如下：</p><pre><code>% MyProgram
-N10 G01 X100 Y100 F100  (comment)
-N20 M8 G01 Z40 F20
-N30 G03 X-100 R200 F100
-N40 SubPrg{5}</code></pre><p class="more"><a href="../../archives/2835.html" title="codesys 中使用 DIN 66025 标准编写 CNC 程序">阅读全文</a></p> </div>
-</article>
-<hr class="post-separator">
 <nav><ul class="page-navigator"><li class="current"><a href="1/index.html">1</a></li><li><a href="2/index.html">2</a></li><li class="next"><a href="2/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
@@ -158,7 +182,7 @@ N40 SubPrg{5}</code></pre><p class="more"><a href="../../archives/2835.html" tit
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-945c6263a32f001ea991ce36-><i id="ydmc"></i></a></bgm><script data-no-instant type="945c6263a32f001ea991ce36-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-7f02cce9f3d132c57517dec1-><i id="ydmc"></i></a></bgm><script data-no-instant type="7f02cce9f3d132c57517dec1-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -167,7 +191,7 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="945c6263a32f001ea991ce36-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="945c6263a32f001ea991ce36-text/javascript"></script>
-<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="945c6263a32f001ea991ce36-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'86046a498fbf2b54',t:'MTcwOTc0OTgwNy42ODEwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"86046a498fbf2b54","version":"2024.2.4","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
+<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="7f02cce9f3d132c57517dec1-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="7f02cce9f3d132c57517dec1-text/javascript"></script>
+<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="7f02cce9f3d132c57517dec1-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'860ca79fb8c752ef',t:'MTcwOTgzNjIwNi4xMjgwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v84a3a4012de94ce1a686ba8c167c359c1696973893317" integrity="sha512-euoFGowhlaLqXsPWQ48qSkBSCFs3DPRyiwVu3FjR96cMPx+Fr+gpWRhIafcHwqwCqWS42RZhIudOvEI+Ckf6MA==" data-cf-beacon='{"rayId":"860ca79fb8c752ef","version":"2024.2.4","r":1,"token":"4aee7d1b132442f18b378b50480be6e3","b":1}' crossorigin="anonymous"></script>
 </body>
 </html>

@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>杂文</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/codesys-enum.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/codesys.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/immich.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Ubuntu-20-04-ppa.html"/>
@@ -18,15 +19,48 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2804.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2795.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2348.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2053.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/codesys-enum.html">
+<title>codesys enum 枚举数据类型单元的使用</title>
+<link>https://blog.niekun.net/archives/codesys-enum.html</link>
+<dc:date>2024-03-07T08:21:07+08:00</dc:date>
+<description>enum 类型的 dut 可以定义一组属性及其值，调用的时候可以方便的通过写其属性名称得到属性的值，也可以获取到属性本身的名称。下面举一个例子说明：{attribute 'qualified_only'}            // 必须先写类型名称再写属性名称 (例如 eColor.Red)
+// {attribute 'strict'}                 //取消 'strict' 以允许转换 UDINT 数据类型
+{attribute 'to_string'}                 // 运行字符串转换 (例如 TO_STRING(eColor.Red) = 'Red')
+TYPE eColor :
+(
+    Red         := 16#FFFF0000,
+    Green       := 16#FF00FF00,
+    Blue        := 16#FF0000FF
+    Yellow      := 16#FFFFFF00,
+) UDINT;                                // 声明 UDINT 作为 int 整形类型
+END_TYPE
+
+// 定义一些变量
+    ColorVar1   : eColor;
+    ColorVar2   : eColor;
+    ColorName   : STRING;
+    ColorValue  : UDINT;
+
+    ColorVar1 := eColor.Green;            // ColorVar1 = 16#FF00FF00
+    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Green';
+    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FF00FF00
+
+    ColorVar2 := 16#FF00FF00;             // ColorVar2.Green
+    ColorName := TO_STRING(ColorVar2);    // ColorName = 'Green';
+    ColorValue := TO_UDINT(ColorVar2);    // ColorValue = 16#FF00FF00
+
+    ColorVar1 := ColorVar2 OR eColor.Red; // 按位相与得到 Yellow=16#FFFFFF00
+    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Yellow';
+    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FFFFFF00以上示例列举了常用的 enum 类型可进行的数据交互方式。eColor.Green 可以获取enum类型属性的值，并可以赋值给其他对应 enum 实例TO_STRING(ColorVar1) 可以转换获取 enum 实例当前值对应属性名称字符串</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/codesys.html">
 <title>codesys 常见编译及下载时报错解决方法</title>
 <link>https://blog.niekun.net/archives/codesys.html</link>
-<dc:date>2024-03-06T16:35:08+08:00</dc:date>
-<description>No source code available for this object下载时出现此报警，原因是 task 任务中对 gou 的排序有问题，放在前面的 pou 中使用了后面 pou 才设定好的数据，需要重新排列 task 任务序列：</description>
+<dc:date>2024-03-06T16:35:00+08:00</dc:date>
+<description>No source code available for this object下载时出现此报警，原因是 task 任务中对 gou 的排序有问题，放在前面的 pou 中使用了后面 pou 才设定好的数据，需要重新排列 task 任务序列：SMC_FB_CALLED_FROM_WRONG_TASKmc_power mc_jog 等控制轴的功能块，一运行就报错 SMC_FB_CALLED_FROM_WRONG_TASK，可能是不同的 pou 放在了多个 task 任务中，循环中内部有了冲突，将所有的 pou 放在同一个 task 中就可以解决问题。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/immich.html">
 <title>服务器部署 immich 照片备份工具</title>
@@ -90,11 +124,5 @@ Kayseri（第四行）
 <link>https://blog.niekun.net/archives/2348.html</link>
 <dc:date>2021-10-09T10:53:57+08:00</dc:date>
 <description>最近在玩 PT 时发现有些种子下载到 99.9% 就停止了，一直显示下载中但是没有任何流量，我使用的是 QBittorrent。查看种子进程会发现中间有些区块的确是没有下载完成的状态。这时候就需要重新对对应种子进行一次强制校验即可，完成后未下载完成的区块会自动开始下载。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2053.html">
-<title>vs code 通过 ssh 远程连接服务器调试</title>
-<link>https://blog.niekun.net/archives/2053.html</link>
-<dc:date>2021-01-12T09:01:00+08:00</dc:date>
-<description>安装扩展插件： Remote - SSH可以实现远程文件访问终端调试远程端口转发到本地https://code.visualstudio.com/docs/remote/ssh-tutorial</description>
 </item>
 </rdf:RDF>
