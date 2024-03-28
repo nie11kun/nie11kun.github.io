@@ -67,6 +67,31 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../../archives/1900.html" itemprop="url">MySQL 8.0 修改用户密码加密方式</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-11-11T09:41:00+08:00" itemprop="datePublished">2020-11-11</time></li>
+<li class="feather-folder"><a href="../index.html">Linux</a></li>
+<li class="feather-message"><a href="../../../archives/1900.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>MySQL 8.0 默认创建的用户密码加密方式为：caching_sha2_password，有些应用在连接时由于不兼容会导致报错，可以修改为 MySQL 5 使用的加密方式：sha256_password。</p><p>创建用户：</p><pre><code>create user &quot;newuser&quot;@&quot;localhost&quot; identified by &quot;PASSWORD&quot;;
+</code></pre><p>授予全部数据库权限：</p><pre><code>grant all privileges on *.* to 'newuser'@'localhost';
+</code></pre><p>修改成原来的加密方式：</p><pre><code>alter user &quot;newuser&quot;@&quot;localhost&quot; identified with mysql_native_password by 'PASSWORD';
+</code></pre><p>刷新权限：</p><pre><code>    FLUSH PRIVILEGES;
+</code></pre><p>查看已建立的用户及加密方式：</p><pre><code>SELECT user,authentication_string,plugin,host FROM mysql.user;
+</code></pre><p>显示如下：</p><pre><code>+------------------+------------------------------------------------------------------------+---
+| user             | authentication_string                         | plugin                | host      |
++------------------+------------------------------------------------------------------------+-----
+| marco            | *D51541FCBC8DD8E                              | mysql_native_password | localhost |
+| root             |                                               | auth_socket           | localhost |
++------------------+------------------------------------------------------------------------+---------</code></pre><p>以上就是修改用户密码加密方式的方法。</p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../../archives/1899.html" itemprop="url">MySQL 5.7 升级 8.0</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -139,25 +164,10 @@ under the terms of the GNU General Public License, version 2 or 3.</code></pre><
 </ul>
 </header>
 <div class="entry-content fmt" itemprop="articleBody">
-<p>ipatbles 是 Linux 下的网络防火墙规则管理/修改工具，通过控制 Linux 内核 netfilter 模块，来管理网络数据包的处理和转发。用来识别路由表中特定的流量然后执行设定的规则。只用于处理 IPv4 数据包；而对于 IPv6 数据包，则使用类似的 ip6tables 命令。</p><h3>基本概念</h3><p>结构：</p><ul><li>Tables 路由表：用来区分不同类型的数据包，如 filter，nat，mangle，每个表包含几个路由链</li><li>Chain 路由链：流量的类型，如 INPUT ，FORWARD ，OUTPUT ，每种类型流量可以设置不同规则</li><li>Rule 规则：用来匹配特定类型的流量，如匹配来自 192.168.1.230 的流量</li><li>Target 目标：用来处理匹配到的流量，如 ACCEPT, DROP, QUEUE.</li><li>Policy 策略：是默认的处理动作，用来处理没有匹配到的流量，如 ACCEPT or DROP.</li></ul><p>iptables、ip6tables等都使用Xtables框架。存在“表（tables）”、“链（chain）”和“规则（rules）”三个层面。</p><p>每个“表”指的是不同类型的数据包处理流程，如filter表表示进行数据包过滤，而nat表针对连接进行地址转换操作。每个表中又可以存在多个“链”，系统按照预订的规则将数据包通过某个内建链，例如将从本机发出的数据通过OUTPUT链。在“链”中可以存在若干“规则”，这些规则会被逐一进行匹配，如果匹配，可以执行相应的动作，如修改数据包，或者跳转。跳转可以直接接受该数据包或拒绝该数据包，也可以跳转到其他链继续进行匹配，或者从当前链返回调用者链。当链中所有规则都执行完仍然没有跳转时，将根据该链的默认策略（“policy”）执行对应动作；如果也没有默认动作，则是返回调用者链。</p><p class="more"><a href="../../../archives/1863.html" title="iptables 使用教程">阅读全文</a></p> </div>
+<p>ipatbles 是 Linux 下的网络防火墙规则管理/修改工具，通过控制 Linux 内核 netfilter 模块，来管理网络数据包的处理和转发。用来识别路由表中特定的流量然后执行设定的规则。只用于处理 IPv4 数据包；而对于 IPv6 数据包，则使用类似的 ip6tables 命令。</p><h3>基本概念</h3><p>netfilter 模型如下：<br><img src="../../../usr/uploads/2024/03/4019166580.png" alt="image.png" title="image.png"></p><p>结构：</p><ul><li>Tables 路由表：用来区分不同类型的数据包，如 filter，nat，mangle，每个表包含几个路由链</li><li>Chain 路由链：流量的类型，如 INPUT ，FORWARD ，OUTPUT ，每种类型流量可以设置不同规则</li><li>Rule 规则：用来匹配特定类型的流量，如匹配来自 192.168.1.230 的流量</li><li>Target 目标：用来处理匹配到的流量，如 ACCEPT, DROP, QUEUE.</li><li>Policy 策略：是默认的处理动作，用来处理没有匹配到的流量，如 ACCEPT or DROP.</li></ul><p>iptables、ip6tables等都使用Xtables框架。存在“表（tables）”、“链（chain）”和“规则（rules）”三个层面。</p><p>每个“表”指的是不同类型的数据包处理流程，如filter表表示进行数据包过滤，而nat表针对连接进行地址转换操作。每个表中又可以存在多个“链”，系统按照预订的规则将数据包通过某个内建链，例如将从本机发出的数据通过OUTPUT链。在“链”中可以存在若干“规则”，这些规则会被逐一进行匹配，如果匹配，可以执行相应的动作，如修改数据包，或者跳转。跳转可以直接接受该数据包或拒绝该数据包，也可以跳转到其他链继续进行匹配，或者从当前链返回调用者链。当链中所有规则都执行完仍然没有跳转时，将根据该链的默认策略（“policy”）执行对应动作；如果也没有默认动作，则是返回调用者链。</p><p class="more"><a href="../../../archives/1863.html" title="iptables 使用教程">阅读全文</a></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../../archives/1818.html" itemprop="url">openwrt 的安装与配置</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2020-10-15T16:51:00+08:00" itemprop="datePublished">2020-10-15</time></li>
-<li class="feather-folder"><a href="../index.html">Linux</a>, <a href="../../Windows/index.html">Windows</a></li>
-<li class="feather-message"><a href="../../../archives/1818.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p>openWrt 是专门为嵌入式设备设计的 Linux 系统，常用来作为软路由系统使用。LEDE 和 openWrt 已经合并到一起。</p><p>官网：<a href="https://openwrt.org/">https://openwrt.org/</a></p><p>最近研究软路由，所以先使用 VMware 虚拟机安装测试 openWrt，由于 VMware 只能识别 vmdk 格式的虚拟磁盘镜像，而官网下载的是 img 镜像，所以需要进行格式转换。</p><p class="more"><a href="../../../archives/1818.html" title="openwrt 的安装与配置">阅读全文</a></p> </div>
-</article>
-<hr class="post-separator">
-<nav><ul class="page-navigator"><li class="prev"><a href="../8/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../7/index.html">7</a></li><li><a href="../8/index.html">8</a></li><li class="current"><a href="index.html">9</a></li><li><a href="../10/index.html">10</a></li><li><a href="../11/index.html">11</a></li><li><span>...</span></li><li><a href="../24/index.html">24</a></li><li class="next"><a href="../10/index.html">后一页</a></li></ul></nav>
+<nav><ul class="page-navigator"><li class="prev"><a href="../8/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../7/index.html">7</a></li><li><a href="../8/index.html">8</a></li><li class="current"><a href="index.html">9</a></li><li><a href="../10/index.html">10</a></li><li><a href="../11/index.html">11</a></li><li><span>...</span></li><li><a href="../25/index.html">25</a></li><li class="next"><a href="../10/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
 <footer class="site-footer container-fluid">
@@ -172,7 +182,7 @@ under the terms of the GNU General Public License, version 2 or 3.</code></pre><
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-827c4d1b5ace82bbdb3d0a32-><i id="ydmc"></i></a></bgm><script data-no-instant type="827c4d1b5ace82bbdb3d0a32-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-a6e89d568d4f5b28bb328977-><i id="ydmc"></i></a></bgm><script data-no-instant type="a6e89d568d4f5b28bb328977-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -181,6 +191,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="827c4d1b5ace82bbdb3d0a32-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="827c4d1b5ace82bbdb3d0a32-text/javascript"></script>
-<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="827c4d1b5ace82bbdb3d0a32-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'86b175b739682f4c',t:'MTcxMTU2NDMxMi4yODAwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="a6e89d568d4f5b28bb328977-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="a6e89d568d4f5b28bb328977-text/javascript"></script>
+<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="a6e89d568d4f5b28bb328977-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'86b9b1f4389f2ad9',t:'MTcxMTY1MDY2NS43MzAwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
