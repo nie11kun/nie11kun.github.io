@@ -67,6 +67,35 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../../archives/1903.html" itemprop="url">MySQL 用户密码规则配置</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2020-11-11T10:37:00+08:00" itemprop="datePublished">2020-11-11</time></li>
+<li class="feather-folder"><a href="../index.html">Linux</a></li>
+<li class="feather-message"><a href="../../../archives/1903.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>在创建 MySQL 用户时需要设置密码，有时候输入输入密码后会提示创建失败，密码设置 policy 错误。这是因为当前设置的密码和 MySQL 密码创建规则不符，可以查看当前规定的密码规则也可以进行修改。</p><p>进入 MySQL 执行下面命令：</p><pre><code>SHOW VARIABLES LIKE 'validate_password%';
+</code></pre><p>会列出密码创建相关参数：</p><pre><code>mysql&gt; SHOW VARIABLES LIKE 'validate_password%';
++--------------------------------------+--------+
+| Variable_name                        | Value  |
++--------------------------------------+--------+
+| validate_password_check_user_name    | ON     |
+| validate_password_dictionary_file    |        |
+| validate_password_length             | 8      |
+| validate_password_mixed_case_count   | 1      |
+| validate_password_number_count       | 1      |
+| validate_password_policy             | MEDIUM |
+| validate_password_special_char_count | 1      |
++--------------------------------------+--------+
+7 rows in set (0.03 sec)</code></pre><p>其中 <code>validate_password_length</code> 是密码位数，<code>validate_password_special_char_count</code> 是密码包含特殊字符。可以通过命令修改参数值来改变密码规则，例如：</p><p>取消特殊字符：</p><pre><code>SET GLOBAL validate_password_special_char_count= 0;
+</code></pre><p>修改后可以测试再次建立用户设置密码。</p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../../archives/1900.html" itemprop="url">MySQL 8.0 修改用户密码加密方式</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -152,21 +181,6 @@ under the terms of the GNU General Public License, version 2 or 3.</code></pre><
 </code></pre><p>服务启动后，会监听本地或局域网内的 DNS 请求并根据配置规则进行处理。</p><p class="more"><a href="../../../archives/1869.html" title="dnsmasq 使用教程">阅读全文</a></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../../archives/1863.html" itemprop="url">iptables 使用教程</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2020-10-23T09:59:00+08:00" itemprop="datePublished">2020-10-23</time></li>
-<li class="feather-folder"><a href="../index.html">Linux</a></li>
-<li class="feather-message"><a href="../../../archives/1863.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p>ipatbles 是 Linux 下的网络防火墙规则管理/修改工具，通过控制 Linux 内核 netfilter 模块，来管理网络数据包的处理和转发。用来识别路由表中特定的流量然后执行设定的规则。只用于处理 IPv4 数据包；而对于 IPv6 数据包，则使用类似的 ip6tables 命令。</p><h3>基本概念</h3><p>netfilter 模型如下：<br><img src="../../../usr/uploads/2024/03/4019166580.png" alt="image.png" title="image.png"></p><p>结构：</p><ul><li>Tables 路由表：用来区分不同类型的数据包，如 filter，nat，mangle，每个表包含几个路由链</li><li>Chain 路由链：流量的类型，如 INPUT ，FORWARD ，OUTPUT ，每种类型流量可以设置不同规则</li><li>Rule 规则：用来匹配特定类型的流量，如匹配来自 192.168.1.230 的流量</li><li>Target 目标：用来处理匹配到的流量，如 ACCEPT, DROP, QUEUE.</li><li>Policy 策略：是默认的处理动作，用来处理没有匹配到的流量，如 ACCEPT or DROP.</li></ul><p>iptables、ip6tables等都使用Xtables框架。存在“表（tables）”、“链（chain）”和“规则（rules）”三个层面。</p><p>每个“表”指的是不同类型的数据包处理流程，如filter表表示进行数据包过滤，而nat表针对连接进行地址转换操作。每个表中又可以存在多个“链”，系统按照预订的规则将数据包通过某个内建链，例如将从本机发出的数据通过OUTPUT链。在“链”中可以存在若干“规则”，这些规则会被逐一进行匹配，如果匹配，可以执行相应的动作，如修改数据包，或者跳转。跳转可以直接接受该数据包或拒绝该数据包，也可以跳转到其他链继续进行匹配，或者从当前链返回调用者链。当链中所有规则都执行完仍然没有跳转时，将根据该链的默认策略（“policy”）执行对应动作；如果也没有默认动作，则是返回调用者链。</p><p class="more"><a href="../../../archives/1863.html" title="iptables 使用教程">阅读全文</a></p> </div>
-</article>
-<hr class="post-separator">
 <nav><ul class="page-navigator"><li class="prev"><a href="../8/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../7/index.html">7</a></li><li><a href="../8/index.html">8</a></li><li class="current"><a href="index.html">9</a></li><li><a href="../10/index.html">10</a></li><li><a href="../11/index.html">11</a></li><li><span>...</span></li><li><a href="../25/index.html">25</a></li><li class="next"><a href="../10/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
@@ -182,7 +196,7 @@ under the terms of the GNU General Public License, version 2 or 3.</code></pre><
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-a6e89d568d4f5b28bb328977-><i id="ydmc"></i></a></bgm><script data-no-instant type="a6e89d568d4f5b28bb328977-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-d19349788ec542a723428fdb-><i id="ydmc"></i></a></bgm><script data-no-instant type="d19349788ec542a723428fdb-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -191,6 +205,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="a6e89d568d4f5b28bb328977-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="a6e89d568d4f5b28bb328977-text/javascript"></script>
-<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="a6e89d568d4f5b28bb328977-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'86b9b1f4389f2ad9',t:'MTcxMTY1MDY2NS43MzAwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="d19349788ec542a723428fdb-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="d19349788ec542a723428fdb-text/javascript"></script>
+<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="d19349788ec542a723428fdb-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'86c1ef59a8d22f02',t:'MTcxMTczNzA2Ni41NzkwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
