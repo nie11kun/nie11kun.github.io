@@ -22,7 +22,7 @@
 <meta property="og:site_name" content="Marco Nie" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:domain" content="blog.niekun.net" />
-<script type="047931eef0ef7cdbe777fa2c-text/javascript">
+<script type="f40dfb2496b78ac98af4d503-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (sel) {
@@ -122,7 +122,7 @@
         }
     };
 })();
-</script><script type="047931eef0ef7cdbe777fa2c-text/javascript">
+</script><script type="f40dfb2496b78ac98af4d503-text/javascript">
 (function () {
     const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
     let added = false;
@@ -137,36 +137,33 @@
             input.type = 'hidden';
             input.name = '_';
             input.value = (function () {
-    var _9ahAz = '9'//'HkT'
-+'ba'//'6'
-+'6'//'o'
-+'exb'//'exb'
-+//'mf'
-'mf'+//'f'
-'87'+//'81h'
-'c0'+'6'//'X'
-+'5'//'G'
-+//'Ws'
-'d82'+'487'//'Oz'
-+'6'//'5Zd'
-+//'Z'
-'b8'+//'lTF'
-'d36'+''///*'W6'*/'W6'
-+/* '3eC'//'3eC' */''+'a'//'s'
-+//'XJ'
-'e7'+''///*'V'*/'V'
-+//'K'
-'K'+//'y'
-'b9'+'33'//'I'
-+//'weA'
-'weA'+'4b1'//'qD'
-, _WhtO9h = [[4,7],[4,6],[25,26],[29,32]];
+    var _FIlLjeE = '9'//'hb'
++'ba'//'5'
++'687'//'dx'
++''///*'fd'*/'fd'
++'iex'//'iex'
++'y'//'y'
++//'7'
+'c'+//'QOw'
+'06'+'5d8'//'I'
++//'31'
+'24'+'wCX'//'wCX'
++//'SR'
+'87'+'6'//'o'
++//'z'
+'b8d'+'36'//'js'
++'ae7'//'0'
++//'mJ'
+'b9'+'334'//'Vmf'
++'b'//'bg'
++'1'//'XLf'
+, _XQD = [[6,9],[6,7],[14,17]];
     
-    for (var i = 0; i < _WhtO9h.length; i ++) {
-        _9ahAz = _9ahAz.substring(0, _WhtO9h[i][0]) + _9ahAz.substring(_WhtO9h[i][1]);
+    for (var i = 0; i < _XQD.length; i ++) {
+        _FIlLjeE = _FIlLjeE.substring(0, _XQD[i][0]) + _FIlLjeE.substring(_XQD[i][1]);
     }
 
-    return _9ahAz;
+    return _FIlLjeE;
 })();;
  
             if (form) {
@@ -231,65 +228,75 @@
 <a href="2291.html" itemprop="url">openwrt network 配置</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2021-04-10T09:46:44+08:00" itemprop="datePublished">2021-04-10</time></li>
+<li class="feather-calendar"><time datetime="2021-04-10T09:46:00+08:00" itemprop="datePublished">2021-04-10</time></li>
 <li class="feather-folder"><a href="../category/Linux/index.html">Linux</a></li>
 <li class="feather-message"><a href="2291.html#comments" itemprop="discussionUrl">暂无评论</a></li>
 </ul>
 </header>
 <div class="entry-content fmt" itemprop="articleBody">
-<p>openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。</p><p>在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。</p><p>下面是一个默认的 <code>/etc/config/network</code> 文件内容：</p><pre><code>&quot;/etc/config/network&quot;
-
-config interface 'loopback'
-        option ifname 'lo'
-        option proto 'static'
-        option ipaddr '127.0.0.1'
-        option netmask '255.0.0.0'
-
+<p>openwrt 适合作为路由器系统使用，我们的路由器上一般会有多个网卡接口可供使用，其中一个作为 wan 口来连接外网，其他的可以作为 lan 口连接本地设备。</p><p>在默认的 network 配置文件中 lan 内只绑定了一个网卡，也就是只有一个接口可以连接到 lan 网络，下面介绍如何配置多个网卡通过桥接的方式共享 lan 网络。这样可以实现无论将设备接入哪一个网卡都可以连接到同一个 lan。</p><p>下面是一个标准的 <code>/etc/config/network</code> 文件内容：</p><pre><code>config interface 'loopback'
+    option device 'lo'
+    option proto 'static'
+    option ipaddr '127.0.0.1'
+    option netmask '255.0.0.0'
+ 
 config globals 'globals'
-        option ula_prefix 'fd6e:929e:e9ab::/48'
+    option ula_prefix 'fd27:70fa:5c1d::/48'
+ 
+config device 'lan_br'
+    option name 'br-lan'
+    option type 'bridge'
+    list ports 'eth0'
 
 config interface 'lan'
-        option ifname 'eth0'
-        option proto 'static'
-        option ipaddr '192.168.85.1'
-        option netmask '255.255.255.0'
-        option ip6assign '60'
+    option device 'br-lan'
+    option proto 'static'
+    option netmask '255.255.255.0'
+    option ip6assign '60'
+    option ipaddr '192.168.1.1'
         option gateway '27.168.1.1'
-
+ 
 config interface 'wan'
-        option ifname 'eth1'
-        option proto 'dhcp'
+    option device 'eth1'
+    option proto 'dhcp'
+ 
+onfig interface 'wan6'
+    option device 'eth1'
+    option proto 'dhcpv6'</code></pre><p>可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，<strong>注意 lan 的 downlink 下级链接会自动开启 dhcp 服务</strong>，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。</p><p><code>config device 'lan_br'</code> 定义了一个名称为 <code>br-lan</code> 的类型为桥接网络的设备，<code>list ports 'eth0'</code> 定义了这个设备下绑定的网卡，可以写多个 list ports 将多个网卡绑定到这个设备。如果只有一个设备，也可以直接在 interface 的 device 属性中写网卡名称即可，而不需单独定义一个 <code>device 'lan_br'</code>。</p><p><code>interface 'lan'</code> 定义了 lan 网络的设备名称为 <code>br-lan</code> 也就是上面定义那个设备，这样就相当于同时配置了 <code>br-lan</code> 下所有绑定的网卡,如果只有一个设备，也可以直接在 interface 的 device 属性中写网卡名称即可。还定义了 lan 网络为静态ip地址及网关地址，lan 网络下层网络会自动开启 DHCP。</p><p><code>interface 'wan'</code> 定义了 wan 网络绑定 eth1 网卡设备，并开启 DHCP 自动获取 ip 地址。</p><p>关于 network 配置文件的结构参考：<a href="https://openwrt.org/docs/guide-user/network/network_configuration">Network configuration /etc/config/network</a></p><h3>示例</h3><p>下面通过示例来介绍一些典型配置模式。</p><p>lan 网络的 Downstream 下层流量配置：</p><pre><code>config device 'lan_br'
+    option name 'br-lan'
+    option type 'bridge'
+    list ports 'eth0'
 
-config interface 'wan6'
-        option ifname 'eth1'
-        option proto 'dhcpv6'</code></pre><p>可以看到默认配置了 lan 和 wan 网络，各自分配了一个网卡 eth0 和 eth1，其中 eth0 属于 lan 网络且设置了 static 静态地址，作为内网的网关，<strong>注意 lan 的 downlink 下级链接会自动开启 dhcp 服务</strong>，所以通过 eth0 连接的设备可以自动获取到地址。eth1 属于 wan 网络且配置为 dhcp 自动获取 ip 地址，作为连接外网使用。</p><p>以上默认的 network 配置包含了 global 配置块和 <strong>loopback</strong>，<strong>lan</strong>，<strong>wan</strong> interface 的配置块。这也是最基本的需要配置的网络设置。</p><p>关于 network 配置文件的结构参考：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking">Network basics /etc/config/network</a></p><p>interfaces 配置块定义了对应 interface 具体连接的物理网卡名称和协议类型，通过 <strong>option</strong> 来定义这个 interface 具体参数。</p><p>一个最基本的 interface 配置项需要包含 <strong>proto 协议类型</strong>和 <strong>ifname 网卡名称</strong>，例如：</p><pre><code>config 'interface' 'wan'
-        option 'proto' 'dhcp'
-        option 'ifname' 'eth0.2'</code></pre><ul><li>wan 表示这个 interface 名称</li><li>dhcp 表示协议类型</li><li>eth0.2 表示绑定的物理网卡名称</li></ul><p>常用的 proto 协议类型有：</p><pre><code>static    Static configuration with fixed address and netmask    ip/ifconfig
-dhcp    Address and netmask are assigned by DHCP    udhcpc (Busybox)
-dhcpv6    Address and netmask are assigned by DHCPv6    odhcpc6c
-ppp    PPP protocol - dialup modem connections    pppd
-pppoe    PPP over Ethernet - DSL broadband connection    pppd + plugin rp-pppoe.so
-pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin …</code></pre><p>更多协议介绍：<a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a></p><p>配置了协议后需要定义详细的 option 选项参数，下面是常用的适用于所有类型协议的 option 可选项：</p><table><thead><tr><th align="center">Name</th><th align="center">Type</th><th>Default Description</th></tr></thead><tbody><tr><td align="center">ifname</td><td align="center">物理网卡名称</td><td>如eth0 eth1 eth2，当定义 type 为 bridge 桥接时，可以是一个集合</td></tr><tr><td align="center">type</td><td align="center">字符串</td><td>如果设置为 bridge，会桥接在 ifname 中定义的物理网卡名称集合</td></tr><tr><td align="center">stp</td><td align="center">boolean</td><td>Only valid for type bridge, enables the Spanning Tree Protocol</td></tr><tr><td align="center">bridge_empty</td><td align="center">boolean</td><td>Only valid for type bridge, enables creating empty bridges</td></tr><tr><td align="center">igmp_snooping</td><td align="center">boolean</td><td>Only valid for type bridge, sets the multicast_snooping kernel setting for a bridge</td></tr><tr><td align="center">macaddr</td><td align="center">mac地址</td><td>Override MAC address of this interface. Example: 62:11:22:aa:bb:cc</td></tr><tr><td align="center">mtu</td><td align="center">number</td><td>Override the default MTU on this interface</td></tr></tbody></table><p>具体到某个 proto 协议会有各自特殊需要定义的 option 参数，下面介绍 static 模式下需要定义的参数：</p><table><thead><tr><th align="center">名称</th><th align="center">类型</th><th>描述</th></tr></thead><tbody><tr><td align="center">ipaddr</td><td align="center">ip address</td><td>IP address</td></tr><tr><td align="center">netmask</td><td align="center">netmask</td><td>子网掩码</td></tr><tr><td align="center">gateway</td><td align="center">ip address</td><td>Default gateway</td></tr><tr><td align="center">broadcast</td><td align="center">ip address</td><td>Broadcast address (autogenerated if not set)</td></tr><tr><td align="center">dns</td><td align="center">list of ip addresses</td><td>DNS server(s)</td></tr><tr><td align="center">dns_search</td><td align="center">list of domain names</td><td>Search list for host-name lookup</td></tr><tr><td align="center">metric</td><td align="center">integer</td><td>Specifies the default route metric to use</td></tr></tbody></table><p>关于 proto 协议的配置项参考：<a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">openwrt IPv4</a></p><h3>示例</h3><p>下面通过示例来介绍一些典型配置模式。</p><p>lan 网络的 Downstream 下层流量配置：</p><pre><code>config interface 'lan'
-        option ifname 'eth1'
-        option proto 'static'
-        option ipaddr '192.168.85.1'
-        option netmask '255.255.255.0'
-        option ip6assign '60'
-        option gateway '27.168.1.1'</code></pre><p>lan 网络的下层链接会自动启用 dhcp 服务。</p><p>lan 网络配置多网卡桥接模式：</p><pre><code>config interface 'lan'
-        option type 'bridge'
-        option ifname 'eth1 eth2 eth3'
-        option proto 'static'
-        option ipaddr '192.168.85.1'
-        option netmask '255.255.255.0'
-        option ip6assign '60'
+config interface 'lan'
+    option device 'br-lan'
+    option proto 'static'
+    option netmask '255.255.255.0'
+    option ip6assign '60'
+    option ipaddr '192.168.1.1'
+        option gateway '27.168.1.1'</code></pre><p>lan 网络的下层链接会自动启用 dhcp 服务。</p><p>lan 网络配置多网卡桥接模式：</p><pre><code>config device 'lan_br'
+    option name 'br-lan'
+    option type 'bridge'
+    list ports 'eth0'
+    list ports 'eth1'
+    list ports 'eth2'
+    list ports 'eth3'
+
+config interface 'lan'
+    option device 'br-lan'
+    option proto 'static'
+    option netmask '255.255.255.0'
+    option ip6assign '60'
+    option ipaddr '192.168.1.1'
         option gateway '27.168.1.1'
-        option dns '1.1.1.1'</code></pre><p>多 dns 配置：</p><pre><code>config interface 'example'
-        option proto     'static'
-        option ifname    'eth0'
-        option ipaddr    '192.168.1.200'
-        option netmask   '255.255.255.0'
-        list   dns       '192.168.1.1'
-        list   dns       '192.168.10.1'</code></pre><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/base-system/basic-networking#interfaces">interface</a><br><a href="https://openwrt.org/docs/guide-user/network/ipv4/start#protocol_static_ipv4">IPv4</a></p> <p itemprop="keywords">标签：无</p>
+        option dns '1.1.1.1'</code></pre><p>多 dns 配置：</p><pre><code>config interface 'lan'
+    option device 'br-lan'
+    option proto 'static'
+    option netmask '255.255.255.0'
+    option ip6assign '60'
+    option ipaddr '192.168.1.1'
+        option gateway '27.168.1.1'
+        list dns '192.168.1.1'
+        list dns '27.168.1.1'</code></pre><p>以上就是 openwrt 21 版本的网络配置文件基本格式。</p> <p itemprop="keywords">标签：无</p>
 </div>
 </article>
 <nav class="post-nav">
@@ -301,7 +308,7 @@ pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin �
 <div id="comments">
 <div id="respond-post-2291" class="respond">
 <div class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2291.html#respond-post-2291" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-047931eef0ef7cdbe777fa2c->取消回复</a> </div>
+<a id="cancel-comment-reply-link" href="2291.html#respond-post-2291" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-f40dfb2496b78ac98af4d503->取消回复</a> </div>
 <h5 id="response">你的评论</h5>
 <form method="post" action="https://blog.niekun.net/archives/2291.html/comment" id="comment-form" role="form">
 <div class="grid">
@@ -330,7 +337,7 @@ pppoa    PPP over ATM - DSL connection using a builtin modem    pppd + plugin �
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-047931eef0ef7cdbe777fa2c-><i id="ydmc"></i></a></bgm><script data-no-instant type="047931eef0ef7cdbe777fa2c-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-f40dfb2496b78ac98af4d503-><i id="ydmc"></i></a></bgm><script data-no-instant type="f40dfb2496b78ac98af4d503-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -339,6 +346,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="047931eef0ef7cdbe777fa2c-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="047931eef0ef7cdbe777fa2c-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="047931eef0ef7cdbe777fa2c-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'86daa72afb612abd',t:'MTcxMTk5NjI1My45NzIwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="f40dfb2496b78ac98af4d503-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="f40dfb2496b78ac98af4d503-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="f40dfb2496b78ac98af4d503-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'86e2e49979c608e6',t:'MTcxMjA4MjY1Ni4zMDUwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
