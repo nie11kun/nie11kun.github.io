@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>杂文</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/openwrt-1.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Linux.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Linux-ip.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/codesys-enum.html"/>
@@ -18,10 +19,50 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Google-One.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/iCloud.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2804.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/openwrt-1.html">
+<title>openwrt 系统升级</title>
+<link>https://blog.niekun.net/archives/openwrt-1.html</link>
+<dc:date>2024-04-02T10:26:03+08:00</dc:date>
+<description>小版本升级小版本升级，例如 19.05-&gt; 19.07。这种小版本的升级最方便的就是通过 Attended Sysupgrade 功能，可以保留已安装的包和系统设置。最大限度地无缝过渡。官方介绍：https://openwrt.org/docs/guide-user/installation/attended.sysupgrade需要先安装 Attended Sysupgrade luci 界面包：opkg install luci-app-attendedsysupgrade
+建议使用此功能前依然做一次数据备份。然后重新登录 luci，在 system - Attended Sysupgrade 找到入口，点击 search for firmware upgrade 即可在线搜索可更新的系统。大版本升级最方便的就是通过 luci 界面升级系统，目前支持直接升级的大版本顺序是：19.07 &gt; 21.02 &gt; 22.03 &gt; 23.05。大版本升级改动openwrt 21：https://openwrt.org/releases/21.02/notes-21.02.0WPA3 support included by defaultTLS and HTTPS support included by defaultLuCI is now available over HTTPSInitial DSA support replaces the swconfig systemNew network configuration syntax and board.json changeKernel with container supportopenwrt 22：https://openwrt.org/releases/22.03/notes-22.03.0Firewall4 based on nftables，superseding the iptables-based firewall3Dark mode in LuCIopenwrt 23：https://openwrt.org/releases/23.05/notes-23.05.0Switch from wolfssl to mbedtls as default，TLS 1.3 SupportRust Package Support数据备份每个版本升级实际上就是重新刷入了一次固件，所以之前的配置文件什么的基本上都会被覆盖，所以系统内修改过的配置最好做一次备份。打开 luci 界面，选择 system - backup/flash firmware，在 configuration 菜单栏中将需要保存的文件或目录定义出来，然后在 action 菜单栏中选择 backup - generate archive 即可保存备份到本地。已安装包列表可以通过 awk 脚本识别出自己手动安装的包列表，方便更新系统后安装回去，下载脚本：https://github.com/richb-hanover/OpenWrtScripts/blob/main/opkgscript.sh执行以下命令会保存已安装的包列表到 /etc/config/opkg.installed：opkgscript.sh -v write
+执行以下命令会识别并安装 /etc/config/opkg.installed 列表中的包：opkgscript.sh -v install
+也可以执行以下 awk 脚本可以单独列出自己手动安装的包列表：#!/usr/bin/awk -f
+BEGIN {
+    ARGV[ARGC++] = &quot;/usr/lib/opkg/status&quot;
+    cmd=&quot;opkg info busybox | grep '^Installed-Time: '&quot;
+    cmd | getline FLASH_TIME
+    close(cmd)
+    FLASH_TIME=substr(FLASH_TIME,17)
+}
+/^Package:/{PKG= $2}
+/^Installed-Time:/{
+    INSTALLED_TIME= $2
+    # Find all packages installed after FLASH_TIME
+    if ( INSTALLED_TIME &gt; FLASH_TIME ) {
+        cmd=&quot;opkg whatdepends &quot; PKG &quot; | wc -l&quot;
+        cmd | getline WHATDEPENDS
+        close(cmd)
+        # If nothing depends on the package, it is installed by user
+        if ( WHATDEPENDS == 3 ) print PKG
+    }
+}
+EOF保存以上内容到 listuserpackages.awk 文件中并执行即可列出用户自行安装包列表。下载升级固件x86 版本的 openwrt 的升级固件就是全新安装时候用的固件，直接在官网下载需要版本的 gz 压缩包即可。下载地址：https://downloads.openwrt.org/releases/我下载的是：generic-ext4-combined.img.gz，注意不要解压出来，保留压缩包即可。进入 luci 的 system - backup/flash firmware 选择 Flash image ，然后选择刚才下载的压缩包即可上传更新，会提示是否保留设置和配置，跨大版本的升级必须取消选择保留数据，否则可能升级失败：如果升级后卡在 grub 界面说明可能是由于选择了保留配置导致升级失败了，可以参考官方教程通过 failsafe mode 恢复默认配置：Failsafe mode, factory reset, and recovery mode，或者直接重新安装系统。网络配置稍等几分钟安装好后你可能会发现 luci 无法在局域网中访问了，这是由于新安装的固件恢复了 network 配置，需要直接到 openwrt 设备上配置网络。配置教程参考：openwrt network 配置配置好网络后在局域网设备中可以用 ssh 登录了，此时会发现提示：@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+SHA256:U9XODs/7A4k065pxSMyEtQ2m98v2P0bf/ML0MfzU.
+Please contact your system administrator.
+Add correct host key in C:\\Users\\Marco Nie/.ssh/known_hosts to get rid of this message.
+Offending RSA key in C:\\Users\\Marco Nie/.ssh/known_hosts:6
+Host key for 192.168.244.1 has changed and you have requested strict checking.
+Host key verification failed.这是由于更新系统后 ssh 指纹发生了变化，需要删除本地缓存的 openwrt 设备的指纹在登陆，windows 系统 ssh 指纹保存地址为当前用户目录下的 .ssh 文件夹。升级后续升级后可以通过之前的脚本列出的已安装包的列表将自己需要的包安装回去，同时将备份数据按照新系统的格式恢复回去。从 openwrt 21 开始修改了 network 配置文件格式，参考：https://blog.niekun.net/archives/2291.html从 openwrt 22 开始替换 iptables 为 nftables，需要原始工具的话可以自行安装回去：opkg install iptables参考链接Opkg package managerOpenWRT 19.07 to 21.02.0 upgrade</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/Linux.html">
 <title>Linux 查询及编辑用户及用户组</title>
 <link>https://blog.niekun.net/archives/Linux.html</link>
@@ -129,11 +170,5 @@ Kenarcık Sk. No2（第二行）
 38090（第三行）
 Kayseri（第四行）
 352-3153000（电话）如果以上地址填写的不标准，在后续开通 iCloud 订阅的时候会弹窗必须让你填写支付方式：以上就完成了土区 apple 账号的申请。国区账号邀请土区账号进入家庭这一步比较简单，在家庭共享里发送邀请链接，可以直接发送给土区账号的邮箱地址即可，待会儿登录土区 icloud 账号后点击这个邀请链接即可加入国区家庭。购买礼品卡及充值由于土区 apple 付款方式不支持 paypal 或国内 visa 卡等方式，只有购买礼品卡一种途径来充值，我是用的是 oyunfor 网站购买礼品卡。登录网站：https://www.oyunfor.com/，点击右侧的注册按钮注册新账户，这里可以使用网页翻译到英文方便操作。注册账户比较简单，完成后在主页点击 apple 礼品卡购买：选择需要充值的然后添加到购物车：点击右侧的 pay 按钮即可进入支付界面，第一次需要设置收货地址栏：点击支付后进入选择付款方式界面，选择 credit card 右侧选择中间一项：然后输入银联信用卡的信息即可：付款中有可能会弹出一下画面，输入国内的手机号验证一下即可：确认付款后会弹出下面画面，注意不要关闭这个网页，等待付款完成后它会自动跳转到订单界面：等一会儿购买完成后，网页就会跳转到订单界面，里面有购买的礼品卡兑换码：使用订单里的兑换码就可以再 app store 中进行兑换了。充值卡充值土区账户这一步比较简单，再 app store 中登录土区账户，然后选择使用兑换码充值到账户中即可。登录土区 iCloud 账户找一台 apple 设备然后登录土区 iCloud 账户，如果需要登出当前国区 iCloud 账户，可以选择保留本地的数据。登录土区 iCloud 账户后，登录邮箱，点击之前发出来的家庭邀请链接加入家庭即可。土区账户现在可以购买 iCloud 订阅，并将其共享给家庭账户了。共享完成后就可以重新登陆国区 iCloud 账户，然后选择使用家庭共享的 iCloud 空间，然后退订当前的 iCloud 订阅即可。原来 iCloud 中存储的东西都不会丢失。注意退订当前 iCloud 订阅后，可以申请退还上一次自动扣除的钱，申请地址：https://reportaproblem.apple.com/以后每个月都会自动扣除土区余额里的钱，注意需要一直保持余额不为0，否则会触发让你绑定支付方式的机制。参考教程：国区使用土耳其iCloud服务，手把手保姆级上车教程原来的国区号降级iCloud后，会马上退钱么？</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2804.html">
-<title>通过 AI + Photoshop 修复偏色图片</title>
-<link>https://blog.niekun.net/archives/2804.html</link>
-<dc:date>2023-04-25T10:30:00+08:00</dc:date>
-<description>在一些特殊光照条件下很容易拍出偏色的图片，通常情况下很难恢复原有细节。现在有了很多 AI 工具可以方便的恢复原有色彩细节。下面介绍通过 Photoshop 结合一个 AI 上色网站的方法来恢复图片色彩。Palette：https://palette.fm/首先需要通过 Photoshop 将图片去色，通过快捷键 ctrl shift U 快速去饱和度：然后保持图片到本地，打开 palette 官网，上传灰度图片即可：从生成的多个模板中选择一个最合适的色彩图片：点击 download 下载下来，这里下载 HD 图片需要付费，免费模式下只能下载一个低清晰度的图片，但我们可以后期在 Photoshop 中恢复高清细节。将下载的彩色低分辨率图片导入到 Photoshop 中，放在原始偏色的图片上面：我们只需要它的色彩信息，所以将混合模式改为 color，此时图片细节已经恢复了，但噪点较多：新建图层，混合模式改为 color：拾色器改为 3*3，all layer 模式：选择画笔工具，选择 soft 笔刷，在衣服出选择一个正常颜色的区域，按住 alt 键拾取色彩，然后使用笔刷涂抹整个衣服区域：此时衣服颜色就恢复正常了，同样的方式处理皮肤部分：然后就可以根据实际情况调节细节了，这里我们给嘴唇上点颜色，新建 solid color 红色图层，并反转蒙版，蒙版涂抹出嘴唇部分，混合模式改为 multiply：调节 layer style 柔滑高光过渡：画笔工具化的区域如果过于生硬，可以调节蒙版属性羽化值来柔化选区：以下就是最终效果：</description>
 </item>
 </rdf:RDF>

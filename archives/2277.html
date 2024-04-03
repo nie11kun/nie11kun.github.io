@@ -22,7 +22,7 @@
 <meta property="og:site_name" content="Marco Nie" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:domain" content="blog.niekun.net" />
-<script type="c73209900d4c97b1ad025cae-text/javascript">
+<script type="2a3939e66030bab537529adb-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (sel) {
@@ -122,7 +122,7 @@
         }
     };
 })();
-</script><script type="c73209900d4c97b1ad025cae-text/javascript">
+</script><script type="2a3939e66030bab537529adb-text/javascript">
 (function () {
     const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
     let added = false;
@@ -137,35 +137,34 @@
             input.type = 'hidden';
             input.name = '_';
             input.value = (function () {
-    var _Kb8B = //'zC'
-'8f'+//'x'
-'a'+'93a'//'X'
-+'0A'//'0A'
-+''///*'5m'*/'5m'
-+'c3'//'1'
-+//'lh'
-'627'+'6c'//'6c'
-+/* 'D9'//'D9' */''+'2e4'//'5H'
-+//'N'
-'35'+//'WN'
-'93'+/* 'sB'//'sB' */''+/* '1Z'//'1Z' */''+''///*'oX'*/'oX'
-+//'rUN'
-'1a'+//'1'
-'a'+'0bd'//'JE5'
-+''///*'H'*/'H'
-+//'K'
-'ff'+'1'//'zIk'
-+//'V'
-'344'+'2'//'Pu'
-+''///*'i'*/'i'
-+/* 'Q7'//'Q7' */''+//'P'
-'9', _CHsI = [[6,8],[11,13]];
+    var _y7HZ7GH = //'NBo'
+'8'+'fa9'//'A'
++''///*'TGd'*/'TGd'
++'3a'//'Y'
++'c'//'4'
++'36'//'g6'
++/* 'ZPQ'//'ZPQ' */''+'272'//'6ZM'
++//'sdq'
+'sdq'+//'9'
+'e43'+'593'//'6Y'
++'1aa'//'Eur'
++//'e'
+'e'+//'Xc'
+'0'+'b'//'9Ru'
++//'KF'
+'d'+//'I4'
+'f'+'f'//'ZCc'
++'134'//'VZh'
++'4'//'j'
++//'VtP'
+'2'+//'kKo'
+'9', _gHYs = [[12,15],[21,22]];
     
-    for (var i = 0; i < _CHsI.length; i ++) {
-        _Kb8B = _Kb8B.substring(0, _CHsI[i][0]) + _Kb8B.substring(_CHsI[i][1]);
+    for (var i = 0; i < _gHYs.length; i ++) {
+        _y7HZ7GH = _y7HZ7GH.substring(0, _gHYs[i][0]) + _y7HZ7GH.substring(_gHYs[i][1]);
     }
 
-    return _Kb8B;
+    return _y7HZ7GH;
 })();;
  
             if (form) {
@@ -267,7 +266,7 @@ restart_service() {
 
          procd_set_param env SOME_VARIABLE=funtimes  # 给进程传递环境变量
          procd_set_param limits core=&quot;unlimited&quot;  # If you need to set ulimit for your process
-         procd_set_param file /var/etc/your_service.conf # 如果此处定义的文件发生了变化，则会触发 /etc/init.d/your_service reload 重启进程
+         procd_set_param file /var/etc/your_service.conf # 如果此处定义的文件发生了变化，可以通过 /etc/init.d/your_service reload 重新加载此文件而不需要重启服务
          procd_set_param netdev dev # likewise, except if dev's ifindex changes.
          procd_set_param data name=value ... # likewise, except if this data changes.
          procd_set_param stdout 1 # 转发 stdout 输出到 logd
@@ -287,7 +286,40 @@ restart_service() {
 {
         procd_add_reload_trigger &quot;&lt;uci-file-name&gt;&quot; &quot;&lt;second-uci-file&gt;&quot;
         procd_add_reload_interface_trigger &lt;interface&gt;
-}</code></pre><p>以上配置会在 luci 的配置文件发生修改时，自动触发 reload function。</p><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-developer/procd-init-scripts">https://openwrt.org/docs/guide-developer/procd-init-scripts</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-script-example">https://openwrt.org/docs/guide-developer/procd-init-script-example</a></p> <p itemprop="keywords">标签：无</p>
+}</code></pre><p>以上配置会在 luci 的配置文件发生修改时，自动触发 reload function。</p><h3>加载服务配置</h3><p>自启动脚本可以加载在 <strong>/etc/config</strong> 中的配置文件并使用其中的配置参数。可以使得脚本调用更加灵活。</p><p>首先在 <strong>/etc/config</strong> 需要建立一个配置文件，例如：myhome</p><pre><code>config myhome 'person'
+    option name 'james'
+     option age '5'
+        list family 'mami'
+        list family 'dad'
+
+config myhome 'location'
+    option city 'hanzhong'
+     option str '123'</code></pre><p>新建一个启动脚本如 myservice：</p><pre><code>#!/bin/sh /etc/rc.common
+ 
+USE_PROCD=1
+ 
+START=95
+STOP=01
+ 
+CONFIGURATION=myhome # 配置文件名称先赋值给一个变量
+ 
+start_service() {
+    config_load &quot;${CONFIGURATION}&quot;  # 加载配置文件 默认加载 /etc/config 目录下文件
+    local name   # 定义本地变量
+    local city   # 定义本地变量
+    local age   # 定义本地变量
+ 
+    config_get name person name  # 给本地变量赋值配置文件中对应参数值
+    config_get city location city  # 给本地变量赋值配置文件中对应参数值
+    config_get age person age '10'  # 如果配置中没有定义这个参数名称则默认赋值 10
+ 
+    procd_open_instance
+    procd_set_param command /bin/sh &quot;/var/myscript.sh&quot; &quot;$name&quot; &quot;$age&quot;  # 调用变量
+    procd_set_param file /etc/config/myhome
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_close_instance
+}</code></pre><p>其中我们定义了 <code>procd_set_param file /etc/config/myhome</code>，这样如果修改了 myhome 配置文件，就可以通过 <code>/etc/init.d/myservice reload</code> 重新加载配置文件而不需要重启服务了。</p><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-developer/procd-init-scripts">https://openwrt.org/docs/guide-developer/procd-init-scripts</a><br><a href="https://openwrt.org/docs/guide-developer/procd-init-script-example">https://openwrt.org/docs/guide-developer/procd-init-script-example</a></p> <p itemprop="keywords">标签：无</p>
 </div>
 </article>
 <nav class="post-nav">
@@ -299,7 +331,7 @@ restart_service() {
 <div id="comments">
 <div id="respond-post-2277" class="respond">
 <div class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="2277.html#respond-post-2277" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-c73209900d4c97b1ad025cae->取消回复</a> </div>
+<a id="cancel-comment-reply-link" href="2277.html#respond-post-2277" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-2a3939e66030bab537529adb->取消回复</a> </div>
 <h5 id="response">你的评论</h5>
 <form method="post" action="https://blog.niekun.net/archives/2277.html/comment" id="comment-form" role="form">
 <div class="grid">
@@ -328,7 +360,7 @@ restart_service() {
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-c73209900d4c97b1ad025cae-><i id="ydmc"></i></a></bgm><script data-no-instant type="c73209900d4c97b1ad025cae-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-2a3939e66030bab537529adb-><i id="ydmc"></i></a></bgm><script data-no-instant type="2a3939e66030bab537529adb-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -337,6 +369,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="c73209900d4c97b1ad025cae-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="c73209900d4c97b1ad025cae-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="c73209900d4c97b1ad025cae-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'86e2e486a9bf2b72',t:'MTcxMjA4MjY1My4yNzQwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="2a3939e66030bab537529adb-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="2a3939e66030bab537529adb-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="2a3939e66030bab537529adb-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'86eb21da39632f59',t:'MTcxMjE2OTA1MS4yOTkwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>

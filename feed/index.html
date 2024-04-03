@@ -11,8 +11,59 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Mon, 01 Apr 2024 16:20:00 +0800</lastBuildDate>
-<pubDate>Mon, 01 Apr 2024 16:20:00 +0800</pubDate>
+<lastBuildDate>Tue, 02 Apr 2024 10:26:03 +0800</lastBuildDate>
+<pubDate>Tue, 02 Apr 2024 10:26:03 +0800</pubDate>
+<item>
+<title>openwrt 系统升级</title>
+<link>https://blog.niekun.net/archives/openwrt-1.html</link>
+<guid>https://blog.niekun.net/archives/openwrt-1.html</guid>
+<pubDate>Tue, 02 Apr 2024 10:26:03 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[Linux]]></category>
+<category><![CDATA[other]]></category>
+<description><![CDATA[小版本升级小版本升级，例如 19.05-&gt; 19.07。这种小版本的升级最方便的就是通过 Attended Sysupgrade 功能，可以保留已安装的包和系统设置。最大限度地无缝过渡。官...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<h3>小版本升级</h3><p>小版本升级，例如 19.05-&gt; 19.07。</p><p>这种小版本的升级最方便的就是通过 Attended Sysupgrade 功能，可以保留已安装的包和系统设置。最大限度地无缝过渡。官方介绍：<a href="https://openwrt.org/docs/guide-user/installation/attended.sysupgrade">https://openwrt.org/docs/guide-user/installation/attended.sysupgrade</a></p><p>需要先安装 Attended Sysupgrade luci 界面包：</p><pre><code>opkg install luci-app-attendedsysupgrade
+</code></pre><p>建议使用此功能前依然做一次数据备份。</p><p>然后重新登录 luci，在 system - Attended Sysupgrade 找到入口，点击 search for firmware upgrade 即可在线搜索可更新的系统。</p><!--more--><h3>大版本升级</h3><p>最方便的就是通过 luci 界面升级系统，目前支持直接升级的大版本顺序是：<strong>19.07 &gt; 21.02 &gt; 22.03 &gt; 23.05</strong>。</p><h3>大版本升级改动</h3><p><strong>openwrt 21</strong>：<a href="https://openwrt.org/releases/21.02/notes-21.02.0">https://openwrt.org/releases/21.02/notes-21.02.0</a></p><ul><li>WPA3 support included by default</li><li>TLS and HTTPS support included by default</li><li>LuCI is now available over HTTPS</li><li>Initial DSA support replaces the swconfig system</li><li>New network configuration syntax and board.json change</li><li>Kernel with container support</li></ul><p><strong>openwrt 22：</strong><a href="https://openwrt.org/releases/22.03/notes-22.03.0">https://openwrt.org/releases/22.03/notes-22.03.0</a></p><ul><li>Firewall4 based on nftables，superseding the iptables-based firewall3</li><li>Dark mode in LuCI</li></ul><p><strong>openwrt 23：</strong><a href="https://openwrt.org/releases/23.05/notes-23.05.0">https://openwrt.org/releases/23.05/notes-23.05.0</a></p><ul><li>Switch from wolfssl to mbedtls as default，TLS 1.3 Support</li><li>Rust Package Support</li></ul><h3>数据备份</h3><p>每个版本升级实际上就是重新刷入了一次固件，所以之前的配置文件什么的基本上都会被覆盖，所以系统内修改过的配置最好做一次备份。</p><p>打开 luci 界面，选择 <strong>system - backup/flash firmware</strong>，在 <strong>configuration</strong> 菜单栏中将需要保存的文件或目录定义出来，然后在 <strong>action</strong> 菜单栏中选择 backup - generate archive 即可保存备份到本地。</p><h3>已安装包列表</h3><p>可以通过 awk 脚本识别出自己手动安装的包列表，方便更新系统后安装回去，下载脚本：<a href="https://github.com/richb-hanover/OpenWrtScripts/blob/main/opkgscript.sh">https://github.com/richb-hanover/OpenWrtScripts/blob/main/opkgscript.sh</a></p><p>执行以下命令会保存已安装的包列表到 <strong>/etc/config/opkg.installed</strong>：</p><pre><code>opkgscript.sh -v write
+</code></pre><p>执行以下命令会识别并安装 <strong>/etc/config/opkg.installed</strong> 列表中的包：</p><pre><code>opkgscript.sh -v install
+</code></pre><p>也可以执行以下 awk 脚本可以单独列出自己手动安装的包列表：</p><pre><code>#!/usr/bin/awk -f
+BEGIN {
+    ARGV[ARGC++] = &quot;/usr/lib/opkg/status&quot;
+    cmd=&quot;opkg info busybox | grep '^Installed-Time: '&quot;
+    cmd | getline FLASH_TIME
+    close(cmd)
+    FLASH_TIME=substr(FLASH_TIME,17)
+}
+/^Package:/{PKG= $2}
+/^Installed-Time:/{
+    INSTALLED_TIME= $2
+    # Find all packages installed after FLASH_TIME
+    if ( INSTALLED_TIME &gt; FLASH_TIME ) {
+        cmd=&quot;opkg whatdepends &quot; PKG &quot; | wc -l&quot;
+        cmd | getline WHATDEPENDS
+        close(cmd)
+        # If nothing depends on the package, it is installed by user
+        if ( WHATDEPENDS == 3 ) print PKG
+    }
+}
+EOF</code></pre><p>保存以上内容到 listuserpackages.awk 文件中并执行即可列出用户自行安装包列表。</p><h3>下载升级固件</h3><p>x86 版本的 openwrt 的升级固件就是全新安装时候用的固件，直接在官网下载需要版本的 gz 压缩包即可。</p><p>下载地址：<a href="https://downloads.openwrt.org/releases/">https://downloads.openwrt.org/releases/</a></p><p>我下载的是：<strong>generic-ext4-combined.img.gz</strong>，注意不要解压出来，保留压缩包即可。</p><p>进入 luci 的 <strong>system - backup/flash firmware</strong> 选择 Flash image ，然后选择刚才下载的压缩包即可上传更新，会提示是否保留设置和配置，<strong>跨大版本的升级必须取消选择保留数据，否则可能升级失败</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2024/04/23408611.png" alt="image.png" title="image.png"></p><p>如果升级后卡在 <strong>grub</strong> 界面说明可能是由于选择了保留配置导致升级失败了，可以参考官方教程通过 failsafe mode 恢复默认配置：<a href="https://openwrt.org/docs/guide-user/troubleshooting/failsafe_and_factory_reset">Failsafe mode, factory reset, and recovery mode</a>，或者直接重新安装系统。</p><h3>网络配置</h3><p>稍等几分钟安装好后你可能会发现 luci 无法在局域网中访问了，这是由于新安装的固件恢复了 network 配置，需要直接到 openwrt 设备上配置网络。</p><p>配置教程参考：<a href="https://blog.niekun.net/archives/2291.html">openwrt network 配置</a></p><p>配置好网络后在局域网设备中可以用 ssh 登录了，此时会发现提示：</p><pre><code>@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+SHA256:U9XODs/7A4k065pxSMyEtQ2m98v2P0bf/ML0MfzU.
+Please contact your system administrator.
+Add correct host key in C:\\Users\\Marco Nie/.ssh/known_hosts to get rid of this message.
+Offending RSA key in C:\\Users\\Marco Nie/.ssh/known_hosts:6
+Host key for 192.168.244.1 has changed and you have requested strict checking.
+Host key verification failed.</code></pre><p>这是由于更新系统后 ssh 指纹发生了变化，需要删除本地缓存的 openwrt 设备的指纹在登陆，windows 系统 ssh 指纹保存地址为当前用户目录下的 <strong>.ssh</strong> 文件夹。</p><h3>升级后续</h3><p>升级后可以通过之前的脚本列出的已安装包的列表将自己需要的包安装回去，同时将备份数据按照新系统的格式恢复回去。</p><p>从 openwrt 21 开始修改了 network 配置文件格式，参考：<a href="https://blog.niekun.net/archives/2291.html">https://blog.niekun.net/archives/2291.html</a><br>从 openwrt 22 开始替换 iptables 为 nftables，需要原始工具的话可以自行安装回去：<strong>opkg install iptables</strong></p><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/additional-software/opkg#upgrading_packages">Opkg package manager</a><br><a href="https://lowtek.ca/roo/2021/openwrt-19-07-to-21-02-0-upgrade/">OpenWRT 19.07 to 21.02.0 upgrade</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/openwrt-1.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/openwrt-1.html</wfw:commentRss>
+</item>
 <item>
 <title>Linux 查询及编辑用户及用户组</title>
 <link>https://blog.niekun.net/archives/Linux.html</link>
@@ -199,25 +250,6 @@ sudo apt-get update</code></pre><p>执行 apt update 后会发现很多可更新
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/Ubuntu-20-04-ppa.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/Ubuntu-20-04-ppa.html</wfw:commentRss>
-</item>
-<item>
-<title>WSA (Windows Subsystem for Android) 的安装及使用</title>
-<link>https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html</link>
-<guid>https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html</guid>
-<pubDate>Tue, 20 Feb 2024 15:47:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<category><![CDATA[Windows]]></category>
-<category><![CDATA[other]]></category>
-<description><![CDATA[之前介绍过 Windows10 安装 wsl 的教程，可以方便的在 Windows 下使用 Ubuntu 系统。今天介绍安装 wsa 用来在 Windows 下使用 Android 系统及安装第...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>之前介绍过 Windows10 安装 wsl 的教程，可以方便的在 Windows 下使用 Ubuntu 系统。今天介绍安装 wsa 用来在 Windows 下使用 Android 系统及安装第三方 apk。</p><h3>安装</h3><p>wsa 没有在官方的 store 中提供，这里使用开源的 WSA-Script 很方便的一键安装。</p><p>GitHub 主页：<a href="https://github.com/YT-Advanced/WSA-Script">https://github.com/YT-Advanced/WSA-Script</a></p><p>在 release 页面下载最新打包的版本：<a href="https://github.com/YT-Advanced/WSA-Script/releases/latest">https://github.com/YT-Advanced/WSA-Script/releases/latest</a></p><!--more--><p>我需要使用 google play 框架及 root 权限，所以下载的是框出来的版本：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/557081804.png" alt="image.png" title="image.png"></p><p>下载好解压到一个特定的目录，运行 <code>Run.bat</code>，期间会提示需要管理员权限以及提示收集信息的对话框，点击<strong>确认</strong>即可。</p><p>安装完成后会自动运行 Windows Subsystem For Android™ 应用。</p><h3>设置代理</h3><p>如果需要使用 play 商店，就需要配置代理服务。如果本机有代理工具的话，可以让 wsa 直接调用本机代理。这里需要使用 adb 工具，下载链接：<a href="https://dl.google.com/android/repository/platform-tools-latest-windows.zip">https://dl.google.com/android/repository/platform-tools-latest-windows.zip</a></p><p>解压压缩包，可以看到其中有一个 <code>adb.exe</code>，可以将目录添加到系统 path 以方便在 terminal 调用。</p><p>首先需要设置 wsa 打开开发者模式，进入设置打开选项：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/1039626403.png" alt="image.png" title="image.png"></p><p>默认 wsa 是运行在本地的 <strong>58526</strong> 端口的。</p><p>建立一个 powershell 脚本，如：wsaproxy.ps1，内容如下：</p><pre><code>$WinNetIP=$(Get-NetIPAddress -InterfaceAlias 'vEthernet (WSLCore)' -AddressFamily IPV4) # get android network gateway addr
-adb connect 127.0.0.1:58526 # android port
-adb shell settings put global http_proxy &quot;$($WinNetIP.IPAddress):1082&quot; # local proxy port</code></pre><p>第一次执行会弹出对话框是否信任外部访问，点击允许即可。</p><p>以上脚本会获取到 wsa 所在网卡的网关地址，然后用 adb 连接到 wsa，最后配置代理，注意脚本里的本地代理端口修改为实际值即可。</p><p>运行脚本即可让 wsa 配置好代理服务。以后只需要执行这个脚本就可以自动设置代理。</p><p>如果需要取消代理运行下面命令即可：</p><pre><code>adb shell settings put global http_proxy :0</code></pre><h3>安装 apk</h3><p>推荐直接在 play 商店安装应用程序，如果需要安装自己下载的第三方 apk，直接使用 adb 工具即可。</p><p>安装命令：</p><pre><code>adb connect 127.0.0.1:58526
-adb install xxx.apk</code></pre><h3>文件共享</h3><p>可以配置一个 Windows 主机的路径作为同 wsa 共享目录，这样两边就可以互传文件了。</p><p>打开 Windows Subsystem For Android™ 进入 <strong>advanced settings - experimental feature</strong>，启用 <strong>share user folders</strong> 功能并选择一个本地目录作为共享目录：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/2995143306.png" alt="image.png" title="image.png"></p><p>通过 <strong>system - turnoff</strong> 关闭 wsa，然后点击 <strong>files</strong> 会重新运行 wsa：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/1695157306.png" alt="image.png" title="image.png"></p><p>可以看到有一个 windows 文件夹：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/3450453039.png" alt="image.png" title="image.png"></p><p>这个文件夹就是对应的 windows 共享目录。</p><h3>系统设置</h3><p>默认情况下只有在第一次安装成功后会自动启动 Android 设置界面，并且找不到设置的启动图标在哪里，我们可以在浏览器里直接访问 android settings 地址的方式启动。</p><p>浏览器中输入以下地址并访问：<a href="#">wsa://com.android.settings</a>，会提示是否需要跳转到设置，点击确认即可进入设置：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/969734695.png" alt="image.png" title="image.png"></p><h3>参考链接</h3><p><a href="https://www.tjsky.net/tutorial/391">Windows Android 子系统 WSA 代理设置方法教程</a><br><a href="https://zhuanlan.zhihu.com/p/459444929">WSA (Windows Subsystem for Android) 使用 Windows 上的代理</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/WSA-Windows-Subsystem-for-Android.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

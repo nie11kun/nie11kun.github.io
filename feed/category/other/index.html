@@ -11,8 +11,59 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/other/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>杂文</description>
-<lastBuildDate>Mon, 01 Apr 2024 16:20:00 +0800</lastBuildDate>
-<pubDate>Mon, 01 Apr 2024 16:20:00 +0800</pubDate>
+<lastBuildDate>Tue, 02 Apr 2024 10:26:03 +0800</lastBuildDate>
+<pubDate>Tue, 02 Apr 2024 10:26:03 +0800</pubDate>
+<item>
+<title>openwrt 系统升级</title>
+<link>https://blog.niekun.net/archives/openwrt-1.html</link>
+<guid>https://blog.niekun.net/archives/openwrt-1.html</guid>
+<pubDate>Tue, 02 Apr 2024 10:26:03 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[Linux]]></category>
+<category><![CDATA[other]]></category>
+<description><![CDATA[小版本升级小版本升级，例如 19.05-&gt; 19.07。这种小版本的升级最方便的就是通过 Attended Sysupgrade 功能，可以保留已安装的包和系统设置。最大限度地无缝过渡。官...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<h3>小版本升级</h3><p>小版本升级，例如 19.05-&gt; 19.07。</p><p>这种小版本的升级最方便的就是通过 Attended Sysupgrade 功能，可以保留已安装的包和系统设置。最大限度地无缝过渡。官方介绍：<a href="https://openwrt.org/docs/guide-user/installation/attended.sysupgrade">https://openwrt.org/docs/guide-user/installation/attended.sysupgrade</a></p><p>需要先安装 Attended Sysupgrade luci 界面包：</p><pre><code>opkg install luci-app-attendedsysupgrade
+</code></pre><p>建议使用此功能前依然做一次数据备份。</p><p>然后重新登录 luci，在 system - Attended Sysupgrade 找到入口，点击 search for firmware upgrade 即可在线搜索可更新的系统。</p><!--more--><h3>大版本升级</h3><p>最方便的就是通过 luci 界面升级系统，目前支持直接升级的大版本顺序是：<strong>19.07 &gt; 21.02 &gt; 22.03 &gt; 23.05</strong>。</p><h3>大版本升级改动</h3><p><strong>openwrt 21</strong>：<a href="https://openwrt.org/releases/21.02/notes-21.02.0">https://openwrt.org/releases/21.02/notes-21.02.0</a></p><ul><li>WPA3 support included by default</li><li>TLS and HTTPS support included by default</li><li>LuCI is now available over HTTPS</li><li>Initial DSA support replaces the swconfig system</li><li>New network configuration syntax and board.json change</li><li>Kernel with container support</li></ul><p><strong>openwrt 22：</strong><a href="https://openwrt.org/releases/22.03/notes-22.03.0">https://openwrt.org/releases/22.03/notes-22.03.0</a></p><ul><li>Firewall4 based on nftables，superseding the iptables-based firewall3</li><li>Dark mode in LuCI</li></ul><p><strong>openwrt 23：</strong><a href="https://openwrt.org/releases/23.05/notes-23.05.0">https://openwrt.org/releases/23.05/notes-23.05.0</a></p><ul><li>Switch from wolfssl to mbedtls as default，TLS 1.3 Support</li><li>Rust Package Support</li></ul><h3>数据备份</h3><p>每个版本升级实际上就是重新刷入了一次固件，所以之前的配置文件什么的基本上都会被覆盖，所以系统内修改过的配置最好做一次备份。</p><p>打开 luci 界面，选择 <strong>system - backup/flash firmware</strong>，在 <strong>configuration</strong> 菜单栏中将需要保存的文件或目录定义出来，然后在 <strong>action</strong> 菜单栏中选择 backup - generate archive 即可保存备份到本地。</p><h3>已安装包列表</h3><p>可以通过 awk 脚本识别出自己手动安装的包列表，方便更新系统后安装回去，下载脚本：<a href="https://github.com/richb-hanover/OpenWrtScripts/blob/main/opkgscript.sh">https://github.com/richb-hanover/OpenWrtScripts/blob/main/opkgscript.sh</a></p><p>执行以下命令会保存已安装的包列表到 <strong>/etc/config/opkg.installed</strong>：</p><pre><code>opkgscript.sh -v write
+</code></pre><p>执行以下命令会识别并安装 <strong>/etc/config/opkg.installed</strong> 列表中的包：</p><pre><code>opkgscript.sh -v install
+</code></pre><p>也可以执行以下 awk 脚本可以单独列出自己手动安装的包列表：</p><pre><code>#!/usr/bin/awk -f
+BEGIN {
+    ARGV[ARGC++] = &quot;/usr/lib/opkg/status&quot;
+    cmd=&quot;opkg info busybox | grep '^Installed-Time: '&quot;
+    cmd | getline FLASH_TIME
+    close(cmd)
+    FLASH_TIME=substr(FLASH_TIME,17)
+}
+/^Package:/{PKG= $2}
+/^Installed-Time:/{
+    INSTALLED_TIME= $2
+    # Find all packages installed after FLASH_TIME
+    if ( INSTALLED_TIME &gt; FLASH_TIME ) {
+        cmd=&quot;opkg whatdepends &quot; PKG &quot; | wc -l&quot;
+        cmd | getline WHATDEPENDS
+        close(cmd)
+        # If nothing depends on the package, it is installed by user
+        if ( WHATDEPENDS == 3 ) print PKG
+    }
+}
+EOF</code></pre><p>保存以上内容到 listuserpackages.awk 文件中并执行即可列出用户自行安装包列表。</p><h3>下载升级固件</h3><p>x86 版本的 openwrt 的升级固件就是全新安装时候用的固件，直接在官网下载需要版本的 gz 压缩包即可。</p><p>下载地址：<a href="https://downloads.openwrt.org/releases/">https://downloads.openwrt.org/releases/</a></p><p>我下载的是：<strong>generic-ext4-combined.img.gz</strong>，注意不要解压出来，保留压缩包即可。</p><p>进入 luci 的 <strong>system - backup/flash firmware</strong> 选择 Flash image ，然后选择刚才下载的压缩包即可上传更新，会提示是否保留设置和配置，<strong>跨大版本的升级必须取消选择保留数据，否则可能升级失败</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2024/04/23408611.png" alt="image.png" title="image.png"></p><p>如果升级后卡在 <strong>grub</strong> 界面说明可能是由于选择了保留配置导致升级失败了，可以参考官方教程通过 failsafe mode 恢复默认配置：<a href="https://openwrt.org/docs/guide-user/troubleshooting/failsafe_and_factory_reset">Failsafe mode, factory reset, and recovery mode</a>，或者直接重新安装系统。</p><h3>网络配置</h3><p>稍等几分钟安装好后你可能会发现 luci 无法在局域网中访问了，这是由于新安装的固件恢复了 network 配置，需要直接到 openwrt 设备上配置网络。</p><p>配置教程参考：<a href="https://blog.niekun.net/archives/2291.html">openwrt network 配置</a></p><p>配置好网络后在局域网设备中可以用 ssh 登录了，此时会发现提示：</p><pre><code>@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+SHA256:U9XODs/7A4k065pxSMyEtQ2m98v2P0bf/ML0MfzU.
+Please contact your system administrator.
+Add correct host key in C:\\Users\\Marco Nie/.ssh/known_hosts to get rid of this message.
+Offending RSA key in C:\\Users\\Marco Nie/.ssh/known_hosts:6
+Host key for 192.168.244.1 has changed and you have requested strict checking.
+Host key verification failed.</code></pre><p>这是由于更新系统后 ssh 指纹发生了变化，需要删除本地缓存的 openwrt 设备的指纹在登陆，windows 系统 ssh 指纹保存地址为当前用户目录下的 <strong>.ssh</strong> 文件夹。</p><h3>升级后续</h3><p>升级后可以通过之前的脚本列出的已安装包的列表将自己需要的包安装回去，同时将备份数据按照新系统的格式恢复回去。</p><p>从 openwrt 21 开始修改了 network 配置文件格式，参考：<a href="https://blog.niekun.net/archives/2291.html">https://blog.niekun.net/archives/2291.html</a><br>从 openwrt 22 开始替换 iptables 为 nftables，需要原始工具的话可以自行安装回去：<strong>opkg install iptables</strong></p><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/additional-software/opkg#upgrading_packages">Opkg package manager</a><br><a href="https://lowtek.ca/roo/2021/openwrt-19-07-to-21-02-0-upgrade/">OpenWRT 19.07 to 21.02.0 upgrade</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/openwrt-1.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/other/archives/openwrt-1.html</wfw:commentRss>
+</item>
 <item>
 <title>Linux 查询及编辑用户及用户组</title>
 <link>https://blog.niekun.net/archives/Linux.html</link>
@@ -208,21 +259,6 @@ Kayseri（第四行）
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/iCloud.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/category/other/archives/iCloud.html</wfw:commentRss>
-</item>
-<item>
-<title>通过 AI + Photoshop 修复偏色图片</title>
-<link>https://blog.niekun.net/archives/2804.html</link>
-<guid>https://blog.niekun.net/archives/2804.html</guid>
-<pubDate>Tue, 25 Apr 2023 10:30:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<category><![CDATA[other]]></category>
-<description><![CDATA[在一些特殊光照条件下很容易拍出偏色的图片，通常情况下很难恢复原有细节。现在有了很多 AI 工具可以方便的恢复原有色彩细节。下面介绍通过 Photoshop 结合一个 AI 上色网站的方法来恢复图...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2023/04/562843203.png" alt="2023-04-25T02:01:19.png" title="2023-04-25T02:01:19.png"><br>在一些特殊光照条件下很容易拍出偏色的图片，通常情况下很难恢复原有细节。现在有了很多 AI 工具可以方便的恢复原有色彩细节。</p><p>下面介绍通过 Photoshop 结合一个 AI 上色网站的方法来恢复图片色彩。</p><p>Palette：<a href="https://palette.fm/">https://palette.fm/</a></p><!--more--><p>首先需要通过 Photoshop 将图片去色，通过快捷键 ctrl shift U 快速去饱和度：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/392063121.png" alt="2023-04-25T02:03:40.png" title="2023-04-25T02:03:40.png"></p><p>然后保持图片到本地，打开 palette 官网，上传灰度图片即可：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/3549300290.png" alt="2023-04-25T02:04:40.png" title="2023-04-25T02:04:40.png"></p><p>从生成的多个模板中选择一个最合适的色彩图片：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/530587422.png" alt="2023-04-25T02:05:53.png" title="2023-04-25T02:05:53.png"></p><p>点击 download 下载下来，这里下载 HD 图片需要付费，免费模式下只能下载一个低清晰度的图片，但我们可以后期在 Photoshop 中恢复高清细节。</p><p>将下载的彩色低分辨率图片导入到 Photoshop 中，放在原始偏色的图片上面：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/4135975110.png" alt="2023-04-25T02:08:57.png" title="2023-04-25T02:08:57.png"></p><p>我们只需要它的色彩信息，所以将混合模式改为 color，此时图片细节已经恢复了，但噪点较多：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/1691169387.png" alt="2023-04-25T02:10:17.png" title="2023-04-25T02:10:17.png"></p><p>新建图层，混合模式改为 color：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/417063240.png" alt="2023-04-25T02:12:18.png" title="2023-04-25T02:12:18.png"></p><p>拾色器改为 3*3，all layer 模式：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/1310583693.png" alt="2023-04-25T02:12:51.png" title="2023-04-25T02:12:51.png"></p><p>选择画笔工具，选择 soft 笔刷，在衣服出选择一个正常颜色的区域，按住 alt 键拾取色彩，然后使用笔刷涂抹整个衣服区域：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/2051658881.png" alt="2023-04-25T02:16:22.png" title="2023-04-25T02:16:22.png"></p><p>此时衣服颜色就恢复正常了，同样的方式处理皮肤部分：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/623156937.png" alt="2023-04-25T02:20:54.png" title="2023-04-25T02:20:54.png"></p><p>然后就可以根据实际情况调节细节了，这里我们给嘴唇上点颜色，新建 solid color 红色图层，并反转蒙版，蒙版涂抹出嘴唇部分，混合模式改为 multiply：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/385215107.png" alt="2023-04-25T02:25:39.png" title="2023-04-25T02:25:39.png"></p><p>调节 layer style 柔滑高光过渡：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/677701391.png" alt="2023-04-25T02:27:38.png" title="2023-04-25T02:27:38.png"></p><p>画笔工具化的区域如果过于生硬，可以调节蒙版属性羽化值来柔化选区：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/2944943175.png" alt="2023-04-25T02:29:06.png" title="2023-04-25T02:29:06.png"></p><p>以下就是最终效果：<br><img src="https://blog.niekun.net/usr/uploads/2023/04/3449082101.png" alt="2023-04-25T02:29:32.png" title="2023-04-25T02:29:32.png"></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2804.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/category/other/archives/2804.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
