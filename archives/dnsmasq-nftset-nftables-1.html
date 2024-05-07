@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>通过 dnsmasq nftset 和 nftables 对域名流量的控制 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="dnsmasq-nftset-nftables-1.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="通过 dnsmasq nftset 和 nftables 对域名流量的控制 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/dnsmasq-nftset-nftables-1.html" />
+<link rel="alternate" type="application/rdf+xml" title="通过 dnsmasq nftset 和 nftables 对域名流量的控制 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/dnsmasq-nftset-nftables-1.html" />
+<link rel="alternate" type="application/atom+xml" title="通过 dnsmasq nftset 和 nftables 对域名流量的控制 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/dnsmasq-nftset-nftables-1.html" />
+<meta name="description" content="最近升级路由器系统到 openwrt 23，发现 dnsmasq-full 已经默认不支持 ipset 转而支持 nftset 了，所以之前的教程：通过 dnsmasq ipset 和 ipta..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="通过 dnsmasq nftset 和 nftables 对域名流量的控制" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="最近升级路由器系统到 openwrt 23，发现 dnsmasq-full 已经默认不支持 ipset 转而支持 nftset 了，所以之前的教程：通过 dnsmasq ipset 和 ipta..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="79bb62bf437f1927f7faf803-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-2984'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-2984-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-2984-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-2984'),
+                holder = this.dom('#respond-post-2984-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="79bb62bf437f1927f7faf803-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-2984');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _NL1q = //'t85'
+'21f'+'f1'//'r'
++//'W0'
+'78'+//'t6'
+'t6'+//'X'
+'6'+'8'//'Ek'
++//'D'
+'45'+//'Xm'
+'Xm'+//'TB'
+'70'+//'hDJ'
+'9'+//'Q'
+'2b'+'cf'//'J'
++/* 'Ut'//'Ut' */''+//'6G'
+'e8'+/* 'X1'//'X1' */''+''///*'fGG'*/'fGG'
++''///*'3m'*/'3m'
++//'Z'
+'b'+/* '9J'//'9J' */''+//'SPm'
+'8'+//'mz'
+'9ae'+//'04M'
+'ae'+//'78C'
+'a'+//'e0'
+'39d'+//'4'
+'b', _j5b = [[7,9],[11,13]];
+    
+    for (var i = 0; i < _j5b.length; i ++) {
+        _NL1q = _NL1q.substring(0, _j5b[i][0]) + _NL1q.substring(_j5b[i][1]);
+    }
+
+    return _NL1q;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script><link rel="stylesheet" href="../usr/plugins/YoduBGM/css/player.css?2022"><style>@media only screen and (max-width:766px){.ymusic{display:none}}</style>
+<style>bgm{top: 60px;}</style>
+</head>
+<body>
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
+<a href="../index.html">首页</a>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</header>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="dnsmasq-nftset-nftables-1.html" itemprop="url">通过 dnsmasq nftset 和 nftables 对域名流量的控制</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2024-05-07T10:31:00+08:00" itemprop="datePublished">2024-05-07</time></li>
+<li class="feather-folder"><a href="../category/Linux/index.html">Linux</a></li>
+<li class="feather-message"><a href="dnsmasq-nftset-nftables-1.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>最近升级路由器系统到 openwrt 23，发现 dnsmasq-full 已经默认不支持 ipset 转而支持 nftset 了，所以之前的教程：<a href="1872.html">通过 dnsmasq ipset 和 iptables 对域名流量的控制</a> 已经不适用新版本系统。</p><p>下面介绍如何通过 nfset 和 nftables 实现同样的功能。</p><p>首先查看 dnsmasq 版本是否支持 nftset：</p><pre><code>root@OpenWrt:~# dnsmasq -v
+Dnsmasq version 2.90  Copyright (c) 2000-2024 Simon Kelley
+Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack no-ipset nftset auth cryptohash DNSSEC no-ID loop-detect inotify dumpfile</code></pre><p>可以看到其中有 nftset 字样，如果没有就需要安装 dnsmasq-full，安装教程参考：<a href="1869.html">dnsmasq 使用教程</a>。</p><p>nftables 提供 set 功能可以在一个路由表中建立特定名称一个 ip 库，并通过命令 <code>ip daddr</code> 索引库里的地址。</p><p>先建立一个任意名称的路由表：</p><pre><code>nft add table tabletest
+</code></pre><p>然后给这个路由表建立一个名称为 iplist 的 ip 库，并定义为 ipv4 地址：</p><pre><code>nft add set ip tabletest iplist { type ipv4_addr\; }
+</code></pre><p>如果要添加一个 ip 网段，必须定义 ip 库属性：<strong>flags interval</strong></p><pre><code>nft add set ip tabletest iplist { type ipv4_addr \; flags interval \; }
+</code></pre><p>现在就可以给这个 ip 库里添加 ip 地址了，命令如下：</p><pre><code>nft add element ip tabletest iplist { '111.22.33.4' };
+nft add element ip tabletest iplist { '111.22.33.4/16' };
+</code></pre><p>可以通过命令查看这个 ip 库里包含的所有地址：</p><pre><code>root@OpenWrt:~# nft list set ip tabletest iplist
+table ip tabletest {
+        set iplist {
+                type ipv4_addr
+                flags interval
+                elements = { 111.22.33.4, 111.22.33.4/16 }
+        }
+}</code></pre><p>通过 dnsmasq 配置文件也可以添加指定域名解析出的 ip 地址到 nftset 对应 ip 库列表中，例如在 <code>/etc/dnsmasq.conf</code> 配置文件中添加以下指令：</p><pre><code>nftset=/qq.com/4#ip#tabletest#iplist
+</code></pre><p>重启 dnsmasq 服务：</p><pre><code>service dnsmasq restart
+</code></pre><p>查询一下 qq.com 的 ip 地址：</p><pre><code>root@OpenWrt:~# nslookup qq.com
+Server:         127.0.0.1
+Address:        127.0.0.1:53
+
+Non-authoritative answer:
+Name:   qq.com
+Address: 157.255.219.143</code></pre><p>再次查看 iplist 表里包含的 ip 地址：</p><pre><code>root@OpenWrt:~# nft list set ip tabletest iplist
+table ip tabletest {
+        set iplist {
+                type ipv4_addr
+                flags interval
+                elements = { 111.22.33.4, 111.22.33.4/16, 157.255.219.143 }
+        }
+}</code></pre><p>可以看到 qq.com 解析出来的 ip 地址已经放入了 iplist 表中。</p><p>nftables 可以识别并处理 nftset 表中的 ip 地址，这样就可以做到对指定域名的流量控制。</p><p>nftables 默认有 nat 和 filter 路由表，新建的自定义路由表需要首先指定某个路由链属于默认路由表的某个路由链类型。如：</p><pre><code># 定义 tabletest 的 output 链，类型为 filter 路由表的 output 链
+nft add chain tabletest output { type filter hook output priority 0 \; policy accept \; }
+
+# 定义 tabletest 的 prerouting 链，类型为 nat 路由表的 prerouting 链
+nft add chain tabletest prerouting { type nat hook prerouting priority 0 \; policy accept \; }</code></pre><p>nftables 规则处理 set 库里 ip 地址的流量：</p><pre><code># 屏蔽本机对 iplist 库中 ip 地址的访问
+nft add rule tabletest output ip daddr @iplist drop
+
+# 目标地址为 set 库地址的prerouting tcp 流量转发到指定端口
+nft add rule tabletest prerouting ip daddr @iplist ip protocol tcp redirect to :1081</code></pre><p>列出指定路由表定义的规则：</p><pre><code>root@OpenWrt:~# nft list table tabletest
+table ip tabletest {
+        set iplist {
+                type ipv4_addr
+                flags interval
+                elements = { 111.22.33.4, 111.22.33.4/16, 157.255.219.143 }
+        }
+
+        chain output {
+                type filter hook output priority filter; policy accept;
+                ip daddr @iplist drop
+        }
+
+        chain prerouting {
+                type nat hook prerouting priority filter; policy accept;
+                ip daddr @iplist ip protocol tcp redirect to :1081
+        }
+}</code></pre><p>删除一个路由表：</p><pre><code>nft delete table tabletest
+</code></pre><p>删除一个路由表中所有链和规则：</p><pre><code>nft flush table tabletest
+</code></pre><p>删除指定路由表中某个路由链中的所有规则：</p><pre><code>nft flush chain tabletest output
+</code></pre><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/firewall/filtering_traffic_at_ip_addresses_by_dns">fw4 Filtering traffic with IP sets by DNS</a><br><a href="https://openwrt.org/docs/guide-user/firewall/misc/nftables">nftables</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Simple_rule_management">Simple rule management</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Configuring_tables">Configuring tables</a><br><a href="https://dallas.lu/en/openwrt-23-shadowsocks-nftset-nftables/">Configuring Shadowsocks rules with nftset in OpenWRT 23</a></p> <p itemprop="keywords">标签：无</p>
+</div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="intel-12-CPU-vmwre.html" title="解决在 intel 12代以后的 CPU 上 vmwre 虚拟机性能低下问题">解决在 intel 12代以后的 CPU 上 vmwre 虚拟机性能低下问题</a></li>
+<li class="next">没有了</li>
+</ul>
+</nav>
+<div id="comments">
+<div id="respond-post-2984" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="dnsmasq-nftset-nftables-1.html#respond-post-2984" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-79bb62bf437f1927f7faf803->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
+</form>
+</div>
+</div>
+</div>
+</main>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
+</ul>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
+</ul>
+</div>
+</footer>
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-79bb62bf437f1927f7faf803-><i id="ydmc"></i></a></bgm><script data-no-instant type="79bb62bf437f1927f7faf803-text/javascript">
+var yaudio = new Audio();
+yaudio.controls = true;
+var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
+var a=0;
+var sj=musicArr[a];
+yaudio.src=sj.mp3;
+yaudio.volume = 0.68;
+</script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="79bb62bf437f1927f7faf803-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="79bb62bf437f1927f7faf803-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="79bb62bf437f1927f7faf803-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'8803477c8ced7ba9',t:'MTcxNTEwNjYwNS41ODIwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+</html>

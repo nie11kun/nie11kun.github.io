@@ -66,6 +66,23 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../archives/2448.html" itemprop="url">解决 wget 下载时 certificates 证书报错问题</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2022-03-11T16:48:00+08:00" itemprop="datePublished">2022-03-11</time></li>
+<li class="feather-folder"><a href="../../category/Linux/index.html">Linux</a></li>
+<li class="feather-message"><a href="../../archives/2448.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>我的服务器上在使用 wget 或者 curl 等网络工具时，每次都提示类似下面的报错：</p><pre><code>ERROR: cannot verify github.com's certificate, issued by ‘CN=DigiCert High Assurance TLS Hybrid ECC SHA256 2020 CA1,O=DigiCert\\, Inc.,C=US’:
+  Unable to locally verify the issuer's authority.
+To connect to github.com insecurely, use `--no-check-certificate'.</code></pre><p>需要通过参数跳过证书检查，但是这样又有了安全风险。</p><p>首先尝试更新本地证书文件：</p><pre><code>update-ca-certificates --verbose --fresh</code></pre><p>发现问题没有解决，原来是系统缺少了一个指向证书路径 <code>/etc/ssl/certs</code> 的环境变量，尝试添加：</p><pre><code>export SSL_CERT_DIR=/etc/ssl/certs</code></pre><p>再次测试 wget 命令，发现问题的确没有了。</p><p>可以将上面的环境变量添加到系统 shell 配置文件中，我这里是 <code>~/.bashrc</code>，添加后刷新一下即可：</p><pre><code>source ~/.bashrc</code></pre><p><strong>在更新 Ubuntu18.04 到 20.04 时，也是这个问题导致的报错。</strong></p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../archives/2403.html" itemprop="url">macOS 中给 finder 添加右键打开 vs code 选项</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -123,21 +140,6 @@
 <p>最新的 macOS 13 已经不支持 2015 款 MacBook Pro 了，通过此 patcher 可以顺利升级。<strong>步骤如下</strong>：</p><ul><li>插入一个大一些的优盘作为系统升级盘，disk 工具格式化为 apfs日志式 + 分区表 guid</li><li>opencore 中选择 create macos installer - download macos installer 在线一键下载最新版本系统镜像</li><li>下载好后按照提示写入到 u 盘中</li><li>选择 build and install opencore 写入到 u 盘分区中</li><li>重启选择 u 盘的 opencore 引导</li><li>进入 recover 后选择 install macos，会保留系统数据更新到新版系统</li><li>升级完成后进入系统，等一会儿回提示检测到 opencore 引导在 u 盘上，是否写入到硬盘，选择是，根据提示选择系统硬盘分区安装 opencore 即可，拔下 u 盘</li><li>settings 里可以取消选择 show boot picker</li></ul><hr><p>今年发布的 macOS Monterey 增加了很多新功能，其中一个就是可以通过 AirPlay 将手机屏幕投放到 Mac 上。这个功能挺有意思的，但是当我把我的 MacBook Pro 升级系统后，发现无法使用这个功能，经过查询后发现这些新功能只对较新款的设备开放，这就有点让人吐槽了。<br>但是不放弃的我开始查询是否有大神给不支持的设备添加上这些功能，果然被我找到了，而且是一个挺有名的项目：<strong>OpenCore Legacy Patcher</strong>。</p><p class="more"><a href="../../archives/2353.html" title="使用 OpenCore Legacy Patcher 为 2015 款 MacBook Pro 激活 AirPlay">阅读全文</a></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../archives/2352.html" itemprop="url">常用校验类正则表达式大全</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2021-11-24T15:03:54+08:00" itemprop="datePublished">2021-11-24</time></li>
-<li class="feather-folder"><a href="../../category/dev/index.html">Development</a></li>
-<li class="feather-message"><a href="../../archives/2352.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p><a href="https://www.williamlong.info/archives/6627.html">https://www.williamlong.info/archives/6627.html</a></p> </div>
-</article>
-<hr class="post-separator">
 <nav><ul class="page-navigator"><li class="prev"><a href="../12/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../11/index.html">11</a></li><li><a href="../12/index.html">12</a></li><li class="current"><a href="index.html">13</a></li><li><a href="../14/index.html">14</a></li><li><a href="../15/index.html">15</a></li><li><span>...</span></li><li><a href="../76/index.html">76</a></li><li class="next"><a href="../14/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
@@ -153,7 +155,7 @@
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-faee1b0af205302b2c13317e-><i id="ydmc"></i></a></bgm><script data-no-instant type="faee1b0af205302b2c13317e-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-501eea26f9b257adccb545f5-><i id="ydmc"></i></a></bgm><script data-no-instant type="501eea26f9b257adccb545f5-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -162,6 +164,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="faee1b0af205302b2c13317e-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="faee1b0af205302b2c13317e-text/javascript"></script>
-<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="faee1b0af205302b2c13317e-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'87fb0e171b111031',t:'MTcxNTAyMDM2OC42MjUwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="501eea26f9b257adccb545f5-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="501eea26f9b257adccb545f5-text/javascript"></script>
+<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="501eea26f9b257adccb545f5-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'88034abaacf92b6d',t:'MTcxNTEwNjczOC40OTQwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>

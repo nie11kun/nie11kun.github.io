@@ -11,8 +11,80 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Thu, 18 Apr 2024 13:01:52 +0800</lastBuildDate>
-<pubDate>Thu, 18 Apr 2024 13:01:52 +0800</pubDate>
+<lastBuildDate>Tue, 07 May 2024 10:31:00 +0800</lastBuildDate>
+<pubDate>Tue, 07 May 2024 10:31:00 +0800</pubDate>
+<item>
+<title>通过 dnsmasq nftset 和 nftables 对域名流量的控制</title>
+<link>https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html</link>
+<guid>https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html</guid>
+<pubDate>Tue, 07 May 2024 10:31:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[Linux]]></category>
+<description><![CDATA[最近升级路由器系统到 openwrt 23，发现 dnsmasq-full 已经默认不支持 ipset 转而支持 nftset 了，所以之前的教程：通过 dnsmasq ipset 和 ipta...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近升级路由器系统到 openwrt 23，发现 dnsmasq-full 已经默认不支持 ipset 转而支持 nftset 了，所以之前的教程：<a href="https://blog.niekun.net/archives/1872.html">通过 dnsmasq ipset 和 iptables 对域名流量的控制</a> 已经不适用新版本系统。</p><p>下面介绍如何通过 nfset 和 nftables 实现同样的功能。</p><p>首先查看 dnsmasq 版本是否支持 nftset：</p><pre><code>root@OpenWrt:~# dnsmasq -v
+Dnsmasq version 2.90  Copyright (c) 2000-2024 Simon Kelley
+Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack no-ipset nftset auth cryptohash DNSSEC no-ID loop-detect inotify dumpfile</code></pre><!--more--><p>可以看到其中有 nftset 字样，如果没有就需要安装 dnsmasq-full，安装教程参考：<a href="https://blog.niekun.net/archives/1869.html">dnsmasq 使用教程</a>。</p><p>nftables 提供 set 功能可以在一个路由表中建立特定名称一个 ip 库，并通过命令 <code>ip daddr</code> 索引库里的地址。</p><p>先建立一个任意名称的路由表：</p><pre><code>nft add table tabletest
+</code></pre><p>然后给这个路由表建立一个名称为 iplist 的 ip 库，并定义为 ipv4 地址：</p><pre><code>nft add set ip tabletest iplist { type ipv4_addr\; }
+</code></pre><p>如果要添加一个 ip 网段，必须定义 ip 库属性：<strong>flags interval</strong></p><pre><code>nft add set ip tabletest iplist { type ipv4_addr \; flags interval \; }
+</code></pre><p>现在就可以给这个 ip 库里添加 ip 地址了，命令如下：</p><pre><code>nft add element ip tabletest iplist { '111.22.33.4' };
+nft add element ip tabletest iplist { '111.22.33.4/16' };
+</code></pre><p>可以通过命令查看这个 ip 库里包含的所有地址：</p><pre><code>root@OpenWrt:~# nft list set ip tabletest iplist
+table ip tabletest {
+        set iplist {
+                type ipv4_addr
+                flags interval
+                elements = { 111.22.33.4, 111.22.33.4/16 }
+        }
+}</code></pre><p>通过 dnsmasq 配置文件也可以添加指定域名解析出的 ip 地址到 nftset 对应 ip 库列表中，例如在 <code>/etc/dnsmasq.conf</code> 配置文件中添加以下指令：</p><pre><code>nftset=/qq.com/4#ip#tabletest#iplist
+</code></pre><p>重启 dnsmasq 服务：</p><pre><code>service dnsmasq restart
+</code></pre><p>查询一下 qq.com 的 ip 地址：</p><pre><code>root@OpenWrt:~# nslookup qq.com
+Server:         127.0.0.1
+Address:        127.0.0.1:53
+
+Non-authoritative answer:
+Name:   qq.com
+Address: 157.255.219.143</code></pre><p>再次查看 iplist 表里包含的 ip 地址：</p><pre><code>root@OpenWrt:~# nft list set ip tabletest iplist
+table ip tabletest {
+        set iplist {
+                type ipv4_addr
+                flags interval
+                elements = { 111.22.33.4, 111.22.33.4/16, 157.255.219.143 }
+        }
+}</code></pre><p>可以看到 qq.com 解析出来的 ip 地址已经放入了 iplist 表中。</p><p>nftables 可以识别并处理 nftset 表中的 ip 地址，这样就可以做到对指定域名的流量控制。</p><p>nftables 默认有 nat 和 filter 路由表，新建的自定义路由表需要首先指定某个路由链属于默认路由表的某个路由链类型。如：</p><pre><code># 定义 tabletest 的 output 链，类型为 filter 路由表的 output 链
+nft add chain tabletest output { type filter hook output priority 0 \; policy accept \; }
+
+# 定义 tabletest 的 prerouting 链，类型为 nat 路由表的 prerouting 链
+nft add chain tabletest prerouting { type nat hook prerouting priority 0 \; policy accept \; }</code></pre><p>nftables 规则处理 set 库里 ip 地址的流量：</p><pre><code># 屏蔽本机对 iplist 库中 ip 地址的访问
+nft add rule tabletest output ip daddr @iplist drop
+
+# 目标地址为 set 库地址的prerouting tcp 流量转发到指定端口
+nft add rule tabletest prerouting ip daddr @iplist ip protocol tcp redirect to :1081</code></pre><p>列出指定路由表定义的规则：</p><pre><code>root@OpenWrt:~# nft list table tabletest
+table ip tabletest {
+        set iplist {
+                type ipv4_addr
+                flags interval
+                elements = { 111.22.33.4, 111.22.33.4/16, 157.255.219.143 }
+        }
+
+        chain output {
+                type filter hook output priority filter; policy accept;
+                ip daddr @iplist drop
+        }
+
+        chain prerouting {
+                type nat hook prerouting priority filter; policy accept;
+                ip daddr @iplist ip protocol tcp redirect to :1081
+        }
+}</code></pre><p>删除一个路由表：</p><pre><code>nft delete table tabletest
+</code></pre><p>删除一个路由表中所有链和规则：</p><pre><code>nft flush table tabletest
+</code></pre><p>删除指定路由表中某个路由链中的所有规则：</p><pre><code>nft flush chain tabletest output
+</code></pre><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/firewall/filtering_traffic_at_ip_addresses_by_dns">fw4 Filtering traffic with IP sets by DNS</a><br><a href="https://openwrt.org/docs/guide-user/firewall/misc/nftables">nftables</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Simple_rule_management">Simple rule management</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Configuring_tables">Configuring tables</a><br><a href="https://dallas.lu/en/openwrt-23-shadowsocks-nftset-nftables/">Configuring Shadowsocks rules with nftset in OpenWRT 23</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/dnsmasq-nftset-nftables-1.html</wfw:commentRss>
+</item>
 <item>
 <title>解决在 intel 12代以后的 CPU 上 vmwre 虚拟机性能低下问题</title>
 <link>https://blog.niekun.net/archives/intel-12-CPU-vmwre.html</link>
@@ -232,21 +304,6 @@ wget -O .env https://github.com/immich-app/immich/releases/latest/download/examp
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/immich.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/immich.html</wfw:commentRss>
-</item>
-<item>
-<title>RTE runtime添加 ethercat master 的步骤</title>
-<link>https://blog.niekun.net/archives/ethercat.html</link>
-<guid>https://blog.niekun.net/archives/ethercat.html</guid>
-<pubDate>Fri, 23 Feb 2024 15:41:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<category><![CDATA[CODESYS]]></category>
-<description><![CDATA[codesys 配置 rte runtime 添加 ethercat 组件的方法。主要步骤为：安装 RTE runtime安装适配网卡驱动添加 ethercat master 设备]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>codesys 配置 rte runtime 添加 ethercat 组件的方法。</p><p>主要步骤为：</p><ul><li>安装 RTE runtime</li><li>安装适配网卡驱动</li><li>添加 ethercat master 设备</li></ul><!--more--><h3>安装 RTE runtime</h3><p>首先需要配置工控机啊 BIOS 设置，将一些超线程，电源管理等选项关掉：</p><ul><li>关闭超线程：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/3799761613.png" alt="image.png" title="image.png"></li><li><p>关闭BIOS 中激活的所有节能选项</p><ul><li>Intel Speed Step动态节能技术</li><li>EIST智能降频</li><li>C-States省电模式</li><li>PowerNow动态调整CPU的工作频率和电压</li><li>Hibernation休眠</li><li>MWAIT</li></ul></li><li><p>停用可能导致系统管理中断的所有内容</p><ul><li>BIOS self tests BIOS自检</li><li>USB Legacy Device Support 传统USB设备支持</li></ul><p><img src="https://blog.niekun.net/usr/uploads/2024/02/1587511684.png" alt="image.png" title="image.png"></p></li></ul><p>然后就可以安装 RTE，官网下载需要的 runtime 安装包，注意区分 x86 还是 x64 设备。我下载的是 **CODESYS Control RTE SL （×86Windows 实时）。</p><p>官网下载地址：<a href="http://store.codesys.cn/codesys/store/index.html">http://store.codesys.cn/codesys/store/index.html</a></p><p>在工控机上解压并安装需要的 RTE runtime，基本都是直接下一步即可，期间注意选择带不带 softmotion：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/4109829724.png" alt="image.png" title="image.png"></p><p>Control RTE 文件路径：<strong>C:\Program Files\CODESYS\CODESYS Control RTE3</strong><br>Control RTE 安装路径：<strong>C:\ProgramData\CODESYS\CODESYSControlRTEV3</strong></p><h3>网卡驱动</h3><p>支持的网卡：<br>Systems with Windows and CODESYS Control RTE (Real-time SoftPLC):</p><ul><li>Realtek® 8139 (CmpRTL81x9Mpd)</li><li>Realtek RTL8139 and compatible Ethernet-Controller, as well 8100/8110</li><li>Realtek 8169 (CmpRTL8169Mpd)</li><li>Realtek 8169/810, RTL8111B / RTL8111D</li><li>Intel® EtherExpressPro1000 (CmpEt1000Drv) --- All gigabit adapters from Intel</li><li>Intel EtherExpress PRO/100 (CmpEt100Drv)  --- All 100 Mbit adapters from Intel</li></ul><p>一般情况下 intel 的千兆网卡都可以安装 CmpEt1000Drv 驱动。</p><p>首先进入设备管理器，选择需要更新 codesys 驱动的网卡，右键选择更新驱动：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/526443326.png" alt="image.png" title="image.png"></p><p>选择从本地查找驱动程序：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/445439546.png" alt="image.png" title="image.png"></p><p>选择从磁盘安装，从 RTE 文件路径找到对应的驱动目录并安装：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/4143604295.png" alt="image.png" title="image.png"><br><img src="https://blog.niekun.net/usr/uploads/2024/02/1468480814.png" alt="image.png" title="image.png"></p><p>右键选择 plc configuration：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/1814919560.png" alt="image.png" title="image.png"></p><p>在 components manager 中在最后一个空行中填入安装的驱动名称，这里我填的是 CmpEt1000Drv：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/2838203674.png" alt="image.png" title="image.png"></p><p>确定并重启 plc 即可完成网卡驱动的安装及配置。</p><h3>添加 ethercat master</h3><p>在codesys 开发项目中进行以下操作。</p><ul><li>建立一个支持 softmotion 的设备</li><li>添加 ethercat master softmotion 主站  （会自动添加 ethercat_task 任务 不可删除)</li><li>扫描并连接到控制器</li><li>配置 ethercat master 网卡，RTE 版 runtime 需要选择适配 codesys 的网卡<br><img src="https://blog.niekun.net/usr/uploads/2024/02/1566796952.png" alt="image.png" title="image.png"><br><img src="https://blog.niekun.net/usr/uploads/2024/02/3608593676.png" alt="image.png" title="image.png"></li><li>下载程序到控制器，如果上面没有在 components manager 中添加网卡组件的话，这里下载会报错</li><li>退出登录 扫描从站并添加<br><img src="https://blog.niekun.net/usr/uploads/2024/02/232930198.png" alt="image.png" title="image.png"><br><img src="https://blog.niekun.net/usr/uploads/2024/02/205582750.png" alt="image.png" title="image.png"></li><li>如果设备描述文件没有在系统内置库中 需要手动导入描述文件然后才能扫描识别<br><img src="https://blog.niekun.net/usr/uploads/2024/02/137766102.png" alt="image.png" title="image.png"><br><img src="https://blog.niekun.net/usr/uploads/2024/02/3769356211.png" alt="image.png" title="image.png"><br><img src="https://blog.niekun.net/usr/uploads/2024/02/1816416840.png" alt="image.png" title="image.png"></li><li>给扫描到的从站添加 cia402 轴<br><img src="https://blog.niekun.net/usr/uploads/2024/02/2632555381.png" alt="image.png" title="image.png"></li><li>配置电子齿轮比<br><img src="https://blog.niekun.net/usr/uploads/2024/02/3358342902.png" alt="image.png" title="image.png"></li></ul><p>以上就是 RTE runtime 版添加 ethercat master 主站的简单方法。</p><h3>参考链接：</h3><p><a href="https://forge.codesys.com/forge/talk/Runtime/thread/e16d310712/">Control RTE SL and profinet connections</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/ethercat.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/ethercat.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
