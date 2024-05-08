@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nftables 使用教程 | Marco Nie</title>
+<link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+<link rel="canonical" href="nftables.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="nftables 使用教程 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/nftables.html" />
+<link rel="alternate" type="application/rdf+xml" title="nftables 使用教程 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/nftables.html" />
+<link rel="alternate" type="application/atom+xml" title="nftables 使用教程 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/nftables.html" />
+<meta name="description" content="新版本的 openwrt 使用 fw4 防火墙，默认已经从 iptables 切换到了 nftables，语法有了很大的变化，下面介绍 nftables 的使用方法。" />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/nftables.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="nftables 使用教程" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="新版本的 openwrt 使用 fw4 防火墙，默认已经从 iptables 切换到了 nftables，语法有了很大的变化，下面介绍 nftables 的使用方法。" />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="68576038ed7d02a595c4decc-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-2988'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-2988-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-2988-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-2988'),
+                holder = this.dom('#respond-post-2988-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="68576038ed7d02a595c4decc-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-2988');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _uVBUV8 = //'fz9'
+'ee'+'746'//'B0'
++//'Phk'
+'Phk'+'20b'//'20b'
++'b'//'qsp'
++'0'//'v'
++'6c'//'w'
++'3'//'lyc'
++'8e'//'lDe'
++'2QT'//'2QT'
++//'Cj'
+'cb5'+'3'//'Z'
++//'YI'
+'e'+//'Ya'
+'d5'+//'ImR'
+'de'+'8'//'xa'
++'87a'//'w'
++//'SqA'
+'88'+//'eME'
+'eME'+//'kcr'
+'5'+/* 'x3V'//'x3V' */''+//'Ip'
+'9d'+//'u'
+'71', _pbuv = [[5,8],[5,8],[12,15],[27,30]];
+    
+    for (var i = 0; i < _pbuv.length; i ++) {
+        _uVBUV8 = _uVBUV8.substring(0, _pbuv[i][0]) + _uVBUV8.substring(_pbuv[i][1]);
+    }
+
+    return _uVBUV8;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script><link rel="stylesheet" href="../usr/plugins/YoduBGM/css/player.css?2022"><style>@media only screen and (max-width:766px){.ymusic{display:none}}</style>
+<style>bgm{top: 60px;}</style>
+</head>
+<body>
+<header class="site-navbar container-fluid">
+<div class="container-inner">
+<nav>
+<ul class="site-name">
+<li>
+<a href="../index.html" class="brand">Marco Nie</a>
+</li>
+<li class="desc">you are the company you keep...</li>
+</ul>
+<ul>
+<li>
+<label for="nav-toggler" class="nav-toggler-btn">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+</label>
+</li>
+</ul>
+</nav>
+<nav class="site-nav">
+<input type="checkbox" id="nav-toggler">
+<ul class="nav-menu">
+<li>
+<a href="../index.html">首页</a>
+</li>
+<li>
+<a href="../start-page.html">关于我</a>
+</li>
+<li>
+<form method="post" action="../index.html">
+<input type="search" id="s" name="s">
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</header>
+<main class="container">
+<div class="container-thin">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
+<a href="nftables.html" itemprop="url">nftables 使用教程</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2024-05-08T10:14:00+08:00" itemprop="datePublished">2024-05-08</time></li>
+<li class="feather-folder"><a href="../category/Linux/index.html">Linux</a>, <a href="../category/other/index.html">other</a></li>
+<li class="feather-message"><a href="nftables.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>新版本的 openwrt 使用 fw4 防火墙，默认已经从 iptables 切换到了 nftables，语法有了很大的变化，下面介绍 nftables 的使用方法。</p><h3>路由表配置</h3><p>路由表是 nftables 中最顶层的容器，它管理着 chains, sets, maps, flowtables, 和 stateful objects.</p><h4>family 集合</h4><p>每个路由表都只能属于一个 family 集合，可用的 family 有：</p><ul><li><strong>ip</strong> 监听 ipv4 的流量</li><li><strong>ip6</strong> 监听 ipv6 的流量</li><li><strong>inet</strong> 同时监听 ipv4 和 ipv6 的流量</li><li><strong>arp</strong> 监听 ARP-level 地址解析协议的流量</li><li><strong>bridge</strong> 监听 bridge 桥接流量 如交换机</li><li><strong>netdev</strong> 用于监听某个单独网卡的流量</li></ul><h4>基本语法</h4><p><strong>新建路由表：</strong></p><pre><code>nft add table ip tabletest
+</code></pre><p>以上命令在 ip 集合中新建一个名称为 tabletest 的路由表，可以处理 ipv4 流量</p><p><strong>路由表列表：</strong></p><pre><code># 列出所有路由表
+nft list tables
+
+# 列出所有 ip 集合的路由表
+nft list tables ip</code></pre><p>删除一个路由表：</p><pre><code>nft delete table ip tabletest
+</code></pre><h3>路由链配置</h3><p>不同于 iptables，nftables 没有预定义的链，如 input output 等。想要在某个环节处理流量，需要定义一个自定义名称的基本链，然后将其挂载在一个特定的 netfilter hook 钩子上。下图是流量包在 linux 网络中的传输路径：<br><img src="../usr/uploads/2024/05/605130879.png" alt="image.png" title="image.png"></p><p>流量传输到本机后开始监听 prerouting 和 input hooks，然后经过本机处理后流向 output -&gt; postrouting hooks。</p><p>注意如果本机作为 router 路由使用，需要开启 ip 转发：</p><pre><code>echo 1 &gt; /proc/sys/net/ipv4/ip_forward
+</code></pre><p>如果传入本机的流量目标地址不是本机，则受 forward hook 监听，这类流量的路径是 prerouting -&gt; forward -&gt; postrouting。</p><p>以下是 netfilter 可用的 chains 和 hooks 列表：<br><img src="../usr/uploads/2024/05/2591276956.png" alt="image.png" title="image.png"></p><h4>基本语法</h4><p>建立基本链，挂载在一个特定的 netfilter hook：</p><pre><code>nft add chain [&lt;family&gt;] &lt;table_name&gt; &lt;chain_name&gt; { type &lt;type&gt; hook &lt;hook&gt; priority &lt;value&gt; \; [policy &lt;policy&gt; \;] [comment \&quot;text comment\&quot; \;] }
+</code></pre><p>注意，由于 nft 语法使用了特殊字符，如: <code>;</code>，在命令行中执行需要加转义符 <code>\</code>。或者可以使用单引号 <code>'</code>` 将 nft 后的语句包起来，以下两种写法效果相同：</p><pre><code>nft add chain ip tabletest input { type filter hook input priority 0 \; }
+nft 'add chain ip tabletest input { type filter hook input priority 0 ; }'
+</code></pre><p>另一种方法是运行 nft 在交互模式，执行以下命令后就可以不加转义符: <code>nft -i</code>。</p><p>上面的命令在 tebletest 路由表中新建一个 input 链，挂载在 filter 路由链的 input hook 上。这样就可以监听所有进入本地的流量。</p><p><strong>priority</strong> 决定了所有链的顺序，例如在 filter input hook 上挂载了多个自定义链，通过 priority 决定其执行顺序。数值越低执行优先级越高，例如 -12, -1, 0, 10。如果给多个挂载在同一个 hook 上的自定义基本链同样的 priority，它们的先后执行顺序就是不确定的。</p><p>添加以下命令后就可以在 tabletest 基本链中监听本机输出的流量：</p><pre><code>nft 'add chain ip tabletest output { type filter hook output priority 0 ; }'
+</code></pre><p><strong>如果不定义大括号中的内容，也就是不挂载在特定 hook 上，则路由链不会监听任何流量。</strong></p><p><strong>policy</strong> 定义了默认的策略，可用的默认策略为：<strong>accept</strong> 和 <strong>drop</strong>，如果路由链中的规则都没有匹配则会应用默认策略：</p><ul><li><strong>accept</strong> 没有匹配到的流量继续在网络层传输</li><li><strong>drop</strong> 没有匹配到的流量被丢弃</li></ul><p><strong>type</strong> 定义了挂载的基本 chain 类型，可用的基本链类型：</p><ul><li><strong>filter</strong>, 用于过滤流量包</li><li><strong>route</strong>, 用于重路由，等同于 iptables 的 mangle 路由链的 output hook (其他 mangle hooks 可以使用 filter 代替)</li><li><strong>nat</strong>, 用于运行 Networking Address Translation (NAT). 只有第一个 nat 流量包会匹配到此链剩余的包会跳过此链，因此尽量不要使用此链过滤流量</li></ul><p><strong>hook</strong> 定义了挂载的基本链 hook，可用的 hooks 如下：</p><ul><li>ingress 只能用于 netdev 和 inet family: 监听来自于 NIC driver 的流量, 早于 prerouting.</li><li>prerouting: 监听所有在 routing 前的入口流量. 流量可能重定向到 local 或 remote systems.</li><li>input: 监听所有被路由或重定向到 local system 的入口流量</li><li>forward: 监听所有不被重定向到 local system 的入口流量</li><li>output: 监听所有在 local machine 被管理的出口流量</li><li>postrouting: 监听所有被路由后的即将离开 local system 的出口流量</li></ul><p>列出一个路由表的所有路由链：</p><pre><code>nft list ip table tabletest
+</code></pre><p>列出一个路由表的指定路由链：</p><pre><code>nft list chain ip tabletest output
+</code></pre><h3>基本规则配置</h3><p>通过规则可以控制路由链上的流量。</p><h4>基本语法</h4><p><strong>添加规则：</strong></p><pre><code>nft add rule ip tabletest output ip daddr 8.8.8.8 counter
+</code></pre><p>以上命令会在 tabletest 路由表的 output 链中添加一条规则，匹配出口流量中 ip 地址为 8.8.8.8 的流量并对匹配次数计数，nftables 中 counter 会默认启用即使不写。以上命令相当于 iptables 中的 <code>-A</code> 命令。</p><p><strong>列出某个链包含的规则：</strong></p><pre><code>root@OpenWrt:~# nft list chain ip tabletest output
+table ip tabletest {
+        chain output {
+                type filter hook output priority filter; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0
+        }
+}</code></pre><p>下面测试以上规则是否生效，执行以下命令：</p><pre><code>ping -c 1 8.8.8.8</code></pre><p>再次查看此链的规则：</p><pre><code>root@OpenWrt:~# nft list chain ip tabletest output
+table ip tabletest {
+        chain output {
+                type filter hook output priority filter; policy accept;
+                ip daddr 8.8.8.8 counter packets 1 bytes 84
+        }
+}</code></pre><p>可以看到已经有一次计数了。</p><p><strong>指定位置添加规则：</strong><br>nftables 中必须通过 handle num 编号来在指定位置添加规则，需要通过 <code>-a</code> 查看链中已经存在的规则的编号：</p><pre><code>nft -n -a list table ip tabletest
+</code></pre><p><code>-n</code> 可以按数字顺序排号避免出现重复编号。再次查看链中的规则：</p><pre><code>root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+        }
+}</code></pre><p>handle 5 就是这条规则的编号。</p><p>下面我们通过 handle 索引在这条规则后添加一条新规则：</p><pre><code>nft add rule ip tabletest output position 5 ip daddr 127.0.0.8 drop
+</code></pre><p>查看链中的规则：</p><pre><code>root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+                ip daddr 127.0.0.8 drop # handle 6
+        }
+}</code></pre><p>如果要在某条规则前插入一条规则需要使用 insert 指令：</p><pre><code>nft insert rule ip tabletest output position 5 ip daddr 127.1.1.8 drop
+</code></pre><p>查看效果：</p><pre><code>root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 127.1.1.8 drop # handle 7
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+                ip daddr 127.0.0.8 drop # handle 6
+        }
+}</code></pre><p><strong>在某条链最前面添加一条规则：</strong></p><pre><code>nft insert rule ip tabletest output ip daddr 192.168.2.1 counter
+</code></pre><p>在最前面添加规则就不需要指定 handle 了。</p><p><strong>替换某条规则：</strong><br>替换一条规则也需要 handle 编号。下面示例会替换 handle 5 为新的规则：</p><pre><code>nft replace rule ip tabletest output handle 5 ip daddr 1.1.1.1
+</code></pre><p><strong>删除规则：</strong><br>同样的，删除某一条规则也需要获取这条规则的 handle 编号。</p><p>删除 tabletest 链的 handle 7 规则：</p><pre><code> nft delete rule ip tabletest output handle 7
+</code></pre><p>删除链中所有规则：</p><pre><code>nft flush chain ip tabletest output
+</code></pre><p>删除路由表中所有链的所有规则：</p><pre><code>nft flush table ip tabletest
+</code></pre><h3>ruleset 层级的操作</h3><p>显示所有 family 的所有 rule 规则：</p><pre><code>nft list ruleset
+</code></pre><p>显示某一个集合的所有 rule：</p><pre><code> % nft list ruleset arp
+ % nft list ruleset ip
+ % nft list ruleset ip6
+ % nft list ruleset bridge
+ % nft list ruleset inet</code></pre><p>清除所有集合的所有规则：</p><pre><code>nft flush ruleset
+</code></pre><p>清除某一个集合的所有规则：</p><pre><code> % nft flush ruleset arp
+ % nft flush ruleset ip
+ % nft flush ruleset ip6
+ % nft flush ruleset bridge
+ % nft flush ruleset inet</code></pre><p>备份规则到文件：</p><pre><code># 备份所有集合的所有规则
+nft list ruleset &gt;&gt; backup.nft
+
+# 备份 ip 集合的所有规则
+nft list ruleset ip &gt;&gt; backup.nft</code></pre><p>从文件恢复规则：</p><pre><code>nft -f backup.nft
+</code></pre><p>以 json 格式显示所有规则：</p><pre><code>nft --json list ruleset
+</code></pre><h3>流量元信息匹配</h3><p>通过 <strong>meta</strong> 选择器可以进行流量匹配或流量设置。下面简单介绍几个常用的匹配模式，更加详细的参考官方资料：<a href="https://wiki.nftables.org/wiki-nftables/index.php/Matching_packet_metainformation">https://wiki.nftables.org/wiki-nftables/index.php/Matching_packet_metainformation</a></p><p>iifname 匹配网卡名称：</p><pre><code># lo 网卡的入口流量会被接收
+nft add rule tabletest input meta iifname lo accept</code></pre><p>mark 匹配流量标记：</p><pre><code># 流量标记为 123 的出口流量计数
+nft add rule tabletest output meta mark 123 counter</code></pre><p>skgid 匹配流量由特定 gid 用户产生的数据：</p><pre><code># 匹配来自 gid 用户 1000 的流量
+nft add rule tabletest output meta skgid 1000 counter</code></pre><h3>流量头信息匹配</h3><p>通过 <strong>ip {saddr | daddr}</strong> 可以匹配 ipv4 的 源流量或目标流量：</p><pre><code># 匹配来自 192.168.1.100 且去往 192.168.1.1 的流量并计数
+nft add rule tabletest input ip saddr 192.168.1.100 ip daddr 192.168.1.1 counter</code></pre><h3>参考链接</h3><p><a href="https://wiki.nftables.org/wiki-nftables/index.php/Main_Page">nftables HOWTO documentation page</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Nftables_families">Nftables families</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks">Netfilter hooks</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Operations_at_ruleset_level">Operations at ruleset level</a></p> <p itemprop="keywords">标签：无</p>
+</div>
+</article>
+<nav class="post-nav">
+<ul class="page-navigator">
+<li class="prev"><a href="dnsmasq-nftset-nftables-1.html" title="通过 dnsmasq nftset 和 nftables 对域名流量的控制">通过 dnsmasq nftset 和 nftables 对域名流量的控制</a></li>
+<li class="next">没有了</li>
+</ul>
+</nav>
+<div id="comments">
+<div id="respond-post-2988" class="respond">
+<div class="cancel-comment-reply">
+<a id="cancel-comment-reply-link" href="nftables.html#respond-post-2988" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-68576038ed7d02a595c4decc->取消回复</a> </div>
+<h5 id="response">你的评论</h5>
+<form method="post" action="https://blog.niekun.net/archives/nftables.html/comment" id="comment-form" role="form">
+<div class="grid">
+<textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+</div>
+<div class="grid">
+<input type="text" placeholder="名字" name="author" id="author" value required />
+<input type="email" placeholder="Email" name="mail" id="mail" value required />
+<input type="url" placeholder="http://网站（选填）" name="url" id="url" value />
+</div>
+<button type="submit">提交评论</button>
+</form>
+</div>
+</div>
+</div>
+</main>
+<footer class="site-footer container-fluid">
+<div class="d-flex justify-content-between container-inner">
+<ul class="list-inline text-muted">
+<li>&copy; 2024 <a href="../index.html">Marco Nie</a></li>
+<li><a href="../feed/index.html">RSS</a></li>
+</ul>
+<ul class="list-inline text-muted">
+<li>
+由 <a href="https://typecho.org">Typecho</a> 强力驱动 </li>
+</ul>
+</div>
+</footer>
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-68576038ed7d02a595c4decc-><i id="ydmc"></i></a></bgm><script data-no-instant type="68576038ed7d02a595c4decc-text/javascript">
+var yaudio = new Audio();
+yaudio.controls = true;
+var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
+var a=0;
+var sj=musicArr[a];
+yaudio.src=sj.mp3;
+yaudio.volume = 0.68;
+</script>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="68576038ed7d02a595c4decc-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="68576038ed7d02a595c4decc-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="68576038ed7d02a595c4decc-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'880b84e6dbd0310d',t:'MTcxNTE5MzAwNy4yNDYwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+</html>

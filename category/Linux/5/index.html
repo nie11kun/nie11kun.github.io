@@ -67,6 +67,29 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../../archives/2570.html" itemprop="url">iptables 配置透明代理注意事项</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2022-04-03T08:33:00+08:00" itemprop="datePublished">2022-04-03</time></li>
+<li class="feather-folder"><a href="../index.html">Linux</a></li>
+<li class="feather-message"><a href="../../../archives/2570.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>之前介绍过通过 dnsmasq 配合 iptables 实现对 ip 地址的流量过滤，dnsmasq 获取到流量后标记 ipset 然后通过 iptables 识别 ipset 然后将流量送往指定地址。</p><p><a href="../../../archives/1872.html">通过 dnsmasq ipset 和 iptables 对域名流量的控制</a><br><a href="../../../archives/1863.html">iptables 使用教程</a></p><p>这里面存在一个问题就是流量回环问题，如果处理不好回导致 iptables 规则无限循环，尤其是在配置透明代理时候。</p><pre><code>iptables -t mangle -A PREROUTING -p tcp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A PREROUTING -p udp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A OUTPUT -p tcp -m set --match-set gfwlist dst -j MARK --set-mark 1
+iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set-mark 1</code></pre><p>以上规则会将 指定 list 的流量发送到指定端口并打上 mark 标记，但是从目标地址返回数据后，数据流会再次匹配到以上规则导致再次将流量送往指定端口，导致无限循环。</p><p>处理方法就是在目标地址获取到流量后，给流量打上 mark 标记，然后在 iptables 的最前面加上一条规则识别从目标地址返回的流量，直接 return 流量即可。</p><p>例如目标地址处理后的流量标记为 mark 2，iptables 规则最前面增加一条规则：</p><pre><code>iptables -t mangle -I OUTPUT -j RETURN -m mark --mark 0x02</code></pre><p><code>-I</code> 参数就是将规则放在在路由链的最前面。</p><p>如果是通过脚本的方式配置 iptables，将开始的脚本内容修改如下即可：</p><pre><code>iptables -t mangle -A OUTPUT -j RETURN -m mark --mark 0x02
+
+iptables -t mangle -A PREROUTING -p tcp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A PREROUTING -p udp -m set --match-set gfwlist dst -j TPROXY --on-port 1081 --tproxy-mark 1
+iptables -t mangle -A OUTPUT -p tcp -m set --match-set gfwlist dst -j MARK --set-mark 1
+iptables -t mangle -A OUTPUT -p udp -m set --match-set gfwlist dst -j MARK --set-mark 1</code></pre><p>这样就可以避免流量回环问题。</p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../../archives/2457.html" itemprop="url">安装 phpMyAdmin 管理 MySQL</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -130,29 +153,7 @@ apt autoremove &amp;&amp; apt purge
 To connect to github.com insecurely, use `--no-check-certificate'.</code></pre><p>需要通过参数跳过证书检查，但是这样又有了安全风险。</p><p>首先尝试更新本地证书文件：</p><pre><code>update-ca-certificates --verbose --fresh</code></pre><p>发现问题没有解决，原来是系统缺少了一个指向证书路径 <code>/etc/ssl/certs</code> 的环境变量，尝试添加：</p><pre><code>export SSL_CERT_DIR=/etc/ssl/certs</code></pre><p>再次测试 wget 命令，发现问题的确没有了。</p><p>可以将上面的环境变量添加到系统 shell 配置文件中，我这里是 <code>~/.bashrc</code>，添加后刷新一下即可：</p><pre><code>source ~/.bashrc</code></pre><p><strong>在更新 Ubuntu18.04 到 20.04 时，也是这个问题导致的报错。</strong></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../../archives/2321.html" itemprop="url">openwrt 扩展根目录空间</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2021-06-22T21:40:00+08:00" itemprop="datePublished">2021-06-22</time></li>
-<li class="feather-folder"><a href="../index.html">Linux</a></li>
-<li class="feather-message"><a href="../../../archives/2321.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p>我在软路由上通过 esxi 安装了 openwrt 作为路由系统。虚拟机分配了 5 GB 作为存储空间，但是安装完成后通过命令查看发现系统识别到的空间只有很小：</p><pre><code>root@OpenWrt:~# df -h
-Filesystem                Size      Used Available Use% Mounted on
-/dev/root               252.0M    241.4M      5.5M  98% /rom
-tmpfs                   496.5M     68.0K    496.4M   0% /tmp
-/dev/sda1                15.7M      3.8M     11.6M  25% /boot
-/dev/sda1                15.7M      3.8M     11.6M  25% /boot
-tmpfs                   512.0K         0    512.0K   0% /dev</code></pre><p>其中 <code>/dev/root</code> 是系统固件目录，不用考虑。<code>/dev/sda*</code> 就是系统实际可用的硬盘空间。我明明分配了 5 GB 空间给 openwrt 但是由于系统分区是在下载的固件中定义好的，所以其余空间就没有被识别。由于默认存储空间过小，当安装了过多的插件后，会提示空间不足导致无法安装更多插件：</p><pre><code>verify_pkg_installable: Only have 0kb available on filesystem /overlay, pkg luci-app-openvpn needs 9
-opkg_install_cmd: Cannot install package luci-app-openvpn</code></pre><p>下面介绍如何将剩余空间挂在到 openwrt 中。</p><p class="more"><a href="../../../archives/2321.html" title="openwrt 扩展根目录空间">阅读全文</a></p> </div>
-</article>
-<hr class="post-separator">
-<nav><ul class="page-navigator"><li class="prev"><a href="../4/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../3/index.html">3</a></li><li><a href="../4/index.html">4</a></li><li class="current"><a href="index.html">5</a></li><li><a href="../6/index.html">6</a></li><li><a href="../7/index.html">7</a></li><li><span>...</span></li><li><a href="../25/index.html">25</a></li><li class="next"><a href="../6/index.html">后一页</a></li></ul></nav>
+<nav><ul class="page-navigator"><li class="prev"><a href="../4/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../3/index.html">3</a></li><li><a href="../4/index.html">4</a></li><li class="current"><a href="index.html">5</a></li><li><a href="../6/index.html">6</a></li><li><a href="../7/index.html">7</a></li><li><span>...</span></li><li><a href="../26/index.html">26</a></li><li class="next"><a href="../6/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
 <footer class="site-footer container-fluid">
@@ -167,7 +168,7 @@ opkg_install_cmd: Cannot install package luci-app-openvpn</code></pre><p>下面�
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-31556a83a53c89f00fd1c34a-><i id="ydmc"></i></a></bgm><script data-no-instant type="31556a83a53c89f00fd1c34a-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-31dd49587c94e77892311cd8-><i id="ydmc"></i></a></bgm><script data-no-instant type="31dd49587c94e77892311cd8-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -176,6 +177,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="31556a83a53c89f00fd1c34a-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="31556a83a53c89f00fd1c34a-text/javascript"></script>
-<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="31556a83a53c89f00fd1c34a-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'880347b8faf47ba9',t:'MTcxNTEwNjYxNS4yOTcwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="31dd49587c94e77892311cd8-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="31dd49587c94e77892311cd8-text/javascript"></script>
+<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="31dd49587c94e77892311cd8-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'880b8530fd03310d',t:'MTcxNTE5MzAxOS4xNzEwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>

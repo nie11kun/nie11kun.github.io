@@ -11,8 +11,99 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/other/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>杂文</description>
-<lastBuildDate>Thu, 18 Apr 2024 13:01:52 +0800</lastBuildDate>
-<pubDate>Thu, 18 Apr 2024 13:01:52 +0800</pubDate>
+<lastBuildDate>Wed, 08 May 2024 10:14:00 +0800</lastBuildDate>
+<pubDate>Wed, 08 May 2024 10:14:00 +0800</pubDate>
+<item>
+<title>nftables 使用教程</title>
+<link>https://blog.niekun.net/archives/nftables.html</link>
+<guid>https://blog.niekun.net/archives/nftables.html</guid>
+<pubDate>Wed, 08 May 2024 10:14:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[Linux]]></category>
+<category><![CDATA[other]]></category>
+<description><![CDATA[新版本的 openwrt 使用 fw4 防火墙，默认已经从 iptables 切换到了 nftables，语法有了很大的变化，下面介绍 nftables 的使用方法。]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>新版本的 openwrt 使用 fw4 防火墙，默认已经从 iptables 切换到了 nftables，语法有了很大的变化，下面介绍 nftables 的使用方法。</p><!--more--><h3>路由表配置</h3><p>路由表是 nftables 中最顶层的容器，它管理着  chains, sets, maps, flowtables, 和 stateful objects.</p><h4>family 集合</h4><p>每个路由表都只能属于一个 family 集合，可用的 family 有：</p><ul><li><strong>ip</strong>      监听 ipv4 的流量</li><li><strong>ip6</strong>     监听 ipv6 的流量</li><li><strong>inet</strong>    同时监听 ipv4 和 ipv6 的流量</li><li><strong>arp</strong>     监听 ARP-level 地址解析协议的流量</li><li><strong>bridge</strong>  监听 bridge 桥接流量 如交换机</li><li><strong>netdev</strong>  用于监听某个单独网卡的流量</li></ul><h4>基本语法</h4><p><strong>新建路由表：</strong></p><pre><code>nft add table ip tabletest
+</code></pre><p>以上命令在 ip 集合中新建一个名称为 tabletest 的路由表，可以处理 ipv4 流量</p><p><strong>路由表列表：</strong></p><pre><code># 列出所有路由表
+nft list tables
+
+# 列出所有 ip 集合的路由表
+nft list tables ip</code></pre><p>删除一个路由表：</p><pre><code>nft delete table ip tabletest
+</code></pre><h3>路由链配置</h3><p>不同于 iptables，nftables 没有预定义的链，如 input output 等。想要在某个环节处理流量，需要定义一个自定义名称的基本链，然后将其挂载在一个特定的 netfilter hook 钩子上。下图是流量包在 linux 网络中的传输路径：<br><img src="https://blog.niekun.net/usr/uploads/2024/05/605130879.png" alt="image.png" title="image.png"></p><p>流量传输到本机后开始监听 prerouting 和 input hooks，然后经过本机处理后流向 output -&gt; postrouting hooks。</p><p>注意如果本机作为 router 路由使用，需要开启 ip 转发：</p><pre><code>echo 1 &gt; /proc/sys/net/ipv4/ip_forward
+</code></pre><p>如果传入本机的流量目标地址不是本机，则受 forward hook 监听，这类流量的路径是 prerouting -&gt; forward -&gt; postrouting。</p><p>以下是 netfilter 可用的 chains 和 hooks 列表：<br><img src="https://blog.niekun.net/usr/uploads/2024/05/2591276956.png" alt="image.png" title="image.png"></p><h4>基本语法</h4><p>建立基本链，挂载在一个特定的 netfilter hook：</p><pre><code>nft add chain [&lt;family&gt;] &lt;table_name&gt; &lt;chain_name&gt; { type &lt;type&gt; hook &lt;hook&gt; priority &lt;value&gt; \; [policy &lt;policy&gt; \;] [comment \&quot;text comment\&quot; \;] }
+</code></pre><p>注意，由于 nft 语法使用了特殊字符，如: <code>;</code>，在命令行中执行需要加转义符 <code>\</code>。或者可以使用单引号 <code>'</code>` 将 nft 后的语句包起来，以下两种写法效果相同：</p><pre><code>nft add chain ip tabletest input { type filter hook input priority 0 \; }
+nft 'add chain ip tabletest input { type filter hook input priority 0 ; }'
+</code></pre><p>另一种方法是运行 nft 在交互模式，执行以下命令后就可以不加转义符: <code>nft -i</code>。</p><p>上面的命令在 tebletest 路由表中新建一个 input 链，挂载在 filter 路由链的 input hook 上。这样就可以监听所有进入本地的流量。</p><p><strong>priority</strong> 决定了所有链的顺序，例如在 filter input hook 上挂载了多个自定义链，通过 priority 决定其执行顺序。数值越低执行优先级越高，例如 -12, -1, 0, 10。如果给多个挂载在同一个 hook 上的自定义基本链同样的 priority，它们的先后执行顺序就是不确定的。</p><p>添加以下命令后就可以在 tabletest 基本链中监听本机输出的流量：</p><pre><code>nft 'add chain ip tabletest output { type filter hook output priority 0 ; }'
+</code></pre><p><strong>如果不定义大括号中的内容，也就是不挂载在特定 hook 上，则路由链不会监听任何流量。</strong></p><p><strong>policy</strong> 定义了默认的策略，可用的默认策略为：<strong>accept</strong> 和 <strong>drop</strong>，如果路由链中的规则都没有匹配则会应用默认策略：</p><ul><li><strong>accept</strong> 没有匹配到的流量继续在网络层传输</li><li><strong>drop</strong>   没有匹配到的流量被丢弃</li></ul><p><strong>type</strong> 定义了挂载的基本 chain 类型，可用的基本链类型：</p><ul><li><strong>filter</strong>, 用于过滤流量包</li><li><strong>route</strong>, 用于重路由，等同于 iptables 的 mangle 路由链的 output hook (其他 mangle hooks 可以使用 filter 代替)</li><li><strong>nat</strong>, 用于运行 Networking Address Translation (NAT). 只有第一个 nat 流量包会匹配到此链剩余的包会跳过此链，因此尽量不要使用此链过滤流量</li></ul><p><strong>hook</strong> 定义了挂载的基本链 hook，可用的 hooks 如下：</p><ul><li>ingress 只能用于 netdev 和 inet family: 监听来自于 NIC driver 的流量, 早于 prerouting.</li><li>prerouting: 监听所有在 routing 前的入口流量. 流量可能重定向到 local 或 remote systems.</li><li>input: 监听所有被路由或重定向到 local system 的入口流量</li><li>forward: 监听所有不被重定向到 local system 的入口流量</li><li>output: 监听所有在 local machine 被管理的出口流量</li><li>postrouting: 监听所有被路由后的即将离开 local system 的出口流量</li></ul><p>列出一个路由表的所有路由链：</p><pre><code>nft list ip table tabletest
+</code></pre><p>列出一个路由表的指定路由链：</p><pre><code>nft list chain ip tabletest output
+</code></pre><h3>基本规则配置</h3><p>通过规则可以控制路由链上的流量。</p><h4>基本语法</h4><p><strong>添加规则：</strong></p><pre><code>nft add rule ip tabletest output ip daddr 8.8.8.8 counter
+</code></pre><p>以上命令会在 tabletest 路由表的 output 链中添加一条规则，匹配出口流量中 ip 地址为 8.8.8.8 的流量并对匹配次数计数，nftables 中 counter 会默认启用即使不写。以上命令相当于 iptables 中的 <code>-A</code> 命令。</p><p><strong>列出某个链包含的规则：</strong></p><pre><code>root@OpenWrt:~# nft list chain ip tabletest output
+table ip tabletest {
+        chain output {
+                type filter hook output priority filter; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0
+        }
+}</code></pre><p>下面测试以上规则是否生效，执行以下命令：</p><pre><code>ping -c 1 8.8.8.8</code></pre><p>再次查看此链的规则：</p><pre><code>root@OpenWrt:~# nft list chain ip tabletest output
+table ip tabletest {
+        chain output {
+                type filter hook output priority filter; policy accept;
+                ip daddr 8.8.8.8 counter packets 1 bytes 84
+        }
+}</code></pre><p>可以看到已经有一次计数了。</p><p><strong>指定位置添加规则：</strong><br>nftables 中必须通过 handle num 编号来在指定位置添加规则，需要通过 <code>-a</code> 查看链中已经存在的规则的编号：</p><pre><code>nft -n -a list table ip tabletest
+</code></pre><p><code>-n</code> 可以按数字顺序排号避免出现重复编号。再次查看链中的规则：</p><pre><code>root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+        }
+}</code></pre><p>handle 5 就是这条规则的编号。</p><p>下面我们通过 handle 索引在这条规则后添加一条新规则：</p><pre><code>nft add rule ip tabletest output position 5 ip daddr 127.0.0.8 drop
+</code></pre><p>查看链中的规则：</p><pre><code>root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+                ip daddr 127.0.0.8 drop # handle 6
+        }
+}</code></pre><p>如果要在某条规则前插入一条规则需要使用 insert 指令：</p><pre><code>nft insert rule ip tabletest output position 5 ip daddr 127.1.1.8 drop
+</code></pre><p>查看效果：</p><pre><code>root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 127.1.1.8 drop # handle 7
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+                ip daddr 127.0.0.8 drop # handle 6
+        }
+}</code></pre><p><strong>在某条链最前面添加一条规则：</strong></p><pre><code>nft insert rule ip tabletest output ip daddr 192.168.2.1 counter
+</code></pre><p>在最前面添加规则就不需要指定 handle 了。</p><p><strong>替换某条规则：</strong><br>替换一条规则也需要 handle 编号。下面示例会替换 handle 5 为新的规则：</p><pre><code>nft replace rule ip tabletest output handle 5 ip daddr 1.1.1.1
+</code></pre><p><strong>删除规则：</strong><br>同样的，删除某一条规则也需要获取这条规则的 handle 编号。</p><p>删除 tabletest 链的 handle 7 规则：</p><pre><code> nft delete rule ip tabletest output handle 7
+</code></pre><p>删除链中所有规则：</p><pre><code>nft flush chain ip tabletest output
+</code></pre><p>删除路由表中所有链的所有规则：</p><pre><code>nft flush table ip tabletest
+</code></pre><h3>ruleset 层级的操作</h3><p>显示所有 family 的所有 rule 规则：</p><pre><code>nft list ruleset
+</code></pre><p>显示某一个集合的所有 rule：</p><pre><code> % nft list ruleset arp
+ % nft list ruleset ip
+ % nft list ruleset ip6
+ % nft list ruleset bridge
+ % nft list ruleset inet</code></pre><p>清除所有集合的所有规则：</p><pre><code>nft flush ruleset
+</code></pre><p>清除某一个集合的所有规则：</p><pre><code> % nft flush ruleset arp
+ % nft flush ruleset ip
+ % nft flush ruleset ip6
+ % nft flush ruleset bridge
+ % nft flush ruleset inet</code></pre><p>备份规则到文件：</p><pre><code># 备份所有集合的所有规则
+nft list ruleset &gt;&gt; backup.nft
+
+# 备份 ip 集合的所有规则
+nft list ruleset ip &gt;&gt; backup.nft</code></pre><p>从文件恢复规则：</p><pre><code>nft -f backup.nft
+</code></pre><p>以 json 格式显示所有规则：</p><pre><code>nft --json list ruleset
+</code></pre><h3>流量元信息匹配</h3><p>通过 <strong>meta</strong> 选择器可以进行流量匹配或流量设置。下面简单介绍几个常用的匹配模式，更加详细的参考官方资料：<a href="https://wiki.nftables.org/wiki-nftables/index.php/Matching_packet_metainformation">https://wiki.nftables.org/wiki-nftables/index.php/Matching_packet_metainformation</a></p><p>iifname 匹配网卡名称：</p><pre><code># lo 网卡的入口流量会被接收
+nft add rule tabletest input meta iifname lo accept</code></pre><p>mark 匹配流量标记：</p><pre><code># 流量标记为 123 的出口流量计数
+nft add rule tabletest output meta mark 123 counter</code></pre><p>skgid 匹配流量由特定 gid 用户产生的数据：</p><pre><code># 匹配来自 gid 用户 1000 的流量
+nft add rule tabletest output meta skgid 1000 counter</code></pre><h3>流量头信息匹配</h3><p>通过 <strong>ip {saddr | daddr}</strong>  可以匹配 ipv4 的 源流量或目标流量：</p><pre><code># 匹配来自 192.168.1.100 且去往 192.168.1.1 的流量并计数
+nft add rule tabletest input ip saddr 192.168.1.100 ip daddr 192.168.1.1 counter</code></pre><h3>参考链接</h3><p><a href="https://wiki.nftables.org/wiki-nftables/index.php/Main_Page">nftables HOWTO documentation page</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Nftables_families">Nftables families</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks">Netfilter hooks</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Operations_at_ruleset_level">Operations at ruleset level</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/nftables.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/other/archives/nftables.html</wfw:commentRss>
+</item>
 <item>
 <title>解决在 intel 12代以后的 CPU 上 vmwre 虚拟机性能低下问题</title>
 <link>https://blog.niekun.net/archives/intel-12-CPU-vmwre.html</link>
@@ -238,24 +329,6 @@ adb install xxx.apk</code></pre><h3>文件共享</h3><p>可以配置一个 Windo
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/category/other/archives/WSA-Windows-Subsystem-for-Android.html</wfw:commentRss>
-</item>
-<item>
-<title>订阅土耳其区 Google One</title>
-<link>https://blog.niekun.net/archives/Google-One.html</link>
-<guid>https://blog.niekun.net/archives/Google-One.html</guid>
-<pubDate>Tue, 20 Feb 2024 15:10:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<category><![CDATA[other]]></category>
-<description><![CDATA[最近发现我的 google drive 免费空间也用满了，但平时有很多服务比如 Google photos，服务器备份等都需要用到它，所以想付费购买一些空间。目前 google 把订阅都整合到了...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>最近发现我的 google drive 免费空间也用满了，但平时有很多服务比如 Google photos，服务器备份等都需要用到它，所以想付费购买一些空间。目前 google 把订阅都整合到了 google one 中了，而且不在中国提供订阅服务。和 iCloud 类似，目前土区的订阅最便宜，所以就研究了下如何订阅到土区。</p><p>我使用的是 app store 上的订阅，所以依然用到了土区的 apple 账户以及 ios 设备，关于如何建立土区账号以及充值参考：<a href="https://blog.niekun.net/archives/iCloud.html">国区使用土耳其区 iCloud 家庭共享</a>。</p><!--more--><p>Google 账户需要修改到土耳其区，首先进入 <a href="https://payments.google.com/">https://payments.google.com/</a></p><p>点击 settings 可以看到区域信息：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/4207870220.png" alt="image.png" title="image.png"></p><p>这里我已经修改到了土耳其区域了，如果不是的话需要点击区域旁边的按钮修改，会提示让你创建一个新的 profile：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/2178151477.png" alt="image.png" title="image.png"></p><p>根据提示一步步设置即可，重点是选择土耳其：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/1161263503.png" alt="image.png" title="image.png"></p><p>然后根据提示设置一个土耳其地址信息即可，参考地址：</p><pre><code>Osman Kavuncu Cad
-Kenarcık Sk. No2
-38090
-Kayseri</code></pre><p>付款信息可以不写。</p><p>建立完成后我们需要将原来的那个 profile 删掉，避免引起混乱。如果有多个 profile 会在右上角显示切换按钮，我这里已经删除过了所以是空白的：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/1035383301.png" alt="image.png" title="image.png"></p><p>切换到原来的 profile 后下拉到最下面点击删除，需要注意的是删除这个 profile 不会影响账户上的照片文件等信息，但会删除之前的一些购买付款信息：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/2240538614.png" alt="image.png" title="image.png"></p><p>此时账户就完成了转换到土区的操作。</p><p>然后在 ios 设备上用土区账号登陆 app store，注意不是登录 icloud。</p><p>登录后我们打开 google drive 或者 google one app 点击管理存储：<br><img src="https://blog.niekun.net/usr/uploads/2024/02/3794692997.png" alt="image.png" title="image.png"></p><p>就可以看到各种套餐的信息了，都是以土耳其货币里拉为单位的，选择合适的套餐点击购买即可使用账户中的余额订阅。我选择的是 100GB 年付套餐，一年 120里拉，折合 28 人民币，还是不错的。</p><p>注意及时充值土区账户，如果余额不足可能导致订阅失效。</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/Google-One.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/category/other/archives/Google-One.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

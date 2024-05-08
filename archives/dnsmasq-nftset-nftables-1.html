@@ -22,7 +22,7 @@
 <meta property="og:site_name" content="Marco Nie" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:domain" content="blog.niekun.net" />
-<script type="79bb62bf437f1927f7faf803-text/javascript">
+<script type="0d94f9474ae9899524dfcb5b-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (sel) {
@@ -122,7 +122,7 @@
         }
     };
 })();
-</script><script type="79bb62bf437f1927f7faf803-text/javascript">
+</script><script type="0d94f9474ae9899524dfcb5b-text/javascript">
 (function () {
     const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
     let added = false;
@@ -137,35 +137,30 @@
             input.type = 'hidden';
             input.name = '_';
             input.value = (function () {
-    var _NL1q = //'t85'
-'21f'+'f1'//'r'
-+//'W0'
-'78'+//'t6'
-'t6'+//'X'
-'6'+'8'//'Ek'
-+//'D'
-'45'+//'Xm'
-'Xm'+//'TB'
-'70'+//'hDJ'
-'9'+//'Q'
-'2b'+'cf'//'J'
-+/* 'Ut'//'Ut' */''+//'6G'
-'e8'+/* 'X1'//'X1' */''+''///*'fGG'*/'fGG'
-+''///*'3m'*/'3m'
-+//'Z'
-'b'+/* '9J'//'9J' */''+//'SPm'
-'8'+//'mz'
-'9ae'+//'04M'
-'ae'+//'78C'
-'a'+//'e0'
-'39d'+//'4'
-'b', _j5b = [[7,9],[11,13]];
+    var _5PE8 = '21f'//'h7B'
++//'IGj'
+'f1'+//'7i'
+'7'+//'jI'
+'86'+/* 'o4m'//'o4m' */''+'p'//'p'
++'845'//'O'
++//'ITh'
+'7'+'09'//'FC'
++//'RK'
+'2bc'+//'j'
+'f'+//'MTL'
+'e8b'+'89a'//'a9'
++'ea'//'U'
++//'TM'
+'e'+//'7Sb'
+'a'+//'pi'
+'3'+//'w'
+'9db', _dF7D = [[8,9]];
     
-    for (var i = 0; i < _j5b.length; i ++) {
-        _NL1q = _NL1q.substring(0, _j5b[i][0]) + _NL1q.substring(_j5b[i][1]);
+    for (var i = 0; i < _dF7D.length; i ++) {
+        _5PE8 = _5PE8.substring(0, _dF7D[i][0]) + _5PE8.substring(_dF7D[i][1]);
     }
 
-    return _NL1q;
+    return _5PE8;
 })();;
  
             if (form) {
@@ -238,8 +233,8 @@
 <div class="entry-content fmt" itemprop="articleBody">
 <p>最近升级路由器系统到 openwrt 23，发现 dnsmasq-full 已经默认不支持 ipset 转而支持 nftset 了，所以之前的教程：<a href="1872.html">通过 dnsmasq ipset 和 iptables 对域名流量的控制</a> 已经不适用新版本系统。</p><p>下面介绍如何通过 nfset 和 nftables 实现同样的功能。</p><p>首先查看 dnsmasq 版本是否支持 nftset：</p><pre><code>root@OpenWrt:~# dnsmasq -v
 Dnsmasq version 2.90  Copyright (c) 2000-2024 Simon Kelley
-Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack no-ipset nftset auth cryptohash DNSSEC no-ID loop-detect inotify dumpfile</code></pre><p>可以看到其中有 nftset 字样，如果没有就需要安装 dnsmasq-full，安装教程参考：<a href="1869.html">dnsmasq 使用教程</a>。</p><p>nftables 提供 set 功能可以在一个路由表中建立特定名称一个 ip 库，并通过命令 <code>ip daddr</code> 索引库里的地址。</p><p>先建立一个任意名称的路由表：</p><pre><code>nft add table tabletest
-</code></pre><p>然后给这个路由表建立一个名称为 iplist 的 ip 库，并定义为 ipv4 地址：</p><pre><code>nft add set ip tabletest iplist { type ipv4_addr\; }
+Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack no-ipset nftset auth cryptohash DNSSEC no-ID loop-detect inotify dumpfile</code></pre><p>可以看到其中有 nftset 字样，如果没有就需要安装 dnsmasq-full，安装教程参考：<a href="1869.html">dnsmasq 使用教程</a>。</p><p>nftables 提供 set 功能可以在一个路由表中建立特定名称一个 ip 库，并通过命令 <code>ip daddr</code> 索引库里的地址。关于 nftables 的使用教程参考：<a href="nftables.html">nftables 使用教程</a></p><p>先建立一个任意名称的路由表：</p><pre><code>nft add table tabletest
+</code></pre><p>然后给这个路由表建立一个名称为 iplist 的 ip 库，类型定义为 ipv4 地址：</p><pre><code>nft add set ip tabletest iplist { type ipv4_addr\; }
 </code></pre><p>如果要添加一个 ip 网段，必须定义 ip 库属性：<strong>flags interval</strong></p><pre><code>nft add set ip tabletest iplist { type ipv4_addr \; flags interval \; }
 </code></pre><p>现在就可以给这个 ip 库里添加 ip 地址了，命令如下：</p><pre><code>nft add element ip tabletest iplist { '111.22.33.4' };
 nft add element ip tabletest iplist { '111.22.33.4/16' };
@@ -265,10 +260,12 @@ table ip tabletest {
                 flags interval
                 elements = { 111.22.33.4, 111.22.33.4/16, 157.255.219.143 }
         }
-}</code></pre><p>可以看到 qq.com 解析出来的 ip 地址已经放入了 iplist 表中。</p><p>nftables 可以识别并处理 nftset 表中的 ip 地址，这样就可以做到对指定域名的流量控制。</p><p>nftables 默认有 nat 和 filter 路由表，新建的自定义路由表需要首先指定某个路由链属于默认路由表的某个路由链类型。如：</p><pre><code># 定义 tabletest 的 output 链，类型为 filter 路由表的 output 链
+}</code></pre><p>可以看到 qq.com 解析出来的 ip 地址已经放入了 iplist 表中。</p><p>nftables 可以识别并处理 nftset 表中的 ip 地址，这样就可以做到对指定域名的流量控制。</p><p>新建的自定义路由表需要首先指定某个动作链条属于什么动作链类型。如：</p><pre><code># 定义 tabletest 的 output 链，类型为 filter 路由链的动作链 &quot;output&quot;
+# 优先级 0 表示：(在任何路由决策前捕获传入数据包)
+# 策略为 accept 表示没有匹配流量后继续传入后续路由表及规则进行匹配
 nft add chain tabletest output { type filter hook output priority 0 \; policy accept \; }
 
-# 定义 tabletest 的 prerouting 链，类型为 nat 路由表的 prerouting 链
+# 定义 tabletest 的 prerouting 链，类型为 NAT 路由链的动作链 &quot;prerouting&quot;
 nft add chain tabletest prerouting { type nat hook prerouting priority 0 \; policy accept \; }</code></pre><p>nftables 规则处理 set 库里 ip 地址的流量：</p><pre><code># 屏蔽本机对 iplist 库中 ip 地址的访问
 nft add rule tabletest output ip daddr @iplist drop
 
@@ -291,7 +288,7 @@ table ip tabletest {
                 ip daddr @iplist ip protocol tcp redirect to :1081
         }
 }</code></pre><p>删除一个路由表：</p><pre><code>nft delete table tabletest
-</code></pre><p>删除一个路由表中所有链和规则：</p><pre><code>nft flush table tabletest
+</code></pre><p>删除一个路由表中所有规则，保留路由链定义：</p><pre><code>nft flush table tabletest
 </code></pre><p>删除指定路由表中某个路由链中的所有规则：</p><pre><code>nft flush chain tabletest output
 </code></pre><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/firewall/filtering_traffic_at_ip_addresses_by_dns">fw4 Filtering traffic with IP sets by DNS</a><br><a href="https://openwrt.org/docs/guide-user/firewall/misc/nftables">nftables</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Simple_rule_management">Simple rule management</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Configuring_tables">Configuring tables</a><br><a href="https://dallas.lu/en/openwrt-23-shadowsocks-nftset-nftables/">Configuring Shadowsocks rules with nftset in OpenWRT 23</a></p> <p itemprop="keywords">标签：无</p>
 </div>
@@ -299,13 +296,13 @@ table ip tabletest {
 <nav class="post-nav">
 <ul class="page-navigator">
 <li class="prev"><a href="intel-12-CPU-vmwre.html" title="解决在 intel 12代以后的 CPU 上 vmwre 虚拟机性能低下问题">解决在 intel 12代以后的 CPU 上 vmwre 虚拟机性能低下问题</a></li>
-<li class="next">没有了</li>
+<li class="next"><a href="nftables.html" title="nftables 使用教程">nftables 使用教程</a></li>
 </ul>
 </nav>
 <div id="comments">
 <div id="respond-post-2984" class="respond">
 <div class="cancel-comment-reply">
-<a id="cancel-comment-reply-link" href="dnsmasq-nftset-nftables-1.html#respond-post-2984" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-79bb62bf437f1927f7faf803->取消回复</a> </div>
+<a id="cancel-comment-reply-link" href="dnsmasq-nftset-nftables-1.html#respond-post-2984" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-0d94f9474ae9899524dfcb5b->取消回复</a> </div>
 <h5 id="response">你的评论</h5>
 <form method="post" action="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html/comment" id="comment-form" role="form">
 <div class="grid">
@@ -334,7 +331,7 @@ table ip tabletest {
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-79bb62bf437f1927f7faf803-><i id="ydmc"></i></a></bgm><script data-no-instant type="79bb62bf437f1927f7faf803-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-0d94f9474ae9899524dfcb5b-><i id="ydmc"></i></a></bgm><script data-no-instant type="0d94f9474ae9899524dfcb5b-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -343,6 +340,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="79bb62bf437f1927f7faf803-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="79bb62bf437f1927f7faf803-text/javascript"></script>
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="79bb62bf437f1927f7faf803-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'8803477c8ced7ba9',t:'MTcxNTEwNjYwNS41ODIwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="0d94f9474ae9899524dfcb5b-text/javascript"></script><script src="../usr/plugins/YoduBGM/js/prbug.js" type="0d94f9474ae9899524dfcb5b-text/javascript"></script>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="0d94f9474ae9899524dfcb5b-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'880b84e8bddd310d',t:'MTcxNTE5MzAwNy42MjIwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
