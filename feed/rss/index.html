@@ -32,13 +32,14 @@ nft list tables
 
 # 列出所有 ip 集合的路由表
 nft list tables ip删除一个路由表：nft delete table ip tabletest
-路由链配置不同于 iptables，nftables 没有预定义的链，如 input output 等。想要在某个环节处理流量，需要定义一个自定义名称的基本链，然后将其挂载在一个特定的 netfilter hook 钩子上。下图是流量包在 linux 网络中的传输路径：流量传输到本机后开始监听 prerouting 和 input hooks，然后经过本机处理后流向 output -&gt; postrouting hooks。注意如果本机作为 router 路由使用，需要开启 ip 转发：echo 1 &gt; /proc/sys/net/ipv4/ip_forward
-如果传入本机的流量目标地址不是本机，则受 forward hook 监听，这类流量的路径是 prerouting -&gt; forward -&gt; postrouting。以下是 netfilter 可用的 chains 和 hooks 列表：基本语法建立基本链，挂载在一个特定的 netfilter hook：nft add chain [&lt;family&gt;] &lt;table_name&gt; &lt;chain_name&gt; { type &lt;type&gt; hook &lt;hook&gt; priority &lt;value&gt; \; [policy &lt;policy&gt; \;] [comment \&quot;text comment\&quot; \;] }
+路由链配置不同于 iptables，nftables 没有预定义的链，如 input output 等。想要在某个环节处理流量，需要定义一个自定义名称的基本链，然后将其挂载在一个特定的 netfilter hook 钩子上。下图是流量包在 linux 网络中的传输路径：外部访问流量传输到本机后如果目标地址是本机，流量传输路径是 prerouting -&gt; input hooks -&gt; 本机，然后经过本机处理后流向  本机 -&gt; output -&gt; postrouting hooks。如果传入本机的外部流量目标地址不是本机，则受 forward hook 监听，这类流量的传输路径是 prerouting -&gt; forward -&gt; postrouting。本机访问外部地址的流量传输路径是 本机 -&gt; output -&gt; postrouting hooks。注意如果本机作为 router 路由使用，需要提前开启 ip 转发功能：echo 1 &gt; /proc/sys/net/ipv4/ip_forward
+以下是 netfilter 可用的 chains 和 hooks 列表：基本语法建立基本链，挂载在一个特定 type 的 netfilter hook：nft add chain [&lt;family&gt;] &lt;table_name&gt; &lt;chain_name&gt; { type &lt;type&gt; hook &lt;hook&gt; priority &lt;value&gt; \; [policy &lt;policy&gt; \;] [comment \&quot;text comment\&quot; \;] }
 注意，由于 nft 语法使用了特殊字符，如: ;，在命令行中执行需要加转义符 \。或者可以使用单引号 '` 将 nft 后的语句包起来，以下两种写法效果相同：nft add chain ip tabletest input { type filter hook input priority 0 \; }
 nft 'add chain ip tabletest input { type filter hook input priority 0 ; }'
 另一种方法是运行 nft 在交互模式，执行以下命令后就可以不加转义符: nft -i。上面的命令在 tebletest 路由表中新建一个 input 链，挂载在 filter 路由链的 input hook 上。这样就可以监听所有进入本地的流量。priority 决定了所有链的顺序，例如在 filter input hook 上挂载了多个自定义链，通过 priority 决定其执行顺序。数值越低执行优先级越高，例如 -12, -1, 0, 10。如果给多个挂载在同一个 hook 上的自定义基本链同样的 priority，它们的先后执行顺序就是不确定的。添加以下命令后就可以在 tabletest 基本链中监听本机输出的流量：nft 'add chain ip tabletest output { type filter hook output priority 0 ; }'
-如果不定义大括号中的内容，也就是不挂载在特定 hook 上，则路由链不会监听任何流量。policy 定义了默认的策略，可用的默认策略为：accept 和 drop，如果路由链中的规则都没有匹配则会应用默认策略：accept 没有匹配到的流量继续在网络层传输drop   没有匹配到的流量被丢弃type 定义了挂载的基本 chain 类型，可用的基本链类型：filter, 用于过滤流量包route, 用于重路由，等同于 iptables 的 mangle 路由链的 output hook (其他 mangle hooks 可以使用 filter 代替)nat, 用于运行 Networking Address Translation (NAT). 只有第一个 nat 流量包会匹配到此链剩余的包会跳过此链，因此尽量不要使用此链过滤流量hook 定义了挂载的基本链 hook，可用的 hooks 如下：ingress 只能用于 netdev 和 inet family: 监听来自于 NIC driver 的流量, 早于 prerouting.prerouting: 监听所有在 routing 前的入口流量. 流量可能重定向到 local 或 remote systems.input: 监听所有被路由或重定向到 local system 的入口流量forward: 监听所有不被重定向到 local system 的入口流量output: 监听所有在 local machine 被管理的出口流量postrouting: 监听所有被路由后的即将离开 local system 的出口流量列出一个路由表的所有路由链：nft list ip table tabletest
+如果不定义大括号中的内容，也就是不挂载在特定 hook 上，则路由链不会监听任何流量。policy 定义了默认的策略，可用的默认策略为：accept 和 drop，如果路由链中的规则都没有匹配则会应用默认策略：accept 没有匹配到的流量继续在网络层传输drop   没有匹配到的流量被丢弃type 指定自定义路由链挂载到那个基本 chain，可用的基本链：filter, 用于过滤流量包route, 用于重路由，等同于 iptables 的 mangle 路由链的 output hook (其他 mangle hooks 可以使用 filter 代替)nat, 用于运行 Networking Address Translation (NAT). 只有第一个 nat 流量包会匹配到此链剩余的包会跳过此链，因此尽量不要使用此链过滤流量hook 定义了挂载的基本链 hook，可用的 hooks 如下：ingress 只能用于 netdev 和 inet family: 监听来自于 NIC driver 的流量, 早于 prerouting.prerouting: 监听所有在 routing 前的入口流量. 流量可能重定向到 local 或 remote systems.input: 监听所有被路由或重定向到 local system 的入口流量forward: 监听所有不被重定向到 local system 的入口流量output: 监听所有在 local machine 被管理的出口流量postrouting: 监听所有被路由后的即将离开 local system 的出口流量列出一个路由表的所有路由链：nft list ip table tabletest
 列出一个路由表的指定路由链：nft list chain ip tabletest output
+comment 可以给规则添加注释：nft add rule ip tabletest input counter comment \&quot;test comment\&quot;
 基本规则配置通过规则可以控制路由链上的流量。基本语法添加规则：nft add rule ip tabletest output ip daddr 8.8.8.8 counter
 以上命令会在 tabletest 路由表的 output 链中添加一条规则，匹配出口流量中 ip 地址为 8.8.8.8 的流量并对匹配次数计数，nftables 中 counter 会默认启用即使不写。以上命令相当于 iptables 中的 -A 命令。列出某个链包含的规则：root@OpenWrt:~# nft list chain ip tabletest output
 table ip tabletest {
@@ -100,8 +101,70 @@ nft list ruleset ip &gt;&gt; backup.nft从文件恢复规则：nft -f backup.nft
 流量元信息匹配通过 meta 选择器可以进行流量匹配或流量设置。下面简单介绍几个常用的匹配模式，更加详细的参考官方资料：https://wiki.nftables.org/wiki-nftables/index.php/Matching_packet_metainformationiifname 匹配网卡名称：# lo 网卡的入口流量会被接收
 nft add rule tabletest input meta iifname lo acceptmark 匹配流量标记：# 流量标记为 123 的出口流量计数
 nft add rule tabletest output meta mark 123 counterskgid 匹配流量由特定 gid 用户产生的数据：# 匹配来自 gid 用户 1000 的流量
-nft add rule tabletest output meta skgid 1000 counter流量头信息匹配通过 ip {saddr | daddr}  可以匹配 ipv4 的 源流量或目标流量：# 匹配来自 192.168.1.100 且去往 192.168.1.1 的流量并计数
-nft add rule tabletest input ip saddr 192.168.1.100 ip daddr 192.168.1.1 counter参考链接nftables HOWTO documentation pageNftables familiesNetfilter hooksOperations at ruleset level</description>
+nft add rule tabletest output meta skgid 1000 counter流量头信息匹配通过 ip {saddr | daddr}  可以匹配 ipv4 的源流量或目标流量：# 匹配来自 192.168.1.100 且去往 192.168.1.1 的流量并计数
+# 注意本机地址必须为 192.168.1.1 才可以由 input hook 截获
+nft add rule ip tabletest input ip saddr 192.168.1.100 ip daddr 192.168.1.1 counter通过 icmp type 关键词来匹配 icmp 流量，如 ping request：nft add rule ip tabletest input icmp type echo-request counter drop
+可以通过命令查询所有可用的 icmp type 类型：root@OpenWrt:~# nft describe icmp type
+payload expression, datatype icmp_type (ICMP type) (basetype integer), 8 bits
+
+pre-defined symbolic constants (in decimal):
+        echo-reply                                         0
+        destination-unreachable                            3
+        source-quench                                      4
+        redirect                                           5
+        echo-request                                       8
+        router-advertisement                               9
+        router-solicitation                               10
+        time-exceeded                                     11
+        parameter-problem                                 12
+        timestamp-request                                 13
+        timestamp-reply                                   14
+        info-request                                      15
+        info-reply                                        16
+        address-mask-request                              17
+        address-mask-reply                                18通过 ip protocol 匹配 ip family 任意类型的协议：# 匹配所有 tcp 流量
+nft add rule ip tabletest output ip protocol tcp
+
+# 匹配所有 tcp udp 流量
+nft add rule ip tabletest output ip protocol { tcp, udp }通过 meta l4proto 匹配 inet family 任意类型的协议：# tabletest 需要定义为 inet 集合
+nft add rule inet tabletest output meta l4proto tcp匹配特定端口的流量：# 丢弃所有端口为 1-1024 的 tcp 流量访问本机
+nft add rule ip tabletest input tcp dport 1-1024 counter drop流量匹配动作accept 和 dropdrop 可以对匹配的流量直接丢弃，注意 drop 不能和其他动作组合使用：nft add rule ip tabletest input ip protocol udp drop
+accept 可以对匹配的流量接收，可以和其他动作组合使用 如 counter 计数：nft add rule ip tabletest input counter accept
+reject 流量不同于 drop，reject 可以在拒绝流量的基础上进行很多其他动作，如返回给源请求地址无法访问的原因等。如果不指定其他动作，默认会返回源地址一个 ICMP/ICMPv6 port unreachable 的流量包。示例如下：# 拒绝所有 input 的 udp 流量
+nft add rule ip tabletest input ip protocol udp reject
+
+# 拒绝指定流量并返回 icmp host-unreachable
+nft add rule ip tabletest input reject with icmp type host-unreachableicmp 可用如下原因：net-unreachable: Destination network unreachable
+host-unreachable: Destination host unreachable
+prot-unreachable: Destination protocol unreachable
+port-unreachable: Destination port unreachable (this is the default)
+net-prohibited: Network administratively prohibited
+host-prohibited: Host administratively prohibited
+admin-prohibited: Communication administratively prohibitedjump 跳转到其他 chain注意只能跳转到同一个路由表的其他 chain。首先我们新建一个 chain：nft add chain ip tabletest tcp-chain
+然后定义这个链的规则：nft add rule ip tabletest tcp-chain counter
+然后可以定义将所有匹配的流量跳转过去：ft add rule ip tabletest input ip protocol tcp jump tcp-chain
+以上示例实现的就是将所有 input 的 tcp 流量跳转到 tcp-chain 计数，然后就返回原始 input 环节继续流转。log 日志通过 log 可以记录匹配到的流量信息，在系统日志中可以查看到。下面是一个示例，可以记录所有对本机的 ping 请求：nft add rule ip tabletest input icmp type echo-request log prefix \&quot;New ping request: \&quot; accept从局域网对本机进行 ping 后，系统日志如下：Thu May  9 11:58:04 2024 kern.warn kernel: [ 3741.786865] New ping request: IN=br-lan OUT= MAC=00:0c:29:c5:39:8d:00:50:56:c0:00:02:08:00 SRC=192.168.244.2 DST=192.168.244.1 LEN=60 TOS=0x00 PREC=0x00 TTL=128 ID=49655 PROTO=ICMP TYPE=8 CODE=0 ID=1 SEQ=6609网络地址转换nat 链类型可以执行网络地址转换的功能，这种链类型有其特有的属性：流量中只有第一个包会被用来进行匹配规则流量包中后续的流量不会被检查nat 链类型特有的规则赋予其他链类型会报错先定义一个 nat 类型的基本链：nft add chain ip tabletest postrouting { type nat hook postrouting priority 0 \; }
+以上定义了一个 nat 类型的基本链挂载在 postrouting hook 上。snat 表示源地址。下面的规则可以将来自 192.168.1.0/24 从 eth0 网卡发出的流量在发送出去的时候，将源地址修改为 1.2.3.4nft add rule ip tabletest postrouting ip saddr 192.168.1.0/24 oif eth0 snat to 1.2.3.4
+也可以定义一个地址范围：# 将所有 tcp 流量的源地址都修改为指定的ip范围内
+nft add rule ip tabletest postrouting ip protocol tcp snat ip to 10.0.0.1-10.0.0.100:3000-4000下面介绍如何修改目标地址，再定义一个 nat 类型的基本链：nft add chain ip tabletest prerouting { type nat hook prerouting priority 0 \; }
+以上定义了一个 nat 类型的基本链挂载在 prerouting hook 上。dnat 表示目标地址。下面规则会将要进入 eth0 的 tcp 80 443 端口的流量的目标地址改为 192.168.1.120 也就是重定向：nft 'add rule ip tabletest prerouting iif eth0 tcp dport { 80, 443 } dnat to 192.168.1.120'
+redirect 是一种特殊的 dnat，它会将流量重定向到本机设备上：nft add rule ip tabletest prerouting tcp dport 22 redirect to 2222
+以上规则会将进入的 tcp 22 端口的流量转发到本机 2222端口上。需要注意的是 redirect 只能应用于 nat 链类型的 prerouting 和 output hooks。设置流量包元信息设置 mark 标记：nft add rule ip tabletest output mark set 123
+set 架构nftables 提供了 set 架构可以用任意支持的选择器来搭建 sets。匿名 set匿名 set 是直接定义在 rule 内的 set，它没有特定的名称，也不可以更新 set 中的元素，下面是一个示例：nft add rule ip tabletest output tcp dport { 22, 23 } counter
+{ 22, 23 } 就属于一个匿名 set。规则会去尝试匹配 set 中的每个元素。非匿名 set可以通过 nft add set 来创建一个有名称的 set，例如：nft add set ip tabletest blackhole { type ipv4_addr \; comment \&quot;drop all packets from these hosts\&quot; \; }
+blackhole 就是这个 set 的名称，后续可以再 rule 中使用。set 类型指定是 ipv4 数据。set 名称需要小于等于16个字符，comment 注释是可选项。可用的 type 类型有：ipv4_addr: IPv4 addressipv6_addr: IPv6 address.ether_addr: Ethernet address.inet_proto: Inet protocol type.inet_service: Internet service (read tcp port for example)mark: Mark type.ifname: Network interface name (eth0, eth1..)建立好之后就可以往 set 里添加元素了：nft add element ip tabletest blackhole { 192.168.3.4 }
+nft add element ip tabletest blackhole { 192.168.1.4, 192.168.1.5 }如果要添加一个 ip 网段则需要将 set 定义 flags interval：nft add set ip tabletest blackhole { type ipv4_addr \; flags interval \; }
+然后就可以添加一个 ip 网段了：nft add element ip tabletest blackhole { 192.168.1.0/24 }
+可以查询 set 中现有的元素：root@OpenWrt:~# nft list set ip tabletest blackhole
+table ip tabletest {
+        set blackhole {
+                type ipv4_addr
+                comment &quot;drop all packets from these hosts&quot;
+                elements = { 192.168.1.4, 192.168.1.5,
+                             192.168.3.4 }
+        }
+}下面就可以通过 set 名称在 nftables 规则中应用：nft add rule ip tabletest input ip saddr @blackhole drop
+nft add rule ip tabletest output ip daddr != @blackhole accept以上就是 natables 的基本用法。参考链接nftables HOWTO documentation pageNftables familiesNetfilter hooksOperations at ruleset level</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html">
 <title>通过 dnsmasq nftset 和 nftables 对域名流量的控制</title>
@@ -112,8 +175,8 @@ Dnsmasq version 2.90  Copyright (c) 2000-2024 Simon Kelley
 Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack no-ipset nftset auth cryptohash DNSSEC no-ID loop-detect inotify dumpfile可以看到其中有 nftset 字样，如果没有就需要安装 dnsmasq-full，安装教程参考：dnsmasq 使用教程。nftables 提供 set 功能可以在一个路由表中建立特定名称一个 ip 库，并通过命令 ip daddr 索引库里的地址。关于 nftables 的使用教程参考：nftables 使用教程先建立一个任意名称的路由表：nft add table tabletest
 然后给这个路由表建立一个名称为 iplist 的 ip 库，类型定义为 ipv4 地址：nft add set ip tabletest iplist { type ipv4_addr\; }
 如果要添加一个 ip 网段，必须定义 ip 库属性：flags intervalnft add set ip tabletest iplist { type ipv4_addr \; flags interval \; }
-现在就可以给这个 ip 库里添加 ip 地址了，命令如下：nft add element ip tabletest iplist { '111.22.33.4' };
-nft add element ip tabletest iplist { '111.22.33.4/16' };
+现在就可以给这个 ip 库里添加 ip 地址了，命令如下：nft add element ip tabletest iplist { 111.22.33.4 };
+nft add element ip tabletest iplist { 111.22.33.4/16 };
 可以通过命令查看这个 ip 库里包含的所有地址：root@OpenWrt:~# nft list set ip tabletest iplist
 table ip tabletest {
         set iplist {
