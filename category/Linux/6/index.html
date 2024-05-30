@@ -67,6 +67,23 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../../archives/2448.html" itemprop="url">解决 wget 下载时 certificates 证书报错问题</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2022-03-11T16:48:00+08:00" itemprop="datePublished">2022-03-11</time></li>
+<li class="feather-folder"><a href="../index.html">Linux</a></li>
+<li class="feather-message"><a href="../../../archives/2448.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>我的服务器上在使用 wget 或者 curl 等网络工具时，每次都提示类似下面的报错：</p><pre><code>ERROR: cannot verify github.com's certificate, issued by ‘CN=DigiCert High Assurance TLS Hybrid ECC SHA256 2020 CA1,O=DigiCert\\, Inc.,C=US’:
+  Unable to locally verify the issuer's authority.
+To connect to github.com insecurely, use `--no-check-certificate'.</code></pre><p>需要通过参数跳过证书检查，但是这样又有了安全风险。</p><p>首先尝试更新本地证书文件：</p><pre><code>update-ca-certificates --verbose --fresh</code></pre><p>发现问题没有解决，原来是系统缺少了一个指向证书路径 <code>/etc/ssl/certs</code> 的环境变量，尝试添加：</p><pre><code>export SSL_CERT_DIR=/etc/ssl/certs</code></pre><p>再次测试 wget 命令，发现问题的确没有了。</p><p>可以将上面的环境变量添加到系统 shell 配置文件中，我这里是 <code>~/.bashrc</code>，添加后刷新一下即可：</p><pre><code>source ~/.bashrc</code></pre><p><strong>在更新 Ubuntu18.04 到 20.04 时，也是这个问题导致的报错。</strong></p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../../archives/2321.html" itemprop="url">openwrt 扩展根目录空间</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -132,38 +149,6 @@ opkg_install_cmd: Cannot install package luci-app-openvpn</code></pre><p>下面�
 <p>最近在家里搭建了局域网环境，使用了一个海康威视 H99 网络驱动器作为家里的存储中心。它可以实现 smb 和 arp 协议的共享，从而满足我的基本需求。</p><p>访问 smb 共享目录的方法是在文件浏览器中通过：<code>smb://xxx.xxx.xxx.xxx</code> 的模式输入地址，然后就会将网络驱动器挂载到本地，显示为一个本地网络路径。之后就可以正常的管理远程文件内容了。</p><p>但是我发现在使用一些下载软件的时候，无法直接将共享目录作为下载目录设置，只能选择本地的目录地址。此时就需要将 smb 网络共享路径映射为本地地址才可以实现上述需求。</p><p>下面介绍在 Ubuntu 中配置。</p><p class="more"><a href="../../../archives/2303.html" title="在 Ubuntu 中加载 smb 共享目录为本地路径">阅读全文</a></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../../archives/2294.html" itemprop="url"> openwrt 时区设置</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2021-04-10T13:24:00+08:00" itemprop="datePublished">2021-04-10</time></li>
-<li class="feather-folder"><a href="../index.html">Linux</a></li>
-<li class="feather-message"><a href="../../../archives/2294.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p>最近在使用 openwrt 时发现在 web 控制台设置好时区后，系统日志依然显示的是 UTC 时间，慢了 8 小时。查了下原来是 openwrt 默认没有安装 zoneinfo，安装后即可。</p><p>首先在 web 端或直接修改配置文件：<code>/etc/config/system</code> 中的 zonename 和 timezone 相关参数：</p><pre><code>config system
-        option hostname 'OpenWrt'
-        option zonename 'Asia/Shanghai'
-        option timezone 'CST-8'
-        option ttylogin '0'
-        option log_size '64'
-        option urandom_seed '0'
-
-config timeserver 'ntp'
-        option enabled '1'
-        option enable_server '0'
-        list server '0.openwrt.pool.ntp.org'
-        list server '1.openwrt.pool.ntp.org'
-        list server '2.openwrt.pool.ntp.org'
-        list server '3.openwrt.pool.ntp.org'</code></pre><p>然后安装对应 zoneinfo：</p><pre><code>opkg update
-opkg install zoneinfo-asia
-</code></pre><p>重启 system 服务：</p><pre><code>/etc/init.d/system restart
-</code></pre><p>然后输出日志日期就正常了。</p> </div>
-</article>
-<hr class="post-separator">
 <nav><ul class="page-navigator"><li class="prev"><a href="../5/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../4/index.html">4</a></li><li><a href="../5/index.html">5</a></li><li class="current"><a href="index.html">6</a></li><li><a href="../7/index.html">7</a></li><li><a href="../8/index.html">8</a></li><li><span>...</span></li><li><a href="../26/index.html">26</a></li><li class="next"><a href="../7/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
@@ -179,7 +164,7 @@ opkg install zoneinfo-asia
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-84e329d0d71f4d8ebeef5a93-><i id="ydmc"></i></a></bgm><script data-no-instant type="84e329d0d71f4d8ebeef5a93-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-495be6937569d5628bad6694-><i id="ydmc"></i></a></bgm><script data-no-instant type="495be6937569d5628bad6694-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -188,6 +173,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="84e329d0d71f4d8ebeef5a93-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="84e329d0d71f4d8ebeef5a93-text/javascript"></script>
-<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="84e329d0d71f4d8ebeef5a93-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'88b88e4afd037d58',t:'MTcxNzAwNzQyOC40NTAwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="495be6937569d5628bad6694-text/javascript"></script><script src="../../../usr/plugins/YoduBGM/js/prbug.js" type="495be6937569d5628bad6694-text/javascript"></script>
+<script src="../../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="495be6937569d5628bad6694-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'88c0cbe2cf790fb0',t:'MTcxNzA5MzgzNy4zNzkwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
