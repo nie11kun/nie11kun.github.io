@@ -66,6 +66,32 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../archives/openwrt-quic.html" itemprop="url">屏蔽 quic 流量</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2024-06-01T15:53:42+08:00" itemprop="datePublished">2024-06-01</time></li>
+<li class="feather-folder"><a href="../../category/Linux/index.html">Linux</a></li>
+<li class="feather-message"><a href="../../archives/openwrt-quic.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>最近在使用一些服务的时候发现流量没有正确的按照设定的规则走，发现部分网站已经优先支持 quic 也就是 http3 协议了，而这种协议目前一些客户端无法正确解析。解决方法就是将 quic 流量屏蔽掉，让那些网站强制走 http 或 http2 即可。</p><p>quic 协议走的是 udp 层，一般是 443 或 80 端口。</p><p><strong>openwrt 或其他 linux 系统上使用 nftables 设置规则即可：</strong></p><pre><code>新建路由表
+nft add table ip tabletest
+
+# 局域网流量屏蔽
+# 局域网流量目标地址是外部地址时传输路径为 prerouting -&gt; forward -&gt; postrouting hooks
+nft add chain ip tabletest prerouting { type nat hook prerouting priority 0 \; policy accept \; }
+nft add rule ip tabletest prerouting udp dport { 80, 443 } drop
+
+# 本机网关流量屏蔽
+# 本机网关流量目标地址时外部地址时传输路径为 本机 -&gt; output -&gt; postrouting hooks
+nft add chain ip tabletest output { type nat hook output priority 0 \; policy accept \; }
+nft add rule ip tabletest output udp dport { 80, 443 } drop</code></pre><p><strong>在 Chrome 中禁用 HTTP/3：</strong></p><ul><li>打开 Chrome 浏览器</li><li>在地址栏输入 chrome://flags 并按回车。</li><li>在搜索框中输入 quic。</li><li>将 Experimental QUIC protocol 设置为 Disabled。</li><li>重启浏览器。</li></ul><p><strong>在 Firefox 中禁用 HTTP/3：</strong></p><ul><li>打开 Firefox 浏览器。</li><li>在地址栏输入 about:config 并按回车。</li><li>接受风险提示。</li><li>搜索 network.http.http3.enabled。<br>-将其值设置为 false。</li></ul> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../archives/pip.html" itemprop="url">修改 pip 为国内源</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -138,23 +164,7 @@ Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP DHCPv6 no
 <p>最近更换了新的电脑，是 i7 12700H 的 CPU，按理说比以前的电脑性能好一些，但是导入之前的 vmware 虚拟机后发现运行起来优点卡顿，但是观察主机资源占用很低，cpu 占用也很低，研究了下才发现是由于新款 cpu 采用了大小核设计导致这个问题。</p><p>我的这一款是 6 大核 8 小核 20 线程设计。默认情况下启动虚拟机资源分配是交给 windows 主机自己协调的，很可能会分配给小核运行虚拟机导致运行卡顿，资源管理器可以看到 cpu 负载都在后面的小核上：<br><img src="../../usr/uploads/2024/04/1346184507.png" alt="image.png" title="image.png"></p><p>解决方法就是以管理员权限运行 vmware，这样 VMware 会自己调度资源使用，优先级大概是大核&gt;小核&gt;超线程。实际效果很明显，基本都运行在了大核上：<br><img src="../../usr/uploads/2024/04/2751437887.png" alt="image.png" title="image.png"></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../archives/openwrt-1.html" itemprop="url">openwrt 系统升级</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2024-04-02T10:26:03+08:00" itemprop="datePublished">2024-04-02</time></li>
-<li class="feather-folder"><a href="../../category/Linux/index.html">Linux</a>, <a href="../../category/other/index.html">other</a></li>
-<li class="feather-message"><a href="../../archives/openwrt-1.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<h3>小版本升级</h3><p>小版本升级，例如 19.05-&gt; 19.07。</p><p>这种小版本的升级最方便的就是通过 Attended Sysupgrade 功能，可以保留已安装的包和系统设置。最大限度地无缝过渡。官方介绍：<a href="https://openwrt.org/docs/guide-user/installation/attended.sysupgrade">https://openwrt.org/docs/guide-user/installation/attended.sysupgrade</a></p><p>需要先安装 Attended Sysupgrade luci 界面包：</p><pre><code>opkg install luci-app-attendedsysupgrade
-</code></pre><p>建议使用此功能前依然做一次数据备份。</p><p>然后重新登录 luci，在 system - Attended Sysupgrade 找到入口，点击 search for firmware upgrade 即可在线搜索可更新的系统。</p><p class="more"><a href="../../archives/openwrt-1.html" title="openwrt 系统升级">阅读全文</a></p> </div>
-</article>
-<hr class="post-separator">
-<nav><ul class="page-navigator"><li class="current"><a href="index.html">1</a></li><li><a href="../2/index.html">2</a></li><li><a href="../3/index.html">3</a></li><li><span>...</span></li><li><a href="../76/index.html">76</a></li><li class="next"><a href="../2/index.html">后一页</a></li></ul></nav>
+<nav><ul class="page-navigator"><li class="current"><a href="index.html">1</a></li><li><a href="../2/index.html">2</a></li><li><a href="../3/index.html">3</a></li><li><span>...</span></li><li><a href="../77/index.html">77</a></li><li class="next"><a href="../2/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
 <footer class="site-footer container-fluid">
@@ -169,7 +179,7 @@ Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP DHCPv6 no
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-e3e9206792427949772a78ab-><i id="ydmc"></i></a></bgm><script data-no-instant type="e3e9206792427949772a78ab-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-0a807de9dd6ed7a3975ed87e-><i id="ydmc"></i></a></bgm><script data-no-instant type="0a807de9dd6ed7a3975ed87e-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -178,6 +188,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="e3e9206792427949772a78ab-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="e3e9206792427949772a78ab-text/javascript"></script>
-<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="e3e9206792427949772a78ab-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'88c90882bfe52f6e',t:'MTcxNzE4MDIwNi42NDEwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="0a807de9dd6ed7a3975ed87e-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="0a807de9dd6ed7a3975ed87e-text/javascript"></script>
+<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="0a807de9dd6ed7a3975ed87e-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'88d145ebb94f3235',t:'MTcxNzI2NjYwOC4xNDAwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>

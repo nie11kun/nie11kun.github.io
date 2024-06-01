@@ -11,8 +11,34 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Thu, 30 May 2024 20:02:55 +0800</lastBuildDate>
-<pubDate>Thu, 30 May 2024 20:02:55 +0800</pubDate>
+<lastBuildDate>Sat, 01 Jun 2024 15:53:42 +0800</lastBuildDate>
+<pubDate>Sat, 01 Jun 2024 15:53:42 +0800</pubDate>
+<item>
+<title>屏蔽 quic 流量</title>
+<link>https://blog.niekun.net/archives/openwrt-quic.html</link>
+<guid>https://blog.niekun.net/archives/openwrt-quic.html</guid>
+<pubDate>Sat, 01 Jun 2024 15:53:42 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[Linux]]></category>
+<description><![CDATA[最近在使用一些服务的时候发现流量没有正确的按照设定的规则走，发现部分网站已经优先支持 quic 也就是 http3 协议了，而这种协议目前一些客户端无法正确解析。解决方法就是将 quic 流量屏...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近在使用一些服务的时候发现流量没有正确的按照设定的规则走，发现部分网站已经优先支持 quic 也就是 http3 协议了，而这种协议目前一些客户端无法正确解析。解决方法就是将 quic 流量屏蔽掉，让那些网站强制走 http 或 http2 即可。</p><p>quic 协议走的是 udp 层，一般是 443 或 80 端口。</p><p><strong>openwrt 或其他 linux 系统上使用 nftables 设置规则即可：</strong></p><pre><code>新建路由表
+nft add table ip tabletest
+
+# 局域网流量屏蔽
+# 局域网流量目标地址是外部地址时传输路径为 prerouting -&gt; forward -&gt; postrouting hooks
+nft add chain ip tabletest prerouting { type nat hook prerouting priority 0 \; policy accept \; }
+nft add rule ip tabletest prerouting udp dport { 80, 443 } drop
+
+# 本机网关流量屏蔽
+# 本机网关流量目标地址时外部地址时传输路径为 本机 -&gt; output -&gt; postrouting hooks
+nft add chain ip tabletest output { type nat hook output priority 0 \; policy accept \; }
+nft add rule ip tabletest output udp dport { 80, 443 } drop</code></pre><p><strong>在 Chrome 中禁用 HTTP/3：</strong></p><ul><li>打开 Chrome 浏览器</li><li>在地址栏输入 chrome://flags 并按回车。</li><li>在搜索框中输入 quic。</li><li>将 Experimental QUIC protocol 设置为 Disabled。</li><li>重启浏览器。</li></ul><p><strong>在 Firefox 中禁用 HTTP/3：</strong></p><ul><li>打开 Firefox 浏览器。</li><li>在地址栏输入 about:config 并按回车。</li><li>接受风险提示。</li><li>搜索 network.http.http3.enabled。<br>-将其值设置为 false。</li></ul>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/openwrt-quic.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/openwrt-quic.html</wfw:commentRss>
+</item>
 <item>
 <title>修改 pip 为国内源</title>
 <link>https://blog.niekun.net/archives/pip.html</link>
@@ -411,50 +437,6 @@ newgrp groupName
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/windows.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/windows.html</wfw:commentRss>
-</item>
-<item>
-<title>codesys enum 枚举数据类型单元的使用</title>
-<link>https://blog.niekun.net/archives/codesys-enum.html</link>
-<guid>https://blog.niekun.net/archives/codesys-enum.html</guid>
-<pubDate>Thu, 07 Mar 2024 08:21:07 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<category><![CDATA[other]]></category>
-<category><![CDATA[CODESYS]]></category>
-<description><![CDATA[enum 类型的 dut 可以定义一组属性及其值，调用的时候可以方便的通过写其属性名称得到属性的值，也可以获取到属性本身的名称。下面举一个例子说明：{attribute 'qualified_o...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>enum 类型的 dut 可以定义一组属性及其值，调用的时候可以方便的通过写其属性名称得到属性的值，也可以获取到属性本身的名称。</p><p>下面举一个例子说明：</p><pre><code>{attribute 'qualified_only'}            // 必须先写类型名称再写属性名称 (例如 eColor.Red)
-// {attribute 'strict'}                 //取消 'strict' 以允许转换 UDINT 数据类型
-{attribute 'to_string'}                 // 运行字符串转换 (例如 TO_STRING(eColor.Red) = 'Red')
-TYPE eColor :
-(
-    Red         := 16#FFFF0000,
-    Green       := 16#FF00FF00,
-    Blue        := 16#FF0000FF
-    Yellow      := 16#FFFFFF00,
-) UDINT;                                // 声明 UDINT 作为 int 整形类型
-END_TYPE
-
-// 定义一些变量
-    ColorVar1   : eColor;
-    ColorVar2   : eColor;
-    ColorName   : STRING;
-    ColorValue  : UDINT;
-
-    ColorVar1 := eColor.Green;            // ColorVar1 = 16#FF00FF00
-    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Green';
-    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FF00FF00
-
-    ColorVar2 := 16#FF00FF00;             // ColorVar2.Green
-    ColorName := TO_STRING(ColorVar2);    // ColorName = 'Green';
-    ColorValue := TO_UDINT(ColorVar2);    // ColorValue = 16#FF00FF00
-
-    ColorVar1 := ColorVar2 OR eColor.Red; // 按位相与得到 Yellow=16#FFFFFF00
-    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Yellow';
-    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FFFFFF00</code></pre><p>以上示例列举了常用的 enum 类型可进行的数据交互方式。</p><p><code>eColor.Green</code> 可以获取enum类型属性的值，并可以赋值给其他对应 enum 实例<br><code>TO_STRING(ColorVar1)</code> 可以转换获取 enum 实例当前值对应属性名称字符串</p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/codesys-enum.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/codesys-enum.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

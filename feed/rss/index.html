@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/openwrt-quic.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/pip.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/nftables.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html"/>
@@ -18,10 +19,26 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/openwrt.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Linux-ip.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/windows.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/codesys-enum.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/openwrt-quic.html">
+<title>屏蔽 quic 流量</title>
+<link>https://blog.niekun.net/archives/openwrt-quic.html</link>
+<dc:date>2024-06-01T15:53:42+08:00</dc:date>
+<description>最近在使用一些服务的时候发现流量没有正确的按照设定的规则走，发现部分网站已经优先支持 quic 也就是 http3 协议了，而这种协议目前一些客户端无法正确解析。解决方法就是将 quic 流量屏蔽掉，让那些网站强制走 http 或 http2 即可。quic 协议走的是 udp 层，一般是 443 或 80 端口。openwrt 或其他 linux 系统上使用 nftables 设置规则即可：新建路由表
+nft add table ip tabletest
+
+# 局域网流量屏蔽
+# 局域网流量目标地址是外部地址时传输路径为 prerouting -&gt; forward -&gt; postrouting hooks
+nft add chain ip tabletest prerouting { type nat hook prerouting priority 0 \; policy accept \; }
+nft add rule ip tabletest prerouting udp dport { 80, 443 } drop
+
+# 本机网关流量屏蔽
+# 本机网关流量目标地址时外部地址时传输路径为 本机 -&gt; output -&gt; postrouting hooks
+nft add chain ip tabletest output { type nat hook output priority 0 \; policy accept \; }
+nft add rule ip tabletest output udp dport { 80, 443 } drop在 Chrome 中禁用 HTTP/3：打开 Chrome 浏览器在地址栏输入 chrome://flags 并按回车。在搜索框中输入 quic。将 Experimental QUIC protocol 设置为 Disabled。重启浏览器。在 Firefox 中禁用 HTTP/3：打开 Firefox 浏览器。在地址栏输入 about:config 并按回车。接受风险提示。搜索 network.http.http3.enabled。-将其值设置为 false。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/pip.html">
 <title>修改 pip 为国内源</title>
 <link>https://blog.niekun.net/archives/pip.html</link>
@@ -333,39 +350,5 @@ newgrp groupName
 <link>https://blog.niekun.net/archives/windows.html</link>
 <dc:date>2024-03-18T10:09:15+08:00</dc:date>
 <description>一般系统默认创建的都是指向某个文件绝对路径的快捷方式，如果移动原始文件位置后，快捷方式就失效了。可以自己修改快捷方式的属性来建立一个以快捷方式所在地址为准的指向一个相对路径的文件。这样适用于需要同时移动原始文件与快捷方式的情况。首先右键创建一个文件的快捷方式，然后右键选择快捷方式的属性，将目标位置地址改为：explorer.exe path/to/file.exe。注意 explorer.exe 后面的空格：后面的路径就是相对于快捷方式地址的相对路径。确认后默认快捷方式图标会变成资源管理器的图标，可以在属性里修改为其他图标。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/codesys-enum.html">
-<title>codesys enum 枚举数据类型单元的使用</title>
-<link>https://blog.niekun.net/archives/codesys-enum.html</link>
-<dc:date>2024-03-07T08:21:07+08:00</dc:date>
-<description>enum 类型的 dut 可以定义一组属性及其值，调用的时候可以方便的通过写其属性名称得到属性的值，也可以获取到属性本身的名称。下面举一个例子说明：{attribute 'qualified_only'}            // 必须先写类型名称再写属性名称 (例如 eColor.Red)
-// {attribute 'strict'}                 //取消 'strict' 以允许转换 UDINT 数据类型
-{attribute 'to_string'}                 // 运行字符串转换 (例如 TO_STRING(eColor.Red) = 'Red')
-TYPE eColor :
-(
-    Red         := 16#FFFF0000,
-    Green       := 16#FF00FF00,
-    Blue        := 16#FF0000FF
-    Yellow      := 16#FFFFFF00,
-) UDINT;                                // 声明 UDINT 作为 int 整形类型
-END_TYPE
-
-// 定义一些变量
-    ColorVar1   : eColor;
-    ColorVar2   : eColor;
-    ColorName   : STRING;
-    ColorValue  : UDINT;
-
-    ColorVar1 := eColor.Green;            // ColorVar1 = 16#FF00FF00
-    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Green';
-    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FF00FF00
-
-    ColorVar2 := 16#FF00FF00;             // ColorVar2.Green
-    ColorName := TO_STRING(ColorVar2);    // ColorName = 'Green';
-    ColorValue := TO_UDINT(ColorVar2);    // ColorValue = 16#FF00FF00
-
-    ColorVar1 := ColorVar2 OR eColor.Red; // 按位相与得到 Yellow=16#FFFFFF00
-    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Yellow';
-    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FFFFFF00以上示例列举了常用的 enum 类型可进行的数据交互方式。eColor.Green 可以获取enum类型属性的值，并可以赋值给其他对应 enum 实例TO_STRING(ColorVar1) 可以转换获取 enum 实例当前值对应属性名称字符串</description>
 </item>
 </rdf:RDF>

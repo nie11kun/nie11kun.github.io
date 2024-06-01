@@ -67,6 +67,32 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../archives/openwrt-quic.html" itemprop="url">屏蔽 quic 流量</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2024-06-01T15:53:42+08:00" itemprop="datePublished">2024-06-01</time></li>
+<li class="feather-folder"><a href="index.html">Linux</a></li>
+<li class="feather-message"><a href="../../archives/openwrt-quic.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p>最近在使用一些服务的时候发现流量没有正确的按照设定的规则走，发现部分网站已经优先支持 quic 也就是 http3 协议了，而这种协议目前一些客户端无法正确解析。解决方法就是将 quic 流量屏蔽掉，让那些网站强制走 http 或 http2 即可。</p><p>quic 协议走的是 udp 层，一般是 443 或 80 端口。</p><p><strong>openwrt 或其他 linux 系统上使用 nftables 设置规则即可：</strong></p><pre><code>新建路由表
+nft add table ip tabletest
+
+# 局域网流量屏蔽
+# 局域网流量目标地址是外部地址时传输路径为 prerouting -&gt; forward -&gt; postrouting hooks
+nft add chain ip tabletest prerouting { type nat hook prerouting priority 0 \; policy accept \; }
+nft add rule ip tabletest prerouting udp dport { 80, 443 } drop
+
+# 本机网关流量屏蔽
+# 本机网关流量目标地址时外部地址时传输路径为 本机 -&gt; output -&gt; postrouting hooks
+nft add chain ip tabletest output { type nat hook output priority 0 \; policy accept \; }
+nft add rule ip tabletest output udp dport { 80, 443 } drop</code></pre><p><strong>在 Chrome 中禁用 HTTP/3：</strong></p><ul><li>打开 Chrome 浏览器</li><li>在地址栏输入 chrome://flags 并按回车。</li><li>在搜索框中输入 quic。</li><li>将 Experimental QUIC protocol 设置为 Disabled。</li><li>重启浏览器。</li></ul><p><strong>在 Firefox 中禁用 HTTP/3：</strong></p><ul><li>打开 Firefox 浏览器。</li><li>在地址栏输入 about:config 并按回车。</li><li>接受风险提示。</li><li>搜索 network.http.http3.enabled。<br>-将其值设置为 false。</li></ul> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../archives/pip.html" itemprop="url">修改 pip 为国内源</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -140,27 +166,6 @@ Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP DHCPv6 no
 </code></pre><p>建议使用此功能前依然做一次数据备份。</p><p>然后重新登录 luci，在 system - Attended Sysupgrade 找到入口，点击 search for firmware upgrade 即可在线搜索可更新的系统。</p><p class="more"><a href="../../archives/openwrt-1.html" title="openwrt 系统升级">阅读全文</a></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../archives/Linux.html" itemprop="url">Linux 查询及编辑用户及用户组</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2024-04-01T16:20:00+08:00" itemprop="datePublished">2024-04-01</time></li>
-<li class="feather-folder"><a href="index.html">Linux</a>, <a href="../other/index.html">other</a></li>
-<li class="feather-message"><a href="../../archives/Linux.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<h3>查询当前所有用户</h3><pre><code>compgen -u
-</code></pre><h3>查询当前所有用户组</h3><pre><code>compgen -g
-</code></pre><h3>添加一个用户到某个组</h3><pre><code>sudo usermod -a -G groupName userName
-newgrp groupName
-</code></pre><h3>删除一个用户从某个组</h3><pre><code>sudo usermod -G groupName userName
-newgrp groupName
-</code></pre><p>用户和组对文件的权限管理参考：<a href="../../archives/224.html">chown 和 chmod 管理文件权限</a></p> </div>
-</article>
-<hr class="post-separator">
 <nav><ul class="page-navigator"><li class="current"><a href="1/index.html">1</a></li><li><a href="2/index.html">2</a></li><li><a href="3/index.html">3</a></li><li><span>...</span></li><li><a href="26/index.html">26</a></li><li class="next"><a href="2/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
@@ -176,7 +181,7 @@ newgrp groupName
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-87d213c249df85cc5d8b1bb1-><i id="ydmc"></i></a></bgm><script data-no-instant type="87d213c249df85cc5d8b1bb1-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-fffd4cf15a67319ddac27aa5-><i id="ydmc"></i></a></bgm><script data-no-instant type="fffd4cf15a67319ddac27aa5-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -185,6 +190,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="87d213c249df85cc5d8b1bb1-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="87d213c249df85cc5d8b1bb1-text/javascript"></script>
-<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="87d213c249df85cc5d8b1bb1-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'88c9087e08df2f6e',t:'MTcxNzE4MDIwNS44NjIwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="fffd4cf15a67319ddac27aa5-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="fffd4cf15a67319ddac27aa5-text/javascript"></script>
+<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="fffd4cf15a67319ddac27aa5-|49" defer></script><script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'88d145e6cca43235',t:'MTcxNzI2NjYwNy4yODcwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
 </html>
