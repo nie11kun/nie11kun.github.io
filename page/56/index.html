@@ -66,6 +66,21 @@
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 <header class="entry-header text-center">
 <h1 class="entry-title" itemprop="name headline">
+<a href="../../archives/768.html" itemprop="url">lightbox2 使用</a>
+</h1>
+<ul class="entry-meta list-inline text-muted">
+<li class="feather-calendar"><time datetime="2019-12-12T22:03:00+08:00" itemprop="datePublished">2019-12-12</time></li>
+<li class="feather-folder"><a href="../../category/web/index.html">web</a>, <a href="../../category/html/index.html">html</a>, <a href="../../category/css/index.html">css</a>, <a href="../../category/js/index.html">javascript</a></li>
+<li class="feather-message"><a href="../../archives/768.html#comments" itemprop="discussionUrl">暂无评论</a></li>
+</ul>
+</header>
+<div class="entry-content fmt" itemprop="articleBody">
+<p><img src="https://niekun.net/usr/uploads/2019/12/408731672.png" alt="2019-12-16T12:30:16.png" title="2019-12-16T12:30:16.png"><br>lightbox 是一个JavaScript 库，用来在前端显示图片。它的特点是轻量，容易部署，适用于现代的浏览器。</p><p>官网：<a href="https://lokeshdhakar.com/projects/lightbox2/">https://lokeshdhakar.com/projects/lightbox2/</a><br>GitHub 项目地址：<a href="https://github.com/lokesh/lightbox2">https://github.com/lokesh/lightbox2</a><br>release 下载：<a href="https://github.com/lokesh/lightbox2/releases">https://github.com/lokesh/lightbox2/releases</a></p><p class="more"><a href="../../archives/768.html" title="lightbox2 使用">阅读全文</a></p> </div>
+</article>
+<hr class="post-separator">
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<header class="entry-header text-center">
+<h1 class="entry-title" itemprop="name headline">
 <a href="../../archives/766.html" itemprop="url">font awesome 使用</a>
 </h1>
 <ul class="entry-meta list-inline text-muted">
@@ -123,34 +138,6 @@
 <p><img src="https://niekun.net/usr/uploads/2019/12/202402713.png" alt="2019-12-10T00:50:26.png" title="2019-12-10T00:50:26.png"></p><p>对于一些图标类的图片，在网上找到的经常分辨率很低，边缘锯齿模糊等问题，可以使用如下方法进行简单修复，提高分辨率，增加清晰度。</p><p>注意此教程只适用于由<strong>两种颜色</strong>构成的图片。</p><p class="more"><a href="../../archives/745.html" title="低像素的二色图像修复高像素 in Photoshop">阅读全文</a></p> </div>
 </article>
 <hr class="post-separator">
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-<header class="entry-header text-center">
-<h1 class="entry-title" itemprop="name headline">
-<a href="../../archives/730.html" itemprop="url">限制用户名密码访问页面 in nginx</a>
-</h1>
-<ul class="entry-meta list-inline text-muted">
-<li class="feather-calendar"><time datetime="2019-12-09T16:21:00+08:00" itemprop="datePublished">2019-12-09</time></li>
-<li class="feather-folder"><a href="../../category/Linux/index.html">Linux</a>, <a href="../../category/web/index.html">web</a></li>
-<li class="feather-message"><a href="../../archives/730.html#comments" itemprop="discussionUrl">暂无评论</a></li>
-</ul>
-</header>
-<div class="entry-content fmt" itemprop="articleBody">
-<p>有时候我们想要限制某个页面的访问权限，需要用户名密码才能进入。</p><p>如果使用 <strong>nginx</strong> 作为反向代理服务器，可以使用 <strong>auth_basic</strong> 来实现页面加密。</p><p><strong>环境需求：</strong></p><p>Linux env<br>nginx<br><strong>apache2-utils</strong> (Debian, Ubuntu) or <strong>httpd-tools</strong> (RHEL/CentOS/Oracle Linux)</p><p><strong>安装环境：</strong></p><p>nginx 安装参考：<a href="https://niekun.net/index.php/archives/30.html">https://niekun.net/index.php/archives/30.html</a></p><p>安装 apache2-utils：</p><pre><code>apt-get install apache2-utils
-</code></pre><p><strong>创建账户密码：</strong></p><p>使用了 htpasswd 命令创建用户。</p><p>关于 htpasswd 的详细使用：<a href="https://httpd.apache.org/docs/2.4/programs/htpasswd.html">https://httpd.apache.org/docs/2.4/programs/htpasswd.html</a></p><p>建议将账户信息文件建立在 nginx 目录，我放在 /etc/nginx/users 目录下：</p><pre><code>htpasswd -c /etc/nginx/users/.adminpasswd user1
-</code></pre><p>.adminpasswd 为隐藏的存储所有账户信息的文件，user1 为用户名，回车后会提示输入密码，然后确认密码。</p><p>建立其他账户：</p><pre><code>htpasswd /etc/nginx/users/.adminpasswd user2
-</code></pre><p>不需要 <code>-c</code> 参数，因为文件已经建立了。</p><p>验证账户密码 <code>-v</code>：</p><pre><code>htpasswd -v /etc/nginx/users/.adminpasswd user1
-</code></pre><p>删除账户 <code>-D</code>：</p><pre><code>htpasswd -D /etc/nginx/users/.adminpasswd user1
-</code></pre><p><strong>使用账户：</strong></p><p>打开 nginx 配置文件，在需要账户登录的路径段修改如下：</p><pre><code>location /path {
-    ...
-    auth_basic           &quot;Administrator's Area&quot;;
-    auth_basic_user_file /etc/nginx/users/.adminpasswd;
-    ...
-    ...
-}</code></pre><p>重新加载配置文件：</p><pre><code>service nginx configtest
-service nginx reload
-</code></pre><p>打开对应页面测试是否提示输入账号密码。</p> </div>
-</article>
-<hr class="post-separator">
 <nav><ul class="page-navigator"><li class="prev"><a href="../55/index.html">前一页</a></li><li><a href="../1/index.html">1</a></li><li><span>...</span></li><li><a href="../54/index.html">54</a></li><li><a href="../55/index.html">55</a></li><li class="current"><a href="index.html">56</a></li><li><a href="../57/index.html">57</a></li><li><a href="../58/index.html">58</a></li><li><span>...</span></li><li><a href="../77/index.html">77</a></li><li class="next"><a href="../57/index.html">后一页</a></li></ul></nav>
 </div>
 </main>
@@ -166,7 +153,7 @@ service nginx reload
 </ul>
 </div>
 </footer>
-<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-f0e9f6196e0992b95bcc4547-><i id="ydmc"></i></a></bgm><script data-no-instant type="f0e9f6196e0992b95bcc4547-text/javascript">
+<bgm><a class="ymusic" onclick="if (!window.__cfRLUnblockHandlers) return false; playbtu();" target="_blank" data-cf-modified-ca44a14dc91346d5be851d9a-><i id="ydmc"></i></a></bgm><script data-no-instant type="ca44a14dc91346d5be851d9a-text/javascript">
 var yaudio = new Audio();
 yaudio.controls = true;
 var musicArr=[{mp3:"https://blog.niekun.net/usr/myuploads/bgmusic.m4a"},{mp3:"https://music.163.com/song/media/outer/url?id=761323.mp3"},];
@@ -175,6 +162,6 @@ var sj=musicArr[a];
 yaudio.src=sj.mp3;
 yaudio.volume = 0.68;
 </script>
-<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="f0e9f6196e0992b95bcc4547-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="f0e9f6196e0992b95bcc4547-text/javascript"></script>
-<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="f0e9f6196e0992b95bcc4547-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'899f47e53e642eb4',t:'MTcxOTQyNjc1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script src="../../usr/plugins/YoduBGM/js/player.js?2022" data-no-instant type="ca44a14dc91346d5be851d9a-text/javascript"></script><script src="../../usr/plugins/YoduBGM/js/prbug.js" type="ca44a14dc91346d5be851d9a-text/javascript"></script>
+<script src="../../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="ca44a14dc91346d5be851d9a-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'89a7852e7aa20fd9',t:'MTcxOTUxMzE1MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

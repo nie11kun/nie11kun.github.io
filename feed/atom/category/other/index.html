@@ -6,11 +6,130 @@ xml:base="https://blog.niekun.net/category/other/"
 >
 <title type="text">Marco Nie - other</title>
 <subtitle type="text">杂文</subtitle>
-<updated>2024-06-24T09:51:49+08:00</updated>
+<updated>2024-06-27T15:12:00+08:00</updated>
 <generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/other/" />
 <id>https://blog.niekun.net/feed/atom/category/other/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/other/" />
+<entry>
+<title type="html"><![CDATA[服务器装 warp 解锁 chatgpt]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/Linux-warp.html" />
+<id>https://blog.niekun.net/archives/Linux-warp.html</id>
+<updated>2024-06-27T15:12:00+08:00</updated>
+<published>2024-06-27T15:12:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<category scheme="https://blog.niekun.net/category/ubuntu/" term="ubuntu" />
+<category scheme="https://blog.niekun.net/category/other/" term="other" />
+<summary type="html"><![CDATA[最近在使用 chatgpt 中发现 ios 端无法登录 app，网页端正常使用。提示信息为：Something went wrong. You may be connected to a dis...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/Linux-warp.html" xml:lang="zh-CN"><![CDATA[
+<p>最近在使用 chatgpt 中发现 ios 端无法登录 app，网页端正常使用。提示信息为：</p><blockquote>Something went wrong. You may be connected to a disallowed ISP If youare using VPN, try disabling it. Otherwise try a different Wi-Fi network or data connection。</blockquote><p>经过查询发现是我的 vps 服务商只提供网页端 chatgpt 解锁，不支持 app 端。由于 chatgpt 服务也是通过 cloudflare 的 cdn 服务，所以通过将流量转发到 warp 来访问就可以解决问题。</p><p>首先需要在服务端安装官方的 warp 命令行工具：warp-cli。</p><p>官方教程：<a href="https://developers.cloudflare.com/warp-client/get-started/linux/">https://developers.cloudflare.com/warp-client/get-started/linux/</a></p><p>官方手动添加包仓库教程：<a href="https://pkg.cloudflareclient.com/#ubuntu">https://pkg.cloudflareclient.com/#ubuntu</a></p><!--more--><h3>安装</h3><p>在命令行输入以下指令来安装第三方仓库并安装包：</p><pre><code># Add cloudflare gpg key
+curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+
+# Add this repo to your apt repositories
+echo &quot;deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main&quot; | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+
+# Install
+sudo apt-get update &amp;&amp; sudo apt-get install cloudflare-warp</code></pre><h3>配置</h3><p>安装好后需要注册一个新账户：</p><pre><code>warp-cli registration new
+</code></pre><p>查看当前账户信息：</p><pre><code>warp-cli registration show
+</code></pre><p>更换新的 license：</p><pre><code>warp-cli registration license xxxxx-xxxxxx-xxxxxx
+</code></pre><p>然后需要设置代理模式，可选有：warp, doh, warp+doh, dot, warp+dot, proxy, tunnel_only。</p><p>我只想要它提供一个 socks5 代理端口即可，所以设置为 proxy 模式，它会在本地 40000 端口监听：</p><pre><code>warp-cli mode proxy
+</code></pre><p>启动 warp：</p><pre><code>warp-cli connect
+</code></pre><p>此时 warp 会在本地 40000 端口建立一个 sock5 代理，只需要将需要转发的流量转发到此端口即可走 warp。并且 warp 会自动配置为 Always On 模式，开机自动运行代理。</p><p>查看 warp 当前配置：</p><pre><code># warp-cli settings
+Merged configuration:
+(derived)       Always On: true
+(default)       Switch Locked: false
+(user set)      Mode: WarpProxy on port 40000
+(Not set)       WARP tunnel protocol: Wireguard
+(default)       Disabled for Wifi: false
+(default)       Disabled for Ethernet: false
+(Not set)       Resolve via: cloudflare-dns.com @ [162.159.36.1, 2606:4700:4700::1111]
+(Not set)       qlog logging: Disabled
+(default)       Onboarding: true
+(API defaults)  Exclude mode, with hosts/ips:
+  10.0.0.0/8
+  100.64.0.0/10
+  169.254.0.0/16
+  172.16.0.0/12
+  192.0.0.0/24
+  192.168.0.0/16
+  224.0.0.0/24
+  240.0.0.0/4
+  239.255.255.250/32
+  255.255.255.255/32
+  fe80::/10
+  fd00::/8
+  ff01::/16
+  ff02::/16
+  ff03::/16
+  ff04::/16
+  ff05::/16
+  fc00::/7
+
+(default)       Fallback domains:
+  intranet
+  internal
+  private
+  localdomain
+  domain
+  lan
+  home
+  host
+  corp
+  local
+  localhost
+  home.arpa
+  invalid
+  test
+(Not set)       Daemon Teams Auth: false
+(default)       Disable Auto Fallback: false
+(Not set)       Allow Updates: true</code></pre><p>查看代理是否生效：</p><pre><code>export ALL_PROXY=socks5://127.0.0.1:40000
+curl ifconfig.me</code></pre><h3>代理工具转发流量</h3><p>服务端的配置文件需要添加和修改的地方如下：</p><pre><code>{
+    &quot;outbounds&quot;: [
+        ...
+        {
+            &quot;protocol&quot;: &quot;socks&quot;,
+            &quot;settings&quot;: {
+                &quot;address&quot;: &quot;127.0.0.1&quot;,
+                &quot;port&quot;: 40000
+            },
+            &quot;tag&quot;:&quot;socks_out&quot;
+        }
+    ],
+    &quot;router&quot;: {
+        &quot;domainStrategy&quot;: &quot;AsIs&quot;,
+        &quot;rule&quot;: [
+            ...
+            {
+                &quot;tag&quot;: &quot;socks_out&quot;,
+                &quot;geoDomain&quot;: [
+                    {
+                        &quot;code&quot;: &quot;openai&quot;,
+                        &quot;filePath&quot;: &quot;geosite.dat&quot;
+                    }
+                ],
+                &quot;domainMatcher&quot;: &quot;mph&quot;
+            }
+        ]
+    },
+    &quot;inbounds&quot;: [
+        {
+            &quot;protocol&quot;: &quot;vmess&quot;,
+            ...
+            &quot;sniffing&quot;: {
+                &quot;enabled&quot;: true,
+                &quot;destOverride&quot;: [
+                    &quot;http&quot;,
+                    &quot;tls&quot;
+                ]
+            },
+            ...</code></pre><p>注意需要安装扩展版的 geosite.dat 才有 openai 的条目：<a href="https://github.com/Loyalsoldier/v2ray-rules-dat">https://github.com/Loyalsoldier/v2ray-rules-dat</a></p><p>通过访问以下网址测试是否已经解锁 ios app 端：<a href="https://ios.chat.openai.com/public-api/mobile/server_status/v1">https://ios.chat.openai.com/public-api/mobile/server_status/v1</a></p><p>以上就是解决 chatgpt 无法访问的方法。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/Linux-warp.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/other/archives/Linux-warp.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[蜗杆基础知识]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2999.html" />
@@ -405,26 +524,5 @@ END_TYPE
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/codesys.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/other/archives/codesys.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[服务器部署 immich 照片备份工具]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/immich.html" />
-<id>https://blog.niekun.net/archives/immich.html</id>
-<updated>2024-03-04T09:30:00+08:00</updated>
-<published>2024-03-04T09:30:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<category scheme="https://blog.niekun.net/category/ubuntu/" term="ubuntu" />
-<category scheme="https://blog.niekun.net/category/other/" term="other" />
-<summary type="html"><![CDATA[目前有很多的云备份服务可以使用，比如 icloud，google photos 等。immich 是一款实现类似功能的本地部署工具，将数据都存储在自己本地服务器上，拥有完善的手机端 app 可以...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/immich.html" xml:lang="zh-CN"><![CDATA[
-<p>目前有很多的云备份服务可以使用，比如 icloud，google photos 等。immich 是一款实现类似功能的本地部署工具，将数据都存储在自己本地服务器上，拥有完善的手机端 app 可以方便的同步备份手机图片。</p><p>GitHub 主页：<a href="https://github.com/immich-app/immich">https://github.com/immich-app/immich</a><br>官网教程：<a href="https://immich.app/docs/overview/introduction/">https://immich.app/docs/overview/introduction/</a></p><!--more--><h3>安装服务端</h3><p>使用 docker compose 安装，新建一个 immich 文件夹，下载 <strong>docker-compose.yml</strong> 和 <strong>.env</strong> 文件到文件夹：</p><pre><code>wget https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
-wget -O .env https://github.com/immich-app/immich/releases/latest/download/example.env</code></pre><p>打开 <strong>.env</strong> 文件配置环境变量，主要就是配置备份路径和数据库密码，修改 <strong>UPLOAD_LOCATION</strong> 和 <strong>DB_PASSWORD</strong>。</p><p>启动容器：</p><pre><code>docker compose up -d</code></pre><p>后续更新只需要进入 immich 文件夹执行下面命令即可：</p><pre><code>docker compose pull &amp;&amp; docker compose up -d
-</code></pre><p><strong>docker-compose.yml</strong> 文件中默认将 3001 端口映射到了本地 2283 端口，3001就是服务端访问端口号。</p><p>下面是所有可用的端口，根据需要可以修改 docker-compose 文件映射到本地：</p><table><tbody><tr><td align="center">PORT</td><td align="center">Web Port</td><td>3000</td><td>web</td></tr><tr><td align="center">SERVER_PORT</td><td align="center">Server Port</td><td>3001</td><td>server</td></tr><tr><td align="center">MICROSERVICES_PORT</td><td align="center">Microservices Port</td><td>3002</td><td>microservices</td></tr><tr><td align="center">MACHINE_LEARNING_HOST</td><td align="center">Machine Learning Host</td><td>0.0.0.0</td><td>machine learning</td></tr><tr><td align="center">MACHINE_LEARNING_PORT</td><td align="center">Machine Learning Port</td><td>3003</td><td>machine learning</td></tr></tbody></table><h3>配置账户</h3><p>网页端访问：<strong><a href="http://you.machine.ip:2283">http://you.machine.ip:2283</a></strong> 进入配置页面，根据提示建立一个管理员账户，后续可以在管理员账户中建立其他子账户供其他人使用。</p><h3>登录 app</h3><p>下载手机端 app，ios 直接在 app store 搜索 immich 下载，安卓在 github 发布页下载 apk：<a href="https://github.com/immich-app/immich/releases">https://github.com/immich-app/immich/releases</a></p><p>在手机端输入以下网址进入：<strong><a href="http://you.machine.ip:2283/api">http://you.machine.ip:2283/api</a></strong></p><p>然后就可以配置需要备份的手机端图片文件夹了。</p><h3>外网访问</h3><p>服务器在本地，如果要外网域名远程访问图库，需要一些额外的配置，我这里是通过 cloudflare 配置子域名，nginx 配置反向代理到 frps，最后本地服务器 frpc 配置本地 2283 端口绑定到远程域名访问即可。</p><p>可以参考我之前的关于 frp 的教程：<a href="https://blog.niekun.net/archives/539.html">https://blog.niekun.net/archives/539.html</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/immich.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/other/archives/immich.html" thr:count="0"/>
 </entry>
 </feed>

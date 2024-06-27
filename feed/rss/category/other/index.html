@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>杂文</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Linux-warp.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2999.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/pip.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/nftables.html"/>
@@ -18,10 +19,115 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/Linux-ip.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/codesys-enum.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/codesys.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/immich.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/Linux-warp.html">
+<title>服务器装 warp 解锁 chatgpt</title>
+<link>https://blog.niekun.net/archives/Linux-warp.html</link>
+<dc:date>2024-06-27T15:12:00+08:00</dc:date>
+<description>最近在使用 chatgpt 中发现 ios 端无法登录 app，网页端正常使用。提示信息为：Something went wrong. You may be connected to a disallowed ISP If youare using VPN, try disabling it. Otherwise try a different Wi-Fi network or data connection。经过查询发现是我的 vps 服务商只提供网页端 chatgpt 解锁，不支持 app 端。由于 chatgpt 服务也是通过 cloudflare 的 cdn 服务，所以通过将流量转发到 warp 来访问就可以解决问题。首先需要在服务端安装官方的 warp 命令行工具：warp-cli。官方教程：https://developers.cloudflare.com/warp-client/get-started/linux/官方手动添加包仓库教程：https://pkg.cloudflareclient.com/#ubuntu安装在命令行输入以下指令来安装第三方仓库并安装包：# Add cloudflare gpg key
+curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+
+# Add this repo to your apt repositories
+echo &quot;deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main&quot; | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+
+# Install
+sudo apt-get update &amp;&amp; sudo apt-get install cloudflare-warp配置安装好后需要注册一个新账户：warp-cli registration new
+查看当前账户信息：warp-cli registration show
+更换新的 license：warp-cli registration license xxxxx-xxxxxx-xxxxxx
+然后需要设置代理模式，可选有：warp, doh, warp+doh, dot, warp+dot, proxy, tunnel_only。我只想要它提供一个 socks5 代理端口即可，所以设置为 proxy 模式，它会在本地 40000 端口监听：warp-cli mode proxy
+启动 warp：warp-cli connect
+此时 warp 会在本地 40000 端口建立一个 sock5 代理，只需要将需要转发的流量转发到此端口即可走 warp。并且 warp 会自动配置为 Always On 模式，开机自动运行代理。查看 warp 当前配置：# warp-cli settings
+Merged configuration:
+(derived)       Always On: true
+(default)       Switch Locked: false
+(user set)      Mode: WarpProxy on port 40000
+(Not set)       WARP tunnel protocol: Wireguard
+(default)       Disabled for Wifi: false
+(default)       Disabled for Ethernet: false
+(Not set)       Resolve via: cloudflare-dns.com @ [162.159.36.1, 2606:4700:4700::1111]
+(Not set)       qlog logging: Disabled
+(default)       Onboarding: true
+(API defaults)  Exclude mode, with hosts/ips:
+  10.0.0.0/8
+  100.64.0.0/10
+  169.254.0.0/16
+  172.16.0.0/12
+  192.0.0.0/24
+  192.168.0.0/16
+  224.0.0.0/24
+  240.0.0.0/4
+  239.255.255.250/32
+  255.255.255.255/32
+  fe80::/10
+  fd00::/8
+  ff01::/16
+  ff02::/16
+  ff03::/16
+  ff04::/16
+  ff05::/16
+  fc00::/7
+
+(default)       Fallback domains:
+  intranet
+  internal
+  private
+  localdomain
+  domain
+  lan
+  home
+  host
+  corp
+  local
+  localhost
+  home.arpa
+  invalid
+  test
+(Not set)       Daemon Teams Auth: false
+(default)       Disable Auto Fallback: false
+(Not set)       Allow Updates: true查看代理是否生效：export ALL_PROXY=socks5://127.0.0.1:40000
+curl ifconfig.me代理工具转发流量服务端的配置文件需要添加和修改的地方如下：{
+    &quot;outbounds&quot;: [
+        ...
+        {
+            &quot;protocol&quot;: &quot;socks&quot;,
+            &quot;settings&quot;: {
+                &quot;address&quot;: &quot;127.0.0.1&quot;,
+                &quot;port&quot;: 40000
+            },
+            &quot;tag&quot;:&quot;socks_out&quot;
+        }
+    ],
+    &quot;router&quot;: {
+        &quot;domainStrategy&quot;: &quot;AsIs&quot;,
+        &quot;rule&quot;: [
+            ...
+            {
+                &quot;tag&quot;: &quot;socks_out&quot;,
+                &quot;geoDomain&quot;: [
+                    {
+                        &quot;code&quot;: &quot;openai&quot;,
+                        &quot;filePath&quot;: &quot;geosite.dat&quot;
+                    }
+                ],
+                &quot;domainMatcher&quot;: &quot;mph&quot;
+            }
+        ]
+    },
+    &quot;inbounds&quot;: [
+        {
+            &quot;protocol&quot;: &quot;vmess&quot;,
+            ...
+            &quot;sniffing&quot;: {
+                &quot;enabled&quot;: true,
+                &quot;destOverride&quot;: [
+                    &quot;http&quot;,
+                    &quot;tls&quot;
+                ]
+            },
+            ...注意需要安装扩展版的 geosite.dat 才有 openai 的条目：https://github.com/Loyalsoldier/v2ray-rules-dat通过访问以下网址测试是否已经解锁 ios app 端：https://ios.chat.openai.com/public-api/mobile/server_status/v1以上就是解决 chatgpt 无法访问的方法。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2999.html">
 <title>蜗杆基础知识</title>
 <link>https://blog.niekun.net/archives/2999.html</link>
@@ -300,13 +406,5 @@ END_TYPE
 <link>https://blog.niekun.net/archives/codesys.html</link>
 <dc:date>2024-03-06T16:35:00+08:00</dc:date>
 <description>No source code available for this object下载时出现此报警，原因是 task 任务中对 gou 的排序有问题，放在前面的 pou 中使用了后面 pou 才设定好的数据，需要重新排列 task 任务序列：SMC_FB_CALLED_FROM_WRONG_TASKmc_power mc_jog 等控制轴的功能块，一运行就报错 SMC_FB_CALLED_FROM_WRONG_TASK，可能是不同的 pou 放在了多个 task 任务中，循环中内部有了冲突，将所有的 pou 放在同一个 task 中就可以解决问题。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/immich.html">
-<title>服务器部署 immich 照片备份工具</title>
-<link>https://blog.niekun.net/archives/immich.html</link>
-<dc:date>2024-03-04T09:30:00+08:00</dc:date>
-<description>目前有很多的云备份服务可以使用，比如 icloud，google photos 等。immich 是一款实现类似功能的本地部署工具，将数据都存储在自己本地服务器上，拥有完善的手机端 app 可以方便的同步备份手机图片。GitHub 主页：https://github.com/immich-app/immich官网教程：https://immich.app/docs/overview/introduction/安装服务端使用 docker compose 安装，新建一个 immich 文件夹，下载 docker-compose.yml 和 .env 文件到文件夹：wget https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
-wget -O .env https://github.com/immich-app/immich/releases/latest/download/example.env打开 .env 文件配置环境变量，主要就是配置备份路径和数据库密码，修改 UPLOAD_LOCATION 和 DB_PASSWORD。启动容器：docker compose up -d后续更新只需要进入 immich 文件夹执行下面命令即可：docker compose pull &amp;&amp; docker compose up -d
-docker-compose.yml 文件中默认将 3001 端口映射到了本地 2283 端口，3001就是服务端访问端口号。下面是所有可用的端口，根据需要可以修改 docker-compose 文件映射到本地：PORTWeb Port3000webSERVER_PORTServer Port3001serverMICROSERVICES_PORTMicroservices Port3002microservicesMACHINE_LEARNING_HOSTMachine Learning Host0.0.0.0machine learningMACHINE_LEARNING_PORTMachine Learning Port3003machine learning配置账户网页端访问：http://you.machine.ip:2283 进入配置页面，根据提示建立一个管理员账户，后续可以在管理员账户中建立其他子账户供其他人使用。登录 app下载手机端 app，ios 直接在 app store 搜索 immich 下载，安卓在 github 发布页下载 apk：https://github.com/immich-app/immich/releases在手机端输入以下网址进入：http://you.machine.ip:2283/api然后就可以配置需要备份的手机端图片文件夹了。外网访问服务器在本地，如果要外网域名远程访问图库，需要一些额外的配置，我这里是通过 cloudflare 配置子域名，nginx 配置反向代理到 frps，最后本地服务器 frpc 配置本地 2283 端口绑定到远程域名访问即可。可以参考我之前的关于 frp 的教程：https://blog.niekun.net/archives/539.html</description>
 </item>
 </rdf:RDF>

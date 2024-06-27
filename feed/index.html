@@ -11,8 +11,124 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>you are the company you keep...</description>
-<lastBuildDate>Mon, 24 Jun 2024 09:51:49 +0800</lastBuildDate>
-<pubDate>Mon, 24 Jun 2024 09:51:49 +0800</pubDate>
+<lastBuildDate>Thu, 27 Jun 2024 15:12:00 +0800</lastBuildDate>
+<pubDate>Thu, 27 Jun 2024 15:12:00 +0800</pubDate>
+<item>
+<title>服务器装 warp 解锁 chatgpt</title>
+<link>https://blog.niekun.net/archives/Linux-warp.html</link>
+<guid>https://blog.niekun.net/archives/Linux-warp.html</guid>
+<pubDate>Thu, 27 Jun 2024 15:12:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[ubuntu]]></category>
+<category><![CDATA[other]]></category>
+<description><![CDATA[最近在使用 chatgpt 中发现 ios 端无法登录 app，网页端正常使用。提示信息为：Something went wrong. You may be connected to a dis...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近在使用 chatgpt 中发现 ios 端无法登录 app，网页端正常使用。提示信息为：</p><blockquote>Something went wrong. You may be connected to a disallowed ISP If youare using VPN, try disabling it. Otherwise try a different Wi-Fi network or data connection。</blockquote><p>经过查询发现是我的 vps 服务商只提供网页端 chatgpt 解锁，不支持 app 端。由于 chatgpt 服务也是通过 cloudflare 的 cdn 服务，所以通过将流量转发到 warp 来访问就可以解决问题。</p><p>首先需要在服务端安装官方的 warp 命令行工具：warp-cli。</p><p>官方教程：<a href="https://developers.cloudflare.com/warp-client/get-started/linux/">https://developers.cloudflare.com/warp-client/get-started/linux/</a></p><p>官方手动添加包仓库教程：<a href="https://pkg.cloudflareclient.com/#ubuntu">https://pkg.cloudflareclient.com/#ubuntu</a></p><!--more--><h3>安装</h3><p>在命令行输入以下指令来安装第三方仓库并安装包：</p><pre><code># Add cloudflare gpg key
+curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+
+# Add this repo to your apt repositories
+echo &quot;deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main&quot; | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+
+# Install
+sudo apt-get update &amp;&amp; sudo apt-get install cloudflare-warp</code></pre><h3>配置</h3><p>安装好后需要注册一个新账户：</p><pre><code>warp-cli registration new
+</code></pre><p>查看当前账户信息：</p><pre><code>warp-cli registration show
+</code></pre><p>更换新的 license：</p><pre><code>warp-cli registration license xxxxx-xxxxxx-xxxxxx
+</code></pre><p>然后需要设置代理模式，可选有：warp, doh, warp+doh, dot, warp+dot, proxy, tunnel_only。</p><p>我只想要它提供一个 socks5 代理端口即可，所以设置为 proxy 模式，它会在本地 40000 端口监听：</p><pre><code>warp-cli mode proxy
+</code></pre><p>启动 warp：</p><pre><code>warp-cli connect
+</code></pre><p>此时 warp 会在本地 40000 端口建立一个 sock5 代理，只需要将需要转发的流量转发到此端口即可走 warp。并且 warp 会自动配置为 Always On 模式，开机自动运行代理。</p><p>查看 warp 当前配置：</p><pre><code># warp-cli settings
+Merged configuration:
+(derived)       Always On: true
+(default)       Switch Locked: false
+(user set)      Mode: WarpProxy on port 40000
+(Not set)       WARP tunnel protocol: Wireguard
+(default)       Disabled for Wifi: false
+(default)       Disabled for Ethernet: false
+(Not set)       Resolve via: cloudflare-dns.com @ [162.159.36.1, 2606:4700:4700::1111]
+(Not set)       qlog logging: Disabled
+(default)       Onboarding: true
+(API defaults)  Exclude mode, with hosts/ips:
+  10.0.0.0/8
+  100.64.0.0/10
+  169.254.0.0/16
+  172.16.0.0/12
+  192.0.0.0/24
+  192.168.0.0/16
+  224.0.0.0/24
+  240.0.0.0/4
+  239.255.255.250/32
+  255.255.255.255/32
+  fe80::/10
+  fd00::/8
+  ff01::/16
+  ff02::/16
+  ff03::/16
+  ff04::/16
+  ff05::/16
+  fc00::/7
+
+(default)       Fallback domains:
+  intranet
+  internal
+  private
+  localdomain
+  domain
+  lan
+  home
+  host
+  corp
+  local
+  localhost
+  home.arpa
+  invalid
+  test
+(Not set)       Daemon Teams Auth: false
+(default)       Disable Auto Fallback: false
+(Not set)       Allow Updates: true</code></pre><p>查看代理是否生效：</p><pre><code>export ALL_PROXY=socks5://127.0.0.1:40000
+curl ifconfig.me</code></pre><h3>代理工具转发流量</h3><p>服务端的配置文件需要添加和修改的地方如下：</p><pre><code>{
+    &quot;outbounds&quot;: [
+        ...
+        {
+            &quot;protocol&quot;: &quot;socks&quot;,
+            &quot;settings&quot;: {
+                &quot;address&quot;: &quot;127.0.0.1&quot;,
+                &quot;port&quot;: 40000
+            },
+            &quot;tag&quot;:&quot;socks_out&quot;
+        }
+    ],
+    &quot;router&quot;: {
+        &quot;domainStrategy&quot;: &quot;AsIs&quot;,
+        &quot;rule&quot;: [
+            ...
+            {
+                &quot;tag&quot;: &quot;socks_out&quot;,
+                &quot;geoDomain&quot;: [
+                    {
+                        &quot;code&quot;: &quot;openai&quot;,
+                        &quot;filePath&quot;: &quot;geosite.dat&quot;
+                    }
+                ],
+                &quot;domainMatcher&quot;: &quot;mph&quot;
+            }
+        ]
+    },
+    &quot;inbounds&quot;: [
+        {
+            &quot;protocol&quot;: &quot;vmess&quot;,
+            ...
+            &quot;sniffing&quot;: {
+                &quot;enabled&quot;: true,
+                &quot;destOverride&quot;: [
+                    &quot;http&quot;,
+                    &quot;tls&quot;
+                ]
+            },
+            ...</code></pre><p>注意需要安装扩展版的 geosite.dat 才有 openai 的条目：<a href="https://github.com/Loyalsoldier/v2ray-rules-dat">https://github.com/Loyalsoldier/v2ray-rules-dat</a></p><p>通过访问以下网址测试是否已经解锁 ios app 端：<a href="https://ios.chat.openai.com/public-api/mobile/server_status/v1">https://ios.chat.openai.com/public-api/mobile/server_status/v1</a></p><p>以上就是解决 chatgpt 无法访问的方法。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/Linux-warp.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/archives/Linux-warp.html</wfw:commentRss>
+</item>
 <item>
 <title>蜗杆基础知识</title>
 <link>https://blog.niekun.net/archives/2999.html</link>
@@ -416,27 +532,6 @@ newgrp groupName
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/openwrt.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/openwrt.html</wfw:commentRss>
-</item>
-<item>
-<title>Linux 获取本地网关所有 ip 段地址</title>
-<link>https://blog.niekun.net/archives/Linux-ip.html</link>
-<guid>https://blog.niekun.net/archives/Linux-ip.html</guid>
-<pubDate>Thu, 28 Mar 2024 15:35:07 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<category><![CDATA[Linux]]></category>
-<category><![CDATA[other]]></category>
-<description><![CDATA[执行下面命令即可获取本地网关所有的 ip 段地址：$ ip address | grep -w inet | awk '{print $2}'127.0.0.1/8192.168.122.2/2...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>执行下面命令即可获取本地网关所有的 ip 段地址：</p><pre><code>$ ip address | grep -w inet | awk '{print $2}'
-127.0.0.1/8
-192.168.122.2/24
-172.18.0.1/16
-172.17.0.1/16
-172.19.0.1/16</code></pre>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/Linux-ip.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/archives/Linux-ip.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
