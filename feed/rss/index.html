@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/macOS-automator.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/env-python.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Linux-warp.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2999.html"/>
@@ -18,10 +19,25 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/intel-12-CPU-vmwre.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/openwrt-1.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/Linux.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/macOS-automator.html">
+<title>macOS 下使用 automator 给视频文件添加快捷压缩动作</title>
+<link>https://blog.niekun.net/archives/macOS-automator.html</link>
+<dc:date>2024-08-01T14:42:36+08:00</dc:date>
+<description>最近学习到了一条可以大幅度压缩视频体积且观感上视频质量没有很大损失的 ffmpeg 命令：ffmpeg -i input.mov -c:v libx264 -crf 30 -r 24 -movflags faststart -c:a aac -b:a 128k -preset superfast out.mp4
+但是每次在命令行执行这么复杂的命令还是很不方便的，可以使用 macOS 自带的 automator 自动化工具制作一个简单的右键菜单动作，方便的对视频文件快速压缩。打开 automator 新建一个 quick action，添加一个 run sheel script:脚本内容如下：for f in &quot;$@&quot;
+do
+    /opt/homebrew/bin/ffmpeg -i &quot;$f&quot; -c:v libx264 -crf 30 -r 24 -movflags faststart -c:a aac -b:a 128k -preset superfast &quot;${f%.*}_compressed.mp4&quot;
+done
+
+# 播放声音
+afplay /System/Library/Sounds/Blow.aiff
+
+# 显示对话框
+osascript -e 'tell app &quot;System Events&quot; to display dialog &quot;视频压缩已完成&quot; with title &quot;通知&quot; buttons {&quot;OK&quot;} default button &quot;OK&quot;'保存后，在视频文件右键菜单的 action 栏就可以看到我们添加的动作了：点击执行动作，完成后会有提示信息。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/env-python.html">
 <title>使用虚拟环境 env 开发 python</title>
 <link>https://blog.niekun.net/archives/env-python.html</link>
@@ -438,17 +454,5 @@ Add correct host key in C:\\Users\\Marco Nie/.ssh/known_hosts to get rid of this
 Offending RSA key in C:\\Users\\Marco Nie/.ssh/known_hosts:6
 Host key for 192.168.244.1 has changed and you have requested strict checking.
 Host key verification failed.这是由于更新系统后 ssh 指纹发生了变化，需要删除本地缓存的 openwrt 设备的指纹在登陆，windows 系统 ssh 指纹保存地址为当前用户目录下的 .ssh 文件夹。升级后续升级后可以通过之前的脚本列出的已安装包的列表将自己需要的包安装回去，同时将备份数据按照新系统的格式恢复回去。从 openwrt 21 开始修改了 network 配置文件格式，参考：https://blog.niekun.net/archives/2291.html从 openwrt 22 开始替换 iptables 为 nftables，需要原始工具的话可以自行安装回去：opkg install iptables参考链接Opkg package managerOpenWRT 19.07 to 21.02.0 upgrade</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/Linux.html">
-<title>Linux 查询及编辑用户及用户组</title>
-<link>https://blog.niekun.net/archives/Linux.html</link>
-<dc:date>2024-04-01T16:20:00+08:00</dc:date>
-<description>查询当前所有用户compgen -u
-查询当前所有用户组compgen -g
-添加一个用户到某个组sudo usermod -a -G groupName userName
-newgrp groupName
-删除一个用户从某个组sudo usermod -G groupName userName
-newgrp groupName
-用户和组对文件的权限管理参考：chown 和 chmod 管理文件权限</description>
 </item>
 </rdf:RDF>
