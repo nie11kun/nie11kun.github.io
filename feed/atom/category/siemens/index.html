@@ -7,7 +7,7 @@ xml:base="https://blog.niekun.net/category/siemens/"
 <title type="text">Marco Nie - siemens</title>
 <subtitle type="text"></subtitle>
 <updated>2023-10-18T17:13:10+08:00</updated>
-<generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
+<generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/siemens/" />
 <id>https://blog.niekun.net/feed/atom/category/siemens/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/siemens/" />
@@ -21,12 +21,13 @@ xml:base="https://blog.niekun.net/category/siemens/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/siemens/" term="siemens" />
 <summary type="html"><![CDATA[最近的工作中遇到使用带刀具的轨迹运动中，由于轨迹是通过1000多个离散点构成的，每个点之间距离很短，由于 sinumerik one 系统默认的线性计算精度是每毫米 1000 各单位，导致刀具轨...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2858.html" xml:lang="zh-CN"><![CDATA[
 <p>最近的工作中遇到使用带刀具的轨迹运动中，由于轨迹是通过1000多个离散点构成的，每个点之间距离很短，由于 sinumerik one 系统默认的线性计算精度是每毫米 1000 各单位，导致刀具轨迹报错提示可能有碰撞危险。通过提高系统计算精度可以解决此问题。</p><p>相关系统变量：</p><ul><li>通用机床数据 10200 线性位置的计算精度</li><li>通用机床数据 10210 角位置的计算精度</li></ul><p>sinumerik one 及 840D sl 系统以上参数默认值为 1000，828D 系统默认值为 1000000。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2858.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/siemens/" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/siemens/archives/2858.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[828D 执行程序提示：等待插补缓冲]]></title>
@@ -38,6 +39,7 @@ xml:base="https://blog.niekun.net/category/siemens/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/siemens/" term="siemens" />
 <summary type="html"><![CDATA[最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2330.html" xml:lang="zh-CN"><![CDATA[
 <p>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：<br><img src="https://blog.niekun.net/usr/uploads/2021/09/577513986.png" alt="2021-09-03T01:27:34.png" title="2021-09-03T01:27:34.png"></p><!--more--><p>程序代码如下：</p><pre><code>WHILE((R0&gt;=360) OR (R0&lt;0))
@@ -51,7 +53,7 @@ xml:base="https://blog.niekun.net/category/siemens/"
 ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大于等于 0 小于 360 之间。理论上无论给 R0 赋予任何初值，执行以上代码后都可以将其自动计算为需要的结果。</p><p>在分析后发现，出现以上报警的原因是程序在此 while 循环中无法跳出。随即从这里下手寻找问题点。</p><p>在经过给 R0 赋予一些特殊的初值，然后执行程序后发现，当初值为 -0.0000000001 或 359.999999999 时无法跳出循环，R0 的值一直在这两者之间跳动，猜测应该是数控系统精度判断 359.999999999 等于 360，导致 <code>IF R0&gt;=360</code> 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。</p><p>找到了问题点解决就很简单了，只需要将 <code>R0=R0-360</code> 修改为 <code>R0=R0-360.00001</code> 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。</p><p>出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2330.html#comments" thr:count="2" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/siemens/" thr:count="2"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/siemens/archives/2330.html" thr:count="2"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[使用 EXECSTRING 指令执行字符串的内容]]></title>
@@ -63,6 +65,7 @@ ENDWHILE</code></pre><p>以上程序实现的功能是将 R0 的值控制在大�
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/siemens/" term="siemens" />
 <summary type="html"><![CDATA[最近在编程中遇到一个问题：字符串内定义了一个已知的变量名，需要得到变量的值。例如：已知 real 类型全局变量：TEST定义一个字符串,并赋值：DEF STRING[10] STR1STR1=&amp;...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/1563.html" xml:lang="zh-CN"><![CDATA[
 <p>最近在编程中遇到一个问题：字符串内定义了一个已知的变量名，需要得到变量的值。</p><p>例如：<br>已知 real 类型全局变量：<code>TEST</code></p><p>定义一个字符串,并赋值：</p><pre><code>DEF STRING[10] STR1
@@ -71,7 +74,7 @@ STR1=&quot;TEST&quot;
 </code></pre><p>以上指令可以将 <code>TEST</code> 变量的值读入 <code>R0</code>。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1563.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/siemens/" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/siemens/archives/1563.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[SIEMENS 坐标系转换]]></title>
@@ -83,6 +86,7 @@ STR1=&quot;TEST&quot;
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/siemens/" term="siemens" />
 <summary type="html"><![CDATA[编写 NC 程序时，遇到需要进行坐标系旋转的地方。研究了下手册，发现使用起来很方便。]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/376.html" xml:lang="zh-CN"><![CDATA[
 <p><strong>编写 NC 程序时，遇到需要进行坐标系旋转的地方。研究了下手册，发现使用起来很方便。</strong></p><p><img src="https://niekun.net/usr/uploads/2019/09/2723381540.png" alt="2019-09-18T03:03:16.png" title="2019-09-18T03:03:16.png"></p><!--more--><p>以上是 4 种常用的坐标变换指令。</p><h2>简介</h2><p>TRANS/ATRANS：以给定的几何轴方向移动 WCS<br>ROT/AROT：WCS 旋转：</p><ul><li>链接单个旋转，围绕给定的几何轴旋转</li><li>当前工作平面（G17/G18/G19）绕角度RPL=...旋转<br>SCALE/ASCALE：以设定的几何轴的方向比例放大/缩小轮廓<br>MIRROR/AMIRROR：通过对设定的几何轴执行镜像（方向切换）进行 WCS 镜像</li></ul><p><strong>每个指令可以独立生效，也可以叠加生效：</strong></p><p>替换型指令：</p><pre><code>TRANS X… Y… Z… 
@@ -97,6 +101,6 @@ AMIRROR X0/Y0/Z0</code></pre><p>例如，想要先将参考点平移到 X1 Y1 (G
 AROT RPL=45</code></pre><h2>ROT句法</h2><p><strong>ROT X30</strong> - 绕X轴旋转30度<br><strong>ROT RPL=30</strong> - 在当前平面旋转30度，如果当前为 G17，则绕Z轴旋转30，相当于 ROT Z30</p><h2>SCALE 句法</h2><p><strong>ASCALE X0.7 Y0.7</strong> - 可为每个轴设定一个独立的比例系数</p><h2>MIRROR</h2><p><strong>MIRROR X0</strong> - X 轴镜像（X轴上反向）<br><strong>MIRROR</strong> - 关闭镜像</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/376.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/siemens/" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/siemens/archives/376.html" thr:count="0"/>
 </entry>
 </feed>

@@ -6,11 +6,65 @@ xml:base="https://blog.niekun.net/category/macos/"
 >
 <title type="text">Marco Nie - macOS</title>
 <subtitle type="text"></subtitle>
-<updated>2023-11-03T09:08:00+08:00</updated>
-<generator uri="http://typecho.org/" version="1.2.0">Typecho</generator>
+<updated>2024-08-10T11:06:00+08:00</updated>
+<generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/macos/" />
 <id>https://blog.niekun.net/feed/atom/category/macos/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/" />
+<entry>
+<title type="html"><![CDATA[将路径加入系统 path]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/path.html" />
+<id>https://blog.niekun.net/archives/path.html</id>
+<updated>2024-08-10T11:06:00+08:00</updated>
+<published>2024-08-10T11:06:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<category scheme="https://blog.niekun.net/category/Windows/" term="Windows" />
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
+<summary type="html"><![CDATA[将路径加入系统 path 可以方便的在终端调用目录中的可执行文件或脚本。windows 和 macOS 设置方法不同，下面分别介绍。windows参考之前的文章：https://blog.nie...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/path.html" xml:lang="zh-CN"><![CDATA[
+<p>将路径加入系统 path 可以方便的在终端调用目录中的可执行文件或脚本。windows 和 macOS 设置方法不同，下面分别介绍。</p><h3>windows</h3><p>参考之前的文章：<a href="https://blog.niekun.net/archives/413.html">https://blog.niekun.net/archives/413.html</a></p><h3>macos</h3><p>确定您的 shell 类型。打开终端，运行以下命令：</p><pre><code>echo $SHELL
+</code></pre><p>这通常会返回 <strong>/bin/zsh</strong> 或 <strong>/bin/bash</strong>。</p><!--more--><p>根据您的 shell 类型，编辑相应的配置文件：</p><p>对于 Zsh（最新的 macOS 默认使用）：编辑 <strong>~/.zshrc</strong><br>对于 Bash：编辑 <strong>~/.bash_profile</strong> 或 <strong>~/.bashrc</strong></p><p>使用文本编辑器打开相应的文件。例如，对于 zsh：</p><pre><code>vim ~/.zshrc
+</code></pre><p>在文件末尾添加以下行（替换为您的实际脚本目录路径）：</p><pre><code>export PATH=&quot;/path/script:$PATH&quot;
+</code></pre><p>保存并关闭文件。使更改生效，可以重新加载配置文件或重启终端。要重新加载，运行：</p><pre><code>source ~/.zshrc  # 如果使用 Zsh
+source ~/.bash_profile  # 如果使用 Bash
+</code></pre><p>验证 PATH 更新：</p><pre><code>echo $PATH
+</code></pre><p>您应该能看到您的脚本目录已被添加。现在，您应该能够直接运行脚本，而不需要指定完整路径：</p><pre><code>test.sh
+</code></pre><p>注意事项：</p><ul><li>确保您的脚本有正确的执行权限（<code>chmod +x script_name.sh</code>）。</li><li>如果脚本名称与系统命令冲突，考虑重命名脚本或使用唯一前缀</li></ul>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/path.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/archives/path.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[macOS 下使用 automator 给视频文件添加快捷压缩动作]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/macOS-automator.html" />
+<id>https://blog.niekun.net/archives/macOS-automator.html</id>
+<updated>2024-08-01T14:42:36+08:00</updated>
+<published>2024-08-01T14:42:36+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
+<summary type="html"><![CDATA[最近学习到了一条可以大幅度压缩视频体积且观感上视频质量没有很大损失的 ffmpeg 命令：ffmpeg -i input.mov -c:v libx264 -crf 30 -r 24 -movf...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/macOS-automator.html" xml:lang="zh-CN"><![CDATA[
+<p>最近学习到了一条可以大幅度压缩视频体积且观感上视频质量没有很大损失的 ffmpeg 命令：</p><pre><code>ffmpeg -i input.mov -c:v libx264 -crf 30 -r 24 -movflags faststart -c:a aac -b:a 128k -preset superfast out.mp4
+</code></pre><p>但是每次在命令行执行这么复杂的命令还是很不方便的，可以使用 macOS 自带的 automator 自动化工具制作一个简单的右键菜单动作，方便的对视频文件快速压缩。</p><!--more--><p>打开 automator 新建一个 quick action，添加一个 run sheel script:<br><img src="https://blog.niekun.net/usr/uploads/2024/08/2569726420.png" alt="image.png" title="image.png"></p><p>脚本内容如下：</p><pre><code>for f in &quot;$@&quot;
+do
+    /opt/homebrew/bin/ffmpeg -i &quot;$f&quot; -c:v libx264 -crf 30 -r 24 -movflags faststart -c:a aac -b:a 128k -preset superfast &quot;${f%.*}_compressed.mp4&quot;
+done
+
+# 播放声音
+afplay /System/Library/Sounds/Blow.aiff
+
+# 显示对话框
+osascript -e 'tell app &quot;System Events&quot; to display dialog &quot;视频压缩已完成&quot; with title &quot;通知&quot; buttons {&quot;OK&quot;} default button &quot;OK&quot;'</code></pre><p>保存后，在视频文件右键菜单的 action 栏就可以看到我们添加的动作了：<br><img src="https://blog.niekun.net/usr/uploads/2024/08/3308675429.png" alt="image.png" title="image.png"></p><p>点击执行动作，完成后会有提示信息。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/macOS-automator.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/archives/macOS-automator.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Windows 下虚拟机安装 MacOS]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2860.html" />
@@ -21,13 +75,15 @@ xml:base="https://blog.niekun.net/category/macos/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/Windows/" term="Windows" />
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
 <summary type="html"><![CDATA[经过测试，我的电脑安装好后可以启动，但是每次输入管理员口令就会四国。可能和我的电脑 cpu 不能完美支持 macos 内核有关，下面介绍安装方法。工具：vmware workstationunl...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2860.html" xml:lang="zh-CN"><![CDATA[
 <p>经过测试，我的电脑安装好后可以启动，但是每次输入管理员口令就会四国。可能和我的电脑 cpu 不能完美支持 macos 内核有关，下面介绍安装方法。</p><p>工具：</p><ul><li>vmware workstation</li><li><a href="https://github.com/DrDonk/unlocker">unlocker</a></li><li><a href="https://techrechard.com/download-macos-monterey-iso-dmg-and-vmdk/#Download_macOS_Monterey_ISO_file">macos Monterey iso image</a></li></ul><!--more--><h3>环境准备</h3><p>首先需要主板支持虚拟化 VT，需要在 bios 中打开对应选项。注意此项必须配置，否则安装会不成功。</p><p>VMware workstation 默认不支持安装 macos，需要使用第三方工具 unlocker 来开启支持，直接在上方提供的 github 主页下载最新版本即可，运行 windows 文件夹下的 unlock.exe 即可。</p><p>然后下载 macos iso 镜像文件，在我上面提供的网站中下载即可。</p><h3>配置虚拟机</h3><p>按照正常的新建虚拟机的方式新建，添加下载好的系统镜像用来安装，配置好确认后先不要启动虚拟机，先修改对应虚拟机文件夹下的 vmx 文件。</p><p>文本编辑器打开 vmx 文件后，在最后一行添加一句：</p><pre><code>smc.version = 0
 </code></pre><p>保存后即可启动虚拟机，进入 recovery 工具后，先格式化硬盘，然后安装系统，提示一步步安装即可。</p><h3>参考链接</h3><p><a href="https://techrechard.com/how-to-install-macos-monterey-on-vmware-on-windows-pc/">How To Install macOS Monterey On Vmware On Windows Pc</a><br><a href="https://zhuanlan.zhihu.com/p/658521465">Windows用VM虚拟机安装MacOS Ventura 13.6系统全流程教程</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2860.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/archives/2860.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[安装内核插件修复第三方 SSD 导致 MacBook 待机耗电大问题]]></title>
@@ -39,12 +95,13 @@ xml:base="https://blog.niekun.net/category/macos/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
 <summary type="html"><![CDATA[前几年给我的 MacBook Pro 2015 升级了 512G SSD 硬盘，什么都挺好就是合盖待机耗电量很大，一晚上基本就跑了 20% 电量，之前也研究过解决方法，还写过几篇博客：使用 Op...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2727.html" xml:lang="zh-CN"><![CDATA[
 <p>前几年给我的 MacBook Pro 2015 升级了 512G SSD 硬盘，什么都挺好就是合盖待机耗电量很大，一晚上基本就跑了 20% 电量，之前也研究过解决方法，还写过几篇博客：<a href="https://blog.niekun.net/archives/2353.html">使用 OpenCore Legacy Patcher 为 2015 款 MacBook Pro 激活 AirPlay</a>，<a href="https://blog.niekun.net/archives/1622.html">macOS 电源管理修复 MacBook 休眠耗电大问题</a>，但是最后都发现问题依旧。</p><p>今天在国外苹果论坛上看到有人介绍通过安装一些内核插件降低待机时候 ssd 的功率从而解决耗电问题<a href="https://discussions.apple.com/thread/252167491">https://discussions.apple.com/thread/252167491</a>：</p><blockquote>1) Get the newest firmware, where power management is already better and/or some sleep/wake issues are resolved<br>a) Either by upgrading to Big Sur (or in Catalina, Mojave the latest security updates) with your original SSD inside<br>OR<br>b) Upgrading Boot ROM Version without upgrading to Big Sur<br>2) Install tools which significantly lower the idle wattage for 3rd party SSDs<br>a) SsdPmEnabler<br>b) NVMeFix plugin inside lilu<br>c) a+b combined reach an even lower wattage in most cases</blockquote><p>主要是第二条介绍的几个内核插件，<a href="https://github.com/kvic-z/SsdPmEnabler">SsdPmEnabler</a>, <a href="https://github.com/acidanthera/lilu">lilu</a>, <a href="https://github.com/acidanthera/NVMeFix">NVMeFix</a><br>都是在 GitHub 上的开源软件，三个都是提供 .kext 文件，需要将 <code>.kext</code> 文件复制到系统路径 <code>/Library/Extensions</code>，重启系统即可。</p><p>后续我会测试是否有效。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2727.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/archives/2727.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[macOS 中给 finder 添加右键打开 vs code 选项]]></title>
@@ -56,6 +113,7 @@ xml:base="https://blog.niekun.net/category/macos/"
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
 <summary type="html"><![CDATA[macOS 中的右键菜单没有像 windows 那样多样的选项，我最常用的是：用 vs code 打开文件夹，新建文本文件等。目前有第三方的软件可以添加这些功能，比如 irightmouse，但...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2403.html" xml:lang="zh-CN"><![CDATA[
 <p>macOS 中的右键菜单没有像 windows 那样多样的选项，我最常用的是：<strong>用 vs code 打开文件夹</strong>，<strong>新建文本文件</strong>等。</p><p>目前有第三方的软件可以添加这些功能，比如 irightmouse，但基本都是收费软件，下面介绍如何通过系统自带的 automator 来添加我们需要的功能。</p><!--more--><h3>vs code 菜单</h3><p>首先我们创建一个 <code>Open in Visual Studio Code</code> 的 action。</p><p>打开 Automator，点击 file - new 创建一个 quick action：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/514859828.jpg" alt="1.jpg" title="1.jpg"></p><p>首先修改右边的参数，workflow receives current <strong>files or folders</strong> in <strong>finder</strong>，下面的 image 根据个人喜好修改：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/133095543.jpg" alt="2.jpg" title="2.jpg"></p><p>然后左侧搜索 <strong>run shell script</strong> 双击添加到右侧，修改 pass input：<strong>as arguments</strong>，然后脚本内容如下：</p><pre><code>for f in &quot;$@&quot;
@@ -113,7 +171,7 @@ tell application &quot;System Events&quot;
 end tell</code></pre><p>脚本中，定义了新建文件的文件名和扩展名，如果修改其他名称可以自行修改。</p><p>完成后保存即可，名称为 <code>Create New TXT File</code>。</p><p>保存后在 finder 中我们在任意位置右键会发现没有 quick action 选项，这是因为这个 action 定义中并没有选择输入源，因为新建文件和当前的文件并没有什么关系。</p><p>此时需要通过左上角的 finder - services 找到我们刚创建的 action：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/404283572.jpg" alt="9.jpg" title="9.jpg"></p><p>也可以给这个 action 定义快捷键，在 keyboard - shrotcuts - services 中找到这个 action 在后边添加 shortcut 即可：<br><img src="https://blog.niekun.net/usr/uploads/2022/01/61778451.jpg" alt="10.jpg" title="10.jpg"></p><p><strong>注意第一次运行这个 action 会提示需要授权 finder 的几个权限，根据提示打开即可。</strong></p><h3>参考链接</h3><p><a href="https://apple.stackexchange.com/questions/129699/create-a-new-txt-file-in-finder-keyboard-shortcut">Create a new (.txt) File in Finder - Keyboard Shortcut</a><br><a href="https://apple.stackexchange.com/questions/238948/osx-how-to-add-a-right-click-option-to-a-folder-which-opens-the-folder-with-an">OSX: how to add a right click option to a folder which opens the folder with an app like VS Code?</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2403.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/archives/2403.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[升级 Xcode 后 QT 编译报错 No rule to make target 解决方法]]></title>
@@ -125,12 +183,13 @@ end tell</code></pre><p>脚本中，定义了新建文件的文件名和扩展�
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
 <summary type="html"><![CDATA[最近升级了 macOS Monterey 同时更新了 Xcode 到最新版，编译 QT 项目的时候发现报错了：No rule to make target 'xxx', needed by 'x...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2375.html" xml:lang="zh-CN"><![CDATA[
 <p>最近升级了 macOS Monterey 同时更新了 Xcode 到最新版，编译 QT 项目的时候发现报错了：</p><pre><code>No rule to make target 'xxx', needed by 'xxx'. Stop.</code></pre><p>解决方法就是删除项目<strong>编译输出文件夹</strong>内的隐藏文件 <code>.qmake.stash</code>，删除文件后运行 <strong>build - clean</strong>， <strong>build - run qmake</strong> 重新生成此文件，最后再次重新编译即可。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2375.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/archives/2375.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[使用 OpenCore Legacy Patcher 为 2015 款 MacBook Pro 激活 AirPlay]]></title>
@@ -142,6 +201,7 @@ end tell</code></pre><p>脚本中，定义了新建文件的文件名和扩展�
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
 <summary type="html"><![CDATA[最新的 macOS 13 已经不支持 2015 款 MacBook Pro 了，通过此 patcher 可以顺利升级。步骤如下：插入一个大一些的优盘作为系统升级盘，disk 工具格式化为 apf...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2353.html" xml:lang="zh-CN"><![CDATA[
 <p>最新的 macOS 13 已经不支持 2015 款 MacBook Pro 了，通过此 patcher 可以顺利升级。<strong>步骤如下</strong>：</p><ul><li>插入一个大一些的优盘作为系统升级盘，disk 工具格式化为 apfs日志式 + 分区表 guid</li><li>opencore 中选择 create macos installer - download macos installer 在线一键下载最新版本系统镜像</li><li>下载好后按照提示写入到 u 盘中</li><li>选择 build and install opencore 写入到 u 盘分区中</li><li>重启选择 u 盘的 opencore 引导</li><li>进入 recover 后选择 install macos，会保留系统数据更新到新版系统</li><li>升级完成后进入系统，等一会儿回提示检测到 opencore 引导在 u 盘上，是否写入到硬盘，选择是，根据提示选择系统硬盘分区安装 opencore 即可，拔下 u 盘</li><li>settings 里可以取消选择 show boot picker</li></ul><hr><p>今年发布的 macOS Monterey 增加了很多新功能，其中一个就是可以通过 AirPlay 将手机屏幕投放到 Mac 上。这个功能挺有意思的，但是当我把我的 MacBook Pro 升级系统后，发现无法使用这个功能，经过查询后发现这些新功能只对较新款的设备开放，这就有点让人吐槽了。<br>但是不放弃的我开始查询是否有大神给不支持的设备添加上这些功能，果然被我找到了，而且是一个挺有名的项目：<strong>OpenCore Legacy Patcher</strong>。</p><!--more--><p><strong>OpenCore Legacy Patcher</strong> 是一个旨在帮助不被苹果官方支持的老版本 Mac 升级到最新系统及特殊功能的项目。为这些老设备提供接近于原生的体验。</p><p>GitHub 地址：<a href="https://github.com/dortania/OpenCore-Legacy-Patcher/">https://github.com/dortania/OpenCore-Legacy-Patcher/</a></p><p>我的是 2015 款 MacBook Pro，系统是支持直接升级到 Monterey 的，就是缺失了一些新功能，也可以使用这个工具来解锁这些限制。</p><h3>下载安装</h3><p>在 release 页面下载最新版，下载 TUI 即可也就是 terminal 版：<br><a href="https://github.com/dortania/OpenCore-Legacy-Patcher/releases">https://github.com/dortania/OpenCore-Legacy-Patcher/releases</a></p><p>下载解压后拖放到 application 文件夹即可完成安装。</p><h3>配置</h3><p>注意在操作前最好做一次 Time Machine 备份系统，以免操作失败后数据丢失。</p><p>打开OpenCore-Patcher 进入配置界面：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/771952879.jpg" alt="1.jpg" title="1.jpg"></p><p>上面提示此设备并不在这个 patcher 列表中，因为它依然可以收到苹果官方的系统支持。但我们依然想利用这个 patcher 来解锁一些功能，所以首先我们需要允许 opencore 运行在此设备上。</p><p>选择 4. patcher settings 回车：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1199003523.jpg" alt="2.jpg" title="2.jpg"></p><p>选择 8. allow opencore on native models 回车后输入 y 确认，修改后 8 选项变为 currently true：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/4193487915.jpg" alt="3.jpg" title="3.jpg"></p><p>输入 q 返回主菜单，可以看到显示当前设备已被支持：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/3356615953.jpg" alt="4.jpg" title="4.jpg"></p><p>如果你的设备本来就已经进入了 opencore 的支持列表，不需要 选中 native models。</p><p>下一步设置 opencore 的默认启动模式，默认情况下安装 opencore 后每次启动系统会自动跳入引导选择界面，用来选择正常启动还是通过 pathcer 启动。但是这样比较麻烦，一般情况下配置好后，我们希望自动进入 patcher 后的系统，所以我们将自动跳入引导选择界面功能关闭，这样后续依然可以通过启动时按住 option 键来进入引导选择。</p><p>主界面选择 5. patcher settings，然后选择 5. miscellaneous settings：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/573877562.jpg" alt="5.jpg" title="5.jpg"></p><p>选择 1. set showpicker mode:<br><img src="https://blog.niekun.net/usr/uploads/2021/11/2801299974.jpg" alt="14.jpg" title="14.jpg"></p><p>上面会提示此选项的含义，这里输入 n 关闭此功能：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/818715180.jpg" alt="6.jpg" title="6.jpg"></p><p>输入 q 回到主界面。</p><p>下面我们需要将上面的配置的结果 bulid 到系统临时路径中，选择 1. bulid opencore，完成 build 后输入 enter 返回：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/3345384447.jpg" alt="7.jpg" title="7.jpg"></p><p>最后，就需要将刚才 build 的数据写入到 usb 或内部存储器中。</p><p>如果写入到 usb 中，如果需要系统加载那些隐藏功能，就需要插入写好数据的 usb 然后启动系统时按住 option 选择 opencore 引导系统。如果写入系统内部存储器，就无须外部设备了，可以做到正常启动自动加载 patcher。这里介绍直接安装到设备内部存储器。</p><p>主界面选择 2. install opencore to usb/internal drive:<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1527068884.jpg" alt="8.jpg" title="8.jpg"></p><p>输入 0 选择内部存储器：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1700583359.jpg" alt="9.jpg" title="9.jpg"></p><p>在此输入 0 选择 EFI 分区：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/3610085083.jpg" alt="10.jpg" title="10.jpg"></p><p>确认后 opencore 就写入系统中。</p><p>等待完成写入后手动重启系统，启动时按住 option 键进入引导选择界面：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/1349064389.jpg" alt="11.jpg" title="11.jpg"></p><p>这里默认是选中系统默认引导的，如果需要后续每次启动都自动进入 opencore boot 引导的话，使用方向键选择到 opencore 图标的 boot 项，然后按住 control 键，此时引导下面会出现一个圆圈，鼠标点击此圆圈代表设置此选项为默认引导项：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/2495783972.jpg" alt="12.jpg" title="12.jpg"></p><p>选择 opencore boot 进入系统后，打开 system preference - sharing：<br><img src="https://blog.niekun.net/usr/uploads/2021/11/4202134834.jpg" alt="15.jpg" title="15.jpg"></p><p>可以看到菜单中多了一个 AirPlay receiver，表明 AirPlay 功能已经成功启动，此时就可以测试手机的 screen mirror 能否监测到 Mac 了。</p><p>后续 OpenCore-Legacy-Patcher 如果有更新了，下载安装最新的 app 后再次通过以上同样的方法来更新补丁即可。</p><h3>查看版本</h3><p>通过命令可以查看当前安装的 opencore 和 opencore legacy patcher 的版本。</p><p>opencore 版本信息：</p><pre><code>% nvram 4D1FDA02-38C7-4A6A-9CC6-4BCCA8B30102:opencore-version
@@ -151,7 +211,7 @@ end tell</code></pre><p>脚本中，定义了新建文件的文件名和扩展�
 4D1FDA02-38C7-4A6A-9CC6-4BCCA8B30102:OCLP-Version    0.3.1%00</code></pre><p>返回值表示当前版本为 0.3.1</p><h3>卸载</h3><p>如果通过 USB 加载 opencore 那么只需要拔出 usb 即可删除 opencore。</p><p>如果安装到内部存储器中，卸载稍微麻烦些，具体参考：<a href="https://dortania.github.io/OpenCore-Legacy-Patcher/UNINSTALL.html">Uninstalling OpenCore</a></p><h3>启动模式选择</h3><ul><li>开机按住 option 键进入 boot 引导选择界面，可以选择系统默认引导或者 opencore 引导</li><li>按住 ctrl 键可以设置默认引导</li><li>进入 opencore 引导后按住 spacebar 空格键可以显示 recovery 恢复系统引导选项</li><li>进入 opencore 引导后选到进入系统的选项然后按住 shift + enter 可以进入系统安全模式</li></ul><h3>参考链接</h3><p><a href="https://www.youtube.com/watch?v=sO0yc3_hOE8">Airplay BLOCKED on Monterey? How to unlock it!</a><br><a href="https://dortania.github.io/OpenCore-Legacy-Patcher/">OpenCore Legacy Patcher</a><br><a href="https://dortania.github.io/OpenCore-Legacy-Patcher/TROUBLESHOOTING.html#how-to-boot-recovery-through-opencore-legacy-patcher">How to Boot Recovery through OpenCore Legacy Patcher</a><br><a href="https://dortania.github.io/OpenCore-Legacy-Patcher/TROUBLESHOOTING.html#no-graphics-acceleration">Black Screen on MacBookPro11,3 in macOS Monterey</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2353.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/archives/2353.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[配置外部网络存储器作为 Time Machine 备份]]></title>
@@ -163,6 +223,7 @@ end tell</code></pre><p>脚本中，定义了新建文件的文件名和扩展�
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
 <summary type="html"><![CDATA[最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。之前我的 MacBook 是通过 ...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2305.html" xml:lang="zh-CN"><![CDATA[
 <p>最近搬进新家，配置好了局域网环境并使用海康 h99 作为存储中心共享资源给各个设备使用。它支持 smb 和 afp 协议共享文件，通常情况下 smb 就足够了。</p><p>之前我的 MacBook 是通过 usb 直接连接外部硬盘来进行 Time Machine 的，需要将硬盘格式化为 macOS 扩展格式。既然有了网络存储中心，那么为什么不将 Time Machine 也放在网络驱动器上呢？</p><p>研究了下果然有解决方案的，基本原理就是<strong>通过在网络驱动器上创建一个 macOS 格式的虚拟磁盘，然后再 MacBook 上挂载这个虚拟磁盘</strong>就可以正常进行备份及还原了。</p><!--more--><h3>创建虚拟磁盘</h3><p>打开 MacBook 的 disk 应用，菜单选择：文件 - 新建镜像 - 空白镜像：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/3390003757.png" alt="2021-04-30T00:36:06.png" title="2021-04-30T00:36:06.png"></p><p>设置镜像合适大小，也就是虚拟磁盘的空间，我这里配置 1TB，注意磁盘格式为 macOS 扩展，镜像格式为稀疏磁盘镜像：<br><img src="https://blog.niekun.net/usr/uploads/2021/04/4157435921.png" alt="2021-04-30T00:38:02.png" title="2021-04-30T00:38:02.png"></p><p>点击 <strong>存储</strong> 就生成了磁盘镜像文件了，默认会自动挂载这个镜像，我们手动将其推出。</p><p>也可以通过命令行的方式直接生成镜像文件：</p><pre><code>hdiutil create -size 1024g -type SPARSEBUNDLE -fs &quot;HFS+J&quot; TimeMachine.sparsebundle
@@ -174,7 +235,7 @@ end try
 do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/网络驱动器名/PATH/TO/TimeMachine.sparsebundle&quot;</code></pre><p>脚本另存为 application 格式并 system preference 中加入开机自启动项即可。</p><h3>参考链接</h3><p><a href="https://www.douban.com/note/614980869/">添加Mac的Time Machine备份到smb网络硬盘（windows 共享文件夹）</a><br><a href="https://yanke.info/?id=78">自建Mac TimeMachine局域网无线备份环境</a><br><a href="https://apple.stackexchange.com/questions/162544/how-to-restore-system-from-network-drive">How to restore system from network drive</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2305.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/archives/2305.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[升级 command line tool 后 QT 编译 boost 库报错问题]]></title>
@@ -186,12 +247,13 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
 <summary type="html"><![CDATA[今天打开一个 QT 项目后进行编译发现报错了，查看了下什么都没有修改就比较奇怪了。根据日志是 boost 库出了问题，报错为：Undefined symbols for architecture...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2198.html" xml:lang="zh-CN"><![CDATA[
 <p>今天打开一个 QT 项目后进行编译发现报错了，查看了下什么都没有修改就比较奇怪了。根据日志是 boost 库出了问题，报错为：<strong>Undefined symbols for architecture x86_64</strong>，但是 boost 库是以前编译好的从来没动过。回想起来前几天重新安装了下 command line tool 会不会有关系。</p><!--more--><p>看了下 QT kit 配置里面发现 clang 的设置居然有叹号。重新识别了下系统编译器：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2815337861.png" alt="2021-03-03T12:54:53.png" title="2021-03-03T12:54:53.png"></p><p>然后重建下项目配置：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4082452549.png" alt="2021-03-03T13:01:04.png" title="2021-03-03T13:01:04.png"></p><p>重新编译项目依然有报错。</p><p>最后就是 boost 库的确有问题了。于是我重新编译了一次。居然问题就解决了。</p><p>原来真的是由于系统的 Clang 更新后原来编译的 boost 库不兼容了，在此使用当前系统的 Clang 编译一次就行了。</p><p>boost 库编译方法参考：<a href="https://blog.niekun.net/archives/1174.html">https://blog.niekun.net/archives/1174.html</a></p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2198.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/archives/2198.html" thr:count="0"/>
 </entry>
 <entry>
 <title type="html"><![CDATA[修复 parallels desktop 16 网络无法连接问题]]></title>
@@ -203,6 +265,7 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
     <name>admin</name>
     <uri>https://niekun.net</uri>
 </author>
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
 <summary type="html"><![CDATA[随着升级到 macOS Big Sur 后，虚拟机 parallels desktop 也更新到了 16 版本。我当然是继续安装破解版啦。但是安装好后，启动虚拟机会有一个报错：Network I...]]></summary>
 <content type="html" xml:base="https://blog.niekun.net/archives/2040.html" xml:lang="zh-CN"><![CDATA[
 <p>随着升级到 macOS Big Sur 后，虚拟机 parallels desktop 也更新到了 16 版本。我当然是继续安装破解版啦。</p><p>但是安装好后，启动虚拟机会有一个报错：<strong>Network Initialization Failed</strong>，启动后会发现虚拟机无法联网，网络设置中无法正常在各种模式中切换。</p><p>在寻找解决方案期间，了解到了这可能是由于破解的原因，正版用户没有这个问题。网上有人提供了一个方法，执行一条命令就启动虚拟机就可以正常联网了。但是会导致虚拟机无法访问主机的共享目录及无法访问 USB 设备。而且一旦重启 parallels desktop 后又回恢复之前的状态，我也就没有去做。</p><p>这两天看到网上终于有人找到的解决方法，测试后的确可用，所以介绍给大家参考。</p><!--more--><p>解决的方法都是通过修改相关配置文件实现的。首先需要彻底退出 parallels desktop。</p><h3>网络问题</h3><p>修改 <code>/Library/Preferences/Parallels/network.desktop.xml</code> 文件。</p><p>在终端或者 vs code 中打开这个文件，找到 <code>&lt;UseKextless&gt;</code> 标签，将其中的内容改为 0：</p><pre><code>&lt;UseKextless&gt;0&lt;/UseKextless&gt;
@@ -210,49 +273,6 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
 </code></pre><p>修改完成后保存文件，需要输入账户密码。</p><p>修改完以上两个文件后，重启 parallels desktop 就会发现一切都正常了。</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2040.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[brew 安装路径]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1977.html" />
-<id>https://blog.niekun.net/archives/1977.html</id>
-<updated>2020-12-16T22:04:00+08:00</updated>
-<published>2020-12-16T22:04:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[brew 是 macOS 下流行的包管理工具，可以方便的安装各种工具。brew 默认安装路径为：/usr/local/Cellar，然后会在 /usr/local/opt/ 建立所安装的包的软连...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1977.html" xml:lang="zh-CN"><![CDATA[
-<p>brew 是 macOS 下流行的包管理工具，可以方便的安装各种工具。</p><p>brew 默认安装路径为：<code>/usr/local/Cellar</code>，然后会在 <code>/usr/local/opt/</code> 建立所安装的包的软连接。</p><p>包安装好后如果不能正常执行，可以建立包的可执行程序的软连接到：<code>/usr/local/bin/</code> 目录。</p><p>比如安装 openssl：</p><pre><code>brew install openssl
-</code></pre><p>安装后包的路径为：<code>/usr/local/Cellar/openssl@1.1/1.1.1h</code>。同时包的软连接在：<code>/usr/local/Cellar/openssl</code>。</p><p>这时候执行命令：</p><pre><code>openssl version
-</code></pre><p>返回的并不是刚才安装的版本，而是系统自带的老版本的。这时候可以建立可执行程序的软连接到对应路径：</p><pre><code>ln -s /usr/local/opt/openssl/bin/openssl /usr/local/bin/openssl
-</code></pre><p>这时候执行命令就可以得到正确的返回：</p><pre><code>openssl version
-//OpenSSL 1.1.1h  22 Sep 2020
-</code></pre><p>其他包的模式和此类似。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1977.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[macOS 下使用 QT 部署工具 macdeployqt]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1966.html" />
-<id>https://blog.niekun.net/archives/1966.html</id>
-<updated>2020-12-05T23:53:15+08:00</updated>
-<published>2020-12-05T23:53:15+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<summary type="html"><![CDATA[在 Windows 下可以使用 QT 部署工具：windeployqt 来自动提取可执行程序的依赖库，在 macOS 下同样有部署工具：macdeployqt 实现相同的功能。工具路径在 QT ...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1966.html" xml:lang="zh-CN"><![CDATA[
-<p>在 Windows 下可以使用 QT 部署工具：windeployqt 来自动提取可执行程序的依赖库，在 macOS 下同样有部署工具：macdeployqt 实现相同的功能。</p><p>工具路径在 QT 安装目录的对应编译器 bin 目录下，如：<code>/Users/marconie/Qt/5.15.2/clang_64/bin/macdeployqt</code></p><p>为了方便使用建议将 bin 目录添加到系统 PATH 中，我的终端是 zsh 添加方法如下：</p><p>打开 <code>~/.zshrc</code> 添加如下内容，可以使用 vim 来操作：</p><pre><code>export PATH=$PATH:/Users/marconie/Qt/5.15.2/clang_64/bin</code></pre><p>编辑完成后关闭文件，刷新源：</p><pre><code>source ~/.zshrc
-</code></pre><p>现在就可以直接使用命令了：</p><pre><code>macdeployqt -h
-
-</code></pre><!--more--><p>部署的方法是直接在 macdeployqt 后提供 app 路径：</p><pre><code>macdeployqt path/to/test.app
-</code></pre><p>执行后会自动搜索此 app 需要的 QT 库并打包到 app 内，可以打开 app 包查看相关内容：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/3770174957.jpg" alt="Screen Shot 2020-12-05 at 23.49.48.jpg" title="Screen Shot 2020-12-05 at 23.49.48.jpg"></p><p>如果项目中使用了其他第三方库，此部署工具不会自动提取相关文件，需要手动将相关库文件添加到 <code>app/Contents/Frameworks</code> 文件夹内。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1966.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/" thr:count="0"/>
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/macos/archives/2040.html" thr:count="0"/>
 </entry>
 </feed>

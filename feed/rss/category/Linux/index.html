@@ -9,376 +9,448 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
-<rdf:li resource="https://blog.niekun.net/archives/2826.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2822.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2769.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2749.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2744.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2742.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2705.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2703.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2621.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2613.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Linux-warp.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/openwrt-quic.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/pip.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/nftables.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/openwrt-1.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Linux.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/openwrt.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Linux-ip.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/immich.html"/>
 </rdf:Seq>
 </items>
 </channel>
-<item rdf:about="https://blog.niekun.net/archives/2826.html">
-<title>bash 脚本中使用 ssh 登录并执行命令</title>
-<link>https://blog.niekun.net/archives/2826.html</link>
-<dc:date>2023-06-08T13:16:00+08:00</dc:date>
-<description>通过 ssh 可以远程登录服务器并执行相关操作，常用指令如下：ssh user@address -p 22
-执行命令后会提示输入用户密码才能最终进入。如果在脚本中我们需要通过 ssh 登录用户并执行相关命令的话就有些麻烦了。可以通过安装 sshpass 的方式在脚本中定义 ssh 密码，从而解决需求。安装 sshpass：apt install sshpass
-使用：sshpass -p password ssh user@address -p 22
-通过以上命令就可以直接在一行中定义 ssh 密码从而自动登录了。在脚本中如果需要执行相关命令可以将命令写在 '' 中：sshpass -p password ssh user@address 'cd /tmp; ls; touch test.txt'
-如果要执行的命令较长可以分开写，用 EOF 追加输入，就不用写引号了：sshpass -p password ssh user@address &lt;&lt; EOF
-cd /tmp
-ls
-touch test.txt
-EOF注意结尾也要换行写 EOF 作为追加结束的标识。</description>
+<item rdf:about="https://blog.niekun.net/archives/Linux-warp.html">
+<title>服务器装 warp 解锁 chatgpt</title>
+<link>https://blog.niekun.net/archives/Linux-warp.html</link>
+<dc:date>2024-06-27T15:12:00+08:00</dc:date>
+<description>最近在使用 chatgpt 中发现 ios 端无法登录 app，网页端正常使用。提示信息为：Something went wrong. You may be connected to a disallowed ISP If youare using VPN, try disabling it. Otherwise try a different Wi-Fi network or data connection。经过查询发现是我的 vps 服务商只提供网页端 chatgpt 解锁，不支持 app 端。由于 chatgpt 服务也是通过 cloudflare 的 cdn 服务，所以通过将流量转发到 warp 来访问就可以解决问题。首先需要在服务端安装官方的 warp 命令行工具：warp-cli。官方教程：https://developers.cloudflare.com/warp-client/get-started/linux/官方手动添加包仓库教程：https://pkg.cloudflareclient.com/#ubuntu安装在命令行输入以下指令来安装第三方仓库并安装包：# Add cloudflare gpg key
+curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+
+# Add this repo to your apt repositories
+echo &quot;deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main&quot; | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+
+# Install
+sudo apt-get update &amp;&amp; sudo apt-get install cloudflare-warp配置安装好后需要注册一个新账户：warp-cli registration new
+查看当前账户信息：warp-cli registration show
+更换新的 license：warp-cli registration license xxxxx-xxxxxx-xxxxxx
+然后需要设置代理模式，可选有：warp, doh, warp+doh, dot, warp+dot, proxy, tunnel_only。我只想要它提供一个 socks5 代理端口即可，所以设置为 proxy 模式，它会在本地 40000 端口监听：warp-cli mode proxy
+启动 warp：warp-cli connect
+此时 warp 会在本地 40000 端口建立一个 sock5 代理，只需要将需要转发的流量转发到此端口即可走 warp。并且 warp 会自动配置为 Always On 模式，开机自动运行代理。查看 warp 当前配置：# warp-cli settings
+Merged configuration:
+(derived)       Always On: true
+(default)       Switch Locked: false
+(user set)      Mode: WarpProxy on port 40000
+(Not set)       WARP tunnel protocol: Wireguard
+(default)       Disabled for Wifi: false
+(default)       Disabled for Ethernet: false
+(Not set)       Resolve via: cloudflare-dns.com @ [162.159.36.1, 2606:4700:4700::1111]
+(Not set)       qlog logging: Disabled
+(default)       Onboarding: true
+(API defaults)  Exclude mode, with hosts/ips:
+  10.0.0.0/8
+  100.64.0.0/10
+  169.254.0.0/16
+  172.16.0.0/12
+  192.0.0.0/24
+  192.168.0.0/16
+  224.0.0.0/24
+  240.0.0.0/4
+  239.255.255.250/32
+  255.255.255.255/32
+  fe80::/10
+  fd00::/8
+  ff01::/16
+  ff02::/16
+  ff03::/16
+  ff04::/16
+  ff05::/16
+  fc00::/7
+
+(default)       Fallback domains:
+  intranet
+  internal
+  private
+  localdomain
+  domain
+  lan
+  home
+  host
+  corp
+  local
+  localhost
+  home.arpa
+  invalid
+  test
+(Not set)       Daemon Teams Auth: false
+(default)       Disable Auto Fallback: false
+(Not set)       Allow Updates: true查看代理是否生效：export ALL_PROXY=socks5://127.0.0.1:40000
+curl ifconfig.me代理工具转发流量服务端的配置文件需要添加和修改的地方如下：{
+    &quot;outbounds&quot;: [
+        ...
+        {
+            &quot;protocol&quot;: &quot;socks&quot;,
+            &quot;settings&quot;: {
+                &quot;address&quot;: &quot;127.0.0.1&quot;,
+                &quot;port&quot;: 40000
+            },
+            &quot;tag&quot;:&quot;socks_out&quot;
+        }
+    ],
+    &quot;router&quot;: {
+        &quot;domainStrategy&quot;: &quot;AsIs&quot;,
+        &quot;rule&quot;: [
+            ...
+            {
+                &quot;tag&quot;: &quot;socks_out&quot;,
+                &quot;geoDomain&quot;: [
+                    {
+                        &quot;code&quot;: &quot;openai&quot;,
+                        &quot;filePath&quot;: &quot;geosite.dat&quot;
+                    }
+                ],
+                &quot;domainMatcher&quot;: &quot;mph&quot;
+            }
+        ]
+    },
+    &quot;inbounds&quot;: [
+        {
+            &quot;protocol&quot;: &quot;vmess&quot;,
+            ...
+            &quot;sniffing&quot;: {
+                &quot;enabled&quot;: true,
+                &quot;destOverride&quot;: [
+                    &quot;http&quot;,
+                    &quot;tls&quot;
+                ]
+            },
+            ...注意需要安装扩展版的 geosite.dat 才有 openai 的条目：https://github.com/Loyalsoldier/v2ray-rules-dat通过访问以下网址测试是否已经解锁 ios app 端：https://ios.chat.openai.com/public-api/mobile/server_status/v1以上就是解决 chatgpt 无法访问的方法。</description>
 </item>
-<item rdf:about="https://blog.niekun.net/archives/2822.html">
-<title>Linux 创建新用户并授予 root 权限</title>
-<link>https://blog.niekun.net/archives/2822.html</link>
-<dc:date>2023-06-05T16:54:00+08:00</dc:date>
-<description>Linux 默认会有一个 root 用户，但日常直接使用 root 有一定安全隐患，所以通常情况下我们习惯于创建一个新用户来登录使用，下面介绍常规的建立流程。建立新用户 vpsadmin：adduser vpsadmin
-输入以上命令后会提示输入用户密码，完成后用户 vpsadmin 就建立完成了。安装 sudo 功能(sudo 就是在关键时刻，让普通账户临时获得 root 的能力):apt update &amp;&amp; apt install sudo
-把 vpsadmin 用户加入 sudo 名单里:visudo
-执行后会打开相关配置文件，在 # User privilege specification 栏后加入一行配置即可：# User privilege specification
-root    ALL=(ALL:ALL) ALL
+<item rdf:about="https://blog.niekun.net/archives/openwrt-quic.html">
+<title>屏蔽 quic 流量</title>
+<link>https://blog.niekun.net/archives/openwrt-quic.html</link>
+<dc:date>2024-06-01T15:53:42+08:00</dc:date>
+<description>最近在使用一些服务的时候发现流量没有正确的按照设定的规则走，发现部分网站已经优先支持 quic 也就是 http3 协议了，而这种协议目前一些客户端无法正确解析。解决方法就是将 quic 流量屏蔽掉，让那些网站强制走 http 或 http2 即可。quic 协议走的是 udp 层，一般是 443 或 80 端口。openwrt 或其他 linux 系统上使用 nftables 设置规则即可：新建路由表
+nft add table ip tabletest
 
-vpsadmin ALL=(ALL) NOPASSWD: ALL最上面的 root 表示能使用 sudo 命令的用户：第一个ALL表示允许使用sudo的主机；第二个ALL及第三个ALL表示用户组及用户；第四个ALL表示sudo可执行的命令，即所有命令；在有的系统中也简写做：root ALL=(ALL) ALL最下面我们自己添加的 vpsadmin 是需要授权可以使用 root 权限的用户，配置中 NOPASSWD 的意思是在使用 root 权限的时候在命令前输入 sudo 即可，确认后无需输入 root 密码，这样在使用中可以不用频繁的输入密码。如果你想要遵循常规的使用 sudo 时都输入密码，将配置改为：vpsadmin ALL=(ALL:ALL) ALL 即可。重新登录用户即可完成配置查看效果。参考链接：安全防护篇</description>
+# 局域网流量屏蔽
+# 局域网流量目标地址是外部地址时传输路径为 prerouting -&gt; forward -&gt; postrouting hooks
+nft add chain ip tabletest prerouting { type nat hook prerouting priority 0 \; policy accept \; }
+nft add rule ip tabletest prerouting udp dport { 80, 443 } drop
+
+# 本机网关流量屏蔽
+# 本机网关流量目标地址时外部地址时传输路径为 本机 -&gt; output -&gt; postrouting hooks
+nft add chain ip tabletest output { type nat hook output priority 0 \; policy accept \; }
+nft add rule ip tabletest output udp dport { 80, 443 } drop在 Chrome 中禁用 HTTP/3：打开 Chrome 浏览器在地址栏输入 chrome://flags 并按回车。在搜索框中输入 quic。将 Experimental QUIC protocol 设置为 Disabled。重启浏览器。在 Firefox 中禁用 HTTP/3：打开 Firefox 浏览器。在地址栏输入 about:config 并按回车。接受风险提示。搜索 network.http.http3.enabled。-将其值设置为 false。</description>
 </item>
-<item rdf:about="https://blog.niekun.net/archives/2769.html">
-<title>Ubuntu 安装 FTP server</title>
-<link>https://blog.niekun.net/archives/2769.html</link>
-<dc:date>2022-09-16T09:28:00+08:00</dc:date>
-<description>虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。系统平台：Ubuntu server 20.04安装 vsftpd主要是通过 vsftpd 实现 ftp 功能的，首先安装：apt update &amp;&amp; apt install vsftpd
-安装好后，vsftpd 会自动启动，可以查看当前运行状态：systemctl status vsftpd
+<item rdf:about="https://blog.niekun.net/archives/pip.html">
+<title>修改 pip 为国内源</title>
+<link>https://blog.niekun.net/archives/pip.html</link>
+<dc:date>2024-05-30T20:02:55+08:00</dc:date>
+<description>一键替换命令：# 清华源
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
-● vsftpd.service - vsftpd FTP server
-     Loaded: loaded (/lib/systemd/system/vsftpd.service; enabled; vendor preset: enabled)
-     Active: active (running) since Mon 2020-04-27 19:35:30 IST; 13s ago
-   Main PID: 54532 (vsftpd)
-      Tasks: 1 (limit: 1137)
-     Memory: 652.0K
-     CGroup: /system.slice/vsftpd.service
-             └─54532 /usr/sbin/vsftpd /etc/vsftpd.conf
+# 阿里源
+pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
 
-Apr 27 19:35:30 ubuntu systemd[1]: Starting vsftpd FTP server...
-Apr 27 19:35:30 ubuntu systemd[1]: Started vsftpd FTP server.设置为开机自动启动：systemctl enable vsftpd
-创建 ftp 用户默认安装好后，会自动创建一个 ftp 用户，这个用户经过我测试无法登录 ftp 服务，这里我们自己创建一个新用户用于登录 ftp，这里创建用户名为 ftpuser：adduser ftpuser
-期间会提示输入创建用户的密码。我们只需要这个新用户登录 ftp 不需要它能够访问 ssh 服务，所以下面我们将这个用户排除在 ssh 用户之外，编辑 /etc/ssh/sshd_config 文件，在最后一行添加以下内容：DenyUsers ftpuser保存后重启 ssh 服务：sudo service sshd restart
-ftp 目录及权限我们新建一个用于 ftp 的目录：mkdir /home/www/ftp
-将此目录所有者设置为上面创建的 ftpuser：chown -R ftpuser:ftpuser /home/www/ftp
-默认情况下 ftp 目录的根路径不允许有写权限，否则链接的时候会报错，所以我们取消这个文件夹的对应权限：chmod a-w /home/www/ftp
-如果想要上传文件，我们可以在这个文件夹内新建一个文件夹专门用来上传：mkdir /home/www/ftp/uploads
-同样的文件夹所有者为 ftpuser：chown -R ftpuser:ftpuser /home/www/ftp/uploads
-vsftpd 配置文件vsftpd 配置文件路径为：/etc/vsftpd.conf，打开并修改如下设置，最后一行配置文件中没有的话需要自己创建一下：listen=NO
-listen_ipv6=YES
-anonymous_enable=NO
-local_enable=YES
-write_enable=YES
-local_umask=022
-dirmessage_enable=YES
-use_localtime=YES
-xferlog_enable=YES
-connect_from_port_20=YES
-chroot_local_user=YES
-secure_chroot_dir=/var/run/vsftpd/empty
-pam_service_name=vsftpd
+# 腾讯源
+pip config set global.index-url http://mirrors.cloud.tencent.com/pypi/simple
 
-local_root=/home/www/ftp
-#allow_writeable_chroot=YES修改完成后重启服务：systemctl restart vsftpd
-此时就可以使用 ftp 客户端连接到 ftp 服务器了。如果登录的时候提示：500 oops vsftpd refusing to run with writable root inside chroot()，报错，则简单的方法就是在 /etc/vsftpd.conf 添加一句：allow_writeable_chroot=YES，然后重启 vsftpd 服务即可。为了更加安全，推荐配置 ssl 证书，可以参考：Secure FTP with TLS (Recommended)以上就是 ftp server 的简单安装及配置教程。参考链接How To Install an FTP server (vsftpd) on Ubuntu 20.04/20.10FTP Server</description>
+# 豆瓣源
+pip config set global.index-url http://pypi.douban.com/simple/
+
+# 换回默认源
+pip config unset global.index-url</description>
 </item>
-<item rdf:about="https://blog.niekun.net/archives/2749.html">
-<title>Miniflux 搭建自己的 RSS 服务系统</title>
-<link>https://blog.niekun.net/archives/2749.html</link>
-<dc:date>2022-08-12T14:50:00+08:00</dc:date>
-<description>一直在使用 feedly 作为 rss 订阅器阅读文章，基本可以满足我的需求，但是部分站点只能预览摘要，想要阅读全文还打开文章链接。最近发现一个开源免费的 rss 系统，他的特点就是轻量无多于内容，致力于阅读体验。同时我发现他的一些独有功能，可以在文章只显示摘要时，有一个下载全文的选项，这样就实现了大部分文章在 rss 阅读器中就可以阅读全文的需求了。Miniflux 需要自己部署在服务器上，它提供了多种安装方法，最简单的就是 docker 方式，避免手动配置环境及数据库等步骤。我的系统环境：Ubuntu server 20.04Miniflux 官网：https://miniflux.app/GitHub 主页：https://github.com/miniflux/v2安装这里介绍通过 docker compose 安装的方法，关于 docker 环境的部署参考我的教程：https://blog.niekun.net/archives/2742.html#title-1新建 miniflux 文件夹用来放置相关配置：mkdir miniflux
-cd miniflux
-然后建立 docker-compose.yml 配置文件，内容如下：version: '3.4'
-services:
-  miniflux:
-    image: ${MINIFLUX_IMAGE:-miniflux/miniflux:latest}
-    container_name: miniflux
-    restart: always
-    ports:
-      - &quot;18080:8080&quot;
-    depends_on:
-      - db
-    environment:
-      - DATABASE_URL=postgres://miniflux:secret@db/miniflux?sslmode=disable
-      - BASE_URL=https://miniflux.your.domain
-      - RUN_MIGRATIONS=1
-      - CREATE_ADMIN=1
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=test123
-      - DEBUG=1
-    # Optional health check:
-    # healthcheck:
-    #  test: [&quot;CMD&quot;, &quot;/usr/bin/miniflux&quot;, &quot;-healthcheck&quot;, &quot;auto&quot;]
-  db:
-    image: postgres:latest
-    container_name: postgres
-    restart: always
-    environment:
-      - POSTGRES_USER=miniflux
-      - POSTGRES_PASSWORD=secret
-    volumes:
-      - miniflux-db:/var/lib/postgresql/data
-    healthcheck:
-      test: [&quot;CMD&quot;, &quot;pg_isready&quot;, &quot;-U&quot;, &quot;miniflux&quot;]
-      interval: 10s
-      start_period: 30s
-volumes:
-  miniflux-db:其中需要自行根据实际情况修改一些内容：port 端口的主机映射，这里我使用了 18080 映射容器内的 8080 端口BASE_URL 设置需要访问 miniflux 服务的域名地址，后面需要配置反向代理ADMIN_USERNAME 设置管理员用户名ADMIN_PASSWORD  设置管理员用户密码敏感的环境变量值可以单独放在同配置文件路径下的 .env 文件中，上面的 docker 安装教程中有介绍。注意 DATABASE_URL 地址中的 postgres 用户名密码对应于 POSTGRES_USER 和 POSTGRES_PASSWORD 的值，需要保持一致。然后就可以启动容器：docker-compose up -d
-反代配置首先如果需要解析到二级域名下，先要在 ns 服务端添加二级域名的 A 记录，然后才能正常解析 url。使用域名访问 miniflux 服务，需要通过主机使用的反代软件配置解析，我服务器使用的是 nginx，下面介绍配置方法。给 nginx 配置添加如下内容：server {
-    listen        443 ssl http2;
-    listen        [::]:443 ssl http2;
-    server_name   miniflux.your.domain;
-    include       my-server/ssl;
+<item rdf:about="https://blog.niekun.net/archives/nftables.html">
+<title>nftables 使用教程</title>
+<link>https://blog.niekun.net/archives/nftables.html</link>
+<dc:date>2024-05-08T10:14:00+08:00</dc:date>
+<description>新版本的 openwrt 使用 fw4 防火墙，默认已经从 iptables 切换到了 nftables，语法有了很大的变化，下面介绍 nftables 的使用方法。路由表配置路由表是 nftables 中最顶层的容器，它管理着  chains, sets, maps, flowtables, 和 stateful objects.family 集合每个路由表都只能属于一个 family 集合，可用的 family 有：ip      监听 ipv4 的流量ip6     监听 ipv6 的流量inet    同时监听 ipv4 和 ipv6 的流量arp     监听 ARP-level 地址解析协议的流量bridge  监听 bridge 桥接流量 如交换机netdev  用于监听某个单独网卡的流量基本语法新建路由表：nft add table ip tabletest
+以上命令在 ip 集合中新建一个名称为 tabletest 的路由表，可以处理 ipv4 流量路由表列表：# 列出所有路由表
+nft list tables
 
-    location / {
-        proxy_pass          http://127.0.0.1:18080;
-        proxy_redirect      off;
+# 列出所有 ip 集合的路由表
+nft list tables ip删除一个路由表：nft delete table ip tabletest
+路由链配置不同于 iptables，nftables 没有预定义的链，如 input output 等。想要在某个环节处理流量，需要定义一个自定义名称的基本链，然后将其挂载在一个特定的 netfilter hook 钩子上。下图是流量包在 linux 网络中的传输路径：外部访问流量传输到本机后如果目标地址是本机，流量传输路径是 prerouting -&gt; input hooks -&gt; 本机，然后经过本机处理后流向  本机 -&gt; output -&gt; postrouting hooks。如果传入本机的外部流量目标地址不是本机，则受 forward hook 监听，这类流量的传输路径是 prerouting -&gt; forward -&gt; postrouting。本机访问外部地址的流量传输路径是 本机 -&gt; output -&gt; postrouting hooks。注意如果本机作为 router 路由使用，需要提前开启 ip 转发功能：echo 1 &gt; /proc/sys/net/ipv4/ip_forward
+以下是 netfilter 可用的 chains 和 hooks 列表：基本语法建立基本链，挂载在一个特定 type 的 netfilter hook：nft add chain [&lt;family&gt;] &lt;table_name&gt; &lt;chain_name&gt; { type &lt;type&gt; hook &lt;hook&gt; priority &lt;value&gt; \; [policy &lt;policy&gt; \;] [comment \&quot;text comment\&quot; \;] }
+注意，由于 nft 语法使用了特殊字符，如: ;，在命令行中执行需要加转义符 \。或者可以使用单引号 '` 将 nft 后的语句包起来，以下两种写法效果相同：nft add chain ip tabletest input { type filter hook input priority 0 \; }
+nft 'add chain ip tabletest input { type filter hook input priority 0 ; }'
+另一种方法是运行 nft 在交互模式，执行以下命令后就可以不加转义符: nft -i。上面的命令在 tebletest 路由表中新建一个 input 链，挂载在 filter 路由链的 input hook 上。这样就可以监听所有进入本地的流量。priority 决定了所有链的顺序，例如在 filter input hook 上挂载了多个自定义链，通过 priority 决定其执行顺序。数值越低执行优先级越高，例如 -12, -1, 0, 10。如果给多个挂载在同一个 hook 上的自定义基本链同样的 priority，它们的先后执行顺序就是不确定的。添加以下命令后就可以在 tabletest 基本链中监听本机输出的流量：nft 'add chain ip tabletest output { type filter hook output priority 0 ; }'
+如果不定义大括号中的内容，也就是不挂载在特定 hook 上，则路由链不会监听任何流量。policy 定义了默认的策略，可用的默认策略为：accept 和 drop，如果路由链中的规则都没有匹配则会应用默认策略：accept 没有匹配到的流量继续在网络层传输drop   没有匹配到的流量被丢弃type 指定自定义路由链挂载到那个基本 chain，可用的基本链：filter, 用于过滤流量包route, 用于重路由，等同于 iptables 的 mangle 路由链的 output hook (其他 mangle hooks 可以使用 filter 代替)nat, 用于运行 Networking Address Translation (NAT). 只有第一个 nat 流量包会匹配到此链剩余的包会跳过此链，因此尽量不要使用此链过滤流量hook 定义了挂载的基本链 hook，可用的 hooks 如下：ingress 只能用于 netdev 和 inet family: 监听来自于 NIC driver 的流量, 早于 prerouting.prerouting: 监听所有在 routing 前的入口流量. 流量可能重定向到 local 或 remote systems.input: 监听所有被路由或重定向到 local system 的入口流量forward: 监听所有不被重定向到 local system 的入口流量output: 监听所有在 local machine 被管理的出口流量postrouting: 监听所有被路由后的即将离开 local system 的出口流量列出一个路由表的所有路由链：nft list ip table tabletest
+列出一个路由表的指定路由链：nft list chain ip tabletest output
+comment 可以给规则添加注释：nft add rule ip tabletest input counter comment \&quot;test comment\&quot;
+基本规则配置通过规则可以控制路由链上的流量。基本语法添加规则：nft add rule ip tabletest output ip daddr 8.8.8.8 counter
+以上命令会在 tabletest 路由表的 output 链中添加一条规则，匹配出口流量中 ip 地址为 8.8.8.8 的流量并对匹配次数计数，nftables 中 counter 会默认启用即使不写。以上命令相当于 iptables 中的 -A 命令。列出某个链包含的规则：root@OpenWrt:~# nft list chain ip tabletest output
+table ip tabletest {
+        chain output {
+                type filter hook output priority filter; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0
+        }
+}下面测试以上规则是否生效，执行以下命令：ping -c 1 8.8.8.8再次查看此链的规则：root@OpenWrt:~# nft list chain ip tabletest output
+table ip tabletest {
+        chain output {
+                type filter hook output priority filter; policy accept;
+                ip daddr 8.8.8.8 counter packets 1 bytes 84
+        }
+}可以看到已经有一次计数了。指定位置添加规则：nftables 中必须通过 handle num 编号来在指定位置添加规则，需要通过 -a 查看链中已经存在的规则的编号：nft -n -a list table ip tabletest
+-n 可以按数字顺序排号避免出现重复编号。再次查看链中的规则：root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+        }
+}handle 5 就是这条规则的编号。下面我们通过 handle 索引在这条规则后添加一条新规则：nft add rule ip tabletest output position 5 ip daddr 127.0.0.8 drop
+查看链中的规则：root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+                ip daddr 127.0.0.8 drop # handle 6
+        }
+}如果要在某条规则前插入一条规则需要使用 insert 指令：nft insert rule ip tabletest output position 5 ip daddr 127.1.1.8 drop
+查看效果：root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 127.1.1.8 drop # handle 7
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+                ip daddr 127.0.0.8 drop # handle 6
+        }
+}在某条链最前面添加一条规则：nft insert rule ip tabletest output ip daddr 192.168.2.1 counter
+在最前面添加规则就不需要指定 handle 了。替换某条规则：替换一条规则也需要 handle 编号。下面示例会替换 handle 5 为新的规则：nft replace rule ip tabletest output handle 5 ip daddr 1.1.1.1
+删除规则：同样的，删除某一条规则也需要获取这条规则的 handle 编号。删除 tabletest 链的 handle 7 规则： nft delete rule ip tabletest output handle 7
+删除链中所有规则：nft flush chain ip tabletest output
+删除路由表中所有链的所有规则：nft flush table ip tabletest
+ruleset 层级的操作显示所有 family 的所有 rule 规则：nft list ruleset
+显示某一个集合的所有 rule： % nft list ruleset arp
+ % nft list ruleset ip
+ % nft list ruleset ip6
+ % nft list ruleset bridge
+ % nft list ruleset inet清除所有集合的所有规则：nft flush ruleset
+清除某一个集合的所有规则： % nft flush ruleset arp
+ % nft flush ruleset ip
+ % nft flush ruleset ip6
+ % nft flush ruleset bridge
+ % nft flush ruleset inet备份规则到文件：# 备份所有集合的所有规则
+nft list ruleset &gt;&gt; backup.nft
 
-        proxy_set_header    Host              $host;
-        proxy_set_header    X-Forwarded-Host  $host;
-        proxy_set_header    X-Real-IP         $remote_addr;
-        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header    X-Forwarded-Proto $scheme;
-        proxy_set_header    Upgrade           $http_upgrade;
-        proxy_set_header    Connection        &quot;upgrade&quot;;
-        proxy_http_version  1.1;
+# 备份 ip 集合的所有规则
+nft list ruleset ip &gt;&gt; backup.nft从文件恢复规则：nft -f backup.nft
+以 json 格式显示所有规则：nft --json list ruleset
+流量元信息匹配通过 meta 选择器可以进行流量匹配或流量设置。下面简单介绍几个常用的匹配模式，更加详细的参考官方资料：https://wiki.nftables.org/wiki-nftables/index.php/Matching_packet_metainformationiifname 匹配网卡名称：# lo 网卡的入口流量会被接收
+nft add rule tabletest input meta iifname lo acceptmark 匹配流量标记：# 流量标记为 123 的出口流量计数
+nft add rule tabletest output meta mark 123 counterskgid 匹配流量由特定 gid 用户产生的数据：# 匹配来自 gid 用户 1000 的流量
+nft add rule tabletest output meta skgid 1000 counter流量头信息匹配通过 ip {saddr | daddr}  可以匹配 ipv4 的源流量或目标流量：# 匹配来自 192.168.1.100 且去往 192.168.1.1 的流量并计数
+# 注意本机地址必须为 192.168.1.1 才可以由 input hook 截获
+nft add rule ip tabletest input ip saddr 192.168.1.100 ip daddr 192.168.1.1 counter通过 icmp type 关键词来匹配 icmp 流量，如 ping request：nft add rule ip tabletest input icmp type echo-request counter drop
+可以通过命令查询所有可用的 icmp type 类型：root@OpenWrt:~# nft describe icmp type
+payload expression, datatype icmp_type (ICMP type) (basetype integer), 8 bits
+
+pre-defined symbolic constants (in decimal):
+        echo-reply                                         0
+        destination-unreachable                            3
+        source-quench                                      4
+        redirect                                           5
+        echo-request                                       8
+        router-advertisement                               9
+        router-solicitation                               10
+        time-exceeded                                     11
+        parameter-problem                                 12
+        timestamp-request                                 13
+        timestamp-reply                                   14
+        info-request                                      15
+        info-reply                                        16
+        address-mask-request                              17
+        address-mask-reply                                18通过 ip protocol 匹配 ip family 任意类型的协议：# 匹配所有 tcp 流量
+nft add rule ip tabletest output ip protocol tcp
+
+# 匹配所有 tcp udp 流量
+nft add rule ip tabletest output ip protocol { tcp, udp }通过 meta l4proto 匹配 inet family 任意类型的协议：# tabletest 需要定义为 inet 集合
+nft add rule inet tabletest output meta l4proto tcp匹配特定端口的流量：# 丢弃所有端口为 1-1024 的 tcp 流量访问本机
+nft add rule ip tabletest input tcp dport 1-1024 counter drop流量匹配动作accept 和 dropdrop 可以对匹配的流量直接丢弃，注意 drop 不能和其他动作组合使用：nft add rule ip tabletest input ip protocol udp drop
+accept 可以对匹配的流量接收，可以和其他动作组合使用 如 counter 计数：nft add rule ip tabletest input counter accept
+reject 流量不同于 drop，reject 可以在拒绝流量的基础上进行很多其他动作，如返回给源请求地址无法访问的原因等。如果不指定其他动作，默认会返回源地址一个 ICMP/ICMPv6 port unreachable 的流量包。示例如下：# 拒绝所有 input 的 udp 流量
+nft add rule ip tabletest input ip protocol udp reject
+
+# 拒绝指定流量并返回 icmp host-unreachable
+nft add rule ip tabletest input reject with icmp type host-unreachableicmp 可用如下原因：net-unreachable: Destination network unreachable
+host-unreachable: Destination host unreachable
+prot-unreachable: Destination protocol unreachable
+port-unreachable: Destination port unreachable (this is the default)
+net-prohibited: Network administratively prohibited
+host-prohibited: Host administratively prohibited
+admin-prohibited: Communication administratively prohibitedjump 跳转到其他 chain注意只能跳转到同一个路由表的其他 chain。首先我们新建一个 chain：nft add chain ip tabletest tcp-chain
+然后定义这个链的规则：nft add rule ip tabletest tcp-chain counter
+然后可以定义将所有匹配的流量跳转过去：ft add rule ip tabletest input ip protocol tcp jump tcp-chain
+以上示例实现的就是将所有 input 的 tcp 流量跳转到 tcp-chain 计数，然后就返回原始 input 环节继续流转。log 日志通过 log 可以记录匹配到的流量信息，在系统日志中可以查看到。下面是一个示例，可以记录所有对本机的 ping 请求：nft add rule ip tabletest input icmp type echo-request log prefix \&quot;New ping request: \&quot; accept从局域网对本机进行 ping 后，系统日志如下：Thu May  9 11:58:04 2024 kern.warn kernel: [ 3741.786865] New ping request: IN=br-lan OUT= MAC=00:0c:29:c5:39:8d:00:50:56:c0:00:02:08:00 SRC=192.168.244.2 DST=192.168.244.1 LEN=60 TOS=0x00 PREC=0x00 TTL=128 ID=49655 PROTO=ICMP TYPE=8 CODE=0 ID=1 SEQ=6609网络地址转换nat 链类型可以执行网络地址转换的功能，这种链类型有其特有的属性：流量中只有第一个包会被用来进行匹配规则流量包中后续的流量不会被检查nat 链类型特有的规则赋予其他链类型会报错先定义一个 nat 类型的基本链：nft add chain ip tabletest postrouting { type nat hook postrouting priority 0 \; }
+以上定义了一个 nat 类型的基本链挂载在 postrouting hook 上。snat 表示源地址。下面的规则可以将来自 192.168.1.0/24 从 eth0 网卡发出的流量在发送出去的时候，将源地址修改为 1.2.3.4nft add rule ip tabletest postrouting ip saddr 192.168.1.0/24 oif eth0 snat to 1.2.3.4
+也可以定义一个地址范围：# 将所有 tcp 流量的源地址都修改为指定的ip范围内
+nft add rule ip tabletest postrouting ip protocol tcp snat ip to 10.0.0.1-10.0.0.100:3000-4000下面介绍如何修改目标地址，再定义一个 nat 类型的基本链：nft add chain ip tabletest prerouting { type nat hook prerouting priority 0 \; }
+以上定义了一个 nat 类型的基本链挂载在 prerouting hook 上。dnat 表示目标地址。下面规则会将要进入 eth0 的 tcp 80 443 端口的流量的目标地址改为 192.168.1.120 也就是重定向：nft 'add rule ip tabletest prerouting iif eth0 tcp dport { 80, 443 } dnat to 192.168.1.120'
+redirect 是一种特殊的 dnat，它会将流量重定向到本机设备上：nft add rule ip tabletest prerouting tcp dport 22 redirect to 2222
+以上规则会将进入的 tcp 22 端口的流量转发到本机 2222端口上。需要注意的是 redirect 只能应用于 nat 链类型的 prerouting 和 output hooks。设置流量包元信息设置 mark 标记：nft add rule ip tabletest output mark set 123
+set 架构nftables 提供了 set 架构可以用任意支持的选择器来搭建 sets。匿名 set匿名 set 是直接定义在 rule 内的 set，它没有特定的名称，也不可以更新 set 中的元素，下面是一个示例：nft add rule ip tabletest output tcp dport { 22, 23 } counter
+{ 22, 23 } 就属于一个匿名 set。规则会去尝试匹配 set 中的每个元素。非匿名 set可以通过 nft add set 来创建一个有名称的 set，例如：nft add set ip tabletest blackhole { type ipv4_addr \; comment \&quot;drop all packets from these hosts\&quot; \; }
+blackhole 就是这个 set 的名称，后续可以再 rule 中使用。set 类型指定是 ipv4 数据。set 名称需要小于等于16个字符，comment 注释是可选项。可用的 type 类型有：ipv4_addr: IPv4 addressipv6_addr: IPv6 address.ether_addr: Ethernet address.inet_proto: Inet protocol type.inet_service: Internet service (read tcp port for example)mark: Mark type.ifname: Network interface name (eth0, eth1..)建立好之后就可以往 set 里添加元素了：nft add element ip tabletest blackhole { 192.168.3.4 }
+nft add element ip tabletest blackhole { 192.168.1.4, 192.168.1.5 }如果要添加一个 ip 网段则需要将 set 定义 flags interval：nft add set ip tabletest blackhole { type ipv4_addr \; flags interval \; }
+然后就可以添加一个 ip 网段了：nft add element ip tabletest blackhole { 192.168.1.0/24 }
+可以查询 set 中现有的元素：root@OpenWrt:~# nft list set ip tabletest blackhole
+table ip tabletest {
+        set blackhole {
+                type ipv4_addr
+                comment &quot;drop all packets from these hosts&quot;
+                elements = { 192.168.1.4, 192.168.1.5,
+                             192.168.3.4 }
+        }
+}下面就可以通过 set 名称在 nftables 规则中应用：nft add rule ip tabletest input ip saddr @blackhole drop
+nft add rule ip tabletest output ip daddr != @blackhole accept以上就是 natables 的基本用法。参考链接nftables HOWTO documentation pageNftables familiesNetfilter hooksOperations at ruleset level</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html">
+<title>通过 dnsmasq nftset 和 nftables 对域名流量的控制</title>
+<link>https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html</link>
+<dc:date>2024-05-07T10:31:00+08:00</dc:date>
+<description>最近升级路由器系统到 openwrt 23，发现 dnsmasq-full 已经默认不支持 ipset 转而支持 nftset 了，所以之前的教程：通过 dnsmasq ipset 和 iptables 对域名流量的控制 已经不适用新版本系统。下面介绍如何通过 nfset 和 nftables 实现同样的功能。首先查看 dnsmasq 版本是否支持 nftset：root@OpenWrt:~# dnsmasq -v
+Dnsmasq version 2.90  Copyright (c) 2000-2024 Simon Kelley
+Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack no-ipset nftset auth cryptohash DNSSEC no-ID loop-detect inotify dumpfile可以看到其中有 nftset 字样，如果没有就需要安装 dnsmasq-full，安装教程参考：dnsmasq 使用教程。nftables 提供 set 功能可以在一个路由表中建立特定名称一个 ip 库，并通过命令 ip daddr 索引库里的地址。关于 nftables 的使用教程参考：nftables 使用教程先建立一个任意名称的路由表：nft add table tabletest
+然后给这个路由表建立一个名称为 iplist 的 ip 库，类型定义为 ipv4 地址：nft add set ip tabletest iplist { type ipv4_addr\; }
+如果要添加一个 ip 网段，必须定义 ip 库属性：flags intervalnft add set ip tabletest iplist { type ipv4_addr \; flags interval \; }
+现在就可以给这个 ip 库里添加 ip 地址了，命令如下：nft add element ip tabletest iplist { 111.22.33.4 };
+nft add element ip tabletest iplist { 111.22.33.4/16 };
+可以通过命令查看这个 ip 库里包含的所有地址：root@OpenWrt:~# nft list set ip tabletest iplist
+table ip tabletest {
+        set iplist {
+                type ipv4_addr
+                flags interval
+                elements = { 111.22.33.4, 111.22.33.4/16 }
+        }
+}通过 dnsmasq 配置文件也可以添加指定域名解析出的 ip 地址到 nftset 对应 ip 库列表中，例如在 /etc/dnsmasq.conf 配置文件中添加以下指令：nftset=/qq.com/4#ip#tabletest#iplist
+重启 dnsmasq 服务：service dnsmasq restart
+查询一下 qq.com 的 ip 地址：root@OpenWrt:~# nslookup qq.com
+Server:         127.0.0.1
+Address:        127.0.0.1:53
+
+Non-authoritative answer:
+Name:   qq.com
+Address: 157.255.219.143再次查看 iplist 表里包含的 ip 地址：root@OpenWrt:~# nft list set ip tabletest iplist
+table ip tabletest {
+        set iplist {
+                type ipv4_addr
+                flags interval
+                elements = { 111.22.33.4, 111.22.33.4/16, 157.255.219.143 }
+        }
+}可以看到 qq.com 解析出来的 ip 地址已经放入了 iplist 表中。nftables 可以识别并处理 nftset 表中的 ip 地址，这样就可以做到对指定域名的流量控制。新建的自定义路由表需要首先指定某个动作链条属于什么动作链类型。如：# 定义 tabletest 的 output 链，类型为 filter 路由链的动作链 &quot;output&quot;
+# 优先级 0 表示：(在任何路由决策前捕获传入数据包)
+# 策略为 accept 表示没有匹配流量后继续传入后续路由表及规则进行匹配
+nft add chain tabletest output { type filter hook output priority 0 \; policy accept \; }
+
+# 定义 tabletest 的 prerouting 链，类型为 NAT 路由链的动作链 &quot;prerouting&quot;
+nft add chain tabletest prerouting { type nat hook prerouting priority 0 \; policy accept \; }nftables 规则处理 set 库里 ip 地址的流量：# 屏蔽本机对 iplist 库中 ip 地址的访问
+nft add rule tabletest output ip daddr @iplist drop
+
+# 目标地址为 set 库地址的prerouting tcp 流量转发到指定端口
+nft add rule tabletest prerouting ip daddr @iplist ip protocol tcp redirect to :1081列出指定路由表定义的规则：root@OpenWrt:~# nft list table tabletest
+table ip tabletest {
+        set iplist {
+                type ipv4_addr
+                flags interval
+                elements = { 111.22.33.4, 111.22.33.4/16, 157.255.219.143 }
+        }
+
+        chain output {
+                type filter hook output priority filter; policy accept;
+                ip daddr @iplist drop
+        }
+
+        chain prerouting {
+                type nat hook prerouting priority filter; policy accept;
+                ip daddr @iplist ip protocol tcp redirect to :1081
+        }
+}删除一个路由表：nft delete table tabletest
+删除一个路由表中所有规则，保留路由链定义：nft flush table tabletest
+删除指定路由表中某个路由链中的所有规则：nft flush chain tabletest output
+参考链接fw4 Filtering traffic with IP sets by DNSnftablesSimple rule managementConfiguring tablesConfiguring Shadowsocks rules with nftset in OpenWRT 23</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/openwrt-1.html">
+<title>openwrt 系统升级</title>
+<link>https://blog.niekun.net/archives/openwrt-1.html</link>
+<dc:date>2024-04-02T10:26:03+08:00</dc:date>
+<description>小版本升级小版本升级，例如 19.05-&gt; 19.07。这种小版本的升级最方便的就是通过 Attended Sysupgrade 功能，可以保留已安装的包和系统设置。最大限度地无缝过渡。官方介绍：https://openwrt.org/docs/guide-user/installation/attended.sysupgrade需要先安装 Attended Sysupgrade luci 界面包：opkg install luci-app-attendedsysupgrade
+建议使用此功能前依然做一次数据备份。然后重新登录 luci，在 system - Attended Sysupgrade 找到入口，点击 search for firmware upgrade 即可在线搜索可更新的系统。大版本升级最方便的就是通过 luci 界面升级系统，目前支持直接升级的大版本顺序是：19.07 &gt; 21.02 &gt; 22.03 &gt; 23.05。大版本升级改动openwrt 21：https://openwrt.org/releases/21.02/notes-21.02.0WPA3 support included by defaultTLS and HTTPS support included by defaultLuCI is now available over HTTPSInitial DSA support replaces the swconfig systemNew network configuration syntax and board.json changeKernel with container supportopenwrt 22：https://openwrt.org/releases/22.03/notes-22.03.0Firewall4 based on nftables，superseding the iptables-based firewall3Dark mode in LuCIopenwrt 23：https://openwrt.org/releases/23.05/notes-23.05.0Switch from wolfssl to mbedtls as default，TLS 1.3 SupportRust Package Support数据备份每个版本升级实际上就是重新刷入了一次固件，所以之前的配置文件什么的基本上都会被覆盖，所以系统内修改过的配置最好做一次备份。打开 luci 界面，选择 system - backup/flash firmware，在 configuration 菜单栏中将需要保存的文件或目录定义出来，然后在 action 菜单栏中选择 backup - generate archive 即可保存备份到本地。已安装包列表可以通过 awk 脚本识别出自己手动安装的包列表，方便更新系统后安装回去，下载脚本：https://github.com/richb-hanover/OpenWrtScripts/blob/main/opkgscript.sh执行以下命令会保存已安装的包列表到 /etc/config/opkg.installed：opkgscript.sh -v write
+执行以下命令会识别并安装 /etc/config/opkg.installed 列表中的包：opkgscript.sh -v install
+也可以执行以下 awk 脚本可以单独列出自己手动安装的包列表：#!/usr/bin/awk -f
+BEGIN {
+    ARGV[ARGC++] = &quot;/usr/lib/opkg/status&quot;
+    cmd=&quot;opkg info busybox | grep '^Installed-Time: '&quot;
+    cmd | getline FLASH_TIME
+    close(cmd)
+    FLASH_TIME=substr(FLASH_TIME,17)
+}
+/^Package:/{PKG= $2}
+/^Installed-Time:/{
+    INSTALLED_TIME= $2
+    # Find all packages installed after FLASH_TIME
+    if ( INSTALLED_TIME &gt; FLASH_TIME ) {
+        cmd=&quot;opkg whatdepends &quot; PKG &quot; | wc -l&quot;
+        cmd | getline WHATDEPENDS
+        close(cmd)
+        # If nothing depends on the package, it is installed by user
+        if ( WHATDEPENDS == 3 ) print PKG
     }
-}以上配置需要根据实际情况修改监听端口及 domain，由于之前配置的 miniflux 的映射端口是 18080，所以反代到本地的对应端口即可。以上 miniflux 和 nginx 反代配置完成后应该就可以访问 https://miniflux.your.domain 了。用户名密码就是 docker 配置文件中定义的管理员账户及密码：使用如果某一篇文章不显示全文，只需要点击文章顶部的 download 按钮即可加载全文：miniflux 提供了丰富的 api 接口可供二次开发使用，通过简单的请求就可以获取到文章的各种信息，返回数据为 json 格式。官方 api 文档参考：https://miniflux.app/docs/api.html</description>
+}
+EOF保存以上内容到 listuserpackages.awk 文件中并执行即可列出用户自行安装包列表。下载升级固件x86 版本的 openwrt 的升级固件就是全新安装时候用的固件，直接在官网下载需要版本的 gz 压缩包即可。下载地址：https://downloads.openwrt.org/releases/我下载的是：generic-ext4-combined.img.gz，注意不要解压出来，保留压缩包即可。进入 luci 的 system - backup/flash firmware 选择 Flash image ，然后选择刚才下载的压缩包即可上传更新，会提示是否保留设置和配置，跨大版本的升级必须取消选择保留数据，否则可能升级失败：如果升级后卡在 grub 界面说明可能是由于选择了保留配置导致升级失败了，可以参考官方教程通过 failsafe mode 恢复默认配置：Failsafe mode, factory reset, and recovery mode，或者直接重新安装系统。网络配置稍等几分钟安装好后你可能会发现 luci 无法在局域网中访问了，这是由于新安装的固件恢复了 network 配置，需要直接到 openwrt 设备上配置网络。配置教程参考：openwrt network 配置配置好网络后在局域网设备中可以用 ssh 登录了，此时会发现提示：@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+SHA256:U9XODs/7A4k065pxSMyEtQ2m98v2P0bf/ML0MfzU.
+Please contact your system administrator.
+Add correct host key in C:\\Users\\Marco Nie/.ssh/known_hosts to get rid of this message.
+Offending RSA key in C:\\Users\\Marco Nie/.ssh/known_hosts:6
+Host key for 192.168.244.1 has changed and you have requested strict checking.
+Host key verification failed.这是由于更新系统后 ssh 指纹发生了变化，需要删除本地缓存的 openwrt 设备的指纹在登陆，windows 系统 ssh 指纹保存地址为当前用户目录下的 .ssh 文件夹。升级后续升级后可以通过之前的脚本列出的已安装包的列表将自己需要的包安装回去，同时将备份数据按照新系统的格式恢复回去。从 openwrt 21 开始修改了 network 配置文件格式，参考：https://blog.niekun.net/archives/2291.html从 openwrt 22 开始替换 iptables 为 nftables，需要原始工具的话可以自行安装回去：opkg install iptables参考链接Opkg package managerOpenWRT 19.07 to 21.02.0 upgrade</description>
 </item>
-<item rdf:about="https://blog.niekun.net/archives/2744.html">
-<title>自建 RustDesk server</title>
-<link>https://blog.niekun.net/archives/2744.html</link>
-<dc:date>2022-08-07T14:08:00+08:00</dc:date>
-<description>RustDesk 是一款开源的跨平台远程桌面软件，类似于 TeamViewer 的 UI 样式，但它是完全免费的。RustDesk 提供了 3 个免费的转发服务器，会根据你的地理位置自动选择最快的，一般使用足够了，如果对安全性有担忧，它们也提供了 server 端应用，可以自建转发服务器。下面就对搭建 server 端做一些介绍。RustDesk GitHub 主页：https://github.com/rustdesk/rustdeskRustDesk Server GitHub 主页：https://github.com/rustdesk/rustdesk-server服务器平台：ubuntu 20.04安装 server我是通过 docker 安装的 server 端，这样最快速简单。关于 docker 和 docker compose 的安装可以参考我之前的文章：https://blog.niekun.net/archives/2742.html#title-1docker-compose.yml 文件内容如下：version: '3'
-
-networks:
-  rustdesk-net:
-    external: false
-
-services:
-  hbbs:
-    container_name: hbbs
-    ports:
-      - 21115:21115
-      - 21116:21116
-      - 21116:21116/udp
-      - 21118:21118
-    image: rustdesk/rustdesk-server:latest
-    command: hbbs -r xxx.xxx.xxx.xxx:21117
-    volumes:
-      - ./data:/root
-    networks:
-      - rustdesk-net
-    depends_on:
-      - hbbr
-    restart: unless-stopped
-
-  hbbr:
-    container_name: hbbr
-    ports:
-      - 21117:21117
-      - 21119:21119
-    image: rustdesk/rustdesk-server:latest
-    command: hbbr
-    volumes:
-      - ./data:/root
-    networks:
-      - rustdesk-net
-    restart: unless-stopped这里配置 hbbs IP 地址需要设置为中继服务器的 IP 或域名，否则无法链接。默认监听的是 21117 端口，客户端默认也是链接服务器的这个端口。如果修改这里的默认端口，则在客户端设置的时候也需要指定此端口。启动服务：docker-compose up -d
-此时在客户端设置 ID server：在第一行填入服务器 IP 地址即可：确认后，如果下方状态栏显示 ready 表示服务器链接正常：配置域名访问如果想要使用域名作为 server id，需要在你的域名服务器里加上一条自定义的域名 NS 解析，如：rust.abc.com。注意如果你使用的是 cloudflare 服务，由于它在启用 CDN 后只支持少数端口的转发，而我们需要使用的是 21115 - 21119 这些端口，所以需要在 dns 配置时取消这个自定义域名的小黄云，只使用其 dns 服务：关于 cloudflare 的网络端口转发相关的信息参考官网内容：Network ports自定义域名配置好后，修改 docker-compose.yml 配置文件中定义的地址为指定域名：command: hbbs -r rust.abc.com:21117
-重启容器后就可以在客户端的 ID server 中使用域名链接了。方法和上面介绍的用服务器 IP 设置的方法相同。</description>
+<item rdf:about="https://blog.niekun.net/archives/Linux.html">
+<title>Linux 查询及编辑用户及用户组</title>
+<link>https://blog.niekun.net/archives/Linux.html</link>
+<dc:date>2024-04-01T16:20:00+08:00</dc:date>
+<description>查询当前所有用户compgen -u
+查询当前所有用户组compgen -g
+添加一个用户到某个组sudo usermod -a -G groupName userName
+newgrp groupName
+删除一个用户从某个组sudo usermod -G groupName userName
+newgrp groupName
+用户和组对文件的权限管理参考：chown 和 chmod 管理文件权限</description>
 </item>
-<item rdf:about="https://blog.niekun.net/archives/2742.html">
-<title>Joplin server 搭建</title>
-<link>https://blog.niekun.net/archives/2742.html</link>
-<dc:date>2022-07-14T08:19:00+08:00</dc:date>
-<description>joplin 是一款开源笔记应用，全平台适用，支持多种云端同步方式。最近体验了下感觉不错，尤其是可以自行搭建 server 服务端保存数据，适合喜欢管理整个数据流程的人士。下面介绍如何在服务器通过 docker 搭建 joplin server 的方法。joplin 官网：https://joplinapp.org/GitHub 主页：https://github.com/laurent22/joplin各个平台客户端下载：https://joplinapp.org/download/我的服务器系统平台是 Ubuntu 20.04。docker 环境安装首先如果安装过老版的 docker 先卸载:sudo apt-get remove docker docker-engine docker.io containerd runc
-安装基础环境： sudo apt-get update
- sudo apt-get install \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release添加 docker 官方 GPG key：sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo &quot;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot; | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null安装 docker 和 docker-compose： sudo apt-get update
- sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugindocker 配置为非 root 用户，解决执行命令需要 sudo：sudo groupadd docker
-sudo usermod -aG docker $USER
-su - ${USER}配置 docker-compose通过 docker-compose 可以方便的配置 docker 容器设置及多容器之间数据交互。新建 joplin 文件夹用来存放配置 docker-compose.yml 以及 .env 环境变量文件，我喜欢放在 opt 路径下：mkdir /opt/docker/joplin
-cd /opt/docker/joplin
-新建环境变量文件 .env 内容如下：APP_BASE_URL=https://joplin.your.site
-APP_PORT=22300
-# 
-DB_CLIENT=postgres
-POSTGRES_PASSWORD=PASSWORD
-POSTGRES_DATABASE=joplin
-POSTGRES_USER=USERNAME
-POSTGRES_PORT=5432
-POSTGRES_HOST=localhost上面的配置中需要自行修改几项：APP_BASE_URL 修改为你实际访问 joplin 服务的外网地址，需要提前配置好 dns 映射，我是通过 cloudflare 管理的POSTGRES_PASSWORD 修改数据库密码POSTGRES_USER 修改数据库用户名新建 docker-compose.yml 内容如下：version: '3'
-services:
-    db:
-        image: postgres:13
-        volumes:
-            - ./data/postgres:/var/lib/postgresql/data
-        ports:
-            - &quot;5432:5432&quot;
-        restart: unless-stopped
-        environment:
-            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-            - POSTGRES_USER=${POSTGRES_USER}
-            - POSTGRES_DB=${POSTGRES_DATABASE}
-        network_mode: host
-    app:
-        image: joplin/server:latest
-        depends_on:
-            - db
-        ports:
-            - &quot;22300:22300&quot;
-        restart: unless-stopped
-        environment:
-            - APP_PORT=${APP_PORT}
-            - APP_BASE_URL=${APP_BASE_URL}
-            - DB_CLIENT=${DB_CLIENT}
-            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-            - POSTGRES_DATABASE=${POSTGRES_DATABASE}
-            - POSTGRES_USER=${POSTGRES_USER}
-            - POSTGRES_PORT=${POSTGRES_PORT}
-            - POSTGRES_HOST=${POSTGRES_HOST}
-        network_mode: hostdocker-compose 会自动调用同一路径下的 .env 文件中定义的环境变量。完成配置后启动容器：docker-compose up -d
-nginx 配置外网访问上面定义的 url 后，需要通过反向代理将数据流传给 joplin server 端口 22300，我使用的是 nginx 配置如下：server {
-    listen        443 ssl http2;
-    listen        [::]:443 ssl http2;
-    server_name   joplin.your.site;
-    include       my-server/ssl; 加入 ssl 相关配置
-
-    location / {
-        proxy_pass          http://127.0.0.1:22300;
-        proxy_redirect      off;
-
-        proxy_set_header    Host              $host;
-        proxy_set_header    X-Real-IP         $remote_addr;
-        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header    X-Forwarded-Proto $scheme;
-        proxy_set_header    Upgrade           $http_upgrade;
-        proxy_set_header    Connection        &quot;upgrade&quot;;
-        proxy_http_version  1.1;
-    }
-}完成后重启 nginx：systemctl restart nginx
-访问配置好 docker 和 nginx 后就可以访问上面设置的 url 访问 joplin 了，默认会自动创建一个用户 admin@localhost，密码是 admin。第一次登录进去后最好修改下默认管理员密码，还可以创建多个账户。如果要适用账户的邮件服务，需要额外配置 SMTP 相关的内容，这里不做介绍，新建账户的激活邮件可以在管理菜单中找到，没有配置邮件服务的话无法发送成功，可以手动将邮件中的账户激活链接发送给别人。如果登录网址无法访问网页，可能是 docker 配置有问题，可以通过 log 查看是否有报错信息：docker container list # 查询到容器的 ID
-docker logs ID # 通过 joplin 的容器 ID 查询其日志
-插件joplin 桌面版支持安装插件，第三方插件有很多，可以在下面链接查找：Joplin Plugin Repository参考链接nstall Docker Engine on UbuntuHow To Install and Use Docker on Ubuntu 20.04docker logsjoplin server installdocker-compose.server.yml.env-sample</description>
+<item rdf:about="https://blog.niekun.net/archives/openwrt.html">
+<title>openwrt 添加新用户</title>
+<link>https://blog.niekun.net/archives/openwrt.html</link>
+<dc:date>2024-03-29T11:19:26+08:00</dc:date>
+<description>安装好 openwrt 后默认有一个 root 用户，需要添加新用户也很简单，只需要在 /etc/passwd 文件最后按照格式增加一个用户即可，然后可以修改这个新用户的密码。下面使用一条命令快速添加新用户：grep -qw new_user /etc/passwd || echo &quot;new_user:x:0:23333:::&quot; &gt;&gt; /etc/passwd
+命令先检查是否在文件中存在需要添加的用户名，如果不存在则在文件最后一行添加用户。其中 new_user 是用户名，0 是 uid，23333 是 gid。如果需要修改这个新用户的密码，执行命令即可：passwd new_user
+以上就是创建新用户简单方法。</description>
 </item>
-<item rdf:about="https://blog.niekun.net/archives/2705.html">
-<title>esxi 配置 GPU 显卡直通给虚拟机使用</title>
-<link>https://blog.niekun.net/archives/2705.html</link>
-<dc:date>2022-05-25T08:56:00+08:00</dc:date>
-<description>最近在我家里的 Ubuntu 上安装了 jellyfin 媒体中心，发现局域网内播放高码率视频卡顿严重，原因是默认设置的是软解码导致 cpu 负载很高，在设置里可以开启硬件解码，但是配置后发现播放视频会报错：客户端配置文件存在问题，服务器未发送兼容的媒体格式看后台 log 日志，发现在 ffmpeg 解码时有如下报错信息：[AVHWDeviceContext @ 0x558b80b15a80] libva: vaGetDriverNameByIndex() failed with unknown libva error, driver_name = (null)
-[AVHWDeviceContext @ 0x558b80b15a80] Failed to initialise VAAPI connection: -1 (unknown libva error).
-Device creation failed: -5.
-Failed to set value 'vaapi=va:/dev/dri/renderD128' for option 'init_hw_device': Input/output error
-Error parsing global options: Input/output error查找原因测试在 docker-compose.yml 中开启全部权限，配置 root PUID PGID，以及映射 GPU 设备给 docker：    environment:
-      - PUID=0
-      - PGID=0
-    devices:
-      - /dev/dri:/dev/dri
-    privileged: true重启容器后依然会报错。报错信息显示无法读取 gpu 驱动名称，这应该不是 docker 的问题，在主机上测试 vainfo 也会报错：$ vainfo
-error: can't connect to X server!
-libva info: VA-API version 1.14.0
-libva error: vaGetDriverNameByIndex() failed with unknown libva error, driver_name = (null)
-vaInitialize failed with error code -1 (unknown libva error),exit报错内容和 jellyfin 的日志类似，测试添加环境变量强制指定驱动名称：export LIBVA_DRIVER_NAME=iHD再次 vainfo：$ vainfo
-error: can't connect to X server!
-libva info: VA-API version 1.14.0
-libva info: User environment variable requested driver 'iHD'
-libva info: Trying to open /usr/local/lib/dri/iHD_drv_video.so
-libva info: Found init function __vaDriverInit_1_14
-DRM_IOCTL_I915_GEM_APERTURE failed: Invalid argument
-Assuming 131072kB available aperture size.
-May lead to reduced performance or incorrect rendering.
-get chip id failed: -1 [22]
-param: 4, val: 0
-libva error: /usr/local/lib/dri/iHD_drv_video.so init failed
-libva info: va_openDriver() returns 18
-vaInitialize failed with error code 18 (invalid parameter),exit现在看来应该是其他问题了，经过查询，esxi 默认是分配了虚拟显卡给虚拟机，导致虚拟机无法调用 gpu 底层的一些功能，从而导致 ffmpeg 等工具硬件解码失效。处理办法就是在 esxi 上配置显卡直通，然后添加给对应虚拟机直接调用硬件资源。经过下面的尝试，我还是设置显卡直通，导致最终无法实现硬件解码。可能是主板上有限制吧。显卡直通显卡直通应该就可以解决上面的问题，但是当我直接进入 esxi 控制台设备管理中却找不到 GPU 设备，需要进入 esxi ssh 查看是否有 GPU 设备类似于：UHD Graphics 630。ssh 登录 esxi 后台，首先查看是否有 GPU相关设备信息，终端命令行执行：lspci -v
-找到显卡设备ID，如图所示：8086:9bc8 就是显卡设备 ID，其中 8086 是供应商 ID，也就是代表 Intel，9bc8 就是这块显卡的设备硬件 ID。然后关闭 esxi 对 GPU 的调用，然后手动添加 pci 设备信息，然后就可以在控制台配置直通了。通过 ssh 登录 esxi，输入如下命令取消显卡占用，注意取消后就不能连接显示器访问 esxi 后台图形界面了：esxcli system settings kernel set -s vga -v FALSE后期如果需要取消显卡直通或者登录图形后台需要重新开启显卡调用：esxcli system settings kernel set -s vga -v TRUE然后修改 passthru.map 添加 PCIE 设备 ID 信息。修改/etc/vmware/passthru.map 文件，根据上面找到的设备 ID 信息，在最底部增加以下信息：完成后保存并退出，然后重启 esxi。重启完成后就可以从控制台 pci 设备中找到显卡了：配置好直通后，给对应虚拟机配置显卡。虚拟机配置首先编辑虚拟机，CPU虚拟化这三个选项全部取消，未取消开启虚拟机会报错：由于硬件或软件支持不可用,因此无法为 0:2.0 注册设备 pciPassthru0：内存勾选预留所有客户机内存（全部锁定）选项，不勾选启动虚拟机会报错：最后添加显卡：然后配置虚拟机自定义参数：进入虚拟机选项 → 高级 → 配置参数 → 编辑配置添加以下参数：  键值hypervisor.cpuid.v0FALSE此参数的作用：不让操作系统识别是在虚拟机环境运行，一般直通独立显卡需要这样设置，核显可忽略，但设置也无妨。如下图所示：由于虚拟机默认有一个虚拟显卡，我们又添加了一个直通显卡，现在就有了两个显卡，但我们只想要直通的显卡工作，可以在配置参数里添加一行:  键值svga.presentFALSE这样操作后，我们开启虚拟机后再 /dev/dri 目录下就只会有一个 renderD128：ls -l /dev/dri/
-
-total 0
-crw-rw---- 1 root video 226,   0 Oct 23 20:41 card0
-crw-rw---- 1 root video 226, 128 Oct 23 20:41 renderD128查看 pci 设备信息：&lt;&gt; sudo lspci -v -s  04:00.0
-04:00.0 VGA compatible controller: Intel Corporation HD Graphics 530 (rev 06) (prog-if 00 [VGA controller])
-    Subsystem: Hewlett-Packard Company Device 82bf
-    Physical Slot: 161
-    Flags: bus master, fast devsel, latency 64, IRQ 67
-    Memory at fc000000 (64-bit, non-prefetchable) [size=16M]
-    Memory at d0000000 (64-bit, prefetchable) [size=256M]
-    I/O ports at 7000 [size=64]
-    Expansion ROM at &lt;unassigned&gt; [disabled]
-    Capabilities: [40] Vendor Specific Information: Len=0c &lt;?&gt;
-    Capabilities: [70] Express Endpoint, MSI 00
-    Capabilities: [ac] MSI: Enable+ Count=1/1 Maskable- 64bit-
-    Capabilities: [d0] Power Management version 2
-    Capabilities: [100] Process Address Space ID (PASID)
-    Capabilities: [200] Address Translation Service (ATS)
-    Capabilities: [300] Page Request Interface (PRI)
-    Kernel driver in use: i915
-    Kernel modules: i915这样显卡就直接直通给了虚拟机，注意这样配置后包括 esxi 本身和其他虚拟机就没有显卡可用了，导致没有图形界面。参考链接ESXI 7.02 Intel 核心显卡直通开启3D加速ESXi 6.5 Passthrough Video Card/GPU to Plex VMHW Transcoding - VAAPI - Intel not workingDeploying Hardware-Accelerated Graphics with VMware HorizonEsxi 6.7核显直通问题求教各位恩山大神Name: UHD Graphics 630</description>
+<item rdf:about="https://blog.niekun.net/archives/Linux-ip.html">
+<title>Linux 获取本地网关所有 ip 段地址</title>
+<link>https://blog.niekun.net/archives/Linux-ip.html</link>
+<dc:date>2024-03-28T15:35:07+08:00</dc:date>
+<description>执行下面命令即可获取本地网关所有的 ip 段地址：$ ip address | grep -w inet | awk '{print $2}'
+127.0.0.1/8
+192.168.122.2/24
+172.18.0.1/16
+172.17.0.1/16
+172.19.0.1/16</description>
 </item>
-<item rdf:about="https://blog.niekun.net/archives/2703.html">
-<title>Ubuntu 开启 RDP 远程连接</title>
-<link>https://blog.niekun.net/archives/2703.html</link>
-<dc:date>2022-05-23T10:18:00+08:00</dc:date>
-<description>之前介绍过通过安装 TightVNC vnc server 远程连接 Ubuntu 桌面的教程，Windows 下常用的是 RDP 方式远程，使用体验非常流畅，不占用带宽。Linux 下也可以通过安装 Xrdp 的方式实现 rdp 连接。参考教程：Ubuntu desktop 配置 vnc serverxrdp 是对 Windows rdp 协议的开源实现。安装我的系统是 Ubuntu desktop 20.04，首先需要保证有一个已经安装的桌面环境，desktop 版默认是 genome，也可以安装其他的如 xfce：sudo apt install ubuntu-desktop安装 xrdp：sudo apt install xrdp安装完成后，xrdp 会自动启动，可以通过命令查看状态：$  sudo systemctl status xrdp
- 
-● xrdp.service - xrdp daemon
-     Loaded: loaded (/lib/systemd/system/xrdp.service; enabled; vendor preset: enabled)
-     Active: active (running) since Mon 2022-05-23 09:50:43 CST; 20min ago
-       Docs: man:xrdp(8)
-             man:xrdp.ini(5)
-    Process: 83586 ExecStartPre=/bin/sh /usr/share/xrdp/socksetup (code=exited, status=0/SUCCESS)
-    Process: 83594 ExecStart=/usr/sbin/xrdp $XRDP_OPTIONS (code=exited, status=0/SUCCESS)
-   Main PID: 83595 (xrdp)
-      Tasks: 2 (limit: 9459)
-     Memory: 26.4M
-     CGroup: /system.slice/xrdp.service
-             ├─83595 /usr/sbin/xrdp
-             └─83597 /usr/sbin/xrdp默认 rdp 端口为 3389.配置xrdp 安装后，会自动创建一个新系统用户 xrdp，并且将一个 ssl key ssl-cert-snakeoil.key 放入 /etc/ssl/private/ 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：sudo adduser xrdp ssl-cert默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 /etc/xrdp/startwm.sh 文件，在文件最后的 test -x /etc/X11/Xsession 前面加入如下内容：unset DBUS_SESSION_BUS_ADDRESS
-unset XDG_RUNTIME_DIR重启 xrdp 服务：sudo systemctl restart xrdp现在就可以正常通过 rdp 连接到 Ubuntu了。在使用中，我出现了输入用户密码后停留在解锁界面无法登录进去的问题，经过查询 xdrp 目前不可以同时在多个设备上尝试登录。同时登录 xrdp 的用户如果和正常在主机上登录的是同一个用户，需要删除 dbus-user-session 包，用 dbus-x11 代替。第三点，需要保证 gdm3 运行，执行下面的命令：sudo apt remove dbus-user-session
-sudo apt install dbus-x11
-
-sudo systemctl set-default graphical
-sudo systemctl isolate graphical重启 xrdp 服务：sudo systemctl restart xrdp此时应该就可以正常通过 rdp 客户端链接 ubuntu 界面了。但是我测试发现，第一次登录进去没问题，关闭后过一会儿再次尝试链接发现卡在登录界面没反应了，尝试执行如下命令：echo xfce4-session &gt; $HOME/.xsession
-chmod +x .xsession发现问题似乎解决了，但是调用的事 xfce 桌面环境。远程登录在局域网下访问比较流畅，但是在外网下发现没法达到 Windows rdp 流畅的效果。解决方法可以是在外网通过 rdp 链接一个局域网下 Windows 设备，然后在 Windows 设备下通过 rdp 链接局域网内的 ubuntu 设备。参考链接How to Install Xrdp on Ubuntu 20.04Xrdp stuck on login, after password is entered, unblocked if I unlock from the ubuntu rdp serverUsing the console and XRDP together in Debian / Ubuntu / MintXRDP session immediately closes after loggin in</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2621.html">
-<title>systemd 服务加载 env 环境变量</title>
-<link>https://blog.niekun.net/archives/2621.html</link>
-<dc:date>2022-04-11T11:21:00+08:00</dc:date>
-<description>最近在测试中发现，通过 systemd service 启动的 python 脚本无法加载系统 bashrc 内定义的环境变量。需要在 uint 中定义自定义环境变量才能生效。首先建立自定义环境变量文件，如： /etc/env_addon，其中定义需要的环境变量：ENV1=abcd
-ENV2=5678然后在 unit 的 service 块中加入 EnvironmentFile 指向建立的环境变量文件：[Unit]
-Description=demo
-After=network.target nss-lookup.target
-
-[Service]
-User=root
-EnvironmentFile=/etc/env_addon
-ExecStart=/usr/bin/python /path/main.py
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target重新加载并重启服务：sudo systemctl daemon-reload
-sudo systemctl restart demo.service如果需要系统的 ~/.bashrc 同时加载这个自定义的环境变量文件，可以在 bashrc 中加入下面内容：set -a; source /etc/env_addon; set +a重新加载环境：source ~/.bashrc参考链接：Using a user's .bashrc in a systemd serviceUsing environment variables in systemd units Environment directive</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2613.html">
-<title>修改虚拟交换机 MTU 提高 esxi 虚拟机网络速度</title>
-<link>https://blog.niekun.net/archives/2613.html</link>
-<dc:date>2022-04-10T12:59:50+08:00</dc:date>
-<description>最近发现我的局域网内网下的网速很慢，只有500M左右，达不到 1000M 的速度。我是通过 ipert3 进行测速的。家里的网络是通过 esxi 下安装的 openwrt，ubuntu 等虚拟机控制的，通过 esxi 管理页面可以看到接口都运行在 1000M 全双工模式下，说明网线链接是没有问题的：经过查询发现可以通过修改虚拟交换机的 mtu 值到 9000 来提高网络吞吐量从而加快网速。修改 mtu进入虚拟交换机栏：点击每一个交换机进入设置界面，点击上面的 edit：将 mtu 设置为 9000，并保存配置：虚拟交换机里修改完后，进入 vmkernel NICs 栏：点击 vmk0 进入设置界面，同样的点击 edit 修改其 mtu 为 9000 并保存：以上就完成了整个虚拟环境 mtu 值的修改，再次通过 iperf3 测速，速率能达到 800M。iperf3 使用下面简单介绍使用 iperf3 测试内网传输速率。首先在接收端以下指令运行在服务模式：iperf3 -s然后再发送端执行以下指令启动测速：iperf3 -c xxx.xxx.xxx.xxx -t 30以上指令中将地址替换为接收端 IP 地址，-t 参数可以设置测速时间，单位为秒。参考链接关于 ESXi 虚拟机间拷贝速度慢的问题IPERF: How to test network Speed,Performance,Bandwidth</description>
+<item rdf:about="https://blog.niekun.net/archives/immich.html">
+<title>服务器部署 immich 照片备份工具</title>
+<link>https://blog.niekun.net/archives/immich.html</link>
+<dc:date>2024-03-04T09:30:00+08:00</dc:date>
+<description>目前有很多的云备份服务可以使用，比如 icloud，google photos 等。immich 是一款实现类似功能的本地部署工具，将数据都存储在自己本地服务器上，拥有完善的手机端 app 可以方便的同步备份手机图片。GitHub 主页：https://github.com/immich-app/immich官网教程：https://immich.app/docs/overview/introduction/安装服务端使用 docker compose 安装，新建一个 immich 文件夹，下载 docker-compose.yml 和 .env 文件到文件夹：wget https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
+wget -O .env https://github.com/immich-app/immich/releases/latest/download/example.env打开 .env 文件配置环境变量，主要就是配置备份路径和数据库密码，修改 UPLOAD_LOCATION 和 DB_PASSWORD。启动容器：docker compose up -d后续更新只需要进入 immich 文件夹执行下面命令即可：docker compose pull &amp;&amp; docker compose up -d
+docker-compose.yml 文件中默认将 3001 端口映射到了本地 2283 端口，3001就是服务端访问端口号。下面是所有可用的端口，根据需要可以修改 docker-compose 文件映射到本地：PORTWeb Port3000webSERVER_PORTServer Port3001serverMICROSERVICES_PORTMicroservices Port3002microservicesMACHINE_LEARNING_HOSTMachine Learning Host0.0.0.0machine learningMACHINE_LEARNING_PORTMachine Learning Port3003machine learning配置账户网页端访问：http://you.machine.ip:2283 进入配置页面，根据提示建立一个管理员账户，后续可以在管理员账户中建立其他子账户供其他人使用。登录 app下载手机端 app，ios 直接在 app store 搜索 immich 下载，安卓在 github 发布页下载 apk：https://github.com/immich-app/immich/releases在手机端输入以下网址进入：http://you.machine.ip:2283/api然后就可以配置需要备份的手机端图片文件夹了。外网访问服务器在本地，如果要外网域名远程访问图库，需要一些额外的配置，我这里是通过 cloudflare 配置子域名，nginx 配置反向代理到 frps，最后本地服务器 frpc 配置本地 2283 端口绑定到远程域名访问即可。可以参考我之前的关于 frp 的教程：https://blog.niekun.net/archives/539.html</description>
 </item>
 </rdf:RDF>

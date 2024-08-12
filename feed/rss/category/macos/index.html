@@ -9,6 +9,8 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/path.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/macOS-automator.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2860.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2727.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2403.html"/>
@@ -17,11 +19,38 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2305.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2198.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2040.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1977.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1966.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/path.html">
+<title>将路径加入系统 path</title>
+<link>https://blog.niekun.net/archives/path.html</link>
+<dc:date>2024-08-10T11:06:00+08:00</dc:date>
+<description>将路径加入系统 path 可以方便的在终端调用目录中的可执行文件或脚本。windows 和 macOS 设置方法不同，下面分别介绍。windows参考之前的文章：https://blog.niekun.net/archives/413.htmlmacos确定您的 shell 类型。打开终端，运行以下命令：echo $SHELL
+这通常会返回 /bin/zsh 或 /bin/bash。根据您的 shell 类型，编辑相应的配置文件：对于 Zsh（最新的 macOS 默认使用）：编辑 ~/.zshrc对于 Bash：编辑 ~/.bash_profile 或 ~/.bashrc使用文本编辑器打开相应的文件。例如，对于 zsh：vim ~/.zshrc
+在文件末尾添加以下行（替换为您的实际脚本目录路径）：export PATH=&quot;/path/script:$PATH&quot;
+保存并关闭文件。使更改生效，可以重新加载配置文件或重启终端。要重新加载，运行：source ~/.zshrc  # 如果使用 Zsh
+source ~/.bash_profile  # 如果使用 Bash
+验证 PATH 更新：echo $PATH
+您应该能看到您的脚本目录已被添加。现在，您应该能够直接运行脚本，而不需要指定完整路径：test.sh
+注意事项：确保您的脚本有正确的执行权限（chmod +x script_name.sh）。如果脚本名称与系统命令冲突，考虑重命名脚本或使用唯一前缀</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/macOS-automator.html">
+<title>macOS 下使用 automator 给视频文件添加快捷压缩动作</title>
+<link>https://blog.niekun.net/archives/macOS-automator.html</link>
+<dc:date>2024-08-01T14:42:36+08:00</dc:date>
+<description>最近学习到了一条可以大幅度压缩视频体积且观感上视频质量没有很大损失的 ffmpeg 命令：ffmpeg -i input.mov -c:v libx264 -crf 30 -r 24 -movflags faststart -c:a aac -b:a 128k -preset superfast out.mp4
+但是每次在命令行执行这么复杂的命令还是很不方便的，可以使用 macOS 自带的 automator 自动化工具制作一个简单的右键菜单动作，方便的对视频文件快速压缩。打开 automator 新建一个 quick action，添加一个 run sheel script:脚本内容如下：for f in &quot;$@&quot;
+do
+    /opt/homebrew/bin/ffmpeg -i &quot;$f&quot; -c:v libx264 -crf 30 -r 24 -movflags faststart -c:a aac -b:a 128k -preset superfast &quot;${f%.*}_compressed.mp4&quot;
+done
+
+# 播放声音
+afplay /System/Library/Sounds/Blow.aiff
+
+# 显示对话框
+osascript -e 'tell app &quot;System Events&quot; to display dialog &quot;视频压缩已完成&quot; with title &quot;通知&quot; buttons {&quot;OK&quot;} default button &quot;OK&quot;'保存后，在视频文件右键菜单的 action 栏就可以看到我们添加的动作了：点击执行动作，完成后会有提示信息。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2860.html">
 <title>Windows 下虚拟机安装 MacOS</title>
 <link>https://blog.niekun.net/archives/2860.html</link>
@@ -134,26 +163,5 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
 <description>随着升级到 macOS Big Sur 后，虚拟机 parallels desktop 也更新到了 16 版本。我当然是继续安装破解版啦。但是安装好后，启动虚拟机会有一个报错：Network Initialization Failed，启动后会发现虚拟机无法联网，网络设置中无法正常在各种模式中切换。在寻找解决方案期间，了解到了这可能是由于破解的原因，正版用户没有这个问题。网上有人提供了一个方法，执行一条命令就启动虚拟机就可以正常联网了。但是会导致虚拟机无法访问主机的共享目录及无法访问 USB 设备。而且一旦重启 parallels desktop 后又回恢复之前的状态，我也就没有去做。这两天看到网上终于有人找到的解决方法，测试后的确可用，所以介绍给大家参考。解决的方法都是通过修改相关配置文件实现的。首先需要彻底退出 parallels desktop。网络问题修改 /Library/Preferences/Parallels/network.desktop.xml 文件。在终端或者 vs code 中打开这个文件，找到 &lt;UseKextless&gt; 标签，将其中的内容改为 0：&lt;UseKextless&gt;0&lt;/UseKextless&gt;
 注意如果你的这个文件内没有这个标签，则需要在 &lt;ParallelsNetworkConfig&gt; 根标签内手动创建它即可。修改完成后保存文件，需要输入账户密码。USB 问题修改 /Library/Preferences/Parallels/dispatcher.desktop.xml 文件。在终端或者 vs code 中打开这个文件，找到 &lt;Usb&gt; 标签，将其中的内容改为 1：&lt;Usb&gt;1&lt;/Usb&gt;
 修改完成后保存文件，需要输入账户密码。修改完以上两个文件后，重启 parallels desktop 就会发现一切都正常了。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1977.html">
-<title>brew 安装路径</title>
-<link>https://blog.niekun.net/archives/1977.html</link>
-<dc:date>2020-12-16T22:04:00+08:00</dc:date>
-<description>brew 是 macOS 下流行的包管理工具，可以方便的安装各种工具。brew 默认安装路径为：/usr/local/Cellar，然后会在 /usr/local/opt/ 建立所安装的包的软连接。包安装好后如果不能正常执行，可以建立包的可执行程序的软连接到：/usr/local/bin/ 目录。比如安装 openssl：brew install openssl
-安装后包的路径为：/usr/local/Cellar/openssl@1.1/1.1.1h。同时包的软连接在：/usr/local/Cellar/openssl。这时候执行命令：openssl version
-返回的并不是刚才安装的版本，而是系统自带的老版本的。这时候可以建立可执行程序的软连接到对应路径：ln -s /usr/local/opt/openssl/bin/openssl /usr/local/bin/openssl
-这时候执行命令就可以得到正确的返回：openssl version
-//OpenSSL 1.1.1h  22 Sep 2020
-其他包的模式和此类似。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1966.html">
-<title>macOS 下使用 QT 部署工具 macdeployqt</title>
-<link>https://blog.niekun.net/archives/1966.html</link>
-<dc:date>2020-12-05T23:53:15+08:00</dc:date>
-<description>在 Windows 下可以使用 QT 部署工具：windeployqt 来自动提取可执行程序的依赖库，在 macOS 下同样有部署工具：macdeployqt 实现相同的功能。工具路径在 QT 安装目录的对应编译器 bin 目录下，如：/Users/marconie/Qt/5.15.2/clang_64/bin/macdeployqt为了方便使用建议将 bin 目录添加到系统 PATH 中，我的终端是 zsh 添加方法如下：打开 ~/.zshrc 添加如下内容，可以使用 vim 来操作：export PATH=$PATH:/Users/marconie/Qt/5.15.2/clang_64/bin编辑完成后关闭文件，刷新源：source ~/.zshrc
-现在就可以直接使用命令了：macdeployqt -h
-
-部署的方法是直接在 macdeployqt 后提供 app 路径：macdeployqt path/to/test.app
-执行后会自动搜索此 app 需要的 QT 库并打包到 app 内，可以打开 app 包查看相关内容：如果项目中使用了其他第三方库，此部署工具不会自动提取相关文件，需要手动将相关库文件添加到 app/Contents/Frameworks 文件夹内。</description>
 </item>
 </rdf:RDF>

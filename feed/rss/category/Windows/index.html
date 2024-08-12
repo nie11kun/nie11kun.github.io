@@ -9,19 +9,53 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/path.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/intel-12-CPU-vmwre.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/windows.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2860.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2770.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2757.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2340.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2139.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2103.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2098.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2061.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2021.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1911.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/path.html">
+<title>将路径加入系统 path</title>
+<link>https://blog.niekun.net/archives/path.html</link>
+<dc:date>2024-08-10T11:06:00+08:00</dc:date>
+<description>将路径加入系统 path 可以方便的在终端调用目录中的可执行文件或脚本。windows 和 macOS 设置方法不同，下面分别介绍。windows参考之前的文章：https://blog.niekun.net/archives/413.htmlmacos确定您的 shell 类型。打开终端，运行以下命令：echo $SHELL
+这通常会返回 /bin/zsh 或 /bin/bash。根据您的 shell 类型，编辑相应的配置文件：对于 Zsh（最新的 macOS 默认使用）：编辑 ~/.zshrc对于 Bash：编辑 ~/.bash_profile 或 ~/.bashrc使用文本编辑器打开相应的文件。例如，对于 zsh：vim ~/.zshrc
+在文件末尾添加以下行（替换为您的实际脚本目录路径）：export PATH=&quot;/path/script:$PATH&quot;
+保存并关闭文件。使更改生效，可以重新加载配置文件或重启终端。要重新加载，运行：source ~/.zshrc  # 如果使用 Zsh
+source ~/.bash_profile  # 如果使用 Bash
+验证 PATH 更新：echo $PATH
+您应该能看到您的脚本目录已被添加。现在，您应该能够直接运行脚本，而不需要指定完整路径：test.sh
+注意事项：确保您的脚本有正确的执行权限（chmod +x script_name.sh）。如果脚本名称与系统命令冲突，考虑重命名脚本或使用唯一前缀</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/intel-12-CPU-vmwre.html">
+<title>解决在 intel 12代以后的 CPU 上 vmwre 虚拟机性能低下问题</title>
+<link>https://blog.niekun.net/archives/intel-12-CPU-vmwre.html</link>
+<dc:date>2024-04-18T13:01:52+08:00</dc:date>
+<description>最近更换了新的电脑，是 i7 12700H 的 CPU，按理说比以前的电脑性能好一些，但是导入之前的 vmware 虚拟机后发现运行起来优点卡顿，但是观察主机资源占用很低，cpu 占用也很低，研究了下才发现是由于新款 cpu 采用了大小核设计导致这个问题。我的这一款是 6 大核 8 小核 20 线程设计。默认情况下启动虚拟机资源分配是交给 windows 主机自己协调的，很可能会分配给小核运行虚拟机导致运行卡顿，资源管理器可以看到 cpu 负载都在后面的小核上：解决方法就是以管理员权限运行 vmware，这样 VMware 会自己调度资源使用，优先级大概是大核&gt;小核&gt;超线程。实际效果很明显，基本都运行在了大核上：</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/windows.html">
+<title>windows 相对路径快捷方式</title>
+<link>https://blog.niekun.net/archives/windows.html</link>
+<dc:date>2024-03-18T10:09:15+08:00</dc:date>
+<description>一般系统默认创建的都是指向某个文件绝对路径的快捷方式，如果移动原始文件位置后，快捷方式就失效了。可以自己修改快捷方式的属性来建立一个以快捷方式所在地址为准的指向一个相对路径的文件。这样适用于需要同时移动原始文件与快捷方式的情况。首先右键创建一个文件的快捷方式，然后右键选择快捷方式的属性，将目标位置地址改为：explorer.exe path/to/file.exe。注意 explorer.exe 后面的空格：后面的路径就是相对于快捷方式地址的相对路径。确认后默认快捷方式图标会变成资源管理器的图标，可以在属性里修改为其他图标。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html">
+<title>WSA (Windows Subsystem for Android) 的安装及使用</title>
+<link>https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html</link>
+<dc:date>2024-02-20T15:47:00+08:00</dc:date>
+<description>之前介绍过 Windows10 安装 wsl 的教程，可以方便的在 Windows 下使用 Ubuntu 系统。今天介绍安装 wsa 用来在 Windows 下使用 Android 系统及安装第三方 apk。安装wsa 没有在官方的 store 中提供，这里使用开源的 WSA-Script 很方便的一键安装。GitHub 主页：https://github.com/YT-Advanced/WSA-Script在 release 页面下载最新打包的版本：https://github.com/YT-Advanced/WSA-Script/releases/latest我需要使用 google play 框架及 root 权限，所以下载的是框出来的版本：下载好解压到一个特定的目录，运行 Run.bat，期间会提示需要管理员权限以及提示收集信息的对话框，点击确认即可。安装完成后会自动运行 Windows Subsystem For Android™ 应用。设置代理如果需要使用 play 商店，就需要配置代理服务。如果本机有代理工具的话，可以让 wsa 直接调用本机代理。这里需要使用 adb 工具，下载链接：https://dl.google.com/android/repository/platform-tools-latest-windows.zip解压压缩包，可以看到其中有一个 adb.exe，可以将目录添加到系统 path 以方便在 terminal 调用。首先需要设置 wsa 打开开发者模式，进入设置打开选项：默认 wsa 是运行在本地的 58526 端口的。建立一个 powershell 脚本，如：wsaproxy.ps1，内容如下：$WinNetIP=$(Get-NetIPAddress -InterfaceAlias 'vEthernet (WSLCore)' -AddressFamily IPV4) # get android network gateway addr
+adb connect 127.0.0.1:58526 # android port
+adb shell settings put global http_proxy &quot;$($WinNetIP.IPAddress):1082&quot; # local proxy port第一次执行会弹出对话框是否信任外部访问，点击允许即可。以上脚本会获取到 wsa 所在网卡的网关地址，然后用 adb 连接到 wsa，最后配置代理，注意脚本里的本地代理端口修改为实际值即可。运行脚本即可让 wsa 配置好代理服务。以后只需要执行这个脚本就可以自动设置代理。如果需要取消代理运行下面命令即可：adb shell settings put global http_proxy :0安装 apk推荐直接在 play 商店安装应用程序，如果需要安装自己下载的第三方 apk，直接使用 adb 工具即可。安装命令：adb connect 127.0.0.1:58526
+adb install xxx.apk文件共享可以配置一个 Windows 主机的路径作为同 wsa 共享目录，这样两边就可以互传文件了。打开 Windows Subsystem For Android™ 进入 advanced settings - experimental feature，启用 share user folders 功能并选择一个本地目录作为共享目录：通过 system - turnoff 关闭 wsa，然后点击 files 会重新运行 wsa：可以看到有一个 windows 文件夹：这个文件夹就是对应的 windows 共享目录。系统设置默认情况下只有在第一次安装成功后会自动启动 Android 设置界面，并且找不到设置的启动图标在哪里，我们可以在浏览器里直接访问 android settings 地址的方式启动。浏览器中输入以下地址并访问：wsa://com.android.settings，会提示是否需要跳转到设置，点击确认即可进入设置：参考链接Windows Android 子系统 WSA 代理设置方法教程WSA (Windows Subsystem for Android) 使用 Windows 上的代理</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2860.html">
 <title>Windows 下虚拟机安装 MacOS</title>
 <link>https://blog.niekun.net/archives/2860.html</link>
@@ -65,99 +99,5 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <link>https://blog.niekun.net/archives/2103.html</link>
 <dc:date>2021-02-03T10:28:00+08:00</dc:date>
 <description>最近研究了下 Windows 的共享设置，目的是在同一局域网下共享文件夹给其他设备读写。下面从原理和实际操作上介绍下共享过程。SMBWindows 共享使用 Server Message Block (SMB) 协议，它可以让应用程序访问本机网络下的其他设备的文件及服务。SMB 是 IBM 在 1980 年代创造的协议，目前已经有了很多的升级及分支。SMB 协议允许应用程序访问远程主机的文件和资源如打印机等，也可以同远程主机上设置了接收 SMB 协议的应用程序通信。它运行在网络的 layer 7 层，也就是 application 应用层，使用 TCP/IP 的 445 端口传输数据。从 Windows 95 开始，微软将引入了 SMB 协议的支持。Linux 端，samba 作为一个开源软件提供 SMB 的支持。SMB 协议也是在不断发展的，下面是一个简单的版本更新过程：SMB 1.0 (1984): IBM 为 DOS 下的文件共享创造了 SMBCIFS (1996): 微软开发了 SMB 的分支版本并集成在 Windows 95，添加了大文件的支持，直接在 TCP/IP 传输SMB 2.0 (2006): 在 Windows Vista 和 Windows Server 2008 中发布. 提升了性能SMB 2.1 (2010): 在 Windows Server 2008 R2 和 Windows 7 中发布SMB 3.0 (2012): 在 Windows 8 和 Windows Server 2012 中发布. 提升了性能，增加备份，安全和管理功能SMB 3.02 (2014): 在 Windows 8.1 和 Windows Server 2012 R2 中发布. 提升性能并完全停止支持 CIFS/SMB 1.0SMB 3.1.1 (2015): 在 Windows 10 和 Windows Server 2016 中发布在 2017 年，利用 SMB 1.0 的漏洞，WannaCry 勒索软件在互联网中大规模传播，微软虽然立刻发布了补丁，但专家还是建议立刻停止运行 SMB 1.0 协议。下面介绍在 Windows 10 中配置共享文件夹。关闭 smb1.0由于 smb1.0 过于久远且不安全，所以我们最好将其关闭，默认情况下系统中他也是关闭的。系统搜索并打开 打开或关闭 Windows 功能 turn windows features on or off：在其中找到 smb1.0 并将其关闭，可能会提示需要重启系统：Windows 设置共享下面配置共享， 步骤如下：新建一个用户专门用于共享文件的授权，并合理设置此用户的权限；合理设置网络共享和系统安全的相关设置；开启共享，授权指定用户；创建专用用户搜索并打开计算机管理 computer management：找到本地用户和组，点击用户文件夹：右键点击 new user 创建新用户，设置用户名和密码，下面选中用户不可修改密码和密码永不过期：配置用户权限首先禁用启用不安全的来宾登录，win + r 搜索 gpedit.msc 本地组策略编辑器:如下路径找到选项：双击进入设置，关闭此选项并确认：然后 win + r 搜索 secpol.msc 打开本地安全策略，配置本地用户权限分配：首先配置可以从网络访问本机的用户：双击进入后点击 add user 添加我们刚刚创建的用户：在下方输入我们创建的用户名，然后点击右侧的 check names 自动匹配用户名：确认后再列表中就出现了对应用户，注意如果列表中有 everyone 等其他用户时，为了安全起见可以将它们从列表中删除。完成后点击 ok 确认修改。然后配置这个用户拒绝本地登录和拒绝远程桌面登录，因为我们创建这个用户只是为了 smb 共享登录使用。也是在本地用户权限分配页面找到对应选项并配置此用户到列表：开启有保护的共享首先打开控制面板，进入 network and Internet：点击 network and sharing center：点击 change advanced sharing settings：在 current profile 中打开网络发现和文件共享：然后在 all network 中打开密码保护：控制面板配置完成后，我们开始配置需要共享的文件夹。文件夹共享在需要共享的文件夹上点击右键，选择属性：在 share 选项卡中点击 advanced share：选中 share this folder：点击 permission：如果有先将 everyone 用户删掉，然后点击 add 添加 marco 用户，点击 check names 自动补全：然后配置用户权限，根据需要设置读写权限，这里直接选中 full control：然后还有一步很重要，设置 marco 用户对此共享文件夹具有访问权限，否则也会提示无法访问文件夹，点击 security：如果用户列表里没有 marco 用户，则需要添加进去，点击 edit 添加用户，方法和上面的方法类似，最后 marco 用户在列表里面即可，可以配置用户权限：点击 ok 保存设置。确认后共享文件夹就配置完成了。访问共享文件下面介绍在其他局域网设备访问主机的共享文件夹。Windows在 Windows 上，打开 file explorer，点击 network：在右侧就是本地网络下启用了网络发现的设备列表，点击进入设置了共享文件夹的设备名称，根据提示输入配置好的用户名和密码就可以访问了：也可以在地址栏直接输入共享路径地址，以双反斜线\\开头后面是设备 IP 或名称，如：\\DESKTOP-BS3C55D。关于设备的名称，可以在终端通过 whoami 命令查询：iPhone在支持 SMB 协议的设备或应用程序中都可以打开 Windows 共享的文件，下面介绍通过 iPhone 的 files app 来连接到 Windows 共享目录。打开 files app，点击右上角的 ... 选择 connect to server：在 server 中输入共享主机的地址，这里直接输入 IP 地址：输入用户名和密码，完成后就可以访问到共享目录了：如果文件夹设置的是可读写权限，就可以在手机上传输文件到共享目录了。参考链接：Server Message Block Protocol (SMB protocol)Windows 10/ 11 下安全并正确地使用 SMB 共享</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2098.html">
-<title>解除 UWP 应用的网络隔离</title>
-<link>https://blog.niekun.net/archives/2098.html</link>
-<dc:date>2021-02-02T09:33:00+08:00</dc:date>
-<description>Microsoft store 里都是 UWP 应用，运行在被称为 App Container 的虚拟沙箱环境中，其安全性及纯净度远胜于传统的 EXE 应用。但 App Container 机制同时也阻止了网络流量发送到本机（即 loopback）， 使大部分网络抓包调试工具无法对 UWP 应用进行流量分析。该机制也阻止了 UWP 应用访问 localhost，如果你的代理地址在本地地址，UWP 就无法访问。有两种方法来解除某个 UWP 应用的沙盒隔离，一种是使用系统自带的工具 CheckNetIsolation，一种是使用第三方工具 fiddler。CheckNetIsolationWindows 10 自带了一个 CheckNetIsolation 工具，可以解除 UWP 应用的网络隔离，使之可以正常访问本地地址在终端执行以下指令即可：CheckNetIsolation.exe loopbackexempt -a -p=SID
-SID(security identifier) 是每个 UWP 应用独有的识别码，可以从注册表中获得应用的 SID 码。快捷键 win + R 打开运行窗口，输入 regedit 进入注册表。访问如下路径：\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppContainer\Mappings\：此路径下的左侧文件夹名称就是当前安装的每个 UWP 应用的 SID 码，右侧的 DisplayName 就是应用的名称，可以用来帮助找到需要的应用 SID。复制需要解除隔离的应用的 SID 码执行上面的命令即可。然后应用就可以正常访问本地地址了，也可以使用抓包工具获取到流量。fiddler也可以使用第三方软件来实现以上任务，这里介绍 fiddler。fiddler 是一款免费的网络调试代理工具。官网地址：https://www.telerik.com/fiddler下载安装后打开应用，点击左上角的 WinConfig：会弹出所有 UWP 应用列表，找到需要解除隔离的应用，点击左侧的选择框，然后点击 save change 即可：此时再次运行对应的应用，就可以在 fiddler 看到应用的流量信息了。注意 fiddler 需要一直保持开启状态解除隔离才会生效。使用 fiddler 还可以方便的设置代理服务，使选中的应用通过代理访问网络，点击 tools - options：在弹出栏中，点击 gateway，选择 manual proxy configuration：第一行设置代理地址，模式为：proxyserver:8080
-也可以根据网络协议设置：http=httpproxy:8080;https=httpsproxy:8080
-第二行设置 bypass 忽略列表，可以设置忽略代理本地地址或其他需要排除的地址：&lt;local&gt;;*.extranet.example.com;
-点击 ok 保存后即可，此时在 WinConfig 中选中的 UWP 应用就会通过代理地址访问网络。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2061.html">
-<title>VMware 虚拟机 NAT 网络下配置端口转发到主机</title>
-<link>https://blog.niekun.net/archives/2061.html</link>
-<dc:date>2021-01-12T11:06:00+08:00</dc:date>
-<description>今天安装了 Ubuntu 虚拟机用来做 node.js 开发，在选择网络模式时我选择了 NAT 模式，因为这样可以在主机处于不同网络环境下使虚拟机都有着同一个 IP 地址，方便管理。但是在此时中发现，虚拟机可以正常访问主机及外网，但是主机无法通过分配的 NAT 地址来 ssh 访问虚拟机。查询后发现这是正常现象。可以通过设置端口转发来将虚拟机端口映射到主机端口来实现对虚拟机的访问。首先给虚拟机设置一个静态 ip 地址：然后打开虚拟网络编辑器：选中 NAT 对应的网卡，这里是 vnet 8，点击 NAT 设置：在端口转发栏点击添加：设置要转发到的主机端口及对应虚拟机 IP 和端口等信息，这里我需要转发 ssh 的 22 端口到主机的 2222 端口：点击确定保存设置即可。设置好后就可以通过访问主机本地 2222 端口实现 ssh 访问虚拟机了。可以根据需要设置多个端口转发。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2021.html">
-<title>Windows 补丁下载</title>
-<link>https://blog.niekun.net/archives/2021.html</link>
-<dc:date>2020-12-22T10:54:50+08:00</dc:date>
-<description>如果需要单独下载某个 Windows 补丁，可以在其官网下载：https://www.catalog.update.microsoft.com/搜索补丁编号即可。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1911.html">
-<title>Speedtest CLI 命令行测速工具</title>
-<link>https://blog.niekun.net/archives/1911.html</link>
-<dc:date>2020-11-16T13:08:00+08:00</dc:date>
-<description>speedtest 是国外很流行的测速平台，可以直接在其网站上测试本地上行下行带宽，最近看到其提供了本地命令行工具，使用起来更加方便了。官网：https://www.speedtest.net/安装首先需要到官网安装对应平台的 CLI 工具：https://www.speedtest.net/apps/cliLinux 类系统可以直接在使用 apt/brew 等包管理工具方便的安装，Windows 下需要手动下载 exe 可执行文件使用。macOS:brew tap teamookla/speedtest
-brew update
-brew install speedtest --forceubuntu:sudo apt-get install gnupg1 apt-transport-https dirmngr
-export INSTALL_KEY=379CE192D401AB61
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $INSTALL_KEY
-echo &quot;deb https://ookla.bintray.com/debian generic main&quot; | sudo tee  /etc/apt/sources.list.d/speedtest.list
-sudo apt-get update
-sudo apt-get install speedtestwindows:首先在网站上下载可执行文件，点击下载 1.0.0 版。可执行文件为 speedtest.exe，需要将其目录加入系统 PATH 路径才可以直接在 terminal 调用，加入 PATH 方法参考我的教程：https://blog.niekun.net/archives/413.html使用在终端下使用 speedtest -h 命令查看帮助：Speedtest by Ookla is the official command line client for testing the speed and performance of your internet connection.
-
-Version: speedtest 1.0.0.2
-
-Usage: speedtest [&lt;options&gt;]
-  -h, --help                        Print usage information
-  -V, --version                     Print version number
-  -L, --servers                     List nearest servers
-  -s, --server-id=#                 Specify a server from the server list using its id
-  -I, --interface=ARG               Attempt to bind to the specified interface when connecting to servers
-  -i, --ip=ARG                      Attempt to bind to the specified IP address when connecting to servers
-  -o, --host=ARG                    Specify a server, from the server list, using its host's fully qualified domain name
-  -p, --progress=yes|no             Enable or disable progress bar (Note: only available for 'human-readable'
-                                    or 'json' and defaults to yes when interactive)
-  -P, --precision=#                 Number of decimals to use (0-8, default=2)
-  -f, --format=ARG                  Output format (see below for valid formats)
-  -u, --unit[=ARG]                  Output unit for displaying speeds (Note: this is only applicable
-                                    for ‘human-readable’ output format and the default unit is Mbps)
-  -a                                Shortcut for [-u auto-decimal-bits]
-  -A                                Shortcut for [-u auto-decimal-bytes]
-  -b                                Shortcut for [-u auto-binary-bits]
-  -B                                Shortcut for [-u auto-binary-bytes]
-      --selection-details           Show server selection details
-      --ca-certificate=ARG          CA Certificate bundle path
-  -v                                Logging verbosity. Specify multiple times for higher verbosity
-      --output-header               Show output header for CSV and TSV formats
-
- Valid output formats: human-readable (default), csv, tsv, json, jsonl, json-pretty
-
- Machine readable formats (csv, tsv, json, jsonl, json-pretty) use bytes as the unit of measure with max precision
-
- Valid units for [-u] flag:
-   Decimal prefix, bits per second:  bps, kbps, Mbps, Gbps
-   Decimal prefix, bytes per second: B/s, kB/s, MB/s, GB/s
-   Binary prefix, bits per second:   kibps, Mibps, Gibps
-   Binary prefix, bytes per second:  kiB/s, MiB/s, GiB/s
-   Auto-scaled prefix: auto-binary-bits, auto-binary-bytes, auto-decimal-bits, auto-decimal-bytes首先使用测试最近的测速节点 testspeed -L:root@Marco-vostro-14-wsl:~# speedtest -L
-Closest servers:
-
-    ID  Name                           Location             Country
-==============================================================================
- 29105  陕西移动5G                 Xi'an                China
-  2461  China Unicom                   Chengdu              China
-  4575  China Mobile Group Sichuan     Chengdu              China
- 24337  China Mobile Group Sichuan Co.,Ltd. Chengdu              China
- 35527  sccn                           Chengdu              China
- 31985  China Unicom                   Chongqing            China
- 17584  Chongqing Mobile Company       Chongqing            CN
-  5530  CCN                            Chongqing            China
- 16145  Lanzhou,China Mobile,Gansu     Lanzhou              China执行 speedtest 命令进行测速，默认使用上面测试的最近的节点：root@Marco-vostro-14-wsl:~# speedtest
-
-   Speedtest by Ookla
-
-     Server: Chongqing Mobile Company - Chongqing (id = 17584)
-        ISP: China Telecom
-    Latency:    31.45 ms   (25.47 ms jitter)
-   Download:    14.31 Mbps (data used: 17.5 MB)
-     Upload:     8.23 Mbps (data used: 11.3 MB)
-Packet Loss:     0.0%
- Result URL: https://www.speedtest.net/result/c/bee17d45-7b9c-44e6-8a6e-ef99d84ba441以上就是简单的用法，可以查看帮助了解更多的使用方法。</description>
 </item>
 </rdf:RDF>

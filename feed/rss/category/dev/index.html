@@ -9,19 +9,78 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/env-python.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/codesys-enum.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/codesys.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/ethercat.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2858.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2857.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2840.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2835.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2833.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2829.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2749.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2388.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2352.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2330.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/env-python.html">
+<title>使用虚拟环境 env 开发 python</title>
+<link>https://blog.niekun.net/archives/env-python.html</link>
+<dc:date>2024-07-01T10:17:13+08:00</dc:date>
+<description>使用虚拟环境进行Python开发有助于隔离项目的依赖，避免不同项目之间的库版本冲突。以下是如何创建和使用虚拟环境的详细步骤。Python 3.3 及以上版本自带 venv 模块，可以直接使用。使用 venv 创建虚拟环境创建虚拟环境在你的项目目录下，运行以下命令来创建一个虚拟环境，这将在项目目录下创建一个名为 myenv 的文件夹，其中包含虚拟环境的所有文件：python -m venv myenv
+激活虚拟环境Windows：myenv\Scripts\activate
+macOS 和 Linux：source myenv/bin/activate
+安装依赖在虚拟环境中，你可以使用 pip 来安装项目所需的库：pip install requests
+安装的库将只会影响当前虚拟环境，而不会影响系统的 Python 环境或其他项目。冻结依赖为了确保你的项目依赖可以在其他环境中重现，你可以使用以下命令将当前环境的依赖写入 requirements.txt 文件：pip freeze &gt; requirements.txt
+requirements.txt 文件将包含所有当前环境中的安装包及其版本信息。使用 requirements.txt 安装依赖在新的环境中，你可以使用 requirements.txt 文件来安装所需的所有依赖：pip install -r requirements.txt
+退出虚拟环境当你完成工作时，可以通过以下命令退出虚拟环境：deactivate
+使用虚拟环境进行Python开发可以有效地隔离项目依赖，避免版本冲突。通过创建和激活虚拟环境、安装依赖、冻结依赖并在新环境中重新安装依赖，可以确保你的项目在不同环境中具有一致的运行表现。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/codesys-enum.html">
+<title>codesys enum 枚举数据类型单元的使用</title>
+<link>https://blog.niekun.net/archives/codesys-enum.html</link>
+<dc:date>2024-03-07T08:21:07+08:00</dc:date>
+<description>enum 类型的 dut 可以定义一组属性及其值，调用的时候可以方便的通过写其属性名称得到属性的值，也可以获取到属性本身的名称。下面举一个例子说明：{attribute 'qualified_only'}            // 必须先写类型名称再写属性名称 (例如 eColor.Red)
+// {attribute 'strict'}                 //取消 'strict' 以允许转换 UDINT 数据类型
+{attribute 'to_string'}                 // 运行字符串转换 (例如 TO_STRING(eColor.Red) = 'Red')
+TYPE eColor :
+(
+    Red         := 16#FFFF0000,
+    Green       := 16#FF00FF00,
+    Blue        := 16#FF0000FF
+    Yellow      := 16#FFFFFF00,
+) UDINT;                                // 声明 UDINT 作为 int 整形类型
+END_TYPE
+
+// 定义一些变量
+    ColorVar1   : eColor;
+    ColorVar2   : eColor;
+    ColorName   : STRING;
+    ColorValue  : UDINT;
+
+    ColorVar1 := eColor.Green;            // ColorVar1 = 16#FF00FF00
+    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Green';
+    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FF00FF00
+
+    ColorVar2 := 16#FF00FF00;             // ColorVar2.Green
+    ColorName := TO_STRING(ColorVar2);    // ColorName = 'Green';
+    ColorValue := TO_UDINT(ColorVar2);    // ColorValue = 16#FF00FF00
+
+    ColorVar1 := ColorVar2 OR eColor.Red; // 按位相与得到 Yellow=16#FFFFFF00
+    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Yellow';
+    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FFFFFF00以上示例列举了常用的 enum 类型可进行的数据交互方式。eColor.Green 可以获取enum类型属性的值，并可以赋值给其他对应 enum 实例TO_STRING(ColorVar1) 可以转换获取 enum 实例当前值对应属性名称字符串</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/codesys.html">
+<title>codesys 常见编译及下载时报错解决方法</title>
+<link>https://blog.niekun.net/archives/codesys.html</link>
+<dc:date>2024-03-06T16:35:00+08:00</dc:date>
+<description>No source code available for this object下载时出现此报警，原因是 task 任务中对 gou 的排序有问题，放在前面的 pou 中使用了后面 pou 才设定好的数据，需要重新排列 task 任务序列：SMC_FB_CALLED_FROM_WRONG_TASKmc_power mc_jog 等控制轴的功能块，一运行就报错 SMC_FB_CALLED_FROM_WRONG_TASK，可能是不同的 pou 放在了多个 task 任务中，循环中内部有了冲突，将所有的 pou 放在同一个 task 中就可以解决问题。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/ethercat.html">
+<title>RTE runtime添加 ethercat master 的步骤</title>
+<link>https://blog.niekun.net/archives/ethercat.html</link>
+<dc:date>2024-02-23T15:41:00+08:00</dc:date>
+<description>codesys 配置 rte runtime 添加 ethercat 组件的方法。主要步骤为：安装 RTE runtime安装适配网卡驱动添加 ethercat master 设备安装 RTE runtime首先需要配置工控机啊 BIOS 设置，将一些超线程，电源管理等选项关掉：关闭超线程：关闭BIOS 中激活的所有节能选项Intel Speed Step动态节能技术EIST智能降频C-States省电模式PowerNow动态调整CPU的工作频率和电压Hibernation休眠MWAIT停用可能导致系统管理中断的所有内容BIOS self tests BIOS自检USB Legacy Device Support 传统USB设备支持然后就可以安装 RTE，官网下载需要的 runtime 安装包，注意区分 x86 还是 x64 设备。我下载的是 **CODESYS Control RTE SL （×86Windows 实时）。官网下载地址：http://store.codesys.cn/codesys/store/index.html在工控机上解压并安装需要的 RTE runtime，基本都是直接下一步即可，期间注意选择带不带 softmotion：Control RTE 文件路径：C:\Program Files\CODESYS\CODESYS Control RTE3Control RTE 安装路径：C:\ProgramData\CODESYS\CODESYSControlRTEV3网卡驱动支持的网卡：Systems with Windows and CODESYS Control RTE (Real-time SoftPLC):Realtek® 8139 (CmpRTL81x9Mpd)Realtek RTL8139 and compatible Ethernet-Controller, as well 8100/8110Realtek 8169 (CmpRTL8169Mpd)Realtek 8169/810, RTL8111B / RTL8111DIntel® EtherExpressPro1000 (CmpEt1000Drv) --- All gigabit adapters from IntelIntel EtherExpress PRO/100 (CmpEt100Drv)  --- All 100 Mbit adapters from Intel一般情况下 intel 的千兆网卡都可以安装 CmpEt1000Drv 驱动。首先进入设备管理器，选择需要更新 codesys 驱动的网卡，右键选择更新驱动：选择从本地查找驱动程序：选择从磁盘安装，从 RTE 文件路径找到对应的驱动目录并安装：右键选择 plc configuration：在 components manager 中在最后一个空行中填入安装的驱动名称，这里我填的是 CmpEt1000Drv：确定并重启 plc 即可完成网卡驱动的安装及配置。添加 ethercat master在codesys 开发项目中进行以下操作。建立一个支持 softmotion 的设备添加 ethercat master softmotion 主站  （会自动添加 ethercat_task 任务 不可删除)扫描并连接到控制器配置 ethercat master 网卡，RTE 版 runtime 需要选择适配 codesys 的网卡下载程序到控制器，如果上面没有在 components manager 中添加网卡组件的话，这里下载会报错退出登录 扫描从站并添加如果设备描述文件没有在系统内置库中 需要手动导入描述文件然后才能扫描识别给扫描到的从站添加 cia402 轴配置电子齿轮比以上就是 RTE runtime 版添加 ethercat master 主站的简单方法。参考链接：Control RTE SL and profinet connections</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2858.html">
 <title>Siemens 系统计算精度设置影响程序运行问题</title>
 <link>https://blog.niekun.net/archives/2858.html</link>
@@ -31,7 +90,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/2857.html">
 <title>codesys 使用占位符定义界面变量显示格式</title>
 <link>https://blog.niekun.net/archives/2857.html</link>
-<dc:date>2023-09-22T10:33:32+08:00</dc:date>
+<dc:date>2023-09-22T10:33:00+08:00</dc:date>
 <description>在编程中我们会使用各种类型的变量进行逻辑运算，不同类型其默认数据精度取值不一样，比如浮点型变量文本占位符为 %f 默认小数位数 6 位，但实际只想显示 3 位小数，此时就需要将界面变量的占位符进行设置以满足需求。int 整型语法：% &lt;标记&gt; &lt;最小显示数字个数&gt; &lt;类型&gt;
 标记：定义数据显示模式，可选项：- 当定义最小显示数字个数时 居左显示，+ 显示数据正负号，0 当定义最小显示数字个数时空缺位显示 0最小显示数字个数：定义最少占据几个数字空间，默认数据位数不够时留空类型：显示数据类型，如：d十进制, b二进制, o八进制, x十六进制示例：%-5d：最小显示位数5位，且居左对齐显示，例如数据值为123时：`123  `
 %+d：显示数据正负号,例如数据值为123时：`+123`
@@ -41,7 +100,23 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 %04x：显示4位数的十六进制模式，例如数据值为15时：`000f`float 浮点型语法：% &lt;标记&gt; &lt;最小显示数字个数&gt; . &lt;精度&gt; f
 标记：定义数据显示模式，可选项：- 当定义最小显示数字个数时 居左显示，+ 显示数据正负号，0 当定义最小显示数字个数时空缺位显示 0最小显示数字个数：定义最少占据几个数字空间，包括小数位，默认数据位数不够时留空，不定义时默认为 %1.6f精度：小数位的显示精度示例：%-12.9f：显示12位数字 9位小数，且居左显示
 %+6.3f：显示6位数字3位小数，且显示正负号标记
-%06.3f：显示6位数字3位小数，且空缺位补0显示参考链接Placeholders with Format Definition</description>
+%06.3f：显示6位数字3位小数，且空缺位补0显示时间类型语法：%t[ &lt;text&gt; &lt;time in unit&gt; &lt;text&gt; ]
+示例：// 定义一个时间变量并给其赋值
+ltTimeSpan : LTIME := LTIME#1D2H3M4S5MS6US7NS;
+
+在一个 label 中定义：
+text variable 设置：PLC_PRG.ltTimeSpan
+text 占位符设置：Time span: %t[d] d
+输出结果：Time span: 1 d可用的占位符：%t[d] 天，%t[dd] 两位数字的天，%t[H] 小时，%t[HH] 两位数字小时，%t[m]分钟，%t[mm] 两位数分钟，%t[s] 秒，%t[ss] 两位数秒。也可以组合起来使用：TEXT 占位符设置：%t[Value: dd-HH:mm:ss:ms:us:ns]
+输出结果：Value: 01-02:03:04:005:006:007如果不定义 label 的 text variable 属性，则会输出系统当前时间。日期类型语法：%t[ &lt;date and time unit&gt; ]
+和时间类型类似的用法，下面举例说明：//定义一个 date 类型变量
+dateBy : DATE := DATE#2021-02-12;
+
+在一个 label 中定义：
+text variable 设置：PLC_PRG.dateBy
+text 占位符设置：Date: %t[yyyy-MM-dd dddd]
+输出结果：Date: 2/12/2021 Friday可用占位符：%t[yyyy] 年，%t[yy] 两位数年，%t[y]一位数年，%t[MMMM] 英文月份，%t[MMM]英文简写月份，%t[MM]月份，%t[ddddd] 一周的第几天，%t[dddd]英文周几，%t[dd]一个月的第几天，%t[jjj]一年中的第几天，如果不定义 label 的 text variable 属性，则会输出系统当前日期。字符语法：%s
+参考链接Placeholders with Format Definition</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/2840.html">
 <title>codesys 定义重启可保持型变量</title>
@@ -196,96 +271,5 @@ END_SUBPROGRAM以上就是 codesys 中使用 DIN 66025 标准编写 CNC 程序�
 <link>https://blog.niekun.net/archives/2829.html</link>
 <dc:date>2023-08-15T08:08:54+08:00</dc:date>
 <description>打开一个别人的项目后编译，发现出现 The library &quot;caa behaviour model, 3.5.19.0 (caa technical workgroup)&quot; was created with the unknown compiler version &quot;3.5.16.30&quot; 的报错：但是我已经选择下载了缺失的库了，查询后发现是我的 codesys 版本过高，下载的对应库版本也高，而项目之前创建的时候可能是基于低版本库的，需要手动切换回对应版本的库即可。library manager 下选择 placeholders 定位到报错的那个库：双击后显示版本菜单，选择对应低版本的选项：再次编译报错就会消失。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2749.html">
-<title>Miniflux 搭建自己的 RSS 服务系统</title>
-<link>https://blog.niekun.net/archives/2749.html</link>
-<dc:date>2022-08-12T14:50:00+08:00</dc:date>
-<description>一直在使用 feedly 作为 rss 订阅器阅读文章，基本可以满足我的需求，但是部分站点只能预览摘要，想要阅读全文还打开文章链接。最近发现一个开源免费的 rss 系统，他的特点就是轻量无多于内容，致力于阅读体验。同时我发现他的一些独有功能，可以在文章只显示摘要时，有一个下载全文的选项，这样就实现了大部分文章在 rss 阅读器中就可以阅读全文的需求了。Miniflux 需要自己部署在服务器上，它提供了多种安装方法，最简单的就是 docker 方式，避免手动配置环境及数据库等步骤。我的系统环境：Ubuntu server 20.04Miniflux 官网：https://miniflux.app/GitHub 主页：https://github.com/miniflux/v2安装这里介绍通过 docker compose 安装的方法，关于 docker 环境的部署参考我的教程：https://blog.niekun.net/archives/2742.html#title-1新建 miniflux 文件夹用来放置相关配置：mkdir miniflux
-cd miniflux
-然后建立 docker-compose.yml 配置文件，内容如下：version: '3.4'
-services:
-  miniflux:
-    image: ${MINIFLUX_IMAGE:-miniflux/miniflux:latest}
-    container_name: miniflux
-    restart: always
-    ports:
-      - &quot;18080:8080&quot;
-    depends_on:
-      - db
-    environment:
-      - DATABASE_URL=postgres://miniflux:secret@db/miniflux?sslmode=disable
-      - BASE_URL=https://miniflux.your.domain
-      - RUN_MIGRATIONS=1
-      - CREATE_ADMIN=1
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=test123
-      - DEBUG=1
-    # Optional health check:
-    # healthcheck:
-    #  test: [&quot;CMD&quot;, &quot;/usr/bin/miniflux&quot;, &quot;-healthcheck&quot;, &quot;auto&quot;]
-  db:
-    image: postgres:latest
-    container_name: postgres
-    restart: always
-    environment:
-      - POSTGRES_USER=miniflux
-      - POSTGRES_PASSWORD=secret
-    volumes:
-      - miniflux-db:/var/lib/postgresql/data
-    healthcheck:
-      test: [&quot;CMD&quot;, &quot;pg_isready&quot;, &quot;-U&quot;, &quot;miniflux&quot;]
-      interval: 10s
-      start_period: 30s
-volumes:
-  miniflux-db:其中需要自行根据实际情况修改一些内容：port 端口的主机映射，这里我使用了 18080 映射容器内的 8080 端口BASE_URL 设置需要访问 miniflux 服务的域名地址，后面需要配置反向代理ADMIN_USERNAME 设置管理员用户名ADMIN_PASSWORD  设置管理员用户密码敏感的环境变量值可以单独放在同配置文件路径下的 .env 文件中，上面的 docker 安装教程中有介绍。注意 DATABASE_URL 地址中的 postgres 用户名密码对应于 POSTGRES_USER 和 POSTGRES_PASSWORD 的值，需要保持一致。然后就可以启动容器：docker-compose up -d
-反代配置首先如果需要解析到二级域名下，先要在 ns 服务端添加二级域名的 A 记录，然后才能正常解析 url。使用域名访问 miniflux 服务，需要通过主机使用的反代软件配置解析，我服务器使用的是 nginx，下面介绍配置方法。给 nginx 配置添加如下内容：server {
-    listen        443 ssl http2;
-    listen        [::]:443 ssl http2;
-    server_name   miniflux.your.domain;
-    include       my-server/ssl;
-
-    location / {
-        proxy_pass          http://127.0.0.1:18080;
-        proxy_redirect      off;
-
-        proxy_set_header    Host              $host;
-        proxy_set_header    X-Forwarded-Host  $host;
-        proxy_set_header    X-Real-IP         $remote_addr;
-        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header    X-Forwarded-Proto $scheme;
-        proxy_set_header    Upgrade           $http_upgrade;
-        proxy_set_header    Connection        &quot;upgrade&quot;;
-        proxy_http_version  1.1;
-    }
-}以上配置需要根据实际情况修改监听端口及 domain，由于之前配置的 miniflux 的映射端口是 18080，所以反代到本地的对应端口即可。以上 miniflux 和 nginx 反代配置完成后应该就可以访问 https://miniflux.your.domain 了。用户名密码就是 docker 配置文件中定义的管理员账户及密码：使用如果某一篇文章不显示全文，只需要点击文章顶部的 download 按钮即可加载全文：miniflux 提供了丰富的 api 接口可供二次开发使用，通过简单的请求就可以获取到文章的各种信息，返回数据为 json 格式。官方 api 文档参考：https://miniflux.app/docs/api.html</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2388.html">
-<title>获取 JD cookie 方法</title>
-<link>https://blog.niekun.net/archives/2388.html</link>
-<dc:date>2022-01-09T18:53:00+08:00</dc:date>
-<description>在运行自动化脚本的时候需要获取到对应网站的登录 cookie，这里介绍通过 chrome 浏览器获取到需要的信息。这里提供的方法仅供用于前端开发测试。首先登陆移动端网站：https://m.jd.com右键点击 inspect 进入开发者界面，然后点击网页右上角的登录键根据提示需要输入账户信息登录。登录成功后在开发栏切换到 network 选项，并且在 filter 中输入 log.gif 过滤出需要的信息：选中第一个 log 文件，点击 header 栏，在其中找到 cookie 项：复制其中的内容到剪贴板。找到开发页面下方的 console 栏，我们通过简单的 js 脚本提取出上面 cookie 的有效内容：var c = '这里粘贴复制好的 cookie';
-var value = c.match(/pt_pin=.+?;/) + c.match(/pt_key=.+?;/);
-copy(value);执行完成后此时我们的剪贴板里就已经复制好了 cookie 信息。手机端可以通过解包 app 来提取 cookie，具体可以参考我的 js 脚本：https://github.com/nie11kun/config-rules/blob/master/Shadowrocket/get_jdcookie.js</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2352.html">
-<title>常用校验类正则表达式大全</title>
-<link>https://blog.niekun.net/archives/2352.html</link>
-<dc:date>2021-11-24T15:03:54+08:00</dc:date>
-<description>https://www.williamlong.info/archives/6627.html</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2330.html">
-<title>828D 执行程序提示：等待插补缓冲</title>
-<link>https://blog.niekun.net/archives/2330.html</link>
-<dc:date>2021-09-03T09:38:00+08:00</dc:date>
-<description>最近在编写西门子数控系统 NC 代码时，遇到一个问题：启动程序后在固定地方程序无法继续执行下去，提示：等待插补缓冲：程序代码如下：WHILE((R0&gt;=360) OR (R0&lt;0))
-    IF R0&gt;=360
-        R0=R0-360
-    ELSE
-        IF R0&lt;0
-            R0=360+R0
-        ENDIF
-    ENDIF
-ENDWHILE以上程序实现的功能是将 R0 的值控制在大于等于 0 小于 360 之间。理论上无论给 R0 赋予任何初值，执行以上代码后都可以将其自动计算为需要的结果。在分析后发现，出现以上报警的原因是程序在此 while 循环中无法跳出。随即从这里下手寻找问题点。在经过给 R0 赋予一些特殊的初值，然后执行程序后发现，当初值为 -0.0000000001 或 359.999999999 时无法跳出循环，R0 的值一直在这两者之间跳动，猜测应该是数控系统精度判断 359.999999999 等于 360，导致 IF R0&gt;=360 一直成立并减去 360 后结果又成为了 -0.0000000001，然后就是反复的无限循环。找到了问题点解决就很简单了，只需要将 R0=R0-360 修改为 R0=R0-360.00001 即可，这样在保证精度没有太大变化的情况下，也保证了循环可以正常跳出。出现此处报警一般都是程序内出现死循环的问题，通过单步执行程序或设置断点可以快速定位故障位置然后就可以考虑一些特殊情况下是否会导致死循环。</description>
 </item>
 </rdf:RDF>
