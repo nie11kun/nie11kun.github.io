@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>杂文</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/docker-compose.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3014.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Linux-warp.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2999.html"/>
@@ -18,10 +19,27 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/openwrt-1.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Linux.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Linux-ip.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/codesys-enum.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/docker-compose.html">
+<title>docker compose 配置自动更新</title>
+<link>https://blog.niekun.net/archives/docker-compose.html</link>
+<dc:date>2024-08-18T21:42:52+08:00</dc:date>
+<description>docker compose 配置文件可以很方便的配置和运行 docker 容器，但每次更新容器都需要运行多条命令。可以通过在 compose 文件中设置 watchtower 来定期自动拉取最新镜像并启动容器，同时可以配置删除旧镜像和容器。在 docker-compose.yml 文件中增加以下内容：version: '3'
+services:
+
+  ...
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 3600 --cleanup --remove-volumes
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_REMOVE_VOLUMES=true以下是主要的配置说明：将 --interval 参数设置为 3600。这意味着 Watchtower 将每 3600 秒（即每小时）检查一次更新。--cleanup 和 WATCHTOWER_CLEANUP=true 确保在更新后清理旧的镜像。--remove-volumes 和 WATCHTOWER_REMOVE_VOLUMES=true 确保删除与旧容器关联的匿名卷。使用这个配置，Watchtower 将：每小时检查一次你的容器是否有更新如果发现更新，它会停止旧容器，启动新容器删除旧的容器和相关的匿名卷删除旧的镜像这个配置应该能满足大多数用例的需求，既能保持你的容器相对最新，又不会过于频繁地进行检查和更新操作。需要注意的是:Watchtower 只会删除它更新的容器的旧版本。它不会删除系统中的其他未使用的容器或镜像。它只删除匿名卷,不会删除命名卷。如果你想删除所有未使用的镜像(不仅仅是 Watchtower 更新的),你可能需要定期运行 docker image prune 命令。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/3014.html">
 <title>通过浏览器访问服务器指定文件内容</title>
 <link>https://blog.niekun.net/archives/3014.html</link>
@@ -383,39 +401,5 @@ newgrp groupName
 172.18.0.1/16
 172.17.0.1/16
 172.19.0.1/16</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/codesys-enum.html">
-<title>codesys enum 枚举数据类型单元的使用</title>
-<link>https://blog.niekun.net/archives/codesys-enum.html</link>
-<dc:date>2024-03-07T08:21:07+08:00</dc:date>
-<description>enum 类型的 dut 可以定义一组属性及其值，调用的时候可以方便的通过写其属性名称得到属性的值，也可以获取到属性本身的名称。下面举一个例子说明：{attribute 'qualified_only'}            // 必须先写类型名称再写属性名称 (例如 eColor.Red)
-// {attribute 'strict'}                 //取消 'strict' 以允许转换 UDINT 数据类型
-{attribute 'to_string'}                 // 运行字符串转换 (例如 TO_STRING(eColor.Red) = 'Red')
-TYPE eColor :
-(
-    Red         := 16#FFFF0000,
-    Green       := 16#FF00FF00,
-    Blue        := 16#FF0000FF
-    Yellow      := 16#FFFFFF00,
-) UDINT;                                // 声明 UDINT 作为 int 整形类型
-END_TYPE
-
-// 定义一些变量
-    ColorVar1   : eColor;
-    ColorVar2   : eColor;
-    ColorName   : STRING;
-    ColorValue  : UDINT;
-
-    ColorVar1 := eColor.Green;            // ColorVar1 = 16#FF00FF00
-    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Green';
-    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FF00FF00
-
-    ColorVar2 := 16#FF00FF00;             // ColorVar2.Green
-    ColorName := TO_STRING(ColorVar2);    // ColorName = 'Green';
-    ColorValue := TO_UDINT(ColorVar2);    // ColorValue = 16#FF00FF00
-
-    ColorVar1 := ColorVar2 OR eColor.Red; // 按位相与得到 Yellow=16#FFFFFF00
-    ColorName := TO_STRING(ColorVar1);    // ColorName = 'Yellow';
-    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FFFFFF00以上示例列举了常用的 enum 类型可进行的数据交互方式。eColor.Green 可以获取enum类型属性的值，并可以赋值给其他对应 enum 实例TO_STRING(ColorVar1) 可以转换获取 enum 实例当前值对应属性名称字符串</description>
 </item>
 </rdf:RDF>

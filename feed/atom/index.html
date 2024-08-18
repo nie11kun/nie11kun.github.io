@@ -6,11 +6,42 @@ xml:base="https://blog.niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2024-08-14T15:58:01+08:00</updated>
+<updated>2024-08-18T21:42:52+08:00</updated>
 <generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/" />
 <id>https://blog.niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[docker compose 配置自动更新]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/docker-compose.html" />
+<id>https://blog.niekun.net/archives/docker-compose.html</id>
+<updated>2024-08-18T21:42:52+08:00</updated>
+<published>2024-08-18T21:42:52+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<category scheme="https://blog.niekun.net/category/Linux/" term="Linux" />
+<category scheme="https://blog.niekun.net/category/other/" term="other" />
+<summary type="html"><![CDATA[docker compose 配置文件可以很方便的配置和运行 docker 容器，但每次更新容器都需要运行多条命令。可以通过在 compose 文件中设置 watchtower 来定期自动拉取最...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/docker-compose.html" xml:lang="zh-CN"><![CDATA[
+<p>docker compose 配置文件可以很方便的配置和运行 docker 容器，但每次更新容器都需要运行多条命令。可以通过在 compose 文件中设置 watchtower 来定期自动拉取最新镜像并启动容器，同时可以配置删除旧镜像和容器。</p><!--more--><p>在 docker-compose.yml 文件中增加以下内容：</p><pre><code>version: '3'
+services:
+
+  ...
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 3600 --cleanup --remove-volumes
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_REMOVE_VOLUMES=true</code></pre><p><strong>以下是主要的配置说明：</strong></p><ul><li>将 <code>--interval</code> 参数设置为 3600。这意味着 Watchtower 将每 3600 秒（即每小时）检查一次更新。</li><li><code>--cleanup</code> 和 <code>WATCHTOWER_CLEANUP=true</code> 确保在更新后清理旧的镜像。</li><li><code>--remove-volumes</code> 和 <code>WATCHTOWER_REMOVE_VOLUMES=true</code> 确保删除与旧容器关联的匿名卷。</li></ul><p>使用这个配置，Watchtower 将：</p><ul><li>每小时检查一次你的容器是否有更新</li><li>如果发现更新，它会停止旧容器，启动新容器</li><li>删除旧的容器和相关的匿名卷</li><li>删除旧的镜像</li></ul><p>这个配置应该能满足大多数用例的需求，既能保持你的容器相对最新，又不会过于频繁地进行检查和更新操作。</p><p>需要注意的是:</p><ul><li>Watchtower 只会删除它更新的容器的旧版本。它不会删除系统中的其他未使用的容器或镜像。</li><li>它只删除匿名卷,不会删除命名卷。</li><li>如果你想删除所有未使用的镜像(不仅仅是 Watchtower 更新的),你可能需要定期运行 <code>docker image prune</code> 命令。</li></ul>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/docker-compose.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/docker-compose.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[通过浏览器访问服务器指定文件内容]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/3014.html" />
@@ -474,82 +505,5 @@ nft add rule ip tabletest output ip daddr != @blackhole accept</code></pre><p>�
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/nftables.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/nftables.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[通过 dnsmasq nftset 和 nftables 对域名流量的控制]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html" />
-<id>https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html</id>
-<updated>2024-05-07T10:31:00+08:00</updated>
-<published>2024-05-07T10:31:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<category scheme="https://blog.niekun.net/category/Linux/" term="Linux" />
-<summary type="html"><![CDATA[最近升级路由器系统到 openwrt 23，发现 dnsmasq-full 已经默认不支持 ipset 转而支持 nftset 了，所以之前的教程：通过 dnsmasq ipset 和 ipta...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html" xml:lang="zh-CN"><![CDATA[
-<p>最近升级路由器系统到 openwrt 23，发现 dnsmasq-full 已经默认不支持 ipset 转而支持 nftset 了，所以之前的教程：<a href="https://blog.niekun.net/archives/1872.html">通过 dnsmasq ipset 和 iptables 对域名流量的控制</a> 已经不适用新版本系统。</p><p>下面介绍如何通过 nfset 和 nftables 实现同样的功能。</p><p>首先查看 dnsmasq 版本是否支持 nftset：</p><pre><code>root@OpenWrt:~# dnsmasq -v
-Dnsmasq version 2.90  Copyright (c) 2000-2024 Simon Kelley
-Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack no-ipset nftset auth cryptohash DNSSEC no-ID loop-detect inotify dumpfile</code></pre><!--more--><p>可以看到其中有 nftset 字样，如果没有就需要安装 dnsmasq-full，安装教程参考：<a href="https://blog.niekun.net/archives/1869.html">dnsmasq 使用教程</a>。</p><p>nftables 提供 set 功能可以在一个路由表中建立特定名称一个 ip 库，并通过命令 <code>ip daddr</code> 索引库里的地址。关于 nftables 的使用教程参考：<a href="https://blog.niekun.net/archives/nftables.html">nftables 使用教程</a></p><p>先建立一个任意名称的路由表：</p><pre><code>nft add table tabletest
-</code></pre><p>然后给这个路由表建立一个名称为 iplist 的 ip 库，类型定义为 ipv4 地址：</p><pre><code>nft add set ip tabletest iplist { type ipv4_addr\; }
-</code></pre><p>如果要添加一个 ip 网段，必须定义 ip 库属性：<strong>flags interval</strong></p><pre><code>nft add set ip tabletest iplist { type ipv4_addr \; flags interval \; }
-</code></pre><p>现在就可以给这个 ip 库里添加 ip 地址了，命令如下：</p><pre><code>nft add element ip tabletest iplist { 111.22.33.4 };
-nft add element ip tabletest iplist { 111.22.33.4/16 };
-</code></pre><p>可以通过命令查看这个 ip 库里包含的所有地址：</p><pre><code>root@OpenWrt:~# nft list set ip tabletest iplist
-table ip tabletest {
-        set iplist {
-                type ipv4_addr
-                flags interval
-                elements = { 111.22.33.4, 111.22.33.4/16 }
-        }
-}</code></pre><p>通过 dnsmasq 配置文件也可以添加指定域名解析出的 ip 地址到 nftset 对应 ip 库列表中，例如在 <code>/etc/dnsmasq.conf</code> 配置文件中添加以下指令：</p><pre><code>nftset=/qq.com/4#ip#tabletest#iplist
-</code></pre><p>重启 dnsmasq 服务：</p><pre><code>service dnsmasq restart
-</code></pre><p>查询一下 qq.com 的 ip 地址：</p><pre><code>root@OpenWrt:~# nslookup qq.com
-Server:         127.0.0.1
-Address:        127.0.0.1:53
-
-Non-authoritative answer:
-Name:   qq.com
-Address: 157.255.219.143</code></pre><p>再次查看 iplist 表里包含的 ip 地址：</p><pre><code>root@OpenWrt:~# nft list set ip tabletest iplist
-table ip tabletest {
-        set iplist {
-                type ipv4_addr
-                flags interval
-                elements = { 111.22.33.4, 111.22.33.4/16, 157.255.219.143 }
-        }
-}</code></pre><p>可以看到 qq.com 解析出来的 ip 地址已经放入了 iplist 表中。</p><p>nftables 可以识别并处理 nftset 表中的 ip 地址，这样就可以做到对指定域名的流量控制。</p><p>新建的自定义路由表需要首先指定某个动作链条属于什么动作链类型。如：</p><pre><code># 定义 tabletest 的 output 链，类型为 filter 路由链的动作链 &quot;output&quot;
-# 优先级 0 表示：(在任何路由决策前捕获传入数据包)
-# 策略为 accept 表示没有匹配流量后继续传入后续路由表及规则进行匹配
-nft add chain tabletest output { type filter hook output priority 0 \; policy accept \; }
-
-# 定义 tabletest 的 prerouting 链，类型为 NAT 路由链的动作链 &quot;prerouting&quot;
-nft add chain tabletest prerouting { type nat hook prerouting priority 0 \; policy accept \; }</code></pre><p>nftables 规则处理 set 库里 ip 地址的流量：</p><pre><code># 屏蔽本机对 iplist 库中 ip 地址的访问
-nft add rule tabletest output ip daddr @iplist drop
-
-# 目标地址为 set 库地址的prerouting tcp 流量转发到指定端口
-nft add rule tabletest prerouting ip daddr @iplist ip protocol tcp redirect to :1081</code></pre><p>列出指定路由表定义的规则：</p><pre><code>root@OpenWrt:~# nft list table tabletest
-table ip tabletest {
-        set iplist {
-                type ipv4_addr
-                flags interval
-                elements = { 111.22.33.4, 111.22.33.4/16, 157.255.219.143 }
-        }
-
-        chain output {
-                type filter hook output priority filter; policy accept;
-                ip daddr @iplist drop
-        }
-
-        chain prerouting {
-                type nat hook prerouting priority filter; policy accept;
-                ip daddr @iplist ip protocol tcp redirect to :1081
-        }
-}</code></pre><p>删除一个路由表：</p><pre><code>nft delete table tabletest
-</code></pre><p>删除一个路由表中所有规则，保留路由链定义：</p><pre><code>nft flush table tabletest
-</code></pre><p>删除指定路由表中某个路由链中的所有规则：</p><pre><code>nft flush chain tabletest output
-</code></pre><h3>参考链接</h3><p><a href="https://openwrt.org/docs/guide-user/firewall/filtering_traffic_at_ip_addresses_by_dns">fw4 Filtering traffic with IP sets by DNS</a><br><a href="https://openwrt.org/docs/guide-user/firewall/misc/nftables">nftables</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Simple_rule_management">Simple rule management</a><br><a href="https://wiki.nftables.org/wiki-nftables/index.php/Configuring_tables">Configuring tables</a><br><a href="https://dallas.lu/en/openwrt-23-shadowsocks-nftset-nftables/">Configuring Shadowsocks rules with nftset in OpenWRT 23</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/dnsmasq-nftset-nftables-1.html" thr:count="0"/>
 </entry>
 </feed>

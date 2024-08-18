@@ -11,8 +11,36 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/Linux/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Wed, 14 Aug 2024 15:58:01 +0800</lastBuildDate>
-<pubDate>Wed, 14 Aug 2024 15:58:01 +0800</pubDate>
+<lastBuildDate>Sun, 18 Aug 2024 21:42:52 +0800</lastBuildDate>
+<pubDate>Sun, 18 Aug 2024 21:42:52 +0800</pubDate>
+<item>
+<title>docker compose 配置自动更新</title>
+<link>https://blog.niekun.net/archives/docker-compose.html</link>
+<guid>https://blog.niekun.net/archives/docker-compose.html</guid>
+<pubDate>Sun, 18 Aug 2024 21:42:52 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[Linux]]></category>
+<category><![CDATA[other]]></category>
+<description><![CDATA[docker compose 配置文件可以很方便的配置和运行 docker 容器，但每次更新容器都需要运行多条命令。可以通过在 compose 文件中设置 watchtower 来定期自动拉取最...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>docker compose 配置文件可以很方便的配置和运行 docker 容器，但每次更新容器都需要运行多条命令。可以通过在 compose 文件中设置 watchtower 来定期自动拉取最新镜像并启动容器，同时可以配置删除旧镜像和容器。</p><!--more--><p>在 docker-compose.yml 文件中增加以下内容：</p><pre><code>version: '3'
+services:
+
+  ...
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 3600 --cleanup --remove-volumes
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_REMOVE_VOLUMES=true</code></pre><p><strong>以下是主要的配置说明：</strong></p><ul><li>将 <code>--interval</code> 参数设置为 3600。这意味着 Watchtower 将每 3600 秒（即每小时）检查一次更新。</li><li><code>--cleanup</code> 和 <code>WATCHTOWER_CLEANUP=true</code> 确保在更新后清理旧的镜像。</li><li><code>--remove-volumes</code> 和 <code>WATCHTOWER_REMOVE_VOLUMES=true</code> 确保删除与旧容器关联的匿名卷。</li></ul><p>使用这个配置，Watchtower 将：</p><ul><li>每小时检查一次你的容器是否有更新</li><li>如果发现更新，它会停止旧容器，启动新容器</li><li>删除旧的容器和相关的匿名卷</li><li>删除旧的镜像</li></ul><p>这个配置应该能满足大多数用例的需求，既能保持你的容器相对最新，又不会过于频繁地进行检查和更新操作。</p><p>需要注意的是:</p><ul><li>Watchtower 只会删除它更新的容器的旧版本。它不会删除系统中的其他未使用的容器或镜像。</li><li>它只删除匿名卷,不会删除命名卷。</li><li>如果你想删除所有未使用的镜像(不仅仅是 Watchtower 更新的),你可能需要定期运行 <code>docker image prune</code> 命令。</li></ul>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/docker-compose.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/Linux/archives/docker-compose.html</wfw:commentRss>
+</item>
 <item>
 <title>通过浏览器访问服务器指定文件内容</title>
 <link>https://blog.niekun.net/archives/3014.html</link>
@@ -528,27 +556,6 @@ newgrp groupName
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/openwrt.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/category/Linux/archives/openwrt.html</wfw:commentRss>
-</item>
-<item>
-<title>Linux 获取本地网关所有 ip 段地址</title>
-<link>https://blog.niekun.net/archives/Linux-ip.html</link>
-<guid>https://blog.niekun.net/archives/Linux-ip.html</guid>
-<pubDate>Thu, 28 Mar 2024 15:35:07 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<category><![CDATA[Linux]]></category>
-<category><![CDATA[other]]></category>
-<description><![CDATA[执行下面命令即可获取本地网关所有的 ip 段地址：$ ip address | grep -w inet | awk '{print $2}'127.0.0.1/8192.168.122.2/2...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>执行下面命令即可获取本地网关所有的 ip 段地址：</p><pre><code>$ ip address | grep -w inet | awk '{print $2}'
-127.0.0.1/8
-192.168.122.2/24
-172.18.0.1/16
-172.17.0.1/16
-172.19.0.1/16</code></pre>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/Linux-ip.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/category/Linux/archives/Linux-ip.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

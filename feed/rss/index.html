@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/docker-compose.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3014.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/path.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/macOS-automator.html"/>
@@ -18,10 +19,27 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/openwrt-quic.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/pip.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/nftables.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/docker-compose.html">
+<title>docker compose 配置自动更新</title>
+<link>https://blog.niekun.net/archives/docker-compose.html</link>
+<dc:date>2024-08-18T21:42:52+08:00</dc:date>
+<description>docker compose 配置文件可以很方便的配置和运行 docker 容器，但每次更新容器都需要运行多条命令。可以通过在 compose 文件中设置 watchtower 来定期自动拉取最新镜像并启动容器，同时可以配置删除旧镜像和容器。在 docker-compose.yml 文件中增加以下内容：version: '3'
+services:
+
+  ...
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 3600 --cleanup --remove-volumes
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_REMOVE_VOLUMES=true以下是主要的配置说明：将 --interval 参数设置为 3600。这意味着 Watchtower 将每 3600 秒（即每小时）检查一次更新。--cleanup 和 WATCHTOWER_CLEANUP=true 确保在更新后清理旧的镜像。--remove-volumes 和 WATCHTOWER_REMOVE_VOLUMES=true 确保删除与旧容器关联的匿名卷。使用这个配置，Watchtower 将：每小时检查一次你的容器是否有更新如果发现更新，它会停止旧容器，启动新容器删除旧的容器和相关的匿名卷删除旧的镜像这个配置应该能满足大多数用例的需求，既能保持你的容器相对最新，又不会过于频繁地进行检查和更新操作。需要注意的是:Watchtower 只会删除它更新的容器的旧版本。它不会删除系统中的其他未使用的容器或镜像。它只删除匿名卷,不会删除命名卷。如果你想删除所有未使用的镜像(不仅仅是 Watchtower 更新的),你可能需要定期运行 docker image prune 命令。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/3014.html">
 <title>通过浏览器访问服务器指定文件内容</title>
 <link>https://blog.niekun.net/archives/3014.html</link>
@@ -372,70 +390,5 @@ table ip tabletest {
         }
 }下面就可以通过 set 名称在 nftables 规则中应用：nft add rule ip tabletest input ip saddr @blackhole drop
 nft add rule ip tabletest output ip daddr != @blackhole accept以上就是 natables 的基本用法。参考链接nftables HOWTO documentation pageNftables familiesNetfilter hooksOperations at ruleset level</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html">
-<title>通过 dnsmasq nftset 和 nftables 对域名流量的控制</title>
-<link>https://blog.niekun.net/archives/dnsmasq-nftset-nftables-1.html</link>
-<dc:date>2024-05-07T10:31:00+08:00</dc:date>
-<description>最近升级路由器系统到 openwrt 23，发现 dnsmasq-full 已经默认不支持 ipset 转而支持 nftset 了，所以之前的教程：通过 dnsmasq ipset 和 iptables 对域名流量的控制 已经不适用新版本系统。下面介绍如何通过 nfset 和 nftables 实现同样的功能。首先查看 dnsmasq 版本是否支持 nftset：root@OpenWrt:~# dnsmasq -v
-Dnsmasq version 2.90  Copyright (c) 2000-2024 Simon Kelley
-Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack no-ipset nftset auth cryptohash DNSSEC no-ID loop-detect inotify dumpfile可以看到其中有 nftset 字样，如果没有就需要安装 dnsmasq-full，安装教程参考：dnsmasq 使用教程。nftables 提供 set 功能可以在一个路由表中建立特定名称一个 ip 库，并通过命令 ip daddr 索引库里的地址。关于 nftables 的使用教程参考：nftables 使用教程先建立一个任意名称的路由表：nft add table tabletest
-然后给这个路由表建立一个名称为 iplist 的 ip 库，类型定义为 ipv4 地址：nft add set ip tabletest iplist { type ipv4_addr\; }
-如果要添加一个 ip 网段，必须定义 ip 库属性：flags intervalnft add set ip tabletest iplist { type ipv4_addr \; flags interval \; }
-现在就可以给这个 ip 库里添加 ip 地址了，命令如下：nft add element ip tabletest iplist { 111.22.33.4 };
-nft add element ip tabletest iplist { 111.22.33.4/16 };
-可以通过命令查看这个 ip 库里包含的所有地址：root@OpenWrt:~# nft list set ip tabletest iplist
-table ip tabletest {
-        set iplist {
-                type ipv4_addr
-                flags interval
-                elements = { 111.22.33.4, 111.22.33.4/16 }
-        }
-}通过 dnsmasq 配置文件也可以添加指定域名解析出的 ip 地址到 nftset 对应 ip 库列表中，例如在 /etc/dnsmasq.conf 配置文件中添加以下指令：nftset=/qq.com/4#ip#tabletest#iplist
-重启 dnsmasq 服务：service dnsmasq restart
-查询一下 qq.com 的 ip 地址：root@OpenWrt:~# nslookup qq.com
-Server:         127.0.0.1
-Address:        127.0.0.1:53
-
-Non-authoritative answer:
-Name:   qq.com
-Address: 157.255.219.143再次查看 iplist 表里包含的 ip 地址：root@OpenWrt:~# nft list set ip tabletest iplist
-table ip tabletest {
-        set iplist {
-                type ipv4_addr
-                flags interval
-                elements = { 111.22.33.4, 111.22.33.4/16, 157.255.219.143 }
-        }
-}可以看到 qq.com 解析出来的 ip 地址已经放入了 iplist 表中。nftables 可以识别并处理 nftset 表中的 ip 地址，这样就可以做到对指定域名的流量控制。新建的自定义路由表需要首先指定某个动作链条属于什么动作链类型。如：# 定义 tabletest 的 output 链，类型为 filter 路由链的动作链 &quot;output&quot;
-# 优先级 0 表示：(在任何路由决策前捕获传入数据包)
-# 策略为 accept 表示没有匹配流量后继续传入后续路由表及规则进行匹配
-nft add chain tabletest output { type filter hook output priority 0 \; policy accept \; }
-
-# 定义 tabletest 的 prerouting 链，类型为 NAT 路由链的动作链 &quot;prerouting&quot;
-nft add chain tabletest prerouting { type nat hook prerouting priority 0 \; policy accept \; }nftables 规则处理 set 库里 ip 地址的流量：# 屏蔽本机对 iplist 库中 ip 地址的访问
-nft add rule tabletest output ip daddr @iplist drop
-
-# 目标地址为 set 库地址的prerouting tcp 流量转发到指定端口
-nft add rule tabletest prerouting ip daddr @iplist ip protocol tcp redirect to :1081列出指定路由表定义的规则：root@OpenWrt:~# nft list table tabletest
-table ip tabletest {
-        set iplist {
-                type ipv4_addr
-                flags interval
-                elements = { 111.22.33.4, 111.22.33.4/16, 157.255.219.143 }
-        }
-
-        chain output {
-                type filter hook output priority filter; policy accept;
-                ip daddr @iplist drop
-        }
-
-        chain prerouting {
-                type nat hook prerouting priority filter; policy accept;
-                ip daddr @iplist ip protocol tcp redirect to :1081
-        }
-}删除一个路由表：nft delete table tabletest
-删除一个路由表中所有规则，保留路由链定义：nft flush table tabletest
-删除指定路由表中某个路由链中的所有规则：nft flush chain tabletest output
-参考链接fw4 Filtering traffic with IP sets by DNSnftablesSimple rule managementConfiguring tablesConfiguring Shadowsocks rules with nftset in OpenWRT 23</description>
 </item>
 </rdf:RDF>

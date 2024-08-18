@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/docker-compose.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3014.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Linux-warp.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/openwrt-quic.html"/>
@@ -18,10 +19,27 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/openwrt-1.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Linux.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/openwrt.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/Linux-ip.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/docker-compose.html">
+<title>docker compose 配置自动更新</title>
+<link>https://blog.niekun.net/archives/docker-compose.html</link>
+<dc:date>2024-08-18T21:42:52+08:00</dc:date>
+<description>docker compose 配置文件可以很方便的配置和运行 docker 容器，但每次更新容器都需要运行多条命令。可以通过在 compose 文件中设置 watchtower 来定期自动拉取最新镜像并启动容器，同时可以配置删除旧镜像和容器。在 docker-compose.yml 文件中增加以下内容：version: '3'
+services:
+
+  ...
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 3600 --cleanup --remove-volumes
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_REMOVE_VOLUMES=true以下是主要的配置说明：将 --interval 参数设置为 3600。这意味着 Watchtower 将每 3600 秒（即每小时）检查一次更新。--cleanup 和 WATCHTOWER_CLEANUP=true 确保在更新后清理旧的镜像。--remove-volumes 和 WATCHTOWER_REMOVE_VOLUMES=true 确保删除与旧容器关联的匿名卷。使用这个配置，Watchtower 将：每小时检查一次你的容器是否有更新如果发现更新，它会停止旧容器，启动新容器删除旧的容器和相关的匿名卷删除旧的镜像这个配置应该能满足大多数用例的需求，既能保持你的容器相对最新，又不会过于频繁地进行检查和更新操作。需要注意的是:Watchtower 只会删除它更新的容器的旧版本。它不会删除系统中的其他未使用的容器或镜像。它只删除匿名卷,不会删除命名卷。如果你想删除所有未使用的镜像(不仅仅是 Watchtower 更新的),你可能需要定期运行 docker image prune 命令。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/3014.html">
 <title>通过浏览器访问服务器指定文件内容</title>
 <link>https://blog.niekun.net/archives/3014.html</link>
@@ -450,16 +468,5 @@ newgrp groupName
 <description>安装好 openwrt 后默认有一个 root 用户，需要添加新用户也很简单，只需要在 /etc/passwd 文件最后按照格式增加一个用户即可，然后可以修改这个新用户的密码。下面使用一条命令快速添加新用户：grep -qw new_user /etc/passwd || echo &quot;new_user:x:0:23333:::&quot; &gt;&gt; /etc/passwd
 命令先检查是否在文件中存在需要添加的用户名，如果不存在则在文件最后一行添加用户。其中 new_user 是用户名，0 是 uid，23333 是 gid。如果需要修改这个新用户的密码，执行命令即可：passwd new_user
 以上就是创建新用户简单方法。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/Linux-ip.html">
-<title>Linux 获取本地网关所有 ip 段地址</title>
-<link>https://blog.niekun.net/archives/Linux-ip.html</link>
-<dc:date>2024-03-28T15:35:07+08:00</dc:date>
-<description>执行下面命令即可获取本地网关所有的 ip 段地址：$ ip address | grep -w inet | awk '{print $2}'
-127.0.0.1/8
-192.168.122.2/24
-172.18.0.1/16
-172.17.0.1/16
-172.19.0.1/16</description>
 </item>
 </rdf:RDF>
