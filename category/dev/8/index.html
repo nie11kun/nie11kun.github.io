@@ -74,6 +74,24 @@ string(2) "33"
                     <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
                     <header class="entry-header text-center">
         <h1 class="entry-title" itemprop="name headline">
+            <a href="../../../archives/2139.html" itemprop="url">Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理</a>
+        </h1>
+                <ul class="entry-meta list-inline text-muted">
+            <li class="feather-calendar"><time datetime="2021-02-07T11:07:10+08:00" itemprop="datePublished">2021-02-07</time></li>
+            <li class="feather-folder"><a href="../../Windows/index.html">Windows</a>, <a href="../../js/index.html">javascript</a></li>
+            <li class="feather-message"><a href="../../../archives/2139.html#comments"  itemprop="discussionUrl">暂无评论</a></li>
+        </ul>
+            </header>
+                
+                <div class="entry-content fmt" itemprop="articleBody">
+                    <p>由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。</p><p>我的流程是：</p><ul><li>VMware 安装 Ubuntu</li><li>共享 Windows 下的文件夹给 Ubuntu 作为开发目录</li><li>Windows 下使用 vs code 通过 ssh 方式远程连接 Ubuntu</li></ul><p>通过远程连接的方式在 Windows 下做 node.js 开发实际体验很好。但是在通过 npm 安装某些包时常常会有报错出现，错误日志大概意思就是说无法给 node_modules 文件夹内安装的库文件添加软连接到系统路径。</p><p>网上查询后发现了问题原因，我的开发目录实际是在 Windows 下的，Windows 和 Linux 有着不一样的文件系统和路径格式，所以 npm 在安装某些包含 bin 可执行文件的第三方库时，会默认自动创建相关文件的软链接到 Linux 系统路径，这样就就报错了。</p><p>如果要坚持使用共享目录的形式做开发，那么需要设置在 npm 安装新库时使用参数 <code>--no-bin-links</code> 告诉系统不要自动创建软连接，语法如下：</p><pre><code>npm install cowsay --no-bin-links
+</code></pre><p>这样就会跳过相关步骤。</p><p>也可以设置到 npm 配置中，这样以后安装的包都会默认不创建 bin 的软连接了：</p><pre><code>npm config set bin-links false
+</code></pre><p>当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。</p><p>参考链接：<a href="https://github.com/npm/npm/issues/2221">https://github.com/npm/npm/issues/2221</a></p>                </div>
+            </article>
+            <hr class="post-separator">
+                    <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+                    <header class="entry-header text-center">
+        <h1 class="entry-title" itemprop="name headline">
             <a href="../../../archives/2137.html" itemprop="url">node.js 入门教程之五 -- HTTP request and response</a>
         </h1>
                 <ul class="entry-meta list-inline text-muted">
@@ -148,22 +166,6 @@ cout &lt;&lt; b &lt;&lt; endl;
 
 //output:
 //100</code></pre><p class="more"><a href="../../../archives/2066.html" title="c++ 类型转换">阅读全文</a></p>                </div>
-            </article>
-            <hr class="post-separator">
-                    <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-                    <header class="entry-header text-center">
-        <h1 class="entry-title" itemprop="name headline">
-            <a href="../../../archives/2051.html" itemprop="url">node.js 入门教程之二 -- Getting Started</a>
-        </h1>
-                <ul class="entry-meta list-inline text-muted">
-            <li class="feather-calendar"><time datetime="2021-01-09T15:48:00+08:00" itemprop="datePublished">2021-01-09</time></li>
-            <li class="feather-folder"><a href="../../js/index.html">javascript</a>, <a href="../../node/index.html">node.js</a></li>
-            <li class="feather-message"><a href="../../../archives/2051.html#comments"  itemprop="discussionUrl">暂无评论</a></li>
-        </ul>
-            </header>
-                
-                <div class="entry-content fmt" itemprop="articleBody">
-                    <h3>V8 JavaScript Engine</h3><p>V8 是 chrome 浏览器的 JavaScript Engine 名称，它是用来在 chrome 中获取和执行 JavaScript 代码的工具。V8 提供了一个 JavaScript 的运行环境，DOM 及其他 web API 是由 browser 提供的。</p><p>JavaScript Engine 是独立于其所寄生的浏览器的，这一特性才使 node.js 得以诞生。node.js 选择了 V8 Engine 且随着 node.js 的不断成长，大量服务端通过 JavaScript 编写的程序使用 v8 Engine。</p><p>基于 V8 同样可以创造桌面应用，例如 Electron 项目。</p><p>不同的浏览器有着各自的 Engine：</p><ul><li><strong>Firefox</strong> has SpiderMonkey</li><li><strong>Safari</strong> has JavaScriptCore (also called Nitro)</li><li><strong>Edge</strong> was originally based on Chakra but has more recently been rebuilt using Chromium and the V8 engine.</li></ul><p>所有的 Engine 都遵守 ECMAScript 标准。</p><p class="more"><a href="../../../archives/2051.html" title="node.js 入门教程之二 -- Getting Started">阅读全文</a></p>                </div>
             </article>
             <hr class="post-separator">
         

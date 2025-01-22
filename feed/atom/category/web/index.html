@@ -7,11 +7,70 @@ xml:base="https://blog.niekun.net/category/web/"
 >
 <title type="text">Marco Nie - web</title>
 <subtitle type="text"></subtitle>
-<updated>2022-08-12T14:50:00+08:00</updated>
+<updated>2025-01-17T17:14:00+08:00</updated>
 <generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/web/" />
 <id>https://blog.niekun.net/feed/atom/category/web/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/web/" />
+<entry>
+<title type="html"><![CDATA[honkit 使用教程及部署github page]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/3021.html" />
+<id>https://blog.niekun.net/archives/3021.html</id>
+<updated>2025-01-17T17:14:00+08:00</updated>
+<published>2025-01-17T17:14:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<category scheme="https://blog.niekun.net/category/web/" term="web" />
+<summary type="html"><![CDATA[1. 什么是 Honkit？Honkit 是一个现代化的静态书籍生成工具，它是基于旧版 GitBook 开发的，支持 Markdown 文件的编写和多种输出格式，如 HTML 和 PDF。]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/3021.html" xml:lang="zh-CN"><![CDATA[
+<h2>1. 什么是 Honkit？</h2><p><strong>Honkit</strong> 是一个现代化的静态书籍生成工具，它是基于旧版 GitBook 开发的，支持 Markdown 文件的编写和多种输出格式，如 HTML 和 PDF。</p><!--more--><h2>2. 初始化 Honkit 项目</h2><h3>2.1 创建 Honkit 项目</h3><ol><li><p><strong>创建项目目录</strong>：</p><pre><code class="lang-bash">mkdir my-honkit-project
+cd my-honkit-project</code></pre></li><li><p><strong>初始化 Honkit 项目</strong>：</p><pre><code class="lang-bash">npx honkit init</code></pre><p>这会生成以下两个文件：</p><ul><li><code>README.md</code>：书籍的主页面。</li><li><code>SUMMARY.md</code>：目录结构的定义。</li></ul></li><li><p><strong>安装 Honkit</strong>：</p><pre><code class="lang-bash">npm install honkit --save-dev</code></pre></li></ol><h2>3. 本地构建书籍</h2><h3>3.1 运行开发服务器</h3><p>在项目目录中运行以下命令启动本地预览：</p><pre><code class="lang-bash">npx honkit serve</code></pre><p>默认情况下，书籍会在 <a href="http://localhost:4000">http://localhost:4000</a> 上运行。</p><h3>3.2 生成静态文件</h3><p>当书籍准备好后，运行以下命令生成静态 HTML 文件：</p><pre><code class="lang-bash">npx honkit build</code></pre><p>生成的文件会存储在 <code>_book</code> 目录中。</p><hr><h2>4. 生成 PDF 文件</h2><p>Honkit 支持将书籍生成 PDF 文件，但需要预先安装 <strong>Calibre</strong> 电子书管理软件。</p><h3>4.1 安装 Calibre</h3><ol><li><p><strong>下载 Calibre</strong>：</p><ul><li>访问 Calibre 官网：<a href="https://calibre-ebook.com/download">https://calibre-ebook.com/download</a>。</li><li>下载并安装适合您系统的版本。</li></ul></li><li><p><strong>确保 Calibre 路径正确</strong>：</p><ul><li><p><strong>检查环境变量</strong>：</p><ul><li>通常，Calibre 安装会自动将路径添加到系统的环境变量 <code>PATH</code> 中。</li><li>如果未自动添加，手动将 Calibre 的安装目录路径添加到 <code>PATH</code> 环境变量中。</li></ul></li><li><p>例如，Windows 系统下，路径可能为：</p><pre><code>C:\Program Files\Calibre2</code></pre></li><li><p>Linux 和 macOS 用户可通过以下命令验证：</p><pre><code class="lang-bash">which ebook-convert</code></pre><p>如果返回路径为空，说明需要手动添加。</p></li></ul></li><li><strong>重新打开终端</strong>：<br>添加路径后，确保关闭并重新打开终端。</li></ol><h3>4.2 生成 PDF</h3><p>运行以下命令生成 PDF 文件：</p><pre><code class="lang-bash">npx honkit pdf . output.pdf</code></pre><ul><li><code>.</code> 表示当前目录。</li><li><code>output.pdf</code> 是生成的 PDF 文件名。</li></ul><h2>5. 部署到 GitHub Pages</h2><h3>5.1 创建 GitHub 仓库</h3><ol><li>前往 <a href="https://github.com">GitHub</a> 创建一个新仓库（例如 <code>my-honkit-book</code>）。</li><li><p>将本地项目与远程仓库关联：</p><pre><code class="lang-bash">git init
+git remote add origin https://github.com/&lt;username&gt;/my-honkit-book.git
+git add .
+git commit -m &quot;Initial commit&quot;
+git branch -M main
+git push -u origin main</code></pre></li></ol><h3>5.2 配置 GitHub Actions 自动部署</h3><ol><li><p><strong>创建 GitHub Actions 配置文件</strong>：<br>在项目的根目录下创建 <code>.github/workflows/deploy.yml</code> 文件，内容如下：</p><pre><code class="lang-yaml">name: Deploy Honkit to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Build Honkit
+      run: npx honkit build
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./_book</code></pre></li><li><p><strong>提交配置文件</strong>：<br>提交并推送配置文件到 GitHub：</p><pre><code class="lang-bash">git add .github/workflows/deploy.yml
+git commit -m &quot;Add GitHub Actions for deployment&quot;
+git push origin main</code></pre></li><li><p><strong>启用 GitHub Pages</strong>：</p><ul><li>进入仓库的 <strong>Settings</strong> &gt; <strong>Pages</strong>。</li><li>在 <strong>Source</strong> 下选择 <code>gh-pages</code> 分支，点击保存。</li></ul></li></ol><h2>6. 绑定自定义域名</h2><h3>6.1 配置 GitHub Pages</h3><ol><li>进入仓库的 <strong>Settings</strong> &gt; <strong>Pages</strong>。</li><li>在 <strong>Custom domain</strong> 中输入您的自定义域名（例如 <code>www.example.com</code>）。</li><li>点击 <strong>Save</strong>。GitHub 会自动生成一个 <code>CNAME</code> 文件。</li></ol><h3>6.2 配置 DNS 记录</h3><p>登录您的域名注册商控制台，添加以下 DNS 记录：</p><ul><li><p><strong>绑定子域名</strong>（例如 <code>www.example.com</code>）：<br>添加 <strong>CNAME 记录</strong>：</p><pre><code>www  CNAME  &lt;username&gt;.github.io</code></pre></li></ul><blockquote>注意：将 <code>&lt;username&gt;</code> 替换为您的 GitHub 用户名。</blockquote><h3>6.3 启用 HTTPS</h3><ol><li>返回 GitHub 仓库的 <strong>Settings</strong> &gt; <strong>Pages</strong>。</li><li>勾选 <strong>Enforce HTTPS</strong>，以启用 HTTPS 访问。</li></ol><h2>自定义域名每次推送后消失的解决方法</h2><p>当每次推送代码后，自定义域名设置消失，通常是由于 <code>CNAME</code> 文件被覆盖或删除。GitHub Pages 需要根目录的 <code>CNAME</code> 文件来保存自定义域名信息。如果该文件丢失或被覆盖，GitHub 就无法识别您的自定义域名。</p><hr><h2>解决方法</h2><p>手动将 <code>CNAME</code> 文件添加到源码目录</p><ol><li><p><strong>创建 <code>CNAME</code> 文件</strong>：<br>在项目根目录（如 <code>main</code> 分支）下创建一个 <code>CNAME</code> 文件，并在文件中输入您的自定义域名，例如：</p><pre><code>www.example.com</code></pre></li><li><p><strong>提交更改</strong>：<br>提交并推送 <code>CNAME</code> 文件到远程仓库：</p><pre><code class="lang-bash">git add CNAME
+git commit -m &quot;Add CNAME file&quot;
+git push origin main</code></pre></li><li><strong>验证</strong>：<br>每次部署后，<code>CNAME</code> 文件会自动被包含在 <code>gh-pages</code> 分支中，不会被覆盖。</li></ol><h2>验证步骤</h2><ol><li><p><strong>检查 <code>CNAME</code> 文件</strong>：</p><ul><li>进入 GitHub 仓库的 <code>gh-pages</code> 分支，确认根目录下有 <code>CNAME</code> 文件。</li><li><p>文件内容应为您的自定义域名，例如：</p><pre><code>www.example.com</code></pre></li></ul></li><li><p><strong>检查 GitHub Pages 设置</strong>：</p><ul><li>转到 <strong>Settings &gt; Pages</strong>。</li><li>确认自定义域名已正确显示，并启用 <strong>HTTPS</strong>。</li></ul></li><li><strong>测试访问</strong>：<br>使用您的自定义域名访问页面，确认是否能够正确加载。</li></ol><h2>7. 常见问题及解决方法</h2><h3>问题 1：<code>npx honkit pdf</code> 报错 <code>Command failed: ebook-convert not found</code></h3><p><strong>原因</strong>：  <br>Calibre 未正确安装，或 <code>ebook-convert</code> 工具未添加到系统的 <code>PATH</code> 环境变量中。</p><p><strong>解决方法</strong>：</p><ol><li><p>确保 Calibre 已安装，并重新确认安装路径：</p><ul><li>Windows 默认路径：<code>C:\Program Files\Calibre2</code>。</li><li>macOS/Linux 使用 <code>which ebook-convert</code> 检查路径。</li></ul></li><li><p>手动将 Calibre 的安装路径添加到系统环境变量中：</p><ul><li><p><strong>Windows</strong>：</p><ul><li>打开“环境变量”设置，找到 <code>PATH</code>。</li><li>添加 <code>C:\Program Files\Calibre2</code>。</li></ul></li><li><p><strong>Linux/macOS</strong>：</p><ul><li><p>编辑 <code>~/.bashrc</code> 或 <code>~/.zshrc</code> 文件，添加以下内容：</p><pre><code class="lang-bash">export PATH=&quot;/path/to/calibre:$PATH&quot;</code></pre><p>替换 <code>/path/to/calibre</code> 为 Calibre 的实际路径。</p></li><li>保存后运行 <code>source ~/.bashrc</code> 或 <code>source ~/.zshrc</code> 使更改生效。</li></ul></li></ul></li><li>重新运行 <code>npx honkit pdf</code>。</li></ol><h3>问题 2：GitHub Actions 部署失败，提示 <code>Permission denied</code></h3><p><strong>原因</strong>：  <br>GitHub Actions 无法向 <code>gh-pages</code> 分支推送更改，通常是因为缺少权限。</p><p><strong>解决方法</strong>：</p><ol><li><p>确保 GitHub 仓库的 <strong>Settings</strong> &gt; <strong>Actions</strong> &gt; <strong>General</strong> 中已启用 <strong>Read and write permissions</strong>：</p><ul><li>打开 <strong>Workflow permissions</strong>，选择 <strong>Read and write permissions</strong>。</li><li>勾选 <strong>Allow GitHub Actions to create and approve pull requests</strong>。</li></ul></li><li><p>确认 GitHub Actions 配置文件中使用的是 <code>github_token</code>：</p><pre><code class="lang-yaml">with:
+  github_token: ${{ secrets.GITHUB_TOKEN }}</code></pre></li></ol><h3>问题 3：GitHub Pages 部署成功，但自定义域名未生效</h3><p><strong>原因</strong>：  <br>DNS 记录配置错误或未生效。</p><p><strong>解决方法</strong>：</p><ol><li><p>登录域名管理平台，检查 DNS 配置：</p><ul><li>确认 A 记录或 CNAME 记录配置正确。</li><li>等待 DNS 记录生效（可能需要 5-48 小时）。</li></ul></li><li>检查仓库根目录下是否有 <code>CNAME</code> 文件，内容是否正确（应与自定义域名一致）。</li><li><p>验证 DNS 配置是否正确：</p><ul><li>使用 <a href="https://dnschecker.org">DNS Checker</a> 验证域名解析。</li></ul></li><li><p>启用 HTTPS：</p><ul><li>进入 <strong>Settings</strong> &gt; <strong>Pages</strong>，勾选 <strong>Enforce HTTPS</strong>。</li></ul></li></ol><h3>问题 4：生成的书籍内容显示错乱或样式缺失</h3><p><strong>原因</strong>：</p><ul><li>Markdown 文件中格式不正确。</li><li><code>SUMMARY.md</code> 的目录结构未正确链接。</li></ul><p><strong>解决方法</strong>：</p><ol><li>确认 Markdown 文件的格式是否符合规范。</li><li><p>检查 <code>SUMMARY.md</code> 中的链接是否与文件路径一致：</p><pre><code class="lang-markdown">* [章节标题](path/to/file.md)</code></pre></li><li><p>清理并重新构建书籍：</p><pre><code class="lang-bash">npx honkit build</code></pre></li></ol><h3>问题 5：自定义 PDF 样式未生效</h3><p><strong>原因</strong>：  <br>未指定自定义样式文件或样式文件路径错误。</p><p><strong>解决方法</strong>：</p><ol><li>创建一个 CSS 样式文件（如 <code>custom.css</code>），自定义 PDF 的排版样式。</li><li><p>使用以下命令生成 PDF 并指定样式文件：</p><pre><code class="lang-bash">npx honkit pdf --css custom.css . output.pdf</code></pre><h2>8. 支持与反馈</h2></li></ol><p>如果您遇到未列出的问题或有其他疑问，请参考以下支持途径：</p><ul><li><strong>Honkit 官方文档</strong>：<a href="https://honkit.netlify.app">https://honkit.netlify.app</a></li><li><strong>GitHub 仓库</strong>：<a href="https://github.com/honkit/honkit">https://github.com/honkit/honkit</a></li><li><strong>社区支持</strong>：搜索相关问题或发帖提问。</li></ul><p>完成这些步骤后，您可以成功使用 Honkit 创建、部署和管理文档，解决常见问题，并生成符合您需求的 HTML 和 PDF 文档！</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/3021.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/web/archives/3021.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Miniflux 搭建自己的 RSS 服务系统]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2749.html" />
@@ -1531,65 +1590,5 @@ ReactDOM.render(
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2184.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/web/archives/2184.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[React 入门教程之三 -- 介绍  JSX]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2183.html" />
-<id>https://blog.niekun.net/archives/2183.html</id>
-<updated>2021-02-24T14:45:12+08:00</updated>
-<published>2021-02-24T14:45:12+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<category scheme="https://blog.niekun.net/category/react/" term="react" />
-<summary type="html"><![CDATA[请看下面的一个定义：const element = &amp;lt;h1&amp;gt;Hello, world!&amp;lt;/h1&amp;gt;;它既不是一个 string 也不是 html。它叫做 JSX，是一种对 ...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2183.html" xml:lang="zh-CN"><![CDATA[
-<p>请看下面的一个定义：</p><pre><code>const element = &lt;h1&gt;Hello, world!&lt;/h1&gt;;
-</code></pre><p>它既不是一个 string 也不是 html。它叫做 <strong>JSX</strong>，是一种对 JavaScript 语法的扩展。推荐在 React 中使用 JSX 来描述 UI，它用来创建 React 类型的 elements 然后将其在 DOM 中渲染。</p><p>下面对 JSX 做一些基本介绍。</p><!--more--><h3>使用 JSX 的原因</h3><p>React 认同这种观点：渲染逻辑结构和 UI 逻辑结构是原生相互耦合的，events 的处理，状态的变化，数据何时显示等。不同于人为的将 markup 部分和 logic 逻辑部分放在单独的文件，React 的耦合单元叫做 components 可以同时包含 markup 和 logic 部分。</p><p>React 并不强制要求使用 JSX，但是大部分开发者认为它可以帮助在 JavaScript 中处理 UI 的问题。它也可以帮助 React 显示更多的 error 或 warning 信息。</p><h3>JSX 中使用 JavaScript 表达式</h3><p>下面的示例中，我们声明一个变量并在 JSX 中通过大括号<code>{}</code> 调用变量：</p><pre><code>const name = 'marco nie';
-const element = &lt;h1&gt;hello, {name}&lt;/h1&gt;
-
-ReactDOM.render(
-    element,
-    document.getElementById('root')
-);</code></pre><p>我们可以将任意的 JavaScript 表达式通过大括号<code>{}</code>放如 JSX 中。例如：<code>1 + 1</code>，<code>user.name</code> 都是有效的 JavaScript 表达式：</p><pre><code>const city = 'han zhong';
-const user = {
-    name: 'marco',
-    age: 20
-}
-const element = &lt;h1&gt;hello, {user.name}, from {city}, time: {1 + 20}&lt;/h1&gt;</code></pre><p>可以将 JSX 分割成多行以提高代码可读性，需要使用小括号包围起来，防止编译器错误的自动添加分行符：</p><pre><code>const element = (
-    &lt;h1&gt;
-        hello, {user.name}, from {city}, time: {1 + 20}
-    &lt;/h1&gt;
-);</code></pre><p>编译后 JSX 表达式会转换为通用的 JavaScript function 或 objects。这就意味着我们可以在 if 或 for 表达式中，传入数据中或者 返回值中使用 JSX：</p><pre><code>const testFuc = () =&gt; {
-    return &lt;h1&gt;hello, {user.name}&lt;/h1&gt;
-}</code></pre><h3>JSX 中定义属性</h3><p>可以使用引号 <code>&quot;&quot;</code> 将一个字符串作为属性：</p><pre><code>const el1 = &lt;div tabIndex=&quot;0&quot;&gt;&lt;/div&gt;
-</code></pre><p>可以以通过大括号<code>{}</code> 将一个 JavaScript 表达式嵌入属性：</p><pre><code>const el2 = &lt;img src={user.name}&gt;&lt;/img&gt;
-</code></pre><p>当使用 JavaScript 嵌入属性时不能在大括号中使用引号，同一个属性中只能使用<strong>引号嵌入字符串</strong>或者<strong>大括号嵌入 JavaScript 表达式</strong>中的一种。</p><p>由于 JSX 更加接近于 JavaScript 而不是 html，所以 React 中的 DOM 使用 camelCase 属性命名规范代替 html 中的属性名称，例如 html 元素的 class 属性在 JSX 中定义为 className，tabindex 在 JSX 中为 tabIndex。</p><h3>定义子元素</h3><p>如果一个 tag 元素内容是空的则可以使用 <code>/&gt;</code> 立刻结束定义：</p><pre><code>const el3 = &lt;img src=''/&gt;
-</code></pre><p>JSX tag 标签内也可以有子元素：</p><pre><code>const el4 = (
-    &lt;div&gt;
-        &lt;h1&gt;hello,&lt;/h1&gt;
-        &lt;h2&gt;i am your friend&lt;/h2&gt;
-    &lt;/div&gt;
-);</code></pre><p>注意只能在一个元素内定义子元素，不能直接定义两个同级的元素否则会报错。</p><h3>防止 injection 注入攻击</h3><p>在 JSX 中嵌入用户输入是安全的：</p><pre><code>const title = response.potentiallyMaliciousInput;
-// This is safe:
-const element = &lt;h1&gt;{title}&lt;/h1&gt;;</code></pre><p>默认情况下 React 在渲染前会将脱开所有嵌入 JSX 中的数据，因此可以确保不会注入任何没有明确定义在应用中的数据。渲染前所有的所有内容都会转换为 string 字符串形式。则能够防止 XSS (cross-site-scripting) 攻击。</p><h3>JSX 表达 objects</h3><p>Babel 会将 JSX 向下编译为对 React.createElement() 的调用，以下两种定义方法是相同的：</p><pre><code>const el5 = (
-    &lt;h1 className='test'&gt;
-        hello world
-    &lt;/h1&gt;
-);</code></pre><pre><code>const el6 = React.createElement(
-    'h1',
-    {className: 'test'},
-    'hello world'
-)</code></pre><p>通过 <code>React.createElement()</code> 创建元素会额外做一些语法检查来防止错误代码。但通常我们使用下面语法创建一个 object：</p><pre><code>const el7 = {
-    type: 'h1',
-    props: {
-        className: 'test',
-        children: 'hello world'
-    }
-}</code></pre><p>以上方式创建的 object 叫做 <strong>React elements</strong>。React 使用这些 objects 来构建 DOM 并及时更新。</p><p>推荐代码编辑器使用 <strong>Babel</strong> 语法定义环境，这样可以同时支持 ES6 和 JSX 语法结构。设置方法参考：<a href="https://babeljs.io/docs/en/editors">https://babeljs.io/docs/en/editors</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2183.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/web/archives/2183.html" thr:count="0"/>
 </entry>
 </feed>

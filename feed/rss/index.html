@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/3021.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/docker-compose.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3014.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/path.html"/>
@@ -18,10 +19,56 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2999.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/openwrt-quic.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/pip.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/nftables.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/3021.html">
+<title>honkit 使用教程及部署github page</title>
+<link>https://blog.niekun.net/archives/3021.html</link>
+<dc:date>2025-01-17T17:14:00+08:00</dc:date>
+<description>1. 什么是 Honkit？Honkit 是一个现代化的静态书籍生成工具，它是基于旧版 GitBook 开发的，支持 Markdown 文件的编写和多种输出格式，如 HTML 和 PDF。2. 初始化 Honkit 项目2.1 创建 Honkit 项目创建项目目录：mkdir my-honkit-project
+cd my-honkit-project初始化 Honkit 项目：npx honkit init这会生成以下两个文件：README.md：书籍的主页面。SUMMARY.md：目录结构的定义。安装 Honkit：npm install honkit --save-dev3. 本地构建书籍3.1 运行开发服务器在项目目录中运行以下命令启动本地预览：npx honkit serve默认情况下，书籍会在 http://localhost:4000 上运行。3.2 生成静态文件当书籍准备好后，运行以下命令生成静态 HTML 文件：npx honkit build生成的文件会存储在 _book 目录中。4. 生成 PDF 文件Honkit 支持将书籍生成 PDF 文件，但需要预先安装 Calibre 电子书管理软件。4.1 安装 Calibre下载 Calibre：访问 Calibre 官网：https://calibre-ebook.com/download。下载并安装适合您系统的版本。确保 Calibre 路径正确：检查环境变量：通常，Calibre 安装会自动将路径添加到系统的环境变量 PATH 中。如果未自动添加，手动将 Calibre 的安装目录路径添加到 PATH 环境变量中。例如，Windows 系统下，路径可能为：C:\Program Files\Calibre2Linux 和 macOS 用户可通过以下命令验证：which ebook-convert如果返回路径为空，说明需要手动添加。重新打开终端：添加路径后，确保关闭并重新打开终端。4.2 生成 PDF运行以下命令生成 PDF 文件：npx honkit pdf . output.pdf. 表示当前目录。output.pdf 是生成的 PDF 文件名。5. 部署到 GitHub Pages5.1 创建 GitHub 仓库前往 GitHub 创建一个新仓库（例如 my-honkit-book）。将本地项目与远程仓库关联：git init
+git remote add origin https://github.com/&lt;username&gt;/my-honkit-book.git
+git add .
+git commit -m &quot;Initial commit&quot;
+git branch -M main
+git push -u origin main5.2 配置 GitHub Actions 自动部署创建 GitHub Actions 配置文件：在项目的根目录下创建 .github/workflows/deploy.yml 文件，内容如下：name: Deploy Honkit to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Build Honkit
+      run: npx honkit build
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./_book提交配置文件：提交并推送配置文件到 GitHub：git add .github/workflows/deploy.yml
+git commit -m &quot;Add GitHub Actions for deployment&quot;
+git push origin main启用 GitHub Pages：进入仓库的 Settings &gt; Pages。在 Source 下选择 gh-pages 分支，点击保存。6. 绑定自定义域名6.1 配置 GitHub Pages进入仓库的 Settings &gt; Pages。在 Custom domain 中输入您的自定义域名（例如 www.example.com）。点击 Save。GitHub 会自动生成一个 CNAME 文件。6.2 配置 DNS 记录登录您的域名注册商控制台，添加以下 DNS 记录：绑定子域名（例如 www.example.com）：添加 CNAME 记录：www  CNAME  &lt;username&gt;.github.io注意：将 &lt;username&gt; 替换为您的 GitHub 用户名。6.3 启用 HTTPS返回 GitHub 仓库的 Settings &gt; Pages。勾选 Enforce HTTPS，以启用 HTTPS 访问。自定义域名每次推送后消失的解决方法当每次推送代码后，自定义域名设置消失，通常是由于 CNAME 文件被覆盖或删除。GitHub Pages 需要根目录的 CNAME 文件来保存自定义域名信息。如果该文件丢失或被覆盖，GitHub 就无法识别您的自定义域名。解决方法手动将 CNAME 文件添加到源码目录创建 CNAME 文件：在项目根目录（如 main 分支）下创建一个 CNAME 文件，并在文件中输入您的自定义域名，例如：www.example.com提交更改：提交并推送 CNAME 文件到远程仓库：git add CNAME
+git commit -m &quot;Add CNAME file&quot;
+git push origin main验证：每次部署后，CNAME 文件会自动被包含在 gh-pages 分支中，不会被覆盖。验证步骤检查 CNAME 文件：进入 GitHub 仓库的 gh-pages 分支，确认根目录下有 CNAME 文件。文件内容应为您的自定义域名，例如：www.example.com检查 GitHub Pages 设置：转到 Settings &gt; Pages。确认自定义域名已正确显示，并启用 HTTPS。测试访问：使用您的自定义域名访问页面，确认是否能够正确加载。7. 常见问题及解决方法问题 1：npx honkit pdf 报错 Command failed: ebook-convert not found原因：  Calibre 未正确安装，或 ebook-convert 工具未添加到系统的 PATH 环境变量中。解决方法：确保 Calibre 已安装，并重新确认安装路径：Windows 默认路径：C:\Program Files\Calibre2。macOS/Linux 使用 which ebook-convert 检查路径。手动将 Calibre 的安装路径添加到系统环境变量中：Windows：打开“环境变量”设置，找到 PATH。添加 C:\Program Files\Calibre2。Linux/macOS：编辑 ~/.bashrc 或 ~/.zshrc 文件，添加以下内容：export PATH=&quot;/path/to/calibre:$PATH&quot;替换 /path/to/calibre 为 Calibre 的实际路径。保存后运行 source ~/.bashrc 或 source ~/.zshrc 使更改生效。重新运行 npx honkit pdf。问题 2：GitHub Actions 部署失败，提示 Permission denied原因：  GitHub Actions 无法向 gh-pages 分支推送更改，通常是因为缺少权限。解决方法：确保 GitHub 仓库的 Settings &gt; Actions &gt; General 中已启用 Read and write permissions：打开 Workflow permissions，选择 Read and write permissions。勾选 Allow GitHub Actions to create and approve pull requests。确认 GitHub Actions 配置文件中使用的是 github_token：with:
+  github_token: ${{ secrets.GITHUB_TOKEN }}问题 3：GitHub Pages 部署成功，但自定义域名未生效原因：  DNS 记录配置错误或未生效。解决方法：登录域名管理平台，检查 DNS 配置：确认 A 记录或 CNAME 记录配置正确。等待 DNS 记录生效（可能需要 5-48 小时）。检查仓库根目录下是否有 CNAME 文件，内容是否正确（应与自定义域名一致）。验证 DNS 配置是否正确：使用 DNS Checker 验证域名解析。启用 HTTPS：进入 Settings &gt; Pages，勾选 Enforce HTTPS。问题 4：生成的书籍内容显示错乱或样式缺失原因：Markdown 文件中格式不正确。SUMMARY.md 的目录结构未正确链接。解决方法：确认 Markdown 文件的格式是否符合规范。检查 SUMMARY.md 中的链接是否与文件路径一致：* [章节标题](path/to/file.md)清理并重新构建书籍：npx honkit build问题 5：自定义 PDF 样式未生效原因：  未指定自定义样式文件或样式文件路径错误。解决方法：创建一个 CSS 样式文件（如 custom.css），自定义 PDF 的排版样式。使用以下命令生成 PDF 并指定样式文件：npx honkit pdf --css custom.css . output.pdf8. 支持与反馈如果您遇到未列出的问题或有其他疑问，请参考以下支持途径：Honkit 官方文档：https://honkit.netlify.appGitHub 仓库：https://github.com/honkit/honkit社区支持：搜索相关问题或发帖提问。完成这些步骤后，您可以成功使用 Honkit 创建、部署和管理文档，解决常见问题，并生成符合您需求的 HTML 和 PDF 文档！</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/docker-compose.html">
 <title>docker compose 配置自动更新</title>
 <link>https://blog.niekun.net/archives/docker-compose.html</link>
@@ -247,149 +294,5 @@ pip config set global.index-url http://pypi.douban.com/simple/
 
 # 换回默认源
 pip config unset global.index-url</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/nftables.html">
-<title>nftables 使用教程</title>
-<link>https://blog.niekun.net/archives/nftables.html</link>
-<dc:date>2024-05-08T10:14:00+08:00</dc:date>
-<description>新版本的 openwrt 使用 fw4 防火墙，默认已经从 iptables 切换到了 nftables，语法有了很大的变化，下面介绍 nftables 的使用方法。路由表配置路由表是 nftables 中最顶层的容器，它管理着  chains, sets, maps, flowtables, 和 stateful objects.family 集合每个路由表都只能属于一个 family 集合，可用的 family 有：ip      监听 ipv4 的流量ip6     监听 ipv6 的流量inet    同时监听 ipv4 和 ipv6 的流量arp     监听 ARP-level 地址解析协议的流量bridge  监听 bridge 桥接流量 如交换机netdev  用于监听某个单独网卡的流量基本语法新建路由表：nft add table ip tabletest
-以上命令在 ip 集合中新建一个名称为 tabletest 的路由表，可以处理 ipv4 流量路由表列表：# 列出所有路由表
-nft list tables
-
-# 列出所有 ip 集合的路由表
-nft list tables ip删除一个路由表：nft delete table ip tabletest
-路由链配置不同于 iptables，nftables 没有预定义的链，如 input output 等。想要在某个环节处理流量，需要定义一个自定义名称的基本链，然后将其挂载在一个特定的 netfilter hook 钩子上。下图是流量包在 linux 网络中的传输路径：外部访问流量传输到本机后如果目标地址是本机，流量传输路径是 prerouting -&gt; input hooks -&gt; 本机，然后经过本机处理后流向  本机 -&gt; output -&gt; postrouting hooks。如果传入本机的外部流量目标地址不是本机，则受 forward hook 监听，这类流量的传输路径是 prerouting -&gt; forward -&gt; postrouting。本机访问外部地址的流量传输路径是 本机 -&gt; output -&gt; postrouting hooks。注意如果本机作为 router 路由使用，需要提前开启 ip 转发功能：echo 1 &gt; /proc/sys/net/ipv4/ip_forward
-以下是 netfilter 可用的 chains 和 hooks 列表：基本语法建立基本链，挂载在一个特定 type 的 netfilter hook：nft add chain [&lt;family&gt;] &lt;table_name&gt; &lt;chain_name&gt; { type &lt;type&gt; hook &lt;hook&gt; priority &lt;value&gt; \; [policy &lt;policy&gt; \;] [comment \&quot;text comment\&quot; \;] }
-注意，由于 nft 语法使用了特殊字符，如: ;，在命令行中执行需要加转义符 \。或者可以使用单引号 '` 将 nft 后的语句包起来，以下两种写法效果相同：nft add chain ip tabletest input { type filter hook input priority 0 \; }
-nft 'add chain ip tabletest input { type filter hook input priority 0 ; }'
-另一种方法是运行 nft 在交互模式，执行以下命令后就可以不加转义符: nft -i。上面的命令在 tebletest 路由表中新建一个 input 链，挂载在 filter 路由链的 input hook 上。这样就可以监听所有进入本地的流量。priority 决定了所有链的顺序，例如在 filter input hook 上挂载了多个自定义链，通过 priority 决定其执行顺序。数值越低执行优先级越高，例如 -12, -1, 0, 10。如果给多个挂载在同一个 hook 上的自定义基本链同样的 priority，它们的先后执行顺序就是不确定的。添加以下命令后就可以在 tabletest 基本链中监听本机输出的流量：nft 'add chain ip tabletest output { type filter hook output priority 0 ; }'
-如果不定义大括号中的内容，也就是不挂载在特定 hook 上，则路由链不会监听任何流量。policy 定义了默认的策略，可用的默认策略为：accept 和 drop，如果路由链中的规则都没有匹配则会应用默认策略：accept 没有匹配到的流量继续在网络层传输drop   没有匹配到的流量被丢弃type 指定自定义路由链挂载到那个基本 chain，可用的基本链：filter, 用于过滤流量包route, 用于重路由，等同于 iptables 的 mangle 路由链的 output hook (其他 mangle hooks 可以使用 filter 代替)nat, 用于运行 Networking Address Translation (NAT). 只有第一个 nat 流量包会匹配到此链剩余的包会跳过此链，因此尽量不要使用此链过滤流量hook 定义了挂载的基本链 hook，可用的 hooks 如下：ingress 只能用于 netdev 和 inet family: 监听来自于 NIC driver 的流量, 早于 prerouting.prerouting: 监听所有在 routing 前的入口流量. 流量可能重定向到 local 或 remote systems.input: 监听所有被路由或重定向到 local system 的入口流量forward: 监听所有不被重定向到 local system 的入口流量output: 监听所有在 local machine 被管理的出口流量postrouting: 监听所有被路由后的即将离开 local system 的出口流量列出一个路由表的所有路由链：nft list ip table tabletest
-列出一个路由表的指定路由链：nft list chain ip tabletest output
-comment 可以给规则添加注释：nft add rule ip tabletest input counter comment \&quot;test comment\&quot;
-基本规则配置通过规则可以控制路由链上的流量。基本语法添加规则：nft add rule ip tabletest output ip daddr 8.8.8.8 counter
-以上命令会在 tabletest 路由表的 output 链中添加一条规则，匹配出口流量中 ip 地址为 8.8.8.8 的流量并对匹配次数计数，nftables 中 counter 会默认启用即使不写。以上命令相当于 iptables 中的 -A 命令。列出某个链包含的规则：root@OpenWrt:~# nft list chain ip tabletest output
-table ip tabletest {
-        chain output {
-                type filter hook output priority filter; policy accept;
-                ip daddr 8.8.8.8 counter packets 0 bytes 0
-        }
-}下面测试以上规则是否生效，执行以下命令：ping -c 1 8.8.8.8再次查看此链的规则：root@OpenWrt:~# nft list chain ip tabletest output
-table ip tabletest {
-        chain output {
-                type filter hook output priority filter; policy accept;
-                ip daddr 8.8.8.8 counter packets 1 bytes 84
-        }
-}可以看到已经有一次计数了。指定位置添加规则：nftables 中必须通过 handle num 编号来在指定位置添加规则，需要通过 -a 查看链中已经存在的规则的编号：nft -n -a list table ip tabletest
--n 可以按数字顺序排号避免出现重复编号。再次查看链中的规则：root@OpenWrt:~# nft -n -a list table ip tabletest
-table ip tabletest { # handle 4
-        chain output { # handle 1
-                type filter hook output priority 0; policy accept;
-                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
-        }
-}handle 5 就是这条规则的编号。下面我们通过 handle 索引在这条规则后添加一条新规则：nft add rule ip tabletest output position 5 ip daddr 127.0.0.8 drop
-查看链中的规则：root@OpenWrt:~# nft -n -a list table ip tabletest
-table ip tabletest { # handle 4
-        chain output { # handle 1
-                type filter hook output priority 0; policy accept;
-                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
-                ip daddr 127.0.0.8 drop # handle 6
-        }
-}如果要在某条规则前插入一条规则需要使用 insert 指令：nft insert rule ip tabletest output position 5 ip daddr 127.1.1.8 drop
-查看效果：root@OpenWrt:~# nft -n -a list table ip tabletest
-table ip tabletest { # handle 4
-        chain output { # handle 1
-                type filter hook output priority 0; policy accept;
-                ip daddr 127.1.1.8 drop # handle 7
-                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
-                ip daddr 127.0.0.8 drop # handle 6
-        }
-}在某条链最前面添加一条规则：nft insert rule ip tabletest output ip daddr 192.168.2.1 counter
-在最前面添加规则就不需要指定 handle 了。替换某条规则：替换一条规则也需要 handle 编号。下面示例会替换 handle 5 为新的规则：nft replace rule ip tabletest output handle 5 ip daddr 1.1.1.1
-删除规则：同样的，删除某一条规则也需要获取这条规则的 handle 编号。删除 tabletest 链的 handle 7 规则： nft delete rule ip tabletest output handle 7
-删除链中所有规则：nft flush chain ip tabletest output
-删除路由表中所有链的所有规则：nft flush table ip tabletest
-ruleset 层级的操作显示所有 family 的所有 rule 规则：nft list ruleset
-显示某一个集合的所有 rule： % nft list ruleset arp
- % nft list ruleset ip
- % nft list ruleset ip6
- % nft list ruleset bridge
- % nft list ruleset inet清除所有集合的所有规则：nft flush ruleset
-清除某一个集合的所有规则： % nft flush ruleset arp
- % nft flush ruleset ip
- % nft flush ruleset ip6
- % nft flush ruleset bridge
- % nft flush ruleset inet备份规则到文件：# 备份所有集合的所有规则
-nft list ruleset &gt;&gt; backup.nft
-
-# 备份 ip 集合的所有规则
-nft list ruleset ip &gt;&gt; backup.nft从文件恢复规则：nft -f backup.nft
-以 json 格式显示所有规则：nft --json list ruleset
-流量元信息匹配通过 meta 选择器可以进行流量匹配或流量设置。下面简单介绍几个常用的匹配模式，更加详细的参考官方资料：https://wiki.nftables.org/wiki-nftables/index.php/Matching_packet_metainformationiifname 匹配网卡名称：# lo 网卡的入口流量会被接收
-nft add rule tabletest input meta iifname lo acceptmark 匹配流量标记：# 流量标记为 123 的出口流量计数
-nft add rule tabletest output meta mark 123 counterskgid 匹配流量由特定 gid 用户产生的数据：# 匹配来自 gid 用户 1000 的流量
-nft add rule tabletest output meta skgid 1000 counter流量头信息匹配通过 ip {saddr | daddr}  可以匹配 ipv4 的源流量或目标流量：# 匹配来自 192.168.1.100 且去往 192.168.1.1 的流量并计数
-# 注意本机地址必须为 192.168.1.1 才可以由 input hook 截获
-nft add rule ip tabletest input ip saddr 192.168.1.100 ip daddr 192.168.1.1 counter通过 icmp type 关键词来匹配 icmp 流量，如 ping request：nft add rule ip tabletest input icmp type echo-request counter drop
-可以通过命令查询所有可用的 icmp type 类型：root@OpenWrt:~# nft describe icmp type
-payload expression, datatype icmp_type (ICMP type) (basetype integer), 8 bits
-
-pre-defined symbolic constants (in decimal):
-        echo-reply                                         0
-        destination-unreachable                            3
-        source-quench                                      4
-        redirect                                           5
-        echo-request                                       8
-        router-advertisement                               9
-        router-solicitation                               10
-        time-exceeded                                     11
-        parameter-problem                                 12
-        timestamp-request                                 13
-        timestamp-reply                                   14
-        info-request                                      15
-        info-reply                                        16
-        address-mask-request                              17
-        address-mask-reply                                18通过 ip protocol 匹配 ip family 任意类型的协议：# 匹配所有 tcp 流量
-nft add rule ip tabletest output ip protocol tcp
-
-# 匹配所有 tcp udp 流量
-nft add rule ip tabletest output ip protocol { tcp, udp }通过 meta l4proto 匹配 inet family 任意类型的协议：# tabletest 需要定义为 inet 集合
-nft add rule inet tabletest output meta l4proto tcp匹配特定端口的流量：# 丢弃所有端口为 1-1024 的 tcp 流量访问本机
-nft add rule ip tabletest input tcp dport 1-1024 counter drop流量匹配动作accept 和 dropdrop 可以对匹配的流量直接丢弃，注意 drop 不能和其他动作组合使用：nft add rule ip tabletest input ip protocol udp drop
-accept 可以对匹配的流量接收，可以和其他动作组合使用 如 counter 计数：nft add rule ip tabletest input counter accept
-reject 流量不同于 drop，reject 可以在拒绝流量的基础上进行很多其他动作，如返回给源请求地址无法访问的原因等。如果不指定其他动作，默认会返回源地址一个 ICMP/ICMPv6 port unreachable 的流量包。示例如下：# 拒绝所有 input 的 udp 流量
-nft add rule ip tabletest input ip protocol udp reject
-
-# 拒绝指定流量并返回 icmp host-unreachable
-nft add rule ip tabletest input reject with icmp type host-unreachableicmp 可用如下原因：net-unreachable: Destination network unreachable
-host-unreachable: Destination host unreachable
-prot-unreachable: Destination protocol unreachable
-port-unreachable: Destination port unreachable (this is the default)
-net-prohibited: Network administratively prohibited
-host-prohibited: Host administratively prohibited
-admin-prohibited: Communication administratively prohibitedjump 跳转到其他 chain注意只能跳转到同一个路由表的其他 chain。首先我们新建一个 chain：nft add chain ip tabletest tcp-chain
-然后定义这个链的规则：nft add rule ip tabletest tcp-chain counter
-然后可以定义将所有匹配的流量跳转过去：ft add rule ip tabletest input ip protocol tcp jump tcp-chain
-以上示例实现的就是将所有 input 的 tcp 流量跳转到 tcp-chain 计数，然后就返回原始 input 环节继续流转。log 日志通过 log 可以记录匹配到的流量信息，在系统日志中可以查看到。下面是一个示例，可以记录所有对本机的 ping 请求：nft add rule ip tabletest input icmp type echo-request log prefix \&quot;New ping request: \&quot; accept从局域网对本机进行 ping 后，系统日志如下：Thu May  9 11:58:04 2024 kern.warn kernel: [ 3741.786865] New ping request: IN=br-lan OUT= MAC=00:0c:29:c5:39:8d:00:50:56:c0:00:02:08:00 SRC=192.168.244.2 DST=192.168.244.1 LEN=60 TOS=0x00 PREC=0x00 TTL=128 ID=49655 PROTO=ICMP TYPE=8 CODE=0 ID=1 SEQ=6609网络地址转换nat 链类型可以执行网络地址转换的功能，这种链类型有其特有的属性：流量中只有第一个包会被用来进行匹配规则流量包中后续的流量不会被检查nat 链类型特有的规则赋予其他链类型会报错先定义一个 nat 类型的基本链：nft add chain ip tabletest postrouting { type nat hook postrouting priority 0 \; }
-以上定义了一个 nat 类型的基本链挂载在 postrouting hook 上。snat 表示源地址。下面的规则可以将来自 192.168.1.0/24 从 eth0 网卡发出的流量在发送出去的时候，将源地址修改为 1.2.3.4nft add rule ip tabletest postrouting ip saddr 192.168.1.0/24 oif eth0 snat to 1.2.3.4
-也可以定义一个地址范围：# 将所有 tcp 流量的源地址都修改为指定的ip范围内
-nft add rule ip tabletest postrouting ip protocol tcp snat ip to 10.0.0.1-10.0.0.100:3000-4000下面介绍如何修改目标地址，再定义一个 nat 类型的基本链：nft add chain ip tabletest prerouting { type nat hook prerouting priority 0 \; }
-以上定义了一个 nat 类型的基本链挂载在 prerouting hook 上。dnat 表示目标地址。下面规则会将要进入 eth0 的 tcp 80 443 端口的流量的目标地址改为 192.168.1.120 也就是重定向：nft 'add rule ip tabletest prerouting iif eth0 tcp dport { 80, 443 } dnat to 192.168.1.120'
-redirect 是一种特殊的 dnat，它会将流量重定向到本机设备上：nft add rule ip tabletest prerouting tcp dport 22 redirect to 2222
-以上规则会将进入的 tcp 22 端口的流量转发到本机 2222端口上。需要注意的是 redirect 只能应用于 nat 链类型的 prerouting 和 output hooks。设置流量包元信息设置 mark 标记：nft add rule ip tabletest output mark set 123
-set 架构nftables 提供了 set 架构可以用任意支持的选择器来搭建 sets。匿名 set匿名 set 是直接定义在 rule 内的 set，它没有特定的名称，也不可以更新 set 中的元素，下面是一个示例：nft add rule ip tabletest output tcp dport { 22, 23 } counter
-{ 22, 23 } 就属于一个匿名 set。规则会去尝试匹配 set 中的每个元素。非匿名 set可以通过 nft add set 来创建一个有名称的 set，例如：nft add set ip tabletest blackhole { type ipv4_addr \; comment \&quot;drop all packets from these hosts\&quot; \; }
-blackhole 就是这个 set 的名称，后续可以再 rule 中使用。set 类型指定是 ipv4 数据。set 名称需要小于等于16个字符，comment 注释是可选项。可用的 type 类型有：ipv4_addr: IPv4 addressipv6_addr: IPv6 address.ether_addr: Ethernet address.inet_proto: Inet protocol type.inet_service: Internet service (read tcp port for example)mark: Mark type.ifname: Network interface name (eth0, eth1..)建立好之后就可以往 set 里添加元素了：nft add element ip tabletest blackhole { 192.168.3.4 }
-nft add element ip tabletest blackhole { 192.168.1.4, 192.168.1.5 }如果要添加一个 ip 网段则需要将 set 定义 flags interval：nft add set ip tabletest blackhole { type ipv4_addr \; flags interval \; }
-然后就可以添加一个 ip 网段了：nft add element ip tabletest blackhole { 192.168.1.0/24 }
-可以查询 set 中现有的元素：root@OpenWrt:~# nft list set ip tabletest blackhole
-table ip tabletest {
-        set blackhole {
-                type ipv4_addr
-                comment &quot;drop all packets from these hosts&quot;
-                elements = { 192.168.1.4, 192.168.1.5,
-                             192.168.3.4 }
-        }
-}下面就可以通过 set 名称在 nftables 规则中应用：nft add rule ip tabletest input ip saddr @blackhole drop
-nft add rule ip tabletest output ip daddr != @blackhole accept以上就是 natables 的基本用法。参考链接nftables HOWTO documentation pageNftables familiesNetfilter hooksOperations at ruleset level</description>
 </item>
 </rdf:RDF>
