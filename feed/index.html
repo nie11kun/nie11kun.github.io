@@ -65,7 +65,7 @@ git commit -m &quot;Add CNAME file&quot;
 git push origin main</code></pre></li><li><strong>验证</strong>：<br>每次部署后，<code>CNAME</code> 文件会自动被包含在 <code>gh-pages</code> 分支中，不会被覆盖。</li></ol><h2>验证步骤</h2><ol><li><p><strong>检查 <code>CNAME</code> 文件</strong>：</p><ul><li>进入 GitHub 仓库的 <code>gh-pages</code> 分支，确认根目录下有 <code>CNAME</code> 文件。</li><li><p>文件内容应为您的自定义域名，例如：</p><pre><code>www.example.com</code></pre></li></ul></li><li><p><strong>检查 GitHub Pages 设置</strong>：</p><ul><li>转到 <strong>Settings &gt; Pages</strong>。</li><li>确认自定义域名已正确显示，并启用 <strong>HTTPS</strong>。</li></ul></li><li><strong>测试访问</strong>：<br>使用您的自定义域名访问页面，确认是否能够正确加载。</li></ol><h2>7. 常见问题及解决方法</h2><h3>问题 1：<code>npx honkit pdf</code> 报错 <code>Command failed: ebook-convert not found</code></h3><p><strong>原因</strong>：  <br>Calibre 未正确安装，或 <code>ebook-convert</code> 工具未添加到系统的 <code>PATH</code> 环境变量中。</p><p><strong>解决方法</strong>：</p><ol><li><p>确保 Calibre 已安装，并重新确认安装路径：</p><ul><li>Windows 默认路径：<code>C:\Program Files\Calibre2</code>。</li><li>macOS/Linux 使用 <code>which ebook-convert</code> 检查路径。</li></ul></li><li><p>手动将 Calibre 的安装路径添加到系统环境变量中：</p><ul><li><p><strong>Windows</strong>：</p><ul><li>打开“环境变量”设置，找到 <code>PATH</code>。</li><li>添加 <code>C:\Program Files\Calibre2</code>。</li></ul></li><li><p><strong>Linux/macOS</strong>：</p><ul><li><p>编辑 <code>~/.bashrc</code> 或 <code>~/.zshrc</code> 文件，添加以下内容：</p><pre><code class="lang-bash">export PATH=&quot;/path/to/calibre:$PATH&quot;</code></pre><p>替换 <code>/path/to/calibre</code> 为 Calibre 的实际路径。</p></li><li>保存后运行 <code>source ~/.bashrc</code> 或 <code>source ~/.zshrc</code> 使更改生效。</li></ul></li></ul></li><li>重新运行 <code>npx honkit pdf</code>。</li></ol><h3>问题 2：GitHub Actions 部署失败，提示 <code>Permission denied</code></h3><p><strong>原因</strong>：  <br>GitHub Actions 无法向 <code>gh-pages</code> 分支推送更改，通常是因为缺少权限。</p><p><strong>解决方法</strong>：</p><ol><li><p>确保 GitHub 仓库的 <strong>Settings</strong> &gt; <strong>Actions</strong> &gt; <strong>General</strong> 中已启用 <strong>Read and write permissions</strong>：</p><ul><li>打开 <strong>Workflow permissions</strong>，选择 <strong>Read and write permissions</strong>。</li><li>勾选 <strong>Allow GitHub Actions to create and approve pull requests</strong>。</li></ul></li><li><p>确认 GitHub Actions 配置文件中使用的是 <code>github_token</code>：</p><pre><code class="lang-yaml">with:
   github_token: ${{ secrets.GITHUB_TOKEN }}</code></pre></li></ol><h3>问题 3：GitHub Pages 部署成功，但自定义域名未生效</h3><p><strong>原因</strong>：  <br>DNS 记录配置错误或未生效。</p><p><strong>解决方法</strong>：</p><ol><li><p>登录域名管理平台，检查 DNS 配置：</p><ul><li>确认 A 记录或 CNAME 记录配置正确。</li><li>等待 DNS 记录生效（可能需要 5-48 小时）。</li></ul></li><li>检查仓库根目录下是否有 <code>CNAME</code> 文件，内容是否正确（应与自定义域名一致）。</li><li><p>验证 DNS 配置是否正确：</p><ul><li>使用 <a href="https://dnschecker.org">DNS Checker</a> 验证域名解析。</li></ul></li><li><p>启用 HTTPS：</p><ul><li>进入 <strong>Settings</strong> &gt; <strong>Pages</strong>，勾选 <strong>Enforce HTTPS</strong>。</li></ul></li></ol><h3>问题 4：生成的书籍内容显示错乱或样式缺失</h3><p><strong>原因</strong>：</p><ul><li>Markdown 文件中格式不正确。</li><li><code>SUMMARY.md</code> 的目录结构未正确链接。</li></ul><p><strong>解决方法</strong>：</p><ol><li>确认 Markdown 文件的格式是否符合规范。</li><li><p>检查 <code>SUMMARY.md</code> 中的链接是否与文件路径一致：</p><pre><code class="lang-markdown">* [章节标题](path/to/file.md)</code></pre></li><li><p>清理并重新构建书籍：</p><pre><code class="lang-bash">npx honkit build</code></pre></li></ol><h3>问题 5：自定义 PDF 样式未生效</h3><p><strong>原因</strong>：  <br>未指定自定义样式文件或样式文件路径错误。</p><p><strong>解决方法</strong>：</p><ol><li>创建一个 CSS 样式文件（如 <code>custom.css</code>），自定义 PDF 的排版样式。</li><li><p>使用以下命令生成 PDF 并指定样式文件：</p><pre><code class="lang-bash">npx honkit pdf --css custom.css . output.pdf</code></pre><h2>8. 支持与反馈</h2></li></ol><p>如果您遇到未列出的问题或有其他疑问，请参考以下支持途径：</p><ul><li><strong>Honkit 官方文档</strong>：<a href="https://honkit.netlify.app">https://honkit.netlify.app</a></li><li><strong>GitHub 仓库</strong>：<a href="https://github.com/honkit/honkit">https://github.com/honkit/honkit</a></li><li><strong>社区支持</strong>：搜索相关问题或发帖提问。</li></ul><p>完成这些步骤后，您可以成功使用 Honkit 创建、部署和管理文档，解决常见问题，并生成符合您需求的 HTML 和 PDF 文档！</p>
 ]]></content:encoded>
-<slash:comments>0</slash:comments>
+<slash:comments>1</slash:comments>
 <comments>https://blog.niekun.net/archives/3021.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/3021.html</wfw:commentRss>
 </item>
@@ -94,7 +94,7 @@ services:
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_REMOVE_VOLUMES=true</code></pre><p><strong>以下是主要的配置说明：</strong></p><ul><li>将 <code>--interval</code> 参数设置为 3600。这意味着 Watchtower 将每 3600 秒（即每小时）检查一次更新。</li><li><code>--cleanup</code> 和 <code>WATCHTOWER_CLEANUP=true</code> 确保在更新后清理旧的镜像。</li><li><code>--remove-volumes</code> 和 <code>WATCHTOWER_REMOVE_VOLUMES=true</code> 确保删除与旧容器关联的匿名卷。</li></ul><p>使用这个配置，Watchtower 将：</p><ul><li>每小时检查一次你的容器是否有更新</li><li>如果发现更新，它会停止旧容器，启动新容器</li><li>删除旧的容器和相关的匿名卷</li><li>删除旧的镜像</li></ul><p>这个配置应该能满足大多数用例的需求，既能保持你的容器相对最新，又不会过于频繁地进行检查和更新操作。</p><p>需要注意的是:</p><ul><li>Watchtower 只会删除它更新的容器的旧版本。它不会删除系统中的其他未使用的容器或镜像。</li><li>它只删除匿名卷,不会删除命名卷。</li><li>如果你想删除所有未使用的镜像(不仅仅是 Watchtower 更新的),你可能需要定期运行 <code>docker image prune</code> 命令。</li></ul>
 ]]></content:encoded>
-<slash:comments>0</slash:comments>
+<slash:comments>1</slash:comments>
 <comments>https://blog.niekun.net/archives/docker-compose.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/docker-compose.html</wfw:commentRss>
 </item>
@@ -121,7 +121,7 @@ services:
     add_header Expires &quot;0&quot;;
 }</code></pre><p><strong>location</strong> 路径替换为需要的路径。<strong>alias</strong> 设置文件实际路径。</p>
 ]]></content:encoded>
-<slash:comments>0</slash:comments>
+<slash:comments>1</slash:comments>
 <comments>https://blog.niekun.net/archives/3014.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/3014.html</wfw:commentRss>
 </item>
@@ -144,7 +144,7 @@ source ~/.bash_profile  # 如果使用 Bash
 </code></pre><p>您应该能看到您的脚本目录已被添加。现在，您应该能够直接运行脚本，而不需要指定完整路径：</p><pre><code>test.sh
 </code></pre><p>注意事项：</p><ul><li>确保您的脚本有正确的执行权限（<code>chmod +x script_name.sh</code>）。</li><li>如果脚本名称与系统命令冲突，考虑重命名脚本或使用唯一前缀</li></ul>
 ]]></content:encoded>
-<slash:comments>1</slash:comments>
+<slash:comments>2</slash:comments>
 <comments>https://blog.niekun.net/archives/path.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/path.html</wfw:commentRss>
 </item>
@@ -169,7 +169,7 @@ afplay /System/Library/Sounds/Blow.aiff
 # 显示对话框
 osascript -e 'tell app &quot;System Events&quot; to display dialog &quot;视频压缩已完成&quot; with title &quot;通知&quot; buttons {&quot;OK&quot;} default button &quot;OK&quot;'</code></pre><p>保存后，在视频文件右键菜单的 action 栏就可以看到我们添加的动作了：<br><img src="https://blog.niekun.net/usr/uploads/2024/08/3308675429.png" alt="image.png" title="image.png"></p><p>点击执行动作，完成后会有提示信息。</p>
 ]]></content:encoded>
-<slash:comments>0</slash:comments>
+<slash:comments>1</slash:comments>
 <comments>https://blog.niekun.net/archives/macOS-automator.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/archives/macOS-automator.html</wfw:commentRss>
 </item>
