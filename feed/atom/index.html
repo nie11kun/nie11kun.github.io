@@ -6,11 +6,65 @@ xml:base="https://blog.niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2025-04-24T09:04:00+08:00</updated>
+<updated>2025-07-17T13:57:24+08:00</updated>
 <generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/" />
 <id>https://blog.niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[DeepWiki-open 生成项目 wiki]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html" />
+<id>https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html</id>
+<updated>2025-07-17T13:57:24+08:00</updated>
+<published>2025-07-17T13:57:24+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<category scheme="https://blog.niekun.net/category/dev/" term="Development" />
+<summary type="html"><![CDATA[DeepWiki-open可以为任何GitHub、GitLab或BitBucket代码仓库自动创建美观、交互式的Wiki，也可以提交本地仓库给它。试用了下发现效果还不错，可以作为项目开发指南。G...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html" xml:lang="zh-CN"><![CDATA[
+<p>DeepWiki-open可以为任何GitHub、GitLab或BitBucket代码仓库自动创建美观、交互式的Wiki，也可以提交本地仓库给它。试用了下发现效果还不错，可以作为项目开发指南。</p><p>GitHub 主页：<a href="https://github.com/AsyncFuncAI/deepwiki-open">https://github.com/AsyncFuncAI/deepwiki-open</a></p><p>使用方法很简单，clone 仓库代码，配置环境变量，启动前端和后端服务即可。</p><hr><h3>下载</h3><pre><code>git clone https://github.com/AsyncFuncAI/deepwiki-open.git
+cd deepwiki-open</code></pre><h3>配置</h3><p>需要提前准备 openai 和 google ai 的 api key。</p><p>Google AI api：<a href="https://makersuite.google.com/app/apikey">https://makersuite.google.com/app/apikey</a><br>openai api：<a href="https://platform.openai.com/api-keys">https://platform.openai.com/api-keys</a></p><p>根目录新建 <code>.env</code> 文件，配置环境变量：</p><pre><code>GOOGLE_API_KEY=XXXXXXXXXXXXXXXXXXX
+OPENAI_API_KEY=XXXXXXXXXXXXXXXXXXX
+OPENROUTER_API_KEY=XXXXXXXXXXXXXXX</code></pre><p>OPENROUTER_API_KEY 是可选项，其他两个是必须项。</p><p>注意，我测试发现免费帐户的 openai api 在生成少数几个 wiki 后就会报错超出最大请求次数 error。而且项目必须使用 OpenAI-Compatible Embedding Models，解决方法是给 openai 充值或者使用 Alibaba Qwen 的 openai 兼容 api。</p><p>alibaba qwen api：<a href="https://bailian.console.alibabacloud.com/?tab=app#/api-key">https://bailian.console.alibabacloud.com/?tab=app#/api-key</a></p><p>如果使用其他 OpenAI-Compatible Embedding Models 需要将环境变量的 OPENAI_API_KEY 改为此第三方的 api key，然后在环境变量指定 OPENAI_BASE_URL：</p><pre><code>OPENAI_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1  #示例中是 alibaba cloud 的 base url 地址</code></pre><p>然后修改 <code>api/config/embedder.json</code> 为：</p><pre><code>{
+  &quot;embedder&quot;: {
+    &quot;client_class&quot;: &quot;OpenAIClient&quot;,
+    &quot;initialize_kwargs&quot;: {
+      &quot;api_key&quot;: &quot;${OPENAI_API_KEY}&quot;,
+      &quot;base_url&quot;: &quot;${OPENAI_BASE_URL}&quot;
+    },
+    &quot;batch_size&quot;: 10,
+    &quot;model_kwargs&quot;: {
+      &quot;model&quot;: &quot;text-embedding-v3&quot;,
+      &quot;dimensions&quot;: 512,
+      &quot;encoding_format&quot;: &quot;float&quot;
+    }
+  },
+  &quot;embedder_ollama&quot;: {
+    &quot;client_class&quot;: &quot;OllamaClient&quot;,
+    &quot;model_kwargs&quot;: {
+      &quot;model&quot;: &quot;nomic-embed-text&quot;
+    }
+  },
+  &quot;retriever&quot;: {
+    &quot;top_k&quot;: 20
+  },
+  &quot;text_splitter&quot;: {
+    &quot;split_by&quot;: &quot;word&quot;,
+    &quot;chunk_size&quot;: 350,
+    &quot;chunk_overlap&quot;: 100
+  }
+}</code></pre><h3>使用</h3><p>安装环境并启动后端，提前建立一个虚拟环境：</p><pre><code>python -m venv .venv
+.venv\Scripts\activate
+
+pip install -r api/requirements.txt
+python -m api.main</code></pre><p>安装环境并启动前端：</p><pre><code>npm install
+npm run dev</code></pre><p>然后打开浏览器访问：<a href="http://localhost:3000">http://localhost:3000</a>，即可按照提示操作。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/DeepWiki-open-wiki-1.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[建立本地 Web 服务器]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/3024.html" />
@@ -384,23 +438,5 @@ curl ifconfig.me</code></pre><h3>代理工具转发流量</h3><p>服务端的配
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/Linux-warp.html#comments" thr:count="1" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/Linux-warp.html" thr:count="1"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[蜗杆基础知识]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2999.html" />
-<id>https://blog.niekun.net/archives/2999.html</id>
-<updated>2024-06-24T09:51:49+08:00</updated>
-<published>2024-06-24T09:51:49+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<category scheme="https://blog.niekun.net/category/other/" term="other" />
-<summary type="html"><![CDATA[http://www.qsjsj.com/zhinan/ptyzwgcdfljjgff.htmlhttps://domm.muzing.top/chapter_11#pu-tong-yuan-z...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2999.html" xml:lang="zh-CN"><![CDATA[
-<p><a href="http://www.qsjsj.com/zhinan/ptyzwgcdfljjgff.html">http://www.qsjsj.com/zhinan/ptyzwgcdfljjgff.html</a><br><a href="https://domm.muzing.top/chapter_11#pu-tong-yuan-zhu-wo-gan-chuan-dong-de-ji-ben-can-shu-ji-qi-xuan-ze">https://domm.muzing.top/chapter_11#pu-tong-yuan-zhu-wo-gan-chuan-dong-de-ji-ben-can-shu-ji-qi-xuan-ze</a><br><a href="https://m.cadhome.net/news/proejc/716.html">https://m.cadhome.net/news/proejc/716.html</a><br><a href="http://www.qsjsj.com/zhinan/AJMDWGJYHYZWGCSJSGS.html">http://www.qsjsj.com/zhinan/AJMDWGJYHYZWGCSJSGS.html</a><br><a href="http://www.lyfy.net/wheel/ptcwstyle.htm">http://www.lyfy.net/wheel/ptcwstyle.htm</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2999.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/2999.html" thr:count="0"/>
 </entry>
 </feed>
