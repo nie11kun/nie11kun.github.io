@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Cython-python.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3024.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/cloc.html"/>
@@ -18,10 +19,175 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/path.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/macOS-automator.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/env-python.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/Linux-warp.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/Cython-python.html">
+<title> 使用 Cython 对 python 代码加密打包</title>
+<link>https://blog.niekun.net/archives/Cython-python.html</link>
+<dc:date>2025-08-14T16:10:01+08:00</dc:date>
+<description>目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可执行文件（如 Windows 下的 .exe 文件）或一个包含所有文件的目录中。打包后的文件中包含的是 Python 的字节码 .pyc 文件，这个文件是可以被反编译回近似的源代码的。通过使用 Cython 将 Python 源代码编译成 C 语言，然后再生成本地二进制文件（.pyd）。然后正常使用 cx_Freeze 打包，这样做可以极大地提高代码的保护级别，防止被轻易逆向。安装必要的 Python 包需要安装 Cython 和 Numpy，在终端或命令行中运行：pip install Cython numpy
+安装 C/C++ 编译器Cython 将 Python 代码转换成 C 代码，但最终需要一个 C 编译器来将 C 代码编译成机器码。这是最关键的一步。对于 Windows 用户：访问 Visual Studio 下载页面：https://visualstudio.microsoft.com/zh-hans/downloads/。在 "Tools for Visual Studio" (所有下载 -&gt; Visual Studio 工具) 中找到并下载 "Build Tools for Visual Studio"。运行安装程序，在 "工作负荷" 标签页中，勾选 "使用 C++ 的桌面开发"。点击安装。安装完成后，您可能需要重启电脑。对于 macOS 用户：打开终端并运行 xcode-select --install。这会安装苹果的命令行开发者工具，其中包含了 Clang 编译器。对于 Linux 用户 (例如 Ubuntu/Debian)：打开终端并运行 sudo apt update &amp;&amp; sudo apt install build-essential。修改 setup.py 文件如果项目目录结构如下：/my_project
+    |-- main.py           # 你的主程序文件
+    |-- /src              # 你的其他模块目录
+    |   |-- func1.py
+    |   |-- func2.py
+    |-- setup.py            # cx_Freeze 的配置文件根据以上目录结构，下面是一个配置文件示例：from cx_Freeze import setup, Executable
+import sys, os, io
+
+# =============================================================================
+# Cython 自动化编译集成
+# =============================================================================
+try:
+    from Cython.Build import cythonize
+    from setuptools import Extension
+    import numpy
+except ImportError:
+    print(&quot;\n[错误] 缺少必要的库。请先安装 Cython 和 Numpy:&quot;)
+    print(&quot;pip install Cython numpy&quot;)
+    sys.exit(1)
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')  # 修复非中文系统打包时报错
+
+# 增加递归调用深度限制
+sys.setrecursionlimit(1500)
+
+# 定义相关路径
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+ENTRY_POINT = &quot;main.py&quot;
+
+# 检查是否为打包命令
+build_commands = {&quot;build&quot;, &quot;bdist_msi&quot;, &quot;bdist_dmg&quot;, &quot;bdist_mac&quot;}
+is_building = any(cmd in sys.argv for cmd in build_commands)
+
+# --- Cython 编译配置 ---
+# 此函数会自动查找 src 目录下的所有 .py 文件并准备将它们编译
+def find_extensions_to_compile(dir_path=&quot;src&quot;):
+    &quot;&quot;&quot;Find all .py files to be compiled by Cython.&quot;&quot;&quot;
+    extensions = []
+    # 添加 numpy 的头文件路径，这对于编译依赖 numpy/scipy 的代码至关重要
+    numpy_include = numpy.get_include()
+    
+    for root, dirs, files in os.walk(dir_path):
+        for file in files:
+            # 我们只编译 .py 文件，但跳过 __init__.py 文件
+            if file.endswith(&quot;.py&quot;) and file != &quot;__init__.py&quot;:
+                path = os.path.join(root, file)
+                # 将文件路径转换为模块路径，例如 &quot;src/library/function.py&quot; -&gt; &quot;src.library.function&quot;
+                module_path = path.replace(os.sep, '.')[:-3]
+                
+                extensions.append(
+                    Extension(
+                        name=module_path,
+                        sources=[path],
+                        include_dirs=[numpy_include]  # 包含 numpy 头文件
+                    )
+                )
+    print(f&quot;--- 找到 {len(extensions)} 个模块准备通过 Cython 编译...&quot;)
+    return extensions
+
+# 仅在执行打包命令时才准备编译列表
+extensions = []
+if is_building:
+    # 1. 编译 src 目录下的所有模块
+    extensions.extend(find_extensions_to_compile(&quot;src&quot;))
+    
+    # 2. 明确地将 main.py 添加到编译列表
+    print(f&quot;--- 添加入口文件 '{ENTRY_POINT}' 到编译列表...&quot;)
+    main_extension = Extension(
+        name=&quot;main&quot;,  # 编译后的模块名
+        sources=[ENTRY_POINT],
+        include_dirs=[numpy.get_include()]
+    )
+    extensions.append(main_extension)
+
+# =============================================================================
+# cx_Freeze 配置
+# =============================================================================
+
+# 安装依赖
+build_exe_options = {
+    &quot;packages&quot;: [
+    ],
+    &quot;excludes&quot;: [&quot;email&quot;] + [ext.name for ext in extensions], # 排除 Cython 编译的模块
+    &quot;include_files&quot;: [
+        ],
+    &quot;includes&quot;: [],
+
+    # 性能优化选项
+    &quot;optimize&quot;: 2,           # 使用Python优化
+    &quot;include_msvcr&quot;: False,  # 不包含MSVC运行库
+}
+
+# 基础设置
+base = &quot;Win32GUI&quot; if sys.platform == &quot;win32&quot; else None
+
+directory_table = [
+    # ...
+]
+
+shortcut_table = [
+    (
+        # ...
+    ),
+    (
+        # ...
+    ),
+]
+
+msi_data = {&quot;Directory&quot;: directory_table, &quot;Shortcut&quot;: shortcut_table}
+
+bdist_msi_options = {
+    # ...
+}
+
+executables = [
+    Executable(
+        &quot;main.py&quot;, # 入口文件 依然调用 py 程序，cx_Freeze 会自动识别并使用加密后的文件
+        # ...
+    )
+]
+
+# =============================================================================
+# 清理函数
+# =============================================================================
+def cleanup_generated_files():
+    &quot;&quot;&quot;查找并删除由 Cython 生成的所有 .c 文件。&quot;&quot;&quot;
+    print(&quot;\n--- 正在运行清理程序：删除生成的 C 文件... ---&quot;)
+    for root, dirs, files in os.walk(ROOT_DIR):
+        # 避免进入不相关的目录
+        if 'myenv' in root or '.git' in root or 'build' in root or 'dist' in root:
+            continue
+        for file in files:
+            if file.endswith('.c'):
+                file_path = os.path.join(root, file)
+                try:
+                    os.remove(file_path)
+                    print(f&quot;--- 已删除: {file_path}&quot;)
+                except OSError as e:
+                    print(f&quot;--- 删除失败 {file_path}: {e}&quot;)
+
+# =============================================================================
+# 执行打包
+# =============================================================================
+
+try:
+    setup(
+        # ...
+        # 关键步骤：将找到的 .py 文件交给 Cythonize 进行编译
+        ext_modules=cythonize(
+            extensions,
+            compiler_directives={'language_level': &quot;3&quot;}, # 使用 Python 3 语法
+            quiet=True # 减少不必要的编译输出
+        ) if is_building else [],
+        # ...
+    )
+finally:
+    # 只有在执行打包命令时才运行清理
+    if is_building:
+        cleanup_generated_files()运行打包命令打包即可，如：python setup.py bdist_msi
+检查加密情况安装完成后，进入安装路径的 Lib - site-packages 文件夹，会看到加密后的 .pyd 程序文件。.pyd 文件是 Windows 上的二进制动态链接库，本质上和 .dll 文件一样。如果加密失败：您会在这里看到 .pyc 文件或者甚至原始的 .py 文件。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html">
 <title>DeepWiki-open 生成项目 wiki</title>
 <link>https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html</link>
@@ -218,112 +384,5 @@ macOS 和 Linux：source myenv/bin/activate
 requirements.txt 文件将包含所有当前环境中的安装包及其版本信息。使用 requirements.txt 安装依赖在新的环境中，你可以使用 requirements.txt 文件来安装所需的所有依赖：pip install -r requirements.txt
 退出虚拟环境当你完成工作时，可以通过以下命令退出虚拟环境：deactivate
 使用虚拟环境进行Python开发可以有效地隔离项目依赖，避免版本冲突。通过创建和激活虚拟环境、安装依赖、冻结依赖并在新环境中重新安装依赖，可以确保你的项目在不同环境中具有一致的运行表现。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/Linux-warp.html">
-<title>服务器装 warp 解锁 chatgpt</title>
-<link>https://blog.niekun.net/archives/Linux-warp.html</link>
-<dc:date>2024-06-27T15:12:00+08:00</dc:date>
-<description>最近在使用 chatgpt 中发现 ios 端无法登录 app，网页端正常使用。提示信息为：Something went wrong. You may be connected to a disallowed ISP If youare using VPN, try disabling it. Otherwise try a different Wi-Fi network or data connection。经过查询发现是我的 vps 服务商只提供网页端 chatgpt 解锁，不支持 app 端。由于 chatgpt 服务也是通过 cloudflare 的 cdn 服务，所以通过将流量转发到 warp 来访问就可以解决问题。首先需要在服务端安装官方的 warp 命令行工具：warp-cli。官方教程：https://developers.cloudflare.com/warp-client/get-started/linux/官方手动添加包仓库教程：https://pkg.cloudflareclient.com/#ubuntu安装在命令行输入以下指令来安装第三方仓库并安装包：# Add cloudflare gpg key
-curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
-
-# Add this repo to your apt repositories
-echo &quot;deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main&quot; | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
-
-# Install
-sudo apt-get update &amp;&amp; sudo apt-get install cloudflare-warp配置安装好后需要注册一个新账户：warp-cli registration new
-查看当前账户信息：warp-cli registration show
-更换新的 license：warp-cli registration license xxxxx-xxxxxx-xxxxxx
-然后需要设置代理模式，可选有：warp, doh, warp+doh, dot, warp+dot, proxy, tunnel_only。我只想要它提供一个 socks5 代理端口即可，所以设置为 proxy 模式，它会在本地 40000 端口监听：warp-cli mode proxy
-启动 warp：warp-cli connect
-此时 warp 会在本地 40000 端口建立一个 sock5 代理，只需要将需要转发的流量转发到此端口即可走 warp。并且 warp 会自动配置为 Always On 模式，开机自动运行代理。查看 warp 当前配置：# warp-cli settings
-Merged configuration:
-(derived)       Always On: true
-(default)       Switch Locked: false
-(user set)      Mode: WarpProxy on port 40000
-(Not set)       WARP tunnel protocol: Wireguard
-(default)       Disabled for Wifi: false
-(default)       Disabled for Ethernet: false
-(Not set)       Resolve via: cloudflare-dns.com @ [162.159.36.1, 2606:4700:4700::1111]
-(Not set)       qlog logging: Disabled
-(default)       Onboarding: true
-(API defaults)  Exclude mode, with hosts/ips:
-  10.0.0.0/8
-  100.64.0.0/10
-  169.254.0.0/16
-  172.16.0.0/12
-  192.0.0.0/24
-  192.168.0.0/16
-  224.0.0.0/24
-  240.0.0.0/4
-  239.255.255.250/32
-  255.255.255.255/32
-  fe80::/10
-  fd00::/8
-  ff01::/16
-  ff02::/16
-  ff03::/16
-  ff04::/16
-  ff05::/16
-  fc00::/7
-
-(default)       Fallback domains:
-  intranet
-  internal
-  private
-  localdomain
-  domain
-  lan
-  home
-  host
-  corp
-  local
-  localhost
-  home.arpa
-  invalid
-  test
-(Not set)       Daemon Teams Auth: false
-(default)       Disable Auto Fallback: false
-(Not set)       Allow Updates: true特别要注意的是 WARP tunnel protocol 必须是 Wireguard，如果是 MASQUE 可能会报错：Error communicating with daemon: The IPC call hit a timeout and could not be processed，导致无法连接。修改方法是：warp-cli tunnel protocol set WireGuard
-查看代理是否生效：export ALL_PROXY=socks5://127.0.0.1:40000
-curl ifconfig.me代理工具转发流量服务端的配置文件需要添加和修改的地方如下：{
-    &quot;outbounds&quot;: [
-        ...
-        {
-            &quot;protocol&quot;: &quot;socks&quot;,
-            &quot;settings&quot;: {
-                &quot;address&quot;: &quot;127.0.0.1&quot;,
-                &quot;port&quot;: 40000
-            },
-            &quot;tag&quot;:&quot;socks_out&quot;
-        }
-    ],
-    &quot;router&quot;: {
-        &quot;domainStrategy&quot;: &quot;AsIs&quot;,
-        &quot;rule&quot;: [
-            ...
-            {
-                &quot;tag&quot;: &quot;socks_out&quot;,
-                &quot;geoDomain&quot;: [
-                    {
-                        &quot;code&quot;: &quot;openai&quot;,
-                        &quot;filePath&quot;: &quot;geosite.dat&quot;
-                    }
-                ],
-                &quot;domainMatcher&quot;: &quot;mph&quot;
-            }
-        ]
-    },
-    &quot;inbounds&quot;: [
-        {
-            &quot;protocol&quot;: &quot;vmess&quot;,
-            ...
-            &quot;sniffing&quot;: {
-                &quot;enabled&quot;: true,
-                &quot;destOverride&quot;: [
-                    &quot;http&quot;,
-                    &quot;tls&quot;
-                ]
-            },
-            ...注意需要安装扩展版的 geosite.dat 才有 openai 的条目：https://github.com/Loyalsoldier/v2ray-rules-dat通过访问以下网址测试是否已经解锁 ios app 端：https://ios.chat.openai.com/public-api/mobile/server_status/v1以上就是解决 chatgpt 无法访问的方法。</description>
 </item>
 </rdf:RDF>

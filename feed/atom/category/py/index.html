@@ -6,11 +6,189 @@ xml:base="https://blog.niekun.net/category/py/"
 >
 <title type="text">Marco Nie - python</title>
 <subtitle type="text"></subtitle>
-<updated>2024-07-01T10:17:13+08:00</updated>
+<updated>2025-08-14T16:10:01+08:00</updated>
 <generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/py/" />
 <id>https://blog.niekun.net/feed/atom/category/py/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/py/" />
+<entry>
+<title type="html"><![CDATA[ 使用 Cython 对 python 代码加密打包]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/Cython-python.html" />
+<id>https://blog.niekun.net/archives/Cython-python.html</id>
+<updated>2025-08-14T16:10:01+08:00</updated>
+<published>2025-08-14T16:10:01+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<category scheme="https://blog.niekun.net/category/py/" term="python" />
+<summary type="html"><![CDATA[目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/Cython-python.html" xml:lang="zh-CN"><![CDATA[
+<p>目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可执行文件（如 Windows 下的 .exe 文件）或一个包含所有文件的目录中。打包后的文件中包含的是 Python 的字节码 <code>.pyc</code> 文件，这个文件是可以被反编译回近似的源代码的。</p><p>通过使用 Cython 将 Python 源代码编译成 C 语言，然后再生成本地二进制文件（.pyd）。然后正常使用 cx_Freeze 打包，这样做可以极大地提高代码的保护级别，防止被轻易逆向。</p><!--more--><h3>安装必要的 Python 包</h3><p>需要安装 Cython 和 Numpy，在终端或命令行中运行：</p><pre><code>pip install Cython numpy
+</code></pre><h3>安装 C/C++ 编译器</h3><p>Cython 将 Python 代码转换成 C 代码，但最终需要一个 C 编译器来将 C 代码编译成机器码。这是最关键的一步。</p><p>对于 Windows 用户：</p><ul><li>访问 Visual Studio 下载页面：<a href="https://visualstudio.microsoft.com/zh-hans/downloads/">https://visualstudio.microsoft.com/zh-hans/downloads/</a>。</li><li>在 "Tools for Visual Studio" (所有下载 -&gt; Visual Studio 工具) 中找到并下载 "Build Tools for Visual Studio"。</li><li>运行安装程序，在 "工作负荷" 标签页中，勾选 "使用 C++ 的桌面开发"。</li><li>点击安装。安装完成后，您可能需要重启电脑。</li></ul><p>对于 macOS 用户：<br>打开终端并运行 <code>xcode-select --install</code>。这会安装苹果的命令行开发者工具，其中包含了 Clang 编译器。</p><p>对于 Linux 用户 (例如 Ubuntu/Debian)：<br>打开终端并运行 <code>sudo apt update &amp;&amp; sudo apt install build-essential</code>。</p><h3>修改 setup.py 文件</h3><p>如果项目目录结构如下：</p><pre><code>/my_project
+    |-- main.py           # 你的主程序文件
+    |-- /src              # 你的其他模块目录
+    |   |-- func1.py
+    |   |-- func2.py
+    |-- setup.py            # cx_Freeze 的配置文件</code></pre><p>根据以上目录结构，下面是一个配置文件示例：</p><pre><code>from cx_Freeze import setup, Executable
+import sys, os, io
+
+# =============================================================================
+# Cython 自动化编译集成
+# =============================================================================
+try:
+    from Cython.Build import cythonize
+    from setuptools import Extension
+    import numpy
+except ImportError:
+    print(&quot;\n[错误] 缺少必要的库。请先安装 Cython 和 Numpy:&quot;)
+    print(&quot;pip install Cython numpy&quot;)
+    sys.exit(1)
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')  # 修复非中文系统打包时报错
+
+# 增加递归调用深度限制
+sys.setrecursionlimit(1500)
+
+# 定义相关路径
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+ENTRY_POINT = &quot;main.py&quot;
+
+# 检查是否为打包命令
+build_commands = {&quot;build&quot;, &quot;bdist_msi&quot;, &quot;bdist_dmg&quot;, &quot;bdist_mac&quot;}
+is_building = any(cmd in sys.argv for cmd in build_commands)
+
+# --- Cython 编译配置 ---
+# 此函数会自动查找 src 目录下的所有 .py 文件并准备将它们编译
+def find_extensions_to_compile(dir_path=&quot;src&quot;):
+    &quot;&quot;&quot;Find all .py files to be compiled by Cython.&quot;&quot;&quot;
+    extensions = []
+    # 添加 numpy 的头文件路径，这对于编译依赖 numpy/scipy 的代码至关重要
+    numpy_include = numpy.get_include()
+    
+    for root, dirs, files in os.walk(dir_path):
+        for file in files:
+            # 我们只编译 .py 文件，但跳过 __init__.py 文件
+            if file.endswith(&quot;.py&quot;) and file != &quot;__init__.py&quot;:
+                path = os.path.join(root, file)
+                # 将文件路径转换为模块路径，例如 &quot;src/library/function.py&quot; -&gt; &quot;src.library.function&quot;
+                module_path = path.replace(os.sep, '.')[:-3]
+                
+                extensions.append(
+                    Extension(
+                        name=module_path,
+                        sources=[path],
+                        include_dirs=[numpy_include]  # 包含 numpy 头文件
+                    )
+                )
+    print(f&quot;--- 找到 {len(extensions)} 个模块准备通过 Cython 编译...&quot;)
+    return extensions
+
+# 仅在执行打包命令时才准备编译列表
+extensions = []
+if is_building:
+    # 1. 编译 src 目录下的所有模块
+    extensions.extend(find_extensions_to_compile(&quot;src&quot;))
+    
+    # 2. 明确地将 main.py 添加到编译列表
+    print(f&quot;--- 添加入口文件 '{ENTRY_POINT}' 到编译列表...&quot;)
+    main_extension = Extension(
+        name=&quot;main&quot;,  # 编译后的模块名
+        sources=[ENTRY_POINT],
+        include_dirs=[numpy.get_include()]
+    )
+    extensions.append(main_extension)
+
+# =============================================================================
+# cx_Freeze 配置
+# =============================================================================
+
+# 安装依赖
+build_exe_options = {
+    &quot;packages&quot;: [
+    ],
+    &quot;excludes&quot;: [&quot;email&quot;] + [ext.name for ext in extensions], # 排除 Cython 编译的模块
+    &quot;include_files&quot;: [
+        ],
+    &quot;includes&quot;: [],
+
+    # 性能优化选项
+    &quot;optimize&quot;: 2,           # 使用Python优化
+    &quot;include_msvcr&quot;: False,  # 不包含MSVC运行库
+}
+
+# 基础设置
+base = &quot;Win32GUI&quot; if sys.platform == &quot;win32&quot; else None
+
+directory_table = [
+    # ...
+]
+
+shortcut_table = [
+    (
+        # ...
+    ),
+    (
+        # ...
+    ),
+]
+
+msi_data = {&quot;Directory&quot;: directory_table, &quot;Shortcut&quot;: shortcut_table}
+
+bdist_msi_options = {
+    # ...
+}
+
+executables = [
+    Executable(
+        &quot;main.py&quot;, # 入口文件 依然调用 py 程序，cx_Freeze 会自动识别并使用加密后的文件
+        # ...
+    )
+]
+
+# =============================================================================
+# 清理函数
+# =============================================================================
+def cleanup_generated_files():
+    &quot;&quot;&quot;查找并删除由 Cython 生成的所有 .c 文件。&quot;&quot;&quot;
+    print(&quot;\n--- 正在运行清理程序：删除生成的 C 文件... ---&quot;)
+    for root, dirs, files in os.walk(ROOT_DIR):
+        # 避免进入不相关的目录
+        if 'myenv' in root or '.git' in root or 'build' in root or 'dist' in root:
+            continue
+        for file in files:
+            if file.endswith('.c'):
+                file_path = os.path.join(root, file)
+                try:
+                    os.remove(file_path)
+                    print(f&quot;--- 已删除: {file_path}&quot;)
+                except OSError as e:
+                    print(f&quot;--- 删除失败 {file_path}: {e}&quot;)
+
+# =============================================================================
+# 执行打包
+# =============================================================================
+
+try:
+    setup(
+        # ...
+        # 关键步骤：将找到的 .py 文件交给 Cythonize 进行编译
+        ext_modules=cythonize(
+            extensions,
+            compiler_directives={'language_level': &quot;3&quot;}, # 使用 Python 3 语法
+            quiet=True # 减少不必要的编译输出
+        ) if is_building else [],
+        # ...
+    )
+finally:
+    # 只有在执行打包命令时才运行清理
+    if is_building:
+        cleanup_generated_files()</code></pre><p>运行打包命令打包即可，如：</p><pre><code>python setup.py bdist_msi
+</code></pre><h3>检查加密情况</h3><p>安装完成后，进入安装路径的 <strong>Lib - site-packages</strong> 文件夹，会看到加密后的 <code>.pyd</code> 程序文件。<code>.pyd</code> 文件是 Windows 上的二进制动态链接库，本质上和 .dll 文件一样。如果加密失败：您会在这里看到 <code>.pyc</code> 文件或者甚至原始的 <code>.py</code> 文件。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/Cython-python.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/py/archives/Cython-python.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[使用虚拟环境 env 开发 python]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/env-python.html" />
@@ -266,43 +444,5 @@ x = txt.strip(&quot;,.grt&quot;)</code></pre><p>输出： x = 'banana'</p>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/438.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/py/archives/438.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[使用 telegram bot 做一个视频下载器]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/428.html" />
-<id>https://blog.niekun.net/archives/428.html</id>
-<updated>2019-10-16T15:56:00+08:00</updated>
-<published>2019-10-16T15:56:00+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<category scheme="https://blog.niekun.net/category/Linux/" term="Linux" />
-<category scheme="https://blog.niekun.net/category/py/" term="python" />
-<category scheme="https://blog.niekun.net/category/web/" term="web" />
-<summary type="html"><![CDATA[需要环境：Linuxpython3python-telegram-botyt-dlpinstaloader]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/428.html" xml:lang="zh-CN"><![CDATA[
-<p>需要环境：<br>Linux<br>python3<br>python-telegram-bot<br>yt-dlp<br>instaloader</p><!--more--><h3>python</h3><p>我是用的是 python3.8，使用系统包管理器安装：</p><pre><code>apt install python3
-</code></pre><p>如果系统内安装了多个版本的 python，修改 /usr/bin/python 的默认链接，具体修改方法查看此教程：<br><a href="https://niekun.net/index.php/archives/413.html">https://niekun.net/index.php/archives/413.html</a></p><h3>python-telegram-bot</h3><p>安装或升级：</p><pre><code> pip install python-telegram-bot --upgrade
-</code></pre><h3>yt-dlp 安装</h3><p>原来的 youtube-dl 最近好久不更新了，发现下载速度极慢，最近切换到 yt-dlp 效果很好。</p><p>GitHub：<a href="https://github.com/yt-dlp/yt-dlp">https://github.com/yt-dlp/yt-dlp</a></p><p>pip 方式安装及更新：</p><pre><code>python3 -m pip install -U yt-dlp
-</code></pre><h3>instaloader 安装</h3><p>instaloader 可以下载 Instagram 的图片或视频。</p><p>GitHub 主页：<a href="https://github.com/instaloader/instaloader">https://github.com/instaloader/instaloader</a></p><p>instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。</p><p>使用 pip3 安装：</p><pre><code>pip3 install instaloader --upgrade
-</code></pre><h3>telegram bot</h3><p>首先在 telegram 客户端内添加 <a href="https://telegram.me/botfather">BotFather</a></p><p><strong>Creating a new bot</strong><br>Use the <code>/newbot</code> command to create a new bot. The BotFather will ask you for a name and username, then generate an authorization token for your new bot.</p><p>The <code>name</code> of your bot is displayed in contact details and elsewhere.</p><p>The <code>Username</code> is a short name, to be used in mentions and telegram.me links. Usernames are 5-32 characters long and are case insensitive, but may only include Latin characters, numbers, and underscores. Your bot's username must end in ‘bot’, e.g. ‘tetris_bot’ or ‘TetrisBot’.</p><p>The <code>token</code> is a string along the lines of <code>110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw</code> that is required to authorize the bot and send requests to the Bot API. Keep your token secure and store it safely, it can be used by anyone to control your bot.</p><p>Generating an authorization token<br>If your existing token is compromised or you lost it for some reason, use the <code>/token</code> command to generate a new one.</p><h3>bot 源码</h3><p>我的开源地址：<a href="https://github.com/nie11kun/telegram-bot-youtube-downloader">https://github.com/nie11kun/telegram-bot-youtube-downloader</a></p><p>使用脚本需要配置两个环境变量：<strong>BOT_TOKEN</strong>, <strong>INS_ACCOUNT</strong>。分别是 bot token 和你的 Instagram 用户名。</p><h3>开机自动运行脚本</h3><p><strong>较新的 Linux 发行版可以使用 systemd 来实现自动启动</strong>，参考：<a href="https://blog.niekun.net/archives/1334.html">https://blog.niekun.net/archives/1334.html</a></p><p>以下是 telegrambot-downloader.service unit 内容：</p><pre><code>[Unit]
-Description=telegrambot to download media Service
-After=network.target nss-lookup.target
-
-[Service]
-User=root
-EnvironmentFile=/etc/env_addon
-ExecStart=/usr/bin/python /home/script/telegram-bot-youtube-downloader/main.py
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target</code></pre><p>其中 EnvironmentFile 指向了自定义的环境变量文件地址，文件内容如下：</p><pre><code>BOT_TOKEN=xxxxxxxxxxxxxx
-INS_ACCOUNT=xxxxxx</code></pre><h3>可能运行报错问题及解决</h3><h4>执行脚本后，出现类似如下错误：</h4><pre><code>from tornado.httpserver import HTTPServer from tornado.httpserver import HTTPServer 
-syntaxError: invalid syntax</code></pre><p>可能是 tornado 版本过高，需要进行降级：</p><pre><code>pip install tornado==4.5.3
-</code></pre>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/428.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/py/archives/428.html" thr:count="0"/>
 </entry>
 </feed>

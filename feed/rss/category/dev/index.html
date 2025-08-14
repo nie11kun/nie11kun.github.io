@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Cython-python.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3024.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3021.html"/>
@@ -18,10 +19,175 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/ethercat.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2858.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2857.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2840.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/Cython-python.html">
+<title> 使用 Cython 对 python 代码加密打包</title>
+<link>https://blog.niekun.net/archives/Cython-python.html</link>
+<dc:date>2025-08-14T16:10:01+08:00</dc:date>
+<description>目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可执行文件（如 Windows 下的 .exe 文件）或一个包含所有文件的目录中。打包后的文件中包含的是 Python 的字节码 .pyc 文件，这个文件是可以被反编译回近似的源代码的。通过使用 Cython 将 Python 源代码编译成 C 语言，然后再生成本地二进制文件（.pyd）。然后正常使用 cx_Freeze 打包，这样做可以极大地提高代码的保护级别，防止被轻易逆向。安装必要的 Python 包需要安装 Cython 和 Numpy，在终端或命令行中运行：pip install Cython numpy
+安装 C/C++ 编译器Cython 将 Python 代码转换成 C 代码，但最终需要一个 C 编译器来将 C 代码编译成机器码。这是最关键的一步。对于 Windows 用户：访问 Visual Studio 下载页面：https://visualstudio.microsoft.com/zh-hans/downloads/。在 "Tools for Visual Studio" (所有下载 -&gt; Visual Studio 工具) 中找到并下载 "Build Tools for Visual Studio"。运行安装程序，在 "工作负荷" 标签页中，勾选 "使用 C++ 的桌面开发"。点击安装。安装完成后，您可能需要重启电脑。对于 macOS 用户：打开终端并运行 xcode-select --install。这会安装苹果的命令行开发者工具，其中包含了 Clang 编译器。对于 Linux 用户 (例如 Ubuntu/Debian)：打开终端并运行 sudo apt update &amp;&amp; sudo apt install build-essential。修改 setup.py 文件如果项目目录结构如下：/my_project
+    |-- main.py           # 你的主程序文件
+    |-- /src              # 你的其他模块目录
+    |   |-- func1.py
+    |   |-- func2.py
+    |-- setup.py            # cx_Freeze 的配置文件根据以上目录结构，下面是一个配置文件示例：from cx_Freeze import setup, Executable
+import sys, os, io
+
+# =============================================================================
+# Cython 自动化编译集成
+# =============================================================================
+try:
+    from Cython.Build import cythonize
+    from setuptools import Extension
+    import numpy
+except ImportError:
+    print(&quot;\n[错误] 缺少必要的库。请先安装 Cython 和 Numpy:&quot;)
+    print(&quot;pip install Cython numpy&quot;)
+    sys.exit(1)
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')  # 修复非中文系统打包时报错
+
+# 增加递归调用深度限制
+sys.setrecursionlimit(1500)
+
+# 定义相关路径
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+ENTRY_POINT = &quot;main.py&quot;
+
+# 检查是否为打包命令
+build_commands = {&quot;build&quot;, &quot;bdist_msi&quot;, &quot;bdist_dmg&quot;, &quot;bdist_mac&quot;}
+is_building = any(cmd in sys.argv for cmd in build_commands)
+
+# --- Cython 编译配置 ---
+# 此函数会自动查找 src 目录下的所有 .py 文件并准备将它们编译
+def find_extensions_to_compile(dir_path=&quot;src&quot;):
+    &quot;&quot;&quot;Find all .py files to be compiled by Cython.&quot;&quot;&quot;
+    extensions = []
+    # 添加 numpy 的头文件路径，这对于编译依赖 numpy/scipy 的代码至关重要
+    numpy_include = numpy.get_include()
+    
+    for root, dirs, files in os.walk(dir_path):
+        for file in files:
+            # 我们只编译 .py 文件，但跳过 __init__.py 文件
+            if file.endswith(&quot;.py&quot;) and file != &quot;__init__.py&quot;:
+                path = os.path.join(root, file)
+                # 将文件路径转换为模块路径，例如 &quot;src/library/function.py&quot; -&gt; &quot;src.library.function&quot;
+                module_path = path.replace(os.sep, '.')[:-3]
+                
+                extensions.append(
+                    Extension(
+                        name=module_path,
+                        sources=[path],
+                        include_dirs=[numpy_include]  # 包含 numpy 头文件
+                    )
+                )
+    print(f&quot;--- 找到 {len(extensions)} 个模块准备通过 Cython 编译...&quot;)
+    return extensions
+
+# 仅在执行打包命令时才准备编译列表
+extensions = []
+if is_building:
+    # 1. 编译 src 目录下的所有模块
+    extensions.extend(find_extensions_to_compile(&quot;src&quot;))
+    
+    # 2. 明确地将 main.py 添加到编译列表
+    print(f&quot;--- 添加入口文件 '{ENTRY_POINT}' 到编译列表...&quot;)
+    main_extension = Extension(
+        name=&quot;main&quot;,  # 编译后的模块名
+        sources=[ENTRY_POINT],
+        include_dirs=[numpy.get_include()]
+    )
+    extensions.append(main_extension)
+
+# =============================================================================
+# cx_Freeze 配置
+# =============================================================================
+
+# 安装依赖
+build_exe_options = {
+    &quot;packages&quot;: [
+    ],
+    &quot;excludes&quot;: [&quot;email&quot;] + [ext.name for ext in extensions], # 排除 Cython 编译的模块
+    &quot;include_files&quot;: [
+        ],
+    &quot;includes&quot;: [],
+
+    # 性能优化选项
+    &quot;optimize&quot;: 2,           # 使用Python优化
+    &quot;include_msvcr&quot;: False,  # 不包含MSVC运行库
+}
+
+# 基础设置
+base = &quot;Win32GUI&quot; if sys.platform == &quot;win32&quot; else None
+
+directory_table = [
+    # ...
+]
+
+shortcut_table = [
+    (
+        # ...
+    ),
+    (
+        # ...
+    ),
+]
+
+msi_data = {&quot;Directory&quot;: directory_table, &quot;Shortcut&quot;: shortcut_table}
+
+bdist_msi_options = {
+    # ...
+}
+
+executables = [
+    Executable(
+        &quot;main.py&quot;, # 入口文件 依然调用 py 程序，cx_Freeze 会自动识别并使用加密后的文件
+        # ...
+    )
+]
+
+# =============================================================================
+# 清理函数
+# =============================================================================
+def cleanup_generated_files():
+    &quot;&quot;&quot;查找并删除由 Cython 生成的所有 .c 文件。&quot;&quot;&quot;
+    print(&quot;\n--- 正在运行清理程序：删除生成的 C 文件... ---&quot;)
+    for root, dirs, files in os.walk(ROOT_DIR):
+        # 避免进入不相关的目录
+        if 'myenv' in root or '.git' in root or 'build' in root or 'dist' in root:
+            continue
+        for file in files:
+            if file.endswith('.c'):
+                file_path = os.path.join(root, file)
+                try:
+                    os.remove(file_path)
+                    print(f&quot;--- 已删除: {file_path}&quot;)
+                except OSError as e:
+                    print(f&quot;--- 删除失败 {file_path}: {e}&quot;)
+
+# =============================================================================
+# 执行打包
+# =============================================================================
+
+try:
+    setup(
+        # ...
+        # 关键步骤：将找到的 .py 文件交给 Cythonize 进行编译
+        ext_modules=cythonize(
+            extensions,
+            compiler_directives={'language_level': &quot;3&quot;}, # 使用 Python 3 语法
+            quiet=True # 减少不必要的编译输出
+        ) if is_building else [],
+        # ...
+    )
+finally:
+    # 只有在执行打包命令时才运行清理
+    if is_building:
+        cleanup_generated_files()运行打包命令打包即可，如：python setup.py bdist_msi
+检查加密情况安装完成后，进入安装路径的 Lib - site-packages 文件夹，会看到加密后的 .pyd 程序文件。.pyd 文件是 Windows 上的二进制动态链接库，本质上和 .dll 文件一样。如果加密失败：您会在这里看到 .pyc 文件或者甚至原始的 .py 文件。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html">
 <title>DeepWiki-open 生成项目 wiki</title>
 <link>https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html</link>
@@ -212,27 +378,5 @@ text variable 设置：PLC_PRG.dateBy
 text 占位符设置：Date: %t[yyyy-MM-dd dddd]
 输出结果：Date: 2/12/2021 Friday可用占位符：%t[yyyy] 年，%t[yy] 两位数年，%t[y]一位数年，%t[MMMM] 英文月份，%t[MMM]英文简写月份，%t[MM]月份，%t[ddddd] 一周的第几天，%t[dddd]英文周几，%t[dd]一个月的第几天，%t[jjj]一年中的第几天，如果不定义 label 的 text variable 属性，则会输出系统当前日期。字符语法：%s
 参考链接Placeholders with Format Definition</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2840.html">
-<title>codesys 定义重启可保持型变量</title>
-<link>https://blog.niekun.net/archives/2840.html</link>
-<dc:date>2023-08-18T14:09:00+08:00</dc:date>
-<description>无论是在 gvl 或者 pou 中都可以定义变量，默认情况下这些变量在系统重启后数据都会丢失。某些情况下我们希望变量值可以保持，系统重启后原数据也不丢失。可以在变量定义块中通过关键词 RETAIN 和 PERSISTENT 来实现。注意 PERSISTENT 类型变量必须定义在单独的 Persistent Variables 类型 object 才能生效。而不是通常的 GVL object。RETAINRETAIN 可以在热重启后保持数据：In a POU:
-
-VAR RETAIN
- iRem1 : INT;
-END_VAR
-
-*******************
-
-In a GVL:
-
-VAR_GLOBAL RETAIN
- gvarRem1 : INT;
-END_VAR以下情况下 RETAIN 数据会被重置：the command Reset originthe command Reset cold (as opposed to persistent variables)a repeated program downloadPERSISTENT首先需要新建 Persistent Variables 类型 object 会放在 task 子目录下：然后会自动创建 VAR_GLOBAL PERSISTENT RETAIN 类型全局变量文件。PERSISTENT 可以在热重启和冷重启后保持数据：VAR_GLOBAL PERSISTENT
- iVarPers1 : DINT;
- bVarPers : BOOL;
- PLC_PRG.PERS: INT;
-END_VAR以下情况下 PERSISTENT 数据会被重置：the command Reset origin从 CODESYS V3.3.0.1 开始声明一个 VAR_GLOBAL PERSISTENT 等效于 VAR_GLOBAL PERSISTENT RETAIN or VAR_GLOBAL RETAIN PERSISTENT。以下是各种变量定义模式下数据保持情况：   after online commandVARVAR RETAINVAR PERSISTENTReset warm xxCold reset  xReset origin  Download  xOnline Changexxx参考链接Remanent Variables - RETAIN, PERSISTENTREMANENT VARIABLES: RETAIN VS PERSISTENT RETAIN</description>
 </item>
 </rdf:RDF>
