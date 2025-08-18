@@ -22,7 +22,7 @@
 <meta property="og:site_name" content="Marco Nie" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:domain" content="blog.niekun.net" />
-<script type="1eae8edd818ad748e974fd58-text/javascript">
+<script type="02a438524252f8bc13ceef44-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (sel) {
@@ -122,7 +122,7 @@
         }
     };
 })();
-</script><script type="1eae8edd818ad748e974fd58-text/javascript">
+</script><script type="02a438524252f8bc13ceef44-text/javascript">
 (function () {
     const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
     let added = false;
@@ -137,32 +137,31 @@
             input.type = 'hidden';
             input.name = '_';
             input.value = (function () {
-    var _bJH = //'2k'
-'2k'+'fd'//'Jx'
-+'b'//'Kz6'
-+'7a'//'A9'
-+'1e'//'pn6'
-+//'aV'
-'be'+/* 'cM'//'cM' */''+'6f6'//'r'
-+//'x'
-'9'+'6b'//'3'
-+//'RCF'
-'577'+'32'//'s2G'
-+'92'//'cBR'
-+'316'//'D'
-+''///*'2'*/'2'
-+'4d'//'jk'
-+//'wBw'
-'59e'+'l0T'//'l0T'
-+//'kYR'
-'4'+'e'//'LKN'
-, _Uhf2N = [[0,2],[30,33]];
+    var _y7kmZ4b = //'e'
+'fd'+'b'//'t'
++'7a'//'0v'
++//'4zs'
+'1e'+//'KA5'
+'b'+//'xd'
+'e'+//'s9'
+'6f'+//'0'
+'696'+//'MNl'
+'b5'+//'1Kx'
+'77'+/* 'L'//'L' */''+'329'//'A'
++//'g'
+'2'+''///*'uI'*/'uI'
++//'8uV'
+'316'+//'c'
+'4'+//'j'
+'d5'+//'o'
+'9e'+//'wF'
+'4e', _S0gk = [];
     
-    for (var i = 0; i < _Uhf2N.length; i ++) {
-        _bJH = _bJH.substring(0, _Uhf2N[i][0]) + _bJH.substring(_Uhf2N[i][1]);
+    for (var i = 0; i < _S0gk.length; i ++) {
+        _y7kmZ4b = _y7kmZ4b.substring(0, _S0gk[i][0]) + _y7kmZ4b.substring(_S0gk[i][1]);
     }
 
-    return _bJH;
+    return _y7kmZ4b;
 })();;
  
             if (form) {
@@ -284,6 +283,24 @@ def find_extensions_to_compile(dir_path=&quot;src&quot;):
             # 我们只编译 .py 文件，但跳过 __init__.py 文件
             if file.endswith(&quot;.py&quot;) and file != &quot;__init__.py&quot;:
                 path = os.path.join(root, file)
+                
+                # 检查文件是否包含 numba 相关代码
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    
+                    # 检查是否包含 numba 关键字
+                    numba_keywords = ['from numba import', 'import numba', '@jit', '@njit', 'numba.jit', 'numba.njit']
+                    has_numba = any(keyword in content for keyword in numba_keywords)
+                    
+                    if has_numba:
+                        print(f&quot;--- 跳过包含 Numba 的文件: {path}&quot;)
+                        continue
+                        
+                except Exception as e:
+                    print(f&quot;--- 警告：无法读取文件 {path}: {e}&quot;)
+                    continue
+                
                 # 将文件路径转换为模块路径，例如 &quot;src/library/function.py&quot; -&gt; &quot;src.library.function&quot;
                 module_path = path.replace(os.sep, '.')[:-3]
                 
@@ -300,17 +317,8 @@ def find_extensions_to_compile(dir_path=&quot;src&quot;):
 # 仅在执行打包命令时才准备编译列表
 extensions = []
 if is_building:
-    # 1. 编译 src 目录下的所有模块
+    # 1. 编译 src 目录下的所有模块（自动排除包含 numba 的文件）
     extensions.extend(find_extensions_to_compile(&quot;src&quot;))
-    
-    # 2. 明确地将 main.py 添加到编译列表
-    print(f&quot;--- 添加入口文件 '{ENTRY_POINT}' 到编译列表...&quot;)
-    main_extension = Extension(
-        name=&quot;main&quot;,  # 编译后的模块名
-        sources=[ENTRY_POINT],
-        include_dirs=[numpy.get_include()]
-    )
-    extensions.append(main_extension)
 
 # =============================================================================
 # cx_Freeze 配置
@@ -397,7 +405,36 @@ finally:
     # 只有在执行打包命令时才运行清理
     if is_building:
         cleanup_generated_files()</code></pre><p>运行打包命令打包即可，如：</p><pre><code>python setup.py bdist_msi
-</code></pre><h3>检查加密情况</h3><p>安装完成后，进入安装路径的 <strong>Lib/site-packages</strong> 文件夹，会看到加密后的 <code>.pyd</code> 程序文件。<code>.pyd</code> 文件是 Windows 上的二进制动态链接库，本质上和 .dll 文件一样。如果加密失败：会在这里看到 <code>.pyc</code> 文件或者甚至原始的 <code>.py</code> 文件。</p>                <p itemprop="keywords">标签：无</p>
+</code></pre><h3>检查加密情况</h3><p>安装完成后，进入安装路径的 <strong>Lib/site-packages</strong> 文件夹，会看到加密后的 <code>.pyd</code> 程序文件。<code>.pyd</code> 文件是 Windows 上的二进制动态链接库，本质上和 .dll 文件一样。如果加密失败：会在这里看到 <code>.pyc</code> 文件或者甚至原始的 <code>.py</code> 文件。</p><ol><li><p>Python 包管理约定：</p><ul><li>普通 .py 文件：可以放在任何 Python 路径中</li><li>扩展模块 (.pyd/.so)：通常放在 site-packages 中</li></ul></li><li><p>cx_Freeze 的处理逻辑：</p><ul><li>检测到 .py 文件 → 按源码文件处理 → 保持原目录结构</li><li>检测到 .pyd 文件 → 按扩展模块处理 → 放入 site-packages</li></ul></li><li><p>模块导入机制：</p><ul><li>import src.library.function</li><li>Python 会在 sys.path 中搜索</li><li>不加密：在 lib/ 中找到 src/library/function.pyc</li><li>加密：需要在 lib/site-packages/ 中找到 src/library/function.pyd</li></ul></li></ol><p>由于加密后的文件路径发生了变化，打包后访问加密后文件中的内容会报错，所以主程序在索引时需要特殊处理加密打包后的路径问题，主程序中使用下面函数可以自适应：</p><pre><code># 路径修正代码
+def fix_module_paths():
+    &quot;&quot;&quot;修正打包后的模块搜索路径&quot;&quot;&quot;
+    if getattr(sys, 'frozen', False):  # 检查是否为打包后的可执行文件
+        # 获取可执行文件所在目录
+        base_dir = os.path.dirname(sys.executable)
+        
+        # 可能的src模块路径
+        possible_src_paths = [
+            os.path.join(base_dir, 'lib', 'site-packages'),  # Cython编译后的位置
+            os.path.join(base_dir, 'lib'),  # 标准位置
+            base_dir,  # 根目录
+        ]
+        
+        # 将可能的路径添加到sys.path的开头
+        for path in possible_src_paths:
+            if os.path.exists(path) and path not in sys.path:
+                sys.path.insert(0, path)
+                print(f&quot;Added to Python path: {path}&quot;)
+        
+        # 特别检查src目录
+        src_path = os.path.join(base_dir, 'lib', 'site-packages', 'src')
+        if os.path.exists(src_path):
+            parent_dir = os.path.dirname(src_path)
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+                print(f&quot;Added src parent directory to Python path: {parent_dir}&quot;)
+
+# 执行路径修正
+fix_module_paths()</code></pre><p>以上函数中，会将 <code>src</code> 文件夹下的函数库进行正确的索引。</p><h3>Numba 装饰器问题</h3><p>Numba 不兼容 Cython 编译后的函数。Numba 装饰器（如 @jit, @njit）期望装饰的是普通的 Python 函数，但 Cython 编译后生成的是 cython_function_or_method 类型，导致 Numba 无法识别。</p><p>需要将包含 numba 的文件排除出编译列表。具体可见 setup.py 函数。</p>                <p itemprop="keywords">标签：无</p>
             </div>
         </article>
 
@@ -412,7 +449,7 @@ finally:
         
             <div id="respond-post-3033" class="respond">
             <div class="cancel-comment-reply">
-                <a id="cancel-comment-reply-link" href="Cython-python.html#respond-post-3033" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-1eae8edd818ad748e974fd58-="">取消回复</a>            </div>
+                <a id="cancel-comment-reply-link" href="Cython-python.html#respond-post-3033" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-02a438524252f8bc13ceef44-="">取消回复</a>            </div>
 
             <h5 id="response">你的评论</h5>
 
@@ -446,5 +483,5 @@ finally:
 </footer>
 
 
-<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="1eae8edd818ad748e974fd58-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970b3d9e085d2b8b',t:'MTc1NTQ1NTQwNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="02a438524252f8bc13ceef44-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97137b16be8f94b5',t:'MTc1NTU0MTgwOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
