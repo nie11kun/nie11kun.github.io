@@ -22,7 +22,7 @@
 <meta property="og:site_name" content="Marco Nie" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:domain" content="blog.niekun.net" />
-<script type="f6b1c868eb0529e40aa7c83b-text/javascript">
+<script type="6ac0ab15d336b2f7040e90de-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (sel) {
@@ -122,7 +122,7 @@
         }
     };
 })();
-</script><script type="f6b1c868eb0529e40aa7c83b-text/javascript">
+</script><script type="6ac0ab15d336b2f7040e90de-text/javascript">
 (function () {
     const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
     let added = false;
@@ -137,34 +137,33 @@
             input.type = 'hidden';
             input.name = '_';
             input.value = (function () {
-    var _IoJ = //'lD'
-'6ff'+//'2G'
-'c9'+//'h'
-'c'+//'0DH'
-'45'+'3'//'SG'
-+'bVx'//'bVx'
-+//'SNH'
-'e83'+//'v'
-'4'+''///*'Gt'*/'Gt'
-+'67'//'i6u'
-+//'RVN'
-'5'+'5e6'//'5X'
-+//'3e'
-'3e'+//'IiW'
-'67b'+//'u2'
-'f'+'44'//'Lik'
-+//'Fd'
-'570'+'r'//'r'
-+'Uz4'//'Uz4'
-+//'x'
-'1d'+//'nux'
-'1a', _gvHDGx3 = [[9,12],[19,21],[28,29],[28,31]];
+    var _0uM = //'h'
+'6'+'f'//'By'
++//'fod'
+'fod'+''///*'4'*/'4'
++//'0'
+'f'+'c'//'Ks4'
++'s'//'s'
++'9c4'//'nEy'
++//'XTt'
+'53e'+'9mH'//'9mH'
++'83'//'2cB'
++'4'//'7'
++''///*'NHD'*/'NHD'
++//'yR'
+'67'+'55e'//'GT'
++//'Me'
+'667'+'bf4'//'5'
++//'t4'
+'457'+//'d0'
+'01d'+//'k1m'
+'1a', _AnT = [[2,5],[4,5],[10,13]];
     
-    for (var i = 0; i < _gvHDGx3.length; i ++) {
-        _IoJ = _IoJ.substring(0, _gvHDGx3[i][0]) + _IoJ.substring(_gvHDGx3[i][1]);
+    for (var i = 0; i < _AnT.length; i ++) {
+        _0uM = _0uM.substring(0, _AnT[i][0]) + _0uM.substring(_AnT[i][1]);
     }
 
-    return _IoJ;
+    return _0uM;
 })();;
  
             if (form) {
@@ -282,7 +281,7 @@ X-Ubuntu-Gettext-Domain=gnome-session-3.0</code></pre><p>可以看到启动命�
 TryExec=/usr/bin/gnome-shell</code></pre><p>在 xstartup 自定义配置中加入以上两条即可。</p><p>然后给配置文件添加执行权限：</p><pre><code>chmod +x ~/.vnc/xstartup
 </code></pre><p>然后我们重新启动 vncserver：</p><pre><code>vncserver -localhost
 </code></pre><p>注意这里我们添加了 <code>-localhost</code> 参数，意味着此 vnc 服务只可以在本机内被连接。如果不添加这个参数，则开放所有网络连接。</p><p>我们这里只打开本地网络连接服务，然后通过 ssh tunnel 在远程和本地建立安全的连接并转发 vnc 本地端口。</p><h3>连接</h3><p>vnc 本身并不支持通过一些安全的协议进行连接，下面我们通过 ssh tunnel 隧道在本地和远程主机间建立一个安全的链接，然后告诉 vnc 客户端使用这个安全隧道连接远程服务器。</p><p>上面我们已经启动了一个 vncserver 在 5901 端口，它可以在本地网络内被连接但无法被外部网络连接。</p><p>首先我们通过 ssh 在本地和远程建立一个安全链接，并转发远程主机的 localhost 及端口到本地的特定端口：</p><pre><code>ssh -L 59000:localhost:5901 -C -N -l user xxx.xxx.xxx.xxx
-</code></pre><p>以上命令意义如下：</p><ul><li><code>-L 59000:localhost:5901</code>：使用 <code>-L</code> 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。</li><li><code>-C</code> 参数用来启用传输数据压缩，可以提高传输效率</li><li><code>-N</code> 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用</li><li><code>-l</code> 定义远程主机的用户名和 IP 地址</li></ul><p>ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 <code>localhost:59000</code>：<br><img src="../usr/uploads/2021/03/1735491420.png" alt="2021-03-31T03:03:51.png" title="2021-03-31T03:03:51.png"></p><p>输入我们之前创建的 vnc 密码后就连接到远程服务器了：<br><img src="../usr/uploads/2021/03/3227212438.png" alt="2021-03-31T03:04:33.png" title="2021-03-31T03:04:33.png"></p><p>当然也可以不使用 ssh tunnel ，但是需要取消 <code>-localhost</code> 参数，就可以直接连接 vnc server。</p><h3>配置 vnc systemd 服务</h3><p>为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。</p><p>在 <code>/usr/lib/systemd/system</code> 目录下新建文件 <code><a href="https://blog.niekun.net/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8bfde5e8f8eef9fdeef9cba5f8eef9fde2e8ee">[email&#160;protected]</a></code>，其中的 <code>@</code> 可以让我们在操作此服务时添加传递参数，在配置文件中使用 <code>%1</code> 可以读取这个参数。</p><p>内容如下：</p><pre><code>[Unit]
+</code></pre><p>以上命令意义如下：</p><ul><li><code>-L 59000:localhost:5901</code>：使用 <code>-L</code> 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。</li><li><code>-C</code> 参数用来启用传输数据压缩，可以提高传输效率</li><li><code>-N</code> 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用</li><li><code>-l</code> 定义远程主机的用户名和 IP 地址</li></ul><p>ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 <code>localhost:59000</code>：<br><img src="../usr/uploads/2021/03/1735491420.png" alt="2021-03-31T03:03:51.png" title="2021-03-31T03:03:51.png"></p><p>输入我们之前创建的 vnc 密码后就连接到远程服务器了：<br><img src="../usr/uploads/2021/03/3227212438.png" alt="2021-03-31T03:04:33.png" title="2021-03-31T03:04:33.png"></p><p>当然也可以不使用 ssh tunnel ，但是需要取消 <code>-localhost</code> 参数，就可以直接连接 vnc server。</p><h3>配置 vnc systemd 服务</h3><p>为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。</p><p>在 <code>/usr/lib/systemd/system</code> 目录下新建文件 <code><a href="https://blog.niekun.net/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c4b2aaa7b7a1b6b2a1b684eab7a1b6b2ada7a1">[email&#160;protected]</a></code>，其中的 <code>@</code> 可以让我们在操作此服务时添加传递参数，在配置文件中使用 <code>%1</code> 可以读取这个参数。</p><p>内容如下：</p><pre><code>[Unit]
 Description=Start TightVNC server at startup
 After=syslog.target network.target
 
@@ -335,7 +334,7 @@ gnome-terminal &amp;</code></pre><p>重启 vncserver 服务，连接可以查看
         
             <div id="respond-post-2281" class="respond">
             <div class="cancel-comment-reply">
-                <a id="cancel-comment-reply-link" href="2281.html#respond-post-2281" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-f6b1c868eb0529e40aa7c83b-="">取消回复</a>            </div>
+                <a id="cancel-comment-reply-link" href="2281.html#respond-post-2281" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-6ac0ab15d336b2f7040e90de-="">取消回复</a>            </div>
 
             <h5 id="response">你的评论</h5>
 
@@ -369,5 +368,5 @@ gnome-terminal &amp;</code></pre><p>重启 vncserver 服务，连接可以查看
 </footer>
 
 
-<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="f6b1c868eb0529e40aa7c83b-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9786d6f29cc5d183',t:'MTc1Njc1MTQzNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="6ac0ab15d336b2f7040e90de-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978f16d6dbd70e35',t:'MTc1NjgzNzkzNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
