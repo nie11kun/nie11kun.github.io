@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 使用 Cython 对 python 代码加密打包 | Marco Nie</title>
+    <link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+        <link rel="canonical" href="Cython-python.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title=" 使用 Cython 对 python 代码加密打包 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/Cython-python.html" />
+<link rel="alternate" type="application/rdf+xml" title=" 使用 Cython 对 python 代码加密打包 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/Cython-python.html" />
+<link rel="alternate" type="application/atom+xml" title=" 使用 Cython 对 python 代码加密打包 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/Cython-python.html" />
+<meta name="description" content="目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/Cython-python.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content=" 使用 Cython 对 python 代码加密打包" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="4ace5ba6cb306f1baddad835-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-3033'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-3033-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-3033-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-3033'),
+                holder = this.dom('#respond-post-3033-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="4ace5ba6cb306f1baddad835-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-3033');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _DHl = 'b8'//'W9'
++//'y'
+'638'+//'TX'
+'231'+'e'//'qxZ'
++//'4'
+'4'+''///*'I'*/'I'
++'06'//'ts3'
++//'k'
+'k'+/* 'amF'//'amF' */''+''///*'5'*/'5'
++//'qI'
+'cc'+'6'//'pP'
++'80d'//'X5'
++//'3'
+'f'+'S'//'S'
++'0'//'9k8'
++//'r'
+'229'+//'5td'
+'e55'+''///*'j3n'*/'j3n'
++'3f'//'BG'
++'e'//'5R'
++''///*'2ww'*/'2ww'
++''///*'K51'*/'K51'
++'q'//'q'
++/* 'h'//'h' */''+/* 'Dd'//'Dd' */''+//'J'
+'J'+//'j0'
+'j0'+'8'//'9pt'
++//'V'
+'8'+//'OK'
+'76', _WmolAP = [[9,10],[11,12],[18,19],[28,29],[28,29],[28,30]];
+    
+    for (var i = 0; i < _WmolAP.length; i ++) {
+        _DHl = _DHl.substring(0, _WmolAP[i][0]) + _DHl.substring(_WmolAP[i][1]);
+    }
+
+    return _DHl;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+
+<body>
+
+<header class="site-navbar container-fluid">
+    <nav>
+        <ul class="site-name">
+                    <li>
+                <a href="../index.html" class="brand">Marco Nie</a>
+            </li>
+            <li class="desc">you are the company you keep...</li>
+                </ul>
+
+        <ul>
+            <li>
+                <label for="nav-toggler" class="nav-toggler-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                </label>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="site-nav">
+        <input type="checkbox" id="nav-toggler">
+
+        <ul class="nav-menu">
+            <li>
+                <a href="../index.html">首页</a>
+            </li>
+
+                                    <li>
+                <a href="../start-page.html">关于我</a>
+            </li>
+                        <li>
+                <form method="post" action="../index.html">
+                    <input type="search" id="s" name="s">
+                </form>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="container-thin">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+                <header class="entry-header text-center">
+        <h1 class="entry-title" itemprop="name headline">
+            <a href="Cython-python.html" itemprop="url"> 使用 Cython 对 python 代码加密打包</a>
+        </h1>
+                <ul class="entry-meta list-inline text-muted">
+            <li class="feather-calendar"><time datetime="2025-08-14T16:10:00+08:00" itemprop="datePublished">2025-08-14</time></li>
+            <li class="feather-folder"><a href="../category/py/index.html">python</a></li>
+            <li class="feather-message"><a href="Cython-python.html#comments"  itemprop="discussionUrl">1 条评论</a></li>
+        </ul>
+            </header>
+
+            <div class="entry-content fmt" itemprop="articleBody">
+                <p>目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可执行文件（如 Windows 下的 .exe 文件）或一个包含所有文件的目录中。打包后的文件中包含的是 Python 的字节码 <code>.pyc</code> 文件，这个文件是可以被反编译回近似的源代码的。</p><p>通过使用 Cython 将 Python 源代码编译成 C 语言，然后再生成本地二进制文件（.pyd）。然后正常使用 cx_Freeze 打包，这样做可以极大地提高代码的保护级别，防止被轻易逆向。</p><!--more--><h3>安装必要的 Python 包</h3><p>需要安装 Cython 和 Numpy，在终端或命令行中运行：</p><pre><code>pip install Cython numpy
+</code></pre><h3>安装 C/C++ 编译器</h3><p>Cython 将 Python 代码转换成 C 代码，但最终需要一个 C 编译器来将 C 代码编译成机器码。这是最关键的一步。</p><p>对于 Windows 用户：</p><ul><li>访问 Visual Studio 下载页面：<a href="https://visualstudio.microsoft.com/zh-hans/downloads/">https://visualstudio.microsoft.com/zh-hans/downloads/</a>。</li><li>在 "Tools for Visual Studio" (所有下载 -&gt; Visual Studio 工具) 中找到并下载 "Build Tools for Visual Studio"。</li><li>运行安装程序，在 "工作负荷" 标签页中，勾选 "使用 C++ 的桌面开发"。</li><li>点击安装。安装完成后，您可能需要重启电脑。</li></ul><p>对于 macOS 用户：<br>打开终端并运行 <code>xcode-select --install</code>。这会安装苹果的命令行开发者工具，其中包含了 Clang 编译器。</p><p>对于 Linux 用户 (例如 Ubuntu/Debian)：<br>打开终端并运行 <code>sudo apt update &amp;&amp; sudo apt install build-essential</code>。</p><h3>修改 setup.py 文件</h3><p>如果项目目录结构如下：</p><pre><code>/my_project
+    |-- main.py           # 你的主程序文件
+    |-- /src              # 你的其他模块目录
+    |   |-- func1.py
+    |   |-- func2.py
+    |-- setup.py            # cx_Freeze 的配置文件</code></pre><p>根据以上目录结构，下面是一个配置文件示例：</p><pre><code>from cx_Freeze import setup, Executable
+import sys, os, io
+
+# =============================================================================
+# Cython 自动化编译集成
+# =============================================================================
+try:
+    from Cython.Build import cythonize
+    from setuptools import Extension
+    import numpy
+except ImportError:
+    print(&quot;\n[错误] 缺少必要的库。请先安装 Cython 和 Numpy:&quot;)
+    print(&quot;pip install Cython numpy&quot;)
+    sys.exit(1)
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')  # 修复非中文系统打包时报错
+
+# 增加递归调用深度限制
+sys.setrecursionlimit(1500)
+
+# 定义相关路径
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+ENTRY_POINT = &quot;main.py&quot;
+
+# 检查是否为打包命令
+build_commands = {&quot;build&quot;, &quot;bdist_msi&quot;, &quot;bdist_dmg&quot;, &quot;bdist_mac&quot;}
+is_building = any(cmd in sys.argv for cmd in build_commands)
+
+# --- Cython 编译配置 ---
+# 此函数会自动查找 src 目录下的所有 .py 文件并准备将它们编译
+def find_extensions_to_compile(dir_path=&quot;src&quot;):
+    &quot;&quot;&quot;Find all .py files to be compiled by Cython.&quot;&quot;&quot;
+    extensions = []
+    # 添加 numpy 的头文件路径，这对于编译依赖 numpy/scipy 的代码至关重要
+    numpy_include = numpy.get_include()
+    
+    for root, dirs, files in os.walk(dir_path):
+        for file in files:
+            # 我们只编译 .py 文件，但跳过 __init__.py 文件
+            if file.endswith(&quot;.py&quot;) and file != &quot;__init__.py&quot;:
+                path = os.path.join(root, file)
+                
+                # 检查文件是否包含 numba 相关代码
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    
+                    # 检查是否包含 numba 关键字
+                    numba_keywords = ['from numba import', 'import numba', '@jit', '@njit', 'numba.jit', 'numba.njit']
+                    has_numba = any(keyword in content for keyword in numba_keywords)
+                    
+                    if has_numba:
+                        print(f&quot;--- 跳过包含 Numba 的文件: {path}&quot;)
+                        continue
+                        
+                except Exception as e:
+                    print(f&quot;--- 警告：无法读取文件 {path}: {e}&quot;)
+                    continue
+                
+                # 将文件路径转换为模块路径，例如 &quot;src/library/function.py&quot; -&gt; &quot;src.library.function&quot;
+                module_path = path.replace(os.sep, '.')[:-3]
+                
+                extensions.append(
+                    Extension(
+                        name=module_path,
+                        sources=[path],
+                        include_dirs=[numpy_include]  # 包含 numpy 头文件
+                    )
+                )
+    print(f&quot;--- 找到 {len(extensions)} 个模块准备通过 Cython 编译...&quot;)
+    return extensions
+
+# 仅在执行打包命令时才准备编译列表
+extensions = []
+if is_building:
+    # 1. 编译 src 目录下的所有模块（自动排除包含 numba 的文件）
+    extensions.extend(find_extensions_to_compile(&quot;src&quot;))
+
+# =============================================================================
+# cx_Freeze 配置
+# =============================================================================
+
+# 安装依赖
+build_exe_options = {
+    &quot;packages&quot;: [
+    ],
+    &quot;excludes&quot;: [&quot;email&quot;] + [ext.name for ext in extensions], # 排除 Cython 编译的模块
+    &quot;include_files&quot;: [
+        ],
+    &quot;includes&quot;: [],
+
+    # 性能优化选项
+    &quot;optimize&quot;: 2,           # 使用Python优化
+    &quot;include_msvcr&quot;: False,  # 不包含MSVC运行库
+}
+
+# 基础设置
+base = &quot;Win32GUI&quot; if sys.platform == &quot;win32&quot; else None
+
+directory_table = [
+    # ...
+]
+
+shortcut_table = [
+    (
+        # ...
+    ),
+    (
+        # ...
+    ),
+]
+
+msi_data = {&quot;Directory&quot;: directory_table, &quot;Shortcut&quot;: shortcut_table}
+
+bdist_msi_options = {
+    # ...
+}
+
+executables = [
+    Executable(
+        &quot;main.py&quot;, # 入口文件 依然调用 py 程序，cx_Freeze 会自动识别并使用加密后的文件
+        # ...
+    )
+]
+
+# =============================================================================
+# 清理函数
+# =============================================================================
+def cleanup_generated_files():
+    &quot;&quot;&quot;查找并删除由 Cython 生成的所有 .c 文件。&quot;&quot;&quot;
+    print(&quot;\n--- 正在运行清理程序：删除生成的 C 文件... ---&quot;)
+    for root, dirs, files in os.walk(ROOT_DIR):
+        # 避免进入不相关的目录
+        if 'myenv' in root or '.git' in root or 'build' in root or 'dist' in root:
+            continue
+        for file in files:
+            if file.endswith('.c'):
+                file_path = os.path.join(root, file)
+                try:
+                    os.remove(file_path)
+                    print(f&quot;--- 已删除: {file_path}&quot;)
+                except OSError as e:
+                    print(f&quot;--- 删除失败 {file_path}: {e}&quot;)
+
+# =============================================================================
+# 执行打包
+# =============================================================================
+
+try:
+    setup(
+        # ...
+        # 关键步骤：将找到的 .py 文件交给 Cythonize 进行编译
+        ext_modules=cythonize(
+            extensions,
+            compiler_directives={'language_level': &quot;3&quot;}, # 使用 Python 3 语法
+            quiet=True # 减少不必要的编译输出
+        ) if is_building else [],
+        # ...
+    )
+finally:
+    # 只有在执行打包命令时才运行清理
+    if is_building:
+        cleanup_generated_files()</code></pre><p>运行打包命令打包即可，如：</p><pre><code>python setup.py bdist_msi
+</code></pre><h3>检查加密情况</h3><p>安装完成后，进入安装路径的 <strong>Lib/site-packages</strong> 文件夹，会看到加密后的 <code>.pyd</code> 程序文件。<code>.pyd</code> 文件是 Windows 上的二进制动态链接库，本质上和 .dll 文件一样。如果加密失败：会在这里看到 <code>.pyc</code> 文件或者甚至原始的 <code>.py</code> 文件。</p><ol><li><p>Python 包管理约定：</p><ul><li>普通 .py 文件：可以放在任何 Python 路径中</li><li>扩展模块 (.pyd/.so)：通常放在 site-packages 中</li></ul></li><li><p>cx_Freeze 的处理逻辑：</p><ul><li>检测到 .py 文件 → 按源码文件处理 → 保持原目录结构</li><li>检测到 .pyd 文件 → 按扩展模块处理 → 放入 site-packages</li></ul></li><li><p>模块导入机制：</p><ul><li>import src.library.function</li><li>Python 会在 sys.path 中搜索</li><li>不加密：在 lib/ 中找到 src/library/function.pyc</li><li>加密：需要在 lib/site-packages/ 中找到 src/library/function.pyd</li></ul></li></ol><p>由于加密后的文件路径发生了变化，打包后访问加密后文件中的内容会报错，所以主程序在索引时需要特殊处理加密打包后的路径问题，主程序中使用下面函数可以自适应：</p><pre><code># 路径修正代码
+def fix_module_paths():
+    &quot;&quot;&quot;修正打包后的模块搜索路径&quot;&quot;&quot;
+    if getattr(sys, 'frozen', False):  # 检查是否为打包后的可执行文件
+        # 获取可执行文件所在目录
+        base_dir = os.path.dirname(sys.executable)
+        
+        # 可能的src模块路径
+        possible_src_paths = [
+            os.path.join(base_dir, 'lib', 'site-packages'),  # Cython编译后的位置
+            os.path.join(base_dir, 'lib'),  # 标准位置
+            base_dir,  # 根目录
+        ]
+        
+        # 将可能的路径添加到sys.path的开头
+        for path in possible_src_paths:
+            if os.path.exists(path) and path not in sys.path:
+                sys.path.insert(0, path)
+                print(f&quot;Added to Python path: {path}&quot;)
+        
+        # 特别检查src目录
+        src_path = os.path.join(base_dir, 'lib', 'site-packages', 'src')
+        if os.path.exists(src_path):
+            parent_dir = os.path.dirname(src_path)
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+                print(f&quot;Added src parent directory to Python path: {parent_dir}&quot;)
+
+# 执行路径修正
+fix_module_paths()</code></pre><p>以上函数中，会将 <code>src</code> 文件夹下的函数库进行正确的索引。</p><h3>Numba 装饰器问题</h3><p>Numba 不兼容 Cython 编译后的函数。Numba 装饰器（如 @jit, @njit）期望装饰的是普通的 Python 函数，但 Cython 编译后生成的是 cython_function_or_method 类型，导致 Numba 无法识别。</p><p>需要将包含 numba 的文件排除出编译列表。具体可见 setup.py 函数。</p>                <p itemprop="keywords">标签：无</p>
+            </div>
+        </article>
+
+        <nav class="post-nav">
+            <ul class="page-navigator">
+                <li class="prev"><a href="DeepWiki-open-wiki-1.html" title="DeepWiki-open 生成项目 wiki">DeepWiki-open 生成项目 wiki</a></li>
+                <li class="next">没有了</li>
+            </ul>
+        </nav>
+
+        <div id="comments">
+                <h2 class="text-center">1 条评论</h2>
+
+        <ol class="comment-list">        <li itemscope itemtype="http://schema.org/UserComments" id="comment-105" class="comment-body comment-parent comment-odd">
+            <div class="comment-author" itemprop="creator" itemscope itemtype="http://schema.org/Person">
+                <span
+                    itemprop="image">
+                    <img class="avatar" loading="lazy" src="https://secure.gravatar.com/avatar/c3ea997e1f6cf0b2678c4f03894a5692?s=64&amp;r=G&amp;d=identicon" alt="dqucvcjjht" width="64" height="64" />                </span>
+                <cite class="fn" itemprop="name"><a href="http://www.coinsrore.com/" rel="external nofollow">dqucvcjjht</a></cite>
+            </div>
+            <div class="comment-meta">
+                <a href="Cython-python.html#comment-105">
+                    <time itemprop="commentTime"
+                          datetime="2025-10-06T21:16:36+08:00">October 6th, 2025 at 09:16 pm</time>
+                </a>
+                            </div>
+            <div class="comment-content" itemprop="commentText">
+                <p>新项目准备上线，寻找志同道合的合作伙伴coinsrore.com</p>            </div>
+            <div class="comment-reply">
+                <a href="Cython-python.html?replyTo=105#respond-post-3033" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.reply('comment-105', 105, this);" data-cf-modified-4ace5ba6cb306f1baddad835-="">回复</a>            </div>
+                    </li>
+        </ol>
+        <nav></nav>
+
+    
+            <div id="respond-post-3033" class="respond">
+            <div class="cancel-comment-reply">
+                <a id="cancel-comment-reply-link" href="Cython-python.html#respond-post-3033" rel="nofollow" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-4ace5ba6cb306f1baddad835-="">取消回复</a>            </div>
+
+            <h5 id="response">你的评论</h5>
+
+            <form method="post" action="https://blog.niekun.net/archives/Cython-python.html/comment?parent=105" id="comment-form" role="form">
+                <div class="grid">
+                    <textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+                </div>
+                                <div class="grid">
+                    <input type="text" placeholder="名字" name="author" id="author" value="" required/>
+                    <input type="email" placeholder="Email" name="mail" id="mail" value="" required />
+                    <input type="url" placeholder="http://网站（选填）" name="url" id="url" value="" />
+                </div>
+                                <button type="submit">提交评论</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</main>
+
+<footer class="site-footer container-fluid">
+    <div class="d-flex justify-content-between">
+        <ul class="list-inline text-muted">
+            <li>&copy; 2025 <a href="../index.html">Marco Nie</a></li>
+            <li><a href="../feed/index.html">RSS</a></li>
+        </ul>
+        <ul class="list-inline text-muted">
+            <li>
+                Powered by <a href="https://typecho.org">Typecho</a>            </li>
+        </ul>
+    </div>
+</footer>
+
+
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="4ace5ba6cb306f1baddad835-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98a73a871e7f8a31',t:'MTc1OTc3NTQxMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
