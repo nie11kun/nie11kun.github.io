@@ -24,8 +24,8 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <content:encoded xml:lang="zh-CN"><![CDATA[
 <p>我使用的blog系统基于动态数据库。使用了MySQL管理数据，使用过程中学习了简单常用的指令，涉及创建，查看，备份数据库。</p><h2>进入MySQL</h2><pre><code>mysql -uUSER -pPASSWORD
 </code></pre><ul><li><code>USER</code>为用户名，安装<code>MySQL</code>的时候会自动创建<code>root</code>用户</li><li><code>PASSWORD</code>为用户密码，此密码对应用户名</li></ul><h2>退出 MySQL</h2><pre><code>quit;
-</code></pre><h2>创建用户</h2><pre><code>create user &quot;newuser&quot;@&quot;localhost&quot; identified by &quot;PASSWORD&quot;;
-</code></pre><ul><li><strong>注意MySQL每条指令以分号<code>;</code>结束</strong></li><li><code>newuser</code>为新用户名</li><li><code>PASSWORD</code>为此用户密码</li></ul><p>给新用户授权：</p><pre><code># 授予全部数据库权限
+</code></pre><h2>创建用户</h2><pre><code>    # 本地访问账户
+    create user &quot;newuser&quot;@&quot;localhost&quot; identified by &quot;PASSWORD&quot;;</code></pre><ul><li><strong>注意MySQL每条指令以分号<code>;</code>结束</strong></li><li><code>newuser</code>为新用户名</li><li><code>PASSWORD</code>为此用户密码</li></ul><p>给新用户授权：</p><pre><code># 授予全部数据库权限
 grant all privileges on *.* to 'NEWUSER'@'localhost';
 FLUSH PRIVILEGES;
 
@@ -66,7 +66,20 @@ flush privileges;
 </code></pre><p>恢复新建立数据库数据，我在恢复数据的时候使用了这种方法：</p><pre><code>use YOUDATABASE
 source /path/to/mysql.sql
 grant all privileges on blog.* to &quot;root&quot;@&quot;localhost&quot; identified by &quot;password&quot;;
-</code></pre>
+</code></pre><h2>远程账户</h2><p>以上数据库默认为本地模式，如果需要远程访问数据库，则需要修改 mysql 配置文件以及建立远程账户。</p><p>配置文件修改 <code>/etc/mysql/mysql.conf.d/mysqld.cnf</code>:</p><pre><code>在文件中找到 [mysqld] 配置段，下面会有一行 bind-address。
+
+# 默认设置，只允许本地连接
+bind-address = 127.0.0.1 
+
+# 修改后，允许所有 IP 连接
+bind-address = 0.0.0.0</code></pre><p>创建账户：</p><pre><code>CREATE USER 'remote_user'@'%' IDENTIFIED BY 'your_strong_password';
+</code></pre><p>数据库授权：</p><pre><code>-- 将 your_database.* 替换为你需要授权的数据库名
+-- 如果要授权所有数据库，可以使用 *.*，但请谨慎操作
+GRANT ALL PRIVILEGES ON your_database.* TO 'remote_user'@'%';
+FLUSH PRIVILEGES;
+</code></pre><p>重启服务：</p><pre><code>sudo systemctl restart mysql
+</code></pre><p>测试：</p><pre><code>mysql -h your_server_ip -u remote_user -p
+</code></pre><p>如果一切顺利，你应该能够成功连接到你服务器上的 MySQL 数据库了。</p>
 ]]></content:encoded>
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/23.html#comments</comments>
