@@ -11,8 +11,23 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/dev/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description></description>
-<lastBuildDate>Thu, 14 Aug 2025 16:10:00 +0800</lastBuildDate>
-<pubDate>Thu, 14 Aug 2025 16:10:00 +0800</pubDate>
+<lastBuildDate>Fri, 10 Oct 2025 14:03:00 +0800</lastBuildDate>
+<pubDate>Fri, 10 Oct 2025 14:03:00 +0800</pubDate>
+<item>
+<title>sentinel 加密锁应用</title>
+<link>https://blog.niekun.net/archives/sentinel.html</link>
+<guid>https://blog.niekun.net/archives/sentinel.html</guid>
+<pubDate>Fri, 10 Oct 2025 14:03:00 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[Development]]></category>
+<description><![CDATA[最近使用 sentinel 的加密狗对软件进行加密，整个操作流程还是有一定门槛的，下面对安装到配置进行简要介绍。下载及安装 sentinel LDK官网下载地址：Sentinel-LDK_SDK...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近使用 sentinel 的加密狗对软件进行加密，整个操作流程还是有一定门槛的，下面对安装到配置进行简要介绍。</p><h3>下载及安装 sentinel LDK</h3><p>官网下载地址：<a href="https://supportportal.thalesgroup.com/csm?sys_kb_id=c2241c1d1bb41890f12064606e4bcb3e&id=kb_article_view&sysparm_rank=4&sysparm_tsqueryId=2217bdb82b687210cdc1f87df291bf21&sysparm_article=KB0021845">Sentinel-LDK_SDK</a></p><p>备用下载：<a href="https://cpl.thalesgroup.com/software-monetization/sentinel-drivers">Sentinel-LDK</a></p><!--more--><p>选择下载最新的 sdk 和升级包：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/1618232569.png" alt="image.png" title="image.png"></p><p>runtime 包用于客户端安装：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/1425732023.png" alt="image.png" title="image.png"></p><p>安装最新版 SDK 及升级包，安装过程中注意选择本地模式的 EMS：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/1225882578.png" alt="image.png" title="image.png"></p><h3>配置主锁和产品</h3><p><strong>启动程序前，插入 master 主锁和一个测试用的子锁。</strong></p><p>安装完成后启动 LDK，点击进入 master 主锁向导：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/235033082.png" alt="image.png" title="image.png"></p><p>初始默认用户名和密码都是：admin，按照提示下载需要的各种 API 支撑库文件：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/2807218249.png" alt="image.png" title="image.png"></p><p>注意此处的文件就是主锁的开发商代码文件：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/992902113.png" alt="image.png" title="image.png"></p><p>开发商代码文件存放在用户目录下：<code>Documents\Thales\Sentinel LDK 10.0\VendorCodes</code>。<br>二次开发需要用的 API 库文件存放在用户目录下：<code>Documents\Thales\Sentinel LDK 10.0\API\Licensing</code>。</p><p>主锁 API 相关文件下载完成后，点击 LDK-EMS 进入管理界面：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/727547603.png" alt="image.png" title="image.png"></p><p>初始默认用户名和密码都是：admin，登录后会提示你需要修改密码。</p><p>目录栏中切换到上面主锁向导中定义的开发商代码文件名，默认的 demoma 文件是一个用于测试的虚拟主锁文件：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/4090417597.png" alt="image.png" title="image.png"></p><p>sentinel 的授权逻辑是：</p><ul><li>定义产品，唯一的 ID 号</li><li>每个产品都可以有多个功能，每个功能配置唯一的 ID 号</li><li>sentinel 的加密锁最终是通过功能 ID 号来识别是否授权而不是产品号</li></ul><p>所以我们即使有多个软件产品，每个软件产品有多个不同的功能块要授权，不同产品之间的功能块ID也需要不同，这样就不会出错了。</p><p>我们做一个示例来说明如何定义一个产品。</p><p>假设我们的产品名称为 EnveloGrinding，我们定义一个 login 的功能，用于软件登录的验证。</p><p>进入<strong>功能</strong>选项卡，注意切换开发号到当前主锁的开发商代码名称，点击新功能选项，设置功能名称，以及唯一的功能 ID 号：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/3996442152.png" alt="image.png" title="image.png"></p><p>点击确认后，此功能就在功能列表中了。</p><p>然后进入<strong>产品</strong>选项卡，同样切换开发号到当前主锁的开发商代码，点击新产品：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/1999756553.png" alt="image.png" title="image.png"></p><p>设置唯一的产品名称和 ID 号，在页面下方点击<strong>添加功能</strong>按钮，选择刚才创建的 login 功能：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/3108242519.png" alt="image.png" title="image.png"></p><p>因为登录功能授权属于最基本的软件授权，所以这里选择此产品<strong>总是包含</strong>，如果其他更多的功能需要选择性的添加到产品，可以选择<strong>可以排除</strong>选项，这样再授权的时候就可以灵活组合授权哪些功能。</p><p>点击<strong>另存为完成</strong>后，这个产品就定义成功了。</p><p>此时我们给加密锁进行授权，将这个产品写入加密锁中。</p><p>首选我们添加客户信息，也就是这个加密狗最终是交付给谁使用的，用于后期管理维护。</p><p><strong>客户</strong>选项卡点击<strong>新客户</strong>按钮：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/1754009773.png" alt="image.png" title="image.png"></p><p>设置好所有信息后点击保存即可。</p><p>点击<strong>授权</strong>选项卡，切换到正确的<strong>开发号</strong>后，点击<strong>新授权</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/2085792539.png" alt="image.png" title="image.png"></p><p>首先在<strong>客户</strong>栏输入建立好的客户名称，这里不需要写全部字符，点击旁边的搜索图标，弹窗中点击搜索即可自动提取完整的客户信息。</p><p>然后在下方点击<strong>添加产品</strong>，在弹窗中选择需要授权的产品即可：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/1543098806.png" alt="image.png" title="image.png"></p><p>点击<strong>生成</strong>按钮进入最后的流程：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/574507222.png" alt="image.png" title="image.png"></p><p>如果已经插入了加密锁，此时会自动识别到下方的框里，选择一个加密锁，点击烧制即可将此产品授权写入加密锁中：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/2719747727.png" alt="image.png" title="image.png"></p><p>以上就完成了基本的操作流程，此时加密锁已经授权了此产品中对应功能ID的授权。</p><p>后续编程中需要对此功能 ID 进行检测，如果匹配即可验证成功。同时需要开发商代码 VendorCodes。</p><h3>加密锁授权更新</h3><p>如果需要对一个已经授权过的加密锁进行上面介绍的常规方式进行二次授权，会产生的现象是：以前老的授权功能 ID 依然可用，新的授权功能 ID 也可用。</p><p>如果需要擦除老的授权，需要进行以下操作。</p><p>点击<strong>新授权</strong>按钮后，选择<strong>保护锁更新</strong>，然后点击下方的查找按钮：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/379219679.png" alt="image.png" title="image.png"></p><p>点击<strong>锁ID</strong>，点击<strong>查找</strong>，在列表中选择需要更新的加密锁，然后点击<strong>添加到列表</strong>，然后点击<strong>确认</strong>即可：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/134923081.png" alt="image.png" title="image.png"></p><p>点击<strong>添加产品</strong>，选择当前需要更新的产品，然后点击<strong>生成</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/60478164.png" alt="image.png" title="image.png"></p><p>在弹窗中选择<strong>应用更新前清除锁</strong>，点击生成：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/919104841.png" alt="image.png" title="image.png"></p><p>此时会显示已生成 V2CP 文件，点击下载 V2CP 文件到本地：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/127942634.png" alt="image.png" title="image.png"></p><p>此时我们需要手动将此文件刷入加密锁中。</p><p>点击进入<strong>控制管理中心</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/1912530469.png" alt="image.png" title="image.png"></p><p><strong>更新/依附</strong>栏选择下载的 V2CP 文件：<br><img src="https://blog.niekun.net/usr/uploads/2025/10/2857001648.png" alt="image.png" title="image.png"></p><p>点击应用文件可以将新授权刷入加密锁中。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/sentinel.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/dev/archives/sentinel.html</wfw:commentRss>
+</item>
 <item>
 <title> 使用 Cython 对 python 代码加密打包</title>
 <link>https://blog.niekun.net/archives/Cython-python.html</link>
@@ -459,46 +474,6 @@ END_TYPE
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/2858.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/category/dev/archives/2858.html</wfw:commentRss>
-</item>
-<item>
-<title>codesys 使用占位符定义界面变量显示格式</title>
-<link>https://blog.niekun.net/archives/2857.html</link>
-<guid>https://blog.niekun.net/archives/2857.html</guid>
-<pubDate>Fri, 22 Sep 2023 10:33:00 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<category><![CDATA[CODESYS]]></category>
-<description><![CDATA[在编程中我们会使用各种类型的变量进行逻辑运算，不同类型其默认数据精度取值不一样，比如浮点型变量文本占位符为 %f 默认小数位数 6 位，但实际只想显示 3 位小数，此时就需要将界面变量的占位符进...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>在编程中我们会使用各种类型的变量进行逻辑运算，不同类型其默认数据精度取值不一样，比如浮点型变量文本占位符为 <code>%f</code> 默认小数位数 6 位，但实际只想显示 3 位小数，此时就需要将界面变量的占位符进行设置以满足需求。</p><!--more--><h3>int 整型</h3><p>语法：</p><pre><code>% &lt;标记&gt; &lt;最小显示数字个数&gt; &lt;类型&gt;
-</code></pre><ul><li>标记：定义数据显示模式，可选项：<code>-</code> 当定义最小显示数字个数时 居左显示，<code>+</code> 显示数据正负号，<code>0</code> 当定义最小显示数字个数时空缺位显示 0</li><li>最小显示数字个数：定义最少占据几个数字空间，默认数据位数不够时留空</li><li>类型：显示数据类型，如：<code>d</code>十进制, <code>b</code>二进制, <code>o</code>八进制, <code>x</code>十六进制</li></ul><p>示例：</p><pre><code>%-5d：最小显示位数5位，且居左对齐显示，例如数据值为123时：`123  `
-%+d：显示数据正负号,例如数据值为123时：`+123`
-%05d：最小显示位数5位，且空缺位显示0，例如数据值为234时：`00234`
-
-%08b：显示8位数的二进制模式，例如数据值为255时：`11111111`
-%04x：显示4位数的十六进制模式，例如数据值为15时：`000f`</code></pre><h3>float 浮点型</h3><p>语法：</p><pre><code>% &lt;标记&gt; &lt;最小显示数字个数&gt; . &lt;精度&gt; f
-</code></pre><ul><li>标记：定义数据显示模式，可选项：<code>-</code> 当定义最小显示数字个数时 居左显示，<code>+</code> 显示数据正负号，<code>0</code> 当定义最小显示数字个数时空缺位显示 0</li><li>最小显示数字个数：定义最少占据几个数字空间，包括小数位，默认数据位数不够时留空，不定义时默认为 <code>%1.6f</code></li><li>精度：小数位的显示精度</li></ul><p>示例：</p><pre><code>%-12.9f：显示12位数字 9位小数，且居左显示
-%+6.3f：显示6位数字3位小数，且显示正负号标记
-%06.3f：显示6位数字3位小数，且空缺位补0显示</code></pre><h3>时间类型</h3><p>语法：</p><pre><code>%t[ &lt;text&gt; &lt;time in unit&gt; &lt;text&gt; ]
-</code></pre><p>示例：</p><pre><code>// 定义一个时间变量并给其赋值
-ltTimeSpan : LTIME := LTIME#1D2H3M4S5MS6US7NS;
-
-在一个 label 中定义：
-text variable 设置：PLC_PRG.ltTimeSpan
-text 占位符设置：Time span: %t[d] d
-输出结果：Time span: 1 d</code></pre><p>可用的占位符：<code>%t[d]</code> 天，<code>%t[dd]</code> 两位数字的天，<code>%t[H]</code> 小时，<code>%t[HH]</code> 两位数字小时，<code>%t[m]</code>分钟，<code>%t[mm]</code> 两位数分钟，<code>%t[s]</code> 秒，<code>%t[ss]</code> 两位数秒。</p><p>也可以组合起来使用：</p><pre><code>TEXT 占位符设置：%t[Value: dd-HH:mm:ss:ms:us:ns]
-输出结果：Value: 01-02:03:04:005:006:007</code></pre><p>如果不定义 label 的 text variable 属性，则会输出系统当前时间。</p><h3>日期类型</h3><p>语法：</p><pre><code>%t[ &lt;date and time unit&gt; ]
-</code></pre><p>和时间类型类似的用法，下面举例说明：</p><pre><code>//定义一个 date 类型变量
-dateBy : DATE := DATE#2021-02-12;
-
-在一个 label 中定义：
-text variable 设置：PLC_PRG.dateBy
-text 占位符设置：Date: %t[yyyy-MM-dd dddd]
-输出结果：Date: 2/12/2021 Friday</code></pre><p>可用占位符：%t[yyyy] 年，%t[yy] 两位数年，%t[y]一位数年，%t[MMMM] 英文月份，%t[MMM]英文简写月份，%t[MM]月份，%t[ddddd] 一周的第几天，%t[dddd]英文周几，%t[dd]一个月的第几天，%t[jjj]一年中的第几天，</p><p>如果不定义 label 的 text variable 属性，则会输出系统当前日期。</p><h3>字符</h3><p>语法：</p><pre><code>%s
-</code></pre><h3>参考链接</h3><p><a href="https://content.helpme-codesys.com/en/CODESYS%20Visualization/_visu_placeholder_with_formatting_sequence_in_a_string.html">Placeholders with Format Definition</a></p>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/2857.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/category/dev/archives/2857.html</wfw:commentRss>
 </item>
 </channel>
 </rss>

@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/sentinel.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Cython-python.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3024.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/codesys.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/ethercat.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2858.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2857.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/sentinel.html">
+<title>sentinel 加密锁应用</title>
+<link>https://blog.niekun.net/archives/sentinel.html</link>
+<dc:date>2025-10-10T14:03:00+08:00</dc:date>
+<description>最近使用 sentinel 的加密狗对软件进行加密，整个操作流程还是有一定门槛的，下面对安装到配置进行简要介绍。下载及安装 sentinel LDK官网下载地址：Sentinel-LDK_SDK备用下载：Sentinel-LDK选择下载最新的 sdk 和升级包：runtime 包用于客户端安装：安装最新版 SDK 及升级包，安装过程中注意选择本地模式的 EMS：配置主锁和产品启动程序前，插入 master 主锁和一个测试用的子锁。安装完成后启动 LDK，点击进入 master 主锁向导：初始默认用户名和密码都是：admin，按照提示下载需要的各种 API 支撑库文件：注意此处的文件就是主锁的开发商代码文件：开发商代码文件存放在用户目录下：Documents\Thales\Sentinel LDK 10.0\VendorCodes。二次开发需要用的 API 库文件存放在用户目录下：Documents\Thales\Sentinel LDK 10.0\API\Licensing。主锁 API 相关文件下载完成后，点击 LDK-EMS 进入管理界面：初始默认用户名和密码都是：admin，登录后会提示你需要修改密码。目录栏中切换到上面主锁向导中定义的开发商代码文件名，默认的 demoma 文件是一个用于测试的虚拟主锁文件：sentinel 的授权逻辑是：定义产品，唯一的 ID 号每个产品都可以有多个功能，每个功能配置唯一的 ID 号sentinel 的加密锁最终是通过功能 ID 号来识别是否授权而不是产品号所以我们即使有多个软件产品，每个软件产品有多个不同的功能块要授权，不同产品之间的功能块ID也需要不同，这样就不会出错了。我们做一个示例来说明如何定义一个产品。假设我们的产品名称为 EnveloGrinding，我们定义一个 login 的功能，用于软件登录的验证。进入功能选项卡，注意切换开发号到当前主锁的开发商代码名称，点击新功能选项，设置功能名称，以及唯一的功能 ID 号：点击确认后，此功能就在功能列表中了。然后进入产品选项卡，同样切换开发号到当前主锁的开发商代码，点击新产品：设置唯一的产品名称和 ID 号，在页面下方点击添加功能按钮，选择刚才创建的 login 功能：因为登录功能授权属于最基本的软件授权，所以这里选择此产品总是包含，如果其他更多的功能需要选择性的添加到产品，可以选择可以排除选项，这样再授权的时候就可以灵活组合授权哪些功能。点击另存为完成后，这个产品就定义成功了。此时我们给加密锁进行授权，将这个产品写入加密锁中。首选我们添加客户信息，也就是这个加密狗最终是交付给谁使用的，用于后期管理维护。客户选项卡点击新客户按钮：设置好所有信息后点击保存即可。点击授权选项卡，切换到正确的开发号后，点击新授权：首先在客户栏输入建立好的客户名称，这里不需要写全部字符，点击旁边的搜索图标，弹窗中点击搜索即可自动提取完整的客户信息。然后在下方点击添加产品，在弹窗中选择需要授权的产品即可：点击生成按钮进入最后的流程：如果已经插入了加密锁，此时会自动识别到下方的框里，选择一个加密锁，点击烧制即可将此产品授权写入加密锁中：以上就完成了基本的操作流程，此时加密锁已经授权了此产品中对应功能ID的授权。后续编程中需要对此功能 ID 进行检测，如果匹配即可验证成功。同时需要开发商代码 VendorCodes。加密锁授权更新如果需要对一个已经授权过的加密锁进行上面介绍的常规方式进行二次授权，会产生的现象是：以前老的授权功能 ID 依然可用，新的授权功能 ID 也可用。如果需要擦除老的授权，需要进行以下操作。点击新授权按钮后，选择保护锁更新，然后点击下方的查找按钮：点击锁ID，点击查找，在列表中选择需要更新的加密锁，然后点击添加到列表，然后点击确认即可：点击添加产品，选择当前需要更新的产品，然后点击生成：在弹窗中选择应用更新前清除锁，点击生成：此时会显示已生成 V2CP 文件，点击下载 V2CP 文件到本地：此时我们需要手动将此文件刷入加密锁中。点击进入控制管理中心：更新/依附栏选择下载的 V2CP 文件：点击应用文件可以将新授权刷入加密锁中。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/Cython-python.html">
 <title> 使用 Cython 对 python 代码加密打包</title>
 <link>https://blog.niekun.net/archives/Cython-python.html</link>
@@ -385,36 +391,5 @@ END_TYPE
 <link>https://blog.niekun.net/archives/2858.html</link>
 <dc:date>2023-10-18T17:13:10+08:00</dc:date>
 <description>最近的工作中遇到使用带刀具的轨迹运动中，由于轨迹是通过1000多个离散点构成的，每个点之间距离很短，由于 sinumerik one 系统默认的线性计算精度是每毫米 1000 各单位，导致刀具轨迹报错提示可能有碰撞危险。通过提高系统计算精度可以解决此问题。相关系统变量：通用机床数据 10200 线性位置的计算精度通用机床数据 10210 角位置的计算精度sinumerik one 及 840D sl 系统以上参数默认值为 1000，828D 系统默认值为 1000000。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2857.html">
-<title>codesys 使用占位符定义界面变量显示格式</title>
-<link>https://blog.niekun.net/archives/2857.html</link>
-<dc:date>2023-09-22T10:33:00+08:00</dc:date>
-<description>在编程中我们会使用各种类型的变量进行逻辑运算，不同类型其默认数据精度取值不一样，比如浮点型变量文本占位符为 %f 默认小数位数 6 位，但实际只想显示 3 位小数，此时就需要将界面变量的占位符进行设置以满足需求。int 整型语法：% &lt;标记&gt; &lt;最小显示数字个数&gt; &lt;类型&gt;
-标记：定义数据显示模式，可选项：- 当定义最小显示数字个数时 居左显示，+ 显示数据正负号，0 当定义最小显示数字个数时空缺位显示 0最小显示数字个数：定义最少占据几个数字空间，默认数据位数不够时留空类型：显示数据类型，如：d十进制, b二进制, o八进制, x十六进制示例：%-5d：最小显示位数5位，且居左对齐显示，例如数据值为123时：`123  `
-%+d：显示数据正负号,例如数据值为123时：`+123`
-%05d：最小显示位数5位，且空缺位显示0，例如数据值为234时：`00234`
-
-%08b：显示8位数的二进制模式，例如数据值为255时：`11111111`
-%04x：显示4位数的十六进制模式，例如数据值为15时：`000f`float 浮点型语法：% &lt;标记&gt; &lt;最小显示数字个数&gt; . &lt;精度&gt; f
-标记：定义数据显示模式，可选项：- 当定义最小显示数字个数时 居左显示，+ 显示数据正负号，0 当定义最小显示数字个数时空缺位显示 0最小显示数字个数：定义最少占据几个数字空间，包括小数位，默认数据位数不够时留空，不定义时默认为 %1.6f精度：小数位的显示精度示例：%-12.9f：显示12位数字 9位小数，且居左显示
-%+6.3f：显示6位数字3位小数，且显示正负号标记
-%06.3f：显示6位数字3位小数，且空缺位补0显示时间类型语法：%t[ &lt;text&gt; &lt;time in unit&gt; &lt;text&gt; ]
-示例：// 定义一个时间变量并给其赋值
-ltTimeSpan : LTIME := LTIME#1D2H3M4S5MS6US7NS;
-
-在一个 label 中定义：
-text variable 设置：PLC_PRG.ltTimeSpan
-text 占位符设置：Time span: %t[d] d
-输出结果：Time span: 1 d可用的占位符：%t[d] 天，%t[dd] 两位数字的天，%t[H] 小时，%t[HH] 两位数字小时，%t[m]分钟，%t[mm] 两位数分钟，%t[s] 秒，%t[ss] 两位数秒。也可以组合起来使用：TEXT 占位符设置：%t[Value: dd-HH:mm:ss:ms:us:ns]
-输出结果：Value: 01-02:03:04:005:006:007如果不定义 label 的 text variable 属性，则会输出系统当前时间。日期类型语法：%t[ &lt;date and time unit&gt; ]
-和时间类型类似的用法，下面举例说明：//定义一个 date 类型变量
-dateBy : DATE := DATE#2021-02-12;
-
-在一个 label 中定义：
-text variable 设置：PLC_PRG.dateBy
-text 占位符设置：Date: %t[yyyy-MM-dd dddd]
-输出结果：Date: 2/12/2021 Friday可用占位符：%t[yyyy] 年，%t[yy] 两位数年，%t[y]一位数年，%t[MMMM] 英文月份，%t[MMM]英文简写月份，%t[MM]月份，%t[ddddd] 一周的第几天，%t[dddd]英文周几，%t[dd]一个月的第几天，%t[jjj]一年中的第几天，如果不定义 label 的 text variable 属性，则会输出系统当前日期。字符语法：%s
-参考链接Placeholders with Format Definition</description>
 </item>
 </rdf:RDF>

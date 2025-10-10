@@ -11,8 +11,59 @@ xmlns:wfw="http://wellformedweb.org/CommentAPI/">
 <atom:link href="https://blog.niekun.net/feed/category/other/" rel="self" type="application/rss+xml" />
 <language>zh-CN</language>
 <description>杂文</description>
-<lastBuildDate>Sun, 18 Aug 2024 21:42:00 +0800</lastBuildDate>
-<pubDate>Sun, 18 Aug 2024 21:42:00 +0800</pubDate>
+<lastBuildDate>Fri, 10 Oct 2025 13:12:09 +0800</lastBuildDate>
+<pubDate>Fri, 10 Oct 2025 13:12:09 +0800</pubDate>
+<item>
+<title>使用 dumpbin 检测 dll 文件中包含的函数</title>
+<link>https://blog.niekun.net/archives/dumpbin-dll.html</link>
+<guid>https://blog.niekun.net/archives/dumpbin-dll.html</guid>
+<pubDate>Fri, 10 Oct 2025 13:12:09 +0800</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[Windows]]></category>
+<category><![CDATA[other]]></category>
+<description><![CDATA[dumpbin 是微软 Visual Studio 工具集 自带的一个命令行工具，用于分析可执行文件（.exe、.dll、.obj、.lib）内部结构。dumpbin 位于 Visual Stu...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>dumpbin 是微软 Visual Studio 工具集 自带的一个命令行工具，用于分析可执行文件（.exe、.dll、.obj、.lib）内部结构。</p><p>dumpbin 位于 Visual Studio 工具链中，一般路径如下：</p><pre><code>C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\&lt;version&gt;\bin\Hostx64\x64\dumpbin.exe
+</code></pre><p>要使用它，可以通过以下方式：</p><ul><li>打开 “Developer Command Prompt for VS 2022”（开发者命令提示符），该环境自动配置好 PATH；</li><li><p>然后在命令行中直接输入：</p><pre><code>  dumpbin /?</code></pre></li></ul><p>如果能看到帮助信息，说明环境已正确配置。</p><!--more--><h3>查看 DLL 的导出函数</h3><pre><code>dumpbin /exports your.dll
+</code></pre><p>输出说明：</p><pre><code>Microsoft (R) COFF/PE Dumper Version 14.42.34433.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file C:\Users\Marco Nie\TEST.dll
+
+File Type: DLL
+
+  Section contains the following exports for hasp_windows_x64_107043.dll
+
+    00000000 characteristics
+    68DB892A time date stamp Tue Sep 30 15:39:22 2025
+        0.00 version
+           1 ordinal base
+          79 number of functions
+          79 number of names
+
+ordinal hint RVA      name
+      1    0 00001000 MyFunctionA
+      2    1 00002000 MyFunctionB
+
+  Summary
+
+       A1000 .data
+        D000 .pdata
+      133000 .rdata
+        6000 .reloc
+        1000 .rsrc
+      483000 .text</code></pre><p>ordinal：函数序号<br>name：导出函数名（重点）<br>RVA：函数在文件中的相对虚拟地址</p><p>用途：验证 DLL 是否正确导出了接口，比如你加密或封装的 DLL 是否暴露了预期的函数。</p><p>如果想要检测是否包含特定名称的函数可以过滤结果：</p><pre><code>dumpbin /exports your.dll  | findstr str111
+</code></pre><p>以上指令会输出包含 str111 的行。</p><h3>查看 DLL 依赖的其他库</h3><pre><code>dumpbin /imports your.dll
+</code></pre><p>这会列出该 DLL 引用的其他 DLL（比如 KERNEL32.dll, USER32.dll 等）。</p><h3>查看 DLL 架构（32位 / 64位）</h3><pre><code>dumpbin /headers your.dll | findstr machine
+</code></pre><p>输出示例：</p><pre><code>14C machine (x86)
+8664 machine (x64)</code></pre><h3>查看完整头部信息（详细模式）</h3><pre><code>dumpbin /all your.dll &gt; result.txt
+</code></pre><p>这样可以把所有信息输出到文件中慢慢查看，包括节区、符号、导入表、导出表、资源等。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/dumpbin-dll.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/other/archives/dumpbin-dll.html</wfw:commentRss>
+</item>
 <item>
 <title>docker compose 配置自动更新</title>
 <link>https://blog.niekun.net/archives/docker-compose.html</link>
@@ -472,27 +523,6 @@ newgrp groupName
 <slash:comments>0</slash:comments>
 <comments>https://blog.niekun.net/archives/Linux.html#comments</comments>
 <wfw:commentRss>https://blog.niekun.net/feed/category/other/archives/Linux.html</wfw:commentRss>
-</item>
-<item>
-<title>Linux 获取本地网关所有 ip 段地址</title>
-<link>https://blog.niekun.net/archives/Linux-ip.html</link>
-<guid>https://blog.niekun.net/archives/Linux-ip.html</guid>
-<pubDate>Thu, 28 Mar 2024 15:35:07 +0800</pubDate>
-<dc:creator>admin</dc:creator>
-<category><![CDATA[Linux]]></category>
-<category><![CDATA[other]]></category>
-<description><![CDATA[执行下面命令即可获取本地网关所有的 ip 段地址：$ ip address | grep -w inet | awk '{print $2}'127.0.0.1/8192.168.122.2/2...]]></description>
-<content:encoded xml:lang="zh-CN"><![CDATA[
-<p>执行下面命令即可获取本地网关所有的 ip 段地址：</p><pre><code>$ ip address | grep -w inet | awk '{print $2}'
-127.0.0.1/8
-192.168.122.2/24
-172.18.0.1/16
-172.17.0.1/16
-172.19.0.1/16</code></pre>
-]]></content:encoded>
-<slash:comments>0</slash:comments>
-<comments>https://blog.niekun.net/archives/Linux-ip.html#comments</comments>
-<wfw:commentRss>https://blog.niekun.net/feed/category/other/archives/Linux-ip.html</wfw:commentRss>
 </item>
 </channel>
 </rss>
