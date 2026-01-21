@@ -6,11 +6,30 @@ xml:base="https://blog.niekun.net/category/Windows/"
 >
 <title type="text">Marco Nie - Windows</title>
 <subtitle type="text"></subtitle>
-<updated>2025-10-10T13:12:09+08:00</updated>
+<updated>2026-01-21T13:13:39+08:00</updated>
 <generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/Windows/" />
 <id>https://blog.niekun.net/feed/atom/category/Windows/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Windows/" />
+<entry>
+<title type="html"><![CDATA[Windows 11 安装绕过登录微软账户]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/Windows-11.html" />
+<id>https://blog.niekun.net/archives/Windows-11.html</id>
+<updated>2026-01-21T13:13:39+08:00</updated>
+<published>2026-01-21T13:13:39+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<category scheme="https://blog.niekun.net/category/Windows/" term="Windows" />
+<category scheme="https://blog.niekun.net/category/other/" term="other" />
+<summary type="html"><![CDATA[在 Windows 11 安装过程中，按下 Shift + F10 组合键打开命令提示符，输入start ms-cxh:localonly，即可直接创建本地账户，而且无需重启设备，无需先跳过联网步骤。]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/Windows-11.html" xml:lang="zh-CN"><![CDATA[
+<p>在 Windows 11 安装过程中，按下 <strong>Shift + F10</strong> 组合键打开命令提示符，输入<code>start ms-cxh:localonly</code>，即可直接创建本地账户，而且无需重启设备，无需先跳过联网步骤。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/Windows-11.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Windows/archives/Windows-11.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[使用 dumpbin 检测 dll 文件中包含的函数]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/dumpbin-dll.html" />
@@ -228,26 +247,5 @@ adb install xxx.apk</code></pre><h3>文件共享</h3><p>可以配置一个 Windo
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2340.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Windows/archives/2340.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[Windows 主机使用 VMware 虚拟机在共享文件夹调试 node.js 时 npm install 报错问题的处理]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2139.html" />
-<id>https://blog.niekun.net/archives/2139.html</id>
-<updated>2021-02-07T11:07:10+08:00</updated>
-<published>2021-02-07T11:07:10+08:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<category scheme="https://blog.niekun.net/category/Windows/" term="Windows" />
-<category scheme="https://blog.niekun.net/category/js/" term="javascript" />
-<summary type="html"><![CDATA[由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。我的流程是：VMwar...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2139.html" xml:lang="zh-CN"><![CDATA[
-<p>由于 node.js 在 Windows 下会有各种问题，最好的开发环境还是 Linux，所以我通过 VMware 内安装 Ubuntu 虚拟机的方式学习 node.js。</p><p>我的流程是：</p><ul><li>VMware 安装 Ubuntu</li><li>共享 Windows 下的文件夹给 Ubuntu 作为开发目录</li><li>Windows 下使用 vs code 通过 ssh 方式远程连接 Ubuntu</li></ul><p>通过远程连接的方式在 Windows 下做 node.js 开发实际体验很好。但是在通过 npm 安装某些包时常常会有报错出现，错误日志大概意思就是说无法给 node_modules 文件夹内安装的库文件添加软连接到系统路径。</p><p>网上查询后发现了问题原因，我的开发目录实际是在 Windows 下的，Windows 和 Linux 有着不一样的文件系统和路径格式，所以 npm 在安装某些包含 bin 可执行文件的第三方库时，会默认自动创建相关文件的软链接到 Linux 系统路径，这样就就报错了。</p><p>如果要坚持使用共享目录的形式做开发，那么需要设置在 npm 安装新库时使用参数 <code>--no-bin-links</code> 告诉系统不要自动创建软连接，语法如下：</p><pre><code>npm install cowsay --no-bin-links
-</code></pre><p>这样就会跳过相关步骤。</p><p>也可以设置到 npm 配置中，这样以后安装的包都会默认不创建 bin 的软连接了：</p><pre><code>npm config set bin-links false
-</code></pre><p>当然最理想的方式就是将开发路径放置在 Linux 系统中，而不是通过共享目录的形式。这样就是一个纯原生的环境。</p><p>参考链接：<a href="https://github.com/npm/npm/issues/2221">https://github.com/npm/npm/issues/2221</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2139.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Windows/archives/2139.html" thr:count="0"/>
 </entry>
 </feed>
