@@ -6,7 +6,7 @@ xml:base="https://blog.niekun.net/tag/download/"
 >
 <title type="text">Marco Nie - download</title>
 <subtitle type="text"></subtitle>
-<updated>2020-02-28T17:10:00+08:00</updated>
+<updated>2020-02-28T09:10:00+00:00</updated>
 <generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/tag/download/" />
 <id>https://blog.niekun.net/feed/atom/tag/download/</id>
@@ -15,8 +15,8 @@ xml:base="https://blog.niekun.net/tag/download/"
 <title type="html"><![CDATA[aria2 使用指南]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1199.html" />
 <id>https://blog.niekun.net/archives/1199.html</id>
-<updated>2020-02-28T17:10:00+08:00</updated>
-<published>2020-02-28T17:10:00+08:00</published>
+<updated>2020-02-28T09:10:00+00:00</updated>
+<published>2020-02-28T09:10:00+00:00</published>
 <author>
     <name>admin</name>
     <uri>https://niekun.net</uri>
@@ -202,11 +202,11 @@ exit</code></pre><p>建立脚本快捷方式，将快捷方式放到开机启动
 echo &quot;Called with [$1] [$2] [$3]&quot;
 $ aria2c --on-download-complete hook.sh http://example.org/file.iso
 Called with [1] [1] [/path/to/file.iso]</code></pre><p>Linux 下可以编写 bash 脚本。windows 下可以执行 bat 脚本，注意 bat 脚本必须和配置文件在一个路径，否则报错。</p><p><strong>我实现的功能是下载完成后触发一个系统通知。</strong></p><h4>Linux 脚本</h4><p>我测试了 macos 下的脚本，使用了 AppleScript 实现，在 bash 中使用 as 可以使用 osascript 命令，脚本内容如下：</p><pre><code>#!/bin/sh
-osascript -e 'display notification &quot;download complete&quot; sound name &quot;Pop.aiff&quot;'</code></pre><p>具体参考我的 osascript 教程：<a href="https://blog.niekun.net/archives/1773.html">https://blog.niekun.net/archives/1773.html</a></p><h4>Windows 脚本</h4><p>Windows 脚本使用 powershell 实现，由于 aria2 只能调用 bat 批处理脚本，且必须在和主程序同一个目录下，所以再编写一个 bat 脚本调用 ps 脚本，稍微复杂一些。</p><p><strong>bat 脚本：script.bat</strong></p><pre><code>@ECHO OFF
+osascript -e &#039;display notification &quot;download complete&quot; sound name &quot;Pop.aiff&quot;&#039;</code></pre><p>具体参考我的 osascript 教程：<a href="https://blog.niekun.net/archives/1773.html">https://blog.niekun.net/archives/1773.html</a></p><h4>Windows 脚本</h4><p>Windows 脚本使用 powershell 实现，由于 aria2 只能调用 bat 批处理脚本，且必须在和主程序同一个目录下，所以再编写一个 bat 脚本调用 ps 脚本，稍微复杂一些。</p><p><strong>bat 脚本：script.bat</strong></p><pre><code>@ECHO OFF
 
 set arg1=%3
 
-PowerShell.exe -Command &quot;&amp;'path\to\download-complete.ps1' %arg1%&quot;
+PowerShell.exe -Command &quot;&amp;&#039;path\to\download-complete.ps1&#039; %arg1%&quot;
 PAUSE</code></pre><p>bat 脚本里传入参数使用 <code>%0</code>，<code>%1</code>，<code>%2</code> 等表示，<code>%0</code> 表示所有传入参数，<code>%1</code> 表示第一个参数。</p><p>内部定义参数使用 <code>set</code> 命令，使用变量时前后加上百分号 <code>%</code>，如：<code>%arg1%</code>。</p><p>以上脚本内容是：读取传入的下载文件地址参数，使用 powershell 执行 ps 脚本且传递读取的文件地址。</p><p><strong>powershell 脚本：download-complete.ps1</strong></p><pre><code>$var1 = $args[0]
 
 # Write-Output $var1

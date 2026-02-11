@@ -25,7 +25,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/Cython-python.html">
 <title> 使用 Cython 对 python 代码加密打包</title>
 <link>https://blog.niekun.net/archives/Cython-python.html</link>
-<dc:date>2025-08-14T16:10:00+08:00</dc:date>
+<dc:date>2025-08-14T08:10:00+00:00</dc:date>
 <description>目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可执行文件（如 Windows 下的 .exe 文件）或一个包含所有文件的目录中。打包后的文件中包含的是 Python 的字节码 .pyc 文件，这个文件是可以被反编译回近似的源代码的。通过使用 Cython 将 Python 源代码编译成 C 语言，然后再生成本地二进制文件（.pyd）。然后正常使用 cx_Freeze 打包，这样做可以极大地提高代码的保护级别，防止被轻易逆向。安装必要的 Python 包需要安装 Cython 和 Numpy，在终端或命令行中运行：pip install Cython numpy
 安装 C/C++ 编译器Cython 将 Python 代码转换成 C 代码，但最终需要一个 C 编译器来将 C 代码编译成机器码。这是最关键的一步。对于 Windows 用户：访问 Visual Studio 下载页面：https://visualstudio.microsoft.com/zh-hans/downloads/。在 "Tools for Visual Studio" (所有下载 -&gt; Visual Studio 工具) 中找到并下载 "Build Tools for Visual Studio"。运行安装程序，在 "工作负荷" 标签页中，勾选 "使用 C++ 的桌面开发"。点击安装。安装完成后，您可能需要重启电脑。对于 macOS 用户：打开终端并运行 xcode-select --install。这会安装苹果的命令行开发者工具，其中包含了 Clang 编译器。对于 Linux 用户 (例如 Ubuntu/Debian)：打开终端并运行 sudo apt update &amp;&amp; sudo apt install build-essential。修改 setup.py 文件如果项目目录结构如下：/my_project
     |-- main.py           # 你的主程序文件
@@ -47,7 +47,7 @@ except ImportError:
     print(&quot;pip install Cython numpy&quot;)
     sys.exit(1)
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')  # 修复非中文系统打包时报错
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding=&#039;utf-8&#039;)  # 修复非中文系统打包时报错
 
 # 增加递归调用深度限制
 sys.setrecursionlimit(1500)
@@ -76,11 +76,11 @@ def find_extensions_to_compile(dir_path=&quot;src&quot;):
                 
                 # 检查文件是否包含 numba 相关代码
                 try:
-                    with open(path, 'r', encoding='utf-8') as f:
+                    with open(path, &#039;r&#039;, encoding=&#039;utf-8&#039;) as f:
                         content = f.read()
                     
                     # 检查是否包含 numba 关键字
-                    numba_keywords = ['from numba import', 'import numba', '@jit', '@njit', 'numba.jit', 'numba.njit']
+                    numba_keywords = [&#039;from numba import&#039;, &#039;import numba&#039;, &#039;@jit&#039;, &#039;@njit&#039;, &#039;numba.jit&#039;, &#039;numba.njit&#039;]
                     has_numba = any(keyword in content for keyword in numba_keywords)
                     
                     if has_numba:
@@ -92,7 +92,7 @@ def find_extensions_to_compile(dir_path=&quot;src&quot;):
                     continue
                 
                 # 将文件路径转换为模块路径，例如 &quot;src/library/function.py&quot; -&gt; &quot;src.library.function&quot;
-                module_path = path.replace(os.sep, '.')[:-3]
+                module_path = path.replace(os.sep, &#039;.&#039;)[:-3]
                 
                 extensions.append(
                     Extension(
@@ -165,10 +165,10 @@ def cleanup_generated_files():
     print(&quot;\n--- 正在运行清理程序：删除生成的 C 文件... ---&quot;)
     for root, dirs, files in os.walk(ROOT_DIR):
         # 避免进入不相关的目录
-        if 'myenv' in root or '.git' in root or 'build' in root or 'dist' in root:
+        if &#039;myenv&#039; in root or &#039;.git&#039; in root or &#039;build&#039; in root or &#039;dist&#039; in root:
             continue
         for file in files:
-            if file.endswith('.c'):
+            if file.endswith(&#039;.c&#039;):
                 file_path = os.path.join(root, file)
                 try:
                     os.remove(file_path)
@@ -186,7 +186,7 @@ try:
         # 关键步骤：将找到的 .py 文件交给 Cythonize 进行编译
         ext_modules=cythonize(
             extensions,
-            compiler_directives={'language_level': &quot;3&quot;}, # 使用 Python 3 语法
+            compiler_directives={&#039;language_level&#039;: &quot;3&quot;}, # 使用 Python 3 语法
             quiet=True # 减少不必要的编译输出
         ) if is_building else [],
         # ...
@@ -198,14 +198,14 @@ finally:
 检查加密情况安装完成后，进入安装路径的 Lib/site-packages 文件夹，会看到加密后的 .pyd 程序文件。.pyd 文件是 Windows 上的二进制动态链接库，本质上和 .dll 文件一样。如果加密失败：会在这里看到 .pyc 文件或者甚至原始的 .py 文件。Python 包管理约定：普通 .py 文件：可以放在任何 Python 路径中扩展模块 (.pyd/.so)：通常放在 site-packages 中cx_Freeze 的处理逻辑：检测到 .py 文件 → 按源码文件处理 → 保持原目录结构检测到 .pyd 文件 → 按扩展模块处理 → 放入 site-packages模块导入机制：import src.library.functionPython 会在 sys.path 中搜索不加密：在 lib/ 中找到 src/library/function.pyc加密：需要在 lib/site-packages/ 中找到 src/library/function.pyd由于加密后的文件路径发生了变化，打包后访问加密后文件中的内容会报错，所以主程序在索引时需要特殊处理加密打包后的路径问题，主程序中使用下面函数可以自适应：# 路径修正代码
 def fix_module_paths():
     &quot;&quot;&quot;修正打包后的模块搜索路径&quot;&quot;&quot;
-    if getattr(sys, 'frozen', False):  # 检查是否为打包后的可执行文件
+    if getattr(sys, &#039;frozen&#039;, False):  # 检查是否为打包后的可执行文件
         # 获取可执行文件所在目录
         base_dir = os.path.dirname(sys.executable)
         
         # 可能的src模块路径
         possible_src_paths = [
-            os.path.join(base_dir, 'lib', 'site-packages'),  # Cython编译后的位置
-            os.path.join(base_dir, 'lib'),  # 标准位置
+            os.path.join(base_dir, &#039;lib&#039;, &#039;site-packages&#039;),  # Cython编译后的位置
+            os.path.join(base_dir, &#039;lib&#039;),  # 标准位置
             base_dir,  # 根目录
         ]
         
@@ -216,7 +216,7 @@ def fix_module_paths():
                 print(f&quot;Added to Python path: {path}&quot;)
         
         # 特别检查src目录
-        src_path = os.path.join(base_dir, 'lib', 'site-packages', 'src')
+        src_path = os.path.join(base_dir, &#039;lib&#039;, &#039;site-packages&#039;, &#039;src&#039;)
         if os.path.exists(src_path):
             parent_dir = os.path.dirname(src_path)
             if parent_dir not in sys.path:
@@ -229,7 +229,7 @@ fix_module_paths()以上函数中，会将 src 文件夹下的函数库进行正
 <item rdf:about="https://blog.niekun.net/archives/env-python.html">
 <title>使用虚拟环境 env 开发 python</title>
 <link>https://blog.niekun.net/archives/env-python.html</link>
-<dc:date>2024-07-01T10:17:13+08:00</dc:date>
+<dc:date>2024-07-01T02:17:13+00:00</dc:date>
 <description>使用虚拟环境进行Python开发有助于隔离项目的依赖，避免不同项目之间的库版本冲突。以下是如何创建和使用虚拟环境的详细步骤。Python 3.3 及以上版本自带 venv 模块，可以直接使用。使用 venv 创建虚拟环境创建虚拟环境在你的项目目录下，运行以下命令来创建一个虚拟环境，这将在项目目录下创建一个名为 myenv 的文件夹，其中包含虚拟环境的所有文件：python -m venv myenv
 激活虚拟环境Windows：myenv\Scripts\activate
 macOS 和 Linux：source myenv/bin/activate
@@ -242,7 +242,7 @@ requirements.txt 文件将包含所有当前环境中的安装包及其版本信
 <item rdf:about="https://blog.niekun.net/archives/1758.html">
 <title>从源码编译安装 python</title>
 <link>https://blog.niekun.net/archives/1758.html</link>
-<dc:date>2020-09-21T16:35:00+08:00</dc:date>
+<dc:date>2020-09-21T08:35:00+00:00</dc:date>
 <description>从源码编译程序的好处是可以使用最新版本，下面介绍如何在 Linux 下编译安装 python 和 pip 环境。下载源码包python 官网：https://www.python.org/当前最新版是 3.8.5，在这个页面找到地址：https://www.python.org/downloads/release/python-385/下载 tgz 压缩包到本地并解压：cd /tmp
 wget https://www.python.org/ftp/python/3.8.5/Python-3.8.5.tgz
 tar xvf Python-3.8.5.tgz环境安装编译需要安装一些依赖：apt install libffi-dev libgdbm-dev libsqlite3-dev libssl-dev zlib1g-dev
@@ -265,7 +265,7 @@ pip 的安装路径是 /opt/python3.8.5/bin/，测试命令：/opt/python3.8.5/b
 <item rdf:about="https://blog.niekun.net/archives/1753.html">
 <title>使用 subprocess.check_output 执行cmd命令并返回结果到字符串</title>
 <link>https://blog.niekun.net/archives/1753.html</link>
-<dc:date>2020-09-18T15:13:51+08:00</dc:date>
+<dc:date>2020-09-18T07:13:51+00:00</dc:date>
 <description>语法：subprocess.check_output(args, *, stdin=None, stderr=None, shell=False, universal_newlines=False)
 执行cmd命令并返回结果到字符串。用法：import subprocess
 
@@ -275,17 +275,17 @@ print(output)以上脚本会执行 cat /etc/hostname 命令然后将结果赋值
 <item rdf:about="https://blog.niekun.net/archives/1718.html">
 <title>argparse and struct in python</title>
 <link>https://blog.niekun.net/archives/1718.html</link>
-<dc:date>2020-08-14T11:20:39+08:00</dc:date>
+<dc:date>2020-08-14T03:20:39+00:00</dc:date>
 <description>https://docs.python.org/3/library/argparse.htmlhttps://docs.python.org/3/library/struct.html</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/1688.html">
 <title>string &amp;lt;-&amp;gt; byte in python</title>
 <link>https://blog.niekun.net/archives/1688.html</link>
-<dc:date>2020-08-12T14:08:00+08:00</dc:date>
-<description>To transform a unicode string to a byte string in Python do this:&gt;&gt;&gt; 'foo'.encode('utf_8')
-b'foo'
-To transform a byte string to a unicode string:&gt;&gt;&gt; b'foo'.decode('utf_8')
-'foo'
+<dc:date>2020-08-12T06:08:00+00:00</dc:date>
+<description>To transform a unicode string to a byte string in Python do this:&gt;&gt;&gt; &#039;foo&#039;.encode(&#039;utf_8&#039;)
+b&#039;foo&#039;
+To transform a byte string to a unicode string:&gt;&gt;&gt; b&#039;foo&#039;.decode(&#039;utf_8&#039;)
+&#039;foo&#039;
 
 To convert a string to bytes.data = &quot;&quot;               #string
 data = &quot;&quot;.encode()      #bytes
@@ -296,7 +296,7 @@ data = str(b&quot;&quot;)         #string</description>
 <item rdf:about="https://blog.niekun.net/archives/1685.html">
 <title>winreg 操作 Windows 注册表 in python</title>
 <link>https://blog.niekun.net/archives/1685.html</link>
-<dc:date>2020-08-12T13:56:00+08:00</dc:date>
+<dc:date>2020-08-12T05:56:00+00:00</dc:date>
 <description>https://docs.python.org/3/library/winreg.html#https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registryimport winreg
 
 REG_PATH = r&quot;Control Panel\Mouse&quot;
@@ -324,10 +324,10 @@ def get_reg(name):
 
 #Example MouseSensitivity
 #Read value 
-print (get_reg('MouseSensitivity'))
+print (get_reg(&#039;MouseSensitivity&#039;))
 
 #Set Value 1/20 (will just write the value to reg, the changed mouse val requires a win re-log to apply*)
-set_reg('MouseSensitivity', str(10))
+set_reg(&#039;MouseSensitivity&#039;, str(10))
 
 #*For instant apply of SystemParameters like the mouse speed on-write, you can use win32gui/SPI
 #http://docs.activestate.com/activepython/3.4/pywin32/win32gui__SystemParametersInfo_meth.html</description>
@@ -335,32 +335,32 @@ set_reg('MouseSensitivity', str(10))
 <item rdf:about="https://blog.niekun.net/archives/1684.html">
 <title>使用 opencv 处理图像</title>
 <link>https://blog.niekun.net/archives/1684.html</link>
-<dc:date>2020-08-07T11:37:51+08:00</dc:date>
+<dc:date>2020-08-07T03:37:51+00:00</dc:date>
 <description>安装：https://pypi.org/project/opencv-python/使用：https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_setup/py_table_of_contents_setup/py_table_of_contents_setup.html示例：https://www.askaswiss.com/2016/01/how-to-create-pencil-sketch-opencv-python.html打包 exe：https://pypi.org/project/auto-py-to-exe/</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/880.html">
 <title>使用 TelegramBot 键盘 InlineKeyboardButton 提示 BUTTON_DATA_INVALID 报错原因分析</title>
 <link>https://blog.niekun.net/archives/880.html</link>
-<dc:date>2020-02-01T18:06:06+08:00</dc:date>
+<dc:date>2020-02-01T10:06:06+00:00</dc:date>
 <description>今天在测试 telegram Bot 的时候，发现 keyboard 不能正确弹出来，后台查看发现报错了，提示 Bad Request: BUTTON_DATA_INVALID反复检查代码没有发现语法错误，查找之后了解到 InlineKeyboardButton 响应后返回的 Callback Data 有大小限制，最大64位：的确我想返回的内容长度的确超过了大小限制，优化源码后问题解决了。参考链接：https://core.telegram.org/bots/api#inlinekeyboardbuttonhttps://stackoverflow.com/questions/46389040/inlinekeyboardbutton-are-limited-in-inlinekeyboardmarkup-telegram-bot-c-sharp</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/438.html">
 <title>python 常用语法收集</title>
 <link>https://blog.niekun.net/archives/438.html</link>
-<dc:date>2019-10-17T14:52:00+08:00</dc:date>
+<dc:date>2019-10-17T06:52:00+00:00</dc:date>
 <description>在我使用过程中遇到的常用语法，这里做一些记录。os.system()可以用来运行终端命令：import os
-os.system('date')
+os.system(&#039;date&#039;)
 -----------------------
 The current date is: 10/17/2019 Thu glob用来将匹配的文件放入数组：import glob
 import os
 CWD = os.getcwd()#当前目录路径
-for name in glob.glob(CWD+'/*'):
-    print(name)以上输出当前目录下所有文件的文件名。for name in glob.glob(CWD+'/file?.txt'):
-    print(name)以上输出  filea.txt, fileb.txt filec.txt 等文件名。可以使用类似正则表达式的方式匹配文件名：glob.glob(CWD+'/*[12].*')
-从python3.5开始，支持使用一下方法进行递归搜索目录内文件及文件夹：for name in glob.glob(CWD+'/**/*', recursive=True):
+for name in glob.glob(CWD+&#039;/*&#039;):
+    print(name)以上输出当前目录下所有文件的文件名。for name in glob.glob(CWD+&#039;/file?.txt&#039;):
+    print(name)以上输出  filea.txt, fileb.txt filec.txt 等文件名。可以使用类似正则表达式的方式匹配文件名：glob.glob(CWD+&#039;/*[12].*&#039;)
+从python3.5开始，支持使用一下方法进行递归搜索目录内文件及文件夹：for name in glob.glob(CWD+&#039;/**/*&#039;, recursive=True):
     print(name)以上会输出目录内文件及子文件夹内文件。split()字符串分割：按空格分割，注意两个部分之间的空格可以是1个或多个，不影响分割效果：txt = &quot;welcome to the jungle&quot;
 x = txt.split()将 txt 字符串按空格来分成4个部分，x 是数组。分割成设定的个数：txt = &quot;welcome to the jungle&quot;
-x = txt.split(' ', 1)输出结果：x = ['welcome', 'to the jungle']按特定字符分割：txt = &quot;apple#banana#cherry#orange&quot;
+x = txt.split(&#039; &#039;, 1)输出结果：x = ['welcome', 'to the jungle']按特定字符分割：txt = &quot;apple#banana#cherry#orange&quot;
 x = txt.split(&quot;#&quot;, 1)输出结果：x = ['apple', 'banana#cherry#orange']next()用于 iterator 的顺序提取。mylist = iter([&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;])
 x = next(mylist)
 print(x)

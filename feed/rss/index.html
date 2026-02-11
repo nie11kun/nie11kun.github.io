@@ -25,19 +25,19 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <item rdf:about="https://blog.niekun.net/archives/Windows-11.html">
 <title>Windows 11 安装绕过登录微软账户</title>
 <link>https://blog.niekun.net/archives/Windows-11.html</link>
-<dc:date>2026-01-21T13:13:39+08:00</dc:date>
+<dc:date>2026-01-21T05:13:39+00:00</dc:date>
 <description>在 Windows 11 安装过程中，按下 Shift + F10 组合键打开命令提示符，输入start ms-cxh:localonly，即可直接创建本地账户，而且无需重启设备，无需先跳过联网步骤。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/sentinel.html">
 <title>sentinel 加密锁应用</title>
 <link>https://blog.niekun.net/archives/sentinel.html</link>
-<dc:date>2025-10-10T14:03:00+08:00</dc:date>
+<dc:date>2025-10-10T06:03:00+00:00</dc:date>
 <description>最近使用 sentinel 的加密狗对软件进行加密，整个操作流程还是有一定门槛的，下面对安装到配置进行简要介绍。下载及安装 sentinel LDK官网下载地址：Sentinel-LDK_SDK备用下载：Sentinel-LDK选择下载最新的 sdk 和升级包：runtime 包用于客户端安装：安装最新版 SDK 及升级包，安装过程中注意选择本地模式的 EMS：配置主锁和产品启动程序前，插入 master 主锁和一个测试用的子锁。安装完成后启动 LDK，点击进入 master 主锁向导：初始默认用户名和密码都是：admin，按照提示下载需要的各种 API 支撑库文件：注意此处的文件就是主锁的开发商代码文件：开发商代码文件存放在用户目录下：Documents\Thales\Sentinel LDK 10.0\VendorCodes。二次开发需要用的 API 库文件存放在用户目录下：Documents\Thales\Sentinel LDK 10.0\API\Licensing。主锁 API 相关文件下载完成后，点击 LDK-EMS 进入管理界面：初始默认用户名和密码都是：admin，登录后会提示你需要修改密码。目录栏中切换到上面主锁向导中定义的开发商代码文件名，默认的 demoma 文件是一个用于测试的虚拟主锁文件：sentinel 的授权逻辑是：定义产品，唯一的 ID 号每个产品都可以有多个功能，每个功能配置唯一的 ID 号sentinel 的加密锁最终是通过功能 ID 号来识别是否授权而不是产品号所以我们即使有多个软件产品，每个软件产品有多个不同的功能块要授权，不同产品之间的功能块ID也需要不同，这样就不会出错了。我们做一个示例来说明如何定义一个产品。假设我们的产品名称为 EnveloGrinding，我们定义一个 login 的功能，用于软件登录的验证。进入功能选项卡，注意切换开发号到当前主锁的开发商代码名称，点击新功能选项，设置功能名称，以及唯一的功能 ID 号：点击确认后，此功能就在功能列表中了。然后进入产品选项卡，同样切换开发号到当前主锁的开发商代码，点击新产品：设置唯一的产品名称和 ID 号，在页面下方点击添加功能按钮，选择刚才创建的 login 功能：因为登录功能授权属于最基本的软件授权，所以这里选择此产品总是包含，如果其他更多的功能需要选择性的添加到产品，可以选择可以排除选项，这样再授权的时候就可以灵活组合授权哪些功能。点击另存为完成后，这个产品就定义成功了。此时我们给加密锁进行授权，将这个产品写入加密锁中。首选我们添加客户信息，也就是这个加密狗最终是交付给谁使用的，用于后期管理维护。客户选项卡点击新客户按钮：设置好所有信息后点击保存即可。点击授权选项卡，切换到正确的开发号后，点击新授权：首先在客户栏输入建立好的客户名称，这里不需要写全部字符，点击旁边的搜索图标，弹窗中点击搜索即可自动提取完整的客户信息。然后在下方点击添加产品，在弹窗中选择需要授权的产品即可：点击生成按钮进入最后的流程：如果已经插入了加密锁，此时会自动识别到下方的框里，选择一个加密锁，点击烧制即可将此产品授权写入加密锁中：以上就完成了基本的操作流程，此时加密锁已经授权了此产品中对应功能ID的授权。后续编程中需要对此功能 ID 进行检测，如果匹配即可验证成功。同时需要开发商代码 VendorCodes。加密锁授权更新如果需要对一个已经授权过的加密锁进行上面介绍的常规方式进行二次授权，会产生的现象是：以前老的授权功能 ID 依然可用，新的授权功能 ID 也可用。如果需要擦除老的授权，需要进行以下操作。点击新授权按钮后，选择保护锁更新，然后点击下方的查找按钮：点击锁ID，点击查找，在列表中选择需要更新的加密锁，然后点击添加到列表，然后点击确认即可：点击添加产品，选择当前需要更新的产品，然后点击生成：在弹窗中选择应用更新前清除锁，点击生成：此时会显示已生成 V2CP 文件，点击下载 V2CP 文件到本地：此时我们需要手动将此文件刷入加密锁中。点击进入控制管理中心：更新/依附栏选择下载的 V2CP 文件：点击应用文件可以将新授权刷入加密锁中。数据库备份与恢复EMS 数据库存放则产品/功能/授权/用户等重要信息，如果 ems 是本地模式则卸载软件或重装系统后数据就会丢失，所以定期备份数据很重要。官方教程：https://supportportal.thalesgroup.com/csm?sys_kb_id=52bcd4861b134850f12064606e4bcbca&id=kb_article_view&sysparm_rank=5&sysparm_tsqueryId=df79bdcd3be07614381ecfaf55e45aac&sysparm_article=KB0021094#2首先需要安装微软的 SQL Server Management Studio (ssms)，官网地址：https://learn.microsoft.com/zh-cn/ssms/install/install，目前最新版为 ssms21。运行安装包后根据提示安装即可，如果安装失败，可能是系统缺少 Visual C++ runtime 库，需要自行手动安装以下。下载地址：https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist安装 ssms 完成后即可启动 SQL Server Management Studio 应用程序，点击 connect object explorer：点击 browse 选择 emsdatabase：下方会自动填入相关信息，authentication 选择 sql server authentication，用户名为 sa，密码为 DBA!sa@EMSDB123,可选保存密码方便下次直接访问，encrypt 选择 optional，设置完成后点击 connect 连接：备份进入数据后，打开 databases，在 EMSDB 右键选择 task - backup：在 general 选项卡按照图片设置，然后点击 add 按钮添加备份文件地址：media option 中可以设置验证备份：设置完成后就可以直接按 ok 键备份了。恢复恢复方式也很简单，在 EMSDB 右键选择 task - restore - database：general 栏选择 device，然后点击按钮添加备份文件地址：在弹窗中点击 add 添加需要恢复的备份文件地址，完成后点击 ok 退出：此时就会显示从备份文件中读取到的数据库信息，在下方勾选需要恢复的数据库：这里需要注意的是，恢复 EMSDB 数据库需要先停止 EMS Service，否则会提示恢复失败。首先 win+R 弹出运行框，然后输入 Services.msc 并确认，打开服务窗口，在其中找到 Sentinel LDK-EMS Service 右键选择 stop 即可关闭此服务：关闭后回到 ssms，执行 ok 即可恢复此数据库：恢复完成后，需要重新启动 EMS Service 服务，同样的在 Sentinel LDK-EMS Service 服务右键选择 start 即可。以上就是 sentinel 加密锁的基本使用方法。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/dumpbin-dll.html">
 <title>使用 dumpbin 检测 dll 文件中包含的函数</title>
 <link>https://blog.niekun.net/archives/dumpbin-dll.html</link>
-<dc:date>2025-10-10T13:12:09+08:00</dc:date>
+<dc:date>2025-10-10T05:12:09+00:00</dc:date>
 <description>dumpbin 是微软 Visual Studio 工具集 自带的一个命令行工具，用于分析可执行文件（.exe、.dll、.obj、.lib）内部结构。dumpbin 位于 Visual Studio 工具链中，一般路径如下：C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\&lt;version&gt;\bin\Hostx64\x64\dumpbin.exe
 要使用它，可以通过以下方式：打开 “Developer Command Prompt for VS 2022”（开发者命令提示符），该环境自动配置好 PATH；然后在命令行中直接输入：  dumpbin /?如果能看到帮助信息，说明环境已正确配置。查看 DLL 的导出函数dumpbin /exports your.dll
 输出说明：Microsoft (R) COFF/PE Dumper Version 14.42.34433.0
@@ -78,7 +78,7 @@ ordinal hint RVA      name
 <item rdf:about="https://blog.niekun.net/archives/Cython-python.html">
 <title> 使用 Cython 对 python 代码加密打包</title>
 <link>https://blog.niekun.net/archives/Cython-python.html</link>
-<dc:date>2025-08-14T16:10:00+08:00</dc:date>
+<dc:date>2025-08-14T08:10:00+00:00</dc:date>
 <description>目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可执行文件（如 Windows 下的 .exe 文件）或一个包含所有文件的目录中。打包后的文件中包含的是 Python 的字节码 .pyc 文件，这个文件是可以被反编译回近似的源代码的。通过使用 Cython 将 Python 源代码编译成 C 语言，然后再生成本地二进制文件（.pyd）。然后正常使用 cx_Freeze 打包，这样做可以极大地提高代码的保护级别，防止被轻易逆向。安装必要的 Python 包需要安装 Cython 和 Numpy，在终端或命令行中运行：pip install Cython numpy
 安装 C/C++ 编译器Cython 将 Python 代码转换成 C 代码，但最终需要一个 C 编译器来将 C 代码编译成机器码。这是最关键的一步。对于 Windows 用户：访问 Visual Studio 下载页面：https://visualstudio.microsoft.com/zh-hans/downloads/。在 "Tools for Visual Studio" (所有下载 -&gt; Visual Studio 工具) 中找到并下载 "Build Tools for Visual Studio"。运行安装程序，在 "工作负荷" 标签页中，勾选 "使用 C++ 的桌面开发"。点击安装。安装完成后，您可能需要重启电脑。对于 macOS 用户：打开终端并运行 xcode-select --install。这会安装苹果的命令行开发者工具，其中包含了 Clang 编译器。对于 Linux 用户 (例如 Ubuntu/Debian)：打开终端并运行 sudo apt update &amp;&amp; sudo apt install build-essential。修改 setup.py 文件如果项目目录结构如下：/my_project
     |-- main.py           # 你的主程序文件
@@ -100,7 +100,7 @@ except ImportError:
     print(&quot;pip install Cython numpy&quot;)
     sys.exit(1)
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')  # 修复非中文系统打包时报错
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding=&#039;utf-8&#039;)  # 修复非中文系统打包时报错
 
 # 增加递归调用深度限制
 sys.setrecursionlimit(1500)
@@ -129,11 +129,11 @@ def find_extensions_to_compile(dir_path=&quot;src&quot;):
                 
                 # 检查文件是否包含 numba 相关代码
                 try:
-                    with open(path, 'r', encoding='utf-8') as f:
+                    with open(path, &#039;r&#039;, encoding=&#039;utf-8&#039;) as f:
                         content = f.read()
                     
                     # 检查是否包含 numba 关键字
-                    numba_keywords = ['from numba import', 'import numba', '@jit', '@njit', 'numba.jit', 'numba.njit']
+                    numba_keywords = [&#039;from numba import&#039;, &#039;import numba&#039;, &#039;@jit&#039;, &#039;@njit&#039;, &#039;numba.jit&#039;, &#039;numba.njit&#039;]
                     has_numba = any(keyword in content for keyword in numba_keywords)
                     
                     if has_numba:
@@ -145,7 +145,7 @@ def find_extensions_to_compile(dir_path=&quot;src&quot;):
                     continue
                 
                 # 将文件路径转换为模块路径，例如 &quot;src/library/function.py&quot; -&gt; &quot;src.library.function&quot;
-                module_path = path.replace(os.sep, '.')[:-3]
+                module_path = path.replace(os.sep, &#039;.&#039;)[:-3]
                 
                 extensions.append(
                     Extension(
@@ -218,10 +218,10 @@ def cleanup_generated_files():
     print(&quot;\n--- 正在运行清理程序：删除生成的 C 文件... ---&quot;)
     for root, dirs, files in os.walk(ROOT_DIR):
         # 避免进入不相关的目录
-        if 'myenv' in root or '.git' in root or 'build' in root or 'dist' in root:
+        if &#039;myenv&#039; in root or &#039;.git&#039; in root or &#039;build&#039; in root or &#039;dist&#039; in root:
             continue
         for file in files:
-            if file.endswith('.c'):
+            if file.endswith(&#039;.c&#039;):
                 file_path = os.path.join(root, file)
                 try:
                     os.remove(file_path)
@@ -239,7 +239,7 @@ try:
         # 关键步骤：将找到的 .py 文件交给 Cythonize 进行编译
         ext_modules=cythonize(
             extensions,
-            compiler_directives={'language_level': &quot;3&quot;}, # 使用 Python 3 语法
+            compiler_directives={&#039;language_level&#039;: &quot;3&quot;}, # 使用 Python 3 语法
             quiet=True # 减少不必要的编译输出
         ) if is_building else [],
         # ...
@@ -251,14 +251,14 @@ finally:
 检查加密情况安装完成后，进入安装路径的 Lib/site-packages 文件夹，会看到加密后的 .pyd 程序文件。.pyd 文件是 Windows 上的二进制动态链接库，本质上和 .dll 文件一样。如果加密失败：会在这里看到 .pyc 文件或者甚至原始的 .py 文件。Python 包管理约定：普通 .py 文件：可以放在任何 Python 路径中扩展模块 (.pyd/.so)：通常放在 site-packages 中cx_Freeze 的处理逻辑：检测到 .py 文件 → 按源码文件处理 → 保持原目录结构检测到 .pyd 文件 → 按扩展模块处理 → 放入 site-packages模块导入机制：import src.library.functionPython 会在 sys.path 中搜索不加密：在 lib/ 中找到 src/library/function.pyc加密：需要在 lib/site-packages/ 中找到 src/library/function.pyd由于加密后的文件路径发生了变化，打包后访问加密后文件中的内容会报错，所以主程序在索引时需要特殊处理加密打包后的路径问题，主程序中使用下面函数可以自适应：# 路径修正代码
 def fix_module_paths():
     &quot;&quot;&quot;修正打包后的模块搜索路径&quot;&quot;&quot;
-    if getattr(sys, 'frozen', False):  # 检查是否为打包后的可执行文件
+    if getattr(sys, &#039;frozen&#039;, False):  # 检查是否为打包后的可执行文件
         # 获取可执行文件所在目录
         base_dir = os.path.dirname(sys.executable)
         
         # 可能的src模块路径
         possible_src_paths = [
-            os.path.join(base_dir, 'lib', 'site-packages'),  # Cython编译后的位置
-            os.path.join(base_dir, 'lib'),  # 标准位置
+            os.path.join(base_dir, &#039;lib&#039;, &#039;site-packages&#039;),  # Cython编译后的位置
+            os.path.join(base_dir, &#039;lib&#039;),  # 标准位置
             base_dir,  # 根目录
         ]
         
@@ -269,7 +269,7 @@ def fix_module_paths():
                 print(f&quot;Added to Python path: {path}&quot;)
         
         # 特别检查src目录
-        src_path = os.path.join(base_dir, 'lib', 'site-packages', 'src')
+        src_path = os.path.join(base_dir, &#039;lib&#039;, &#039;site-packages&#039;, &#039;src&#039;)
         if os.path.exists(src_path):
             parent_dir = os.path.dirname(src_path)
             if parent_dir not in sys.path:
@@ -282,7 +282,7 @@ fix_module_paths()以上函数中，会将 src 文件夹下的函数库进行正
 <item rdf:about="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html">
 <title>DeepWiki-open 生成项目 wiki</title>
 <link>https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html</link>
-<dc:date>2025-07-17T13:57:00+08:00</dc:date>
+<dc:date>2025-07-17T05:57:00+00:00</dc:date>
 <description>DeepWiki-open可以为任何GitHub、GitLab或BitBucket代码仓库自动创建美观、交互式的Wiki，也可以提交本地仓库给它。试用了下发现效果还不错，可以作为项目开发指南。GitHub 主页：https://github.com/AsyncFuncAI/deepwiki-open使用方法很简单，clone 仓库代码，配置环境变量，启动前端和后端服务即可。下载git clone https://github.com/AsyncFuncAI/deepwiki-open.git
 cd deepwiki-open配置需要提前准备 openai 和 google ai 的 api key。Google AI api：https://makersuite.google.com/app/apikeyopenai api：https://platform.openai.com/api-keys根目录新建 .env 文件，配置环境变量：GOOGLE_API_KEY=XXXXXXXXXXXXXXXXXXX
 OPENAI_API_KEY=XXXXXXXXXXXXXXXXXXX
@@ -324,13 +324,13 @@ npm run dev然后打开浏览器访问：http://localhost:3000，即可按照提
 <item rdf:about="https://blog.niekun.net/archives/3024.html">
 <title>建立本地 Web 服务器</title>
 <link>https://blog.niekun.net/archives/3024.html</link>
-<dc:date>2025-04-24T09:04:00+08:00</dc:date>
+<dc:date>2025-04-24T01:04:00+00:00</dc:date>
 <description>建立一个本地 Web 服务器来快速查看本地网站（HTML, CSS, JavaScript 文件）有几种非常快速的方法，通常只需要一行命令。这里介绍几种最常用的：1. 使用 Python 内置的 HTTP 服务器 (通常最快，无需额外安装)如果你的电脑上安装了 Python 3 (现在大多数操作系统都自带或容易安装)，这是最快的方法之一，因为它不需要安装任何额外的库。步骤:打开你的终端或命令提示符 (Terminal / Command Prompt / PowerShell)。使用 cd 命令导航到你的网站文件所在的根目录（也就是包含 index.html 文件的那个文件夹）。运行以下命令：python -m http.server如果你使用的是较旧的 Python 2 版本 (尽量避免使用)，命令是：python -m SimpleHTTPServer终端会显示类似 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ... 的信息。打开你的网页浏览器，访问 http://localhost:8000 或者 http://127.0.0.1:8000。如果你的根目录下没有 index.html，它会列出目录中的文件。要停止服务器，回到终端按 Ctrl + C。优点: 极快启动，通常无需安装额外软件。指定端口: 如果 8000 端口被占用，你可以指定其他端口：python -m http.server 80802. 使用 Node.js 的 http-server 或 live-server (功能更强，需要 Node.js)如果你安装了 Node.js 和 npm (Node Package Manager)，可以使用一些非常方便的包。a) http-server (基础服务器)首次安装 (全局安装，只需一次):npm install -g http-server启动服务器:在终端中，cd 到你的网站根目录。运行：http-server终端会显示可用的访问地址，通常是 http://127.0.0.1:8080。在浏览器中打开该地址。按 Ctrl + C 停止。b) live-server (带自动刷新功能)  live-server 会在你修改并保存文件后自动刷新浏览器，非常适合开发调试。首次安装 (全局安装，只需一次):npm install -g live-server启动服务器:在终端中，cd 到你的网站根目录。运行：live-server它通常会自动在你的默认浏览器中打开网站 (http://127.0.0.1:8080 或类似地址)。当你修改并保存 HTML/CSS/JS 文件时，浏览器会自动刷新。按 Ctrl + C 停止。优点: 功能更强（特别是 live-server 的自动刷新），Node.js 在 Web 开发中很常用。缺点: 需要先安装 Node.js 和对应的 npm 包。3. 使用 VS Code 扩展 "Live Server" (集成在编辑器中，非常方便)如果你使用 Visual Studio Code 编辑器，这是最方便的方法之一。步骤:打开 VS Code。转到扩展视图 (Extensions view, 图标通常在左侧边栏)。搜索 "Live Server" (作者通常是 Ritwick Dey)。点击 "Install" 安装。安装完成后，打开你的网站项目文件夹。在你的 index.html 文件上右键单击，选择 "Open with Live Server"。或者，点击 VS Code 底部状态栏右下角的 "Go Live" 按钮。服务器会启动，并在浏览器中自动打开页面，同样支持自动刷新。要停止，可以再次点击状态栏的端口号按钮 (显示为 "Port: 5500" 或类似)。优点: 无需命令行操作，与编辑器紧密集成，带自动刷新。缺点: 需要使用 VS Code 编辑器。4. 使用 PHP 内置服务器 (如果已安装 PHP)如果你的系统碰巧安装了 PHP (通常用于后端开发，但也可用于快速启动静态服务器)。步骤:打开终端或命令提示符。cd 到你的网站根目录。运行：php -S localhost:8000你可以将 8000 替换为其他端口号。在浏览器中访问 http://localhost:8000。按 Ctrl + C 停止。优点: 如果已安装 PHP，则命令简单。缺点: 不如 Python 那么普遍预装，也不如 Node.js 工具或 VS Code 扩展功能丰富（如自动刷新）。哪个最快？如果你有 Python: python -m http.server 通常是最快的，因为它很可能已经安装好了。如果你用 VS Code: 安装并使用 "Live Server" 扩展几乎是最方便、启动最快的方式（点击按钮即可）。如果你常用 Node.js: live-server 或 http-server 也非常快，并且 live-server 提供了非常有用的自动刷新功能。选择哪种取决于你电脑上已有的环境和你个人的偏好。对于纯粹的“快速启动一个能看本地网页的服务器”，Python 的内置服务器通常拔得头筹。</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/cloc.html">
 <title>cloc 统计项目代码量</title>
 <link>https://blog.niekun.net/archives/cloc.html</link>
-<dc:date>2025-03-26T14:03:15+08:00</dc:date>
+<dc:date>2025-03-26T06:03:15+00:00</dc:date>
 <description>最近需要对一个项目中的代码量进行统计，发现 cloc 可以完美的达到需求，简单命令行即可完成精确的统计。GitHub 主页：https://github.com/AlDanial/cloc常用语法统计文件夹中的代码构成：cloc /path/to/folder
 统计当前文件夹：cloc .
 排除文件夹中某些文件夹：cloc --exclude-dir=.github,myenv,build,dist .
@@ -354,7 +354,7 @@ SUM:                            26           1723           1947           7178
 <item rdf:about="https://blog.niekun.net/archives/3021.html">
 <title>honkit 使用教程及部署github page</title>
 <link>https://blog.niekun.net/archives/3021.html</link>
-<dc:date>2025-01-17T17:14:00+08:00</dc:date>
+<dc:date>2025-01-17T09:14:00+00:00</dc:date>
 <description>1. 什么是 Honkit？Honkit 是一个现代化的静态书籍生成工具，它是基于旧版 GitBook 开发的，支持 Markdown 文件的编写和多种输出格式，如 HTML 和 PDF。2. 初始化 Honkit 项目2.1 创建 Honkit 项目创建项目目录：mkdir my-honkit-project
 cd my-honkit-project初始化 Honkit 项目：npx honkit init这会生成以下两个文件：README.md：书籍的主页面。SUMMARY.md：目录结构的定义。安装 Honkit：npm install honkit --save-dev3. 本地构建书籍3.1 运行开发服务器在项目目录中运行以下命令启动本地预览：npx honkit serve默认情况下，书籍会在 http://localhost:4000 上运行。3.2 生成静态文件当书籍准备好后，运行以下命令生成静态 HTML 文件：npx honkit build生成的文件会存储在 _book 目录中。4. 生成 PDF 文件Honkit 支持将书籍生成 PDF 文件，但需要预先安装 Calibre 电子书管理软件。4.1 安装 Calibre下载 Calibre (与 honkit 兼容性最好的是 calibre 5.x 版本)：访问 Calibre 官网：calibre release (5.44.0)。下载并安装适合您系统的版本。确保 Calibre 路径正确：检查环境变量：通常，Calibre 安装会自动将路径添加到系统的环境变量 PATH 中。如果未自动添加，手动将 Calibre 的安装目录路径添加到 PATH 环境变量中。例如，Windows 系统下，路径可能为：C:\Program Files\Calibre2Linux 和 macOS 用户可通过以下命令验证：which ebook-convert如果返回路径为空，说明需要手动添加。重新打开终端：添加路径后，确保关闭并重新打开终端。4.2 生成 PDF运行以下命令生成 PDF 文件：npx honkit pdf . output.pdf. 表示当前目录。output.pdf 是生成的 PDF 文件名。5. 部署到 GitHub Pages5.1 创建 GitHub 仓库前往 GitHub 创建一个新仓库（例如 my-honkit-book）。将本地项目与远程仓库关联：git init
 git remote add origin https://github.com/&lt;username&gt;/my-honkit-book.git
@@ -379,7 +379,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: &#039;18&#039;
 
     - name: Install Dependencies
       run: npm install
@@ -401,9 +401,9 @@ git push origin main验证：每次部署后，CNAME 文件会自动被包含在
 <item rdf:about="https://blog.niekun.net/archives/docker-compose.html">
 <title>docker compose 配置自动更新</title>
 <link>https://blog.niekun.net/archives/docker-compose.html</link>
-<dc:date>2024-08-18T21:42:00+08:00</dc:date>
+<dc:date>2024-08-18T13:42:00+00:00</dc:date>
 <description>docker compose 配置文件可以很方便的配置和运行 docker 容器，手动更新容器的方法是在 yml 目录下运行以下命令：docker compose pull &amp;&amp; docker compose up -d
-可以通过在 compose 文件中设置 watchtower 来定期自动拉取最新镜像并启动容器，同时可以配置删除旧镜像和容器。在 docker-compose.yml 文件中增加以下内容：version: '3'
+可以通过在 compose 文件中设置 watchtower 来定期自动拉取最新镜像并启动容器，同时可以配置删除旧镜像和容器。在 docker-compose.yml 文件中增加以下内容：version: &#039;3&#039;
 services:
 
   ...
@@ -420,7 +420,7 @@ services:
 <item rdf:about="https://blog.niekun.net/archives/3014.html">
 <title>通过浏览器访问服务器指定文件内容</title>
 <link>https://blog.niekun.net/archives/3014.html</link>
-<dc:date>2024-08-14T15:58:01+08:00</dc:date>
+<dc:date>2024-08-14T07:58:01+00:00</dc:date>
 <description>通过 nginx 可以反代服务器指定文件，然后就可以在网页中查看文件内容。核心就是通过 alias 关联文件路径。配置文件如下：location /test.log {
     alias /home/script/igd/app.log;
 
