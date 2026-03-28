@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Qt.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Windows-11.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/sentinel.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/dumpbin-dll.html"/>
@@ -18,10 +19,138 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/cloc.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3021.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/docker-compose.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/3014.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/Qt.html">
+<title>Qt 项目图片压缩库环境配置教程</title>
+<link>https://blog.niekun.net/archives/Qt.html</link>
+<dc:date>2026-03-28T08:02:47+00:00</dc:date>
+<description>适用平台：Windows (MinGW) / macOS (Apple Silicon)涉及库：libpng · zlib · libimagequant用途：Qt 项目中对 PNG 进行缩放后有损压缩，效果接近 tinypng一、原理说明库作用zlib通用压缩库，libpng 的底层依赖libpngPNG 编码/解码，负责将量化后的调色板写入 PNG 文件libimagequant核心量化算法，将 RGBA 图像减色为 256 色调色板（与 tinypng 同类算法）二、Windows (MinGW) 配置2.1 前置要求Qt（含 MinGW 工具链，如 mingw1310_64）CMake 3.16+（https://cmake.org/download/）Git确保 MinGW 在 PATH 中，在 cmd 执行：set PATH=C:\Qt\Tools\mingw1310_64\bin;%PATH%⚠️ 重要：后续所有编译步骤必须在无空格路径下进行。如果你的用户目录包含空格（如 C:\Users\Marco Nie），请在 C:\ 根目录下建立工作目录。mkdir C:\build_libs
+cd C:\build_libs2.2 编译 zlibcd C:\build_libs
+
+git clone https://github.com/madler/zlib.git --branch v1.3.1 --depth 1
+cd zlib
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DBUILD_SHARED_LIBS=OFF ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/zlib
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\zlib\
+  include\   ← zlib.h, zconf.h
+  lib\       ← libzlibstatic.a2.3 编译 libpngcd C:\build_libs
+
+git clone https://github.com/pnggroup/libpng.git --branch v1.6.43 --depth 1
+cd libpng
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DPNG_SHARED=OFF ^
+  -DPNG_STATIC=ON ^
+  -DPNG_TESTS=OFF ^
+  -DZLIB_ROOT=C:/build_libs/third_party/zlib ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/libpng
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\libpng\
+  include\   ← png.h, pngconf.h, pnglibconf.h
+  lib\       ← libpng16.a2.4 编译 libimagequantlibimagequant 2.17+ 已用 Rust 重写，MinGW 下需使用最后一个纯 C 版本 2.12.6，该版本没有 CMakeLists.txt，直接用 gcc 手动编译。cd C:\build_libs
+
+git clone https://github.com/ImageOptim/libimagequant.git ^
+  --branch 2.12.6 --depth 1 libimagequant_c
+
+cd libimagequant_c
+
+:: 编译所有源文件
+gcc -c -O3 -std=c99 -ffast-math ^
+  libimagequant.c blur.c kmeans.c mediancut.c mempool.c nearest.c pam.c
+
+:: 打包静态库
+ar rcs libimagequant.a ^
+  libimagequant.o blur.o kmeans.o mediancut.o mempool.o nearest.o pam.o
+
+:: 手动安装
+mkdir C:\build_libs\third_party\libimagequant\include
+mkdir C:\build_libs\third_party\libimagequant\lib
+
+copy libimagequant.h C:\build_libs\third_party\libimagequant\include\
+copy libimagequant.a C:\build_libs\third_party\libimagequant\lib\
+
+cd ..安装结果：C:\build_libs\third_party\libimagequant\
+  include\   ← libimagequant.h
+  lib\       ← libimagequant.a2.5 复制到项目目录将编译好的库复制到你指定的目录，例如 C:\Users\Marco Nie\Library\imageprocess：xcopy /E /I C:\build_libs\third_party\zlib ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\zlib&quot;
+
+xcopy /E /I C:\build_libs\third_party\libpng ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libpng&quot;
+
+xcopy /E /I C:\build_libs\third_party\libimagequant ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libimagequant&quot;最终目录结构：C:\Users\Marco Nie\Library\imageprocess\
+  zlib\
+    include\
+    lib\
+  libpng\
+    include\
+    lib\
+  libimagequant\
+    include\
+    lib\2.6 配置 .pro 文件（Windows 部分）win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}三、macOS (Apple Silicon) 配置3.1 前置要求Homebrew（https://brew.sh）Qt for macOS3.2 安装依赖brew install libpng zlib libimagequant安装路径（Apple Silicon 固定为 /opt/homebrew/opt/）：库路径libpng/opt/homebrew/opt/libpngzlib/opt/homebrew/opt/zliblibimagequant/opt/homebrew/opt/libimagequantIntel Mac 的 Homebrew 前缀为 /usr/local/opt/，将下方路径中的 /opt/homebrew 替换为 /usr/local 即可。3.3 配置 .pro 文件（macOS 部分）macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}注意：macOS 下链接名与 Windows 不同：libpng 是 -lpng（不带版本号）zlib 是 -lz（不是 -lzlibstatic）四、完整 .pro 配置win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}
+
+macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}
+
+HEADERS += src/image_compress.h
+SOURCES += src/image_compress.cpp五、常见问题错误信息原因解决方法cannot find -lpng16库名不匹配检查 lib\ 下实际文件名，改为对应的 -lpng 或 -lpng16undefined reference to inflatezlib 未链接确认 -lzlibstatic 在 LIBS 中且在 -lpng16 之后png.h: No such file or directoryINCLUDEPATH 路径错误核对实际头文件路径与 .pro 中配置是否一致Z_FILTERED undeclared缺少 zlib 头文件在 image_compress.cpp 顶部添加 #include &lt;zlib.h&gt;CMake 路径含空格报错MinGW windres 不支持空格路径在无空格路径（如 C:\build_libs）下编译libimagequant clone 后无 .c 文件拉取到了 Rust 重写版本明确指定 --branch 2.12.6</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/Windows-11.html">
 <title>Windows 11 安装绕过登录微软账户</title>
 <link>https://blog.niekun.net/archives/Windows-11.html</link>
@@ -416,22 +545,5 @@ services:
     environment:
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_REMOVE_VOLUMES=true以下是主要的配置说明：将 --interval 参数设置为 3600。这意味着 Watchtower 将每 3600 秒（即每小时）检查一次更新。--cleanup 和 WATCHTOWER_CLEANUP=true 确保在更新后清理旧的镜像。--remove-volumes 和 WATCHTOWER_REMOVE_VOLUMES=true 确保删除与旧容器关联的匿名卷。使用这个配置，Watchtower 将：每小时检查一次你的容器是否有更新如果发现更新，它会停止旧容器，启动新容器删除旧的容器和相关的匿名卷删除旧的镜像这个配置应该能满足大多数用例的需求，既能保持你的容器相对最新，又不会过于频繁地进行检查和更新操作。需要注意的是:Watchtower 只会删除它更新的容器的旧版本。它不会删除系统中的其他未使用的容器或镜像。它只删除匿名卷,不会删除命名卷。如果你想删除所有未使用的镜像(不仅仅是 Watchtower 更新的),你可能需要定期运行 docker image prune 命令。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/3014.html">
-<title>通过浏览器访问服务器指定文件内容</title>
-<link>https://blog.niekun.net/archives/3014.html</link>
-<dc:date>2024-08-14T07:58:01+00:00</dc:date>
-<description>通过 nginx 可以反代服务器指定文件，然后就可以在网页中查看文件内容。核心就是通过 alias 关联文件路径。配置文件如下：location /test.log {
-    alias /home/script/igd/app.log;
-
-    default_type text/plain;
-    add_header Content-Type &quot;text/plain; charset=utf-8&quot;;
-    charset utf-8;
-
-    # 确保不会缓存内容
-    add_header Cache-Control &quot;no-cache, no-store, must-revalidate&quot;;
-    add_header Pragma &quot;no-cache&quot;;
-    add_header Expires &quot;0&quot;;
-}location 路径替换为需要的路径。alias 设置文件实际路径。</description>
 </item>
 </rdf:RDF>

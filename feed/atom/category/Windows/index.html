@@ -6,11 +6,154 @@ xml:base="https://blog.niekun.net/category/Windows/"
 >
 <title type="text">Marco Nie - Windows</title>
 <subtitle type="text"></subtitle>
-<updated>2026-01-21T05:13:39+00:00</updated>
+<updated>2026-03-28T08:02:47+00:00</updated>
 <generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/Windows/" />
 <id>https://blog.niekun.net/feed/atom/category/Windows/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Windows/" />
+<entry>
+<title type="html"><![CDATA[Qt 项目图片压缩库环境配置教程]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/Qt.html" />
+<id>https://blog.niekun.net/archives/Qt.html</id>
+<updated>2026-03-28T08:02:47+00:00</updated>
+<published>2026-03-28T08:02:47+00:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<category scheme="https://blog.niekun.net/category/Windows/" term="Windows" />
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
+<category scheme="https://blog.niekun.net/category/cpp/" term="c++" />
+<summary type="html"><![CDATA[适用平台：Windows (MinGW) / macOS (Apple Silicon)涉及库：libpng · zlib · libimagequant用途：Qt 项目中对 PNG 进行缩放后...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/Qt.html" xml:lang="zh-CN"><![CDATA[
+<blockquote>适用平台：Windows (MinGW) / macOS (Apple Silicon)<br>涉及库：libpng · zlib · libimagequant<br>用途：Qt 项目中对 PNG 进行缩放后有损压缩，效果接近 tinypng</blockquote><hr><!--more--><h2>一、原理说明</h2><table><thead><tr><th>库</th><th>作用</th></tr></thead><tbody><tr><td><strong>zlib</strong></td><td>通用压缩库，libpng 的底层依赖</td></tr><tr><td><strong>libpng</strong></td><td>PNG 编码/解码，负责将量化后的调色板写入 PNG 文件</td></tr><tr><td><strong>libimagequant</strong></td><td>核心量化算法，将 RGBA 图像减色为 256 色调色板（与 tinypng 同类算法）</td></tr></tbody></table><hr><h2>二、Windows (MinGW) 配置</h2><h3>2.1 前置要求</h3><ul><li>Qt（含 MinGW 工具链，如 <code>mingw1310_64</code>）</li><li>CMake 3.16+（<a href="https://cmake.org/download/">https://cmake.org/download/</a>）</li><li>Git</li></ul><p>确保 MinGW 在 PATH 中，在 cmd 执行：</p><pre><code class="lang-bat">set PATH=C:\Qt\Tools\mingw1310_64\bin;%PATH%</code></pre><blockquote>⚠️ <strong>重要</strong>：后续所有编译步骤必须在<strong>无空格路径</strong>下进行。<br>如果你的用户目录包含空格（如 <code>C:\Users\Marco Nie</code>），请在 <code>C:\</code> 根目录下建立工作目录。</blockquote><pre><code class="lang-bat">mkdir C:\build_libs
+cd C:\build_libs</code></pre><hr><h3>2.2 编译 zlib</h3><pre><code class="lang-bat">cd C:\build_libs
+
+git clone https://github.com/madler/zlib.git --branch v1.3.1 --depth 1
+cd zlib
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DBUILD_SHARED_LIBS=OFF ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/zlib
+
+cmake --build build
+cmake --install build
+
+cd ..</code></pre><p>安装结果：</p><pre><code>C:\build_libs\third_party\zlib\
+  include\   ← zlib.h, zconf.h
+  lib\       ← libzlibstatic.a</code></pre><hr><h3>2.3 编译 libpng</h3><pre><code class="lang-bat">cd C:\build_libs
+
+git clone https://github.com/pnggroup/libpng.git --branch v1.6.43 --depth 1
+cd libpng
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DPNG_SHARED=OFF ^
+  -DPNG_STATIC=ON ^
+  -DPNG_TESTS=OFF ^
+  -DZLIB_ROOT=C:/build_libs/third_party/zlib ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/libpng
+
+cmake --build build
+cmake --install build
+
+cd ..</code></pre><p>安装结果：</p><pre><code>C:\build_libs\third_party\libpng\
+  include\   ← png.h, pngconf.h, pnglibconf.h
+  lib\       ← libpng16.a</code></pre><hr><h3>2.4 编译 libimagequant</h3><p>libimagequant 2.17+ 已用 Rust 重写，MinGW 下需使用最后一个<strong>纯 C 版本 2.12.6</strong>，<br>该版本没有 CMakeLists.txt，直接用 gcc 手动编译。</p><pre><code class="lang-bat">cd C:\build_libs
+
+git clone https://github.com/ImageOptim/libimagequant.git ^
+  --branch 2.12.6 --depth 1 libimagequant_c
+
+cd libimagequant_c
+
+:: 编译所有源文件
+gcc -c -O3 -std=c99 -ffast-math ^
+  libimagequant.c blur.c kmeans.c mediancut.c mempool.c nearest.c pam.c
+
+:: 打包静态库
+ar rcs libimagequant.a ^
+  libimagequant.o blur.o kmeans.o mediancut.o mempool.o nearest.o pam.o
+
+:: 手动安装
+mkdir C:\build_libs\third_party\libimagequant\include
+mkdir C:\build_libs\third_party\libimagequant\lib
+
+copy libimagequant.h C:\build_libs\third_party\libimagequant\include\
+copy libimagequant.a C:\build_libs\third_party\libimagequant\lib\
+
+cd ..</code></pre><p>安装结果：</p><pre><code>C:\build_libs\third_party\libimagequant\
+  include\   ← libimagequant.h
+  lib\       ← libimagequant.a</code></pre><hr><h3>2.5 复制到项目目录</h3><p>将编译好的库复制到你指定的目录，例如 <code>C:\Users\Marco Nie\Library\imageprocess</code>：</p><pre><code class="lang-bat">xcopy /E /I C:\build_libs\third_party\zlib ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\zlib&quot;
+
+xcopy /E /I C:\build_libs\third_party\libpng ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libpng&quot;
+
+xcopy /E /I C:\build_libs\third_party\libimagequant ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libimagequant&quot;</code></pre><p>最终目录结构：</p><pre><code>C:\Users\Marco Nie\Library\imageprocess\
+  zlib\
+    include\
+    lib\
+  libpng\
+    include\
+    lib\
+  libimagequant\
+    include\
+    lib\</code></pre><hr><h3>2.6 配置 .pro 文件（Windows 部分）</h3><pre><code class="lang-pro">win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}</code></pre><hr><h2>三、macOS (Apple Silicon) 配置</h2><h3>3.1 前置要求</h3><ul><li>Homebrew（<a href="https://brew.sh">https://brew.sh</a>）</li><li>Qt for macOS</li></ul><h3>3.2 安装依赖</h3><pre><code class="lang-bash">brew install libpng zlib libimagequant</code></pre><p>安装路径（Apple Silicon 固定为 <code>/opt/homebrew/opt/</code>）：</p><table><thead><tr><th>库</th><th>路径</th></tr></thead><tbody><tr><td>libpng</td><td><code>/opt/homebrew/opt/libpng</code></td></tr><tr><td>zlib</td><td><code>/opt/homebrew/opt/zlib</code></td></tr><tr><td>libimagequant</td><td><code>/opt/homebrew/opt/libimagequant</code></td></tr></tbody></table><blockquote>Intel Mac 的 Homebrew 前缀为 <code>/usr/local/opt/</code>，将下方路径中的 <code>/opt/homebrew</code> 替换为 <code>/usr/local</code> 即可。</blockquote><h3>3.3 配置 .pro 文件（macOS 部分）</h3><pre><code class="lang-pro">macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}</code></pre><blockquote><p><strong>注意</strong>：macOS 下链接名与 Windows 不同：</p><ul><li>libpng 是 <code>-lpng</code>（不带版本号）</li><li>zlib 是 <code>-lz</code>（不是 <code>-lzlibstatic</code>）</li></ul></blockquote><hr><h2>四、完整 .pro 配置</h2><pre><code class="lang-pro">win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}
+
+macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}
+
+HEADERS += src/image_compress.h
+SOURCES += src/image_compress.cpp</code></pre><hr><h2>五、常见问题</h2><table><thead><tr><th>错误信息</th><th>原因</th><th>解决方法</th></tr></thead><tbody><tr><td><code>cannot find -lpng16</code></td><td>库名不匹配</td><td>检查 <code>lib\</code> 下实际文件名，改为对应的 <code>-lpng</code> 或 <code>-lpng16</code></td></tr><tr><td><code>undefined reference to inflate</code></td><td>zlib 未链接</td><td>确认 <code>-lzlibstatic</code> 在 LIBS 中且在 <code>-lpng16</code> 之后</td></tr><tr><td><code>png.h: No such file or directory</code></td><td>INCLUDEPATH 路径错误</td><td>核对实际头文件路径与 .pro 中配置是否一致</td></tr><tr><td><code>Z_FILTERED</code> undeclared</td><td>缺少 zlib 头文件</td><td>在 <code>image_compress.cpp</code> 顶部添加 <code>#include &lt;zlib.h&gt;</code></td></tr><tr><td>CMake 路径含空格报错</td><td>MinGW windres 不支持空格路径</td><td>在无空格路径（如 <code>C:\build_libs</code>）下编译</td></tr><tr><td>libimagequant clone 后无 .c 文件</td><td>拉取到了 Rust 重写版本</td><td>明确指定 <code>--branch 2.12.6</code></td></tr></tbody></table>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/Qt.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Windows/archives/Qt.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Windows 11 安装绕过登录微软账户]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/Windows-11.html" />
@@ -229,23 +372,5 @@ adb install xxx.apk</code></pre><h3>文件共享</h3><p>可以配置一个 Windo
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2757.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Windows/archives/2757.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[解除 Windows 11 TPM 或 CPU 限制]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/2340.html" />
-<id>https://blog.niekun.net/archives/2340.html</id>
-<updated>2021-10-08T03:58:00+00:00</updated>
-<published>2021-10-08T03:58:00+00:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<category scheme="https://blog.niekun.net/category/Windows/" term="Windows" />
-<summary type="html"><![CDATA[最近微软发布了 Windows 11 正式版。但是对设备硬件有一些限制，可以通过修改注册表的方式解除限制。首先打开注册表，快捷键 win + R，输入 regedit：]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/2340.html" xml:lang="zh-CN"><![CDATA[
-<p>最近微软发布了 Windows 11 正式版。但是对设备硬件有一些限制，可以通过修改注册表的方式解除限制。</p><p>首先打开注册表，快捷键 <code>win + R</code>，输入 regedit：<br><img src="https://blog.niekun.net/usr/uploads/2021/10/2068741883.png" alt="2021-10-08T03:51:00.png" title="2021-10-08T03:51:00.png"></p><!--more--><p>通过左侧层级菜单找到：<code>Computer\HKEY_LOCAL_MACHINE\SYSTEM\Setup\MoSetup</code>:<br><img src="https://blog.niekun.net/usr/uploads/2021/10/3148204400.png" alt="2021-10-08T03:52:28.png" title="2021-10-08T03:52:28.png"></p><p>选中 Mosetup，菜单栏选择 <strong>edit</strong> - <strong>New</strong> - <strong>DWORD</strong> 添加新键，重命名为：<code>AllowUpgradesWithUnsupportedTPMOrCPU</code>：<br><img src="https://blog.niekun.net/usr/uploads/2021/10/2409459988.png" alt="2021-10-08T03:54:27.png" title="2021-10-08T03:54:27.png"></p><p>双击此键设置值为 1，然后确认：<br><img src="https://blog.niekun.net/usr/uploads/2021/10/401781102.png" alt="2021-10-08T03:55:45.png" title="2021-10-08T03:55:45.png"></p><p>然后就可以下载镜像安装了，期间会提示硬件不符合要求，但多了个<strong>接受</strong>选项安装 Windows 11：<br><img src="https://blog.niekun.net/usr/uploads/2021/10/2409503880.png" alt="2021-10-08T03:57:47.png" title="2021-10-08T03:57:47.png"></p><h3>升级故障</h3><p>在实际升级中，我遇到了一个困扰几个星期的问题，当显示升级进度到 31% 的时候就停留不动了，尝试了无数次都无法解决。最后在今天翻看台湾 Windows 社群的时候找到了一篇帖子，受到启发才找到了问题点。</p><p>一般这种问题都是因为当前系统内安装的某个硬件的驱动有问题导致升级无法进行，我们需要做的就是找到这个驱动是什么然后卸载它。</p><p>我们需要从 <code>C:\$WINDOWS.~BT\Sources\Panther</code> 目录内的 <code>CompatData_</code> 开头的 xml 文件中找到 DriverPackages 标签的内容，找到 BlockMigration="True" 后面的 inf="XXX.inf" 记住这里的 inf 文件名称，在 <code>C:\Windows\INF</code> 目录中找到对应的 inf 文件，用记事本打开文件，查看这到底是什么驱动，根据驱动名称和驱动版本等信息，在设备管理器中找到对应驱动并卸载它。</p><p>如果 xml 文件中没有找到相关信息，则需要在 <code>C:\$WINDOWS.~BT\Sources\Panther</code> 目录内 <code>setupact.log</code> 文件中找相关信息，一般我们直接翻到日志最后一部分，查找相关信息，同样是找到 XXX.inf 文件。</p><p>正确的找到并卸载驱动后，需要删除 <code>C:\$WINDOWS.~BT\Sources\Panther</code> 中的 <code>compatscancache.dat</code> 和 <code>CompatData_</code> 开头的 xml 文件。然后就可以测试再次启动升级。</p><h3>参考链接</h3><p><a href="https://answers.microsoft.com/zh-hant/windows/forum/all/windows-11%E6%9B%B4%E6%96%B0%E5%8D%A1%E5%9C%A835/550eb56f-11b8-4a37-a23d-c823a1024555">windows 11更新卡在35%</a></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/2340.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/Windows/archives/2340.html" thr:count="0"/>
 </entry>
 </feed>

@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Qt.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/path.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/macOS-automator.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2860.html"/>
@@ -18,10 +19,138 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/2353.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2305.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2198.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2040.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/Qt.html">
+<title>Qt 项目图片压缩库环境配置教程</title>
+<link>https://blog.niekun.net/archives/Qt.html</link>
+<dc:date>2026-03-28T08:02:47+00:00</dc:date>
+<description>适用平台：Windows (MinGW) / macOS (Apple Silicon)涉及库：libpng · zlib · libimagequant用途：Qt 项目中对 PNG 进行缩放后有损压缩，效果接近 tinypng一、原理说明库作用zlib通用压缩库，libpng 的底层依赖libpngPNG 编码/解码，负责将量化后的调色板写入 PNG 文件libimagequant核心量化算法，将 RGBA 图像减色为 256 色调色板（与 tinypng 同类算法）二、Windows (MinGW) 配置2.1 前置要求Qt（含 MinGW 工具链，如 mingw1310_64）CMake 3.16+（https://cmake.org/download/）Git确保 MinGW 在 PATH 中，在 cmd 执行：set PATH=C:\Qt\Tools\mingw1310_64\bin;%PATH%⚠️ 重要：后续所有编译步骤必须在无空格路径下进行。如果你的用户目录包含空格（如 C:\Users\Marco Nie），请在 C:\ 根目录下建立工作目录。mkdir C:\build_libs
+cd C:\build_libs2.2 编译 zlibcd C:\build_libs
+
+git clone https://github.com/madler/zlib.git --branch v1.3.1 --depth 1
+cd zlib
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DBUILD_SHARED_LIBS=OFF ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/zlib
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\zlib\
+  include\   ← zlib.h, zconf.h
+  lib\       ← libzlibstatic.a2.3 编译 libpngcd C:\build_libs
+
+git clone https://github.com/pnggroup/libpng.git --branch v1.6.43 --depth 1
+cd libpng
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DPNG_SHARED=OFF ^
+  -DPNG_STATIC=ON ^
+  -DPNG_TESTS=OFF ^
+  -DZLIB_ROOT=C:/build_libs/third_party/zlib ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/libpng
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\libpng\
+  include\   ← png.h, pngconf.h, pnglibconf.h
+  lib\       ← libpng16.a2.4 编译 libimagequantlibimagequant 2.17+ 已用 Rust 重写，MinGW 下需使用最后一个纯 C 版本 2.12.6，该版本没有 CMakeLists.txt，直接用 gcc 手动编译。cd C:\build_libs
+
+git clone https://github.com/ImageOptim/libimagequant.git ^
+  --branch 2.12.6 --depth 1 libimagequant_c
+
+cd libimagequant_c
+
+:: 编译所有源文件
+gcc -c -O3 -std=c99 -ffast-math ^
+  libimagequant.c blur.c kmeans.c mediancut.c mempool.c nearest.c pam.c
+
+:: 打包静态库
+ar rcs libimagequant.a ^
+  libimagequant.o blur.o kmeans.o mediancut.o mempool.o nearest.o pam.o
+
+:: 手动安装
+mkdir C:\build_libs\third_party\libimagequant\include
+mkdir C:\build_libs\third_party\libimagequant\lib
+
+copy libimagequant.h C:\build_libs\third_party\libimagequant\include\
+copy libimagequant.a C:\build_libs\third_party\libimagequant\lib\
+
+cd ..安装结果：C:\build_libs\third_party\libimagequant\
+  include\   ← libimagequant.h
+  lib\       ← libimagequant.a2.5 复制到项目目录将编译好的库复制到你指定的目录，例如 C:\Users\Marco Nie\Library\imageprocess：xcopy /E /I C:\build_libs\third_party\zlib ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\zlib&quot;
+
+xcopy /E /I C:\build_libs\third_party\libpng ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libpng&quot;
+
+xcopy /E /I C:\build_libs\third_party\libimagequant ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libimagequant&quot;最终目录结构：C:\Users\Marco Nie\Library\imageprocess\
+  zlib\
+    include\
+    lib\
+  libpng\
+    include\
+    lib\
+  libimagequant\
+    include\
+    lib\2.6 配置 .pro 文件（Windows 部分）win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}三、macOS (Apple Silicon) 配置3.1 前置要求Homebrew（https://brew.sh）Qt for macOS3.2 安装依赖brew install libpng zlib libimagequant安装路径（Apple Silicon 固定为 /opt/homebrew/opt/）：库路径libpng/opt/homebrew/opt/libpngzlib/opt/homebrew/opt/zliblibimagequant/opt/homebrew/opt/libimagequantIntel Mac 的 Homebrew 前缀为 /usr/local/opt/，将下方路径中的 /opt/homebrew 替换为 /usr/local 即可。3.3 配置 .pro 文件（macOS 部分）macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}注意：macOS 下链接名与 Windows 不同：libpng 是 -lpng（不带版本号）zlib 是 -lz（不是 -lzlibstatic）四、完整 .pro 配置win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}
+
+macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}
+
+HEADERS += src/image_compress.h
+SOURCES += src/image_compress.cpp五、常见问题错误信息原因解决方法cannot find -lpng16库名不匹配检查 lib\ 下实际文件名，改为对应的 -lpng 或 -lpng16undefined reference to inflatezlib 未链接确认 -lzlibstatic 在 LIBS 中且在 -lpng16 之后png.h: No such file or directoryINCLUDEPATH 路径错误核对实际头文件路径与 .pro 中配置是否一致Z_FILTERED undeclared缺少 zlib 头文件在 image_compress.cpp 顶部添加 #include &lt;zlib.h&gt;CMake 路径含空格报错MinGW windres 不支持空格路径在无空格路径（如 C:\build_libs）下编译libimagequant clone 后无 .c 文件拉取到了 Rust 重写版本明确指定 --branch 2.12.6</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/path.html">
 <title>将路径加入系统 path</title>
 <link>https://blog.niekun.net/archives/path.html</link>
@@ -155,13 +284,5 @@ do shell script &quot;hdiutil attach -mountpoint /Volumes/TimeMachine/ /Volumes/
 <link>https://blog.niekun.net/archives/2198.html</link>
 <dc:date>2021-03-03T13:03:37+00:00</dc:date>
 <description>今天打开一个 QT 项目后进行编译发现报错了，查看了下什么都没有修改就比较奇怪了。根据日志是 boost 库出了问题，报错为：Undefined symbols for architecture x86_64，但是 boost 库是以前编译好的从来没动过。回想起来前几天重新安装了下 command line tool 会不会有关系。看了下 QT kit 配置里面发现 clang 的设置居然有叹号。重新识别了下系统编译器：然后重建下项目配置：重新编译项目依然有报错。最后就是 boost 库的确有问题了。于是我重新编译了一次。居然问题就解决了。原来真的是由于系统的 Clang 更新后原来编译的 boost 库不兼容了，在此使用当前系统的 Clang 编译一次就行了。boost 库编译方法参考：https://blog.niekun.net/archives/1174.html</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2040.html">
-<title>修复 parallels desktop 16 网络无法连接问题</title>
-<link>https://blog.niekun.net/archives/2040.html</link>
-<dc:date>2021-01-03T14:40:00+00:00</dc:date>
-<description>随着升级到 macOS Big Sur 后，虚拟机 parallels desktop 也更新到了 16 版本。我当然是继续安装破解版啦。但是安装好后，启动虚拟机会有一个报错：Network Initialization Failed，启动后会发现虚拟机无法联网，网络设置中无法正常在各种模式中切换。在寻找解决方案期间，了解到了这可能是由于破解的原因，正版用户没有这个问题。网上有人提供了一个方法，执行一条命令就启动虚拟机就可以正常联网了。但是会导致虚拟机无法访问主机的共享目录及无法访问 USB 设备。而且一旦重启 parallels desktop 后又回恢复之前的状态，我也就没有去做。这两天看到网上终于有人找到的解决方法，测试后的确可用，所以介绍给大家参考。解决的方法都是通过修改相关配置文件实现的。首先需要彻底退出 parallels desktop。网络问题修改 /Library/Preferences/Parallels/network.desktop.xml 文件。在终端或者 vs code 中打开这个文件，找到 &lt;UseKextless&gt; 标签，将其中的内容改为 0：&lt;UseKextless&gt;0&lt;/UseKextless&gt;
-注意如果你的这个文件内没有这个标签，则需要在 &lt;ParallelsNetworkConfig&gt; 根标签内手动创建它即可。修改完成后保存文件，需要输入账户密码。USB 问题修改 /Library/Preferences/Parallels/dispatcher.desktop.xml 文件。在终端或者 vs code 中打开这个文件，找到 &lt;Usb&gt; 标签，将其中的内容改为 1：&lt;Usb&gt;1&lt;/Usb&gt;
-修改完成后保存文件，需要输入账户密码。修改完以上两个文件后，重启 parallels desktop 就会发现一切都正常了。</description>
 </item>
 </rdf:RDF>

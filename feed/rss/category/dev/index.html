@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Qt.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/sentinel.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Cython-python.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html"/>
@@ -18,10 +19,138 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/codesys-enum.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/codesys.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/ethercat.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/2858.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/Qt.html">
+<title>Qt 项目图片压缩库环境配置教程</title>
+<link>https://blog.niekun.net/archives/Qt.html</link>
+<dc:date>2026-03-28T08:02:47+00:00</dc:date>
+<description>适用平台：Windows (MinGW) / macOS (Apple Silicon)涉及库：libpng · zlib · libimagequant用途：Qt 项目中对 PNG 进行缩放后有损压缩，效果接近 tinypng一、原理说明库作用zlib通用压缩库，libpng 的底层依赖libpngPNG 编码/解码，负责将量化后的调色板写入 PNG 文件libimagequant核心量化算法，将 RGBA 图像减色为 256 色调色板（与 tinypng 同类算法）二、Windows (MinGW) 配置2.1 前置要求Qt（含 MinGW 工具链，如 mingw1310_64）CMake 3.16+（https://cmake.org/download/）Git确保 MinGW 在 PATH 中，在 cmd 执行：set PATH=C:\Qt\Tools\mingw1310_64\bin;%PATH%⚠️ 重要：后续所有编译步骤必须在无空格路径下进行。如果你的用户目录包含空格（如 C:\Users\Marco Nie），请在 C:\ 根目录下建立工作目录。mkdir C:\build_libs
+cd C:\build_libs2.2 编译 zlibcd C:\build_libs
+
+git clone https://github.com/madler/zlib.git --branch v1.3.1 --depth 1
+cd zlib
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DBUILD_SHARED_LIBS=OFF ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/zlib
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\zlib\
+  include\   ← zlib.h, zconf.h
+  lib\       ← libzlibstatic.a2.3 编译 libpngcd C:\build_libs
+
+git clone https://github.com/pnggroup/libpng.git --branch v1.6.43 --depth 1
+cd libpng
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DPNG_SHARED=OFF ^
+  -DPNG_STATIC=ON ^
+  -DPNG_TESTS=OFF ^
+  -DZLIB_ROOT=C:/build_libs/third_party/zlib ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/libpng
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\libpng\
+  include\   ← png.h, pngconf.h, pnglibconf.h
+  lib\       ← libpng16.a2.4 编译 libimagequantlibimagequant 2.17+ 已用 Rust 重写，MinGW 下需使用最后一个纯 C 版本 2.12.6，该版本没有 CMakeLists.txt，直接用 gcc 手动编译。cd C:\build_libs
+
+git clone https://github.com/ImageOptim/libimagequant.git ^
+  --branch 2.12.6 --depth 1 libimagequant_c
+
+cd libimagequant_c
+
+:: 编译所有源文件
+gcc -c -O3 -std=c99 -ffast-math ^
+  libimagequant.c blur.c kmeans.c mediancut.c mempool.c nearest.c pam.c
+
+:: 打包静态库
+ar rcs libimagequant.a ^
+  libimagequant.o blur.o kmeans.o mediancut.o mempool.o nearest.o pam.o
+
+:: 手动安装
+mkdir C:\build_libs\third_party\libimagequant\include
+mkdir C:\build_libs\third_party\libimagequant\lib
+
+copy libimagequant.h C:\build_libs\third_party\libimagequant\include\
+copy libimagequant.a C:\build_libs\third_party\libimagequant\lib\
+
+cd ..安装结果：C:\build_libs\third_party\libimagequant\
+  include\   ← libimagequant.h
+  lib\       ← libimagequant.a2.5 复制到项目目录将编译好的库复制到你指定的目录，例如 C:\Users\Marco Nie\Library\imageprocess：xcopy /E /I C:\build_libs\third_party\zlib ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\zlib&quot;
+
+xcopy /E /I C:\build_libs\third_party\libpng ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libpng&quot;
+
+xcopy /E /I C:\build_libs\third_party\libimagequant ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libimagequant&quot;最终目录结构：C:\Users\Marco Nie\Library\imageprocess\
+  zlib\
+    include\
+    lib\
+  libpng\
+    include\
+    lib\
+  libimagequant\
+    include\
+    lib\2.6 配置 .pro 文件（Windows 部分）win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}三、macOS (Apple Silicon) 配置3.1 前置要求Homebrew（https://brew.sh）Qt for macOS3.2 安装依赖brew install libpng zlib libimagequant安装路径（Apple Silicon 固定为 /opt/homebrew/opt/）：库路径libpng/opt/homebrew/opt/libpngzlib/opt/homebrew/opt/zliblibimagequant/opt/homebrew/opt/libimagequantIntel Mac 的 Homebrew 前缀为 /usr/local/opt/，将下方路径中的 /opt/homebrew 替换为 /usr/local 即可。3.3 配置 .pro 文件（macOS 部分）macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}注意：macOS 下链接名与 Windows 不同：libpng 是 -lpng（不带版本号）zlib 是 -lz（不是 -lzlibstatic）四、完整 .pro 配置win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}
+
+macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}
+
+HEADERS += src/image_compress.h
+SOURCES += src/image_compress.cpp五、常见问题错误信息原因解决方法cannot find -lpng16库名不匹配检查 lib\ 下实际文件名，改为对应的 -lpng 或 -lpng16undefined reference to inflatezlib 未链接确认 -lzlibstatic 在 LIBS 中且在 -lpng16 之后png.h: No such file or directoryINCLUDEPATH 路径错误核对实际头文件路径与 .pro 中配置是否一致Z_FILTERED undeclared缺少 zlib 头文件在 image_compress.cpp 顶部添加 #include &lt;zlib.h&gt;CMake 路径含空格报错MinGW windres 不支持空格路径在无空格路径（如 C:\build_libs）下编译libimagequant clone 后无 .c 文件拉取到了 Rust 重写版本明确指定 --branch 2.12.6</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/sentinel.html">
 <title>sentinel 加密锁应用</title>
 <link>https://blog.niekun.net/archives/sentinel.html</link>
@@ -385,11 +514,5 @@ END_TYPE
 <link>https://blog.niekun.net/archives/ethercat.html</link>
 <dc:date>2024-02-23T07:41:00+00:00</dc:date>
 <description>codesys 配置 rte runtime 添加 ethercat 组件的方法。主要步骤为：安装 RTE runtime安装适配网卡驱动添加 ethercat master 设备安装 RTE runtime首先需要配置工控机啊 BIOS 设置，将一些超线程，电源管理等选项关掉：关闭超线程：关闭BIOS 中激活的所有节能选项Intel Speed Step动态节能技术EIST智能降频C-States省电模式PowerNow动态调整CPU的工作频率和电压Hibernation休眠MWAIT停用可能导致系统管理中断的所有内容BIOS self tests BIOS自检USB Legacy Device Support 传统USB设备支持然后就可以安装 RTE，官网下载需要的 runtime 安装包，注意区分 x86 还是 x64 设备。我下载的是 **CODESYS Control RTE SL （×86Windows 实时）。官网下载地址：http://store.codesys.cn/codesys/store/index.html在工控机上解压并安装需要的 RTE runtime，基本都是直接下一步即可，期间注意选择带不带 softmotion：Control RTE 文件路径：C:\Program Files\CODESYS\CODESYS Control RTE3Control RTE 安装路径：C:\ProgramData\CODESYS\CODESYSControlRTEV3网卡驱动支持的网卡：Systems with Windows and CODESYS Control RTE (Real-time SoftPLC):Realtek® 8139 (CmpRTL81x9Mpd)Realtek RTL8139 and compatible Ethernet-Controller, as well 8100/8110Realtek 8169 (CmpRTL8169Mpd)Realtek 8169/810, RTL8111B / RTL8111DIntel® EtherExpressPro1000 (CmpEt1000Drv) --- All gigabit adapters from IntelIntel EtherExpress PRO/100 (CmpEt100Drv)  --- All 100 Mbit adapters from Intel一般情况下 intel 的千兆网卡都可以安装 CmpEt1000Drv 驱动。首先进入设备管理器，选择需要更新 codesys 驱动的网卡，右键选择更新驱动：选择从本地查找驱动程序：选择从磁盘安装，从 RTE 文件路径找到对应的驱动目录并安装：右键选择 plc configuration：在 components manager 中在最后一个空行中填入安装的驱动名称，这里我填的是 CmpEt1000Drv：确定并重启 plc 即可完成网卡驱动的安装及配置。添加 ethercat master在codesys 开发项目中进行以下操作。建立一个支持 softmotion 的设备添加 ethercat master softmotion 主站  （会自动添加 ethercat_task 任务 不可删除)扫描并连接到控制器配置 ethercat master 网卡，RTE 版 runtime 需要选择适配 codesys 的网卡下载程序到控制器，如果上面没有在 components manager 中添加网卡组件的话，这里下载会报错退出登录 扫描从站并添加如果设备描述文件没有在系统内置库中 需要手动导入描述文件然后才能扫描识别给扫描到的从站添加 cia402 轴配置电子齿轮比以上就是 RTE runtime 版添加 ethercat master 主站的简单方法。参考链接：Control RTE SL and profinet connections</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/2858.html">
-<title>Siemens 系统计算精度设置影响程序运行问题</title>
-<link>https://blog.niekun.net/archives/2858.html</link>
-<dc:date>2023-10-18T09:13:10+00:00</dc:date>
-<description>最近的工作中遇到使用带刀具的轨迹运动中，由于轨迹是通过1000多个离散点构成的，每个点之间距离很短，由于 sinumerik one 系统默认的线性计算精度是每毫米 1000 各单位，导致刀具轨迹报错提示可能有碰撞危险。通过提高系统计算精度可以解决此问题。相关系统变量：通用机床数据 10200 线性位置的计算精度通用机床数据 10210 角位置的计算精度sinumerik one 及 840D sl 系统以上参数默认值为 1000，828D 系统默认值为 1000000。</description>
 </item>
 </rdf:RDF>

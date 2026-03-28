@@ -6,11 +6,154 @@ xml:base="https://blog.niekun.net/"
 >
 <title type="text">Marco Nie</title>
 <subtitle type="text">you are the company you keep...</subtitle>
-<updated>2026-01-21T05:13:39+00:00</updated>
+<updated>2026-03-28T08:02:47+00:00</updated>
 <generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/" />
 <id>https://blog.niekun.net/feed/atom/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/" />
+<entry>
+<title type="html"><![CDATA[Qt 项目图片压缩库环境配置教程]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/Qt.html" />
+<id>https://blog.niekun.net/archives/Qt.html</id>
+<updated>2026-03-28T08:02:47+00:00</updated>
+<published>2026-03-28T08:02:47+00:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<category scheme="https://blog.niekun.net/category/Windows/" term="Windows" />
+<category scheme="https://blog.niekun.net/category/macos/" term="macOS" />
+<category scheme="https://blog.niekun.net/category/cpp/" term="c++" />
+<summary type="html"><![CDATA[适用平台：Windows (MinGW) / macOS (Apple Silicon)涉及库：libpng · zlib · libimagequant用途：Qt 项目中对 PNG 进行缩放后...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/Qt.html" xml:lang="zh-CN"><![CDATA[
+<blockquote>适用平台：Windows (MinGW) / macOS (Apple Silicon)<br>涉及库：libpng · zlib · libimagequant<br>用途：Qt 项目中对 PNG 进行缩放后有损压缩，效果接近 tinypng</blockquote><hr><!--more--><h2>一、原理说明</h2><table><thead><tr><th>库</th><th>作用</th></tr></thead><tbody><tr><td><strong>zlib</strong></td><td>通用压缩库，libpng 的底层依赖</td></tr><tr><td><strong>libpng</strong></td><td>PNG 编码/解码，负责将量化后的调色板写入 PNG 文件</td></tr><tr><td><strong>libimagequant</strong></td><td>核心量化算法，将 RGBA 图像减色为 256 色调色板（与 tinypng 同类算法）</td></tr></tbody></table><hr><h2>二、Windows (MinGW) 配置</h2><h3>2.1 前置要求</h3><ul><li>Qt（含 MinGW 工具链，如 <code>mingw1310_64</code>）</li><li>CMake 3.16+（<a href="https://cmake.org/download/">https://cmake.org/download/</a>）</li><li>Git</li></ul><p>确保 MinGW 在 PATH 中，在 cmd 执行：</p><pre><code class="lang-bat">set PATH=C:\Qt\Tools\mingw1310_64\bin;%PATH%</code></pre><blockquote>⚠️ <strong>重要</strong>：后续所有编译步骤必须在<strong>无空格路径</strong>下进行。<br>如果你的用户目录包含空格（如 <code>C:\Users\Marco Nie</code>），请在 <code>C:\</code> 根目录下建立工作目录。</blockquote><pre><code class="lang-bat">mkdir C:\build_libs
+cd C:\build_libs</code></pre><hr><h3>2.2 编译 zlib</h3><pre><code class="lang-bat">cd C:\build_libs
+
+git clone https://github.com/madler/zlib.git --branch v1.3.1 --depth 1
+cd zlib
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DBUILD_SHARED_LIBS=OFF ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/zlib
+
+cmake --build build
+cmake --install build
+
+cd ..</code></pre><p>安装结果：</p><pre><code>C:\build_libs\third_party\zlib\
+  include\   ← zlib.h, zconf.h
+  lib\       ← libzlibstatic.a</code></pre><hr><h3>2.3 编译 libpng</h3><pre><code class="lang-bat">cd C:\build_libs
+
+git clone https://github.com/pnggroup/libpng.git --branch v1.6.43 --depth 1
+cd libpng
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DPNG_SHARED=OFF ^
+  -DPNG_STATIC=ON ^
+  -DPNG_TESTS=OFF ^
+  -DZLIB_ROOT=C:/build_libs/third_party/zlib ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/libpng
+
+cmake --build build
+cmake --install build
+
+cd ..</code></pre><p>安装结果：</p><pre><code>C:\build_libs\third_party\libpng\
+  include\   ← png.h, pngconf.h, pnglibconf.h
+  lib\       ← libpng16.a</code></pre><hr><h3>2.4 编译 libimagequant</h3><p>libimagequant 2.17+ 已用 Rust 重写，MinGW 下需使用最后一个<strong>纯 C 版本 2.12.6</strong>，<br>该版本没有 CMakeLists.txt，直接用 gcc 手动编译。</p><pre><code class="lang-bat">cd C:\build_libs
+
+git clone https://github.com/ImageOptim/libimagequant.git ^
+  --branch 2.12.6 --depth 1 libimagequant_c
+
+cd libimagequant_c
+
+:: 编译所有源文件
+gcc -c -O3 -std=c99 -ffast-math ^
+  libimagequant.c blur.c kmeans.c mediancut.c mempool.c nearest.c pam.c
+
+:: 打包静态库
+ar rcs libimagequant.a ^
+  libimagequant.o blur.o kmeans.o mediancut.o mempool.o nearest.o pam.o
+
+:: 手动安装
+mkdir C:\build_libs\third_party\libimagequant\include
+mkdir C:\build_libs\third_party\libimagequant\lib
+
+copy libimagequant.h C:\build_libs\third_party\libimagequant\include\
+copy libimagequant.a C:\build_libs\third_party\libimagequant\lib\
+
+cd ..</code></pre><p>安装结果：</p><pre><code>C:\build_libs\third_party\libimagequant\
+  include\   ← libimagequant.h
+  lib\       ← libimagequant.a</code></pre><hr><h3>2.5 复制到项目目录</h3><p>将编译好的库复制到你指定的目录，例如 <code>C:\Users\Marco Nie\Library\imageprocess</code>：</p><pre><code class="lang-bat">xcopy /E /I C:\build_libs\third_party\zlib ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\zlib&quot;
+
+xcopy /E /I C:\build_libs\third_party\libpng ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libpng&quot;
+
+xcopy /E /I C:\build_libs\third_party\libimagequant ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libimagequant&quot;</code></pre><p>最终目录结构：</p><pre><code>C:\Users\Marco Nie\Library\imageprocess\
+  zlib\
+    include\
+    lib\
+  libpng\
+    include\
+    lib\
+  libimagequant\
+    include\
+    lib\</code></pre><hr><h3>2.6 配置 .pro 文件（Windows 部分）</h3><pre><code class="lang-pro">win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}</code></pre><hr><h2>三、macOS (Apple Silicon) 配置</h2><h3>3.1 前置要求</h3><ul><li>Homebrew（<a href="https://brew.sh">https://brew.sh</a>）</li><li>Qt for macOS</li></ul><h3>3.2 安装依赖</h3><pre><code class="lang-bash">brew install libpng zlib libimagequant</code></pre><p>安装路径（Apple Silicon 固定为 <code>/opt/homebrew/opt/</code>）：</p><table><thead><tr><th>库</th><th>路径</th></tr></thead><tbody><tr><td>libpng</td><td><code>/opt/homebrew/opt/libpng</code></td></tr><tr><td>zlib</td><td><code>/opt/homebrew/opt/zlib</code></td></tr><tr><td>libimagequant</td><td><code>/opt/homebrew/opt/libimagequant</code></td></tr></tbody></table><blockquote>Intel Mac 的 Homebrew 前缀为 <code>/usr/local/opt/</code>，将下方路径中的 <code>/opt/homebrew</code> 替换为 <code>/usr/local</code> 即可。</blockquote><h3>3.3 配置 .pro 文件（macOS 部分）</h3><pre><code class="lang-pro">macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}</code></pre><blockquote><p><strong>注意</strong>：macOS 下链接名与 Windows 不同：</p><ul><li>libpng 是 <code>-lpng</code>（不带版本号）</li><li>zlib 是 <code>-lz</code>（不是 <code>-lzlibstatic</code>）</li></ul></blockquote><hr><h2>四、完整 .pro 配置</h2><pre><code class="lang-pro">win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}
+
+macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}
+
+HEADERS += src/image_compress.h
+SOURCES += src/image_compress.cpp</code></pre><hr><h2>五、常见问题</h2><table><thead><tr><th>错误信息</th><th>原因</th><th>解决方法</th></tr></thead><tbody><tr><td><code>cannot find -lpng16</code></td><td>库名不匹配</td><td>检查 <code>lib\</code> 下实际文件名，改为对应的 <code>-lpng</code> 或 <code>-lpng16</code></td></tr><tr><td><code>undefined reference to inflate</code></td><td>zlib 未链接</td><td>确认 <code>-lzlibstatic</code> 在 LIBS 中且在 <code>-lpng16</code> 之后</td></tr><tr><td><code>png.h: No such file or directory</code></td><td>INCLUDEPATH 路径错误</td><td>核对实际头文件路径与 .pro 中配置是否一致</td></tr><tr><td><code>Z_FILTERED</code> undeclared</td><td>缺少 zlib 头文件</td><td>在 <code>image_compress.cpp</code> 顶部添加 <code>#include &lt;zlib.h&gt;</code></td></tr><tr><td>CMake 路径含空格报错</td><td>MinGW windres 不支持空格路径</td><td>在无空格路径（如 <code>C:\build_libs</code>）下编译</td></tr><tr><td>libimagequant clone 后无 .c 文件</td><td>拉取到了 Rust 重写版本</td><td>明确指定 <code>--branch 2.12.6</code></td></tr></tbody></table>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/Qt.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/Qt.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[Windows 11 安装绕过登录微软账户]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/Windows-11.html" />
@@ -516,35 +659,5 @@ services:
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/docker-compose.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/docker-compose.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[通过浏览器访问服务器指定文件内容]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/3014.html" />
-<id>https://blog.niekun.net/archives/3014.html</id>
-<updated>2024-08-14T07:58:01+00:00</updated>
-<published>2024-08-14T07:58:01+00:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<category scheme="https://blog.niekun.net/category/Linux/" term="Linux" />
-<category scheme="https://blog.niekun.net/category/other/" term="other" />
-<summary type="html"><![CDATA[通过 nginx 可以反代服务器指定文件，然后就可以在网页中查看文件内容。核心就是通过 alias 关联文件路径。配置文件如下：location /test.log {    alias /ho...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/3014.html" xml:lang="zh-CN"><![CDATA[
-<p>通过 <strong>nginx</strong> 可以反代服务器指定文件，然后就可以在网页中查看文件内容。</p><p>核心就是通过 <strong>alias</strong> 关联文件路径。</p><p>配置文件如下：</p><pre><code>location /test.log {
-    alias /home/script/igd/app.log;
-
-    default_type text/plain;
-    add_header Content-Type &quot;text/plain; charset=utf-8&quot;;
-    charset utf-8;
-
-    # 确保不会缓存内容
-    add_header Cache-Control &quot;no-cache, no-store, must-revalidate&quot;;
-    add_header Pragma &quot;no-cache&quot;;
-    add_header Expires &quot;0&quot;;
-}</code></pre><p><strong>location</strong> 路径替换为需要的路径。<strong>alias</strong> 设置文件实际路径。</p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/3014.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/3014.html" thr:count="0"/>
 </entry>
 </feed>

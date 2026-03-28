@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description></description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Qt.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2208.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/2066.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1968.html"/>
@@ -18,10 +19,138 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/1940.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1927.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/1920.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/1918.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/Qt.html">
+<title>Qt 项目图片压缩库环境配置教程</title>
+<link>https://blog.niekun.net/archives/Qt.html</link>
+<dc:date>2026-03-28T08:02:47+00:00</dc:date>
+<description>适用平台：Windows (MinGW) / macOS (Apple Silicon)涉及库：libpng · zlib · libimagequant用途：Qt 项目中对 PNG 进行缩放后有损压缩，效果接近 tinypng一、原理说明库作用zlib通用压缩库，libpng 的底层依赖libpngPNG 编码/解码，负责将量化后的调色板写入 PNG 文件libimagequant核心量化算法，将 RGBA 图像减色为 256 色调色板（与 tinypng 同类算法）二、Windows (MinGW) 配置2.1 前置要求Qt（含 MinGW 工具链，如 mingw1310_64）CMake 3.16+（https://cmake.org/download/）Git确保 MinGW 在 PATH 中，在 cmd 执行：set PATH=C:\Qt\Tools\mingw1310_64\bin;%PATH%⚠️ 重要：后续所有编译步骤必须在无空格路径下进行。如果你的用户目录包含空格（如 C:\Users\Marco Nie），请在 C:\ 根目录下建立工作目录。mkdir C:\build_libs
+cd C:\build_libs2.2 编译 zlibcd C:\build_libs
+
+git clone https://github.com/madler/zlib.git --branch v1.3.1 --depth 1
+cd zlib
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DBUILD_SHARED_LIBS=OFF ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/zlib
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\zlib\
+  include\   ← zlib.h, zconf.h
+  lib\       ← libzlibstatic.a2.3 编译 libpngcd C:\build_libs
+
+git clone https://github.com/pnggroup/libpng.git --branch v1.6.43 --depth 1
+cd libpng
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DPNG_SHARED=OFF ^
+  -DPNG_STATIC=ON ^
+  -DPNG_TESTS=OFF ^
+  -DZLIB_ROOT=C:/build_libs/third_party/zlib ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/libpng
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\libpng\
+  include\   ← png.h, pngconf.h, pnglibconf.h
+  lib\       ← libpng16.a2.4 编译 libimagequantlibimagequant 2.17+ 已用 Rust 重写，MinGW 下需使用最后一个纯 C 版本 2.12.6，该版本没有 CMakeLists.txt，直接用 gcc 手动编译。cd C:\build_libs
+
+git clone https://github.com/ImageOptim/libimagequant.git ^
+  --branch 2.12.6 --depth 1 libimagequant_c
+
+cd libimagequant_c
+
+:: 编译所有源文件
+gcc -c -O3 -std=c99 -ffast-math ^
+  libimagequant.c blur.c kmeans.c mediancut.c mempool.c nearest.c pam.c
+
+:: 打包静态库
+ar rcs libimagequant.a ^
+  libimagequant.o blur.o kmeans.o mediancut.o mempool.o nearest.o pam.o
+
+:: 手动安装
+mkdir C:\build_libs\third_party\libimagequant\include
+mkdir C:\build_libs\third_party\libimagequant\lib
+
+copy libimagequant.h C:\build_libs\third_party\libimagequant\include\
+copy libimagequant.a C:\build_libs\third_party\libimagequant\lib\
+
+cd ..安装结果：C:\build_libs\third_party\libimagequant\
+  include\   ← libimagequant.h
+  lib\       ← libimagequant.a2.5 复制到项目目录将编译好的库复制到你指定的目录，例如 C:\Users\Marco Nie\Library\imageprocess：xcopy /E /I C:\build_libs\third_party\zlib ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\zlib&quot;
+
+xcopy /E /I C:\build_libs\third_party\libpng ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libpng&quot;
+
+xcopy /E /I C:\build_libs\third_party\libimagequant ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libimagequant&quot;最终目录结构：C:\Users\Marco Nie\Library\imageprocess\
+  zlib\
+    include\
+    lib\
+  libpng\
+    include\
+    lib\
+  libimagequant\
+    include\
+    lib\2.6 配置 .pro 文件（Windows 部分）win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}三、macOS (Apple Silicon) 配置3.1 前置要求Homebrew（https://brew.sh）Qt for macOS3.2 安装依赖brew install libpng zlib libimagequant安装路径（Apple Silicon 固定为 /opt/homebrew/opt/）：库路径libpng/opt/homebrew/opt/libpngzlib/opt/homebrew/opt/zliblibimagequant/opt/homebrew/opt/libimagequantIntel Mac 的 Homebrew 前缀为 /usr/local/opt/，将下方路径中的 /opt/homebrew 替换为 /usr/local 即可。3.3 配置 .pro 文件（macOS 部分）macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}注意：macOS 下链接名与 Windows 不同：libpng 是 -lpng（不带版本号）zlib 是 -lz（不是 -lzlibstatic）四、完整 .pro 配置win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}
+
+macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}
+
+HEADERS += src/image_compress.h
+SOURCES += src/image_compress.cpp五、常见问题错误信息原因解决方法cannot find -lpng16库名不匹配检查 lib\ 下实际文件名，改为对应的 -lpng 或 -lpng16undefined reference to inflatezlib 未链接确认 -lzlibstatic 在 LIBS 中且在 -lpng16 之后png.h: No such file or directoryINCLUDEPATH 路径错误核对实际头文件路径与 .pro 中配置是否一致Z_FILTERED undeclared缺少 zlib 头文件在 image_compress.cpp 顶部添加 #include &lt;zlib.h&gt;CMake 路径含空格报错MinGW windres 不支持空格路径在无空格路径（如 C:\build_libs）下编译libimagequant clone 后无 .c 文件拉取到了 Rust 重写版本明确指定 --branch 2.12.6</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/2208.html">
 <title>QT 中通过 QCustomPlot widget 绘制可视化曲线表</title>
 <link>https://blog.niekun.net/archives/2208.html</link>
@@ -989,107 +1118,5 @@ int main()
 }
 
 //Outputs 67以上就是 class 的基本使用方法。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/1918.html">
-<title>C++ 入门教程之五 -- Classes and Objects</title>
-<link>https://blog.niekun.net/archives/1918.html</link>
-<dc:date>2020-11-20T03:32:00+00:00</dc:date>
-<description>object 对象Object Oriented Programming 面向对象编程是为了让编程更加接近于真实世界的理解方式。在程序中，每个 object 是一个独立的 unite 单元，拥有自己的 identify 标识，就像真实世界的某个独立物体一样。例如一个苹果就是一个 object，它的 identify 就是名称 苹果，每个苹果都有自己独立的 attributes 属性，如颜色，大小。一个属性就是这个 object 当前状态的描述。不同 object 的 attributes 属性是不一样的，例如一个苹果是绿色的，另一个是红色的。在正式世界中 object 都有其 behave 行为，例如汽车的 move 移动，手机的 ring 响铃。这种 object 的行为叫做 object 的 type 类型。描述一个 object需要的元素：identify 标识，attributes 属性，behavior 行为在程序中每个 object 是独立的，拥有独立的 identify 用来区分其他的 object：class我们通过创建 class 来表示 object，一个 class 描述了一个 object 的形象，但是它并不是一个真正的 object，他只是一个对某种 object 结构的定义。一个 class 可以用来建立多个 object。例如一套设计图纸可以用来作为蓝图修建多栋楼房。一个 class 包含：identify，attributes，behavior程序中，一个对象的 type 就是 class 的 name 名称；Attributes 属性可以是 properties 或 data 数据；behavior 行为通常是一个 function。例如我们建立一个银行系统程序：name: BankAccountattributes: accountNumber, balance, dateOpenedbehavior: open(), close(), deposit()一个 class 定义了某种 object 需要的属性和行为。但是它并不直接定义具体的属性值是多少，她只是一个框架的描述。当我们写好了一个 class，可以基于这个 class 来创建 objects，这个 object 就是 instance of class，就是 class 的实例。建立 class使用关键字 class 来建立 class，然后定义 class 名称，class 内容写在大括号{} 内。注意每个 class 结尾必须写分号;。例如：class BankAccount {
-
-};一个 class 的 attributes 和 behaviors 可以设置 access 访问级别。定义时使用关键词 public 不仅可以在 class 内部使用，也可以在 class 外部访问这个属性。也可以是使用关键词 private 或 protected，下面做详细介绍。建立一个 class：class BankAccount {
-  public:
-    void sayHi() {
-      cout &lt;&lt; &quot;Hi&quot; &lt;&lt; endl;
-    }
-};然后 instance 实例化这个 class：int main() 
-{
-  BankAccount test;
-  test.sayHi();
-}实例化的 object test 拥有其 class 所有的属性和行为。使用点分割符. 来访问 object 的各种属性和 function。抽象化数据抽象化的理念是给外部环境提供最核心的信息，而不用提供具体的细节。比如我们抽象化一本书，我们不用知道他具体有多少也，多少个字，什么颜色。我们只需要知道它是一本书就行了。抽象化的理念是面向对象编程最基础的模块。可以让我们建立一个 class 模型，然后基于这个模型创建具体的 objects 对象。封装encapsulation 封装意味着将一个整体包围起来，不仅仅是将其内容放在一起，也可以将其保护起来。它的设计原则就是让外部程序只能够访问其开放的元素，其他内容保持隐藏状态。例如我们上面的 BankAccount class，我们不想要外部直接访问修改 balance 余额属性，我们需要其使用 deposit() 或 withdraw() 方法来对其进行操作。所以我们需要将 balance 属性对外隐藏掉，只能通过内部 function 来访问。封装的优势有：控制内部数据的访问和修改代码更加灵活，方便后续根据情况修改修改一个地方，不影响其他地方下面举例说明如何使用封装来控制内部数据的可访问性，使用 public，private，protected 关键词。注意如果没有使用关键词，默认 class 内所有都是 private 类型的。访问 public 的数据：#include &lt;iostream&gt;
-#include &lt;string&gt;
-using namespace std;
-
-class myClass {
-  public:
-    string name;
-};
-
-int main() {
-  myClass myObj;
-  myObj.name = &quot;SoloLearn&quot;;
-  cout &lt;&lt; myObj.name;
-  return 0;
-}
-
-//Outputs &quot;SoloLearn&quot;使用 public 关键词定义可被外部访问的属性，注意关键词后的冒号:。使用 private 保护内部数据：#include &lt;iostream&gt;
-#include &lt;string&gt;
-using namespace std;
-
-class myClass {
-  public:
-    void setName(string x) {
-      name = x;
-    }
-  private:
-    string name;
-};
-
-int main() {
-  myClass myObj;
-  myObj.setName(&quot;John&quot;);
-
-  return 0;
-}name 不可以被外部直接访问修改，但是通过 setName() 就可以间接修改 name 的值。也可以通过 function 间接读取 private 的某些属性：class myClass {
-  public:
-    void setName(string x) {
-      name = x;
-    }
-    string getName() {
-      return name;
-    }
-  private:
-    string name;
-};以上示例，通过建立 public 里的 getName() 方法来读取 name 的值。constructor 构造器constructor 是 class 中特殊的 function，这个 function 的名称和 class 名称一样且没有返回类型，甚至没有 void，它会在 instance 实例化 object 时自动被执行，例如：class myClass {
-  public:
-    myClass() {
-      cout &lt;&lt;&quot;Hey&quot;;
-    }
-    void setName(string x) {
-      name = x;
-    }
-    string getName() {
-      return name;
-    }
-  private:
-    string name;
-};
-
-int main() {
-  myClass myObj;
-
-  return 0;
-}
-
-//Outputs &quot;Hey&quot;以上示例中，在实例化 myObj 时，会自动执行构造器 function。构造器 function 可以方便的让我们在实例化 class 时设置 initial 初始化参数。默认构造器没有参数，如果需要的话我们可以加入参数。例如：class myClass {
-  public:
-    myClass(string nm) {
-      setName(nm);
-    }
-    void setName(string x) {
-      name = x;
-    }
-    string getName() {
-      return name;
-    }
-  private:
-    string name;
-};
-
-int main() {
-  myClass ob1(&quot;David&quot;);
-  myClass ob2(&quot;Amy&quot;);
-  cout &lt;&lt; ob1.getName();
-}
-//Outputs &quot;David&quot;以上示例中，构造器的作用是使用一个参数给 private name 赋值。当实例化这个 class 时，需要传入构造器需要的参数。注意我们可以在一个 class 中建立多个 constructor 构造器，来使用不同的参数。</description>
 </item>
 </rdf:RDF>
