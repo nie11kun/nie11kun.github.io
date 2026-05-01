@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>杂文</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/3090.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Windows-11.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/dumpbin-dll.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/docker-compose.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/pip.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/nftables.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/intel-12-CPU-vmwre.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/openwrt-1.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/3090.html">
+<title>记一次完美的家庭网络改造：弱电箱“单线复用”与透明代理排错全指南</title>
+<link>https://blog.niekun.net/archives/3090.html</link>
+<dc:date>2026-05-01T12:25:10+00:00</dc:date>
+<description>1. 改造背景与痛点家里目前的网络拓扑比较典型：核心设备：一台 6 网口的软路由（底层安装 ESXi，将 6 个网口全部分配给虚拟的 OpenWrt。其中网口 1 作为 WAN 口拨号，其余均为 LAN 口）。物理布线：门口弱电箱到客厅、卧室均只有一条网线，且客厅到卧室之间没有网线。痛点：软路由原本塞在弱电箱里，光猫网线直连软路由网口 1，网口 2 接客厅，网口 3 接卧室。但由于弱电箱空间狭小，散热成了大问题。为了解决散热，我需要将软路由挪到客厅放置。但这就面临一个死局：弱电箱到客厅只有一根网线，如果这根线用来走光猫的 WAN 数据，那客厅软路由处理好的 LAN 数据就无法传回弱电箱发给卧室了。我的终极诉求：解决散热，软路由移至客厅。绝对不改变软路由（ESXi 和 OpenWrt）端的任何内部设置（即软路由依然认为网口 1 是 WAN，网口 2/3 是 LAN）。保证千兆内网网速无损。2. 解决方案：双网管交换机“单线复用”在只有一根网线且不改动路由配置的前提下，最完美的方案是利用两台支持 802.1Q VLAN 功能的千兆网管交换机进行“单线复用”。原理解释（小白秒懂）：把那根唯一的网线想象成一条高速公路。光猫的数据（外网）和局域网的数据（内网）如果混在一起跑会乱套。交换机的作用就是给这两种数据“贴标签”。弱电箱交换机给外网数据贴上“红色标签”，内网数据贴上“蓝色标签”，一起扔上高速公路。客厅交换机收到后，把红标签撕掉交给路由器的 WAN 口，蓝标签撕掉交给路由器的 LAN 口。路由器全程只会看到没有标签的普通数据，完全察觉不到中间的复杂过程。准备工作两台 5 口千兆网管交换机（假设为交换机 A 和交换机 B）。为了方便日后管理，先用电脑直连它们，将管理 IP 修改为软路由同网段内未使用的固定 IP（例如软路由是 192.168.132.1，交换机则设为 192.168.132.2 和 192.168.132.3）。3. 详细配置步骤我们将两台交换机的 5号口 作为互联的“主干道（Trunk）”。交换机 A（放置于弱电箱）物理接线：1号口：接光猫2号口：接通往卧室的网线5号口：接通往客厅的网线（主干道）VLAN 配置（802.1Q VLAN）：新建 VLAN 10（外网用）：包含 1、5 口。1 口设为 Untagged（不带标签），5 口设为 Tagged（带标签）。新建 VLAN 20（内网用）：包含 2、5 口。2 口设为 Untagged，5 口设为 Tagged。PVID 配置：1号口 PVID 设为 102号口 PVID 设为 205号口 PVID 保持默认 1交换机 B（放置于客厅）物理接线：1号口：接软路由 网口 1（WAN）2号口：接软路由 网口 2（LAN）3、4号口：接客厅其他局域网设备（如电视机顶盒、AP面板）5号口：接墙壁网口（即弱电箱过来的主干道）VLAN 配置：新建 VLAN 10（外网用）：包含 1、5 口。1 口设为 Untagged，5 口设为 Tagged。新建 VLAN 20（内网用）：包含 2、3、4、5 口。2、3、4 口设为 Untagged，5 口设为 Tagged。PVID 配置：1号口 PVID 设为 102、3、4号口 PVID 统一设为 205号口 PVID 保持默认 1完成以上设置并接好线后，网络成功通了！软路由顺利拨号，卧室和客厅的设备都能正常上网。但是，一个诡异的暗坑出现了。4. 踩坑与排错：透明代理为何突然失效？故障现象：网络连通后，国内网站访问一切正常，但我部署在 OpenWrt 上的透明代理（dnsmasq + nftables + v2ray）失效了，所有走代理的外部链接全部连不通。在此之前（没加交换机时），这套代理配置是完美运行的。深度排查与原理分析：既然软件配置没变，问题必然出在新增的交换机这种“二层物理设备”对网络底层逻辑的影响上。最终锁定了元凶：IPv6 广播泄漏导致的代理被绕过。绝大多数家用网管交换机出厂时，所有端口默认都属于 VLAN 1（Untagged）。虽然我划分了 VLAN 10 和 VLAN 20，但如果这些端口没有从默认的 VLAN 1 中剥离，交换机底层依然存在一个相通的广播域。光猫非常喜欢向局域网发送 IPv6 的 RA（路由宣告）广播包。这些广播包顺着没清理干净的 VLAN 1 穿透了交换机，绕过软路由，直接下发给了我内网的手机和电脑。由于我的 nftables 透明代理脚本仅对 IPv4（ipv4_addr）进行了拦截和重定向，终端设备拿到光猫下发的 IPv6 地址后，访问外网时优先走了 IPv6 裸奔，直接撞墙，导致代理看似失效。终极解决办法：逻辑硬隔离进入两台交换机的 VLAN 1 设置页面，将刚才配置过 VLAN 10 和 VLAN 20 的端口（1、2、3、4、5口），全部在 VLAN 1 中设置为 Not Member（非成员）。这一步彻底切断了底层的隐形桥梁，将光猫的 IPv6 广播完美阻挡在弱电箱内。配置完成后，透明代理瞬间恢复正常工作。(注：部分交换机的 Web 管理后台默认全局监听，即便将内网端口从 VLAN 1 移出，只要访问设置好的同网段 IP，依然可以正常进入管理页面，无需强求寻找“管理 VLAN”选项。)5. 总结通过两台廉价的网管交换机，我成功将软路由移至客厅解决了散热危机，且实现了真正的“软路由零设置修改”。这次改造不仅理清了 VLAN Tagged/Untagged 的基本逻辑，更深刻体会到了二层网络广播域隔离不彻底对上层应用（如透明代理）造成的隐性破坏。希望这篇记录能帮到有同样家庭网络改造需求的朋友！</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/Windows-11.html">
 <title>Windows 11 安装绕过登录微软账户</title>
 <link>https://blog.niekun.net/archives/Windows-11.html</link>
@@ -385,46 +391,5 @@ nft add rule ip tabletest output ip daddr != @blackhole accept以上就是 natab
 <link>https://blog.niekun.net/archives/intel-12-CPU-vmwre.html</link>
 <dc:date>2024-04-18T05:01:52+00:00</dc:date>
 <description>最近更换了新的电脑，是 i7 12700H 的 CPU，按理说比以前的电脑性能好一些，但是导入之前的 vmware 虚拟机后发现运行起来优点卡顿，但是观察主机资源占用很低，cpu 占用也很低，研究了下才发现是由于新款 cpu 采用了大小核设计导致这个问题。我的这一款是 6 大核 8 小核 20 线程设计。默认情况下启动虚拟机资源分配是交给 windows 主机自己协调的，很可能会分配给小核运行虚拟机导致运行卡顿，资源管理器可以看到 cpu 负载都在后面的小核上：解决方法就是以管理员权限运行 vmware，这样 VMware 会自己调度资源使用，优先级大概是大核&gt;小核&gt;超线程。实际效果很明显，基本都运行在了大核上：</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/openwrt-1.html">
-<title>openwrt 系统升级</title>
-<link>https://blog.niekun.net/archives/openwrt-1.html</link>
-<dc:date>2024-04-02T02:26:03+00:00</dc:date>
-<description>小版本升级小版本升级，例如 19.05-&gt; 19.07。这种小版本的升级最方便的就是通过 Attended Sysupgrade 功能，可以保留已安装的包和系统设置。最大限度地无缝过渡。官方介绍：https://openwrt.org/docs/guide-user/installation/attended.sysupgrade需要先安装 Attended Sysupgrade luci 界面包：opkg install luci-app-attendedsysupgrade
-建议使用此功能前依然做一次数据备份。然后重新登录 luci，在 system - Attended Sysupgrade 找到入口，点击 search for firmware upgrade 即可在线搜索可更新的系统。大版本升级最方便的就是通过 luci 界面升级系统，目前支持直接升级的大版本顺序是：19.07 &gt; 21.02 &gt; 22.03 &gt; 23.05。大版本升级改动openwrt 21：https://openwrt.org/releases/21.02/notes-21.02.0WPA3 support included by defaultTLS and HTTPS support included by defaultLuCI is now available over HTTPSInitial DSA support replaces the swconfig systemNew network configuration syntax and board.json changeKernel with container supportopenwrt 22：https://openwrt.org/releases/22.03/notes-22.03.0Firewall4 based on nftables，superseding the iptables-based firewall3Dark mode in LuCIopenwrt 23：https://openwrt.org/releases/23.05/notes-23.05.0Switch from wolfssl to mbedtls as default，TLS 1.3 SupportRust Package Support数据备份每个版本升级实际上就是重新刷入了一次固件，所以之前的配置文件什么的基本上都会被覆盖，所以系统内修改过的配置最好做一次备份。打开 luci 界面，选择 system - backup/flash firmware，在 configuration 菜单栏中将需要保存的文件或目录定义出来，然后在 action 菜单栏中选择 backup - generate archive 即可保存备份到本地。已安装包列表可以通过 awk 脚本识别出自己手动安装的包列表，方便更新系统后安装回去，下载脚本：https://github.com/richb-hanover/OpenWrtScripts/blob/main/opkgscript.sh执行以下命令会保存已安装的包列表到 /etc/config/opkg.installed：opkgscript.sh -v write
-执行以下命令会识别并安装 /etc/config/opkg.installed 列表中的包：opkgscript.sh -v install
-也可以执行以下 awk 脚本可以单独列出自己手动安装的包列表：#!/usr/bin/awk -f
-BEGIN {
-    ARGV[ARGC++] = &quot;/usr/lib/opkg/status&quot;
-    cmd=&quot;opkg info busybox | grep &#039;^Installed-Time: &#039;&quot;
-    cmd | getline FLASH_TIME
-    close(cmd)
-    FLASH_TIME=substr(FLASH_TIME,17)
-}
-/^Package:/{PKG= $2}
-/^Installed-Time:/{
-    INSTALLED_TIME= $2
-    # Find all packages installed after FLASH_TIME
-    if ( INSTALLED_TIME &gt; FLASH_TIME ) {
-        cmd=&quot;opkg whatdepends &quot; PKG &quot; | wc -l&quot;
-        cmd | getline WHATDEPENDS
-        close(cmd)
-        # If nothing depends on the package, it is installed by user
-        if ( WHATDEPENDS == 3 ) print PKG
-    }
-}
-EOF保存以上内容到 listuserpackages.awk 文件中并执行即可列出用户自行安装包列表。下载升级固件x86 版本的 openwrt 的升级固件就是全新安装时候用的固件，直接在官网下载需要版本的 gz 压缩包即可。下载地址：https://downloads.openwrt.org/releases/我下载的是：generic-ext4-combined.img.gz，注意不要解压出来，保留压缩包即可。进入 luci 的 system - backup/flash firmware 选择 Flash image ，然后选择刚才下载的压缩包即可上传更新，会提示是否保留设置和配置，跨大版本的升级必须取消选择保留数据，否则可能升级失败：如果升级后卡在 grub 界面说明可能是由于选择了保留配置导致升级失败了，可以参考官方教程通过 failsafe mode 恢复默认配置：Failsafe mode, factory reset, and recovery mode，或者直接重新安装系统。网络配置稍等几分钟安装好后你可能会发现 luci 无法在局域网中访问了，这是由于新安装的固件恢复了 network 配置，需要直接到 openwrt 设备上配置网络。配置教程参考：openwrt network 配置配置好网络后在局域网设备中可以用 ssh 登录了，此时会发现提示：@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
-Someone could be eavesdropping on you right now (man-in-the-middle attack)!
-It is also possible that a host key has just been changed.
-The fingerprint for the RSA key sent by the remote host is
-SHA256:U9XODs/7A4k065pxSMyEtQ2m98v2P0bf/ML0MfzU.
-Please contact your system administrator.
-Add correct host key in C:\\Users\\Marco Nie/.ssh/known_hosts to get rid of this message.
-Offending RSA key in C:\\Users\\Marco Nie/.ssh/known_hosts:6
-Host key for 192.168.244.1 has changed and you have requested strict checking.
-Host key verification failed.这是由于更新系统后 ssh 指纹发生了变化，需要删除本地缓存的 openwrt 设备的指纹在登陆，windows 系统 ssh 指纹保存地址为当前用户目录下的 .ssh 文件夹。升级后续升级后可以通过之前的脚本列出的已安装包的列表将自己需要的包安装回去，同时将备份数据按照新系统的格式恢复回去。从 openwrt 21 开始修改了 network 配置文件格式，参考：https://blog.niekun.net/archives/2291.html从 openwrt 22 开始替换 iptables 为 nftables，需要原始工具的话可以自行安装回去：opkg install iptables参考链接Opkg package managerOpenWRT 19.07 to 21.02.0 upgrade</description>
 </item>
 </rdf:RDF>

@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/3090.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Qt.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Windows-11.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/sentinel.html"/>
@@ -18,10 +19,15 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/3024.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/cloc.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3021.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/docker-compose.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/3090.html">
+<title>记一次完美的家庭网络改造：弱电箱“单线复用”与透明代理排错全指南</title>
+<link>https://blog.niekun.net/archives/3090.html</link>
+<dc:date>2026-05-01T12:25:10+00:00</dc:date>
+<description>1. 改造背景与痛点家里目前的网络拓扑比较典型：核心设备：一台 6 网口的软路由（底层安装 ESXi，将 6 个网口全部分配给虚拟的 OpenWrt。其中网口 1 作为 WAN 口拨号，其余均为 LAN 口）。物理布线：门口弱电箱到客厅、卧室均只有一条网线，且客厅到卧室之间没有网线。痛点：软路由原本塞在弱电箱里，光猫网线直连软路由网口 1，网口 2 接客厅，网口 3 接卧室。但由于弱电箱空间狭小，散热成了大问题。为了解决散热，我需要将软路由挪到客厅放置。但这就面临一个死局：弱电箱到客厅只有一根网线，如果这根线用来走光猫的 WAN 数据，那客厅软路由处理好的 LAN 数据就无法传回弱电箱发给卧室了。我的终极诉求：解决散热，软路由移至客厅。绝对不改变软路由（ESXi 和 OpenWrt）端的任何内部设置（即软路由依然认为网口 1 是 WAN，网口 2/3 是 LAN）。保证千兆内网网速无损。2. 解决方案：双网管交换机“单线复用”在只有一根网线且不改动路由配置的前提下，最完美的方案是利用两台支持 802.1Q VLAN 功能的千兆网管交换机进行“单线复用”。原理解释（小白秒懂）：把那根唯一的网线想象成一条高速公路。光猫的数据（外网）和局域网的数据（内网）如果混在一起跑会乱套。交换机的作用就是给这两种数据“贴标签”。弱电箱交换机给外网数据贴上“红色标签”，内网数据贴上“蓝色标签”，一起扔上高速公路。客厅交换机收到后，把红标签撕掉交给路由器的 WAN 口，蓝标签撕掉交给路由器的 LAN 口。路由器全程只会看到没有标签的普通数据，完全察觉不到中间的复杂过程。准备工作两台 5 口千兆网管交换机（假设为交换机 A 和交换机 B）。为了方便日后管理，先用电脑直连它们，将管理 IP 修改为软路由同网段内未使用的固定 IP（例如软路由是 192.168.132.1，交换机则设为 192.168.132.2 和 192.168.132.3）。3. 详细配置步骤我们将两台交换机的 5号口 作为互联的“主干道（Trunk）”。交换机 A（放置于弱电箱）物理接线：1号口：接光猫2号口：接通往卧室的网线5号口：接通往客厅的网线（主干道）VLAN 配置（802.1Q VLAN）：新建 VLAN 10（外网用）：包含 1、5 口。1 口设为 Untagged（不带标签），5 口设为 Tagged（带标签）。新建 VLAN 20（内网用）：包含 2、5 口。2 口设为 Untagged，5 口设为 Tagged。PVID 配置：1号口 PVID 设为 102号口 PVID 设为 205号口 PVID 保持默认 1交换机 B（放置于客厅）物理接线：1号口：接软路由 网口 1（WAN）2号口：接软路由 网口 2（LAN）3、4号口：接客厅其他局域网设备（如电视机顶盒、AP面板）5号口：接墙壁网口（即弱电箱过来的主干道）VLAN 配置：新建 VLAN 10（外网用）：包含 1、5 口。1 口设为 Untagged，5 口设为 Tagged。新建 VLAN 20（内网用）：包含 2、3、4、5 口。2、3、4 口设为 Untagged，5 口设为 Tagged。PVID 配置：1号口 PVID 设为 102、3、4号口 PVID 统一设为 205号口 PVID 保持默认 1完成以上设置并接好线后，网络成功通了！软路由顺利拨号，卧室和客厅的设备都能正常上网。但是，一个诡异的暗坑出现了。4. 踩坑与排错：透明代理为何突然失效？故障现象：网络连通后，国内网站访问一切正常，但我部署在 OpenWrt 上的透明代理（dnsmasq + nftables + v2ray）失效了，所有走代理的外部链接全部连不通。在此之前（没加交换机时），这套代理配置是完美运行的。深度排查与原理分析：既然软件配置没变，问题必然出在新增的交换机这种“二层物理设备”对网络底层逻辑的影响上。最终锁定了元凶：IPv6 广播泄漏导致的代理被绕过。绝大多数家用网管交换机出厂时，所有端口默认都属于 VLAN 1（Untagged）。虽然我划分了 VLAN 10 和 VLAN 20，但如果这些端口没有从默认的 VLAN 1 中剥离，交换机底层依然存在一个相通的广播域。光猫非常喜欢向局域网发送 IPv6 的 RA（路由宣告）广播包。这些广播包顺着没清理干净的 VLAN 1 穿透了交换机，绕过软路由，直接下发给了我内网的手机和电脑。由于我的 nftables 透明代理脚本仅对 IPv4（ipv4_addr）进行了拦截和重定向，终端设备拿到光猫下发的 IPv6 地址后，访问外网时优先走了 IPv6 裸奔，直接撞墙，导致代理看似失效。终极解决办法：逻辑硬隔离进入两台交换机的 VLAN 1 设置页面，将刚才配置过 VLAN 10 和 VLAN 20 的端口（1、2、3、4、5口），全部在 VLAN 1 中设置为 Not Member（非成员）。这一步彻底切断了底层的隐形桥梁，将光猫的 IPv6 广播完美阻挡在弱电箱内。配置完成后，透明代理瞬间恢复正常工作。(注：部分交换机的 Web 管理后台默认全局监听，即便将内网端口从 VLAN 1 移出，只要访问设置好的同网段 IP，依然可以正常进入管理页面，无需强求寻找“管理 VLAN”选项。)5. 总结通过两台廉价的网管交换机，我成功将软路由移至客厅解决了散热危机，且实现了真正的“软路由零设置修改”。这次改造不仅理清了 VLAN Tagged/Untagged 的基本逻辑，更深刻体会到了二层网络广播域隔离不彻底对上层应用（如透明代理）造成的隐性破坏。希望这篇记录能帮到有同样家庭网络改造需求的朋友！</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/Qt.html">
 <title>Qt 项目图片压缩库环境配置教程</title>
 <link>https://blog.niekun.net/archives/Qt.html</link>
@@ -526,24 +532,5 @@ git push origin main启用 GitHub Pages：进入仓库的 Settings &gt; Pages。
 git commit -m &quot;Add CNAME file&quot;
 git push origin main验证：每次部署后，CNAME 文件会自动被包含在 gh-pages 分支中，不会被覆盖。验证步骤检查 CNAME 文件：进入 GitHub 仓库的 gh-pages 分支，确认根目录下有 CNAME 文件。文件内容应为您的自定义域名，例如：www.example.com检查 GitHub Pages 设置：转到 Settings &gt; Pages。确认自定义域名已正确显示，并启用 HTTPS。测试访问：使用您的自定义域名访问页面，确认是否能够正确加载。7. 常见问题及解决方法问题 1：npx honkit pdf 报错 Command failed: ebook-convert not found原因：  Calibre 未正确安装，或 ebook-convert 工具未添加到系统的 PATH 环境变量中。解决方法：确保 Calibre 已安装，并重新确认安装路径：Windows 默认路径：C:\Program Files\Calibre2。macOS/Linux 使用 which ebook-convert 检查路径。手动将 Calibre 的安装路径添加到系统环境变量中：Windows：打开“环境变量”设置，找到 PATH。添加 C:\Program Files\Calibre2。Linux/macOS：编辑 ~/.bashrc 或 ~/.zshrc 文件，添加以下内容：export PATH=&quot;/path/to/calibre:$PATH&quot;替换 /path/to/calibre 为 Calibre 的实际路径。保存后运行 source ~/.bashrc 或 source ~/.zshrc 使更改生效。重新运行 npx honkit pdf。问题 2：GitHub Actions 部署失败，提示 Permission denied原因：  GitHub Actions 无法向 gh-pages 分支推送更改，通常是因为缺少权限。解决方法：确保 GitHub 仓库的 Settings &gt; Actions &gt; General 中已启用 Read and write permissions：打开 Workflow permissions，选择 Read and write permissions。勾选 Allow GitHub Actions to create and approve pull requests。确认 GitHub Actions 配置文件中使用的是 github_token：with:
   github_token: ${{ secrets.GITHUB_TOKEN }}问题 3：GitHub Pages 部署成功，但自定义域名未生效原因：  DNS 记录配置错误或未生效。解决方法：登录域名管理平台，检查 DNS 配置：确认 A 记录或 CNAME 记录配置正确。等待 DNS 记录生效（可能需要 5-48 小时）。检查仓库根目录下是否有 CNAME 文件，内容是否正确（应与自定义域名一致）。验证 DNS 配置是否正确：使用 DNS Checker 验证域名解析。启用 HTTPS：进入 Settings &gt; Pages，勾选 Enforce HTTPS。问题 4：生成的书籍内容显示错乱或样式缺失原因：Markdown 文件中格式不正确。SUMMARY.md 的目录结构未正确链接。解决方法：确认 Markdown 文件的格式是否符合规范。检查 SUMMARY.md 中的链接是否与文件路径一致：* [章节标题](path/to/file.md)清理并重新构建书籍：npx honkit build问题 5：自定义 PDF 样式未生效原因：  未指定自定义样式文件或样式文件路径错误。解决方法：创建一个 CSS 样式文件（如 custom.css），自定义 PDF 的排版样式。使用以下命令生成 PDF 并指定样式文件：npx honkit pdf --css custom.css . output.pdf8. 支持与反馈如果您遇到未列出的问题或有其他疑问，请参考以下支持途径：Honkit 官方文档：https://honkit.netlify.appGitHub 仓库：https://github.com/honkit/honkit社区支持：搜索相关问题或发帖提问。完成这些步骤后，您可以成功使用 Honkit 创建、部署和管理文档，解决常见问题，并生成符合您需求的 HTML 和 PDF 文档！</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/docker-compose.html">
-<title>docker compose 配置自动更新</title>
-<link>https://blog.niekun.net/archives/docker-compose.html</link>
-<dc:date>2024-08-18T13:42:00+00:00</dc:date>
-<description>docker compose 配置文件可以很方便的配置和运行 docker 容器，手动更新容器的方法是在 yml 目录下运行以下命令：docker compose pull &amp;&amp; docker compose up -d
-可以通过在 compose 文件中设置 watchtower 来定期自动拉取最新镜像并启动容器，同时可以配置删除旧镜像和容器。在 docker-compose.yml 文件中增加以下内容：version: &#039;3&#039;
-services:
-
-  ...
-
-  watchtower:
-    image: containrrr/watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 3600 --cleanup --remove-volumes
-    environment:
-      - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_REMOVE_VOLUMES=true以下是主要的配置说明：将 --interval 参数设置为 3600。这意味着 Watchtower 将每 3600 秒（即每小时）检查一次更新。--cleanup 和 WATCHTOWER_CLEANUP=true 确保在更新后清理旧的镜像。--remove-volumes 和 WATCHTOWER_REMOVE_VOLUMES=true 确保删除与旧容器关联的匿名卷。使用这个配置，Watchtower 将：每小时检查一次你的容器是否有更新如果发现更新，它会停止旧容器，启动新容器删除旧的容器和相关的匿名卷删除旧的镜像这个配置应该能满足大多数用例的需求，既能保持你的容器相对最新，又不会过于频繁地进行检查和更新操作。需要注意的是:Watchtower 只会删除它更新的容器的旧版本。它不会删除系统中的其他未使用的容器或镜像。它只删除匿名卷,不会删除命名卷。如果你想删除所有未使用的镜像(不仅仅是 Watchtower 更新的),你可能需要定期运行 docker image prune 命令。</description>
 </item>
 </rdf:RDF>
