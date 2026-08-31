@@ -9,6 +9,7 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <description>you are the company you keep...</description>
 <items>
 <rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3090.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Qt.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/Windows-11.html"/>
@@ -18,10 +19,147 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <rdf:li resource="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/3024.html"/>
 <rdf:li resource="https://blog.niekun.net/archives/cloc.html"/>
-<rdf:li resource="https://blog.niekun.net/archives/3021.html"/>
 </rdf:Seq>
 </items>
 </channel>
+<item rdf:about="https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html">
+<title>基于 Ubuntu 与 OpenWrt 构建 Tailscale 家庭子网路由与 P2P 直连极速访问指南</title>
+<link>https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html</link>
+<dc:date>2026-08-31T02:35:00+00:00</dc:date>
+<description>本教程详细记录了如何将家庭内网的一台 Ubuntu 服务器配置为 Tailscale 子网路由器（Subnet Router） 与 出口节点（Exit Node），并通过 OpenWrt 与上级光猫优化 实现外部设备（手机、笔记本等）在公网环境下 100% P2P 直连 访问家庭局域网内所有设备（如 NAS、打印机、智能家居、软路由后台、光猫后台等），并支持内网自定义域名（如 *.home.marco）自动分流解析。同时包含国内网络环境下 服务器重启自动鉴权防掉线、iOS 设备 VPN 冲突 与 代理软件冲突排除 的完整解决方案。目录一、 全局网络拓扑与架构总览二、 核心原理图解（初学者必读）1. 双重 NAT 与 100% P2P 直连打洞原理2. Split DNS 条件分流解析流程3. Subnet Router（分流） vs Exit Node（全局）对比4. iOS 单 VPN 槽位冲突与 Auth Key 原理三、 OpenWrt 主路由优化配置（四大核心模块）1. 防火墙端口转发与硬件加速 (/etc/config/firewall)2. Dnsmasq 跨网段与防重绑配置 (/etc/config/dhcp)3. Tailscale 鉴权域名分流配置 (/etc/dnsmasq/proxy-added.conf)4. 局域网代理接口配置 (/etc/v2ray/config.json)四、 Ubuntu 服务器端配置1. 开启系统内核网络转发2. 安装 Tailscale3. 配置重启自动鉴权防掉线 (/etc/default/tailscaled)4. 启动并广播多子网与出口节点5. 开启 UDP GRO 网卡硬件加速（关键性能优化）五、 解决双重 NAT：光猫端配置1. 光猫配置方案 1：开启 DMZ 主机（最推荐）2. 光猫配置方案 2：添加 UDP 端口转发六、 内网私有域名解析 (Split DNS / *.home.marco)1. Tailscale 控制台添加 Split DNS Nameserver2. 客户端本地代理软件冲突排除（v2rayN / Clash / SwitchyOmega）七、 Tailscale 控制台配置与永久免登设置1. 审批激活子网路由与 Exit Node2. 开启“永久免登录”防掉线 (Disable Key Expiry)八、 移动端与客户端接入（含 iOS 解决方案）1. 方案 A：使用 Auth Key 免网页登录（推荐）2. 方案 B：通过局域网 Wi-Fi 代理登录九、 外部访问光猫后台（192.168.1.1）及网段冲突处理十、 连通性与域名访问验证十一、 常见问题与 FAQ一、 全局网络拓扑与架构总览家庭网络通常由光猫、二级路由器和内部服务器组成。以下为完整的 IP 分布与网络层级：  [外部客户端: 手机 5G / 笔记本] (Tailscale IP: 100.70.12.55)
+                    │
+                    ▼  1. P2P 握手请求 (UDP 41641)
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第一层：光猫 (192.168.1.1) [公网 IP: &lt;你的公网IP&gt;]              │
+  │    └─ DMZ 规则：将所有外网打洞请求透传给 192.168.1.6           │
+  │    └─ 挂载设备：ESXi 宿主机 (192.168.1.3 / esxi.home.marco)    │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 2. 透传数据流
+                                 ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第二层：OpenWrt 主路由                                        │
+  │    ├─ WAN 口 IP: 192.168.1.6 (由光猫分配)                     │
+  │    ├─ LAN 口 IP: 192.168.122.1 (网段: 192.168.122.0/24)      │
+  │    ├─ 端口映射：UDP 41641 -&gt; 192.168.122.2:41641            │
+  │    ├─ 内网 DNS：Dnsmasq 解析 *.home.marco                    │
+  │    └─ 局域网代理接口：192.168.122.1:10809 (HTTP)             │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 3. 端口命中
+                                 ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第三层：Ubuntu 服务器 (Tailscale IP: 100.98.71.30)            │
+  │    ├─ 局域网静态 IP: 192.168.122.2                            │
+  │    ├─ 角色: Subnet Router (子网路由) + Exit Node (出口节点)   │
+  │    ├─ 广播网段: 192.168.122.0/24 及 192.168.1.0/24           │
+  │    ├─ 开机自启鉴权代理：指向 192.168.122.1:10809              │
+  │    └─ 加速: UDP GRO 硬件转发加速                              │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 4. 内网/跨网段转发 (自动 SNAT)
+         ┌───────────────────────┼───────────────────────┐
+         ▼                       ▼                       ▼
+    局域网 NAS              局域网 PC               访问上级光猫
+  (192.168.122.5)         (192.168.122.x)         (192.168.1.1)
+  nas.home.marco                                  esxi.home.marco二、 核心原理图解（初学者必读）1. 双重 NAT 与 100% P2P 直连打洞原理未配置端口映射时（走中继）：
+外部手机 ──(UDP 41641)──&gt; [ 光猫 (拦截丢弃) ] 
+  └─► 打洞失败 ──► 香港 DERP 服务器 (中转，延迟 300ms+, 限速) ──► 家庭 Ubuntu
+
+配置光猫 DMZ + OpenWrt 端口映射后（100% P2P 直连）：
+外部手机 ──(UDP 41641)──&gt; [ 光猫 (DMZ 透传) ] ──&gt; [ OpenWrt (端口转发) ] ──&gt; [ Ubuntu ]
+  └────────────────────── 建立端到端加密直连 (15ms 极速) ──────────────────────┘2. Split DNS 条件分流解析流程当你输入一个域名时，Tailscale 会智能判断目标：                       ┌─── 输入 *.home.marco (如 nas.home.marco)
+                       │    └─► 走 Tailscale 加密隧道
+                       │         └─► 发给家庭 OpenWrt Dnsmasq (192.168.122.1)
+                       │              └─► 解析出内网 IP: 192.168.122.5 (直连访问成功)
+外部设备发起访问 ───────┤
+                       │
+                       └─── 输入普通互联网网站 (如 baidu.com / google.com)
+                            └─► 走手机本地运营商 / 本地 Wi-Fi DNS
+                                 └─► 正常高速直连访问，完全不消耗家庭带宽3. Subnet Router（分流） vs Exit Node（全局）对比对比维度子网路由（Subnet Router）出口节点（Exit Node）流量范围仅内网流量走家里（智能分流）所有上网流量全局走家里（全局代理）访问内网（如 192.168.122.x / 192.168.1.1）流量走家里 Ubuntu 中转（支持）流量走家里 Ubuntu 中转（支持）访问普通网站（如 百度、B站）走手机当前自己的 5G / 本地 Wi-Fi全部经由家里的宽带发送出去外部看到的公网 IP显示手机当前所在运营商 IP显示为您家里的宽带公网 IP4. iOS 单 VPN 槽位冲突与 Auth Key 原理网页登录冲突原因：
+开启手机代理软件 ──► 点击 Tailscale 登录 ──► Tailscale 抢占 iOS 唯一 VPN 槽位
+  └─► 原代理软件被系统断开 ──► Safari 无法访问 accounts.google.com ──► 登录超时失败
+
+Auth Key 登录（秒级完成）：
+电脑后台生成 Auth Key ──► 手机 Tailscale 粘贴密钥 ──► 无需网页跳转 / 无需 Google 认证 ──► 瞬间完成登录三、 OpenWrt 主路由优化配置（四大核心模块）在双路由架构下，OpenWrt 承担了数据转发、DNS 解析以及代理分流的枢纽职责。共需配置 4 个核心文件：1. 防火墙端口转发与硬件加速 (/etc/config/firewall)# 1. 映射 UDP 41641 端口至 Ubuntu 服务器 (保障 P2P 直连)
+uci add firewall redirect
+uci set firewall.@redirect[-1].name=&#039;Tailscale_Ubuntu&#039;
+uci set firewall.@redirect[-1].src=&#039;wan&#039;
+uci set firewall.@redirect[-1].proto=&#039;udp&#039;
+uci set firewall.@redirect[-1].src_dport=&#039;41641&#039;
+uci set firewall.@redirect[-1].dest=&#039;lan&#039;
+uci set firewall.@redirect[-1].dest_ip=&#039;192.168.122.2&#039;
+uci set firewall.@redirect[-1].dest_port=&#039;41641&#039;
+uci set firewall.@redirect[-1].target=&#039;DNAT&#039;
+
+# 2. 启用软路由流量卸载加速 (降低 CPU 占用并跑满带宽)
+uci set firewall.@defaults[0].flow_offloading=&#039;1&#039;
+
+uci commit firewall
+/etc/init.d/firewall reload2. Dnsmasq 跨网段与防重绑配置 (/etc/config/dhcp)# 1. 允许响应非本地直连网段的 DNS 查询 (关闭 localservice 限制)
+uci set dhcp.@dnsmasq[0].localservice=&#039;0&#039;
+
+# 2. 将 home.marco 加入防 DNS 重绑保护白名单 (允许返回私有 IP)
+uci add_list dhcp.@dnsmasq[0].rebind_domain=&#039;home.marco&#039;
+
+uci commit dhcp
+/etc/init.d/dnsmasq restart3. Tailscale 鉴权域名分流配置 (/etc/dnsmasq/proxy-added.conf)国内网络环境下，Tailscale 每次开机/重启时发往官方控制平面（controlplane.tailscale.com）的握手请求容易被公网阻断。在 OpenWrt 的自定义代理列表中追加以下规则：编辑 /etc/dnsmasq/proxy-added.conf 追加：# Tailscale 控制平面分流
+nftset=/tailscale.com/4#ip#v2ray#gfwlist
+nftset=/tailscale.io/4#ip#v2ray#gfwlist
+nftset=/ts.net/4#ip#v2ray#gfwlist重启生效：/etc/init.d/dnsmasq restart4. 局域网代理接口配置 (/etc/v2ray/config.json)在 OpenWrt 的 v2ray 配置中开启局域网 HTTP/SOCKS 代理入站端口，供局域网内后台服务进行鉴权使用：在 /etc/v2ray/config.json 的 inbounds 数组中添加：{
+    &quot;tag&quot;: &quot;http-proxy&quot;,
+    &quot;port&quot;: &quot;10809&quot;,
+    &quot;listen&quot;: &quot;0.0.0.0&quot;,
+    &quot;protocol&quot;: &quot;http&quot;
+},
+{
+    &quot;tag&quot;: &quot;socks-proxy&quot;,
+    &quot;port&quot;: &quot;10808&quot;,
+    &quot;listen&quot;: &quot;0.0.0.0&quot;,
+    &quot;protocol&quot;: &quot;socks&quot;
+}重启 v2ray 守护进程：/etc/init.d/v2ray restart四、 Ubuntu 服务器端配置1. 开启系统内核网络转发# 写入持久化配置文件
+sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/sysctl.d/99-tailscale.conf
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+EOF&#039;
+
+# 立即应用生效
+sudo sysctl -p /etc/sysctl.d/99-tailscale.conf2. 安装 Tailscale以 Ubuntu 24.04 (Noble) 为例：# 导入官方 GPG 密钥与软件源
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg &gt;/dev/null
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+
+# 更新并安装
+sudo apt-get update
+sudo apt-get install -y tailscale
+
+# 启动并设置开机自启
+sudo systemctl enable --now tailscaled3. 配置重启自动鉴权防掉线 (/etc/default/tailscaled)为了防止 Ubuntu 服务器重启时因网络干扰导致控制平面鉴权超时，配置环境变量让 Tailscale 的鉴权请求自动通过 OpenWrt 代理进行握手：sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/default/tailscaled
+PORT=&quot;41641&quot;
+FLAGS=&quot;&quot;
+HTTP_PROXY=&quot;http://192.168.122.1:10809&quot;
+HTTPS_PROXY=&quot;http://192.168.122.1:10809&quot;
+EOF&#039;
+
+# 重启 tailscaled 服务
+sudo systemctl restart tailscaled4. 启动并广播多子网与出口节点同时将家庭设备局域网 192.168.122.0/24 和上级光猫局域网 192.168.1.0/24 广播至 Tailscale 网络，并声明出口节点支持：sudo tailscale up --advertise-routes=192.168.122.0/24,192.168.1.0/24 --advertise-exit-node --accept-routes=true --reset说明：执行后终端会输出认证链接，在浏览器中打开并登录您的 Tailscale 账号完成设备绑定。5. 开启 UDP GRO 网卡硬件加速（关键性能优化）安装 ethtool：sudo apt-get install -y ethtool立即开启优化（假设网卡为 ens160）：sudo ethtool -K ens160 rx-udp-gro-forwarding on rx-gro-list off配置开机自启服务：sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/systemd/system/tailscale-gro.service
+[Unit]
+Description=Tailscale UDP GRO optimization for ens160
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ethtool -K ens160 rx-udp-gro-forwarding on rx-gro-list off
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF&#039;
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now tailscale-gro.service五、 解决双重 NAT：光猫端配置1. 光猫配置方案 1：开启 DMZ 主机（最推荐）浏览器访问光猫后台：http://192.168.1.1；进入 高级设置 / 安全设置 -&gt; DMZ 设置；启用 DMZ，并将 DMZ IP 地址填写为 OpenWrt 的 WAN 口 IP：192.168.1.6保存生效。2. 光猫配置方案 2：添加 UDP 端口转发如果不想开 DMZ，在光猫 虚拟服务器 / 端口转发 中添加：协议：UDP外部端口：41641内部 IP 地址：192.168.1.6内部端口：41641六、 内网私有域名解析 (Split DNS / *.home.marco)1. Tailscale 控制台添加 Split DNS Nameserver打开 Tailscale 控制台 DNS 页面；在 Nameservers 区域点击 Add nameserver -&gt; Custom...；填写配置：Nameserver IP：192.168.122.1（OpenWrt 路由 IP）；勾选 Restrict to search domain；Domain：home.marco；勾选 Use with exit node（开启全局出口时依然保持内网域名通过家里解析）；点击 Save 保存，并确保顶部的 MagicDNS 开启。2. 客户端本地代理软件冲突排除（v2rayN / Clash / SwitchyOmega）若电脑运行了科学上网软件，代理工具可能会拦截 *.home.marco 导致网页报 503 Service Unavailable。解决方法：在代理软件中加入直连规则：v2rayN：设置 -&gt; 路由设置 -&gt; 「直连的 Domain」添加 domain:home.marco；Clash / Clash Verge：规则配置添加 DOMAIN-SUFFIX,home.marco,DIRECT；SwitchyOmega：Proxy 模式的「Bypass List」添加 *.home.marco。七、 Tailscale 控制台配置与永久免登设置1. 审批激活子网路由与 Exit Node登录 Tailscale 管理控制台 - Machines；找到服务器 ubuntu-home-marco -&gt; 点击 ... -&gt; Edit route settings...；勾选 192.168.122.0/24 和 192.168.1.0/24；勾选 Use as exit node；点击 Save 保存。2. 开启“永久免登录”防掉线 (Disable Key Expiry)在 Machines 页面 找到您的设备（如服务器或手机）；点击右侧菜单 ... -&gt; Disable key expiry；状态显示为 Expiry disabled，该设备将终身永久在线，无需再次登录。八、 移动端与客户端接入（含 iOS 解决方案）1. 方案 A：使用 Auth Key 免网页登录（推荐）在电脑浏览器打开 Tailscale 控制台 - Keys 页面；点击 Generate auth key... -&gt; 勾选 Reusable -&gt; 点击 Generate key；复制生成的密钥（形如 tskey-auth-kxxxxxxxxxxxx）；注：生成的 90 天仅为密钥兑换期限。兑换登录后设备永久绑定，绝不会掉线。打开手机 Tailscale App，在登录界面右上角点击 ... -&gt; 选择 Log in with auth key... 粘贴密钥即可秒级登录。2. 方案 B：通过局域网 Wi-Fi 代理登录确保电脑代理软件开启了「允许局域网连接」，记录电脑 IP（如 192.168.122.x）和端口（如 7890）；手机连接同一家庭 Wi-Fi -&gt; 点击 Wi-Fi 详情 (i) -&gt; 底部的 配置代理 -&gt; 选择 手动 填入电脑 IP 和端口；打开 Tailscale 点击 Google 登录，顺利完成验证后，将手机 Wi-Fi 代理恢复为关闭。九、 外部访问光猫后台（192.168.1.1）及网段冲突处理在外部连接 Tailscale 后，浏览器直接输入 http://192.168.1.1 即可进入家庭光猫后台。若外部 Wi-Fi 本身也是 192.168.1.1 的解决方案：方案 1（开启 Exit Node）：在 Tailscale 客户端开启 Exit Node -&gt; 选择 ubuntu-home-marco，所有流量强制走家庭通道，准确命中家里光猫。方案 2（手机热点）：电脑连接手机 4G/5G 热点避开外部 Wi-Fi 网段冲突。十、 连通性与域名访问验证1. 命令行测试 Ping 连通性ping openwrt.home.marco  # 解析至 192.168.122.1
+ping ubuntu.home.marco   # 解析至 192.168.122.2
+ping nas.home.marco      # 解析至 192.168.122.5
+ping esxi.home.marco     # 解析至 192.168.1.32. 浏览器直接访问目标设备 / 服务推荐浏览器访问地址说明OpenWrt 路由后台http://openwrt.home.marco对应内网 IP: 192.168.122.1光猫管理后台http://192.168.1.1对应内网 IP: 192.168.1.1ESXi 虚拟化后台https://esxi.home.marco必须使用 https 协议 (IP: 192.168.1.3)NAS 存储管理http://nas.home.marco:5000对应内网 IP: 192.168.122.5Ubuntu 服务器http://ubuntu.home.marco对应内网 IP: 192.168.122.23. 验证 P2P 直连状态tailscale ping openwrt.home.marco直连输出（Direct）：pong from ubuntu-home-marco (100.98.71.30) via &lt;你的公网IP&gt;:41641 in 15ms中继输出（Relay）：pong from ubuntu-home-marco (100.98.71.30) via DERP(hkg) in 120ms十一、 常见问题与 FAQQ1: 为什么使用 ping http://esxi.home.marco/ 提示找不到主机？ping 是底层网络测试工具，参数只能是纯域名（ping esxi.home.marco）。带有 http:// 或斜杠 / 的是浏览器 URL，传递给 ping 会被识别为非法域名而报错。Q2: 局域网内其他设备需要修改网关或做额外设置吗？不需要。 Tailscale 子网路由默认开启了 SNAT（源地址转换）。内网设备看到的访问源 IP 是 Ubuntu 服务器的 192.168.122.2，回包会自动送回 Ubuntu，其他设备无需做任何改动。Q3: 为什么 Ubuntu 重启后 Tailscale 会连不上，如何防掉线？国内网络环境下，节点开机/重启时发往 Tailscale 官方鉴权服务器（controlplane.tailscale.com）的请求会被公网阻断。通过在 OpenWrt 上配置域名分流与局域网代理接口（10809），并在 Ubuntu 的 /etc/default/tailscaled 中指定 HTTP_PROXY=&quot;http://192.168.122.1:10809&quot;，即可实现开机 1 秒自动鉴权并永久防掉线。</description>
+</item>
 <item rdf:about="https://blog.niekun.net/archives/3090.html">
 <title>记一次完美的家庭网络改造：弱电箱“单线复用”与透明代理排错全指南</title>
 <link>https://blog.niekun.net/archives/3090.html</link>
@@ -485,52 +623,5 @@ Text                             1              0              0             37
 -------------------------------------------------------------------------------
 SUM:                            26           1723           1947           7178
 -------------------------------------------------------------------------------以上就是 cloc 的简单用法。</description>
-</item>
-<item rdf:about="https://blog.niekun.net/archives/3021.html">
-<title>honkit 使用教程及部署github page</title>
-<link>https://blog.niekun.net/archives/3021.html</link>
-<dc:date>2025-01-17T09:14:00+00:00</dc:date>
-<description>1. 什么是 Honkit？Honkit 是一个现代化的静态书籍生成工具，它是基于旧版 GitBook 开发的，支持 Markdown 文件的编写和多种输出格式，如 HTML 和 PDF。2. 初始化 Honkit 项目2.1 创建 Honkit 项目创建项目目录：mkdir my-honkit-project
-cd my-honkit-project初始化 Honkit 项目：npx honkit init这会生成以下两个文件：README.md：书籍的主页面。SUMMARY.md：目录结构的定义。安装 Honkit：npm install honkit --save-dev3. 本地构建书籍3.1 运行开发服务器在项目目录中运行以下命令启动本地预览：npx honkit serve默认情况下，书籍会在 http://localhost:4000 上运行。3.2 生成静态文件当书籍准备好后，运行以下命令生成静态 HTML 文件：npx honkit build生成的文件会存储在 _book 目录中。4. 生成 PDF 文件Honkit 支持将书籍生成 PDF 文件，但需要预先安装 Calibre 电子书管理软件。4.1 安装 Calibre下载 Calibre (与 honkit 兼容性最好的是 calibre 5.x 版本)：访问 Calibre 官网：calibre release (5.44.0)。下载并安装适合您系统的版本。确保 Calibre 路径正确：检查环境变量：通常，Calibre 安装会自动将路径添加到系统的环境变量 PATH 中。如果未自动添加，手动将 Calibre 的安装目录路径添加到 PATH 环境变量中。例如，Windows 系统下，路径可能为：C:\Program Files\Calibre2Linux 和 macOS 用户可通过以下命令验证：which ebook-convert如果返回路径为空，说明需要手动添加。重新打开终端：添加路径后，确保关闭并重新打开终端。4.2 生成 PDF运行以下命令生成 PDF 文件：npx honkit pdf . output.pdf. 表示当前目录。output.pdf 是生成的 PDF 文件名。5. 部署到 GitHub Pages5.1 创建 GitHub 仓库前往 GitHub 创建一个新仓库（例如 my-honkit-book）。将本地项目与远程仓库关联：git init
-git remote add origin https://github.com/&lt;username&gt;/my-honkit-book.git
-git add .
-git commit -m &quot;Initial commit&quot;
-git branch -M main
-git push -u origin main5.2 配置 GitHub Actions 自动部署创建 GitHub Actions 配置文件：在项目的根目录下创建 .github/workflows/deploy.yml 文件，内容如下：name: Deploy Honkit to GitHub Pages
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: &#039;18&#039;
-
-    - name: Install Dependencies
-      run: npm install
-
-    - name: Build Honkit
-      run: npx honkit build
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./_book提交配置文件：提交并推送配置文件到 GitHub：git add .github/workflows/deploy.yml
-git commit -m &quot;Add GitHub Actions for deployment&quot;
-git push origin main启用 GitHub Pages：进入仓库的 Settings &gt; Pages。在 Source 下选择 gh-pages 分支(如果没有需要手动新建此分支)，点击保存。6. 绑定自定义域名6.1 配置 GitHub Pages进入仓库的 Settings &gt; Pages。在 Custom domain 中输入您的自定义域名（例如 www.example.com）。点击 Save。GitHub 会自动生成一个 CNAME 文件。6.2 配置 DNS 记录登录您的域名注册商控制台，添加以下 DNS 记录：绑定子域名（例如 www.example.com）：添加 CNAME 记录：www  CNAME  &lt;username&gt;.github.io注意：将 &lt;username&gt; 替换为您的 GitHub 用户名。6.3 启用 HTTPS返回 GitHub 仓库的 Settings &gt; Pages。勾选 Enforce HTTPS，以启用 HTTPS 访问。自定义域名每次推送后消失的解决方法当每次推送代码后，自定义域名设置消失，通常是由于 CNAME 文件被覆盖或删除。GitHub Pages 需要根目录的 CNAME 文件来保存自定义域名信息。如果该文件丢失或被覆盖，GitHub 就无法识别您的自定义域名。解决方法手动将 CNAME 文件添加到源码目录创建 CNAME 文件：在项目根目录（如 main 分支）下创建一个 CNAME 文件，并在文件中输入您的自定义域名，例如：www.example.com提交更改：提交并推送 CNAME 文件到远程仓库：git add CNAME
-git commit -m &quot;Add CNAME file&quot;
-git push origin main验证：每次部署后，CNAME 文件会自动被包含在 gh-pages 分支中，不会被覆盖。验证步骤检查 CNAME 文件：进入 GitHub 仓库的 gh-pages 分支，确认根目录下有 CNAME 文件。文件内容应为您的自定义域名，例如：www.example.com检查 GitHub Pages 设置：转到 Settings &gt; Pages。确认自定义域名已正确显示，并启用 HTTPS。测试访问：使用您的自定义域名访问页面，确认是否能够正确加载。7. 常见问题及解决方法问题 1：npx honkit pdf 报错 Command failed: ebook-convert not found原因：  Calibre 未正确安装，或 ebook-convert 工具未添加到系统的 PATH 环境变量中。解决方法：确保 Calibre 已安装，并重新确认安装路径：Windows 默认路径：C:\Program Files\Calibre2。macOS/Linux 使用 which ebook-convert 检查路径。手动将 Calibre 的安装路径添加到系统环境变量中：Windows：打开“环境变量”设置，找到 PATH。添加 C:\Program Files\Calibre2。Linux/macOS：编辑 ~/.bashrc 或 ~/.zshrc 文件，添加以下内容：export PATH=&quot;/path/to/calibre:$PATH&quot;替换 /path/to/calibre 为 Calibre 的实际路径。保存后运行 source ~/.bashrc 或 source ~/.zshrc 使更改生效。重新运行 npx honkit pdf。问题 2：GitHub Actions 部署失败，提示 Permission denied原因：  GitHub Actions 无法向 gh-pages 分支推送更改，通常是因为缺少权限。解决方法：确保 GitHub 仓库的 Settings &gt; Actions &gt; General 中已启用 Read and write permissions：打开 Workflow permissions，选择 Read and write permissions。勾选 Allow GitHub Actions to create and approve pull requests。确认 GitHub Actions 配置文件中使用的是 github_token：with:
-  github_token: ${{ secrets.GITHUB_TOKEN }}问题 3：GitHub Pages 部署成功，但自定义域名未生效原因：  DNS 记录配置错误或未生效。解决方法：登录域名管理平台，检查 DNS 配置：确认 A 记录或 CNAME 记录配置正确。等待 DNS 记录生效（可能需要 5-48 小时）。检查仓库根目录下是否有 CNAME 文件，内容是否正确（应与自定义域名一致）。验证 DNS 配置是否正确：使用 DNS Checker 验证域名解析。启用 HTTPS：进入 Settings &gt; Pages，勾选 Enforce HTTPS。问题 4：生成的书籍内容显示错乱或样式缺失原因：Markdown 文件中格式不正确。SUMMARY.md 的目录结构未正确链接。解决方法：确认 Markdown 文件的格式是否符合规范。检查 SUMMARY.md 中的链接是否与文件路径一致：* [章节标题](path/to/file.md)清理并重新构建书籍：npx honkit build问题 5：自定义 PDF 样式未生效原因：  未指定自定义样式文件或样式文件路径错误。解决方法：创建一个 CSS 样式文件（如 custom.css），自定义 PDF 的排版样式。使用以下命令生成 PDF 并指定样式文件：npx honkit pdf --css custom.css . output.pdf8. 支持与反馈如果您遇到未列出的问题或有其他疑问，请参考以下支持途径：Honkit 官方文档：https://honkit.netlify.appGitHub 仓库：https://github.com/honkit/honkit社区支持：搜索相关问题或发帖提问。完成这些步骤后，您可以成功使用 Honkit 创建、部署和管理文档，解决常见问题，并生成符合您需求的 HTML 和 PDF 文档！</description>
 </item>
 </rdf:RDF>

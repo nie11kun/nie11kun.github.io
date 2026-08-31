@@ -6,11 +6,161 @@ xml:base="https://blog.niekun.net/category/software/"
 >
 <title type="text">Marco Nie - software</title>
 <subtitle type="text"></subtitle>
-<updated>2025-03-26T06:03:15+00:00</updated>
+<updated>2026-08-31T02:35:00+00:00</updated>
 <generator uri="https://typecho.org/" version="1.3.0">Typecho</generator>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/category/software/" />
 <id>https://blog.niekun.net/feed/atom/category/software/</id>
 <link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/" />
+<entry>
+<title type="html"><![CDATA[基于 Ubuntu 与 OpenWrt 构建 Tailscale 家庭子网路由与 P2P 直连极速访问指南]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html" />
+<id>https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html</id>
+<updated>2026-08-31T02:35:00+00:00</updated>
+<published>2026-08-31T02:35:00+00:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<category scheme="https://blog.niekun.net/category/software/" term="software" />
+<summary type="html"><![CDATA[本教程详细记录了如何将家庭内网的一台 Ubuntu 服务器配置为 Tailscale 子网路由器（Subnet Router） 与 出口节点（Exit Node），并通过 OpenWrt 与上级...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html" xml:lang="zh-CN"><![CDATA[
+<p>本教程详细记录了如何将家庭内网的一台 Ubuntu 服务器配置为 <strong>Tailscale 子网路由器（Subnet Router）</strong> 与 <strong>出口节点（Exit Node）</strong>，并通过 <strong>OpenWrt 与上级光猫优化</strong> 实现外部设备（手机、笔记本等）在公网环境下 <strong>100% P2P 直连</strong> 访问家庭局域网内所有设备（如 NAS、打印机、智能家居、软路由后台、光猫后台等），并支持<strong>内网自定义域名（如 <code>*.home.marco</code>）自动分流解析</strong>。同时包含国内网络环境下 <strong>服务器重启自动鉴权防掉线</strong>、<strong>iOS 设备 VPN 冲突</strong> 与 <strong>代理软件冲突排除</strong> 的完整解决方案。</p><hr><h2>目录</h2><ul><li><a href="#一-全局网络拓扑与架构总览">一、 全局网络拓扑与架构总览</a></li><li><p><a href="#二-核心原理图解初学者必读">二、 核心原理图解（初学者必读）</a></p><ul><li><a href="#1-双重-nat-与-100-p2p-直连打洞原理">1. 双重 NAT 与 100% P2P 直连打洞原理</a></li><li><a href="#2-split-dns-条件分流解析流程">2. Split DNS 条件分流解析流程</a></li><li><a href="#3-subnet-router分流-vs-exit-node全局对比">3. Subnet Router（分流） vs Exit Node（全局）对比</a></li><li><a href="#4-ios-单-vpn-槽位冲突与-auth-key-原理">4. iOS 单 VPN 槽位冲突与 Auth Key 原理</a></li></ul></li><li><p><a href="#三-openwrt-主路由优化配置四大核心模块">三、 OpenWrt 主路由优化配置（四大核心模块）</a></p><ul><li><a href="#1-防火墙端口转发与硬件加速-etcconfigfirewall">1. 防火墙端口转发与硬件加速 (/etc/config/firewall)</a></li><li><a href="#2-dnsmasq-跨网段与防重绑配置-etcconfigdhcp">2. Dnsmasq 跨网段与防重绑配置 (/etc/config/dhcp)</a></li><li><a href="#3-tailscale-鉴权域名分流配置-etcdnsmasqproxy-addedconf">3. Tailscale 鉴权域名分流配置 (/etc/dnsmasq/proxy-added.conf)</a></li><li><a href="#4-局域网代理接口配置-etcv2rayconfigjson">4. 局域网代理接口配置 (/etc/v2ray/config.json)</a></li></ul></li><li><p><a href="#四-ubuntu-服务器端配置">四、 Ubuntu 服务器端配置</a></p><ul><li><a href="#1-开启系统内核网络转发">1. 开启系统内核网络转发</a></li><li><a href="#2-安装-tailscale">2. 安装 Tailscale</a></li><li><a href="#3-配置重启自动鉴权防掉线-etcdefaulttailscaled">3. 配置重启自动鉴权防掉线 (/etc/default/tailscaled)</a></li><li><a href="#4-启动并广播多子网与出口节点">4. 启动并广播多子网与出口节点</a></li><li><a href="#5-开启-udp-gro-网卡硬件加速关键性能优化">5. 开启 UDP GRO 网卡硬件加速（关键性能优化）</a></li></ul></li><li><p><a href="#五-解决双重-nat光猫端配置">五、 解决双重 NAT：光猫端配置</a></p><ul><li><a href="#1-光猫配置方案-1开启-dmz-主机最推荐">1. 光猫配置方案 1：开启 DMZ 主机（最推荐）</a></li><li><a href="#2-光猫配置方案-2添加-udp-端口转发">2. 光猫配置方案 2：添加 UDP 端口转发</a></li></ul></li><li><p><a href="#六-内网私有域名解析-split-dns--homemarco">六、 内网私有域名解析 (Split DNS / *.home.marco)</a></p><ul><li><a href="#1-tailscale-控制台添加-split-dns-nameserver">1. Tailscale 控制台添加 Split DNS Nameserver</a></li><li><a href="#2-客户端本地代理软件冲突排除v2rayn--clash--switchyomega">2. 客户端本地代理软件冲突排除（v2rayN / Clash / SwitchyOmega）</a></li></ul></li><li><p><a href="#七-tailscale-控制台配置与永久免登设置">七、 Tailscale 控制台配置与永久免登设置</a></p><ul><li><a href="#1-审批激活子网路由与-exit-node">1. 审批激活子网路由与 Exit Node</a></li><li><a href="#2-开启永久免登录防掉线-disable-key-expiry">2. 开启“永久免登录”防掉线 (Disable Key Expiry)</a></li></ul></li><li><p><a href="#八-移动端与客户端接入含-ios-解决方案">八、 移动端与客户端接入（含 iOS 解决方案）</a></p><ul><li><a href="#1-方案-a使用-auth-key-免网页登录推荐">1. 方案 A：使用 Auth Key 免网页登录（推荐）</a></li><li><a href="#2-方案-b通过局域网-wi-fi-代理登录">2. 方案 B：通过局域网 Wi-Fi 代理登录</a></li></ul></li><li><a href="#九-外部访问光猫后台19216811及网段冲突处理">九、 外部访问光猫后台（192.168.1.1）及网段冲突处理</a></li><li><a href="#十-连通性与域名访问验证">十、 连通性与域名访问验证</a></li><li><a href="#十一-常见问题与-faq">十一、 常见问题与 FAQ</a></li></ul><hr><h2>一、 全局网络拓扑与架构总览</h2><p>家庭网络通常由光猫、二级路由器和内部服务器组成。以下为完整的 IP 分布与网络层级：</p><pre><code class="lang-text">  [外部客户端: 手机 5G / 笔记本] (Tailscale IP: 100.70.12.55)
+                    │
+                    ▼  1. P2P 握手请求 (UDP 41641)
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第一层：光猫 (192.168.1.1) [公网 IP: &lt;你的公网IP&gt;]              │
+  │    └─ DMZ 规则：将所有外网打洞请求透传给 192.168.1.6           │
+  │    └─ 挂载设备：ESXi 宿主机 (192.168.1.3 / esxi.home.marco)    │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 2. 透传数据流
+                                 ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第二层：OpenWrt 主路由                                        │
+  │    ├─ WAN 口 IP: 192.168.1.6 (由光猫分配)                     │
+  │    ├─ LAN 口 IP: 192.168.122.1 (网段: 192.168.122.0/24)      │
+  │    ├─ 端口映射：UDP 41641 -&gt; 192.168.122.2:41641            │
+  │    ├─ 内网 DNS：Dnsmasq 解析 *.home.marco                    │
+  │    └─ 局域网代理接口：192.168.122.1:10809 (HTTP)             │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 3. 端口命中
+                                 ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第三层：Ubuntu 服务器 (Tailscale IP: 100.98.71.30)            │
+  │    ├─ 局域网静态 IP: 192.168.122.2                            │
+  │    ├─ 角色: Subnet Router (子网路由) + Exit Node (出口节点)   │
+  │    ├─ 广播网段: 192.168.122.0/24 及 192.168.1.0/24           │
+  │    ├─ 开机自启鉴权代理：指向 192.168.122.1:10809              │
+  │    └─ 加速: UDP GRO 硬件转发加速                              │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 4. 内网/跨网段转发 (自动 SNAT)
+         ┌───────────────────────┼───────────────────────┐
+         ▼                       ▼                       ▼
+    局域网 NAS              局域网 PC               访问上级光猫
+  (192.168.122.5)         (192.168.122.x)         (192.168.1.1)
+  nas.home.marco                                  esxi.home.marco</code></pre><hr><h2>二、 核心原理图解（初学者必读）</h2><h3>1. 双重 NAT 与 100% P2P 直连打洞原理</h3><pre><code class="lang-text">未配置端口映射时（走中继）：
+外部手机 ──(UDP 41641)──&gt; [ 光猫 (拦截丢弃) ] 
+  └─► 打洞失败 ──► 香港 DERP 服务器 (中转，延迟 300ms+, 限速) ──► 家庭 Ubuntu
+
+配置光猫 DMZ + OpenWrt 端口映射后（100% P2P 直连）：
+外部手机 ──(UDP 41641)──&gt; [ 光猫 (DMZ 透传) ] ──&gt; [ OpenWrt (端口转发) ] ──&gt; [ Ubuntu ]
+  └────────────────────── 建立端到端加密直连 (15ms 极速) ──────────────────────┘</code></pre><hr><h3>2. Split DNS 条件分流解析流程</h3><p>当你输入一个域名时，Tailscale 会智能判断目标：</p><pre><code class="lang-text">                       ┌─── 输入 *.home.marco (如 nas.home.marco)
+                       │    └─► 走 Tailscale 加密隧道
+                       │         └─► 发给家庭 OpenWrt Dnsmasq (192.168.122.1)
+                       │              └─► 解析出内网 IP: 192.168.122.5 (直连访问成功)
+外部设备发起访问 ───────┤
+                       │
+                       └─── 输入普通互联网网站 (如 baidu.com / google.com)
+                            └─► 走手机本地运营商 / 本地 Wi-Fi DNS
+                                 └─► 正常高速直连访问，完全不消耗家庭带宽</code></pre><hr><h3>3. Subnet Router（分流） vs Exit Node（全局）对比</h3><table><thead><tr><th align="left">对比维度</th><th align="left">子网路由（Subnet Router）</th><th align="left">出口节点（Exit Node）</th></tr></thead><tbody><tr><td align="left"><strong>流量范围</strong></td><td align="left">仅内网流量走家里（智能分流）</td><td align="left">所有上网流量全局走家里（全局代理）</td></tr><tr><td align="left"><strong>访问内网（如 192.168.122.x / 192.168.1.1）</strong></td><td align="left">流量走家里 Ubuntu 中转（支持）</td><td align="left">流量走家里 Ubuntu 中转（支持）</td></tr><tr><td align="left"><strong>访问普通网站（如 百度、B站）</strong></td><td align="left">走手机当前自己的 5G / 本地 Wi-Fi</td><td align="left">全部经由家里的宽带发送出去</td></tr><tr><td align="left"><strong>外部看到的公网 IP</strong></td><td align="left">显示手机当前所在运营商 IP</td><td align="left">显示为您家里的宽带公网 IP</td></tr></tbody></table><hr><h3>4. iOS 单 VPN 槽位冲突与 Auth Key 原理</h3><pre><code class="lang-text">网页登录冲突原因：
+开启手机代理软件 ──► 点击 Tailscale 登录 ──► Tailscale 抢占 iOS 唯一 VPN 槽位
+  └─► 原代理软件被系统断开 ──► Safari 无法访问 accounts.google.com ──► 登录超时失败
+
+Auth Key 登录（秒级完成）：
+电脑后台生成 Auth Key ──► 手机 Tailscale 粘贴密钥 ──► 无需网页跳转 / 无需 Google 认证 ──► 瞬间完成登录</code></pre><hr><h2>三、 OpenWrt 主路由优化配置（四大核心模块）</h2><p>在双路由架构下，OpenWrt 承担了数据转发、DNS 解析以及代理分流的枢纽职责。共需配置 4 个核心文件：</p><h3>1. 防火墙端口转发与硬件加速 (<code>/etc/config/firewall</code>)</h3><pre><code class="lang-bash"># 1. 映射 UDP 41641 端口至 Ubuntu 服务器 (保障 P2P 直连)
+uci add firewall redirect
+uci set firewall.@redirect[-1].name=&#039;Tailscale_Ubuntu&#039;
+uci set firewall.@redirect[-1].src=&#039;wan&#039;
+uci set firewall.@redirect[-1].proto=&#039;udp&#039;
+uci set firewall.@redirect[-1].src_dport=&#039;41641&#039;
+uci set firewall.@redirect[-1].dest=&#039;lan&#039;
+uci set firewall.@redirect[-1].dest_ip=&#039;192.168.122.2&#039;
+uci set firewall.@redirect[-1].dest_port=&#039;41641&#039;
+uci set firewall.@redirect[-1].target=&#039;DNAT&#039;
+
+# 2. 启用软路由流量卸载加速 (降低 CPU 占用并跑满带宽)
+uci set firewall.@defaults[0].flow_offloading=&#039;1&#039;
+
+uci commit firewall
+/etc/init.d/firewall reload</code></pre><hr><h3>2. Dnsmasq 跨网段与防重绑配置 (<code>/etc/config/dhcp</code>)</h3><pre><code class="lang-bash"># 1. 允许响应非本地直连网段的 DNS 查询 (关闭 localservice 限制)
+uci set dhcp.@dnsmasq[0].localservice=&#039;0&#039;
+
+# 2. 将 home.marco 加入防 DNS 重绑保护白名单 (允许返回私有 IP)
+uci add_list dhcp.@dnsmasq[0].rebind_domain=&#039;home.marco&#039;
+
+uci commit dhcp
+/etc/init.d/dnsmasq restart</code></pre><hr><h3>3. Tailscale 鉴权域名分流配置 (<code>/etc/dnsmasq/proxy-added.conf</code>)</h3><p>国内网络环境下，Tailscale 每次开机/重启时发往官方控制平面（<code>controlplane.tailscale.com</code>）的握手请求容易被公网阻断。在 OpenWrt 的自定义代理列表中追加以下规则：</p><p>编辑 <code>/etc/dnsmasq/proxy-added.conf</code> 追加：</p><pre><code class="lang-text"># Tailscale 控制平面分流
+nftset=/tailscale.com/4#ip#v2ray#gfwlist
+nftset=/tailscale.io/4#ip#v2ray#gfwlist
+nftset=/ts.net/4#ip#v2ray#gfwlist</code></pre><p>重启生效：</p><pre><code class="lang-bash">/etc/init.d/dnsmasq restart</code></pre><hr><h3>4. 局域网代理接口配置 (<code>/etc/v2ray/config.json</code>)</h3><p>在 OpenWrt 的 v2ray 配置中开启局域网 HTTP/SOCKS 代理入站端口，供局域网内后台服务进行鉴权使用：</p><p>在 <code>/etc/v2ray/config.json</code> 的 <code>inbounds</code> 数组中添加：</p><pre><code class="lang-json">{
+    &quot;tag&quot;: &quot;http-proxy&quot;,
+    &quot;port&quot;: &quot;10809&quot;,
+    &quot;listen&quot;: &quot;0.0.0.0&quot;,
+    &quot;protocol&quot;: &quot;http&quot;
+},
+{
+    &quot;tag&quot;: &quot;socks-proxy&quot;,
+    &quot;port&quot;: &quot;10808&quot;,
+    &quot;listen&quot;: &quot;0.0.0.0&quot;,
+    &quot;protocol&quot;: &quot;socks&quot;
+}</code></pre><p>重启 v2ray 守护进程：</p><pre><code class="lang-bash">/etc/init.d/v2ray restart</code></pre><hr><h2>四、 Ubuntu 服务器端配置</h2><h3>1. 开启系统内核网络转发</h3><pre><code class="lang-bash"># 写入持久化配置文件
+sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/sysctl.d/99-tailscale.conf
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+EOF&#039;
+
+# 立即应用生效
+sudo sysctl -p /etc/sysctl.d/99-tailscale.conf</code></pre><hr><h3>2. 安装 Tailscale</h3><p>以 Ubuntu 24.04 (Noble) 为例：</p><pre><code class="lang-bash"># 导入官方 GPG 密钥与软件源
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg &gt;/dev/null
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+
+# 更新并安装
+sudo apt-get update
+sudo apt-get install -y tailscale
+
+# 启动并设置开机自启
+sudo systemctl enable --now tailscaled</code></pre><hr><h3>3. 配置重启自动鉴权防掉线 (<code>/etc/default/tailscaled</code>)</h3><p>为了防止 Ubuntu 服务器重启时因网络干扰导致控制平面鉴权超时，配置环境变量让 Tailscale 的鉴权请求自动通过 OpenWrt 代理进行握手：</p><pre><code class="lang-bash">sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/default/tailscaled
+PORT=&quot;41641&quot;
+FLAGS=&quot;&quot;
+HTTP_PROXY=&quot;http://192.168.122.1:10809&quot;
+HTTPS_PROXY=&quot;http://192.168.122.1:10809&quot;
+EOF&#039;
+
+# 重启 tailscaled 服务
+sudo systemctl restart tailscaled</code></pre><hr><h3>4. 启动并广播多子网与出口节点</h3><p>同时将家庭设备局域网 <code>192.168.122.0/24</code> 和上级光猫局域网 <code>192.168.1.0/24</code> 广播至 Tailscale 网络，并声明出口节点支持：</p><pre><code class="lang-bash">sudo tailscale up --advertise-routes=192.168.122.0/24,192.168.1.0/24 --advertise-exit-node --accept-routes=true --reset</code></pre><blockquote><strong>说明</strong>：执行后终端会输出认证链接，在浏览器中打开并登录您的 Tailscale 账号完成设备绑定。</blockquote><hr><h3>5. 开启 UDP GRO 网卡硬件加速（关键性能优化）</h3><ol><li><p><strong>安装 ethtool</strong>：</p><pre><code class="lang-bash">sudo apt-get install -y ethtool</code></pre></li><li><p><strong>立即开启优化</strong>（假设网卡为 <code>ens160</code>）：</p><pre><code class="lang-bash">sudo ethtool -K ens160 rx-udp-gro-forwarding on rx-gro-list off</code></pre></li><li><p><strong>配置开机自启服务</strong>：</p><pre><code class="lang-bash">sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/systemd/system/tailscale-gro.service
+[Unit]
+Description=Tailscale UDP GRO optimization for ens160
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ethtool -K ens160 rx-udp-gro-forwarding on rx-gro-list off
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF&#039;
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now tailscale-gro.service</code></pre></li></ol><hr><h2>五、 解决双重 NAT：光猫端配置</h2><h3>1. 光猫配置方案 1：开启 DMZ 主机（最推荐）</h3><ol><li>浏览器访问光猫后台：<code>http://192.168.1.1</code>；</li><li>进入 <strong>高级设置 / 安全设置</strong> -&gt; <strong>DMZ 设置</strong>；</li><li><p><strong>启用 DMZ</strong>，并将 DMZ IP 地址填写为 OpenWrt 的 WAN 口 IP：</p><pre><code class="lang-text">192.168.1.6</code></pre></li><li>保存生效。</li></ol><hr><h3>2. 光猫配置方案 2：添加 UDP 端口转发</h3><p>如果不想开 DMZ，在光猫 <strong>虚拟服务器 / 端口转发</strong> 中添加：</p><ul><li><strong>协议</strong>：<code>UDP</code></li><li><strong>外部端口</strong>：<code>41641</code></li><li><strong>内部 IP 地址</strong>：<code>192.168.1.6</code></li><li><strong>内部端口</strong>：<code>41641</code></li></ul><hr><h2>六、 内网私有域名解析 (Split DNS / *.home.marco)</h2><h3>1. Tailscale 控制台添加 Split DNS Nameserver</h3><ol><li>打开 <a href="https://login.tailscale.com/admin/dns">Tailscale 控制台 DNS 页面</a>；</li><li>在 <strong>Nameservers</strong> 区域点击 <strong>Add nameserver</strong> -&gt; <strong>Custom...</strong>；</li><li><p>填写配置：</p><ul><li><strong>Nameserver IP</strong>：<code>192.168.122.1</code>（OpenWrt 路由 IP）；</li><li>勾选 <strong><code>Restrict to search domain</code></strong>；</li><li><strong>Domain</strong>：<code>home.marco</code>；</li><li>勾选 <strong><code>Use with exit node</code></strong>（开启全局出口时依然保持内网域名通过家里解析）；</li></ul></li><li>点击 <strong>Save</strong> 保存，并确保顶部的 <strong>MagicDNS</strong> 开启。</li></ol><hr><h3>2. 客户端本地代理软件冲突排除（v2rayN / Clash / SwitchyOmega）</h3><p>若电脑运行了科学上网软件，代理工具可能会拦截 <code>*.home.marco</code> 导致网页报 <code>503 Service Unavailable</code>。</p><p><strong>解决方法</strong>：在代理软件中加入直连规则：</p><ul><li><strong>v2rayN</strong>：设置 -&gt; 路由设置 -&gt; 「直连的 Domain」添加 <code>domain:home.marco</code>；</li><li><strong>Clash / Clash Verge</strong>：规则配置添加 <code>DOMAIN-SUFFIX,home.marco,DIRECT</code>；</li><li><strong>SwitchyOmega</strong>：Proxy 模式的「Bypass List」添加 <code>*.home.marco</code>。</li></ul><hr><h2>七、 Tailscale 控制台配置与永久免登设置</h2><h3>1. 审批激活子网路由与 Exit Node</h3><ol><li>登录 <a href="https://login.tailscale.com/admin/machines">Tailscale 管理控制台 - Machines</a>；</li><li>找到服务器 <code>ubuntu-home-marco</code> -&gt; 点击 <code>...</code> -&gt; <strong>Edit route settings...</strong>；</li><li>勾选 <strong><code>192.168.122.0/24</code></strong> 和 <strong><code>192.168.1.0/24</code></strong>；</li><li>勾选 <strong>Use as exit node</strong>；</li><li>点击 <strong>Save</strong> 保存。</li></ol><h3>2. 开启“永久免登录”防掉线 (Disable Key Expiry)</h3><ol><li>在 <a href="https://login.tailscale.com/admin/machines">Machines 页面</a> 找到您的设备（如服务器或手机）；</li><li>点击右侧菜单 <code>...</code> -&gt; <strong>Disable key expiry</strong>；</li><li>状态显示为 <code>Expiry disabled</code>，该设备将<strong>终身永久在线，无需再次登录</strong>。</li></ol><hr><h2>八、 移动端与客户端接入（含 iOS 解决方案）</h2><h3>1. 方案 A：使用 Auth Key 免网页登录（推荐）</h3><ol><li>在电脑浏览器打开 <a href="https://login.tailscale.com/admin/settings/keys">Tailscale 控制台 - Keys 页面</a>；</li><li>点击 <strong>Generate auth key...</strong> -&gt; 勾选 <strong>Reusable</strong> -&gt; 点击 <strong>Generate key</strong>；</li><li><p>复制生成的密钥（形如 <code>tskey-auth-kxxxxxxxxxxxx</code>）；</p><blockquote><strong>注</strong>：生成的 90 天仅为<strong>密钥兑换期限</strong>。兑换登录后设备永久绑定，绝不会掉线。</blockquote></li><li>打开手机 Tailscale App，在登录界面右上角点击 <strong><code>...</code></strong> -&gt; 选择 <strong><code>Log in with auth key...</code></strong> 粘贴密钥即可秒级登录。</li></ol><hr><h3>2. 方案 B：通过局域网 Wi-Fi 代理登录</h3><ol><li>确保电脑代理软件开启了「允许局域网连接」，记录电脑 IP（如 <code>192.168.122.x</code>）和端口（如 <code>7890</code>）；</li><li>手机连接同一家庭 Wi-Fi -&gt; 点击 Wi-Fi 详情 <code>(i)</code> -&gt; 底部的 <strong>配置代理</strong> -&gt; 选择 <strong>手动</strong> 填入电脑 IP 和端口；</li><li>打开 Tailscale 点击 Google 登录，顺利完成验证后，将手机 Wi-Fi 代理恢复为关闭。</li></ol><hr><h2>九、 外部访问光猫后台（192.168.1.1）及网段冲突处理</h2><p>在外部连接 Tailscale 后，浏览器直接输入 <code>http://192.168.1.1</code> 即可进入家庭光猫后台。</p><p><strong>若外部 Wi-Fi 本身也是 192.168.1.1 的解决方案</strong>：</p><ul><li><strong>方案 1（开启 Exit Node）</strong>：在 Tailscale 客户端开启 Exit Node -&gt; 选择 <code>ubuntu-home-marco</code>，所有流量强制走家庭通道，准确命中家里光猫。</li><li><strong>方案 2（手机热点）</strong>：电脑连接手机 4G/5G 热点避开外部 Wi-Fi 网段冲突。</li></ul><hr><h2>十、 连通性与域名访问验证</h2><h3>1. 命令行测试 Ping 连通性</h3><pre><code class="lang-bash">ping openwrt.home.marco  # 解析至 192.168.122.1
+ping ubuntu.home.marco   # 解析至 192.168.122.2
+ping nas.home.marco      # 解析至 192.168.122.5
+ping esxi.home.marco     # 解析至 192.168.1.3</code></pre><h3>2. 浏览器直接访问</h3><table><thead><tr><th align="left">目标设备 / 服务</th><th align="left">推荐浏览器访问地址</th><th align="left">说明</th></tr></thead><tbody><tr><td align="left"><strong>OpenWrt 路由后台</strong></td><td align="left"><code>http://openwrt.home.marco</code></td><td align="left">对应内网 IP: 192.168.122.1</td></tr><tr><td align="left"><strong>光猫管理后台</strong></td><td align="left"><code>http://192.168.1.1</code></td><td align="left">对应内网 IP: 192.168.1.1</td></tr><tr><td align="left"><strong>ESXi 虚拟化后台</strong></td><td align="left"><code>https://esxi.home.marco</code></td><td align="left">必须使用 https 协议 (IP: 192.168.1.3)</td></tr><tr><td align="left"><strong>NAS 存储管理</strong></td><td align="left"><code>http://nas.home.marco:5000</code></td><td align="left">对应内网 IP: 192.168.122.5</td></tr><tr><td align="left"><strong>Ubuntu 服务器</strong></td><td align="left"><code>http://ubuntu.home.marco</code></td><td align="left">对应内网 IP: 192.168.122.2</td></tr></tbody></table><hr><h3>3. 验证 P2P 直连状态</h3><pre><code class="lang-bash">tailscale ping openwrt.home.marco</code></pre><ul><li><strong>直连输出（Direct）</strong>：<code>pong from ubuntu-home-marco (100.98.71.30) via &lt;你的公网IP&gt;:41641 in 15ms</code></li><li><strong>中继输出（Relay）</strong>：<code>pong from ubuntu-home-marco (100.98.71.30) via DERP(hkg) in 120ms</code></li></ul><hr><h2>十一、 常见问题与 FAQ</h2><h3>Q1: 为什么使用 <code>ping http://esxi.home.marco/</code> 提示找不到主机？</h3><p><code>ping</code> 是底层网络测试工具，参数只能是纯域名（<code>ping esxi.home.marco</code>）。带有 <code>http://</code> 或斜杠 <code>/</code> 的是浏览器 URL，传递给 ping 会被识别为非法域名而报错。</p><h3>Q2: 局域网内其他设备需要修改网关或做额外设置吗？</h3><p><strong>不需要。</strong> Tailscale 子网路由默认开启了 <strong>SNAT（源地址转换）</strong>。内网设备看到的访问源 IP 是 Ubuntu 服务器的 <code>192.168.122.2</code>，回包会自动送回 Ubuntu，其他设备无需做任何改动。</p><h3>Q3: 为什么 Ubuntu 重启后 Tailscale 会连不上，如何防掉线？</h3><p>国内网络环境下，节点开机/重启时发往 Tailscale 官方鉴权服务器（<code>controlplane.tailscale.com</code>）的请求会被公网阻断。通过在 OpenWrt 上配置域名分流与局域网代理接口（<code>10809</code>），并在 Ubuntu 的 <code>/etc/default/tailscaled</code> 中指定 <code>HTTP_PROXY=&quot;http://192.168.122.1:10809&quot;</code>，即可实现开机 1 秒自动鉴权并永久防掉线。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/archives/Ubuntu-OpenWrt-Tailscale-P2P.html" thr:count="0"/>
+</entry>
 <entry>
 <title type="html"><![CDATA[cloc 统计项目代码量]]></title>
 <link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/cloc.html" />
@@ -253,67 +403,5 @@ DEPENDPATH += &quot;/path/to/boost_1_72_0&quot;</code></pre><p><code>LIBS</code>
 ]]></content>
 <link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1958.html#comments" thr:count="0" />
 <link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/archives/1958.html" thr:count="0"/>
-</entry>
-<entry>
-<title type="html"><![CDATA[pandownload keep alive]]></title>
-<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1553.html" />
-<id>https://blog.niekun.net/archives/1553.html</id>
-<updated>2020-04-18T13:57:00+00:00</updated>
-<published>2020-04-18T13:57:00+00:00</published>
-<author>
-    <name>admin</name>
-    <uri>https://niekun.net</uri>
-</author>
-<category scheme="https://blog.niekun.net/category/Windows/" term="Windows" />
-<category scheme="https://blog.niekun.net/category/software/" term="software" />
-<summary type="html"><![CDATA[下载百度云的资源一直是比较头疼的，限速严重影响到了使用体验，我对百度产品又不太喜欢所以就排除了充值会员的选项。前段时间发了一篇百度云网盘直链获取及下载的文章，但是封锁很严重，基本处于不能用的状态...]]></summary>
-<content type="html" xml:base="https://blog.niekun.net/archives/1553.html" xml:lang="zh-CN"><![CDATA[
-<p><img src="https://blog.niekun.net/usr/uploads/2020/04/3072236758.png" alt="2020-04-20T13:35:22.png" title="2020-04-20T13:35:22.png"><br>下载百度云的资源一直是比较头疼的，限速严重影响到了使用体验，我对百度产品又不太喜欢所以就排除了充值会员的选项。前段时间发了一篇<a href="https://blog.niekun.net/archives/1443.html">百度云网盘直链获取及下载</a>的文章，但是封锁很严重，基本处于不能用的状态。</p><p>这两天 pandownload 这款百度盘下载器的话题很多。由于服务器被关闭，导致软件打不开。研究了下可以绕过程序启动同服务器的链接正常使用软件。原理就是利用别人备份的 pandownload.com 的网站的内容托管到别的服务器，再将对 pandownload.com 域名的请求解析到对应的服务器地址。</p><!--more--><h3>pandownload app</h3><p>pandownload 只提供了 Windows 版本，这里提供程序的备份：<a href="https://blog.niekun.net/usr/uploads/2020/04/PanDownload_add_temp.zip">PanDownload_add_temp.zip</a></p><h3>网站托管</h3><p>程序启动时会同 pandownload.com 发起请求，感谢有人对网站内容做了备份，这里只需要将网站托管到其他的服务器即可。</p><p>网站备份：<a href="https://github.com/AyagawaSeirin/PandownloadFake">https://github.com/AyagawaSeirin/PandownloadFake</a></p><p>下载仓库到服务器，使用 nginx 监听 pandownload.com 域名的访问:</p><pre><code>server {
-    listen        80;
-    server_name   pandownload.com;
-    root          /path/PandownloadFake;
-    index         index.html;
-
-    location / {
-        try_files $uri $uri/ =404;
-    }
-    location /api {
-    }
-}</code></pre><h3>域名解析</h3><p>网站托管到新的服务器后，就可以将本地 dns 解析到服务器地址了。有很多方法可以实现，这里介绍修改 hosts 文件和 v2ray 的 dns 服务器实现。</p><h4>hosts</h4><p>修改 hosts 文件是最基本的方法，就是强制将某个域名的访问解析到对应的 IP 地址。</p><p>hosts 文件地址：C:\Windows\System32\Drivers\etc\hosts</p><p>打开 hosts 文件，在最后加入如下：</p><pre><code>xxx.xxx.xxx.xxx    pandownload.com
-</code></pre><p>解析地址可以填写服务器 IP，如果服务器原本的域名加了 CDN，可以填写 CDN 分配的 IP，隐藏服务器真实地址。也可以直接填写域名。</p><p>修改 hosts 完成后再 cmd 执行下面命令以刷新 dns 缓存：</p><pre><code>ipconfig /flushdns
-</code></pre><p>启动 pandownload 查看是否可以启动。</p><h4>配置 v2ray dns 服务器</h4><p>如果正在使用 v2ray，可以配置 dns 服务器来达到同样的效果。</p><p>dns 段添加设置如下：</p><pre><code>{
-    &quot;dns&quot;: {
-        &quot;hosts&quot;: {
-            &quot;domain:pandownload.com&quot;: &quot;xxx.xxx.xxx.xxx&quot;
-        }
-    }
-}</code></pre><p>routing 段添加设置如下：</p><pre><code>{
-    &quot;routing&quot;: {
-        &quot;domainStrategy&quot;: &quot;IPOnDemand&quot;,
-        &quot;rules&quot;: [
-            {
-                &quot;type&quot;: &quot;field&quot;,
-                &quot;domain&quot;: [
-                    &quot;pandownload.com&quot;
-                ],
-                &quot;outboundTag&quot;: &quot;direct-customDNS&quot;
-            }
-        ]
-    }
-}</code></pre><p>outbounds 段添加设置如下：</p><pre><code>{
-    &quot;outbounds&quot;: [
-        {
-            &quot;protocol&quot;: &quot;freedom&quot;,
-            &quot;settings&quot;: {
-                &quot;domainStrategy&quot;: &quot;UseIP&quot;
-            },
-            &quot;tag&quot;: &quot;direct-customDNS&quot;
-        }
-    ]
-}</code></pre><p>以上 v2ray 配置完成后，需要让 pandownload 走 v2ray 监听的代理地址。修改 <code>PanData\config.ini</code>：</p><pre><code>proxy=127.0.0.1:1082
-</code></pre><p>proxy 地址为 v2ray http 监听地址。启动 pandownload 测试是否启动正常。</p><h3>使用</h3><p>网上有人搭建好现成的服务端，自己搭建不方便的话可以直接使用别人搭建好的 hosts 地址：<br>185.199.108.153<br>64.52.84.68</p><p>登录百度账户即可进行下载，这里测试需要设置为<strong>PCS接口</strong>才能正常下载：<br><img src="https://blog.niekun.net/usr/uploads/2020/04/2377157041.png" alt="2020-04-18T14:03:44.png" title="2020-04-18T14:03:44.png"></p>
-]]></content>
-<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1553.html#comments" thr:count="0" />
-<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/category/software/archives/1553.html" thr:count="0"/>
 </entry>
 </feed>
