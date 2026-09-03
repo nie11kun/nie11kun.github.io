@@ -26,17 +26,17 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
 <title>基于 Ubuntu 与 OpenWrt 构建 Tailscale 家庭子网路由与 P2P 直连极速访问指南</title>
 <link>https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html</link>
 <dc:date>2026-08-31T02:35:00+00:00</dc:date>
-<description>本指南专注且纯粹地介绍如何利用家庭内网的一台 Ubuntu 服务器 作为 Tailscale 子网路由器（Subnet Router） 与 出口节点（Exit Node），并配合 上级光猫 与 OpenWrt 路由器 进行网络优化，实现外部设备（手机、笔记本等）在公网环境下 100% P2P 高速直连 访问家庭局域网内的所有设备（如 NAS、软路由、光猫后台、虚拟化集群等），并支持 内网自定义域名（如 *.home.marco）自动条件分流解析。目录一、 网络拓扑与工作原理二、 第一步：光猫端配置（打通最外层端口）三、 第二步：OpenWrt 主路由配置（转发与分流）四、 第三步：Ubuntu 服务器配置（核心节点与防掉线）五、 第四步：Tailscale 云端控制台配置（路由与 DNS）六、 第五步：各端客户端接入与配置七、 第六步：连通性验证与访问测试八、 常见问题与排错指南 (FAQ)一、 网络拓扑与工作原理1. 全局网络层级图解家庭网络通常包含三层结构。配置的目标是让外网握手数据包一路绿灯直达 Ubuntu 的 41641 监听端口：  [外部移动设备: 手机 5G / 出差笔记本]
+<description>本指南专注且纯粹地介绍如何利用家庭内网的一台 Ubuntu 服务器 作为 Tailscale 子网路由器（Subnet Router） 与 出口节点（Exit Node），并配合 上级光猫 与 OpenWrt 路由器 进行网络优化，实现外部设备（手机、笔记本等）在公网环境下 100% P2P 高速直连 访问家庭局域网内的所有设备（如 NAS、软路由、光猫后台、虚拟化集群等），并支持 内网自定义域名（如 *.home.marco）自动条件分流解析。本方案在设计上实现了全链路静态化与常驻心跳保活，即使家庭遭遇断电、路由器重启或运营商动态 IP 轮换，通电后均能全自动恢复秒级直连，永久有效。目录一、 网络拓扑与工作原理二、 第一步：光猫端配置（打通最外层端口）三、 第二步：OpenWrt 主路由配置（静态WAN、转发与分流）四、 第三步：Ubuntu 服务器配置（核心节点、加速与保活）五、 第四步：Tailscale 云端控制台配置（路由与 DNS）六、 第五步：各端客户端接入与配置七、 第六步：连通性验证与访问测试八、 常见问题与排错指南 (FAQ)一、 网络拓扑与工作原理1. 全局网络层级图解家庭网络通常包含三层结构。配置的目标是让外网握手数据包一路绿灯直达 Ubuntu 的 41641 监听端口：  [外部移动设备: 手机 5G / 出差笔记本]
                     │
                     ▼  1. 发起 WireGuard 握手 (UDP 41641)
   ┌─────────────────────────────────────────────────────────────┐
   │ 第一层：光猫 (192.168.1.1) [拥有公网 IP]                      │
   │    └─ 虚拟主机：将外网 UDP 41641 静态映射至 192.168.1.6:41641  │
   └──────────────────────────────┬──────────────────────────────┘
-                                 │ 2. 透传至二级路由
+                                 │ 2. 透传至二级路由 (全静态 IP，绝不漂移)
                                  ▼
   ┌─────────────────────────────────────────────────────────────┐
-  │ 第二层：OpenWrt 主路由 (LAN: 192.168.122.1, WAN: 192.168.1.6) │
+  │ 第二层：OpenWrt 主路由 (WAN 静态: 192.168.1.6, LAN: 192.168.122.1)│
   │    ├─ 防火墙转发：UDP 41641 -&gt; 192.168.122.2:41641          │
   │    ├─ 内网 DNS：Dnsmasq 解析 *.home.marco                    │
   │    └─ 鉴权代理接口：192.168.122.1:10809 (保障国内重启秒连)    │
@@ -44,21 +44,28 @@ xmlns:dc="http://purl.org/dc/elements/1.1/">
                                  │ 3. 精准到达子网路由器
                                  ▼
   ┌─────────────────────────────────────────────────────────────┐
-  │ 第三层：Ubuntu 服务器 (局域网 IP: 192.168.122.2)               │
+  │ 第三层：Ubuntu 服务器 (局域网静态 IP: 192.168.122.2)            │
   │    ├─ 角色: Tailscale 子网路由器 (Subnet Router)             │
-  │    ├─ 广播网段: 192.168.122.0/24 (局域网) 与 192.168.1.0/24  │
-  │    └─ 硬件加速: UDP GRO 网卡转发加速                          │
+  │    ├─ 广播网段: 192.168.122.0/24 与 192.168.1.0/24           │
+  │    ├─ 硬件加速: UDP GRO 网卡转发加速                          │
+  │    └─ 守护进程: tailscale-keepalive (20s 心跳锁死 NAT 会话)   │
   └──────────────────────────────┬──────────────────────────────┘
                                  │ 4. 自动内网转发 (SNAT)
          ┌───────────────────────┼───────────────────────┐
          ▼                       ▼                       ▼
     局域网 NAS              局域网 PC               上级光猫后台
-  (192.168.122.5)         (192.168.122.x)         (192.168.1.1)2. 为什么需要这几步配置？未配置光猫映射时（走中继）：
-外部设备 ──(UDP 41641)──&gt; [ 光猫拦截 ] ──► 绕路海外 DERP 服务器中转 (延迟 280ms+, 限速) ──► 家里
+  (192.168.122.5)         (192.168.122.x)         (192.168.1.1)2. 为什么需要这几步配置？未配置光猫映射与保活时：
+外部设备 ──(UDP 41641)──&gt; [ 光猫拦截/超时闭合 ] ──► 绕路海外 DERP 服务器中转 (延迟 280ms~600ms, 限速) ──► 家里
 
-配置光猫静态端口映射后（100% P2P 直连）：
+配置静态映射与 20s 常驻保活后（100% P2P 极速直连）：
 外部设备 ──(UDP 41641)──&gt; [ 光猫 ] ──► [ OpenWrt ] ──► [ Ubuntu ]
-  └────────────────────── 建立端到端加密直连隧道 (35ms 极速) ──────────────────────┘二、 第一步：光猫端配置（打通最外层端口）光猫是外部流量进入家庭的第一道门。我们需要锁定 41641 端口，避免光猫因为 NAT 会话超时导致连接降级为中继。1. 登录光猫后台使用连接光猫 Wi-Fi 或插网线的电脑，在浏览器打开：http://192.168.1.1；输入管理员账号与密码（见光猫背面机身铭牌贴纸）。2. 添加虚拟主机/端口映射（强烈推荐 ⭐⭐⭐⭐⭐）找到 【NAT 设置】 ➜ 【虚拟主机配置】（或称“端口转发 / 虚拟服务器”）；点击新建，按以下参数填写：使能端口映射：勾选WAN名称：选择当前主上网通道（例如 2_INTERNET_R_VID_10）协议：选择 UDP外部开始端口 / 外部结束端口：41641 / 41641内部开始端口 / 内部结束端口：41641 / 41641内部主机 IP：填写 OpenWrt 路由器的 WAN 口 IP（例如 192.168.1.6）点击 【应用 / 保存】。3. 开启 DMZ 主机（可选双保险）找到 【安全设置 / 高级设置】 ➜ 【DMZ 配置】；勾选 启用 DMZ，并将 DMZ IP 地址填写为 OpenWrt 的 WAN 口 IP（192.168.1.6）；保存生效。三、 第二步：OpenWrt 主路由配置（转发与分流）在 OpenWrt 路由器上需要完成 4 项设置：端口转发、DNS 跨网段响应、鉴权域名分流与局域网代理接口。1. 防火墙端口转发与硬件加速通过 SSH 登录 OpenWrt 路由器（ssh root@192.168.122.1），执行以下命令：# 1. 添加 UDP 41641 转发至 Ubuntu 服务器
+  └────────────────────── 建立端到端加密直连隧道 (5ms~35ms 极速秒开) ──────────────────────┘二、 第一步：光猫端配置（打通最外层端口）光猫是外部流量进入家庭的第一道门。我们需要锁定 41641 端口，避免光猫因为 NAT 会话超时导致连接降级为中继。1. 登录光猫后台使用连接光猫 Wi-Fi 或插网线的电脑，在浏览器打开：http://192.168.1.1；输入管理员账号与密码（见光猫背面机身铭牌贴纸）。2. 添加虚拟主机/端口映射（强烈推荐 ⭐⭐⭐⭐⭐）找到 【NAT 设置】 ➜ 【虚拟主机配置】（或称“端口转发 / 虚拟服务器”）；点击新建，按以下参数填写：使能端口映射：勾选WAN名称：选择当前主上网通道（例如 2_INTERNET_R_VID_10）协议：选择 UDP外部开始端口 / 外部结束端口：41641 / 41641内部开始端口 / 内部结束端口：41641 / 41641内部主机 IP：填写 OpenWrt 路由器的 WAN 口 IP（192.168.1.6）点击 【应用 / 保存】。3. 开启 DMZ 主机（可选双保险）找到 【安全设置 / 高级设置】 ➜ 【DMZ 配置】；勾选 启用 DMZ，并将 DMZ IP 地址填写为 OpenWrt 的 WAN 口 IP（192.168.1.6）；保存生效。三、 第二步：OpenWrt 主路由配置（静态WAN、转发与分流）在 OpenWrt 路由器上需要完成 4 项设置：WAN 口静态化、端口转发、DNS 跨网段响应与鉴权域名分流。1. 将 WAN 口配置为静态 IP（消除断电 IP 漂移隐患）为了防止家庭断电重启时光猫 DHCP 发生竞争导致 OpenWrt IP 漂移（从而使光猫的端口转发失效），通过 SSH 登录 OpenWrt 路由器（ssh root@192.168.122.1），执行以下命令将 WAN 口固化为静态 IP：uci set network.wan.proto=&#039;static&#039;
+uci set network.wan.ipaddr=&#039;192.168.1.6&#039;
+uci set network.wan.netmask=&#039;255.255.255.0&#039;
+uci set network.wan.gateway=&#039;192.168.1.1&#039;
+uci set network.wan.dns=&#039;192.168.1.1 114.114.114.114&#039;
+uci commit network
+/etc/init.d/network reload2. 防火墙端口转发与硬件加速继续在 OpenWrt 终端中执行：# 1. 添加 UDP 41641 转发至 Ubuntu 服务器
 uci add firewall redirect
 uci set firewall.@redirect[-1].name=&#039;Tailscale_Ubuntu&#039;
 uci set firewall.@redirect[-1].src=&#039;wan&#039;
@@ -74,7 +81,7 @@ uci set firewall.@defaults[0].flow_offloading=&#039;1&#039;
 
 # 3. 提交并重载防火墙
 uci commit firewall
-/etc/init.d/firewall reload2. Dnsmasq 允许跨网段与防重绑配置让 OpenWrt 的 Dnsmasq 允许响应来自 Tailscale 虚拟网段的查询，并允许返回内网私有 IP：# 1. 允许响应非本地直连网段的 DNS 请求
+/etc/init.d/firewall reload3. Dnsmasq 允许跨网段与防重绑配置让 OpenWrt 的 Dnsmasq 允许响应来自 Tailscale 虚拟网段的查询，并允许返回内网私有 IP：# 1. 允许响应非本地直连网段的 DNS 请求
 uci set dhcp.@dnsmasq[0].localservice=&#039;0&#039;
 
 # 2. 将内网域名加入防 DNS 重绑白名单
@@ -82,14 +89,14 @@ uci add_list dhcp.@dnsmasq[0].rebind_domain=&#039;home.marco&#039;
 
 # 3. 提交并重启 Dnsmasq
 uci commit dhcp
-/etc/init.d/dnsmasq restart3. Tailscale 云端鉴权域名分流与局域网代理配置A. 为什么需要做这部分配置？在国内网络环境下，Tailscale 的官方控制中心（controlplane.tailscale.com 及 *.tailscale.com、*.ts.net）的 HTTPS 443 端口经常遭受网络干扰或阻断。现象：当家庭路由器或服务器开机/重启时，Tailscale 无法完成初始身份认证与节点密钥交换，导致设备一直处于离线状态。核心目标：让发往 Tailscale 云端控制中心的鉴权小流量（仅几 KB）通过代理通道顺畅握手，而实际的内网数据传输（WireGuard UDP:41641）依然保持原生直连。B. 实现方式说明（支持多种路由方案）根据您路由器上运行的代理工具不同，任选以下一种方式实现即可：方案 1：Dnsmasq + V2Ray / Xray 方案（本教程示例）在 OpenWrt 的自定义代理域名列表 /etc/dnsmasq/proxy-added.conf 中追加规则：nftset=/tailscale.com/4#ip#v2ray#gfwlist
+/etc/init.d/dnsmasq restart4. Tailscale 云端鉴权域名分流与局域网代理配置A. 为什么需要做这部分配置？在国内网络环境下，Tailscale 的官方控制中心（controlplane.tailscale.com 及 *.tailscale.com、*.ts.net）的 HTTPS 443 端口经常遭受网络干扰或阻断。现象：当家庭路由器或服务器开机/重启时，Tailscale 无法完成初始身份认证与节点密钥交换，导致设备一直处于离线状态。核心目标：让发往 Tailscale 云端控制中心的鉴权小流量（仅几 KB）通过代理通道顺畅握手，而实际的内网数据传输（WireGuard UDP:41641）依然保持原生直连。B. 实现方式说明（支持多种路由方案）根据您路由器上运行的代理工具不同，任选以下一种方式实现即可：方案 1：Dnsmasq + V2Ray / Xray 方案（本教程示例）在 OpenWrt 的自定义代理域名列表 /etc/dnsmasq/proxy-added.conf 中追加规则：nftset=/tailscale.com/4#ip#v2ray#gfwlist
 nftset=/tailscale.io/4#ip#v2ray#gfwlist
 nftset=/ts.net/4#ip#v2ray#gfwlist重启 Dnsmasq：/etc/init.d/dnsmasq restart在 /etc/v2ray/config.json 的 inbounds 中开启局域网 HTTP 代理端口（供内网 Ubuntu 调用）：{
     &quot;tag&quot;: &quot;http-proxy&quot;,
     &quot;port&quot;: &quot;10809&quot;,
     &quot;listen&quot;: &quot;0.0.0.0&quot;,
     &quot;protocol&quot;: &quot;http&quot;
-}重启服务：/etc/init.d/v2ray restart方案 2：OpenClash / PassWall / SSR-Plus / ShellCrash 方案如果您的 OpenWrt 使用的是常见的图形化代理插件：添加分流规则：在插件的「自定义分流规则」中添加以下规则走代理策略组：DOMAIN-SUFFIX,tailscale.com,PROXYDOMAIN-SUFFIX,ts.net,PROXYDOMAIN-SUFFIX,tailscale.io,PROXY开启局域网共享：在插件设置中勾选 「允许局域网连接 (Allow LAN)」，记录其提供的 HTTP 代理端口（例如 OpenClash 默认为 7890，后续在 Ubuntu 中将端口对应改为 7890 即可）。方案 3：Ubuntu 服务器端本地代理方案（路由器无代理时使用）如果您的主路由器没有安装任何代理服务：可在 Ubuntu 服务器本地运行轻量级代理客户端（如 Sing-Box / Mihomo / Xray），监听本地 127.0.0.1:10809；后续在 /etc/default/tailscaled 中将代理地址写为 http://127.0.0.1:10809 同样可以完美生效。四、 第三步：Ubuntu 服务器配置（核心节点与防掉线）通过 SSH 登录 Ubuntu 服务器（ssh marco@192.168.122.2），进行系统与 Tailscale 核心配置。1. 开启系统内核网络转发# 写入持久化转发配置
+}重启服务：/etc/init.d/v2ray restart方案 2：OpenClash / PassWall / SSR-Plus / ShellCrash 方案如果您的 OpenWrt 使用的是常见的图形化代理插件：添加分流规则：在插件的「自定义分流规则」中添加以下规则走代理策略组：DOMAIN-SUFFIX,tailscale.com,PROXYDOMAIN-SUFFIX,ts.net,PROXYDOMAIN-SUFFIX,tailscale.io,PROXY开启局域网共享：在插件设置中勾选 「允许局域网连接 (Allow LAN)」，记录其提供的 HTTP 代理端口（例如 OpenClash 默认为 7890，后续在 Ubuntu 中将端口对应改为 7890 即可）。方案 3：Ubuntu 服务器端本地代理方案（路由器无代理时使用）如果您的主路由器没有安装任何代理服务：可在 Ubuntu 服务器本地运行轻量级代理客户端（如 Sing-Box / Mihomo / Xray），监听本地 127.0.0.1:10809；后续在 /etc/default/tailscaled 中将代理地址写为 http://127.0.0.1:10809 同样可以完美生效。四、 第三步：Ubuntu 服务器配置（核心节点、加速与保活）通过 SSH 登录 Ubuntu 服务器（ssh marco@192.168.122.2），进行系统与 Tailscale 核心配置。1. 开启系统内核网络转发# 写入持久化转发配置
 sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/sysctl.d/99-tailscale.conf
 net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
@@ -135,7 +142,39 @@ WantedBy=multi-user.target
 EOF&#039;
 
 sudo systemctl daemon-reload
-sudo systemctl enable --now tailscale-gro.service五、 第四步：Tailscale 云端控制台配置（路由与 DNS）1. 审批激活广播子网与 Exit Node打开浏览器登录 Tailscale 管理控制台 - Machines 页面；找到服务器 ubuntu-home-marco，点击右侧菜单 ... ➜ Edit route settings...；勾选 192.168.122.0/24 与 192.168.1.0/24；勾选 Use as exit node；点击 Save 保存。2. 开启“永久免登录”防掉线 (Disable Key Expiry)在同一页面点击 ubuntu-home-marco 右侧菜单 ...；点击 Disable key expiry；状态变为 Expiry disabled，该服务器将终身永久在线。3. 配置 Split DNS 条件分流解析进入 Tailscale 控制台 - DNS 页面；确保顶部的 MagicDNS 处于开启状态；在 Nameservers 区域点击 Add nameserver ➜ 选择 Custom...：Nameserver IP：192.168.122.1（OpenWrt 路由器 IP）勾选 Restrict to search domainDomain：home.marco勾选 Use with exit node点击 Save 保存。六、 第五步：各端客户端接入与配置1. 生成永久登录密钥 (Auth Key)为了解决移动端（特别是 iOS）在登录时因 VPN 槽位冲突导致无法完成网页认证的问题，推荐使用 Auth Key 登录：在电脑浏览器打开 Tailscale Keys 页面；点击 Generate auth key... ➜ 勾选 Reusable ➜ 点击 Generate key；复制生成的密钥（形如 tskey-auth-kxxxxxxxxxxxx）。2. 各端客户端登录方法A. iPhone / iPad (iOS 设备)在 App Store 下载并安装 Tailscale；打开 App，在登录界面右上角点击 ... 图标；选择 Log in with auth key...；粘贴复制的密钥，点击登录即可瞬间秒级登录成功。B. Windows 电脑安装 Tailscale 官方客户端；右键右下角系统托盘的 Tailscale 图标 ➜ 选择 Log in...；浏览器登录账号完成绑定；在控制台的 Machines 页面同样对该 Windows 电脑点击 Disable key expiry。七、 第六步：连通性验证与访问测试在外部设备（如手机断开家庭 Wi-Fi 开启 5G，或笔记本连接外部热点）连接 Tailscale 后进行验证。1. 验证 P2P 直连与低延迟在客户端终端执行：tailscale ping openwrt.home.marco正常直连输出：pong from ubuntu-home-marco (100.98.71.30) via &lt;你的公网IP&gt;:41641 in 35ms往返延迟应稳定在 35~50ms 之间，说明 100% P2P 隧道已建立。2. 常用服务浏览器直接访问地址目标服务推荐访问地址说明OpenWrt 路由后台http://openwrt.home.marco对应内网 IP: 192.168.122.1光猫管理后台http://192.168.1.1对应内网 IP: 192.168.1.1ESXi 虚拟化后台https://esxi.home.marco必须使用 https 协议 (IP: 192.168.1.3)NAS 存储管理http://nas.home.marco:5000对应内网 IP: 192.168.122.5Ubuntu 服务器http://ubuntu.home.marco对应内网 IP: 192.168.122.2八、 常见问题与排错指南 (FAQ)Q1: 客户端本地运行了代理软件（v2rayN / Clash），无法打开 *.home.marco 网页？原因：电脑上的代理软件劫持了所有网络请求，并尝试将 *.home.marco 送往海外代理节点，导致报错 503 Service Unavailable。  解决方法：在代理软件的路由分流中将 home.marco 加入直连白名单：v2rayN：设置 ➜ 路由设置 ➜ 「直连的 Domain」添加 domain:home.marco；Clash / Clash Verge：规则添加 DOMAIN-SUFFIX,home.marco,DIRECT；SwitchyOmega：Bypass List 添加 *.home.marco。Q2: 为什么使用 ping http://esxi.home.marco/ 会提示找不到主机？ping 是网络层测试工具，只能接收纯域名或 IP（例如 ping esxi.home.marco）。带有 http:// 或斜杠 / 的是浏览器应用层 URL，传给 ping 命令会被当成非法域名报错。Q3: 局域网内的其他设备（如 NAS、打印机）需要更改网关吗？完全不需要。 Tailscale 子网路由默认自带 SNAT（源地址伪装）。内网所有设备收到的请求源 IP 都是 Ubuntu 服务器的 192.168.122.2，回包会自动返回 Ubuntu 并送回外部客户端。Q4: 在外面出差时，外部 Wi-Fi 的网段也是 192.168.1.1，如何访问家里的光猫？在客户端的 Tailscale 菜单中开启 Exit Node ➜ 选择 ubuntu-home-marco。此时所有网络流量强制经由家庭 Ubuntu 发送，即可准确命中家里的光猫后台 192.168.1.1。</description>
+sudo systemctl enable --now tailscale-gro.service6. 部署常驻心跳保活守护服务（锁死光猫 NAT，防休眠退化）国内家庭宽带光猫通常在空闲 30~60 秒后自动超时关闭 UDP 临时会话表，导致长时间不使用的外部客户端发起连接时需要先走中继唤醒。部署常驻心跳服务，每 20 秒向外部节点和 STUN 发送微弱探测包，即可实现全天候 24 小时保持极速直连状态：# 1. 创建保活脚本
+sudo bash -c &#039;cat &lt;&lt; &quot;EOF&quot; &gt; /usr/local/bin/tailscale-keepalive.sh
+#!/bin/bash
+# Tailscale NAT Keepalive Daemon (20s interval)
+while true; do
+    # 周期性向对端发送微量探测，锁死 NAT 通道
+    tailscale ping --c 1 --until-direct=false 100.70.12.55 &gt;/dev/null 2&gt;&amp;1
+    sleep 20
+done
+EOF&#039;
+
+sudo chmod +x /usr/local/bin/tailscale-keepalive.sh
+
+# 2. 配置 systemd 开机自启守护进程
+sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/systemd/system/tailscale-keepalive.service
+[Unit]
+Description=Tailscale UDP NAT Keepalive Service
+After=network.target tailscaled.service
+Requires=tailscaled.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/tailscale-keepalive.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF&#039;
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now tailscale-keepalive.service五、 第四步：Tailscale 云端控制台配置（路由与 DNS）1. 审批激活广播子网与 Exit Node打开浏览器登录 Tailscale 管理控制台 - Machines 页面；找到服务器 ubuntu-home-marco，点击右侧菜单 ... ➜ Edit route settings...；勾选 192.168.122.0/24 与 192.168.1.0/24；勾选 Use as exit node；点击 Save 保存。2. 开启“永久免登录”防掉线 (Disable Key Expiry)在同一页面点击 ubuntu-home-marco 右侧菜单 ...；点击 Disable key expiry；状态变为 Expiry disabled，该服务器将终身永久在线。3. 配置 Split DNS 条件分流解析进入 Tailscale 控制台 - DNS 页面；确保顶部的 MagicDNS 处于开启状态；在 Nameservers 区域点击 Add nameserver ➜ 选择 Custom...：Nameserver IP：192.168.122.1（OpenWrt 路由器 IP）勾选 Restrict to search domainDomain：home.marco勾选 Use with exit node点击 Save 保存。六、 第五步：各端客户端接入与配置1. 生成永久登录密钥 (Auth Key)为了解决移动端（特别是 iOS）在登录时因 VPN 槽位冲突导致无法完成网页认证的问题，推荐使用 Auth Key 登录：在电脑浏览器打开 Tailscale Keys 页面；点击 Generate auth key... ➜ 勾选 Reusable ➜ 点击 Generate key；复制生成的密钥（形如 tskey-auth-kxxxxxxxxxxxx）。2. 各端客户端登录方法A. iPhone / iPad (iOS 设备)在 App Store 下载并安装 Tailscale；打开 App，在登录界面右上角点击 ... 图标；选择 Log in with auth key...；粘贴复制的密钥，点击登录即可瞬间秒级登录成功。B. Windows 电脑安装 Tailscale 官方客户端；右键右下角系统托盘的 Tailscale 图标 ➜ 选择 Log in...；浏览器登录账号完成绑定；在控制台的 Machines 页面同样对该 Windows 电脑点击 Disable key expiry。C. Windows 远程桌面 (RDP) 极速优化（必配 ⭐⭐⭐⭐⭐）如果您需要使用外部 Windows 笔记本远程桌面控制家里的 Windows 电脑（如 windows.home.marco），强烈建议在外部笔记本上关闭客户端的 RDP-UDP 传输：优化原理：微软 RDP 默认启用的 UDP 协议会发送 1400~1500 字节大包，而 Tailscale 虚拟网卡 MTU 为 1280 字节，导致大量数据包分片丢失，系统误判网络拥堵将延迟上调至 400ms、带宽限死在 1.3 Mbps。关闭 UDP 强制走 TCP 后，TCP 会自动自适应 MTU，往返延迟瞬间降至 35ms，带宽直接解锁至满速。一键配置（以管理员身份运行 PowerShell）：reg add &quot;HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client&quot; /v fClientDisableUDP /t REG_DWORD /d 1 /f图形化配置（可选）：按 Win + R 运行 gpedit.msc ➜ 计算机配置 ➜ 管理模板 ➜ Windows 组件 ➜ 远程桌面服务 ➜ 远程桌面连接客户端 ➜ 双击【在客户端上关闭 UDP】➜ 勾选【已启用】保存。七、 第六步：连通性验证与访问测试在外部设备（如手机断开家庭 Wi-Fi 开启 5G，或笔记本连接外部热点）连接 Tailscale 后进行验证。1. 验证 P2P 直连与低延迟在客户端终端执行：tailscale ping openwrt.home.marco正常直连输出：pong from ubuntu-home-marco (100.98.71.30) via &lt;公网IP&gt;:&lt;端口&gt; in 10ms~35ms往返延迟应稳定在 10~35ms 之间，说明 100% 原生 P2P 隧道已建立。2. 常用服务浏览器直接访问地址目标服务推荐访问地址说明OpenWrt 路由后台http://openwrt.home.marco对应内网 IP: 192.168.122.1光猫管理后台http://192.168.1.1对应内网 IP: 192.168.1.1ESXi 虚拟化后台https://esxi.home.marco必须使用 https 协议 (IP: 192.168.1.3)NAS 存储管理http://nas.home.marco:5000对应内网 IP: 192.168.122.5Ubuntu 服务器http://ubuntu.home.marco对应内网 IP: 192.168.122.2八、 常见问题与排错指南 (FAQ)Q1: 客户端本地运行了代理软件（v2rayN / Clash），无法打开 *.home.marco 网页？原因：电脑上的代理软件劫持了所有网络请求，并尝试将 *.home.marco 送往海外代理节点，导致报错 503 Service Unavailable。  解决方法：在代理软件的路由分流中将 home.marco 加入直连白名单：v2rayN：设置 ➜ 路由设置 ➜ 「直连的 Domain」添加 domain:home.marco；Clash / Clash Verge：规则添加 DOMAIN-SUFFIX,home.marco,DIRECT；SwitchyOmega：Bypass List 添加 *.home.marco。Q2: 为什么有时长时间没连，初次 ping 发现前几个包走了 DERP 中继？原因：这是运营商动态公网 IP 轮换或长时间无数据通信后，光猫 NAT 会话休眠造成的正常自愈过程。Tailscale 为了防止丢包会先调用官方 DERP 兜底送达，并在后台完成打洞升级。  彻底解决：部署本教程第四步的 tailscale-keepalive.service，让后台每 20 秒发送微量心跳包锁死光猫 NAT 通道，即可实现 24 小时随连随通、秒级直连。Q3: 家庭整个网络断电或路由器重启后，是否能够全自动恢复直连？是的，完全自动恢复。整套网络已经完成全链路全静态化锁定：光猫虚拟主机（UDP 41641）固化在硬件中，断电不丢失；OpenWrt WAN 口固化为静态 IP 192.168.1.6，绝不会因 DHCP 竞争而漂移；Ubuntu 内网 IP 与监听端口 41641 固化；tailscaled 与 tailscale-keepalive 开机自启。  来电后，光猫完成拨号、软路由与服务器开机，10~15 秒内自动完成握手并无缝锁定直连，无需任何人工干预。Q4: 局域网内的其他设备（如 NAS、打印机）需要更改网关吗？完全不需要。 Tailscale 子网路由默认自带 SNAT（源地址伪装）。内网所有设备收到的请求源 IP 都是 Ubuntu 服务器的 192.168.122.2，回包会自动返回 Ubuntu 并送回外部客户端。Q5: 在外面出差时，外部 Wi-Fi 的网段也是 192.168.1.1，如何访问家里的光猫？在客户端的 Tailscale 菜单中开启 Exit Node ➜ 选择 ubuntu-home-marco。此时所有网络流量强制经由家庭 Ubuntu 发送，即可准确命中家里的光猫后台 192.168.1.1。Q6: 使用 Windows 远程桌面 (RDP) 访问家里电脑时，提示延迟高达 400ms、可用带宽仅 1.3 Mbps？原因：这是微软 RDP 客户端启用 UDP 与 WireGuard/Tailscale 默认 MTU 1280 产生的丢包冲突所致。  解决方法：在外部 Windows 客户端上关闭 RDP 的 UDP 传输通道（强制走纯 TCP 模式）：  以管理员身份运行 PowerShell 执行以下命令：reg add &quot;HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client&quot; /v fClientDisableUDP /t REG_DWORD /d 1 /f修改后彻底关闭远程桌面窗口并重新连接，传输协议会自动切换为稳定的 TCP/WebSocket，往返延迟瞬间从 400ms 骤降至 30ms~40ms 极速响应，可用带宽飙升至 10+ Mbps，彻底告别卡顿！</description>
 </item>
 <item rdf:about="https://blog.niekun.net/archives/3090.html">
 <title>记一次完美的家庭网络改造：弱电箱“单线复用”与透明代理排错全指南</title>
