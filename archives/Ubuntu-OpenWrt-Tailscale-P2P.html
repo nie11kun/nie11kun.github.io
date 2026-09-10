@@ -22,7 +22,7 @@
 <meta property="og:site_name" content="Marco Nie" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:domain" content="blog.niekun.net" />
-<script type="db936a47a01a53ce22c86756-text/javascript">
+<script type="4fa0220648c309d159587c1c-text/javascript">
 (function () {
     window.TypechoComment = {
         dom : function (sel) {
@@ -122,7 +122,7 @@
         }
     };
 })();
-</script><script type="db936a47a01a53ce22c86756-text/javascript">
+</script><script type="4fa0220648c309d159587c1c-text/javascript">
 (function () {
     const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
     let added = false;
@@ -137,31 +137,31 @@
             input.type = 'hidden';
             input.name = '_';
             input.value = (function () {
-    var _9f1G = //'w'
-'fe'+'c'//'Y'
-+/* 'cda'//'cda' */''+'41'//'Brw'
-+'c2'//'GQ1'
-+/* 'Nd'//'Nd' */''+//'AkG'
-'33'+'18'//'6B'
-+'eeb'//'q'
-+'a'//'Z'
-+'75'//'db'
-+'91'//'SDA'
-+//'UqC'
-'2'+'b7'//'y'
-+//'q'
-'b9d'+//'ew'
-'a5'+//'j'
-'e7c'+''///*'7'*/'7'
-+//'F'
-'F'+'f3'//'nw'
-, _hdl7Z = [[30,31]];
+    var _u4wa0i = /* 'f'//'f' */''+//'33'
+'fec'+'41c'//'2V'
++'233'//'4Ez'
++'1'//'z2'
++'8e'//'Ci'
++//'Wd'
+'eb'+//'EOZ'
+'a75'+'9'//'k'
++'12'//'uC2'
++//'un'
+'b'+'7'//'OyY'
++'sMf'//'sMf'
++/* 'fAR'//'fAR' */''+//'tI'
+'tI'+/* '8OR'//'8OR' */''+'b9d'//'8'
++'a5'//'v'
++//'EO'
+'e7'+//'a'
+'cf'+'3'//'D6r'
+, _wOcUtDM = [[22,25],[22,24]];
     
-    for (var i = 0; i < _hdl7Z.length; i ++) {
-        _9f1G = _9f1G.substring(0, _hdl7Z[i][0]) + _9f1G.substring(_hdl7Z[i][1]);
+    for (var i = 0; i < _wOcUtDM.length; i ++) {
+        _u4wa0i = _u4wa0i.substring(0, _wOcUtDM[i][0]) + _u4wa0i.substring(_wOcUtDM[i][1]);
     }
 
-    return _9f1G;
+    return _u4wa0i;
 })();;
  
             if (form) {
@@ -269,7 +269,7 @@
 
 配置静态映射与 20s 常驻保活后（100% P2P 极速直连）：
 外部设备 ──(UDP 41641)──&gt; [ 光猫 ] ──► [ OpenWrt ] ──► [ Ubuntu ]
-  └────────────────────── 建立端到端加密直连隧道 (5ms~35ms 极速秒开) ──────────────────────┘</code></pre><hr><h2>二、 第一步：光猫端配置（打通最外层端口）</h2><p>光猫是外部流量进入家庭的第一道门。我们需要锁定 <code>41641</code> 端口，避免光猫因为 NAT 会话超时导致连接降级为中继。</p><h3>1. 登录光猫后台</h3><ol><li>使用连接光猫 Wi-Fi 或插网线的电脑，在浏览器打开：<code>http://192.168.1.1</code>；</li><li>输入管理员账号与密码（见光猫背面机身铭牌贴纸）。</li></ol><h3>2. 添加虚拟主机/端口映射（强烈推荐 ⭐⭐⭐⭐⭐）</h3><ol><li>找到 <strong>【NAT 设置】</strong> ➜ <strong>【虚拟主机配置】</strong>（或称“端口转发 / 虚拟服务器”）；</li><li><p>点击新建，按以下参数填写：</p><ul><li><strong>使能端口映射</strong>：勾选</li><li><strong>WAN名称</strong>：选择当前主上网通道（例如 <code>2_INTERNET_R_VID_10</code>）</li><li><strong>协议</strong>：选择 <code>UDP</code></li><li><strong>外部开始端口 / 外部结束端口</strong>：<code>41641</code> / <code>41641</code></li><li><strong>内部开始端口 / 内部结束端口</strong>：<code>41641</code> / <code>41641</code></li><li><strong>内部主机 IP</strong>：填写 OpenWrt 路由器的 WAN 口 IP（<code>192.168.1.6</code>）</li></ul></li><li>点击 <strong>【应用 / 保存】</strong>。</li></ol><h3>3. 开启 DMZ 主机（可选双保险）</h3><ol><li>找到 <strong>【安全设置 / 高级设置】</strong> ➜ <strong>【DMZ 配置】</strong>；</li><li>勾选 <strong>启用 DMZ</strong>，并将 DMZ IP 地址填写为 OpenWrt 的 WAN 口 IP（<code>192.168.1.6</code>）；</li><li>保存生效。</li></ol><hr><h2>三、 第二步：OpenWrt 主路由配置（静态WAN、转发与分流）</h2><p>在 OpenWrt 路由器上需要完成 4 项设置：WAN 口静态化、端口转发、DNS 跨网段响应与鉴权域名分流。</p><h3>1. 将 WAN 口配置为静态 IP（消除断电 IP 漂移隐患）</h3><p>为了防止家庭断电重启时光猫 DHCP 发生竞争导致 OpenWrt IP 漂移（从而使光猫的端口转发失效），通过 SSH 登录 OpenWrt 路由器（<code>ssh <a href="https://blog.niekun.net/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0a7865657e4a3b3338243b3c32243b3838243b">[email&#160;protected]</a></code>），执行以下命令将 WAN 口固化为静态 IP：</p><pre><code class="lang-bash">uci set network.wan.proto=&#039;static&#039;
+  └────────────────────── 建立端到端加密直连隧道 (5ms~35ms 极速秒开) ──────────────────────┘</code></pre><hr><h2>二、 第一步：光猫端配置（打通最外层端口）</h2><p>光猫是外部流量进入家庭的第一道门。我们需要锁定 <code>41641</code> 端口，避免光猫因为 NAT 会话超时导致连接降级为中继。</p><h3>1. 登录光猫后台</h3><ol><li>使用连接光猫 Wi-Fi 或插网线的电脑，在浏览器打开：<code>http://192.168.1.1</code>；</li><li>输入管理员账号与密码（见光猫背面机身铭牌贴纸）。</li></ol><h3>2. 添加虚拟主机/端口映射（强烈推荐 ⭐⭐⭐⭐⭐）</h3><ol><li>找到 <strong>【NAT 设置】</strong> ➜ <strong>【虚拟主机配置】</strong>（或称“端口转发 / 虚拟服务器”）；</li><li><p>点击新建，按以下参数填写：</p><ul><li><strong>使能端口映射</strong>：勾选</li><li><strong>WAN名称</strong>：选择当前主上网通道（例如 <code>2_INTERNET_R_VID_10</code>）</li><li><strong>协议</strong>：选择 <code>UDP</code></li><li><strong>外部开始端口 / 外部结束端口</strong>：<code>41641</code> / <code>41641</code></li><li><strong>内部开始端口 / 内部结束端口</strong>：<code>41641</code> / <code>41641</code></li><li><strong>内部主机 IP</strong>：填写 OpenWrt 路由器的 WAN 口 IP（<code>192.168.1.6</code>）</li></ul></li><li>点击 <strong>【应用 / 保存】</strong>。</li></ol><h3>3. 开启 DMZ 主机（可选双保险）</h3><ol><li>找到 <strong>【安全设置 / 高级设置】</strong> ➜ <strong>【DMZ 配置】</strong>；</li><li>勾选 <strong>启用 DMZ</strong>，并将 DMZ IP 地址填写为 OpenWrt 的 WAN 口 IP（<code>192.168.1.6</code>）；</li><li>保存生效。</li></ol><hr><h2>三、 第二步：OpenWrt 主路由配置（静态WAN、转发与分流）</h2><p>在 OpenWrt 路由器上需要完成 4 项设置：WAN 口静态化、端口转发、DNS 跨网段响应与鉴权域名分流。</p><h3>1. 将 WAN 口配置为静态 IP（消除断电 IP 漂移隐患）</h3><p>为了防止家庭断电重启时光猫 DHCP 发生竞争导致 OpenWrt IP 漂移（从而使光猫的端口转发失效），通过 SSH 登录 OpenWrt 路由器（<code>ssh <a href="https://blog.niekun.net/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="92e0fdfde6d2a3aba0bca3a4aabca3a0a0bca3">[email&#160;protected]</a></code>），执行以下命令将 WAN 口固化为静态 IP：</p><pre><code class="lang-bash">uci set network.wan.proto=&#039;static&#039;
 uci set network.wan.ipaddr=&#039;192.168.1.6&#039;
 uci set network.wan.netmask=&#039;255.255.255.0&#039;
 uci set network.wan.gateway=&#039;192.168.1.1&#039;
@@ -306,7 +306,7 @@ nftset=/ts.net/4#ip#v2ray#gfwlist</code></pre><p>重启 Dnsmasq：<code>/etc/ini
     &quot;port&quot;: &quot;10809&quot;,
     &quot;listen&quot;: &quot;0.0.0.0&quot;,
     &quot;protocol&quot;: &quot;http&quot;
-}</code></pre><p>重启服务：<code>/etc/init.d/v2ray restart</code></p></li></ol><h5>方案 2：OpenClash / PassWall / SSR-Plus / ShellCrash 方案</h5><p>如果您的 OpenWrt 使用的是常见的图形化代理插件：</p><ol><li><p><strong>添加分流规则</strong>：在插件的「自定义分流规则」中添加以下规则走代理策略组：</p><ul><li><code>DOMAIN-SUFFIX,tailscale.com,PROXY</code></li><li><code>DOMAIN-SUFFIX,ts.net,PROXY</code></li><li><code>DOMAIN-SUFFIX,tailscale.io,PROXY</code></li></ul></li><li><strong>开启局域网共享</strong>：在插件设置中勾选 <strong>「允许局域网连接 (Allow LAN)」</strong>，记录其提供的 HTTP 代理端口（例如 OpenClash 默认为 <code>7890</code>，后续在 Ubuntu 中将端口对应改为 <code>7890</code> 即可）。</li></ol><h5>方案 3：Ubuntu 服务器端本地代理方案（路由器无代理时使用）</h5><p>如果您的主路由器没有安装任何代理服务：</p><ul><li>可在 Ubuntu 服务器本地运行轻量级代理客户端（如 Sing-Box / Mihomo / Xray），监听本地 <code>127.0.0.1:10809</code>；</li><li>后续在 <code>/etc/default/tailscaled</code> 中将代理地址写为 <code>http://127.0.0.1:10809</code> 同样可以完美生效。</li></ul><hr><h2>四、 第三步：Ubuntu 服务器配置（核心节点、加速与保活）</h2><p>通过 SSH 登录 Ubuntu 服务器（<code>ssh <a href="https://blog.niekun.net/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3855594a5b577809010a16090e0016090a0a160a">[email&#160;protected]</a></code>），进行系统与 Tailscale 核心配置。</p><h3>1. 开启系统内核网络转发</h3><pre><code class="lang-bash"># 写入持久化转发配置
+}</code></pre><p>重启服务：<code>/etc/init.d/v2ray restart</code></p></li></ol><h5>方案 2：OpenClash / PassWall / SSR-Plus / ShellCrash 方案</h5><p>如果您的 OpenWrt 使用的是常见的图形化代理插件：</p><ol><li><p><strong>添加分流规则</strong>：在插件的「自定义分流规则」中添加以下规则走代理策略组：</p><ul><li><code>DOMAIN-SUFFIX,tailscale.com,PROXY</code></li><li><code>DOMAIN-SUFFIX,ts.net,PROXY</code></li><li><code>DOMAIN-SUFFIX,tailscale.io,PROXY</code></li></ul></li><li><strong>开启局域网共享</strong>：在插件设置中勾选 <strong>「允许局域网连接 (Allow LAN)」</strong>，记录其提供的 HTTP 代理端口（例如 OpenClash 默认为 <code>7890</code>，后续在 Ubuntu 中将端口对应改为 <code>7890</code> 即可）。</li></ol><h5>方案 3：Ubuntu 服务器端本地代理方案（路由器无代理时使用）</h5><p>如果您的主路由器没有安装任何代理服务：</p><ul><li>可在 Ubuntu 服务器本地运行轻量级代理客户端（如 Sing-Box / Mihomo / Xray），监听本地 <code>127.0.0.1:10809</code>；</li><li>后续在 <code>/etc/default/tailscaled</code> 中将代理地址写为 <code>http://127.0.0.1:10809</code> 同样可以完美生效。</li></ul><hr><h2>四、 第三步：Ubuntu 服务器配置（核心节点、加速与保活）</h2><p>通过 SSH 登录 Ubuntu 服务器（<code>ssh <a href="https://blog.niekun.net/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1974786b7a765928202b37282f2137282b2b372b">[email&#160;protected]</a></code>），进行系统与 Tailscale 核心配置。</p><h3>1. 开启系统内核网络转发</h3><pre><code class="lang-bash"># 写入持久化转发配置
 sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/sysctl.d/99-tailscale.conf
 net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
@@ -399,7 +399,7 @@ sudo systemctl enable --now tailscale-keepalive.service</code></pre><hr><h2>五�
         
             <div id="respond-post-3097" class="respond">
             <div class="cancel-comment-reply">
-                <a id="cancel-comment-reply-link" href="Ubuntu-OpenWrt-Tailscale-P2P.html#respond-post-3097" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-db936a47a01a53ce22c86756-="">取消回复</a>            </div>
+                <a id="cancel-comment-reply-link" href="Ubuntu-OpenWrt-Tailscale-P2P.html#respond-post-3097" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-4fa0220648c309d159587c1c-="">取消回复</a>            </div>
 
             <h5 id="response">你的评论</h5>
 
@@ -433,5 +433,5 @@ sudo systemctl enable --now tailscale-keepalive.service</code></pre><hr><h2>五�
 </footer>
 
 
-<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="db936a47a01a53ce22c86756-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a38843227da38be0',t:'MTc4ODk3ODYwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="4fa0220648c309d159587c1c-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a39080787f80a60a',t:'MTc4OTA2NTAwNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
