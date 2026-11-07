@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>node.js 入门教程之九 -- events 模块 | Marco Nie</title>
+    <link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+        <link rel="canonical" href="2151.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="node.js 入门教程之九 -- events 模块 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2151.html" />
+<link rel="alternate" type="application/rdf+xml" title="node.js 入门教程之九 -- events 模块 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2151.html" />
+<link rel="alternate" type="application/atom+xml" title="node.js 入门教程之九 -- events 模块 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2151.html" />
+<meta name="description" content="在之前介绍 event loop 的章节，我们简单介绍了 events 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。events 模块提供了 Ev..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/2151.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="node.js 入门教程之九 -- events 模块" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="在之前介绍 event loop 的章节，我们简单介绍了 events 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。events 模块提供了 Ev..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="f4c18da2ecf2749fef04e66d-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-2151'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-2151-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-2151-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-2151'),
+                holder = this.dom('#respond-post-2151-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="f4c18da2ecf2749fef04e66d-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-2151');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _03X = '43d'//'F'
++/* 'wE'//'wE' */''+'8'//'Rc'
++'7B'//'7B'
++''///*'5vo'*/'5vo'
++//'u'
+'e4'+'u'//'u'
++'003'//'IqA'
++''///*'hHU'*/'hHU'
++/* 'l0U'//'l0U' */''+//'1k'
+'a5'+//'gV'
+'0e3'+'63'//'vv'
++//'x'
+'9a3'+//'Hb'
+'Hb'+//'VRz'
+'f9b'+/* 'Z7'//'Z7' */''+'a3d'//'f'
++'5f'//'JkF'
++//'1Dv'
+'787'+//'l'
+'l'+'4'//'hPg'
++//'jh'
+'b', _oy2 = [[4,6],[6,7],[19,21],[30,31]];
+    
+    for (var i = 0; i < _oy2.length; i ++) {
+        _03X = _03X.substring(0, _oy2[i][0]) + _03X.substring(_oy2[i][1]);
+    }
+
+    return _03X;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+
+<body>
+
+<header class="site-navbar container-fluid">
+    <nav>
+        <ul class="site-name">
+                    <li>
+                <a href="../index.html" class="brand">Marco Nie</a>
+            </li>
+            <li class="desc">you are the company you keep...</li>
+                </ul>
+
+        <ul>
+            <li>
+                <label for="nav-toggler" class="nav-toggler-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                </label>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="site-nav">
+        <input type="checkbox" id="nav-toggler">
+
+        <ul class="nav-menu">
+            <li>
+                <a href="../index.html">首页</a>
+            </li>
+
+                                    <li>
+                <a href="../start-page.html">关于我</a>
+            </li>
+                        <li>
+                <form method="post" action="../index.html">
+                    <input type="search" id="s" name="s">
+                </form>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="container-thin">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+                <header class="entry-header text-center">
+        <h1 class="entry-title" itemprop="name headline">
+            <a href="2151.html" itemprop="url">node.js 入门教程之九 -- events 模块</a>
+        </h1>
+                <ul class="entry-meta list-inline text-muted">
+            <li class="feather-calendar"><time datetime="2021-02-08T21:42:00+00:00" itemprop="datePublished">2021-02-08</time></li>
+            <li class="feather-folder"><a href="../category/js/index.html">javascript</a>, <a href="../category/node/index.html">node.js</a></li>
+            <li class="feather-message"><a href="2151.html#comments"  itemprop="discussionUrl">暂无评论</a></li>
+        </ul>
+            </header>
+
+            <div class="entry-content fmt" itemprop="articleBody">
+                <p>在之前介绍 <strong>event loop</strong> 的章节，我们简单介绍了 <strong>events</strong> 模块的使用，它可以设置并监听某个信号并在信号触发时响应 callback function。</p><p><strong>events</strong> 模块提供了 <strong>EventEmitter</strong> class 它是处理 events 的关键工具。</p><p>引入及初始化 events 模块如下：</p><pre><code>const EventEmitter = require(&#039;events&#039;)
+const eventEmitter = new EventEmitter()</code></pre><p>每个 event listener 事件监听器都是互相独立的，同时它们使用如下 events：</p><ul><li><strong>newListener</strong> 当一个 event 被添加</li><li><strong>removeListener</strong> 当一个 event 被删除</li></ul><p>下面介绍常用的一些 method。</p><!--more--><h3>eventEmitter.addListener()</h3><p><code>eventEmitter.addListener()</code> 和 <code>eventEmitter.on()</code> 功能相同。可以给某个 event 添加一个 listener，语法如下：</p><pre><code>eventEmitter.addListener(&#039;test&#039;, () =&gt; {})
+</code></pre><h3>eventEmitter.emit()</h3><p><code>eventEmitter.emit()</code> 用来触发一个信号，信号触发后，对应信号的 event listener 会响应 callback function：</p><pre><code>eventEmitter.addListener(&#039;test&#039;, () =&gt; { console.log(&#039;test emited&#039;) })
+eventEmitter.emit(&#039;test&#039;)
+
+//output:
+//test emited</code></pre><h3>eventEmitter.eventNames()</h3><p><code>eventEmitter.eventNames()</code> 会返回当前 <strong>EventEmitter</strong> object 内注册已的 events 为一个字符串数组：</p><pre><code>eventEmitter.addListener(&#039;test1&#039;, () =&gt; {})
+eventEmitter.addListener(&#039;test2&#039;, () =&gt; {})
+console.log(eventEmitter.eventNames())
+
+//output:
+//[ &#039;test1&#039;, &#039;test2&#039; ]</code></pre><h3>eventEmitter.getMaxListeners()</h3><p><code>eventEmitter.getMaxListeners()</code> 返回当前 <strong>EventEmitter</strong> object 能添加的 event listener 最大数量。默认为 10 个，可以通过 <code>setMaxListeners()</code> 修改。</p><h3>eventEmitter.listenerCount()</h3><p><code>eventEmitter.listenerCount()</code> 返回某个 event 定义的 listeners 数量：</p><pre><code>eventEmitter.addListener(&#039;test4&#039;, () =&gt; { console.log(&#039;a&#039;) })
+eventEmitter.addListener(&#039;test4&#039;, () =&gt; { console.log(&#039;b&#039;) })
+console.log(eventEmitter.listenerCount(&#039;test4&#039;))
+
+//output:
+//2</code></pre><h3>eventEmitter.listeners()</h3><p><code>eventEmitter.listeners()</code> 返回某个 event 所有的 listeners 为一个数组：</p><pre><code>const f1 = () =&gt; {}
+const f2 = () =&gt; {}
+eventEmitter.addListener(&#039;test5&#039;, f1)
+eventEmitter.addListener(&#039;test5&#039;, f2)
+console.log(eventEmitter.listeners(&#039;test5&#039;))
+
+//output:
+//[ [Function: f1], [Function: f2] ]</code></pre><h3>eventEmitter.off()</h3><p><code>eventEmitter.off()</code> 和 <code>eventEmitter.removeListener()</code> 功能相同。可以删除一个 event 的某个 listener，需要指定 event 名称和 listener callback 名称：</p><pre><code>const f3 = () =&gt; {}
+eventEmitter.addListener(&#039;test6&#039;, f3)
+eventEmitter.off(&#039;test6&#039;, f3)</code></pre><h3>eventEmitter.on()</h3><p><code>eventEmitter.on()</code> 同 <code>eventEmitter.addListener()</code> 功能相同。可以给某个 event 添加一个 listener：</p><pre><code>eventEmitter.on(&#039;test6&#039;, () =&gt; {})</code></pre><h3>eventEmitter.once()</h3><p><code>eventEmitter.once()</code> 监听一个 event 且其 callback function 只能被执行一次：</p><pre><code>eventEmitter.once(&#039;test7&#039;, () =&gt; console.log(&#039;once show once&#039;))
+eventEmitter.emit(&#039;test7&#039;)
+eventEmitter.emit(&#039;test7&#039;)
+
+//output:
+//once show once</code></pre><h3>eventEmitter.prependListener()</h3><p>当通过 <code>eventEmitter.on()</code> 添加 listener 时，会按照添加顺序排列在此 event 队列中，当对应 event 触发时，会按照排列顺序以此执行 callback。</p><p>使用 <code>eventEmitter.prependListener()</code> 添加的 listener 会添加到队列的最前面，触发时最先被执行：</p><pre><code>eventEmitter.on(&#039;test8&#039;, () =&gt; console.log(&#039;first listener&#039;))
+eventEmitter.prependListener(&#039;test8&#039;, () =&gt; console.log(&#039;second listener&#039;))
+eventEmitter.emit(&#039;test8&#039;)
+
+//output:
+//second listener
+//first listener</code></pre><h3>eventEmitter.prependOnceListener()</h3><p><code>eventEmitter.prependOnceListener()</code> 同 <code>eventEmitter.on()</code> 的区别和上面类似，会将 listener 添加到对应 event listeners 队列的最前面，然后最先被执行且只能响应一次：</p><pre><code>eventEmitter.once(&#039;test9&#039;, () =&gt; console.log(&#039;first listener&#039;))
+eventEmitter.prependOnceListener(&#039;test9&#039;, () =&gt; console.log(&#039;second listener&#039;))
+eventEmitter.emit(&#039;test9&#039;)
+eventEmitter.emit(&#039;test9&#039;)
+
+//output:
+//second listener
+//first listener</code></pre><h3>eventEmitter.removeAllListeners()</h3><p><code>eventEmitter.removeAllListeners()</code> 可以删除指定 event 的所有 listeners：</p><pre><code>eventEmitter.removeAllListeners(&#039;test9&#039;)</code></pre><h3>eventEmitter.removeListener()</h3><p><code>eventEmitter.removeListener()</code> 可以删除 event 的指定 listener。需要将 listener 的 callback function 定义为变量格式然后再调用，这样就可以在此 reference 它：</p><pre><code>const f1 = () =&gt; {}
+const f2 = () =&gt; {}
+eventEmitter.addListener(&#039;test5&#039;, f1)
+eventEmitter.addListener(&#039;test5&#039;, f2)
+
+eventEmitter.removeListener(&#039;test5&#039;, f1)</code></pre><h3>eventEmitter.setMaxListeners()</h3><p><code>eventEmitter.setMaxListeners()</code> 可以定义 <strong>EventEmitter</strong> object 最大可以添加的 listeners 数量：</p><pre><code>eventEmitter.setMaxListeners(20)
+console.log(eventEmitter.getMaxListeners())
+
+//output:
+//20</code></pre><p>以上就是 events 模块最常用功能的介绍。</p>                <p itemprop="keywords">标签：无</p>
+            </div>
+        </article>
+
+        <nav class="post-nav">
+            <ul class="page-navigator">
+                <li class="prev"><a href="2147.html" title="node.js 入门教程之八 -- os 模块">node.js 入门教程之八 -- os 模块</a></li>
+                <li class="next"><a href="2156.html" title="node.js 入门教程之十 -- http 模块">node.js 入门教程之十 -- http 模块</a></li>
+            </ul>
+        </nav>
+
+        <div id="comments">
+        
+            <div id="respond-post-2151" class="respond">
+            <div class="cancel-comment-reply">
+                <a id="cancel-comment-reply-link" href="2151.html#respond-post-2151" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-f4c18da2ecf2749fef04e66d-="">取消回复</a>            </div>
+
+            <h5 id="response">你的评论</h5>
+
+            <form method="post" action="https://blog.niekun.net/archives/2151.html/comment" id="comment-form" role="form">
+                <div class="grid">
+                    <textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+                </div>
+                                <div class="grid">
+                    <input type="text" placeholder="名字" name="author" id="author" value="" required/>
+                    <input type="email" placeholder="Email" name="mail" id="mail" value="" required />
+                    <input type="url" placeholder="http://网站（选填）" name="url" id="url" value="" />
+                </div>
+                                <button type="submit">提交评论</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</main>
+
+<footer class="site-footer container-fluid">
+    <div class="d-flex justify-content-between">
+        <ul class="list-inline text-muted">
+            <li>&copy; 2026 <a href="../index.html">Marco Nie</a></li>
+            <li><a href="../feed/index.html">RSS</a></li>
+        </ul>
+        <ul class="list-inline text-muted">
+            <li>
+                Powered by <a href="https://typecho.org">Typecho</a>            </li>
+        </ul>
+    </div>
+</footer>
+
+
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="f4c18da2ecf2749fef04e66d-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56de5d03c64b84e',t:'MTc5NDA3MDg2Mw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56de5d03c64b84e',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

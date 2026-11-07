@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/2022/05/">
+<title>Marco Nie - 2022年5月</title>
+<link>https://blog.niekun.net/2022/05/</link>
+<description>you are the company you keep...</description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2705.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2703.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2672.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2642.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/2705.html">
+<title>esxi 配置 GPU 显卡直通给虚拟机使用</title>
+<link>https://blog.niekun.net/archives/2705.html</link>
+<dc:date>2022-05-25T08:56:00+08:00</dc:date>
+<description>最近在我家里的 Ubuntu 上安装了 jellyfin 媒体中心，发现局域网内播放高码率视频卡顿严重，原因是默认设置的是软解码导致 cpu 负载很高，在设置里可以开启硬件解码，但是配置后发现播放视频会报错：客户端配置文件存在问题，服务器未发送兼容的媒体格式看后台 log 日志，发现在 ffmpeg 解码时有如下报错信息：[AVHWDeviceContext @ 0x558b80b15a80] libva: vaGetDriverNameByIndex() failed with unknown libva error, driver_name = (null)
+[AVHWDeviceContext @ 0x558b80b15a80] Failed to initialise VAAPI connection: -1 (unknown libva error).
+Device creation failed: -5.
+Failed to set value 'vaapi=va:/dev/dri/renderD128' for option 'init_hw_device': Input/output error
+Error parsing global options: Input/output error查找原因测试在 docker-compose.yml 中开启全部权限，配置 root PUID PGID，以及映射 GPU 设备给 docker：    environment:
+      - PUID=0
+      - PGID=0
+    devices:
+      - /dev/dri:/dev/dri
+    privileged: true重启容器后依然会报错。报错信息显示无法读取 gpu 驱动名称，这应该不是 docker 的问题，在主机上测试 vainfo 也会报错：$ vainfo
+error: can't connect to X server!
+libva info: VA-API version 1.14.0
+libva error: vaGetDriverNameByIndex() failed with unknown libva error, driver_name = (null)
+vaInitialize failed with error code -1 (unknown libva error),exit报错内容和 jellyfin 的日志类似，测试添加环境变量强制指定驱动名称：export LIBVA_DRIVER_NAME=iHD再次 vainfo：$ vainfo
+error: can't connect to X server!
+libva info: VA-API version 1.14.0
+libva info: User environment variable requested driver 'iHD'
+libva info: Trying to open /usr/local/lib/dri/iHD_drv_video.so
+libva info: Found init function __vaDriverInit_1_14
+DRM_IOCTL_I915_GEM_APERTURE failed: Invalid argument
+Assuming 131072kB available aperture size.
+May lead to reduced performance or incorrect rendering.
+get chip id failed: -1 [22]
+param: 4, val: 0
+libva error: /usr/local/lib/dri/iHD_drv_video.so init failed
+libva info: va_openDriver() returns 18
+vaInitialize failed with error code 18 (invalid parameter),exit现在看来应该是其他问题了，经过查询，esxi 默认是分配了虚拟显卡给虚拟机，导致虚拟机无法调用 gpu 底层的一些功能，从而导致 ffmpeg 等工具硬件解码失效。处理办法就是在 esxi 上配置显卡直通，然后添加给对应虚拟机直接调用硬件资源。经过下面的尝试，我还是设置显卡直通，导致最终无法实现硬件解码。可能是主板上有限制吧。显卡直通显卡直通应该就可以解决上面的问题，但是当我直接进入 esxi 控制台设备管理中却找不到 GPU 设备，需要进入 esxi ssh 查看是否有 GPU 设备类似于：UHD Graphics 630。ssh 登录 esxi 后台，首先查看是否有 GPU相关设备信息，终端命令行执行：lspci -v
+找到显卡设备ID，如图所示：8086:9bc8 就是显卡设备 ID，其中 8086 是供应商 ID，也就是代表 Intel，9bc8 就是这块显卡的设备硬件 ID。然后关闭 esxi 对 GPU 的调用，然后手动添加 pci 设备信息，然后就可以在控制台配置直通了。通过 ssh 登录 esxi，输入如下命令取消显卡占用，注意取消后就不能连接显示器访问 esxi 后台图形界面了：esxcli system settings kernel set -s vga -v FALSE后期如果需要取消显卡直通或者登录图形后台需要重新开启显卡调用：esxcli system settings kernel set -s vga -v TRUE然后修改 passthru.map 添加 PCIE 设备 ID 信息。修改/etc/vmware/passthru.map 文件，根据上面找到的设备 ID 信息，在最底部增加以下信息：完成后保存并退出，然后重启 esxi。重启完成后就可以从控制台 pci 设备中找到显卡了：配置好直通后，给对应虚拟机配置显卡。虚拟机配置首先编辑虚拟机，CPU虚拟化这三个选项全部取消，未取消开启虚拟机会报错：由于硬件或软件支持不可用,因此无法为 0:2.0 注册设备 pciPassthru0：内存勾选预留所有客户机内存（全部锁定）选项，不勾选启动虚拟机会报错：最后添加显卡：然后配置虚拟机自定义参数：进入虚拟机选项 → 高级 → 配置参数 → 编辑配置添加以下参数：  键值hypervisor.cpuid.v0FALSE此参数的作用：不让操作系统识别是在虚拟机环境运行，一般直通独立显卡需要这样设置，核显可忽略，但设置也无妨。如下图所示：由于虚拟机默认有一个虚拟显卡，我们又添加了一个直通显卡，现在就有了两个显卡，但我们只想要直通的显卡工作，可以在配置参数里添加一行:  键值svga.presentFALSE这样操作后，我们开启虚拟机后再 /dev/dri 目录下就只会有一个 renderD128：ls -l /dev/dri/
+
+total 0
+crw-rw---- 1 root video 226,   0 Oct 23 20:41 card0
+crw-rw---- 1 root video 226, 128 Oct 23 20:41 renderD128查看 pci 设备信息：&lt;&gt; sudo lspci -v -s  04:00.0
+04:00.0 VGA compatible controller: Intel Corporation HD Graphics 530 (rev 06) (prog-if 00 [VGA controller])
+    Subsystem: Hewlett-Packard Company Device 82bf
+    Physical Slot: 161
+    Flags: bus master, fast devsel, latency 64, IRQ 67
+    Memory at fc000000 (64-bit, non-prefetchable) [size=16M]
+    Memory at d0000000 (64-bit, prefetchable) [size=256M]
+    I/O ports at 7000 [size=64]
+    Expansion ROM at &lt;unassigned&gt; [disabled]
+    Capabilities: [40] Vendor Specific Information: Len=0c &lt;?&gt;
+    Capabilities: [70] Express Endpoint, MSI 00
+    Capabilities: [ac] MSI: Enable+ Count=1/1 Maskable- 64bit-
+    Capabilities: [d0] Power Management version 2
+    Capabilities: [100] Process Address Space ID (PASID)
+    Capabilities: [200] Address Translation Service (ATS)
+    Capabilities: [300] Page Request Interface (PRI)
+    Kernel driver in use: i915
+    Kernel modules: i915这样显卡就直接直通给了虚拟机，注意这样配置后包括 esxi 本身和其他虚拟机就没有显卡可用了，导致没有图形界面。参考链接ESXI 7.02 Intel 核心显卡直通开启3D加速ESXi 6.5 Passthrough Video Card/GPU to Plex VMHW Transcoding - VAAPI - Intel not workingDeploying Hardware-Accelerated Graphics with VMware HorizonEsxi 6.7核显直通问题求教各位恩山大神Name: UHD Graphics 630</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2703.html">
+<title>Ubuntu 开启 RDP 远程连接</title>
+<link>https://blog.niekun.net/archives/2703.html</link>
+<dc:date>2022-05-23T10:18:00+08:00</dc:date>
+<description>之前介绍过通过安装 TightVNC vnc server 远程连接 Ubuntu 桌面的教程，Windows 下常用的是 RDP 方式远程，使用体验非常流畅，不占用带宽。Linux 下也可以通过安装 Xrdp 的方式实现 rdp 连接。参考教程：Ubuntu desktop 配置 vnc serverxrdp 是对 Windows rdp 协议的开源实现。安装我的系统是 Ubuntu desktop 20.04，首先需要保证有一个已经安装的桌面环境，desktop 版默认是 genome，也可以安装其他的如 xfce：sudo apt install ubuntu-desktop安装 xrdp：sudo apt install xrdp安装完成后，xrdp 会自动启动，可以通过命令查看状态：$  sudo systemctl status xrdp
+ 
+● xrdp.service - xrdp daemon
+     Loaded: loaded (/lib/systemd/system/xrdp.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2022-05-23 09:50:43 CST; 20min ago
+       Docs: man:xrdp(8)
+             man:xrdp.ini(5)
+    Process: 83586 ExecStartPre=/bin/sh /usr/share/xrdp/socksetup (code=exited, status=0/SUCCESS)
+    Process: 83594 ExecStart=/usr/sbin/xrdp $XRDP_OPTIONS (code=exited, status=0/SUCCESS)
+   Main PID: 83595 (xrdp)
+      Tasks: 2 (limit: 9459)
+     Memory: 26.4M
+     CGroup: /system.slice/xrdp.service
+             ├─83595 /usr/sbin/xrdp
+             └─83597 /usr/sbin/xrdp默认 rdp 端口为 3389.配置xrdp 安装后，会自动将一个 ssl key ssl-cert-snakeoil.key 放入 /etc/ssl/private/ 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：sudo adduser xrdp ssl-cert默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 /etc/xrdp/startwm.sh 文件，在文件最后的 test -x /etc/X11/Xsession 前面加入如下内容：unset DBUS_SESSION_BUS_ADDRESS
+unset XDG_RUNTIME_DIR重启 xrdp 服务：sudo systemctl restart xrdp现在就可以正常通过 rdp 连接到 Ubuntu了。在使用中，我出现了输入用户密码后停留在解锁界面无法登录进去的问题，经过查询 xdrp 目前不可以同时在多个设备上尝试登录。同时登录 xrdp 的用户如果和正常在主机上登录的是同一个用户，需要删除 dbus-user-session 包，用 dbus-x11 代替。第三点，需要保证 gdm3 运行，执行下面的命令：sudo apt remove dbus-user-session
+sudo apt install dbus-x11
+
+sudo systemctl set-default graphical
+sudo systemctl isolate graphical重启 xrdp 服务：sudo systemctl restart xrdp此时应该就可以正常通过 rdp 客户端链接 ubuntu 界面了。但是我测试发现，第一次登录进去没问题，关闭后过一会儿再次尝试链接发现卡在登录界面没反应了，尝试执行如下命令：echo xfce4-session &gt; $HOME/.xsession
+chmod +x .xsession发现问题似乎解决了，但是调用的事 xfce 桌面环境。远程登录在局域网下访问比较流畅，但是在外网下发现没法达到 Windows rdp 流畅的效果。解决方法可以是在外网通过 rdp 链接一个局域网下 Windows 设备，然后在 Windows 设备下通过 rdp 链接局域网内的 ubuntu 设备。参考链接How to Install Xrdp on Ubuntu 20.04Xrdp stuck on login, after password is entered, unblocked if I unlock from the ubuntu rdp serverUsing the console and XRDP together in Debian / Ubuntu / MintXRDP session immediately closes after loggin in</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2672.html">
+<title>使用曲线匹配颜色 in Photoshop</title>
+<link>https://blog.niekun.net/archives/2672.html</link>
+<dc:date>2022-05-12T10:36:00+08:00</dc:date>
+<description>之前介绍过几种色彩匹配的方法，通过对亮度、颜色、饱和度的进行匹配，也可以通过设置曲线的黑、灰、白场来匹配颜色。下面介绍通过通过提取源图像和目标图像的黑白灰色彩，然后通过曲线将他们进行色彩匹配达到最终的效果。参考教程：精细匹配颜色 in Photoshop简易匹配颜色 in Photoshop用到的技术：曲线，拾色器原图如下：我们的目标是将左边的衣服颜色转换为右边衣服的色彩。首先在背景图层上新建两个空白图层，用来提取两人的衣服的黑白灰色彩信息：通过拾色工具分别拾取两个衣服的黑白灰部区域的色彩，并通过画笔工具记录在两个图层中，注意拾取颜色的时候设置为 3×3 或 5×5：新建曲线图层，放在最上方：首先提取右侧衣服色彩 rgb 信息，快捷键 I 选择拾色工具然后按 shift + alt 键分别在三条色彩上点击，注意操作的时候要选择到最上方的图层，否则拾取的颜色会不对：可以看到面板中保存了三个点位的rgb信息，我们后续需要将左侧的三条色条匹配为这里记录的颜色。下面在曲线图层中操作，我们需要在曲线中找到左侧三条颜色所在的位置，按 shift + ctrl 点击左侧第一条线，在曲线图层中会自动创建一个锚点就是拾取颜色所在的位置，在 rgb，red，green，blue 通道中都会有一个点：同样的方法将左侧三条颜色都在曲线中获取锚点：我们需要在 red green blue 通道的锚点中，将 output 信息修改为目标颜色的对应通道数值，比如右侧第一条亮部 rgb 为：216，92，59。我们就将刚才每个通道的 output 信息修改为这个值：以此类推将左侧三条颜色所在锚点的 output 修改为右侧记录的颜色 rgb 值：将 reference 图层放到曲线上方，可以看到记录的两个衣服色彩的 reference 和 target 图层颜色已经完全一致了：选中拾色器工具，同样的 shift + alt 点击三个之前创建的锚点可以删除它们。下面需要选出左侧衣服部分，临时关闭除背景外的其他图层，使用钢笔工具或其他你常用的工具提取出左侧衣服部分的选区，然后给曲线图层添加图层蒙版：根据实际情况，可以对曲线每个锚点的位置进行微调，以达到最佳效果。最终效果如下：以上就完成了简单的颜色匹配。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2642.html">
+<title>制作水坑效果 in Photoshop</title>
+<link>https://blog.niekun.net/archives/2642.html</link>
+<dc:date>2022-05-07T14:53:00+08:00</dc:date>
+<description>今天介绍给晴朗路面添加雨天水坑效果，实际效果还不错。用到的技术：vanishing point，channel，puddle texture材质。原图如下：首先我们创建路面部分的立体平面，选择 filter - vanishing point：点击 create plant tool：根据路面形状，通过点击绘制出一个大致的梯形，注意如果轨迹不符合路面形状会显示为红色：拖拽线段扩展到整个路面：以上就完成了平面的构建，点击确认返回。首先复制背景图层。然后我们通过钢笔工具或者其他工具建立地面的选区：给复制的图层建立图层蒙版：然后解锁蒙版和图层的锁，否则后面颠倒图层蒙版也会动：然后选中图层而不是蒙版，点击 edit - transform - flip vertical：调整图层位置到合适：然后临时关闭路面倒影的图层，我们制作水坑的效果。首先需要一个水坑素材图片，如下图：导入 ps 后选中材质图层，按住 ctrl 点击图层全选材质图层，点击 ctrl c 复制图层，然后就可以关闭材质图层了：新建一个空白图层，再次打开 vanishing point，按 ctrl v 复制材质图层到界面：首先按ctrl T适当缩小图像，然后拖拽图层到下方创建的平面内：按住 ctrl 拖拽图层，复制多个图层铺满整个路面：完成后点击确认返回 ps，会将填充的平面内容在新图层上：我们需要利用涂层的黑白部分反差作为模拟水滩效果，所以首先提高图层反差，新建曲线图层并设置只影响材质图层，提高亮部：然后临时关闭其他图层，只保留材质图层：进入通道，选择一个通道按住 ctrl 点击通道获取选区：然后关闭材质图层，打开背景图层和路面反转图层，并将反转图层单独建立一个组：选中组，点击创建蒙版：这样我们就有了基本效果啦。下面微调效果，首先倒影是在路面上形成的，所以他的颜色分布也应该符合路面的色彩分布，所以我们在反转组内建立一个 gradient map 图层并锁定之影响下方图层：修改 map 颜色，亮部选区一个路面上较量区域的色彩，同样的暗部选取一个路面较暗的区域色彩，注意选择 3×3 拾取颜色：根据情况调节 gradient map 不透明度：水坑里的倒影一般会有一定的模糊，我们先将倒影图层转换为 smart object 然后选 filter - blur galley - path blur：根据情况可以适当加强一下饱和度，新建 vibrate 图层，调节饱和度：最终效果对比：</description>
+</item>
+</rdf:RDF>

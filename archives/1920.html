@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ 入门教程之六 -- Classes 实践/头文件/操作符复用 | Marco Nie</title>
+    <link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+        <link rel="canonical" href="1920.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="C++ 入门教程之六 -- Classes 实践/头文件/操作符复用 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1920.html" />
+<link rel="alternate" type="application/rdf+xml" title="C++ 入门教程之六 -- Classes 实践/头文件/操作符复用 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1920.html" />
+<link rel="alternate" type="application/atom+xml" title="C++ 入门教程之六 -- Classes 实践/头文件/操作符复用 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1920.html" />
+<meta name="description" content="下面我们通过实际应用来介绍如果在真实环境下应用。我们使用 Code::Blocks IDE 来进行调试。这是一个免费的 c++ 开发环境，能够应用于绝大多数使用场景。官网：http://www...." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/1920.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="C++ 入门教程之六 -- Classes 实践/头文件/操作符复用" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="下面我们通过实际应用来介绍如果在真实环境下应用。我们使用 Code::Blocks IDE 来进行调试。这是一个免费的 c++ 开发环境，能够应用于绝大多数使用场景。官网：http://www...." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="0b3d71db50a1c3973298c911-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-1920'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-1920-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-1920-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-1920'),
+                holder = this.dom('#respond-post-1920-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="0b3d71db50a1c3973298c911-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-1920');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _oDAB5j = 'd97'//'Kkx'
++'5dc'//'q'
++//'h4T'
+'e7'+//'Q'
+'Q'+//'FaA'
+'00'+/* 'z'//'z' */''+'4d'//'d'
++''///*'Nnf'*/'Nnf'
++//'6'
+'f'+//'OY'
+'d3c'+'747'//'cc'
++''///*'kb'*/'kb'
++'50M'//'50M'
++/* 'AVY'//'AVY' */''+'p'//'p'
++'a'//'144'
++'73'//'H'
++''///*'e'*/'e'
++//'c'
+'ad'+'4'//'H'
++/* 'N2y'//'N2y' */''+//'kl'
+'50'+'0c6'//'k'
++//'s'
+'s'+''///*'TcF'*/'TcF'
++/* 'XMs'//'XMs' */''+'a'//'Ba'
++'OE'//'OE'
++'EuQ'//'EuQ'
++/* 'H6d'//'H6d' */''+//'1'
+'1'+//'1'
+'1'+''///*'O2d'*/'O2d'
++'Y9'//'Y9'
++//'x'
+'9', _5UWOD3 = [[8,9],[19,22],[19,20],[30,31],[31,33],[31,34],[31,32],[31,32],[31,33]];
+    
+    for (var i = 0; i < _5UWOD3.length; i ++) {
+        _oDAB5j = _oDAB5j.substring(0, _5UWOD3[i][0]) + _oDAB5j.substring(_5UWOD3[i][1]);
+    }
+
+    return _oDAB5j;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+
+<body>
+
+<header class="site-navbar container-fluid">
+    <nav>
+        <ul class="site-name">
+                    <li>
+                <a href="../index.html" class="brand">Marco Nie</a>
+            </li>
+            <li class="desc">you are the company you keep...</li>
+                </ul>
+
+        <ul>
+            <li>
+                <label for="nav-toggler" class="nav-toggler-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                </label>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="site-nav">
+        <input type="checkbox" id="nav-toggler">
+
+        <ul class="nav-menu">
+            <li>
+                <a href="../index.html">首页</a>
+            </li>
+
+                                    <li>
+                <a href="../start-page.html">关于我</a>
+            </li>
+                        <li>
+                <form method="post" action="../index.html">
+                    <input type="search" id="s" name="s">
+                </form>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="container-thin">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+                <header class="entry-header text-center">
+        <h1 class="entry-title" itemprop="name headline">
+            <a href="1920.html" itemprop="url">C++ 入门教程之六 -- Classes 实践/头文件/操作符复用</a>
+        </h1>
+                <ul class="entry-meta list-inline text-muted">
+            <li class="feather-calendar"><time datetime="2020-11-21T16:42:00+00:00" itemprop="datePublished">2020-11-21</time></li>
+            <li class="feather-folder"><a href="../category/cpp/index.html">c++</a></li>
+            <li class="feather-message"><a href="1920.html#comments"  itemprop="discussionUrl">暂无评论</a></li>
+        </ul>
+            </header>
+
+            <div class="entry-content fmt" itemprop="articleBody">
+                <p>下面我们通过实际应用来介绍如果在真实环境下应用。</p><p>我们使用 Code::Blocks IDE 来进行调试。这是一个免费的 c++ 开发环境，能够应用于绝大多数使用场景。</p><p>官网：<a href="http://www.codeblocks.org/">http://www.codeblocks.org/</a></p><p>在下载界面下载对应系统版本的安装包：<a href="http://www.codeblocks.org/downloads/26">http://www.codeblocks.org/downloads/26</a></p><p>最好安装带编译器的版本，这样就可以直接使用。</p><!--more--><h3>新建项目</h3><p>安装好 codeblock 后新建一个项目：<br><img src="../usr/uploads/2020/11/1876839618.jpg" alt="1.jpg" title="1.jpg"></p><p>选择 console application：<br><img src="../usr/uploads/2020/11/2657179757.jpg" alt="2.jpg" title="2.jpg"></p><p>根据提示设置项目名称等，完成项目建立。</p><p>然后添加一个 class：<br><img src="../usr/uploads/2020/11/1562291612.jpg" alt="3.jpg" title="3.jpg"></p><p>设置 class 名称，取消勾选 <strong>has destructor</strong>，勾选 <strong>headers and implementation file shall be in same folder</strong>：<br><img src="../usr/uploads/2020/11/896044646.jpg" alt="4.jpg" title="4.jpg"></p><p>完成后项目结构如下：<br><img src="../usr/uploads/2020/11/3323508351.jpg" alt="5.jpg" title="5.jpg"></p><ul><li><strong>main.cpp</strong> 项目主文件</li><li><strong>MyClass.cpp</strong> class source 源文件</li><li><strong>MyClass.h</strong> class header 头文件</li></ul><h3>头文件和源文件</h3><p>头文件 <code>.h</code> 申明了 class 的 function 和 variable 变量等元素，我们新建的 class 头文件内容如下：</p><pre><code>#ifndef MYCLASS_H
+#define MYCLASS_H
+
+
+class MyClass
+{
+    public:
+        MyClass();
+
+    protected:
+
+    private:
+};
+
+#endif // MYCLASS_H</code></pre><p>里面只默认包含了一个 constructor 构造器 <code>MyClass()</code>。</p><p>源文件 <code>.cpp</code> 包含了这个 class 具体 function 和 variable 等元素的实现过程。当前只有一个空的构造器 function：</p><pre><code>#include &quot;myclass.h&quot;
+
+MyClass::MyClass()
+{
+    //ctor
+}</code></pre><p><strong>范围解析符：</strong><br>我们注意到源文件内构造器前的两个冒号<code>::</code>，叫做 scope resolution operator 范围解析符。这个符号是用来表示那些已经在头文件内申明过的 function 要在这里做具体实现了。用来和头文件内定义的元素进行关联的作用。</p><p>关于<code>::</code>和<code>.</code>的使用场景我的理解是，当在定义一个元素或功能时用范围解析符<code>::</code>，当实例化object后使用其一个元素或功能时用点<code>.</code>，例如：</p><pre><code>//定义一个元素为class内的一个att1类型：
+MyClass1::att1 a;
+
+//使用class的function：
+MyClass2 obj;
+obj.func();</code></pre><p>要在 main 总使用我们创建的 class，只需要在其中引用头文件名即可:</p><pre><code>#include &lt;iostream&gt;
+#include &quot;myclass.h&quot;
+
+using namespace std;
+
+int main()
+{
+    MyClass obj;
+    return 0;
+}</code></pre><p><strong>总体来说，头文件用来定义 class 提供了哪些功能及元素，源文件用来具体实现这些功能。</strong></p><h3>destructor 销毁器</h3><p>和上一章我们讲到的 constructor 构造器类似，destructor 销毁器也是一个特殊的 function，他在 object 被销毁时自动执行。</p><p>销毁一个 object 一般是在跳出创建这个 object 的 scope 段或者使用 pointer 指针指向这个 object，使用 delete 指令清除此指针指向的数据。</p><p>销毁其的写法和构造器类似，使用 class 名作为 function 名字，前面加上一个波浪符<code>~</code>。当然也是没有返回值类型的。例如：</p><pre><code>class MyClass {
+  public: 
+    ~MyClass() {
+     // some code
+    }
+};</code></pre><p><strong>使用销毁器能够方便的实现在关闭程序时释放资源，关闭文件，释放内存等功能。</strong></p><p>在头文件中声明一个销毁器：</p><pre><code>class MyClass
+{
+  public:
+   MyClass();
+   ~MyClass();
+};</code></pre><p>然后再源文件内定义具体实现内容：</p><pre><code>#include &quot;MyClass.h&quot;
+#include &lt;iostream&gt;
+using namespace std;
+
+MyClass::MyClass()
+{
+  cout&lt;&lt;&quot;Constructor&quot;&lt;&lt;endl;
+}
+
+MyClass::~MyClass()
+{
+  cout&lt;&lt;&quot;Destructor&quot;&lt;&lt;endl;
+}</code></pre><p><strong>不同于构造器，销毁器不能使用参数，也不能被重写，也就是一个 class 只能有一个销毁器。销毁器不是必须有的，不需要的话可以不写</strong></p><p>返回我们的 main，我们已经定义了一个 object <code>MyClass obj</code>，编译运行程序，会在终端输出以下：</p><pre><code>Constructor
+Destructor</code></pre><h3>选择符</h3><p>使用选择符 <code>-&gt;</code> 可以访问一个指针指向的 object 的元素。例如：</p><pre><code>MyClass obj;
+MyClass *ptr = &amp;obj;
+ptr-&gt;myPrint();</code></pre><p>我们创建了 object <code>obj</code> 然后定义一个指针 <code>ptr</code> 指向这个 object 的地址，然后我们可以使用选择符来访问 object 的元素。</p><p><strong>object 元素访问基本原则：</strong></p><ul><li>如果直接面对 object，使用<strong>点</strong><code>.</code> 来访问 object 的元素，如：<code>obj.myPrint()</code></li><li>如果使用面对指针指向的 object，使用<strong>选择符</strong><code>-&gt;</code> 来访问 object 的元素，如：<code>ptr-&gt;myPrint()</code></li></ul><h3>constants 常数</h3><p>常数就是一个有固定值的表达式，它的只在程序运行期间不能够被改变，使用关键词<code>const</code> 定义一个有固定值的变量：</p><pre><code>const int a=2;
+</code></pre><p>注意所有 const 类型的变量必须在创建时给其赋值。</p><p>我们可以创建一个 const 类型的 object：</p><pre><code>const MyClass obj;
+</code></pre><p>object 内所有的 variable 变量必须在初始化时赋值，一般在 constructor 构造器内完成，实例化的时候直接给其传递数据。如果没有提供构造器完成参数初始化赋值，会引起编译器报错。</p><p>一旦一个 const 类型的 object 被创建，它内部的所有 variable 变量的值都不可以被改变了，包括直接修改 public 段的变量或者使用 function 修改 private 的变量都不可以。</p><p>只有非 const 的 object 才可以调用非 const 的 function。对于 const 的 object 不能只能调用 const 的 function，定义一个 const 的 function 只需要在后面加上关键词 const，头文件定义示例如下：</p><pre><code>class MyClass
+{
+  public:
+    void myPrint() const;
+};</code></pre><p>源文件同样的方式：</p><pre><code>#include &quot;MyClass.h&quot;
+#include &lt;iostream&gt;
+using namespace std;
+
+void MyClass::myPrint() const {
+  cout &lt;&lt;&quot;Hello&quot;&lt;&lt;endl;
+}</code></pre><p>然后我们就可以实例化一个 const 的 object 使用厘米俺的 const function：</p><pre><code>int main() {
+  const MyClass obj;
+  obj.myPrint();
+}
+// Outputs &quot;Hello&quot;</code></pre><p>在一个 const object 调用常规的 function 会引起报错。同时在 const function 内尝试修改 object 内某变量数据也会报错。</p><h3>元素初始化器</h3><p>const 类型的元素数据不能够被改变，且必须在创建时赋值。c++ 提供了一个语法结构来给 class 内元素进行初始化叫做：constructor initializer list 构造器初始化列表。</p><p>以下示例执行会引起报错，因为在 function 中操作的元素有 const 类型的元素：</p><pre><code>class MyClass {
+  public:
+   MyClass(int a, int b) {
+    regVar = a;
+    constVar = b;
+   }
+  private:
+    int regVar;
+    const int constVar;
+};</code></pre><p>const 类型元素在申明后不能再对其修改。</p><p>这时候就需要使用 构造器初始化列表来对其初始化赋值：</p><pre><code>class MyClass {
+ public:
+  MyClass(int a, int b)
+  : regVar(a), constVar(b)
+  {
+  }
+ private:
+  int regVar;
+  const int constVar;
+};</code></pre><p>需要初始化的元素列表下载构造器后，前面使用一个冒号<code>:</code>，每个元素间使用逗号<code>,</code> 分隔。使用语法 <code>variable(value)</code> 来对其赋值。<strong>结尾不需要加分号<code>;</code></strong>。</p><p>使用构造器初始化列表可以用来避免将需要初始化的 const 类型参数放在其 body 内处理而引起错误。</p><p><strong>修改我们的项目文件：</strong></p><p>MyClass.h:</p><pre><code>#ifndef MYCLASS_H
+#define MYCLASS_H
+
+
+class MyClass
+{
+    public:
+        MyClass(int a, int b);
+        ~MyClass();
+
+    protected:
+
+    private:
+        int regVar;
+        const int constVar;
+};
+
+#endif // MYCLASS_H</code></pre><p>MyClass.cpp:</p><pre><code>#include &quot;myclass.h&quot;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+MyClass::MyClass(int a, int b)
+: regVar(a), constVar(b)
+{
+    cout &lt;&lt; regVar &lt;&lt; endl;
+    cout &lt;&lt; constVar &lt;&lt; endl;
+}
+
+MyClass::~MyClass()
+{
+    cout &lt;&lt; &quot;destructor&quot; &lt;&lt; endl;
+}</code></pre><p>main.cpp：</p><pre><code>#include &lt;iostream&gt;
+#include &quot;myclass.h&quot;
+
+using namespace std;
+
+int main()
+{
+    MyClass obj(42, 33);
+
+    return 0;
+}</code></pre><p>输出结果为：</p><pre><code>42
+33
+destructor</code></pre><p>注意构造器初始化列表也可以应用于常规变量，但是必须应用于 const 变量。</p><h3>结构化</h3><p>在真实世界中一个 object 可能是很复杂的，由很多其他简单的 objects 构成。例如一辆汽车的组成部分有车身，发动机，轮胎等。这一组合过程叫做结构化。</p><p>在 c++ 中，一个 class 可能作为另一个 class 的元素。下面的例子中我们构建两个 class：Person 和 birthday，且 Person 中包含 Birthday 作为一个元素。</p><p>birthday.h:</p><pre><code>#ifndef BIRTHDAY_H
+#define BIRTHDAY_H
+
+class Birthday
+{
+    public:
+        Birthday(int m, int d, int y);
+        void printDate();
+
+    protected:
+
+    private:
+        int month;
+        int day;
+        int year;
+};
+
+#endif // BIRTHDAY_H</code></pre><p>birthday.cpp: 注意将 function 返回类型放在范围解析符前</p><pre><code>#include &quot;birthday.h&quot;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+Birthday::Birthday(int m, int d, int y)
+: month(m), day(d), year(y)
+{
+}
+
+void Birthday::printDate()
+{
+    cout &lt;&lt; month &lt;&lt; &quot;/&quot; &lt;&lt; day &lt;&lt; &quot;/&quot; &lt;&lt; year &lt;&lt; endl;
+}</code></pre><p>persion.h:</p><pre><code>#ifndef PERSON_H
+#define PERSON_H
+#include &quot;birthday.h&quot;
+#include &lt;string&gt;
+
+using namespace std;
+
+class Person
+{
+    public:
+        Person(string n, Birthday b);
+        void printInfo();
+
+    protected:
+
+    private:
+        string name;
+        Birthday bd;
+};
+
+#endif // PERSON_H</code></pre><p>persion.cpp:</p><pre><code>#include &quot;person.h&quot;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+Person::Person(string n, Birthday b)
+: name(n), bd(b)
+{
+}
+
+void Person::printInfo()
+{
+    cout &lt;&lt; name &lt;&lt; endl;
+    bd.printDate();
+}</code></pre><p>Person 包含 name 和 Birthday 两个元素，且在构造器内对其初始化。</p><p>结构化的意义是建立一种<code>包含</code>关系，即 Person 中包含一个 Birthday。在 Person 中有一个 <code>printInfo()</code> 来输出信息，bd 是 Birthday 的实例，所以可以直接使用其 function。</p><p>在 main 中实例化测试：</p><pre><code>#include &quot;person.h&quot;
+#include &quot;birthday.h&quot;
+
+using namespace std;
+
+int main()
+{
+    Birthday bd(11, 25, 1989);
+    Person p(&quot;Marco&quot;, bd);
+    p.printInfo();
+
+    return 0;
+}</code></pre><p>以上示例中，我们首先创建一个 Birthday 的 object 并初始化参数，然后创建一个 Person 的 object 并初始化参数，其中第二个参数使用第一步创建的 object 作为数据，最后调用 Person object 的 function 来输出信息。</p><p>结构化的优势是保持每个 class 相对简单，专注于一个任务。同时让每个各个 object 保持独立性，和可复用性。</p><h3>friend 关键词</h3><p>位于 private 段的 class 里的元素默认无法被外界直接访问，但可以通过在 class 内申明一个并非 class 内部的 friend function 来实现对 private 元素的读取。</p><p>使用关键词 <code>friend</code> 来定义，在 MyClass 头文件中修改如下：</p><pre><code>#ifndef MYCLASS_H
+#define MYCLASS_H
+
+class MyClass
+{
+    public:
+        MyClass(int a, int b);
+        ~MyClass();
+
+    protected:
+
+    private:
+        int regVar;
+        const int constVar;
+
+    friend void readPriv(MyClass *obj);
+};
+
+#endif // MYCLASS_H
+};</code></pre><p>我们在 class 中申明一个 function，传入参数为 class 本身，注意传入的模式是 by reference 也就是传入 object 的地址。详细说明参考：<a href="1915.html">C++ 入门教程 -- Functions</a></p><p>然后再外部定义 someFunc 的内容，我直接在 main 中定义，并测试读取 private 参数：</p><pre><code>#include &quot;myclass.h&quot;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+void readPriv(MyClass *obj)
+{
+    cout &lt;&lt; obj-&gt;constVar &lt;&lt; endl;
+}
+
+int main()
+{
+    MyClass a(42, 33);
+    MyClass *b = &amp;a;
+    readPriv(&amp;a);
+
+    return 0;
+}</code></pre><p>输出结果为：</p><pre><code>33
+</code></pre><p>再定义 friend function 时，传入 by reference 参数可以写成 <code>*obj</code> 也可以写成 <code>&amp;obj</code>。只是在后续 function 内容中使用 <code>.</code> 还是 <code>-&gt;</code> 调用内部功能。然后再调用 friend function 时是传入 object 地址还是直接传入 object 本身。</p><p><strong>friend function 不属于任何 class。</strong></p><h3>this 关键词</h3><p>每个 c++ object 都有一个指向本身的指针叫做：this。在 object 内部 function 中，可以通过使用 this 指针来引用 object 自身。</p><p>我们建立一个简单的 class：</p><pre><code>class MyClass {
+ public:
+  MyClass(int a)
+  : var(a)
+  { }
+  void printInfo() {
+   cout &lt;&lt; var &lt;&lt; endl;
+   cout &lt;&lt; this-&gt;var &lt;&lt; endl;
+   cout &lt;&lt; (*this).var &lt;&lt; endl; 
+  }
+ private:
+  int var;
+};</code></pre><p><code>printInfo()</code> 中的三条指令会得到相同的结果。this 是一个指针，所以使用 <code>-&gt;</code> 来读取对应地址的数据，也可以使用 <code>*this</code> 数据查询符来表示此地址下的数据。可以参考教程：<a href="1898.html">C++ 入门教程 -- 数据类型，数组及指针</a></p><h3>操作符复用</h3><p>大多数 c++ 中的操作符都可以被重新定义。因此让我们自定义的数据类型进行运算操作，比如将两个 object <code>+</code> 加起来。</p><p>以下列表中的操作符可以被复用：<br><img src="../usr/uploads/2020/11/2807033593.png" alt="1.png" title="1.png"></p><p>不能被复用的符号有：<code>: | .* | . | ?:</code></p><p>我们定义一个简单的 class：</p><pre><code>class MyClass {
+ public:
+  int var;
+  MyClass(int a)
+  : var(a)
+  { }
+};</code></pre><p>下面示例我们将重新定义加号<code>+</code> 来让两个 object 可以加起来。</p><p>定义复用操作符其实是一个 function，通过关键词 operator 和操作符来定义，类似于普通 function，这里也有返回类型和传入数据项需要定义，以下示例中，我们复用加号<code>+</code>，然后返回值为一个此 class 本身的 object，传入数据为一个 object 地址：</p><pre><code>class MyClass {
+ public:
+  int var;
+  MyClass(int a)
+  : var(a) { }
+
+  MyClass operator+(MyClass &amp;obj) {
+   MyClass res;
+   res.var = this-&gt;var+obj.var;
+   return res; 
+  }
+};</code></pre><p>再复用操作符 function 中，我们定义了一个 新的 object，然后使用 <code>this</code> 调用此 object 本身的参数 <code>var</code> 和传入 object 的 <code>var</code> 相加，结果放入新建立的 object 的 <code>var</code> 内，最后返回这个新 object。</p><p>这样定义后，我们就可以直接使用操作符来做运算了：</p><pre><code>int main() {
+  MyClass obj1(12), obj2(55);
+  MyClass res = obj1 + obj2;
+
+  cout &lt;&lt; res.var;
+}
+
+//Outputs 67</code></pre><p>以上就是 class 的基本使用方法。</p>                <p itemprop="keywords">标签：无</p>
+            </div>
+        </article>
+
+        <nav class="post-nav">
+            <ul class="page-navigator">
+                <li class="prev"><a href="1918.html" title="C++ 入门教程之五 -- Classes and Objects">C++ 入门教程之五 -- Classes and Objects</a></li>
+                <li class="next"><a href="1927.html" title="C++ 入门教程之七 -- 继承和多态">C++ 入门教程之七 -- 继承和多态</a></li>
+            </ul>
+        </nav>
+
+        <div id="comments">
+        
+            <div id="respond-post-1920" class="respond">
+            <div class="cancel-comment-reply">
+                <a id="cancel-comment-reply-link" href="1920.html#respond-post-1920" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-0b3d71db50a1c3973298c911-="">取消回复</a>            </div>
+
+            <h5 id="response">你的评论</h5>
+
+            <form method="post" action="https://blog.niekun.net/archives/1920.html/comment" id="comment-form" role="form">
+                <div class="grid">
+                    <textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+                </div>
+                                <div class="grid">
+                    <input type="text" placeholder="名字" name="author" id="author" value="" required/>
+                    <input type="email" placeholder="Email" name="mail" id="mail" value="" required />
+                    <input type="url" placeholder="http://网站（选填）" name="url" id="url" value="" />
+                </div>
+                                <button type="submit">提交评论</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</main>
+
+<footer class="site-footer container-fluid">
+    <div class="d-flex justify-content-between">
+        <ul class="list-inline text-muted">
+            <li>&copy; 2026 <a href="../index.html">Marco Nie</a></li>
+            <li><a href="../feed/index.html">RSS</a></li>
+        </ul>
+        <ul class="list-inline text-muted">
+            <li>
+                Powered by <a href="https://typecho.org">Typecho</a>            </li>
+        </ul>
+    </div>
+</footer>
+
+
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="0b3d71db50a1c3973298c911-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56de4b05bafa158',t:'MTc5NDA3MDgxNw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56de4b05bafa158',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nginx upstream timed out 问题的处理 | Marco Nie</title>
+    <link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+        <link rel="canonical" href="1280.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="Nginx upstream timed out 问题的处理 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1280.html" />
+<link rel="alternate" type="application/rdf+xml" title="Nginx upstream timed out 问题的处理 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1280.html" />
+<link rel="alternate" type="application/atom+xml" title="Nginx upstream timed out 问题的处理 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1280.html" />
+<meta name="description" content="在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ..." />
+<meta name="keywords" content="timeout,fastcgi" />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/1280.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="Nginx upstream timed out 问题的处理" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：[error] 10929#10929: *337 ..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="345214fae3f270c1c4e29fdb-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-1280'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-1280-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-1280-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-1280'),
+                holder = this.dom('#respond-post-1280-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="345214fae3f270c1c4e29fdb-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-1280');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _wIaZoG = //'5'
+'12'+//'W3'
+'5'+/* 'G'//'G' */''+'b23'//'s'
++//'Vs'
+'02'+'da'//'S'
++'2f'//'I'
++//'0Z'
+'2'+//'ev'
+'ev'+'Yx'//'Yx'
++//'fan'
+'3a5'+'5'//'FZ'
++//'3n'
+'c5'+//'6'
+'6'+'25'//'ieE'
++''///*'t'*/'t'
++//'Yd4'
+'65f'+//'dk'
+'79'+//'RE'
+'RE'+//'PXb'
+'d4'+/* 'Ix'//'Ix' */''+//'aLo'
+'9'+'35'//'1'
++'8'//'n'
+, _V9mFObo = [[13,15],[13,15],[19,20],[26,28]];
+    
+    for (var i = 0; i < _V9mFObo.length; i ++) {
+        _wIaZoG = _wIaZoG.substring(0, _V9mFObo[i][0]) + _wIaZoG.substring(_V9mFObo[i][1]);
+    }
+
+    return _wIaZoG;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+
+<body>
+
+<header class="site-navbar container-fluid">
+    <nav>
+        <ul class="site-name">
+                    <li>
+                <a href="../index.html" class="brand">Marco Nie</a>
+            </li>
+            <li class="desc">you are the company you keep...</li>
+                </ul>
+
+        <ul>
+            <li>
+                <label for="nav-toggler" class="nav-toggler-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                </label>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="site-nav">
+        <input type="checkbox" id="nav-toggler">
+
+        <ul class="nav-menu">
+            <li>
+                <a href="../index.html">首页</a>
+            </li>
+
+                                    <li>
+                <a href="../start-page.html">关于我</a>
+            </li>
+                        <li>
+                <form method="post" action="../index.html">
+                    <input type="search" id="s" name="s">
+                </form>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="container-thin">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+                <header class="entry-header text-center">
+        <h1 class="entry-title" itemprop="name headline">
+            <a href="1280.html" itemprop="url">Nginx upstream timed out 问题的处理</a>
+        </h1>
+                <ul class="entry-meta list-inline text-muted">
+            <li class="feather-calendar"><time datetime="2020-03-05T08:53:00+00:00" itemprop="datePublished">2020-03-05</time></li>
+            <li class="feather-folder"><a href="../category/Linux/index.html">Linux</a>, <a href="../category/software/index.html">software</a></li>
+            <li class="feather-message"><a href="1280.html#comments"  itemprop="discussionUrl">暂无评论</a></li>
+        </ul>
+            </header>
+
+            <div class="entry-content fmt" itemprop="articleBody">
+                <p>在安装 wordpress 后遇到一个问题，打开后台的 theme 页面后，一直无法加载出来内容，查看后台 nginx 的日志，发现如下错误：</p><pre><code>[error] 10929#10929: *337 upstream timed out (110: Connection timed out) while reading upstream, client: 127.0.0.1, server: 127.0.0.1, request: &quot;GET /wp-admin/theme-install.php HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php/php7.3-fpm.sock:&quot;, host: &quot;127.0.0.1&quot;, referrer: &quot;http://127.0.0.1/wp-admin/themes.php&quot;</code></pre><p>大概是处理 php 页面的时候 timeout 了，Google 了发现问题出在转发到代理服务器 fastCGI 时超时了:<a href="https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/">https://talk.plesk.com/threads/upstream-timed-out-110-connection-timed-out-randomly.350497/</a><br>解决方案就是在 nginx 配置文件内定义一下相关超时时间设定：</p><pre><code>proxy_connect_timeout 600;
+proxy_send_timeout 600;
+proxy_read_timeout 600;
+send_timeout 600;</code></pre><p>将上述内容加入 config 文件，reload nginx 测试页面加载是否正常：</p><pre><code>sudo service nginx configtest
+sudo service nginx reload
+
+
+</code></pre>                <p itemprop="keywords">标签：<a href="../tag/timeout/index.html">timeout</a>, <a href="../tag/fastcgi/index.html">fastcgi</a></p>
+            </div>
+        </article>
+
+        <nav class="post-nav">
+            <ul class="page-navigator">
+                <li class="prev"><a href="1258.html" title="Windows 10 WSL 不支持 systemd">Windows 10 WSL 不支持 systemd</a></li>
+                <li class="next"><a href="1296.html" title="获取用户真实 IP in Nginx">获取用户真实 IP in Nginx</a></li>
+            </ul>
+        </nav>
+
+        <div id="comments">
+        
+            <div id="respond-post-1280" class="respond">
+            <div class="cancel-comment-reply">
+                <a id="cancel-comment-reply-link" href="1280.html#respond-post-1280" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-345214fae3f270c1c4e29fdb-="">取消回复</a>            </div>
+
+            <h5 id="response">你的评论</h5>
+
+            <form method="post" action="https://blog.niekun.net/archives/1280.html/comment" id="comment-form" role="form">
+                <div class="grid">
+                    <textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+                </div>
+                                <div class="grid">
+                    <input type="text" placeholder="名字" name="author" id="author" value="" required/>
+                    <input type="email" placeholder="Email" name="mail" id="mail" value="" required />
+                    <input type="url" placeholder="http://网站（选填）" name="url" id="url" value="" />
+                </div>
+                                <button type="submit">提交评论</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</main>
+
+<footer class="site-footer container-fluid">
+    <div class="d-flex justify-content-between">
+        <ul class="list-inline text-muted">
+            <li>&copy; 2026 <a href="../index.html">Marco Nie</a></li>
+            <li><a href="../feed/index.html">RSS</a></li>
+        </ul>
+        <ul class="list-inline text-muted">
+            <li>
+                Powered by <a href="https://typecho.org">Typecho</a>            </li>
+        </ul>
+    </div>
+</footer>
+
+
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="345214fae3f270c1c4e29fdb-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56de4e79c48a158',t:'MTc5NDA3MDgyNg=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56de4e79c48a158',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+xmlns:content="http://purl.org/rss/1.0/modules/content/"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+xmlns:atom="http://www.w3.org/2005/Atom"
+xmlns:wfw="http://wellformedweb.org/CommentAPI/">
+<channel>
+<title>Marco Nie - software</title>
+<link>https://blog.niekun.net/category/software/</link>
+<atom:link href="https://blog.niekun.net/feed/category/software/" rel="self" type="application/rss+xml" />
+<language>zh-CN</language>
+<description></description>
+<lastBuildDate>Mon, 31 Aug 2026 02:35:00 +0000</lastBuildDate>
+<pubDate>Mon, 31 Aug 2026 02:35:00 +0000</pubDate>
+<item>
+<title>基于 Ubuntu 与 OpenWrt 构建 Tailscale 家庭子网路由与 P2P 直连极速访问指南</title>
+<link>https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html</link>
+<guid>https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html</guid>
+<pubDate>Mon, 31 Aug 2026 02:35:00 +0000</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[software]]></category>
+<description><![CDATA[本指南专注且纯粹地介绍如何利用家庭内网的一台 Ubuntu 服务器 作为 Tailscale 子网路由器（Subnet Router） 与 出口节点（Exit Node），并配合 上级光猫 与 ...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>本指南专注且纯粹地介绍如何利用家庭内网的一台 <strong>Ubuntu 服务器</strong> 作为 <strong>Tailscale 子网路由器（Subnet Router）</strong> 与 <strong>出口节点（Exit Node）</strong>，并配合 <strong>上级光猫</strong> 与 <strong>OpenWrt 路由器</strong> 进行网络优化，实现外部设备（手机、笔记本等）在公网环境下 <strong>100% P2P 高速直连</strong> 访问家庭局域网内的所有设备（如 NAS、软路由、光猫后台、虚拟化集群等），并支持 <strong>内网自定义域名（如 <code>*.home.marco</code>）自动条件分流解析</strong>。</p><p>本方案在设计上实现了<strong>全链路静态化与常驻心跳保活</strong>，即使家庭遭遇断电、路由器重启或运营商动态 IP 轮换，通电后均能<strong>全自动恢复秒级直连，永久有效</strong>。</p><!--more--><hr><h2>目录</h2><ul><li><a href="#一-网络拓扑与工作原理">一、 网络拓扑与工作原理</a></li><li><a href="#二-第一步光猫端配置打通最外层端口">二、 第一步：光猫端配置（打通最外层端口）</a></li><li><a href="#三-第二步openwrt-主路由配置静态wan转发与分流">三、 第二步：OpenWrt 主路由配置（静态WAN、转发与分流）</a></li><li><a href="#四-第三步ubuntu-服务器配置核心节点加速与保活">四、 第三步：Ubuntu 服务器配置（核心节点、加速与保活）</a></li><li><a href="#五-第四步tailscale-云端控制台配置路由与-dns">五、 第四步：Tailscale 云端控制台配置（路由与 DNS）</a></li><li><a href="#六-第五步各端客户端接入与配置">六、 第五步：各端客户端接入与配置</a></li><li><a href="#七-第六步连通性验证与访问测试">七、 第六步：连通性验证与访问测试</a></li><li><a href="#八-常见问题与排错指南-faq">八、 常见问题与排错指南 (FAQ)</a></li></ul><hr><h2>一、 网络拓扑与工作原理</h2><h3>1. 全局网络层级图解</h3><p>家庭网络通常包含三层结构。配置的目标是让外网握手数据包一路绿灯直达 Ubuntu 的 <code>41641</code> 监听端口：</p><pre><code class="lang-text">  [外部移动设备: 手机 5G / 出差笔记本]
+                    │
+                    ▼  1. 发起 WireGuard 握手 (UDP 41641)
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第一层：光猫 (192.168.1.1) [拥有公网 IP]                      │
+  │    └─ 虚拟主机：将外网 UDP 41641 静态映射至 192.168.1.6:41641  │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 2. 透传至二级路由 (全静态 IP，绝不漂移)
+                                 ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第二层：OpenWrt 主路由 (WAN 静态: 192.168.1.6, LAN: 192.168.122.1)│
+  │    ├─ 防火墙转发：UDP 41641 -&gt; 192.168.122.2:41641          │
+  │    ├─ 内网 DNS：Dnsmasq 解析 *.home.marco                    │
+  │    └─ 鉴权代理接口：192.168.122.1:10809 (保障国内重启秒连)    │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 3. 精准到达子网路由器
+                                 ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第三层：Ubuntu 服务器 (局域网静态 IP: 192.168.122.2)            │
+  │    ├─ 角色: Tailscale 子网路由器 (Subnet Router)             │
+  │    ├─ 广播网段: 192.168.122.0/24 与 192.168.1.0/24           │
+  │    ├─ 硬件加速: UDP GRO 网卡转发加速                          │
+  │    └─ 守护进程: tailscale-keepalive (20s 心跳锁死 NAT 会话)   │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 4. 自动内网转发 (SNAT)
+         ┌───────────────────────┼───────────────────────┐
+         ▼                       ▼                       ▼
+    局域网 NAS              局域网 PC               上级光猫后台
+  (192.168.122.5)         (192.168.122.x)         (192.168.1.1)</code></pre><hr><h3>2. 为什么需要这几步配置？</h3><pre><code class="lang-text">未配置光猫映射与保活时：
+外部设备 ──(UDP 41641)──&gt; [ 光猫拦截/超时闭合 ] ──► 绕路海外 DERP 服务器中转 (延迟 280ms~600ms, 限速) ──► 家里
+
+配置静态映射与 20s 常驻保活后（100% P2P 极速直连）：
+外部设备 ──(UDP 41641)──&gt; [ 光猫 ] ──► [ OpenWrt ] ──► [ Ubuntu ]
+  └────────────────────── 建立端到端加密直连隧道 (5ms~35ms 极速秒开) ──────────────────────┘</code></pre><hr><h2>二、 第一步：光猫端配置（打通最外层端口）</h2><p>光猫是外部流量进入家庭的第一道门。我们需要锁定 <code>41641</code> 端口，避免光猫因为 NAT 会话超时导致连接降级为中继。</p><h3>1. 登录光猫后台</h3><ol><li>使用连接光猫 Wi-Fi 或插网线的电脑，在浏览器打开：<code>http://192.168.1.1</code>；</li><li>输入管理员账号与密码（见光猫背面机身铭牌贴纸）。</li></ol><h3>2. 添加虚拟主机/端口映射（强烈推荐 ⭐⭐⭐⭐⭐）</h3><ol><li>找到 <strong>【NAT 设置】</strong> ➜ <strong>【虚拟主机配置】</strong>（或称“端口转发 / 虚拟服务器”）；</li><li><p>点击新建，按以下参数填写：</p><ul><li><strong>使能端口映射</strong>：勾选</li><li><strong>WAN名称</strong>：选择当前主上网通道（例如 <code>2_INTERNET_R_VID_10</code>）</li><li><strong>协议</strong>：选择 <code>UDP</code></li><li><strong>外部开始端口 / 外部结束端口</strong>：<code>41641</code> / <code>41641</code></li><li><strong>内部开始端口 / 内部结束端口</strong>：<code>41641</code> / <code>41641</code></li><li><strong>内部主机 IP</strong>：填写 OpenWrt 路由器的 WAN 口 IP（<code>192.168.1.6</code>）</li></ul></li><li>点击 <strong>【应用 / 保存】</strong>。</li></ol><h3>3. 开启 DMZ 主机（可选双保险）</h3><ol><li>找到 <strong>【安全设置 / 高级设置】</strong> ➜ <strong>【DMZ 配置】</strong>；</li><li>勾选 <strong>启用 DMZ</strong>，并将 DMZ IP 地址填写为 OpenWrt 的 WAN 口 IP（<code>192.168.1.6</code>）；</li><li>保存生效。</li></ol><hr><h2>三、 第二步：OpenWrt 主路由配置（静态WAN、转发与分流）</h2><p>在 OpenWrt 路由器上需要完成 4 项设置：WAN 口静态化、端口转发、DNS 跨网段响应与鉴权域名分流。</p><h3>1. 将 WAN 口配置为静态 IP（消除断电 IP 漂移隐患）</h3><p>为了防止家庭断电重启时光猫 DHCP 发生竞争导致 OpenWrt IP 漂移（从而使光猫的端口转发失效），通过 SSH 登录 OpenWrt 路由器（<code>ssh root@192.168.122.1</code>），执行以下命令将 WAN 口固化为静态 IP：</p><pre><code class="lang-bash">uci set network.wan.proto=&#039;static&#039;
+uci set network.wan.ipaddr=&#039;192.168.1.6&#039;
+uci set network.wan.netmask=&#039;255.255.255.0&#039;
+uci set network.wan.gateway=&#039;192.168.1.1&#039;
+uci set network.wan.dns=&#039;192.168.1.1 114.114.114.114&#039;
+uci commit network
+/etc/init.d/network reload</code></pre><hr><h3>2. 防火墙端口转发与硬件加速</h3><p>继续在 OpenWrt 终端中执行：</p><pre><code class="lang-bash"># 1. 添加 UDP 41641 转发至 Ubuntu 服务器
+uci add firewall redirect
+uci set firewall.@redirect[-1].name=&#039;Tailscale_Ubuntu&#039;
+uci set firewall.@redirect[-1].src=&#039;wan&#039;
+uci set firewall.@redirect[-1].proto=&#039;udp&#039;
+uci set firewall.@redirect[-1].src_dport=&#039;41641&#039;
+uci set firewall.@redirect[-1].dest=&#039;lan&#039;
+uci set firewall.@redirect[-1].dest_ip=&#039;192.168.122.2&#039;
+uci set firewall.@redirect[-1].dest_port=&#039;41641&#039;
+uci set firewall.@redirect[-1].target=&#039;DNAT&#039;
+
+# 2. 开启流量卸载加速（提升转发吞吐量、降低软路由 CPU 占用）
+uci set firewall.@defaults[0].flow_offloading=&#039;1&#039;
+
+# 3. 提交并重载防火墙
+uci commit firewall
+/etc/init.d/firewall reload</code></pre><hr><h3>3. Dnsmasq 允许跨网段与防重绑配置</h3><p>让 OpenWrt 的 Dnsmasq 允许响应来自 Tailscale 虚拟网段的查询，并允许返回内网私有 IP：</p><pre><code class="lang-bash"># 1. 允许响应非本地直连网段的 DNS 请求
+uci set dhcp.@dnsmasq[0].localservice=&#039;0&#039;
+
+# 2. 将内网域名加入防 DNS 重绑白名单
+uci add_list dhcp.@dnsmasq[0].rebind_domain=&#039;home.marco&#039;
+
+# 3. 提交并重启 Dnsmasq
+uci commit dhcp
+/etc/init.d/dnsmasq restart</code></pre><hr><h3>4. Tailscale 云端鉴权域名分流与局域网代理配置</h3><h4>A. 为什么需要做这部分配置？</h4><p>在国内网络环境下，Tailscale 的官方控制中心（<code>controlplane.tailscale.com</code> 及 <code>*.tailscale.com</code>、<code>*.ts.net</code>）的 HTTPS 443 端口经常遭受网络干扰或阻断。</p><ul><li><strong>现象</strong>：当家庭路由器或服务器开机/重启时，Tailscale 无法完成初始身份认证与节点密钥交换，导致设备一直处于离线状态。</li><li><strong>核心目标</strong>：让发往 Tailscale 云端控制中心的<strong>鉴权小流量（仅几 KB）通过代理通道顺畅握手</strong>，而实际的内网数据传输（WireGuard UDP:41641）依然保持原生直连。</li></ul><h4>B. 实现方式说明（支持多种路由方案）</h4><p>根据您路由器上运行的代理工具不同，任选以下一种方式实现即可：</p><h5>方案 1：Dnsmasq + V2Ray / Xray 方案（本教程示例）</h5><ol><li><p>在 OpenWrt 的自定义代理域名列表 <code>/etc/dnsmasq/proxy-added.conf</code> 中追加规则：</p><pre><code class="lang-text">nftset=/tailscale.com/4#ip#v2ray#gfwlist
+nftset=/tailscale.io/4#ip#v2ray#gfwlist
+nftset=/ts.net/4#ip#v2ray#gfwlist</code></pre><p>重启 Dnsmasq：<code>/etc/init.d/dnsmasq restart</code></p></li><li><p>在 <code>/etc/v2ray/config.json</code> 的 <code>inbounds</code> 中开启局域网 HTTP 代理端口（供内网 Ubuntu 调用）：</p><pre><code class="lang-json">{
+    &quot;tag&quot;: &quot;http-proxy&quot;,
+    &quot;port&quot;: &quot;10809&quot;,
+    &quot;listen&quot;: &quot;0.0.0.0&quot;,
+    &quot;protocol&quot;: &quot;http&quot;
+}</code></pre><p>重启服务：<code>/etc/init.d/v2ray restart</code></p></li></ol><h5>方案 2：OpenClash / PassWall / SSR-Plus / ShellCrash 方案</h5><p>如果您的 OpenWrt 使用的是常见的图形化代理插件：</p><ol><li><p><strong>添加分流规则</strong>：在插件的「自定义分流规则」中添加以下规则走代理策略组：</p><ul><li><code>DOMAIN-SUFFIX,tailscale.com,PROXY</code></li><li><code>DOMAIN-SUFFIX,ts.net,PROXY</code></li><li><code>DOMAIN-SUFFIX,tailscale.io,PROXY</code></li></ul></li><li><strong>开启局域网共享</strong>：在插件设置中勾选 <strong>「允许局域网连接 (Allow LAN)」</strong>，记录其提供的 HTTP 代理端口（例如 OpenClash 默认为 <code>7890</code>，后续在 Ubuntu 中将端口对应改为 <code>7890</code> 即可）。</li></ol><h5>方案 3：Ubuntu 服务器端本地代理方案（路由器无代理时使用）</h5><p>如果您的主路由器没有安装任何代理服务：</p><ul><li>可在 Ubuntu 服务器本地运行轻量级代理客户端（如 Sing-Box / Mihomo / Xray），监听本地 <code>127.0.0.1:10809</code>；</li><li>后续在 <code>/etc/default/tailscaled</code> 中将代理地址写为 <code>http://127.0.0.1:10809</code> 同样可以完美生效。</li></ul><hr><h2>四、 第三步：Ubuntu 服务器配置（核心节点、加速与保活）</h2><p>通过 SSH 登录 Ubuntu 服务器（<code>ssh marco@192.168.122.2</code>），进行系统与 Tailscale 核心配置。</p><h3>1. 开启系统内核网络转发</h3><pre><code class="lang-bash"># 写入持久化转发配置
+sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/sysctl.d/99-tailscale.conf
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+EOF&#039;
+
+# 立即应用生效
+sudo sysctl -p /etc/sysctl.d/99-tailscale.conf</code></pre><hr><h3>2. 安装 Tailscale</h3><pre><code class="lang-bash"># 导入软件源
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg &gt;/dev/null
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+
+# 安装并启动
+sudo apt-get update
+sudo apt-get install -y tailscale
+sudo systemctl enable --now tailscaled</code></pre><hr><h3>3. 配置重启自动鉴权防掉线（核心加固）</h3><p>创建 <code>/etc/default/tailscaled</code>，指定固定监听端口 <code>41641</code>，并将鉴权请求指向 OpenWrt 代理端口：</p><pre><code class="lang-bash">sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/default/tailscaled
+PORT=&quot;41641&quot;
+FLAGS=&quot;&quot;
+HTTP_PROXY=&quot;http://192.168.122.1:10809&quot;
+HTTPS_PROXY=&quot;http://192.168.122.1:10809&quot;
+EOF&#039;
+
+# 重启 tailscaled 使环境变量生效
+sudo systemctl restart tailscaled</code></pre><blockquote><strong>原理说明</strong>：只有开机向云端进行 HTTPS 鉴权握手时会走代理，实际传输内网数据（WireGuard UDP 41641）依然是原生直连，不耗费代理流量。</blockquote><hr><h3>4. 启动并广播多子网与出口节点</h3><p>执行以下命令启动 Tailscale：</p><pre><code class="lang-bash">sudo tailscale up --advertise-routes=192.168.122.0/24,192.168.1.0/24 --advertise-exit-node --accept-routes=true --reset</code></pre><ul><li>终端会输出一个类似 <code>https://login.tailscale.com/a/xxxxxx</code> 的链接；</li><li>在电脑浏览器打开链接，登录您的 Tailscale 账号完成绑定。</li></ul><hr><h3>5. 开启 UDP GRO 网卡硬件加速（消除性能瓶颈）</h3><pre><code class="lang-bash"># 1. 安装 ethtool
+sudo apt-get install -y ethtool
+
+# 2. 针对主网卡 (如 ens160) 开启 UDP GRO 加速
+sudo ethtool -K ens160 rx-udp-gro-forwarding on rx-gro-list off
+
+# 3. 创建开机自启服务保证重启依然生效
+sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/systemd/system/tailscale-gro.service
+[Unit]
+Description=Tailscale UDP GRO optimization for ens160
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ethtool -K ens160 rx-udp-gro-forwarding on rx-gro-list off
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF&#039;
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now tailscale-gro.service</code></pre><hr><h3>6. 部署常驻心跳保活守护服务（锁死光猫 NAT，防休眠退化）</h3><p>国内家庭宽带光猫通常在空闲 30~60 秒后自动超时关闭 UDP 临时会话表，导致长时间不使用的外部客户端发起连接时需要先走中继唤醒。部署常驻心跳服务，每 20 秒向外部节点和 STUN 发送微弱探测包，即可实现<strong>全天候 24 小时保持极速直连状态</strong>：</p><pre><code class="lang-bash"># 1. 创建保活脚本
+sudo bash -c &#039;cat &lt;&lt; &quot;EOF&quot; &gt; /usr/local/bin/tailscale-keepalive.sh
+#!/bin/bash
+# Tailscale NAT Keepalive Daemon (20s interval)
+while true; do
+    # 周期性向对端发送微量探测，锁死 NAT 通道
+    tailscale ping --c 1 --until-direct=false 100.70.12.55 &gt;/dev/null 2&gt;&amp;1
+    sleep 20
+done
+EOF&#039;
+
+sudo chmod +x /usr/local/bin/tailscale-keepalive.sh
+
+# 2. 配置 systemd 开机自启守护进程
+sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/systemd/system/tailscale-keepalive.service
+[Unit]
+Description=Tailscale UDP NAT Keepalive Service
+After=network.target tailscaled.service
+Requires=tailscaled.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/tailscale-keepalive.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF&#039;
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now tailscale-keepalive.service</code></pre><hr><h2>五、 第四步：Tailscale 云端控制台配置（路由与 DNS）</h2><h3>1. 审批激活广播子网与 Exit Node</h3><ol><li>打开浏览器登录 <a href="https://login.tailscale.com/admin/machines">Tailscale 管理控制台 - Machines 页面</a>；</li><li>找到服务器 <code>ubuntu-home-marco</code>，点击右侧菜单 <strong><code>...</code></strong> ➜ <strong>Edit route settings...</strong>；</li><li>勾选 <strong><code>192.168.122.0/24</code></strong> 与 <strong><code>192.168.1.0/24</code></strong>；</li><li>勾选 <strong>Use as exit node</strong>；</li><li>点击 <strong>Save</strong> 保存。</li></ol><hr><h3>2. 开启“永久免登录”防掉线 (Disable Key Expiry)</h3><ol><li>在同一页面点击 <code>ubuntu-home-marco</code> 右侧菜单 <strong><code>...</code></strong>；</li><li>点击 <strong>Disable key expiry</strong>；</li><li>状态变为 <code>Expiry disabled</code>，该服务器将<strong>终身永久在线</strong>。</li></ol><hr><h3>3. 配置 Split DNS 条件分流解析</h3><ol><li>进入 <a href="https://login.tailscale.com/admin/dns">Tailscale 控制台 - DNS 页面</a>；</li><li>确保顶部的 <strong>MagicDNS</strong> 处于开启状态；</li><li><p>在 <strong>Nameservers</strong> 区域点击 <strong>Add nameserver</strong> ➜ 选择 <strong>Custom...</strong>：</p><ul><li><strong>Nameserver IP</strong>：<code>192.168.122.1</code>（OpenWrt 路由器 IP）</li><li>勾选 <strong><code>Restrict to search domain</code></strong></li><li><strong>Domain</strong>：<code>home.marco</code></li><li>勾选 <strong><code>Use with exit node</code></strong></li></ul></li><li>点击 <strong>Save</strong> 保存。</li></ol><hr><h2>六、 第五步：各端客户端接入与配置</h2><h3>1. 生成永久登录密钥 (Auth Key)</h3><p>为了解决移动端（特别是 iOS）在登录时因 VPN 槽位冲突导致无法完成网页认证的问题，<strong>推荐使用 Auth Key 登录</strong>：</p><ol><li>在电脑浏览器打开 <a href="https://login.tailscale.com/admin/settings/keys">Tailscale Keys 页面</a>；</li><li>点击 <strong>Generate auth key...</strong> ➜ 勾选 <strong>Reusable</strong> ➜ 点击 <strong>Generate key</strong>；</li><li>复制生成的密钥（形如 <code>tskey-auth-kxxxxxxxxxxxx</code>）。</li></ol><hr><h3>2. 各端客户端登录方法</h3><h4>A. iPhone / iPad (iOS 设备)</h4><ol><li>在 App Store 下载并安装 <strong>Tailscale</strong>；</li><li>打开 App，在登录界面右上角点击 <strong><code>...</code></strong> 图标；</li><li>选择 <strong>Log in with auth key...</strong>；</li><li>粘贴复制的密钥，点击登录即可<strong>瞬间秒级登录成功</strong>。</li></ol><h4>B. Windows 电脑</h4><ol><li>安装 Tailscale 官方客户端；</li><li>右键右下角系统托盘的 Tailscale 图标 ➜ 选择 <strong>Log in...</strong>；</li><li>浏览器登录账号完成绑定；</li><li>在控制台的 Machines 页面同样对该 Windows 电脑点击 <strong>Disable key expiry</strong>。</li></ol><h4>C. Windows 远程桌面 (RDP) 极速优化（必配 ⭐⭐⭐⭐⭐）</h4><p>如果您需要使用外部 Windows 笔记本远程桌面控制家里的 Windows 电脑（如 <code>windows.home.marco</code>），<strong>强烈建议在外部笔记本上关闭客户端的 RDP-UDP 传输</strong>：</p><ul><li><strong>优化原理</strong>：微软 RDP 默认启用的 UDP 协议会发送 1400~1500 字节大包，而 Tailscale 虚拟网卡 MTU 为 1280 字节，导致大量数据包分片丢失，系统误判网络拥堵将延迟上调至 400ms、带宽限死在 1.3 Mbps。关闭 UDP 强制走 TCP 后，TCP 会自动自适应 MTU，往返延迟瞬间降至 35ms，带宽直接解锁至满速。</li><li><p><strong>一键配置（以管理员身份运行 PowerShell）</strong>：</p><pre><code class="lang-powershell">reg add &quot;HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client&quot; /v fClientDisableUDP /t REG_DWORD /d 1 /f</code></pre></li><li><strong>图形化配置（可选）</strong>：<br>按 <code>Win + R</code> 运行 <code>gpedit.msc</code> ➜ 计算机配置 ➜ 管理模板 ➜ Windows 组件 ➜ 远程桌面服务 ➜ 远程桌面连接客户端 ➜ 双击【在客户端上关闭 UDP】➜ 勾选【已启用】保存。</li></ul><hr><h2>七、 第六步：连通性验证与访问测试</h2><p>在外部设备（如手机断开家庭 Wi-Fi 开启 5G，或笔记本连接外部热点）连接 Tailscale 后进行验证。</p><h3>1. 验证 P2P 直连与低延迟</h3><p>在客户端终端执行：</p><pre><code class="lang-bash">tailscale ping openwrt.home.marco</code></pre><ul><li><strong>正常直连输出</strong>：<code>pong from ubuntu-home-marco (100.98.71.30) via &lt;公网IP&gt;:&lt;端口&gt; in 10ms~35ms</code></li><li>往返延迟应稳定在 <strong>10~35ms 之间</strong>，说明 100% 原生 P2P 隧道已建立。</li></ul><hr><h3>2. 常用服务浏览器直接访问地址</h3><table><thead><tr><th align="left">目标服务</th><th align="left">推荐访问地址</th><th align="left">说明</th></tr></thead><tbody><tr><td align="left"><strong>OpenWrt 路由后台</strong></td><td align="left"><code>http://openwrt.home.marco</code></td><td align="left">对应内网 IP: 192.168.122.1</td></tr><tr><td align="left"><strong>光猫管理后台</strong></td><td align="left"><code>http://192.168.1.1</code></td><td align="left">对应内网 IP: 192.168.1.1</td></tr><tr><td align="left"><strong>ESXi 虚拟化后台</strong></td><td align="left"><code>https://esxi.home.marco</code></td><td align="left">必须使用 https 协议 (IP: 192.168.1.3)</td></tr><tr><td align="left"><strong>NAS 存储管理</strong></td><td align="left"><code>http://nas.home.marco:5000</code></td><td align="left">对应内网 IP: 192.168.122.5</td></tr><tr><td align="left"><strong>Ubuntu 服务器</strong></td><td align="left"><code>http://ubuntu.home.marco</code></td><td align="left">对应内网 IP: 192.168.122.2</td></tr></tbody></table><hr><h2>八、 常见问题与排错指南 (FAQ)</h2><h3>Q1: 客户端本地运行了代理软件（v2rayN / Clash），无法打开 <code>*.home.marco</code> 网页？</h3><p><strong>原因</strong>：电脑上的代理软件劫持了所有网络请求，并尝试将 <code>*.home.marco</code> 送往海外代理节点，导致报错 <code>503 Service Unavailable</code>。  <br><strong>解决方法</strong>：在代理软件的路由分流中将 <code>home.marco</code> 加入<strong>直连白名单</strong>：</p><ul><li><strong>v2rayN</strong>：设置 ➜ 路由设置 ➜ 「直连的 Domain」添加 <code>domain:home.marco</code>；</li><li><strong>Clash / Clash Verge</strong>：规则添加 <code>DOMAIN-SUFFIX,home.marco,DIRECT</code>；</li><li><strong>SwitchyOmega</strong>：Bypass List 添加 <code>*.home.marco</code>。</li></ul><hr><h3>Q2: 为什么有时长时间没连，初次 ping 发现前几个包走了 DERP 中继？</h3><p><strong>原因</strong>：这是运营商动态公网 IP 轮换或长时间无数据通信后，光猫 NAT 会话休眠造成的正常自愈过程。Tailscale 为了防止丢包会先调用官方 DERP 兜底送达，并在后台完成打洞升级。  <br><strong>彻底解决</strong>：部署本教程第四步的 <strong><code>tailscale-keepalive.service</code></strong>，让后台每 20 秒发送微量心跳包锁死光猫 NAT 通道，即可实现 24 小时随连随通、秒级直连。</p><hr><h3>Q3: 家庭整个网络断电或路由器重启后，是否能够全自动恢复直连？</h3><p><strong>是的，完全自动恢复。</strong><br>整套网络已经完成<strong>全链路全静态化锁定</strong>：</p><ol><li>光猫虚拟主机（<code>UDP 41641</code>）固化在硬件中，断电不丢失；</li><li>OpenWrt WAN 口固化为<strong>静态 IP <code>192.168.1.6</code></strong>，绝不会因 DHCP 竞争而漂移；</li><li>Ubuntu 内网 IP 与监听端口 <code>41641</code> 固化；</li><li><code>tailscaled</code> 与 <code>tailscale-keepalive</code> 开机自启。  <br>来电后，光猫完成拨号、软路由与服务器开机，<strong>10~15 秒内自动完成握手并无缝锁定直连，无需任何人工干预</strong>。</li></ol><hr><h3>Q4: 局域网内的其他设备（如 NAS、打印机）需要更改网关吗？</h3><p><strong>完全不需要。</strong> Tailscale 子网路由默认自带 <strong>SNAT（源地址伪装）</strong>。内网所有设备收到的请求源 IP 都是 Ubuntu 服务器的 <code>192.168.122.2</code>，回包会自动返回 Ubuntu 并送回外部客户端。</p><hr><h3>Q5: 在外面出差时，外部 Wi-Fi 的网段也是 192.168.1.1，如何访问家里的光猫？</h3><p>在客户端的 Tailscale 菜单中开启 <strong>Exit Node</strong> ➜ 选择 <code>ubuntu-home-marco</code>。此时所有网络流量强制经由家庭 Ubuntu 发送，即可准确命中家里的光猫后台 <code>192.168.1.1</code>。</p><hr><h3>Q6: 使用 Windows 远程桌面 (RDP) 访问家里电脑时，提示延迟高达 400ms、可用带宽仅 1.3 Mbps？</h3><p><strong>原因</strong>：这是微软 RDP 客户端启用 UDP 与 WireGuard/Tailscale 默认 MTU 1280 产生的丢包冲突所致。  <br><strong>解决方法</strong>：在外部 Windows 客户端上关闭 RDP 的 UDP 传输通道（强制走纯 TCP 模式）：  <br>以管理员身份运行 PowerShell 执行以下命令：</p><pre><code class="lang-powershell">reg add &quot;HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client&quot; /v fClientDisableUDP /t REG_DWORD /d 1 /f</code></pre><p>修改后彻底关闭远程桌面窗口并重新连接，传输协议会自动切换为稳定的 TCP/WebSocket，往返延迟瞬间从 400ms 骤降至 <strong>30ms~40ms 极速响应</strong>，可用带宽飙升至 10+ Mbps，彻底告别卡顿！</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/software/archives/Ubuntu-OpenWrt-Tailscale-P2P.html</wfw:commentRss>
+</item>
+<item>
+<title>cloc 统计项目代码量</title>
+<link>https://blog.niekun.net/archives/cloc.html</link>
+<guid>https://blog.niekun.net/archives/cloc.html</guid>
+<pubDate>Wed, 26 Mar 2025 06:03:15 +0000</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[software]]></category>
+<description><![CDATA[最近需要对一个项目中的代码量进行统计，发现 cloc 可以完美的达到需求，简单命令行即可完成精确的统计。GitHub 主页：https://github.com/AlDanial/cloc常用语...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>最近需要对一个项目中的代码量进行统计，发现 cloc 可以完美的达到需求，简单命令行即可完成精确的统计。</p><p>GitHub 主页：<a href="https://github.com/AlDanial/cloc">https://github.com/AlDanial/cloc</a></p><h3>常用语法</h3><p>统计文件夹中的代码构成：</p><pre><code>cloc /path/to/folder
+</code></pre><p>统计当前文件夹：</p><pre><code>cloc .
+</code></pre><p>排除文件夹中某些文件夹：</p><pre><code>cloc --exclude-dir=.github,myenv,build,dist .
+</code></pre><p>效果如下：</p><pre><code>cloc --exclude-dir=.git,.idea,.vscode,.github,myenv,build,dist .
+      33 text files.
+      26 unique files.
+      23 files ignored.
+
+github.com/AlDanial/cloc v 2.04  T=0.16 s (162.0 files/s, 67602.7 lines/s)
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+Python                          22           1609           1947           6254
+Markdown                         2            114              0            484
+JSON                             1              0              0            403
+Text                             1              0              0             37
+-------------------------------------------------------------------------------
+SUM:                            26           1723           1947           7178
+-------------------------------------------------------------------------------</code></pre><p>以上就是 cloc 的简单用法。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/cloc.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/software/archives/cloc.html</wfw:commentRss>
+</item>
+<item>
+<title>使用 TinyPNG API 批量压缩图片尺寸</title>
+<link>https://blog.niekun.net/archives/2866.html</link>
+<guid>https://blog.niekun.net/archives/2866.html</guid>
+<pubDate>Wed, 17 Jan 2024 01:36:22 +0000</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[software]]></category>
+<description><![CDATA[TinyPNG 是一个提供图片压缩服务的网站，可以直接在其官方网站上上传并压缩 png 或 jpg 图片，同时它也提供第三方使用的 api。下面介绍使用其 api 开发的 tinifier，可以...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>TinyPNG 是一个提供图片压缩服务的网站，可以直接在其官方网站上上传并压缩 png 或 jpg 图片，同时它也提供第三方使用的 api。下面介绍使用其 api 开发的 tinifier，可以在命令行中将指定文件夹内的所有图片批量压缩。</p><p>TinyPNG 官网：<a href="https://tinypng.com/">https://tinypng.com/</a><br>tinifier 主页：<a href="https://github.com/tarampampam/tinifier">https://github.com/tarampampam/tinifier</a><br>api 申请：<a href="https://tinypng.com/developers">https://tinypng.com/developers</a></p><!--more--><p>首先申请一个自己的 api，每个账户每月有 500 次请求的免费额度。在上面的 api 申请网页中输入邮箱申请即可，打开邮件回复的链接进入个人主页，在 api 栏可以看到或新建 api：<br><img src="https://blog.niekun.net/usr/uploads/2024/01/3174153081.png" alt="2024-01-17T01:00:44.png" title="2024-01-17T01:00:44.png"></p><p>github release 页面下载 tinifier 最新版，注意需要在 cli 命令行中使用。为了方便在 windows 下调用，可以将程序路径加入系统 path 中。linux 可以添加一个软链接到 <strong>/usr/local/bin</strong> 中。</p><p>可用命令：</p><ul><li>compress 压缩指令</li><li>-h 帮助</li><li>-k 指定 api key  也可以使用 <strong>TINYPNG_API_KEY</strong> 环境变量预设，用逗号 <code>,</code> 隔开多个 key</li><li>-e 指定目录中需要压缩的图片类型</li><li>-r 递归搜索指定的目录文件夹的子文件夹</li><li>-t 指定压缩时的线程数</li></ul><p>示例：</p><pre><code># 压缩一个图片
+tinifier compress -k &#039;YOUR-API-KEY-GOES-HERE&#039; ./img.png
+
+#压缩一个目录中的所有 png 图片
+tinifier compress -k &#039;YOUR-API-KEY-GOES-HERE&#039; -e png ./images-directory
+
+# 使用20线程压缩所有 png jpg 格式的图片并循环搜索所有子文件夹
+tinifier compress -k &#039;YOUR-API-KEY-GOES-HERE&#039; -e png -e jpg -e PNG -e JPG -t 20 -r ./some-dir</code></pre><p>以上就是通过 tinyPNG api 批量压缩本地图片的基本用法。实际使用中及大幅度的减小了本地图片磁盘占用量。建议使用时提前设置好 API 的系统环境变量，可以更加方便的使用压缩命令。</p><p>参考：<br><a href="https://blog.niekun.net/archives/2621.html">systemd 服务加载 env 环境变量</a><br><a href="https://blog.niekun.net/archives/1187.html">Windows 环境变量</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2866.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/software/archives/2866.html</wfw:commentRss>
+</item>
+<item>
+<title>ffmpeg 常用视频格式转换命令</title>
+<link>https://blog.niekun.net/archives/2861.html</link>
+<guid>https://blog.niekun.net/archives/2861.html</guid>
+<pubDate>Sat, 04 Nov 2023 05:50:10 +0000</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[software]]></category>
+<description><![CDATA[关于 ffmpeg 的详细解释可以看我的文章：FFmpeg 简单用法，下面主要介绍一些常用的视频格式间转换的命令，可以直接使用。ppt 导出的 webm 转 mp4：ffmpeg -fflags...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>关于 ffmpeg 的详细解释可以看我的文章：<a href="https://blog.niekun.net/archives/1752.html#title-5">FFmpeg 简单用法</a>，下面主要介绍一些常用的视频格式间转换的命令，可以直接使用。</p><p>ppt 导出的 webm 转 mp4：</p><pre><code>ffmpeg -fflags +genpts -i in.webm -r 24 out.mp4
+</code></pre><p>mpg 转 mp4：</p><pre><code>ffmpeg -i in.mpg -c:v libx264 -c:a aac -crf 20 -preset:v veryslow out.mp4
+</code></pre><p>参考链接：<br><a href="https://stackoverflow.com/questions/18123376/webm-to-mp4-conversion-using-ffmpeg">webm to mp4 conversion using ffmpeg</a><br><a href="https://stackoverflow.com/questions/33672960/ffmpeg-convert-mpg-video-to-mp4-without-lose-quality">FFMPEG convert .mpg video to .mp4 without lose quality</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2861.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/software/archives/2861.html</wfw:commentRss>
+</item>
+<item>
+<title>chrome 内置翻译工具流量走代理配置</title>
+<link>https://blog.niekun.net/archives/2784.html</link>
+<guid>https://blog.niekun.net/archives/2784.html</guid>
+<pubDate>Wed, 14 Dec 2022 00:54:19 +0000</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[software]]></category>
+<description><![CDATA[从下半年开始发现 chrome 系统内置的网页翻译工具就开始抽风，然后彻底不能翻译了，查了下其流量 url 是 translate.googleapis.com，将 url 配置到我的代理列表中...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>从下半年开始发现 chrome 系统内置的网页翻译工具就开始抽风，然后彻底不能翻译了，查了下其流量 url 是 <code>translate.googleapis.com</code>，将 url 配置到我的代理列表中走 switchyomega 依然无法访问。</p><p>经过查询发现 chrome 翻译的流量只能走系统代理，这就有点麻烦了。开始使用了修改 hosts 的方式指定到国内可用 ip 上，但是使用并不长久，没几天就又不可用了。</p><p>家里电脑可以在 openwrt 路由上配置好代理，比较简单，但是想要在本机上直接配置就不太方便了，需要设置系统为全局代理，但我又不想这样做。</p><p>今天发现 proxifier 居然可以指定 hosts 配置代理，测试了下居然可行：<br><img src="https://blog.niekun.net/usr/uploads/2022/12/2596947788.png" alt="2022-12-14T00:51:50.png" title="2022-12-14T00:51:50.png"></p><p>如果之前在系统 hosts 文件添加过 <code>translate.googleapis.com</code> 的定向需要先将其删除，设置好后重启 chrome 发现网页翻译可以正常使用了。</p><h3>参考链接</h3><p><a href="https://github.com/feliscatus/switchyomega/issues/264#issuecomment-377439133">chrome自带的翻译工具无法使用代理#264</a><br><a href="https://www.v2ex.com/t/889119">Chrome 右键翻译，怎么 fix？</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2784.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/software/archives/2784.html</wfw:commentRss>
+</item>
+<item>
+<title>自建 RustDesk server</title>
+<link>https://blog.niekun.net/archives/2744.html</link>
+<guid>https://blog.niekun.net/archives/2744.html</guid>
+<pubDate>Sun, 07 Aug 2022 06:08:00 +0000</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[Linux]]></category>
+<category><![CDATA[software]]></category>
+<description><![CDATA[RustDesk 是一款开源的跨平台远程桌面软件，类似于 TeamViewer 的 UI 样式，但它是完全免费的。RustDesk 提供了 3 个免费的转发服务器，会根据你的地理位置自动选择最快...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>RustDesk 是一款开源的跨平台远程桌面软件，类似于 TeamViewer 的 UI 样式，但它是完全免费的。</p><p>RustDesk 提供了 3 个免费的转发服务器，会根据你的地理位置自动选择最快的，一般使用足够了，如果对安全性有担忧，它们也提供了 server 端应用，可以自建转发服务器。下面就对搭建 server 端做一些介绍。</p><p>RustDesk GitHub 主页：<a href="https://github.com/rustdesk/rustdesk">https://github.com/rustdesk/rustdesk</a><br>RustDesk Server GitHub 主页：<a href="https://github.com/rustdesk/rustdesk-server">https://github.com/rustdesk/rustdesk-server</a></p><p>服务器平台：ubuntu 20.04</p><!--more--><h3>安装 server</h3><p>我是通过 docker 安装的 server 端，这样最快速简单。</p><p>关于 docker 和 docker compose 的安装可以参考我之前的文章：<a href="https://blog.niekun.net/archives/2742.html#title-1">https://blog.niekun.net/archives/2742.html#title-1</a></p><p><strong>docker-compose.yml</strong> 文件内容如下：</p><pre><code>version: &#039;3&#039;
+
+networks:
+  rustdesk-net:
+    external: false
+
+services:
+  hbbs:
+    container_name: hbbs
+    ports:
+      - 21115:21115
+      - 21116:21116
+      - 21116:21116/udp
+      - 21118:21118
+    image: rustdesk/rustdesk-server:latest
+    command: hbbs -r xxx.xxx.xxx.xxx:21117
+    volumes:
+      - ./data:/root
+    networks:
+      - rustdesk-net
+    depends_on:
+      - hbbr
+    restart: unless-stopped
+
+  hbbr:
+    container_name: hbbr
+    ports:
+      - 21117:21117
+      - 21119:21119
+    image: rustdesk/rustdesk-server:latest
+    command: hbbr
+    volumes:
+      - ./data:/root
+    networks:
+      - rustdesk-net
+    restart: unless-stopped</code></pre><p>这里配置 hbbs IP 地址需要设置为中继服务器的 IP 或域名，否则无法链接。默认监听的是 21117 端口，客户端默认也是链接服务器的这个端口。如果修改这里的默认端口，则在客户端设置的时候也需要指定此端口。</p><p>启动服务：</p><pre><code>docker-compose up -d
+</code></pre><p>此时在客户端设置 ID server：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/43407160.jpg" alt="1.jpg" title="1.jpg"></p><p>在第一行填入服务器 IP 地址即可：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/2720143847.jpg" alt="2.jpg" title="2.jpg"></p><p>确认后，如果下方状态栏显示 <strong>ready</strong> 表示服务器链接正常：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/4049467528.jpg" alt="3.jpg" title="3.jpg"></p><h3>配置域名访问</h3><p>如果想要使用域名作为 server id，需要在你的域名服务器里加上一条自定义的域名 NS 解析，如：rust.abc.com。</p><p>注意如果你使用的是 cloudflare 服务，由于它在启用 CDN 后只支持少数端口的转发，而我们需要使用的是 21115 - 21119 这些端口，所以需要在 dns 配置时取消这个自定义域名的<strong>小黄云</strong>，只使用其 dns 服务：<br><img src="https://blog.niekun.net/usr/uploads/2022/08/1547842714.jpg" alt="4.jpg" title="4.jpg"></p><p>关于 cloudflare 的网络端口转发相关的信息参考官网内容：<a href="https://developers.cloudflare.com/fundamentals/get-started/reference/network-ports/">Network ports</a></p><p>自定义域名配置好后，修改 <strong>docker-compose.yml</strong> 配置文件中定义的地址为指定域名：</p><pre><code>command: hbbs -r rust.abc.com:21117
+</code></pre><p>重启容器后就可以在客户端的 ID server 中使用域名链接了。方法和上面介绍的用服务器 IP 设置的方法相同。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2744.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/software/archives/2744.html</wfw:commentRss>
+</item>
+<item>
+<title>ESXi 的安装与使用</title>
+<link>https://blog.niekun.net/archives/2213.html</link>
+<guid>https://blog.niekun.net/archives/2213.html</guid>
+<pubDate>Mon, 29 Mar 2021 06:51:00 +0000</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[software]]></category>
+<description><![CDATA[什么是 VMware vSphereVMware vSphere 是 VMware 的虚拟化平台，可将数据中心转换为包括 CPU、存储和网络资源的聚合计算基础架构。vSphere 将这些基础架构...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<h3>什么是 VMware vSphere</h3><p>VMware vSphere 是 VMware 的虚拟化平台，可将数据中心转换为包括 CPU、存储和网络资源的聚合计算基础架构。vSphere 将这些基础架构作为一个统一的运行环境进行管理，并为您提供工具来管理加入该环境的数据中心。</p><p><img src="https://blog.niekun.net/usr/uploads/2021/03/2575390332.png" alt="2021-03-29T03:22:48.png" title="2021-03-29T03:22:48.png"></p><!--more--><p>vSphere 的两个核心组件是 <strong>ESXi</strong>  和 <strong>vCenter Server</strong>。ESXi 是用于创建并运行虚拟机和虚拟设备的虚拟化平台。vCenter Server 是一项服务，用于管理网络中连接的多个主机，并将主机资源池化。</p><p><strong>vSphere Hypervisor</strong> <strong>虚拟领域管理程序</strong>是一种可将服务器虚拟化的裸机管理程序，依托 <strong>VMware vSphere ESXi</strong> 体系架构构建。</p><p><strong>ESXi</strong> 是安装在物理机上的管理器。vSphere Client 安装在一个笔记本或者桌面PC上，用于访问 ESXi 服务器进行虚拟机的创建和管理。vCenter server 像一个虚拟机一样安装在 ESXi 上面。在拥有多个 ESXi 服务器和数十个虚拟机时，vCenter server的应用就比较频繁了。在小环境下的管理通常都会使用 vSphere client 来直连 ESXi 服务器。</p><p>简单来说 <strong>ESXi</strong> 是直接安装在物理机器上用来管理硬件设备，相当于一个操作系统，然后在 <strong>ESXi</strong> 中安装虚拟机。它可以方便的给不同的虚拟机分配硬件资源，以及管理。</p><p>类似 VMware workstation 等产品是需要安装在某个操作系统内部运行的。</p><h3>下载镜像</h3><p>我们需要下载 vSphere Hypervisor 的 iso 镜像。</p><p>最简单的是登陆账号后在下面网址搜索下载：<br><a href="https://customerconnect.vmware.com/downloads/#my_products">https://customerconnect.vmware.com/downloads/#my_products</a></p><p>也可以进入官网下载：<a href="https://www.vmware.com/products/vsphere-hypervisor.html">https://www.vmware.com/products/vsphere-hypervisor.html</a></p><p>在右侧点击 download 会提示登录账号，然后需要注册下产品，点击 register：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/801019411.png" alt="2021-03-29T03:38:15.png" title="2021-03-29T03:38:15.png"></p><p>然后找到 esxi ISO 镜像下载地址，点击下载：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4066834994.png" alt="2021-03-29T03:39:38.png" title="2021-03-29T03:39:38.png"></p><p>当前最新版为 VMware vSphere 7.0 Update 2。</p><h3>安装</h3><p>然后我们需要将制作一个启动盘来安装 esxi，推荐使用 ventoy 来加载镜像，非常方便：<a href="https://www.ventoy.net/en/index.html">https://www.ventoy.net/en/index.html</a></p><p>开机进入 boot 设置，将对应的启动盘设置为第一项启动，然后就可以进入 ventoy 引导画面了。</p><p>选择 esxi 镜像文件 enter 进入，下面我们就进入 esxi 安装程序了。</p><p><strong>这里有第一个需要注意的地方</strong>，esxi 在第一次全新安装中会默认划分 120G 的虚拟闪存，类似于 Windows 的虚拟内存，提供更大的交换空间，为虚拟机提供读缓存，提升虚拟机的存储性能。</p><p>但是对于家用设备来说，120G 的空间白白占用有点浪费，所以我们需要自定义设置这个虚拟闪存的大小。</p><p>在引导进入安装界面后，立刻按下 shift + o 键，会停留在如下画面：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4151124259.png" alt="2021-03-29T03:51:01.png" title="2021-03-29T03:51:01.png"></p><p>在下方可以输入命令行的地方，我们在已有命令后添加一句：<strong>autoPartitionOSDataSize=4096</strong>:<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2886267543.png" alt="2021-03-29T03:52:40.png" title="2021-03-29T03:52:40.png"></p><p>表示设置虚拟闪存大小为 4 GB，可以按照需要调整，数字就是 1024 乘以需要的 GB 大小。</p><p>回车确认后继续引导安装程序，期间会自动识别设备硬件。根据提示点击 enter 继续：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1535191890.png" alt="2021-03-29T03:57:37.png" title="2021-03-29T03:57:37.png"></p><p>点击 F11 继续：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4282492030.png" alt="2021-03-29T03:58:05.png" title="2021-03-29T03:58:05.png"></p><p>选择安装到那个硬盘，enter 确认继续：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/749667252.png" alt="2021-03-29T03:58:48.png" title="2021-03-29T03:58:48.png"></p><p>选择键盘布局，默认即可：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2896348534.png" alt="2021-03-29T03:59:09.png" title="2021-03-29T03:59:09.png"></p><p>设置 root 密码：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/476951246.png" alt="2021-03-29T03:59:39.png" title="2021-03-29T03:59:39.png"></p><p>最后点击 F11 开始安装：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3121539912.png" alt="2021-03-29T03:59:59.png" title="2021-03-29T03:59:59.png"></p><p>安装完成后提示可以移除引导盘并重启了：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1588907724.png" alt="2021-03-29T04:02:19.png" title="2021-03-29T04:02:19.png"></p><h3>连接管理</h3><p>系统重启后，会自动识别第一个网口的网络地址，我们可以在同一局域网下通过 ESXi 的地址访问管理页面：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3325959303.png" alt="2021-03-29T04:05:07.png" title="2021-03-29T04:05:07.png"></p><p>我们也可以通过网线将其他设备连接到第一个网口的方式进入管理页面，需要首先设置 esxi 的网络地址。点击 F2 进入配置界面，需要输入 root 密码：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3445057029.png" alt="2021-03-29T04:06:19.png" title="2021-03-29T04:06:19.png"></p><p>进入 config management network：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1507410719.png" alt="2021-03-29T04:06:52.png" title="2021-03-29T04:06:52.png"></p><p>默认选中的管理网络为第一个网口，可以自行修改：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2292204358.png" alt="2021-03-29T04:07:31.png" title="2021-03-29T04:07:31.png"></p><p>我们需要配置 IPv4 configuration：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2414244109.png" alt="2021-03-29T04:08:09.png" title="2021-03-29T04:08:09.png"></p><p>空格键选中 set static ipv4 address，并配置合适的 ip 地址，稍后需要将连接的设备也设置为同一网段才可以连接：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/193729119.png" alt="2021-03-29T04:10:26.png" title="2021-03-29T04:10:26.png"></p><p>完成后点击 esc 退出配置，会弹出是否重启网络提示框，点击 Y 确认。</p><p>然后我们需要在通过网线连接的设备端配置网络到上面设置的同一网段内。这样就可以通过设置的静态地址来访问 esxi 管理页面了。</p><p>以上两种方式都可以进入 esxi 管理界面，这里我是通过局域网设备来实现的。</p><h3>进入 esxi 管理</h3><p>访问 esxi 的管理地址，这里我的 esxi 地址为 27.168.1.181。在局域网下其他设备浏览器打开这个地址：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2979117796.png" alt="2021-03-29T05:07:46.png" title="2021-03-29T05:07:46.png"></p><p>登录 root 账户：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1796962619.png" alt="2021-03-29T05:08:39.png" title="2021-03-29T05:08:39.png"></p><p>可以看到 esxi 7 自身占用了 1.3GB 内存和 2.5GB 硬盘空间。</p><p>hardware 栏里的 virtual flash 就是我们安装时候自定义的 4GB 虚拟闪存空间：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/262708481.png" alt="2021-03-29T05:11:58.png" title="2021-03-29T05:11:58.png"></p><p>我们安装的是 esxi 评估版可以免费使用 60 天，如果想要一直使用则需要输入有效的序列号。可以通过 manage - licensing - actions - assign license 输入序列号：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2860080469.png" alt="2021-03-29T05:14:49.png" title="2021-03-29T05:14:49.png"></p><h3>配置磁盘</h3><p>安装 esxi 的时候会格式化系统对应的磁盘，如果安装了多个磁盘并且需要在 esxi 中作为存储设备，就需要单独配置它们了。</p><p>点击左侧导航栏的 storage，然后选择 devices：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3020367051.png" alt="2021-03-29T05:29:12.png" title="2021-03-29T05:29:12.png"></p><p>可以看到我有两块硬盘和一个 cdrom。其中最下面的 10G 的硬盘是 esxi 安装盘，点击进入可以查看详细信息：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2817559226.png" alt="2021-03-29T05:30:52.png" title="2021-03-29T05:30:52.png"></p><p>其中 VMFSL 就是虚拟闪存空间，剩下的 VMFS 分区就是可用的数据分区。</p><p>点击进入第二个硬盘查看：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2158895126.png" alt="2021-03-29T05:32:35.png" title="2021-03-29T05:32:35.png"></p><p>我们看到这里什么都没有，这是因为这块硬盘没有分配 datastore。我们点击 new datastore，首先给这个数据区取一个名字：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/707394890.png" alt="2021-03-29T05:37:13.png" title="2021-03-29T05:37:13.png"></p><p>在下面的页面，我们首先选择 use full disk，这样会见整块硬盘都作为这个 datastore，然后点击 next：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/37552592.png" alt="2021-03-29T05:38:45.png" title="2021-03-29T05:38:45.png"></p><p>点击 finish 后，datastroe 就建立完成了，这时候可以看到这块磁盘的信息：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2769919541.png" alt="2021-03-29T05:39:59.png" title="2021-03-29T05:39:59.png"></p><p>返回 datastore 选项卡可以看到新建立的 datastore2 在列表中：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/393116508.png" alt="2021-03-29T05:41:08.png" title="2021-03-29T05:41:08.png"></p><p>在后续的虚拟机安装中，我们可以选择将虚拟机安装到哪一个 datastore 中。</p><p>点击 datastore browser 可以查看其中的数据文件：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2214393644.png" alt="2021-03-29T05:42:37.png" title="2021-03-29T05:42:37.png"></p><p><img src="https://blog.niekun.net/usr/uploads/2021/03/3379758427.png" alt="2021-03-29T05:43:38.png" title="2021-03-29T05:43:38.png"></p><p>可以看到左上角有一个 upload 选项，我们可以远程将文件复制到 datasotre 中：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/604823768.png" alt="2021-03-29T05:44:47.png" title="2021-03-29T05:44:47.png"></p><p>后续安装虚拟机时，我会通过这种方法将系统镜像文件复制到 datastore 中。</p><h3>配置网卡</h3><p>下面我们来配置网卡，这也是 esxi 的核心之一。我们可以将主机上的物理网卡定义为虚拟交换机，然后分配给虚拟机使用。</p><p>这里的配置非常自由，需要根据实际需求来设置，我们可以将每个网卡单独配置一个虚拟交换机，也可以将多个网卡设置为一个虚拟交换机。</p><p>选择左侧导航栏的 networking，然后点击 physical NICs，就是主机上的所有物理网卡，这里有三个：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2409538492.png" alt="2021-03-29T05:49:50.png" title="2021-03-29T05:49:50.png"></p><p>然后我们切换到 virtual switches，这里就是定义虚拟交换机，默认有一个 vSwitch0，我们点击进去看看它的配置：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1241696609.png" alt="2021-03-29T05:52:17.png" title="2021-03-29T05:52:17.png"></p><p>可以看到它绑定了我们的第一个网卡。我们点击 edit settings 进入配置：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4128853737.png" alt="2021-03-29T05:53:18.png" title="2021-03-29T05:53:18.png"></p><p>uplink 定义了绑定到那个物理网卡。<strong>注意我们将 security 里的三个选项都设置为 accept 来使网络功能完整支持。</strong>点击 save 保存配置。</p><p>如果需要将另一个网卡也绑定到这个虚拟交换机，可以点击左上角的 add uplink：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/570019677.png" alt="2021-03-29T05:55:58.png" title="2021-03-29T05:55:58.png"></p><p>这里我们将每个网卡都配置单独的虚拟交换机。</p><p>返回 virtual switches 栏，点击 add standard virtual switch 添加新的交换机：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1530204776.png" alt="2021-03-29T05:58:59.png" title="2021-03-29T05:58:59.png"></p><p>将第二个网卡配置给 vSwitch1，同样的设置 security 为 accept。然后通过相同的方法配置第三个网卡，最终我们配置好了所有的交换机：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3189820924.png" alt="2021-03-29T06:00:49.png" title="2021-03-29T06:00:49.png"></p><p>最后我们配置 port group 端口组，可以定义一个虚拟交换机的集合。我们安装虚拟机为其分配网卡时就是分配给其某个 port group。同一个虚拟交换机可以定义到多个集合中。</p><p>默认有两个集合，可以看到它们都是对应 vSwtich0：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1808085278.png" alt="2021-03-29T06:06:42.png" title="2021-03-29T06:06:42.png"></p><p>注意不要修改第二个 Management Network 的配置，否则可能无法访问 esxi 管理页面。</p><p>我们将另外两个刚才建立的虚拟交换机定义到 port group 中，以便虚拟机可以调用。点击 add port group：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3495385610.png" alt="2021-03-29T06:09:25.png" title="2021-03-29T06:09:25.png"></p><p><strong>这里注意 group 名称如果最后一个是数字，则不要再前面加空格，否则虚拟机无法识别到它。</strong></p><p>将所有的虚拟交换机都配置对应的 port group：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2104661130.png" alt="2021-03-29T06:11:09.png" title="2021-03-29T06:11:09.png"></p><p>这样我们就配置好了所有的网卡部分。</p><p>这里有个进阶教程，可以将某个网卡或其他物理设备设置为直通模式，可以供虚拟机直接调用。可以提高性能。这样就不需要配置虚拟交换机了。</p><p>通过 manage - hardware - PCI devices 查看所有的硬件：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2966573054.png" alt="2021-03-29T06:14:47.png" title="2021-03-29T06:14:47.png"></p><p>如果又可以直通的硬件，前面的复选框就可为可选状态，然后点击 左上角的 toggle passthrough 就可以切换直通模式了，这里我由于是虚拟机中安装的 esxi 所有网卡不可以设置为直通模式。</p><h3>创建虚拟机</h3><p>下面我们就可以创建虚拟机了。</p><p>首先配置虚拟机，左侧导航栏选择 virtual machines，然后点击 create/register vm 进入引导页面：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1923027329.png" alt="2021-03-29T06:20:45.png" title="2021-03-29T06:20:45.png"></p><p>如果时创建新虚拟机则选择第一项，如果是添加已有的虚拟机则选择第三项，这里我们创建新虚拟机，点击 next。</p><p>设置虚拟机名称和系统类型，这里我安装一个 openwrt 系统：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1716246100.png" alt="2021-03-29T06:22:47.png" title="2021-03-29T06:22:47.png"></p><p>然后选择虚拟机安装位置，也就是选择一个 datastore：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/688792816.png" alt="2021-03-29T06:23:31.png" title="2021-03-29T06:23:31.png"></p><p>然后是定义虚拟机硬件配置，可以根据需要设置，这里我通过顶部的菜单添加一个新的 network adapter：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3386313093.png" alt="2021-03-29T06:25:46.png" title="2021-03-29T06:25:46.png"></p><p>然后我们配置网络适配器对应的 port group，点击后面的下拉菜单可以看到我们在 port group 中定义的所有集合：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3112212601.png" alt="2021-03-29T06:27:30.png" title="2021-03-29T06:27:30.png"></p><p>我给两个网络适配器分别分配不同的集合，也就是对应不同的虚拟交换机：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2568647135.png" alt="2021-03-29T06:29:15.png" title="2021-03-29T06:29:15.png"></p><p>如果需要通过系统镜像的方式安装虚拟机，则需要配置 cdrom 为 datastore ISO file，然后选择提前上传到 datastore 的镜像文件：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/4018267828.png" alt="2021-03-29T06:32:02.png" title="2021-03-29T06:32:02.png"></p><p>这里我是通过提前准备好的 vmdk 虚拟磁盘文件来直接启动虚拟机，所以我需要将虚拟磁盘添加进来。</p><p>首先将默认的 disk 删除，然后选择 add hard disk - existing hard disk：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1574139812.png" alt="2021-03-29T06:37:21.png" title="2021-03-29T06:37:21.png"></p><p>然后选中对应的磁盘文件，这里我们直接将磁盘文件放在 openwrt 目录内，方便后期管理：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2568476479.png" alt="2021-03-29T06:39:40.png" title="2021-03-29T06:39:40.png"></p><p>然后点击 finish 完成虚拟机的硬件配置：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/353707365.png" alt="2021-03-29T06:40:30.png" title="2021-03-29T06:40:30.png"></p><p>现在可以看到我们刚添加的 openwrt：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3640121135.png" alt="2021-03-29T06:41:15.png" title="2021-03-29T06:41:15.png"></p><p>点击 openwrt 进入监控界面：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/2812354515.png" alt="2021-03-29T06:42:43.png" title="2021-03-29T06:42:43.png"></p><p>然后点击 power on 就可以启动虚拟机了。</p><h3>开机自启</h3><p>可以通过设置，让 esxi 启动后自动启动某个虚拟机，点击 manage - system - autostart，然后选中需要自动启动的虚拟机，点击 enable 即可：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/3894487917.png" alt="2021-03-29T06:50:13.png" title="2021-03-29T06:50:13.png"></p><p>如果有多个虚拟机需要自动启动，还可以设置它们的启动顺序。</p><h3>远程访问</h3><p>经过测试可以通过 frp 经过 ssh 访问 exsi。但是由于 exsi web 管理页面默认会 http 重定向到 https 页面，所以如果你配置的是 http to https 的访问则会出现远程访问的时候进入无限循环的 redirect 从而报错。</p><p>解决方法就是 frp 配置 plugin_http2https 插件将 https 转为 http 转发给 frps，要么将 exsi web 页面关闭强制重定向 https。</p><p>可以参考：<br><a href="https://akutz.wordpress.com/2010/03/10/how-to-vsphere-client-to-vcenter-using-http/">How To: vSphere Client to vCenter Using HTTP</a><br><a href="https://blog.niekun.net/archives/539.html">使用 frp 实现内网穿透/远程管理/文件服务器</a></p><p>从安全的角度考虑，还是不要轻易将 exsi 暴露在外网中吧。</p><p>以上就是 esxi 的简单安装和使用教程。</p><h3>参考链接</h3><p><a href="https://docs.vmware.com/cn/VMware-vSphere/index.html">VMware vSphere 文档</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2213.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/software/archives/2213.html</wfw:commentRss>
+</item>
+<item>
+<title>使用 instaloader 下载 Instagram 图片-视频</title>
+<link>https://blog.niekun.net/archives/2205.html</link>
+<guid>https://blog.niekun.net/archives/2205.html</guid>
+<pubDate>Tue, 16 Mar 2021 03:55:00 +0000</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[Linux]]></category>
+<category><![CDATA[software]]></category>
+<description><![CDATA[一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。关于配置自己的 bot 参考之前的文章：https://blog.niekun.net/arc...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。</p><p>关于配置自己的 bot 参考之前的文章：<a href="https://blog.niekun.net/archives/428.html">https://blog.niekun.net/archives/428.html</a></p><p>我的应用于 telegram bot 的 YouTube 下载器源码地址：<a href="https://github.com/nie11kun/telegram-bot-youtube-downloader">https://github.com/nie11kun/telegram-bot-youtube-downloader</a></p><p>最近想给我的 telegram bot 添加 Instagram 图片的下载功能，但是 youtube-dl 并不支持 Instagram。查询了下发现了 instaloader 这个开源软件可以完美实现我想要的功能。</p><p>instaloader 官网：<a href="https://instaloader.github.io/">https://instaloader.github.io/</a></p><p>GitHub：<a href="https://github.com/instaloader/instaloader">https://github.com/instaloader/instaloader</a></p><!--more--><h3>安装</h3><p>instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。</p><p>使用 pip3 安装：</p><pre><code>pip3 install instaloader --upgrade
+</code></pre><p><strong>注意必须通过 pip3 而不是 pip 安装，否则使用中会报错。</strong></p><h3>使用</h3><p>安装完成后就可以使用 <strong>instaloader</strong> 命令来下载了。注意如果 python 安装到了自定义目录，如 <code>/opt</code> 则需要手动链接 instaloader 可执行程序到 <code>/usr/local/bin</code> 目录。</p><h4>下载 post</h4><p>如果要下载一个 post 中的图片，提取链接中的 <strong>shortcode</strong> 来下载，如下是一个 Instagram post 的链接：<a href="https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link">https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link</a>，其中的 <code>CMcMZycLpbS</code> 就是 <strong>shortcode</strong> 代码。</p><p>需要通过 <code>-shortcode</code> 参数来下载对应的图片，且需要通过 <code>--</code> 告诉 instaloader 不要将 <code>-shortcode</code> 作为 option 对待，如：</p><pre><code>instaloader -- -CMcMZycLpbS
+</code></pre><p>关于命令中的特殊字符处理参考：<a href="https://blog.niekun.net/archives/2204.html">https://blog.niekun.net/archives/2204.html</a></p><p>默认会下载到当前目录下，并新建文件夹 <code>-shortcode</code>，媒体文件及相关文本文件就在其中，注意到文件夹是以特殊字符 <code>-</code> 开头的，所以访问目录需要加上 <code>--</code>，如：</p><pre><code>cd -- -CMcMZycLpbS
+</code></pre><h4>自定义下载目录</h4><p>通过 <code>--dirname-pattern</code> 参数可以指定下载目录，如：</p><pre><code>instaloader --dirname-pattern=/tmp/test -- -CMcMZycLpbS
+</code></pre><p>就会将对应 post 的媒体下载到 <code>/tmp/test</code> 目录内。</p><p><strong>instaloader</strong> 的功能很强大，可以下载一个用户的所有发布内容，可以下载一个 <code>#hashtag</code> 标签的所有内容等。具体可以参考官方文档：<a href="https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram">https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram</a></p><p>我将 instaloader 加入了 telegram bot 中，可以很方便的下载一个 post 的媒体内容，有兴趣的可以查看：<a href="https://github.com/nie11kun/telegram-bot-youtube-downloader">https://github.com/nie11kun/telegram-bot-youtube-downloader</a></p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/2205.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/software/archives/2205.html</wfw:commentRss>
+</item>
+<item>
+<title>修复 vs code 下保存文件会自动 format 代码的问题</title>
+<link>https://blog.niekun.net/archives/2191.html</link>
+<guid>https://blog.niekun.net/archives/2191.html</guid>
+<pubDate>Thu, 25 Feb 2021 12:46:37 +0000</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[software]]></category>
+<description><![CDATA[今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>今天在开发 React 时发现每次保存 js 文件都会自动改变代码格式导致一大堆报错：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/175565695.png" alt="2021-02-25T12:40:56.png" title="2021-02-25T12:40:56.png"></p><!--more--><p>经过查询发现时由于安装的 <strong>JS-CSS-HTML Formatter</strong> 插件默认会在保存文件时对文件格式进行处理。但是堆 React 代码的自动处理有问题导致无法正常进行开发。</p><p>只需要修改其配置文件将保存文件时自动处理关掉即可。</p><p>快捷键 <strong>cmd + shift + p</strong> 打开控制器，输入 formatter：<br><img src="https://blog.niekun.net/usr/uploads/2021/02/1966900753.png" alt="2021-02-25T12:44:41.png" title="2021-02-25T12:44:41.png"></p><p>点击 formatter config 修改配置文件，将第一句 <strong>"onSave": true</strong> 改为 <strong>false</strong> 保存即可。</p><p>需要重启 vscode 才能生效。</p>
+]]></content:encoded>
+<slash:comments>1</slash:comments>
+<comments>https://blog.niekun.net/archives/2191.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/software/archives/2191.html</wfw:commentRss>
+</item>
+<item>
+<title>QT 添加第三方库</title>
+<link>https://blog.niekun.net/archives/1958.html</link>
+<guid>https://blog.niekun.net/archives/1958.html</guid>
+<pubDate>Wed, 02 Dec 2020 03:52:00 +0000</pubDate>
+<dc:creator>admin</dc:creator>
+<category><![CDATA[Development]]></category>
+<category><![CDATA[software]]></category>
+<description><![CDATA[如果要在 QT 中使用第三方库，需要将相关库文件路径写入项目 pro 文件内，有两种方式：GUI 对话框添加或直接编辑 pro 文件。GUI 添加使用 GUI 添加的好处是比较直观，使用鼠标点击...]]></description>
+<content:encoded xml:lang="zh-CN"><![CDATA[
+<p>如果要在 QT 中使用第三方库，需要将相关库文件路径写入项目 pro 文件内，有两种方式：GUI 对话框添加或直接编辑 pro 文件。</p><h3>GUI 添加</h3><p>使用 GUI 添加的好处是比较直观，使用鼠标点击即可。</p><p>右键项目名称，点击 add library：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/3998509933.jpg" alt="1.jpg" title="1.jpg"></p><!--more--><p>选中 external library 点击 next：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/1625536441.jpg" alt="2.jpg" title="2.jpg"></p><p>选择头文件所在目录路径：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/3830480933.jpg" alt="3.jpg" title="3.jpg"></p><p>如果有 lib 库文件的话需要链接进来，没有的话可以不设置：<br><img src="https://blog.niekun.net/usr/uploads/2020/12/1700799379.jpg" alt="4.jpg" title="4.jpg"></p><p>其他保持默认然后点击 next 完成添加。</p><p>我们打开 pro 文件可以看到在文件最后添加了相关内容：</p><pre><code>win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../Library/boost_1_72_0/stage/lib/ -llibboost_filesystem-mgw81-mt-x32-1_72.dll
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../Library/boost_1_72_0/stage/lib/ -llibboost_filesystem-mgw81-mt-x32-1_72.dlld
+else:unix: LIBS += -L$$PWD/../../../Library/boost_1_72_0/stage/lib/ -llibboost_filesystem-mgw81-mt-x32-1_72.dll
+
+INCLUDEPATH += $$PWD/../../../Library/boost_1_72_0
+DEPENDPATH += $$PWD/../../../Library/boost_1_72_0</code></pre><h3>pro 文件添加</h3><p>根据添加一个第三方库所增加的语句，我们可以手动直接编辑 pro 文件完成添加：</p><ul><li><code>LIBS</code> 指定 lib 库文件路径，没有的话不需要定义</li><li><code>INCLUDEPATH</code> 指头文件所在目录</li><li><code>DEPENDPATH</code> 定义和头文件相同目录即可</li></ul><p>例如我们添加一个 boost filesystem 库到项目：</p><pre><code>LIBS += -L&quot;/path/to/boost_1_72_0/stage/lib/&quot; \
+        -llibboost_filesystem-mgw81-mt-x32-1_72 \
+        -llibboost_regex-mgw81-mt-x32-1_72
+
+INCLUDEPATH += &quot;/path/to/boost_1_72_0&quot;
+DEPENDPATH += &quot;/path/to/boost_1_72_0&quot;</code></pre><p><code>LIBS</code> 中，使用 <code>-L</code> 添加 lib 库目录，使用 <code>-l</code> 添加具体某个库文件，可以不写文件后缀。</p><p>以上就是 QT 中添加第三方库的方法。</p>
+]]></content:encoded>
+<slash:comments>0</slash:comments>
+<comments>https://blog.niekun.net/archives/1958.html#comments</comments>
+<wfw:commentRss>https://blog.niekun.net/feed/category/software/archives/1958.html</wfw:commentRss>
+</item>
+</channel>
+</rss>

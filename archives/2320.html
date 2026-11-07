@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>理解 Linux shell 脚本的 2&gt;&amp;1 | Marco Nie</title>
+    <link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+        <link rel="canonical" href="2320.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="理解 Linux shell 脚本的 2&gt;&amp;1 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2320.html" />
+<link rel="alternate" type="application/rdf+xml" title="理解 Linux shell 脚本的 2&gt;&amp;1 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2320.html" />
+<link rel="alternate" type="application/atom+xml" title="理解 Linux shell 脚本的 2&gt;&amp;1 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2320.html" />
+<meta name="description" content="我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 2&amp;gt;&amp;amp;1，例如：ls foo &amp;gt; /dev/null 2&amp;..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/2320.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="理解 Linux shell 脚本的 2&amp;gt;&amp;amp;1" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 2&amp;gt;&amp;amp;1，例如：ls foo &amp;gt; /dev/null 2&amp;..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="0b837dfafdf714f646a85f87-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-2320'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-2320-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-2320-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-2320'),
+                holder = this.dom('#respond-post-2320-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="0b837dfafdf714f646a85f87-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-2320');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _Ug9 = 'e8'//'CY'
++//'MNk'
+'f63'+//'qby'
+'qby'+''///*'rq'*/'rq'
++//'lCg'
+'3e'+//'1CU'
+'de5'+//'GR'
+'c4'+//'aKw'
+'c0b'+//'JmF'
+'JmF'+//'Dh'
+'fec'+//'LQO'
+'LQO'+//'vY1'
+'095'+'4b'//'Aj'
++'79'//'r3'
++'38'//'QB'
++'T'//'T'
++'390'//'0mu'
++'a'//'4m'
++//'hS'
+'4', _Lzx = [[5,8],[15,18],[18,21],[27,28]];
+    
+    for (var i = 0; i < _Lzx.length; i ++) {
+        _Ug9 = _Ug9.substring(0, _Lzx[i][0]) + _Ug9.substring(_Lzx[i][1]);
+    }
+
+    return _Ug9;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+
+<body>
+
+<header class="site-navbar container-fluid">
+    <nav>
+        <ul class="site-name">
+                    <li>
+                <a href="../index.html" class="brand">Marco Nie</a>
+            </li>
+            <li class="desc">you are the company you keep...</li>
+                </ul>
+
+        <ul>
+            <li>
+                <label for="nav-toggler" class="nav-toggler-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                </label>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="site-nav">
+        <input type="checkbox" id="nav-toggler">
+
+        <ul class="nav-menu">
+            <li>
+                <a href="../index.html">首页</a>
+            </li>
+
+                                    <li>
+                <a href="../start-page.html">关于我</a>
+            </li>
+                        <li>
+                <form method="post" action="../index.html">
+                    <input type="search" id="s" name="s">
+                </form>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="container-thin">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+                <header class="entry-header text-center">
+        <h1 class="entry-title" itemprop="name headline">
+            <a href="2320.html" itemprop="url">理解 Linux shell 脚本的 2&gt;&amp;1</a>
+        </h1>
+                <ul class="entry-meta list-inline text-muted">
+            <li class="feather-calendar"><time datetime="2021-05-31T18:33:51+00:00" itemprop="datePublished">2021-05-31</time></li>
+            <li class="feather-folder"><a href="../category/Linux/index.html">Linux</a></li>
+            <li class="feather-message"><a href="2320.html#comments"  itemprop="discussionUrl">暂无评论</a></li>
+        </ul>
+            </header>
+
+            <div class="entry-content fmt" itemprop="articleBody">
+                <p>我们在编程中经常会使用一些固定语句来解决对应固定的问题，在 shell 脚本中一个被经常使用但不太好理解的短句就是 <code>2&gt;&amp;1</code>，例如：</p><pre><code>ls foo &gt; /dev/null 2&gt;&amp;1
+</code></pre><p>下面我们一步步了解下这种结构的含义。</p><!--more--><h3>I/O redirection 重定向</h3><p>简单理解，redirection 重定向就是将一个命令的 output 输出发送到另一个地方。例如，我们通过 <code>cat</code> 命令打印一个文件的内容到屏幕：</p><pre><code>$ cat foo.txt
+foo
+bar
+baz</code></pre><p>我们也可以将输出的内容发送到其他地方，例如将内容重定向到另一个文件 file.txt:</p><pre><code>$ cat foo.txt &gt; output.txt
+
+$ cat output.txt
+foo
+bar
+baz</code></pre><p>执行第一条 cat 命令，我们不会看到任何输出信息，因为我们修改了 <strong>standard output (stdout)标准输出</strong>到一个文件，所以它就不会输出到屏幕了。</p><p>需要注意的是还有另一个地方：<strong>standard error (stderr)标准错误</strong>，当有错误时会输出信息。所以当我们通过 cat 命令输出一个不存在的文件内容时：</p><pre><code>$ cat nop.txt &gt; output.txt
+cat: nop.txt: No such file or directory</code></pre><p>以上示例中即使我们将 <strong>stdout</strong> 重定向到一个文件了，由于 output.txt 不存在，<strong>stderr</strong> 依然会输出错误信息到屏幕。因为我们重定向的只是 <strong>stdout</strong> 而不包括 <strong>stderr</strong>。</p><h3>file descriptors 文件描述器</h3><p>一个文件描述器是一个正整数，用来表示一个打开文件的。每个文件都有其各自的文件描述器。这里我们只需要知道 <strong>stdout</strong> 和 <strong>stderr</strong> 有其各自的文件描述器 id 定义了它们各自的地址。</p><p><strong>stdout</strong> 是 <strong>1</strong>，<strong>stderr</strong> 是 <strong>2</strong>。</p><p>在之前的示例中，我们可以修改命令为如下结构：</p><pre><code>cat foo.txt 1&gt; output.txt
+</code></pre><p>这里的 <strong>1</strong> 就是 <strong>stdout</strong> 的文件描述器，通过重定向语法 <code>[FILE_DESCRIPTOR]&gt;</code> 将 <strong>stdout</strong> 重定向到另一个文件。注意 <code>1&gt;</code> 可以简写为 <code>&gt;</code>。</p><p>类似的，可以将 stderr 重定向到指定的目的地：</p><pre><code>$ cat nop.txt 2&gt; error.txt
+
+$ cat error.txt
+cat: nop.txt: No such file or directory</code></pre><p>这样就会将 error 存入 error.txt 文件，屏幕上不会输出任何信息。</p><p>下面我们理解下 <code>2&gt;&amp;1</code> 的意义。我们使用 <code>&amp;1</code> 来指向 <strong>stdout</strong> 的重定向地址，所以 <code>2&gt;&amp;1</code> 表示重定向 <strong>stderr</strong> 到和 <strong>stdout</strong> 同样的重定向位置上。所以我们就可以通过下面示例的方法同时将 <strong>stdout</strong> 和 <strong>stderr</strong> 重定向到同一个文件中：</p><pre><code>$ cat foo.txt &gt; output.txt 2&gt;&amp;1
+
+$ cat output.txt
+foo
+bar
+baz
+
+$ cat nop.txt &gt; output.txt 2&gt;&amp;1
+
+$ cat output.txt
+cat: nop.txt: No such file or directory</code></pre><h3>总结</h3><ul><li>有两个地方用来让程序发送输出内容：<strong>stdout</strong>，<strong>stderr</strong></li><li>可以单独定义两个输出的重定向目的地</li><li>文件描述器用来识别 <strong>stdout (1)</strong> 和 <strong>stderr (2)</strong></li><li><code>command &gt; output</code> 是 <code>command 1&gt; output</code> 的简写</li><li>通过 <code>&amp;[FILE_DESCRIPTOR]</code> 指向一个文件描述器的重定向目标地址上</li><li><code>2&gt;&amp;1</code> 可以将 <strong>stderr</strong> 重定向到 <strong>stdout</strong> 同样的重定向地址上。反之亦然。</li></ul><h3>参考链接</h3><p><a href="https://www.brianstorti.com/understanding-shell-script-idiom-redirect/">Understanding Shell Script's idiom: 2&gt;&1</a><br><a href="https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean">In the shell, what does “ 2&gt;&1 ” mean?</a></p>                <p itemprop="keywords">标签：无</p>
+            </div>
+        </article>
+
+        <nav class="post-nav">
+            <ul class="page-navigator">
+                <li class="prev"><a href="2310.html" title="通过 telegram-cli 命令行发送 telegram 消息">通过 telegram-cli 命令行发送 telegram 消息</a></li>
+                <li class="next"><a href="2321.html" title="openwrt 扩展根目录空间">openwrt 扩展根目录空间</a></li>
+            </ul>
+        </nav>
+
+        <div id="comments">
+        
+            <div id="respond-post-2320" class="respond">
+            <div class="cancel-comment-reply">
+                <a id="cancel-comment-reply-link" href="2320.html#respond-post-2320" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-0b837dfafdf714f646a85f87-="">取消回复</a>            </div>
+
+            <h5 id="response">你的评论</h5>
+
+            <form method="post" action="https://blog.niekun.net/archives/2320.html/comment" id="comment-form" role="form">
+                <div class="grid">
+                    <textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+                </div>
+                                <div class="grid">
+                    <input type="text" placeholder="名字" name="author" id="author" value="" required/>
+                    <input type="email" placeholder="Email" name="mail" id="mail" value="" required />
+                    <input type="url" placeholder="http://网站（选填）" name="url" id="url" value="" />
+                </div>
+                                <button type="submit">提交评论</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</main>
+
+<footer class="site-footer container-fluid">
+    <div class="d-flex justify-content-between">
+        <ul class="list-inline text-muted">
+            <li>&copy; 2026 <a href="../index.html">Marco Nie</a></li>
+            <li><a href="../feed/index.html">RSS</a></li>
+        </ul>
+        <ul class="list-inline text-muted">
+            <li>
+                Powered by <a href="https://typecho.org">Typecho</a>            </li>
+        </ul>
+    </div>
+</footer>
+
+
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="0b837dfafdf714f646a85f87-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56de5e40bd68e7d',t:'MTc5NDA3MDg2Ng=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56de5e40bd68e7d',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wsl 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置 | Marco Nie</title>
+    <link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+        <link rel="canonical" href="1801.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="wsl 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置 &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1801.html" />
+<link rel="alternate" type="application/rdf+xml" title="wsl 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置 &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1801.html" />
+<link rel="alternate" type="application/atom+xml" title="wsl 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置 &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1801.html" />
+<meta name="description" content="在升级到 wsl 2 后发现一些网络问题和之前的 wsl 不一样了，主要是 DNS 解析和 wsl 和 Windows 网络互访问题，这里介绍如何处理。DNS 解析wsl 2 使用的 DNS 解..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/1801.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="wsl 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="在升级到 wsl 2 后发现一些网络问题和之前的 wsl 不一样了，主要是 DNS 解析和 wsl 和 Windows 网络互访问题，这里介绍如何处理。DNS 解析wsl 2 使用的 DNS 解..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="a14d8e21954613f46bd33e59-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-1801'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-1801-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-1801-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-1801'),
+                holder = this.dom('#respond-post-1801-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="a14d8e21954613f46bd33e59-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-1801');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _KFg8j = '9c7'//'hP'
++//'yy'
+'5'+'d'//'OYS'
++//'s3E'
+'7'+//'3Wh'
+'2b'+'55'//'et'
++//'9'
+'8dd'+'e'//'X'
++''///*'wym'*/'wym'
++''///*'W'*/'W'
++''///*'4O'*/'4O'
++//'JL'
+'f96'+'e3b'//'Nt'
++//'M'
+'bfc'+//'k'
+'20'+'628'//'4'
++'86'//'ZR'
++//'lM'
+'6'+//'j'
+'j'+/* 'Y'//'Y' */''+'8'//'31'
+, _6YSSbjN = [[31,32]];
+    
+    for (var i = 0; i < _6YSSbjN.length; i ++) {
+        _KFg8j = _KFg8j.substring(0, _6YSSbjN[i][0]) + _KFg8j.substring(_6YSSbjN[i][1]);
+    }
+
+    return _KFg8j;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+
+<body>
+
+<header class="site-navbar container-fluid">
+    <nav>
+        <ul class="site-name">
+                    <li>
+                <a href="../index.html" class="brand">Marco Nie</a>
+            </li>
+            <li class="desc">you are the company you keep...</li>
+                </ul>
+
+        <ul>
+            <li>
+                <label for="nav-toggler" class="nav-toggler-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                </label>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="site-nav">
+        <input type="checkbox" id="nav-toggler">
+
+        <ul class="nav-menu">
+            <li>
+                <a href="../index.html">首页</a>
+            </li>
+
+                                    <li>
+                <a href="../start-page.html">关于我</a>
+            </li>
+                        <li>
+                <form method="post" action="../index.html">
+                    <input type="search" id="s" name="s">
+                </form>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="container-thin">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+                <header class="entry-header text-center">
+        <h1 class="entry-title" itemprop="name headline">
+            <a href="1801.html" itemprop="url">wsl 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置</a>
+        </h1>
+                <ul class="entry-meta list-inline text-muted">
+            <li class="feather-calendar"><time datetime="2020-10-13T10:01:00+00:00" itemprop="datePublished">2020-10-13</time></li>
+            <li class="feather-folder"><a href="../category/Linux/index.html">Linux</a>, <a href="../category/Windows/index.html">Windows</a></li>
+            <li class="feather-message"><a href="1801.html#comments"  itemprop="discussionUrl">暂无评论</a></li>
+        </ul>
+            </header>
+
+            <div class="entry-content fmt" itemprop="articleBody">
+                <p>在升级到 wsl 2 后发现一些网络问题和之前的 wsl 不一样了，主要是 DNS 解析和 wsl 和 Windows 网络互访问题，这里介绍如何处理。</p><h3>DNS 解析</h3><p>wsl 2 使用的 DNS 解析服务器设置在文件：<code>/etc/resolv.conf</code> 内设置，这是一个 link 文件，真正的文件路径是：<code>/run/resolvconf/resolv.conf</code>，这个文件是每次 wsl 启动时自动生成的，内容如下：</p><pre><code># This file was automatically generated by WSL. To stop automatic generation of this file, add the following entry to /etc/wsl.conf:
+# [network]
+# generateResolvConf = false
+nameserver 172.24.144.1</code></pre><!--more--><p>nameserver 后面的就是指定的 DNS 服务器地址。我发现有时候分配的服务器地址是无效的，如：<code>127.0.0.53</code>，使用 ping 来测试发现提示无法解析地址。需要设置一个固定的 DNS 地址，方法如下：</p><ul><li><p>新建文件：<code>/etc/wsl.conf</code>，内容如下：</p><pre><code>[network]
+generateResolvConf = false</code></pre></li></ul><p>以上配置好就不会自动创建 <code>/run/resolvconf/resolv.conf</code> 文件了。</p><p>退出 wsl，关机然后重新启动：</p><pre><code>exit
+wsl --shutdown
+wsl
+</code></pre><p>删除 link 文件：<code>/etc/resolv.conf</code>:</p><pre><code>rm /etc/resolv.conf
+</code></pre><p>然后新建 <code>/etc/resolv.conf</code> 文件，内容如下，可自定义 nameserver 地址：</p><pre><code>nameserver 114.114.114.114
+</code></pre><p>再次退出 wsl，关机然后重新启动：</p><pre><code>exit
+wsl --shutdown
+wsl
+</code></pre><p>查看 <code>/etc/resolv.conf</code> 文件是否是之前自定义的地址：</p><pre><code>cat /etc/resolv.conf
+</code></pre><p>测试网络服务：</p><pre><code>ping niekun.net
+</code></pre><p>参考链接：<a href="https://github.com/microsoft/WSL/issues/5256#issuecomment-666545999">https://github.com/microsoft/WSL/issues/5256#issuecomment-666545999</a></p><h3>网络访问配置</h3><p>以前使用 wsl 时 Linux 子系统和 Windows 主机的网络好像是直接互通的，比如我在 Windows 下建立了一个 http 网页 <code>http://127.0.0.1:6000</code>，可以在 Linux 子系统下直接访问地址 <code>http://127.0.0.1:6000</code>，同理对于 Windows 主机访问 Linux 子系统的服务也是可以使用 localhost 直接访问的。</p><p>在升级到 wsl 2 后发现这一特性没有了，无法直接通过 localhost 地址来互通，查询官方说明关于<a href="https://docs.microsoft.com/en-us/windows/wsl/compare-versions#accessing-network-applications">wsl 2 访问网络服务</a> 的方法可以实现访问，但是每次关机后 wsl 和 Windows 本地地址会发生变化不方便使用。</p><p><strong>可以设置静态 IP 来固定地址。Windows 终端下执行下面命令：</strong></p><p>在 wsl 下增加 IP 地址：<code>192.168.50.16</code>，名称为：<code>eth0:1</code>:(以 Ubuntu 系统为例)</p><pre><code>wsl -d Ubuntu -u root ip addr add 192.168.50.16/24 broadcast 192.168.50.255 dev eth0 label eth0:1
+</code></pre><p>在 Windows 10 下增加一个 IP 地址：(此命令需要管理员权限执行)</p><pre><code>netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255.255.0
+</code></pre><p>执行后，在 wsl 下通过 IP：<code>192.168.50.88</code> 访问 Windows 服务。在 Windows 下通过 IP：<code>192.168.50.16</code> 访问 wsl 服务。</p><p>完成后再终端使用 ipconfig 查看设置：</p><pre><code>Ethernet adapter vEthernet (WSL):
+
+   Connection-specific DNS Suffix  . :
+   Link-local IPv6 Address . . . . . : fe60::b525:6b90:8fb0:f513%58
+   IPv4 Address. . . . . . . . . . . : 172.23.64.1
+   Subnet Mask . . . . . . . . . . . : 255.255.240.0
+   IPv4 Address. . . . . . . . . . . : 192.168.50.88
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . :</code></pre><p>以上两个命令可以写在一个 powershell 脚本文件内，脚本内设置管理员权限执行，由于需要管理员权限所以<strong>无法通过建立 shortcut 放到开机自启动文件夹来自动启动址</strong>。</p><p><code>wsl_ip.ps1</code> 脚本内容如下，会自动请求管理员权限：</p><pre><code>if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] &quot;Administrator&quot;))  
+{  
+  $arguments = &quot;&amp; &#039;&quot; +$myinvocation.mycommand.definition + &quot;&#039;&quot;
+  Start-Process powershell -Verb runAs -ArgumentList $arguments
+  Break
+}
+
+wsl -d Ubuntu -u root ip addr add 192.168.50.16/24 broadcast 192.168.50.255 dev eth0 label eth0:1
+netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255.255.0
+</code></pre><p>为了方便使用，可以将脚本路径加入系统 PATH 中，这样可以方便的在终端直接运行脚本，PATH 设置参考：<a href="413.html">https://blog.niekun.net/archives/413.html</a></p><p>完成后打开终端直接执行命令：<code>wsl_ip</code> 即可快速设置 IP。</p><p>如果在 powershell 中执行脚本时报错，可能是由于当前系统设置的脚本执行策略有问题，管理员权限打开 ps 后执行以下指令：</p><pre><code>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+</code></pre><p>更多关于系统执行策略设置参考官方文档：<a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.1">About Execution Policies</a></p><h3>wsl 使用主机代理</h3><p>wsl 可以直接使用 Windows 主机搭建的代理服务，ip 地址就使用上面我们创建的 Windows 端的地址即可。</p><p>wsl 中编辑 <code>.bashrc</code> 文件:</p><pre><code>vim ~/.bashrc
+</code></pre><p>将下面代码加入文件：</p><pre><code>alias proxy=&#039;export all_proxy=socks5://192.168.50.88:1080 &amp;&amp; export http_proxy=http://192.168.50.88:1082 &amp;&amp; export https_proxy=http://192.168.50.88:1082&#039;
+alias unproxy=&#039;unset all_proxy &amp;&amp; export http_proxy= &amp;&amp; export https_proxy=&#039;</code></pre><p>保存文件后，重新载入配置：</p><pre><code>source ~/.bashrc
+</code></pre><p>运行命令测试alias是否生效：</p><pre><code>proxy
+</code></pre><p>如果无法使用代理，可能是 Windows 防火墙限制代理软件的访问权限，Windows 下打开<strong>允许应用通过 Windows 防火墙</strong>设置：<br><img src="../usr/uploads/2021/01/231829215.jpg" alt="1.jpg" title="1.jpg"></p><p>将对应代理软件打开 private 和 public 访问权限：<br><img src="../usr/uploads/2021/01/4268618643.png" alt="2021-01-06T05:30:16.png" title="2021-01-06T05:30:16.png"></p><p>再次在 wsl 中测试 proxy 是否生效。</p><h3>参考链接</h3><p><a href="https://github.com/MicrosoftDocs/WSL/issues/418#issuecomment-648570865">Static IP on WSL 2</a><br><a href="https://jiayaoo3o.github.io/2020/06/23/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1WSL2%E7%9A%84%E7%BD%91%E7%BB%9C%E4%BB%A3%E7%90%86%E9%85%8D%E7%BD%AE/">记录一次WSL2的网络代理配置</a></p>                <p itemprop="keywords">标签：无</p>
+            </div>
+        </article>
+
+        <nav class="post-nav">
+            <ul class="page-navigator">
+                <li class="prev"><a href="1797.html" title="解决 proxifier 和 wsl 2 无法同时使用的问题">解决 proxifier 和 wsl 2 无法同时使用的问题</a></li>
+                <li class="next"><a href="1805.html" title="wsl 2 激活 systemd">wsl 2 激活 systemd</a></li>
+            </ul>
+        </nav>
+
+        <div id="comments">
+        
+            <div id="respond-post-1801" class="respond">
+            <div class="cancel-comment-reply">
+                <a id="cancel-comment-reply-link" href="1801.html#respond-post-1801" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-a14d8e21954613f46bd33e59-="">取消回复</a>            </div>
+
+            <h5 id="response">你的评论</h5>
+
+            <form method="post" action="https://blog.niekun.net/archives/1801.html/comment" id="comment-form" role="form">
+                <div class="grid">
+                    <textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+                </div>
+                                <div class="grid">
+                    <input type="text" placeholder="名字" name="author" id="author" value="" required/>
+                    <input type="email" placeholder="Email" name="mail" id="mail" value="" required />
+                    <input type="url" placeholder="http://网站（选填）" name="url" id="url" value="" />
+                </div>
+                                <button type="submit">提交评论</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</main>
+
+<footer class="site-footer container-fluid">
+    <div class="d-flex justify-content-between">
+        <ul class="list-inline text-muted">
+            <li>&copy; 2026 <a href="../index.html">Marco Nie</a></li>
+            <li><a href="../feed/index.html">RSS</a></li>
+        </ul>
+        <ul class="list-inline text-muted">
+            <li>
+                Powered by <a href="https://typecho.org">Typecho</a>            </li>
+        </ul>
+    </div>
+</footer>
+
+
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="a14d8e21954613f46bd33e59-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56de51f9cc3a158',t:'MTc5NDA3MDgzNQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56de51f9cc3a158',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

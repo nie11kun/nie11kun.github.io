@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React 入门教程之七 -- List 和 Form | Marco Nie</title>
+    <link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+        <link rel="canonical" href="2203.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="React 入门教程之七 -- List 和 Form &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/2203.html" />
+<link rel="alternate" type="application/rdf+xml" title="React 入门教程之七 -- List 和 Form &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/2203.html" />
+<link rel="alternate" type="application/atom+xml" title="React 入门教程之七 -- List 和 Form &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/2203.html" />
+<meta name="description" content="list 列表和 key在 JavaScript 中我们通常使用 map method 来对一个 list 的每个元素进行操作：const numbers = [1, 2, 3, 4, 5];c..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/2203.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="React 入门教程之七 -- List 和 Form" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="list 列表和 key在 JavaScript 中我们通常使用 map method 来对一个 list 的每个元素进行操作：const numbers = [1, 2, 3, 4, 5];c..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="2b4f4575eb7c5d9365291fa2-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-2201'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-2201-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-2201-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-2201'),
+                holder = this.dom('#respond-post-2201-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="2b4f4575eb7c5d9365291fa2-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-2201');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _zUhEh = //'cT'
+'76'+//'1'
+'61'+'87d'//'YK'
++'47'//'siZ'
++//'TCG'
+'0a'+//'1b'
+'4c'+'41'//'G2Y'
++'c4'//'K'
++//'a0y'
+'ab'+/* 'xWl'//'xWl' */''+//'xby'
+'xby'+''///*'3'*/'3'
++//'gy'
+'9a5'+//'2s'
+'3'+'5b'//'A'
++//'X1r'
+'9'+//'byV'
+'byV'+'R'//'R'
++//'EAK'
+'5'+''///*'adL'*/'adL'
++//'JhI'
+'b28'+'02'//'ebb'
+, _CzWxt = [[19,22],[26,29],[26,27]];
+    
+    for (var i = 0; i < _CzWxt.length; i ++) {
+        _zUhEh = _zUhEh.substring(0, _CzWxt[i][0]) + _zUhEh.substring(_CzWxt[i][1]);
+    }
+
+    return _zUhEh;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+
+<body>
+
+<header class="site-navbar container-fluid">
+    <nav>
+        <ul class="site-name">
+                    <li>
+                <a href="../index.html" class="brand">Marco Nie</a>
+            </li>
+            <li class="desc">you are the company you keep...</li>
+                </ul>
+
+        <ul>
+            <li>
+                <label for="nav-toggler" class="nav-toggler-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                </label>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="site-nav">
+        <input type="checkbox" id="nav-toggler">
+
+        <ul class="nav-menu">
+            <li>
+                <a href="../index.html">首页</a>
+            </li>
+
+                                    <li>
+                <a href="../start-page.html">关于我</a>
+            </li>
+                        <li>
+                <form method="post" action="../index.html">
+                    <input type="search" id="s" name="s">
+                </form>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="container-thin">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+                <header class="entry-header text-center">
+        <h1 class="entry-title" itemprop="name headline">
+            <a href="2203.html" itemprop="url">React 入门教程之七 -- List 和 Form</a>
+        </h1>
+                <ul class="entry-meta list-inline text-muted">
+            <li class="feather-calendar"><time datetime="2021-03-05T16:13:00+00:00" itemprop="datePublished">2021-03-05</time></li>
+            <li class="feather-folder"><a href="../category/react/index.html">react</a></li>
+            <li class="feather-message"><a href="2203.html#comments"  itemprop="discussionUrl">暂无评论</a></li>
+        </ul>
+            </header>
+
+            <div class="entry-content fmt" itemprop="articleBody">
+                <h3>list 列表和 key</h3><p>在 JavaScript 中我们通常使用 <strong>map</strong> method 来对一个 list 的每个元素进行操作：</p><pre><code>const numbers = [1, 2, 3, 4, 5];
+const double = numbers.map((number) =&gt; { return number * 2});
+console.log(double)
+
+//output:
+//[ 2, 4, 6, 8, 10 ]</code></pre><p>在 React 中对一个 list 的元素进行操作方法类似。</p><!--more--><p>我们可以在 <strong>JSX</strong> 中通过大括号<code>{}</code> 来建立一个 elements 的集合，下面示例中我们将 <strong>map</strong> 的返回定义为 <code>&lt;li&gt;</code> 元素并赋值给 listItems：</p><pre><code>const numbers = [1, 2, 3, 4, 5];
+const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+
+ReactDOM.render(
+    &lt;ul&gt;{listItems}&lt;/ul&gt;,
+    document.getElementById(&#039;root&#039;)
+);</code></pre><p>注意在 <strong>render</strong> 中我们将 <strong>listItems</strong> 放在 <code>&lt;ul&gt;</code> 元素中。</p><p>通常情况下我们将 lists 放在一个 component 中：</p><pre><code>const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    )
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers}/&gt;,
+    document.getElementById(&#039;root&#039;)
+);</code></pre><p>当运行以上代码时，在浏览器终端会有一个 warning 警告信息：<strong>Each child in a list should have a unique "key" prop.</strong>：<br><img src="../usr/uploads/2021/03/2200488786.png" alt="2021-03-05T06:50:19.png" title="2021-03-05T06:50:19.png"></p><p><strong>Key</strong> 是一个特殊的 string 字符串属性需要给创建的 <strong>list</strong> element 添加的。它可以用来定位 list 中的每个元素。</p><p>下面我们给 list item 添加 <strong>Key</strong> 字符串属性：</p><pre><code>const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;li key={number.toString()}&gt;
+            {number}
+        &lt;/li&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}</code></pre><p>添加后报警就会消除。</p><h4>Keys</h4><p><strong>Key</strong> 可以帮助 React 识别哪个 item 修改过，被删除，被添加。以上示例中，我们在 map 中创建 item 时给其 key 属性，这样每个 item 可以有确切的属性值。</p><p>每个 list item 最好设置一个特殊的标识 <strong>key string</strong> 来区别于其他 items。最常用的就是使用数据中的 ID 作为 key：</p><pre><code>const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo) =&gt; 
+        &lt;li key={todo.id}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+const todos = [
+    {id: 1, text: &#039;123&#039;},
+    {id: 2, text: &#039;456&#039;}
+];
+ReactDOM.render(
+    &lt;TodoItems todos={todos} /&gt;,
+    document.getElementById(&#039;root&#039;)
+);</code></pre><p>当没有特定的 ID 来作为标识时，作为最后的选择，可以使用 item 的 index 作为 key：</p><pre><code>const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo, index) =&gt; 
+        &lt;li key={index}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}</code></pre><p>如果 items 的顺序可能会发生变化的话，不推荐使用 index 作为 key 使用，因为可能对性能产生影响并且对 component 的 state 造成问题。<strong>如果没有定义确切的 key 给 items，React 默认会使用 index 作为 keys。</strong></p><h4>拆解 component 时 key 的处理</h4><p>keys 是对应与一个数组的内容而言的，它并不能单独存在。例如我们要拆解上面的 NumberList，提取出 <strong>ListItem</strong>，则需要将 key 定义在 <code>&lt;ListItem /&gt;</code> 元素中而不是 <strong>ListItem</strong> component 内部的 <code>&lt;li&gt;</code> 中：</p><pre><code>const ListItem = (props) =&gt; {
+    return (
+        &lt;li&gt;{props.value}&lt;/li&gt;
+    );
+}
+
+const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers} /&gt;,
+    document.getElementById(&#039;root&#039;)
+);</code></pre><p>如果写成下面模式就是<strong>错误</strong>的：</p><pre><code>function ListItem(props) {
+  const value = props.value;
+  return (
+    &lt;li key={value.toString()}&gt;
+      {value}
+    &lt;/li&gt;
+  );
+}</code></pre><h4>每个 item 的 key 必须是特定的</h4><p>数组中每个 items 使用的 <strong>key</strong> 必须是互相独立且不相同的，<strong>但并不需要在全局下互相独立</strong>。在两个单独的数组中可以，其元素可以使用相同的 key：</p><pre><code>const React = require(&#039;react&#039;)
+const ReactDOM = require(&#039;react-dom&#039;)
+
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;li key={post.id}&gt;{post.title}&lt;/li&gt;
+            )}
+        &lt;/ul&gt;
+    );
+    const content = props.posts.map((post) =&gt;
+        &lt;div key={post.id}&gt;
+            &lt;h3&gt;{post.title}&lt;/h3&gt;
+            &lt;p&gt;{post.content}&lt;/p&gt;
+        &lt;/div&gt;
+    );
+    return (
+        &lt;div&gt;
+            {sideBar}
+            &lt;hr/&gt;
+            {content}
+        &lt;/div&gt;
+    );
+}
+
+const posts = [
+    {id: 1, title: &#039;Hello World&#039;, content: &#039;Welcome to learning React!&#039;},
+    {id: 2, title: &#039;Installation&#039;, content: &#039;You can install React from npm.&#039;}
+];
+
+ReactDOM.render(
+    &lt;Blog posts={posts} /&gt;,
+    document.getElementById(&#039;root&#039;)
+);</code></pre><p>上面示例中，我们在 <strong>Blog</strong> component 中定义了两个 JSX，都创建了 list elements，每个元素的 key 使用了对应的 id 属性。在每个 list 内部 key 是互相独立的。可以看到不只是 <code>&lt;li&gt;</code> 元素可以加 key，只要通过 map 定义了一个 array 数组，就可以给每个元素加上 key 属性来互相独立识别。</p><p><strong>key</strong> 是为了给 <strong>React</strong> 识别用的。它本身并不作为一个普通 <strong>prop</strong> 传给 components，<strong>也就是在 component 内部并不能使用这个 key 数据</strong>，如果想要在 component 中使用这个数据则需要单独定义一个其他 prop 来传入 key 数据：</p><pre><code>const Post = (props) =&gt; {
+    return (
+        &lt;li&gt;
+            {props.id}: {props.title}
+        &lt;/li&gt;
+    )
+}
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;Post key={post.id} id={post.id} title={post.title} /&gt;
+            )}
+        &lt;/ul&gt;
+    );
+...
+...
+...
+}</code></pre><p>上面示例中，<strong>Post</strong> component 无法直接访问 <strong>key</strong> 的数据，所以我们在调用 <strong>Post</strong> 时单独定义一个 <strong>id</strong> 属性并赋值为 key 相同的数据，这样就间接的可以在 <strong>Post</strong> component 中通过 id 来读取 key 的数据。</p><p>在之前的 ListItem 示例中，我们声明了一个单独的 listItems 变量并在后续返回中将其放在 <code>&lt;ul&gt;</code> 中：</p><pre><code>const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}</code></pre><p>JSX 支持嵌入任何的 JavaScript 表达式，只需要使用大括号包围即可，所以上面的代码可以修改为以下模式：</p><pre><code>    return (
+        &lt;ul&gt;
+            {numbers.map((number) =&gt;
+                &lt;ListItem key={number.toString()} value={number} /&gt;);}
+        &lt;/ul&gt;
+    );</code></pre><p>使用哪种方式来定义 JSX 取决于对应的使用场景，总的原则是要方便与代码阅读，逻辑清晰。需要注意的是如果 <code>map()</code> method 中层级太复杂，可以考虑将其拆分为多个 components。</p><h3>Forms 表格</h3><p>HTML 的 form element 和其他 DOM elements 有点区别，因为 form element 包含有一些内部 state 数据，例如下面的 html 示例包含一个 from 表格：</p><pre><code>&lt;form&gt;
+    &lt;label&gt;
+        Name:
+        &lt;input type=&quot;text&quot; name=&quot;name&quot;&gt;
+    &lt;/label&gt;
+    &lt;input type=&quot;submit&quot; value=&quot;Submit&quot;&gt;
+&lt;/form&gt;</code></pre><p>以上示例中的 form 表格会有一个默认的 behavior 动作，那就是当用户点击 submit 按钮时会打开一个新页面。如果你不需要这个默认行为，同时需要提取 input 的信息时，需要在 submit event 事件发生时对其使用 <code>preventDefault()</code> method，标准的实现方法是通过 <strong>controlled components 可控构件</strong> 来处理。</p><h3>controlled components</h3><p>在 html 中，form 的元素如：<code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code>, 和 <code>&lt;select&gt;</code> 都有他们自己的 state 且随着用户输入信息而自动更新。在 react 中，可变的 state 存储在 component 的 state property 中且只能通过 <code>setState()</code> 更新。</p><p>我们可以将 from 元素的 state 和 component 的 state 合并起来作为唯一的数据来源，这样 component 既可以渲染 form 也可以控制 form 中的输入信息。一个 input 输入信息受 react component 控制的 form element 叫做 <strong>controlled component</strong>。</p><p>如下示例中，我们构建一个 controlled component 来记录用户 input 的内容：</p><pre><code>const React = require(&#039;react&#039;)
+const ReactDOM = require(&#039;react-dom&#039;)
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: &#039;&#039;};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`a name has been submited: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    Name:
+                    &lt;input type=&quot;text&quot; value={this.state.value} onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById(&#039;root&#039;)
+);</code></pre><p>我们将 input 的 value 属性定义为 <code>this.state.value</code> 的值，这里显示的永远是当前 state value 的值。当 handleChange 被触发时，会将当前用户输入的内容更新到 state value 中，然后触发 render 更新 form。</p><p>通过 controlled component 可以使 form 中 input 的内容受控于 state，这样我们就可以操作输入的数据用于其他任何地方了。</p><h4>textarea 标签</h4><p>在 html 中我们使用 textarea 来定义一段文本区域：</p><pre><code>&lt;textarea&gt;
+  Hello there, this is some text in a text area
+&lt;/textarea&gt;</code></pre><p>在 react 中，类似于上面的 input 标签，我们将文本内容放在 value 属性中，如下示例：</p><pre><code>const React = require(&#039;react&#039;)
+const ReactDOM = require(&#039;react-dom&#039;)
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: &#039;please write some words to discribe yourself&#039;};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`a discribe has been submited: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    TextArea:
+                    &lt;textarea type=&quot;text&quot; value={this.state.value} onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById(&#039;root&#039;)
+);</code></pre><p>注意我们在构造器中给他 state value 定义了初始值，这样在第一次访问页面时就会有一段默认文字了。</p><h4>select 标签</h4><p>在 html 中 select 标签可以创建一个下拉菜单控件：</p><pre><code>&lt;select&gt;
+  &lt;option value=&quot;grapefruit&quot;&gt;Grapefruit&lt;/option&gt;
+  &lt;option value=&quot;lime&quot;&gt;Lime&lt;/option&gt;
+  &lt;option selected value=&quot;coconut&quot;&gt;Coconut&lt;/option&gt;
+  &lt;option value=&quot;mango&quot;&gt;Mango&lt;/option&gt;
+&lt;/select&gt;</code></pre><p>注意上面的示例中，Coconut 选项会默认选中，因为其定义了 selected 属性。在 react 中我们可以在 select 根标签中直接定义 value 属性来定义当前选中的是哪一个 option。这在 controlled component 中可以很方便的管理及更新 select element 的 value：</p><pre><code>const React = require(&#039;react&#039;)
+const ReactDOM = require(&#039;react-dom&#039;)
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: &#039;sports&#039;};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`you favorite is: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    your favorite:
+                    &lt;select value={this.state.value} onChange={this.handleChange}&gt;
+                        &lt;option value=&quot;sleep&quot;&gt;Sleep&lt;/option&gt;
+                        &lt;option value=&quot;sports&quot;&gt;Sports&lt;/option&gt;
+                        &lt;option value=&quot;takePhoto&quot;&gt;Take Photo&lt;/option&gt;
+                        &lt;option value=&quot;work&quot;&gt;Work&lt;/option&gt;
+                    &lt;/select&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById(&#039;root&#039;)
+);</code></pre><p>以上示例中，我们将 state 的 value 赋值给 select 的 value 这样 select 当前选中项总是 state 中的值，在 handleChange 触发时会更新 state 中的 value 并 render 页面。</p><p>注意我们可以给 value 赋值一个数组，这样就可以同时选中多个 option：</p><pre><code>&lt;select multiple={true} value={[&#039;B&#039;, &#039;C&#039;]}&gt;</code></pre><p>以上几种 form 控件起始基本结构都类似，他们都核心概念就是将元素的 value 属性和 state 挂钩，从而使 controlled component 生效。</p><h3>处理多个 input 输入源</h3><p>当我们需要在 component 中同时处理多个 input 元素时，可以给每个 input 添加 name 属性，然后再对应的 handle function 中通过 event.target.name 来区分他们：</p><pre><code>const React = require(&#039;react&#039;)
+const ReactDOM = require(&#039;react-dom&#039;)
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isGoing: true,
+            numberOfGuests: 2
+        };
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        const target = event.target;
+        const value = target.type === &#039;checkbox&#039; ? target.checked : target.value;
+        const name = target.name;
+        this.setState({[name]: value});
+    }
+
+    handleSubmit(event) {
+        alert(`Is Going: ${this.state.isGoing}, Number Of Guests: ${this.state.numberOfGuests}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    Is Going:
+                    &lt;input
+                    name=&quot;isGoing&quot;
+                    type=&quot;checkbox&quot;
+                    checked={this.state.isGoing}
+                    onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;br /&gt;
+                &lt;label&gt;
+                    Number of Guests:
+                    &lt;input
+                    name=&quot;numberOfGuests&quot;
+                    type=&quot;number&quot;
+                    value={this.state.numberOfGuests}
+                    onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;br /&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById(&#039;root&#039;)
+);</code></pre><p>以上示例中我们使用了 ES6 中新加入的特性: <code>this.setState({[name]: value});</code> 再 object 中使用方括号 <code>[]</code> 来调用变量。<code>setState()</code> 会自动合并更新到 <strong>state</strong> 中。</p><h4>input Null value</h4><p>我们可以给一个 input 元素定义初值，默认情况下在页面加载完成后，input 框就可以立刻被用户进行编辑，有时候我们不希望再一开始就让用户修改 input 中的数据，此时可以临时给 input 的 value 属性赋值为 null 或 undefined 就可以了：</p><pre><code>const React = require(&#039;react&#039;)
+const ReactDOM = require(&#039;react-dom&#039;)
+
+ReactDOM.render(
+    &lt;input value=&quot;hi&quot; /&gt;,
+    document.getElementById(&#039;root&#039;)
+);
+
+setTimeout(() =&gt; {
+    ReactDOM.render(
+        &lt;input value={null} /&gt;,
+        document.getElementById(&#039;root&#039;)
+    );
+}, 2000);</code></pre><p>以上示例中，在页面刚加载的前 2 秒，用户无法修改默认的 <code>hi</code> 字符串。</p>                <p itemprop="keywords">标签：无</p>
+            </div>
+        </article>
+
+        <nav class="post-nav">
+            <ul class="page-navigator">
+                <li class="prev"><a href="2198.html" title="升级 command line tool 后 QT 编译 boost 库报错问题">升级 command line tool 后 QT 编译 boost 库报错问题</a></li>
+                <li class="next"><a href="2204.html" title="cd 到以 '-' dash 开头的目录的方法">cd 到以 '-' dash 开头的目录的方法</a></li>
+            </ul>
+        </nav>
+
+        <div id="comments">
+        
+            <div id="respond-post-2201" class="respond">
+            <div class="cancel-comment-reply">
+                <a id="cancel-comment-reply-link" href="2203.html#respond-post-2201" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-2b4f4575eb7c5d9365291fa2-="">取消回复</a>            </div>
+
+            <h5 id="response">你的评论</h5>
+
+            <form method="post" action="https://blog.niekun.net/archives/2203.html/comment" id="comment-form" role="form">
+                <div class="grid">
+                    <textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+                </div>
+                                <div class="grid">
+                    <input type="text" placeholder="名字" name="author" id="author" value="" required/>
+                    <input type="email" placeholder="Email" name="mail" id="mail" value="" required />
+                    <input type="url" placeholder="http://网站（选填）" name="url" id="url" value="" />
+                </div>
+                                <button type="submit">提交评论</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</main>
+
+<footer class="site-footer container-fluid">
+    <div class="d-flex justify-content-between">
+        <ul class="list-inline text-muted">
+            <li>&copy; 2026 <a href="../index.html">Marco Nie</a></li>
+            <li><a href="../feed/index.html">RSS</a></li>
+        </ul>
+        <ul class="list-inline text-muted">
+            <li>
+                Powered by <a href="https://typecho.org">Typecho</a>            </li>
+        </ul>
+    </div>
+</footer>
+
+
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="2b4f4575eb7c5d9365291fa2-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56de5152a83a158',t:'MTc5NDA3MDgzMw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56de5152a83a158',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
