@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ 入门教程之八 -- Templates - Exceptions - Files | Marco Nie</title>
+    <link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+        <link rel="canonical" href="1940.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="C++ 入门教程之八 -- Templates - Exceptions - Files &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/1940.html" />
+<link rel="alternate" type="application/rdf+xml" title="C++ 入门教程之八 -- Templates - Exceptions - Files &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/1940.html" />
+<link rel="alternate" type="application/atom+xml" title="C++ 入门教程之八 -- Templates - Exceptions - Files &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/1940.html" />
+<meta name="description" content="function template使用 function 和 class 使我们编程更加简单及易操作。但是它们仍然受限于 c++ 编程规范，在定义它们的参数时必须指定参数的类型。例如：int s..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/1940.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="C++ 入门教程之八 -- Templates - Exceptions - Files" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="function template使用 function 和 class 使我们编程更加简单及易操作。但是它们仍然受限于 c++ 编程规范，在定义它们的参数时必须指定参数的类型。例如：int s..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="dba2a8400afb933ed5e42d5a-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-1940'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-1940-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-1940-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-1940'),
+                holder = this.dom('#respond-post-1940-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="dba2a8400afb933ed5e42d5a-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-1940');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _V9i9DUj = //'5'
+'ac'+//'UZO'
+'8'+'f'//'U2d'
++''///*'M'*/'M'
++//'Km'
+'5a5'+'c2a'//'y'
++//'N'
+'f56'+'0'//'DYR'
++/* 'Yju'//'Yju' */''+'7'//'H'
++//'8NM'
+'b'+//'hBV'
+'hBV'+'988'//'U'
++'7'//'K8u'
++'62'//'z1'
++//'8ed'
+'44f'+//'4U'
+'a'+'da'//'rj'
++'23'//'hd'
++'4'//'6n'
++//'Y'
+'4', _Sq8 = [[16,19]];
+    
+    for (var i = 0; i < _Sq8.length; i ++) {
+        _V9i9DUj = _V9i9DUj.substring(0, _Sq8[i][0]) + _V9i9DUj.substring(_Sq8[i][1]);
+    }
+
+    return _V9i9DUj;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+
+<body>
+
+<header class="site-navbar container-fluid">
+    <nav>
+        <ul class="site-name">
+                    <li>
+                <a href="../index.html" class="brand">Marco Nie</a>
+            </li>
+            <li class="desc">you are the company you keep...</li>
+                </ul>
+
+        <ul>
+            <li>
+                <label for="nav-toggler" class="nav-toggler-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                </label>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="site-nav">
+        <input type="checkbox" id="nav-toggler">
+
+        <ul class="nav-menu">
+            <li>
+                <a href="../index.html">首页</a>
+            </li>
+
+                                    <li>
+                <a href="../start-page.html">关于我</a>
+            </li>
+                        <li>
+                <form method="post" action="../index.html">
+                    <input type="search" id="s" name="s">
+                </form>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="container-thin">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+                <header class="entry-header text-center">
+        <h1 class="entry-title" itemprop="name headline">
+            <a href="1940.html" itemprop="url">C++ 入门教程之八 -- Templates - Exceptions - Files</a>
+        </h1>
+                <ul class="entry-meta list-inline text-muted">
+            <li class="feather-calendar"><time datetime="2020-11-23T21:41:00+00:00" itemprop="datePublished">2020-11-23</time></li>
+            <li class="feather-folder"><a href="../category/cpp/index.html">c++</a></li>
+            <li class="feather-message"><a href="1940.html#comments"  itemprop="discussionUrl">暂无评论</a></li>
+        </ul>
+            </header>
+
+            <div class="entry-content fmt" itemprop="articleBody">
+                <h3>function template</h3><p>使用 function 和 class 使我们编程更加简单及易操作。但是它们仍然受限于 c++ 编程规范，在定义它们的参数时必须指定参数的类型。例如：</p><pre><code>int sum(int a, int b) {
+  return a+b;
+}
+
+int main () {
+  int x=7, y=15;
+  cout &lt;&lt; sum(x, y) &lt;&lt; endl;
+}</code></pre><!--more--><p>以上示例中，需要我们定义sum function 需要传入两个 int 型数据，返回其相加结果。在 main 中调用 sum function。</p><p><code>sum()</code> 可以正确的执行指令，但它的限制是必须传入 int 类型的数据。</p><p>如果需要实现两个 double 类型数据相加，需要再次定义新 funtion：</p><pre><code>double sum(double a, double b) {
+  return a+b;
+}</code></pre><p>使用 <strong>function template</strong> 能够让我们只定义一个 <code>sum()</code> 来适用于所有类型的数据。</p><p>使用关键词 <code>template</code> 来定义一个 function template，在尖括号<code>&lt;&gt;</code>内定义通用数据类型：</p><pre><code>template &lt;class T&gt; 
+</code></pre><p>关键词 <code>class</code> 表示一个申明要定义 generic 通用数据类型，注意不要和我之前学习的 <code>class</code> 混淆。</p><p>也可以使用关键词 <code>typename</code>：</p><pre><code>template &lt;typename T&gt; 
+</code></pre><p><code>T</code> 表示我们的 generic 通用数据类型名称，在后续中可以使用此名称代表数据类型，<strong>可以是任意自定义字符</strong>。</p><p>修改我们的示例：</p><pre><code>#include &lt;iostream&gt;
+using namespace std;
+
+template &lt;class T&gt;
+T sum(T a, T b)
+{
+    return a + b;
+}
+
+int main()
+{
+    int x=7, y=15;
+    cout &lt;&lt; sum(x, y) &lt;&lt; endl;
+
+    double a=7.15, b=15.54;
+    cout &lt;&lt; sum(a, b) &lt;&lt; endl;
+
+    return 0;
+}</code></pre><p>我们在 function 中建立了一个 generic data type 通用数据类型 T，返回值和传入参数类型都为 T。在 mian 中调用时，会根据实际传入数据类型来动态确定 T 的实际类型。</p><p>function template 可以节省编程中很多时间，因为只需要一次定义就可以兼容不同的数据类型。</p><p>我们也可以同时定义多个 generic data type，使用逗号<code>,</code> 分隔多个定义类型：</p><pre><code>template &lt;class T, class U&gt;
+T smaller(T a, U b) {
+  return (a &lt; b ? a : b);
+}
+
+int main () {
+  int x=72;
+  double y=15.34;
+  cout &lt;&lt; smaller(x, y) &lt;&lt; endl;
+}</code></pre><p>以上示例定义了两个通用数据类型，返回值类型为第一种数据类型。<code>(a &lt; b ? a : b)</code> 表达式的意思是：判断 a 是否小于 b，如果结果为 true 则返回 a 的值，如果结果为 flase 返回 b 的值，两个参数可以是不同数据类型，如：int 和 double。</p><p>在 mian 中调用 smaller function，返回结果为两个参数中较大的那个的值，由于返回值类型为第一个定义数据类型 T，而我们调用时传入的第一个参数类型为 int，所以返回结果也为 int 型。</p><p>需要注意的是在一旦定义了 function template，在 function 中就一定要使用定义的那些通用数据类型，否则编译器会报错。</p><h3>class template</h3><p>同样也可以定义 class template，允许 class 的元素类型为 generic data type。语法如下：</p><pre><code>template &lt;class T&gt;
+class MyClass {
+
+};</code></pre><p>类似于 function template，多个 generic data type 使用逗号<code>,</code> 分隔：</p><pre><code>template &lt;class T,class U&gt;
+</code></pre><p>下面举例说明使用方法：</p><pre><code>template &lt;class T&gt;
+class Pair {
+    public:
+    Pair (T a, T b):
+    first(a), second(b) {
+    }
+    
+    private:
+    T first, second;
+};</code></pre><p>以上建立了一个 class template，类型为 T，通过构造器对 private 里的两个 T 类型的参数初始化数据。</p><p>在 class template 外定义 function，如 class 大括号外或一个单独文件，需要在 class 后标记 class template 内定义过的 generic type。例如在以上示例的 class 外建立 bigger function：</p><pre><code>template &lt;class T&gt;
+class Pair {
+    public:
+    Pair (T a, T b):
+    first(a), second(b) {
+    }
+    T bigger();
+
+    private:
+    T first, second;
+};
+
+template &lt;class T&gt;
+T Pair&lt;T&gt;::bigger() {
+    return (first&gt;second ? first : second);
+}</code></pre><p>上面示例中使用了 scope resolution operator - 范围解析符<code>::</code> 来表示外部的 Pair() function 属于哪个 class，在头文件章节介绍过，具体参考：<a href="1920.html">C++ 入门教程之六 -- Classes 实践</a>。</p><p>bigger function 返回 class 两个属性变量中较大的值。</p><p>在 main 中实例化 Pair class 时需要使用尖括号定义当前实际要使用的数据类型，如 int 类型：</p><pre><code>void main() {
+    Pair&lt;int&gt; obj(11, 22);
+    cout &lt;&lt; obj.bigger() &lt;&lt; endl;
+}</code></pre><p>也可以定义 double 类型：</p><pre><code>void main() {
+    Pair&lt;double&gt; obj(11.23, 22.56);
+    cout &lt;&lt; obj.bigger() &lt;&lt; endl;
+}</code></pre><h3>template 特例</h3><p>在前面介绍的 class template 中，实例化 object 时定义不同的数据类型会执行同样的 function 指令内容。template specialization 特例允许当我们定义某些特定数据类型作为 template type 时执行和通用指令不同的内容。</p><p>下面举例说明，当定义数据类型为 char 时执行和其他数据类型不同的指令，先建立一个常规 class template：</p><pre><code>template &lt;class T&gt;
+class MyClass {
+public:
+    MyClass(T x) {
+        cout &lt;&lt; x &lt;&lt; &quot; - not a char&quot; &lt;&lt; endl;
+    }
+};</code></pre><p>以上 class 用来作为常规数据类型情况下的处理。</p><p>为了处理当数据类型为 char 时的情况，我们建立一个 class specialization 特例：</p><pre><code>template &lt;&gt;
+class MyClass&lt;char&gt; {
+public:
+    MyClass(char x) {
+        cout &lt;&lt; x &lt;&lt; &quot; - is a char&quot; &lt;&lt; endl;
+    }
+};</code></pre><p>以上代码中，首先在 class 前声明了一个没有参数的 <code>template &lt;&gt;</code>，这是为了区别于通用数据类型情况，表明此 class specialization 里的数据类型是已知的和特定的。而由于这个 class 依然是属于 class template 类型的，只是一个特例情况的处理，所以这句声明不能省略。</p><p>在 class template 名称后面的 <code>&lt;char&gt;</code> 定义了此 clas 属于对哪种 specialization 特例数据类型的处理。当我们实例化时，如果定义的数据类型是属于 template specialization 里定义的类型时，会将此 class 作为实例化对象。</p><p>需要注意得是对常规数据类型的 class template 和特定类型数据的 class template 两者的 body 内容是完全独立互不影响的，specialization template 并不从 generic template 里继承任何元素，如果需要的话可以编写完全不同的功能。</p><p>在 main 中使用不同数据类型进行实例化测试：</p><pre><code>int main() {
+    MyClass&lt;int&gt; obj1(22);
+    MyClass&lt;double&gt; obj2(11.34);
+    MyClass&lt;char&gt; obj3(&#039;a&#039;);
+    
+    return 0;
+}
+
+//output:
+//22 - not a char
+//11.34 - not a char
+//a - is a char</code></pre><p>可以看到 generic template 适用于数据类型：int 和 double，而 specialization template 适用于数据类型：char。</p><h3>exception 例外</h3><p>程序在执行中遇到问题叫做：exception 例外。</p><p>在 c++ 中，exception 是对程序遇到反常情况的反应。如：0做除数时。</p><p>c++ 的 exception handling 例外管理器是通过三个关键词：<code>try</code>，<code>catch</code> 和 <code>throw</code> 来建立的。<code>throw</code> 是用来当问题出现时调出某一个 exception 响应动作的。例如：</p><pre><code>int motherAge = 40;
+int sonAge = 50;
+if (sonAge &gt; motherAge) {
+    throw 99;
+}</code></pre><p>以上示例中，当 sonAge 大于 motherAge 时，程序首先会自动识别 throw 语句中元素的数据类型，然后根据这个数据类型去寻找处理这类数据类型的 exception 块。最后使用 throw 内的数据作为传入参数在 exception 中使用。</p><p>throw 中的数据类型可以是任意的，如 123 为 int 型，a 为 char 型，11.24 为 double 型，一下示例写法都是正确的：</p><pre><code>int motherAge = 40;
+int sonAge = 50;
+if (sonAge &gt; motherAge) {
+    throw ‘a’;
+}
+
+if (sonAge = motherAge) {
+    throw 12.45;
+}</code></pre><h3>catching exception</h3><p>那么具体如何响应 exception 呢？需要使用 <code>try/catch</code> block 模块来构造完整的 throw 和 response 过程。一个 try block 块用来激活特殊情况的 exception 功能，在 try 后面需要跟一个或多个 catch block 块来执行某种特定 throw 类型的 exception 动作。在 catch 后需要定义特定的数据类型对应于 throw 的某种数据类型。</p><p>下面举例说明：</p><pre><code>try {
+    int motherAge = 40;
+    int sonAge = 50;
+    if (sonAge &gt; motherAge) {
+        throw 99;
+    }
+} catch (int x) {
+    cout &lt;&lt; &quot;wrong age value - Error&quot; &lt;&lt; x &lt;&lt; endl;
+} catch (char x) {
+    cout &lt;&lt; &quot;example for other catch&quot; &lt;&lt; x &lt;&lt; endl;
+}
+
+//output: wrong age value - Error99</code></pre><p>以上例子中，try 块 throw 了一个 exception，throw 的数据 99 是 int 类型，所以匹配到 catch 中定义类型也为 int 型的 exception 块。然后将 99 作为传入数据在 exception 中使用。当只有一种 exception 情况是，只需要定义一个 throw 和一个 catch 块即可。</p><p>下面的示例是提示用户输入两个数字，然后将它们相除，exception 的情况是当第二个数为 0：</p><pre><code>try {
+    int num1;
+    cout &lt;&lt; &quot;enter the first number:&quot;;
+    cin &gt;&gt; num1;
+    
+    int num2;
+    cout &lt;&lt; &quot;enter the second number:&quot;;
+    cin &gt;&gt; num2;
+    
+    if (num2 == 0) {
+        throw 0;
+    }
+    cout &lt;&lt; &quot;result: &quot; &lt;&lt; num1 / num2 &lt;&lt; endl;
+} catch (int x) {
+    cout &lt;&lt; &quot;division by zero!&quot; &lt;&lt; endl;
+}</code></pre><p><code>cin</code> 是 istream class 类型的 object 用来输入数据流，数据输入后会存在后面的变量中。当输入的第二个数字非零时不会触发 exception 响应，当为零时 throw 类型为 int，然后匹配到 exception 中类型也为 int 的块，然后执行其中指令。</p><p>如果以上程序中不考虑输入数据是否为 0，则当除数为 0 时程序会崩溃。</p><p>catch 块也可以管理在 try 块中任何类型的 throw exception，不同于catch 后定义某一种数据类型，使用省略号<code>(...)</code> 来表示响应任何类型的 throw，例如：</p><pre><code>try {
+//...
+} catch (...) {
+    cout &lt;&lt; &quot;division by zero!&quot; &lt;&lt; endl;
+}</code></pre><p>这样当 try 块 throw 一个 exception 时，无论 throw 类型为什么都会匹配到此通用 catch 块。</p><h3>Files 文件处理</h3><p>c++ 另一个常用的功能就是对文件的读写操作，需要用到 c++ 标准库：`<fstream>'</p><p>在 fstream 中定义了三种数据类型：</p><ul><li>ofstream：输出文件流，用来创建或写入文件</li><li>ifstream：输入文件流，用来读取文件信息</li><li>fstream：通用文件流，包含 ofsteam 和 ifstream 的内容，支持创建，读入，写入文件。</li></ul><p>在 c++ 中对文件操作需要 include <code>iostream</code> 和 <code>fstream</code>:</p><pre><code>#include &lt;iostream&gt;
+#include &lt;fstream&gt;</code></pre><p>对文件操作的一些 class 直接或间接继承自 istream 和 ostream，例如在上一节用到的 <code>cin</code> 就是 istream class 的一个 object，<code>cout</code> 是 ostream class 的一个 object。</p><h3>打开文件及写入</h3><p>在对文件进读写前，需要首先打开它。</p><p>ofstream 和 fstream 的 object 都可以用来打开文件然后进行写操作，我们打开一个 test.txt 文件然后写入内容最后关闭文件：</p><pre><code>#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+using namespace std;
+
+int main() {
+    ofstream MyFile;
+    MyFile.open(&quot;test.txt&quot;);
+    MyFile &lt;&lt; &quot;some text.\n&quot;;
+    MyFile.close();
+
+    return 0;
+}</code></pre><p>以上代码创建一个 ofstream 类型的 object，使用 open function 打开一个文件，然后给这个文件写入内容，最后关闭文件。如果此文件不存在则 open function 会自动创建。可以看到使用了和之前操作 iostream 同样的 stream 流操作符 <code>&lt;&lt;</code>。</p><p>open function 打开的文件可以是一个路径，如果只有文件名则默认在程序根目录。</p><p>也可以使用 ofstream 的构造器直接给 object 初始化定义文件路径：</p><pre><code>int main(int argc, const char * argv[]) {
+
+    ofstream MyFile(&quot;test.txt&quot;);
+    MyFile &lt;&lt; &quot;some text.\n&quot;;
+    MyFile.close();
+    
+    return 0;
+}</code></pre><p><strong>使用 open function 的区别是可以定义一个文件的绝对路径，可以和程序不在一个目录。</strong></p><p>在特定情况下，使用 open function 打开文件会无效，如：没有权限打开文件。这时候可以使用 is_open function 来确认文件是否已经被正确打开且可以被访问：</p><pre><code>int main(int argc, const char * argv[]) {
+
+    ofstream MyFile(&quot;test.txt&quot;);
+    if (MyFile.is_open()) {
+        MyFile &lt;&lt; &quot;some text.\n&quot;;
+    } else {
+        cout &lt;&lt; &quot;somethin went wrong&quot; &lt;&lt; endl;
+    }
+    MyFile.close();
+    
+    return 0;
+}</code></pre><p>is_open function 检查文件是否被正常打开，返回值为：true 或 false。</p><p>open function 的第二参数可以用来定义文件打开模式，一下是支持的模式列表：<br><img src="../usr/uploads/2020/11/3255690305.jpeg" alt="1.jpeg" title="1.jpeg"></p><p>以上的 flag 标记可以结合起来使用，用或操作符<code>|</code> 来分隔。例如使用 write 模式同时 truncate 文件，使用一下语句：</p><pre><code>ofstream outfile;
+outfile.open(&quot;file.dat&quot;, ios::out | ios::trunc );</code></pre><h3>读取文件</h3><p>类似于写文件，读取文件需要一个 ifstream 或 fstream 的 object。示例如下：</p><pre><code>string line;
+ifstream ReadFile(&quot;test.txt&quot;);
+if (ReadFile.is_open()) {
+    while (getline(ReadFile, line)) {
+        cout &lt;&lt; line &lt;&lt; endl;
+    }
+} else {
+    cout &lt;&lt; &quot;fail to open file&quot; &lt;&lt; endl;
+}</code></pre><p>首先创建一个 ifstream class 的实例 ReadFile并初始化文件地址。如果文件打开正常则使用 getline function 来一行行的读取文件内容到字符串 line，然后打印到输出。</p><p>getline function 属于 istream class，会逐行读取来自 istream 输入流的内容到一个字符串变量，每次执行都会自动换行定位到下一行输入流 istream 的内容直到结尾会跳出 while 循环。</p>                <p itemprop="keywords">标签：无</p>
+            </div>
+        </article>
+
+        <nav class="post-nav">
+            <ul class="page-navigator">
+                <li class="prev"><a href="1927.html" title="C++ 入门教程之七 -- 继承和多态">C++ 入门教程之七 -- 继承和多态</a></li>
+                <li class="next"><a href="1946.html" title="c++ 中数组类型数据作为 function 参数时的注意事项">c++ 中数组类型数据作为 function 参数时的注意事项</a></li>
+            </ul>
+        </nav>
+
+        <div id="comments">
+        
+            <div id="respond-post-1940" class="respond">
+            <div class="cancel-comment-reply">
+                <a id="cancel-comment-reply-link" href="1940.html#respond-post-1940" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-dba2a8400afb933ed5e42d5a-="">取消回复</a>            </div>
+
+            <h5 id="response">你的评论</h5>
+
+            <form method="post" action="https://blog.niekun.net/archives/1940.html/comment" id="comment-form" role="form">
+                <div class="grid">
+                    <textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+                </div>
+                                <div class="grid">
+                    <input type="text" placeholder="名字" name="author" id="author" value="" required/>
+                    <input type="email" placeholder="Email" name="mail" id="mail" value="" required />
+                    <input type="url" placeholder="http://网站（选填）" name="url" id="url" value="" />
+                </div>
+                                <button type="submit">提交评论</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</main>
+
+<footer class="site-footer container-fluid">
+    <div class="d-flex justify-content-between">
+        <ul class="list-inline text-muted">
+            <li>&copy; 2026 <a href="../index.html">Marco Nie</a></li>
+            <li><a href="../feed/index.html">RSS</a></li>
+        </ul>
+        <ul class="list-inline text-muted">
+            <li>
+                Powered by <a href="https://typecho.org">Typecho</a>            </li>
+        </ul>
+    </div>
+</footer>
+
+
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="dba2a8400afb933ed5e42d5a-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5a792597e144022',t:'MTc5NDY3NTYxOA=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a5a792597e144022',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

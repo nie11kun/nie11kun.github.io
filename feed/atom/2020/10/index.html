@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+xmlns:thr="http://purl.org/syndication/thread/1.0"
+xml:lang="zh-CN"
+xml:base="https://blog.niekun.net/2020/10/"
+>
+<title type="text">Marco Nie - 2020年10月</title>
+<subtitle type="text">you are the company you keep...</subtitle>
+<updated>2020-10-27T22:32:00+08:00</updated>
+<generator uri="http://typecho.org/" version="1.2/18.10.23">Typecho</generator>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/2020/10/" />
+<id>https://blog.niekun.net/feed/atom/2020/10/</id>
+<link rel="self" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/2020/10/" />
+<entry>
+<title type="html"><![CDATA[子网-子网掩码-子网地址的含义解析]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1885.html" />
+<id>https://blog.niekun.net/archives/1885.html</id>
+<updated>2020-10-27T22:32:00+08:00</updated>
+<published>2020-10-27T22:32:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[互联网设备之间是通过分配给每台主机的 IP 地址实现访问的，当前是以 32 位 IPv4 地址作为标准。为了便于使用，每 8 位用点.来隔开，习惯使用十进制形式表示，如：192.168.88.3...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1885.html" xml:lang="zh-CN"><![CDATA[
+<p>互联网设备之间是通过分配给每台主机的 IP 地址实现访问的，当前是以 32 位 IPv4 地址作为标准。为了便于使用，每 8 位用点<code>.</code>来隔开，习惯使用十进制形式表示，如：192.168.88.3</p><pre><code>Decimal  192         168         88           3
+Binary   11000000    10101000    01011000     00000011</code></pre><p>理论上可以分配 2 的 32 次方个 IP 地址。</p><!--more--><h3>子网</h3><p>IP 地址可以划分为多个子集，也就是子网。比如一个路由器上连接的设备就在一个子网系统下，每个设备分配的 IP 地址就是子网网段内的地址。</p><p>子网的优势是设备间的访问更加直接，内部设备不需要连接子网以外的网络就可以实现内部互通。管理员对子网内的维护也更加方便，不会影响子网外的网络。</p><p>子网的 IP 段是一个连续的区间，如：192.168.1.0～192.168.1.255，在这个子网内的主机分配的 IP 地址最后一段就在 0～255 之间，其中第一个 192.168.0.0 是子网地址，最后一个 192.168.1.255 是广播地址，这两个地址是默认占用的，不能分配给主机使用。</p><h3>子网掩码</h3><p>子网掩码是为了能更加方便清晰的表达子网网段范围而被使用的。</p><p>一个典型的子网掩码格式：<code>255.255.255.128</code>，写成二进制如下：<code>11111111.11111111.11111111.10000000</code></p><p>如果子网内的一个主机 IP 地址为：192.168.88.3，我们和子网掩码按位进行<code>与</code>操作：</p><pre><code>192.168.88.3     11000000    10101000    01011000    00000011
+255.255.255.128  11111111    11111111    11111111    10000000
+192.168.88.0     11000000    10101000    01011000    00000000</code></pre><p>最后一行是结果写成十进制为：192.168.88.0，这就是子网的第一个 IP 地址，也就是子网地址。</p><p>子网掩码内为<code>1</code>的位对应的 IP 位是子网的固定位，这些位在网段内是固定不变的，也就是以上示例中前 25 位 IP 地址都是子网固定位，后 7 位就是子网可分配的地址位，可分配的地址如下：</p><pre><code>192.168.88.0     1000000    10101000    01011000    00000000
+192.168.88.127   1000000    10101000    01011000    01111111</code></pre><p>此子网网段 IP 就是：192.168.88.0～192.168.88.127，可分配给主机的地址为：192.168.88.1～192.168.88.126</p><p>子网完整的表述形式为：子网地址：192.168.88.0；子网掩码：225.225.225.128</p><p>也可以使用 CIDR 的形式描述：192.168.88.0/25，此方式更加简洁。关于 CIDR 的形式参考我的文章：<a href="https://blog.niekun.net/archives/399.html">https://blog.niekun.net/archives/399.html</a></p><p>子网掩码可分配位必须是连续的位，比如：必须是连续的32/31/30位为0，而不能是32/30位0，31位为1。所以子网掩码的可用编码就大大缩小的范围，比如固定位为前24位：255.255.255，后8位可用的编码方式只能在一下几种中选择：</p><pre><code>00000000    0
+10000000    128
+11000000    192
+11100000    224
+11110000    240
+11111000    248
+11111100    252
+11111110    254
+11111111    255</code></pre><p>以上就是子网系统的简单介绍。</p><h3>参考连接</h3><p><a href="https://www.ionos.com/digitalguide/server/know-how/subnetting-how-do-subnets-work/">Use subnetting to get the most out of your network</a><br><a href="https://www.ionos.com/digitalguide/server/know-how/broadcast-address/">What is a broadcast address and how does it work?</a><br><a href="https://blog.csdn.net/lihchweb/article/details/81226452">IP地址，子网掩码计算子网地址，广播地址，子网划分</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1885.html#comments" thr:count="1" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1885.html" thr:count="1"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[通过 dnsmasq  ipset 和 iptables 对域名流量的控制]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1872.html" />
+<id>https://blog.niekun.net/archives/1872.html</id>
+<updated>2020-10-26T22:29:00+08:00</updated>
+<published>2020-10-26T22:29:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[dnsmasq 是处理 dns 请求的工具，实现域名请求解析到目标 IP 地址的过程。可以方便的管理本机或局域网设备的域名解析服务，使用教程参考：https://blog.niekun.net/...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1872.html" xml:lang="zh-CN"><![CDATA[
+<p>dnsmasq 是处理 dns 请求的工具，实现域名请求解析到目标 IP 地址的过程。可以方便的管理本机或局域网设备的域名解析服务，使用教程参考：<a href="https://blog.niekun.net/archives/1869.html">https://blog.niekun.net/archives/1869.html</a></p><p>iptables 是网络防火墙规则管理/修改工具，管理网络数据包的处理和转发。使用教程参考：<a href="https://blog.niekun.net/archives/1863.html">https://blog.niekun.net/archives/1863.html</a></p><p>iptables 管理某个源地址或目标地址的流量时，只能识别 IP 地址，比如：</p><pre><code># -s 匹配源地址流量,接收来自 192.168.1.230 发往本机的流量：
+iptables -t filter -A INPUT -s 192.168.1.230 -j ACCEPT
+
+# -d 匹配目标地址的流量,丢弃发往 192.168.1.123 的流量：
+iptables -t filter -A OUTPUT -d 192.168.1.123 -j DROP</code></pre><!--more--><p><strong>如果要使用 iptables 管理某域名的流量，可以使用 dnsmasq-full 里的 ipset 工具标记并保存域名包含的 IP 地址池，然后在 iptables 中调取。</strong></p><p>使用命令查看当前安装版本的 dnsmasq 是否支持 ipset：</p><p>查询版本：</p><pre><code>dnsmasq -v
+</code></pre><p>信息里 Compile time options 可以看到当前安装版本支持的选项功能 ，如：ipset</p><pre><code>root@OpenWrt:/etc# dnsmasq -v
+Dnsmasq version 2.80  Copyright (c) 2000-2018 Simon Kelley
+Compile time options: IPv6 GNU-getopt no-DBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack ipset auth DNSSEC no-ID loop-detect inotify dumpfile
+...</code></pre><p>如果没有 ipset 就需要手动安装 dnsmasq-full 版本了，升级方法参考：<a href="https://blog.niekun.net/archives/1869.html">https://blog.niekun.net/archives/1869.html</a></p><h3>域名解析标记</h3><p>首先建立我们自定义的 ipset 表来存储解析的 IP 地址：</p><pre><code>ipset create block hash:ip
+</code></pre><p>可以查询当前这个列表是空的：</p><pre><code>root@OpenWrt:~# ipset list block
+Name: block
+Type: hash:ip
+Revision: 4
+Header: family inet hashsize 1024 maxelem 65536
+Size in memory: 88
+References: 0
+Number of entries: 0
+Members:</code></pre><p>使用 dnsmasq 的 ipset 命令做域名解析结果标记和存储，在 dnsmasq 的配置文件，如：<code>/etc/dnsmasq.conf</code> 中加入如下语句：</p><pre><code>ipset=/360.com/block
+</code></pre><p>重启 ndsmasq 服务：</p><pre><code>systemctl restart dnsmasq
+</code></pre><p>使用 nslookup 命令对 360.com 域名进行 dns 查询：</p><pre><code>root@OpenWrt:/etc# nslookup 360.com
+Server:        127.0.0.1
+Address:    127.0.0.1#53
+
+Name:      360.com
+Address 1: 180.163.251.93
+Address 2: 36.110.213.45</code></pre><p>这时候重新查看建立的 ipset 表内容：</p><pre><code>root@OpenWrt:/etc# ipset list block
+Name: block
+Type: hash:ip
+Revision: 4
+Header: family inet hashsize 1024 maxelem 65536
+Size in memory: 184
+References: 0
+Number of entries: 2
+Members:
+36.110.213.45
+180.163.251.93</code></pre><p>可以看到域名对应的 IP 地址已经记录到了 block 表内。</p><h3>流量处理</h3><p>iptables 可以调用 ipset 表来对流量进行处理，使用 <code>-I</code> 参数将规则添加到链表最上方以确保顺利匹配，使用 <code>-m set --match-set 列表名 dst</code> 匹配目标地址，或 <code>-m set --match-set 列表名 src</code> 匹配原地址，下面举例说明：</p><pre><code># 屏蔽 block 表中的地址对本机的访问
+iptables -t filter -I INPUT -m set --match-set block src -j DROP
+
+# 允许本机对 allow 表中的地址的访问
+iptables -t filter -I OUTPUT -m set --match-set allow dst -j RETURN</code></pre><p>iptables 设置完成后就可以测试对应域名是否受防火墙规则控制了。</p><p>查询路由表加入的规则：</p><pre><code>iptables -t filter -L -n
+</code></pre><p>如果要删除 INPUT 路由链第一条规则，使用命令：</p><pre><code>iptables -t filter -D INPUT 1
+</code></pre><p>或者直接删除指定规则：</p><pre><code>iptables -t filter -D INPUT -m set --match-set block src -j DROP
+</code></pre><p>删除一个 ipset：</p><pre><code>ipset -X mylist
+</code></pre><p>和 iptables 一样，ipset 的配置会在系统重启后失效。</p><p>以上就是使用 dnsmasq 的 ipset 功能实现 iptables 对域名流量的控制。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1872.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1872.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[dnsmasq 使用教程]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1869.html" />
+<id>https://blog.niekun.net/archives/1869.html</id>
+<updated>2020-10-25T07:51:00+08:00</updated>
+<published>2020-10-25T07:51:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[dnsmasq 提供 DNS 缓存/查询服务和 DHCP(Dynamic Host Configuration Protocol) 服务等功能，用来管理本地局域网络系统。内置于常见的 Linux...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1869.html" xml:lang="zh-CN"><![CDATA[
+<p>dnsmasq 提供 DNS 缓存/查询服务和 DHCP(Dynamic Host Configuration Protocol) 服务等功能，用来管理本地局域网络系统。内置于常见的 Linux 分发版，openWrt，macOS 系统中。</p><h3>安装</h3><p>直接使用包管理器安装：</p><pre><code>apt install dnsmasq
+</code></pre><p>查询版本：</p><pre><code>dnsmasq -v
+</code></pre><p>信息里 <strong>Compile time options</strong> 可以看到当前安装版本支持的选项功能 ，如：<code>ipset</code></p><pre><code>root@OpenWrt:/etc# dnsmasq -v
+Dnsmasq version 2.80  Copyright (c) 2000-2018 Simon Kelley
+Compile time options: IPv6 GNU-getopt no-DBus no-i18n no-IDN DHCP DHCPv6 no-Lua TFTP conntrack ipset auth DNSSEC no-ID loop-detect inotify dumpfile
+
+This software comes with ABSOLUTELY NO WARRANTY.
+Dnsmasq is free software, and you are welcome to redistribute it
+under the terms of the GNU General Public License, version 2 or 3.</code></pre><p>启动服务：</p><pre><code>systemctl start dnsmasq
+</code></pre><p>服务启动后，会监听本地或局域网内的 DNS 请求并根据配置规则进行处理。</p><!--more--><h3>DNS 服务</h3><h4>Linux DNS 请求处理流程</h4><p><code>test.com</code> -&gt; <code>/etc/hosts</code> -&gt; <code>/etc/resolv.conf</code> -&gt; <code>dnsmasq</code></p><p>以上每个过程中只要得到了解析的 IP 地址则直接结束剩下的处理过程。</p><p><code>/etc/hosts</code> 文件是 Linux 系统默认的 hosts 文件，一般发起的 DNS 请求会首先查询此 hosts 文件，如果没有匹配上则从 <code>/etc/resolv.conf</code> 文件找 DNS 服务器进行进一步查询。</p><p><code>/etc/resolv.conf</code> 文件是 linux 系统的默认 dns 配置文件，一般情况下里面定义的域名服务器地址为本地：127.0.0.1 地址，由于 dnsmasq 默认监听本地及局域网 53 端口，则 DNS 请求就会传入 dnsmasq 进行进一步解析。</p><p>下面介绍 hosts 文件和 resolv 文件的意义。</p><h4>hosts</h4><p>hosts 文件主要用来指定某个域名的解析 IP，通常用来处理局域网设备的域名解析到对应设备 IP。一般情况下局域网设备设置的域名不能在公共 DNS 服务器进行解析。系统默认的 hosts 文件地址：<code>/etc/hosts</code>。</p><p>文件格式：</p><pre><code>127.0.0.1 localhost
+192.168.1.123 test1.home.lan
+192.168.1.124 test2.home.lan</code></pre><p>使用 hosts 文件也可以用来进行域名欺骗，实现广告屏蔽等功能，比如我想要屏蔽 360 的所有访问：</p><pre><code>127.0.0.1 360.com</code></pre><p>dnsmasq 可以选择使用自定义的 hosts 文件。</p><h4>resolv.conf</h4><p>resolv.conf 文件定义了 DNS 服务器地址，dns 请求会转发到设置的地址上。可以指定多个服务器进行顺序查询直到解析到 IP 地址，指定为本地地址 127.0.0.1 会转发到本地 dnsmasq 进行处理。<code>/etc/resolv.conf</code> 是系统默认解析服务器配置文件。</p><p>文件格式：</p><pre><code>nameserver 127.0.0.1
+nameserver 192.168.1.1
+nameserver 114.114.114.114</code></pre><p>系统默认的 <code>/etc/resolv.conf</code> 文件在每次系统启动会根据 DHCP 分配情况自动生成，一般指向本地地址或局域网网关。dnsmasq 可以配置自定义的 resolv 文件可以设置公网的 DNS 解析服务器，也就是上游 DNS 服务器。</p><h4>dnsmasq 处理流程简介</h4><p><code>dnsmasq</code> -&gt; <code>hosts.dnsmasq</code> -&gt; <code>/etc/dnsmasq.conf</code> / <code>dnsmasq.conf</code> -&gt; <code>resolv.dnsmasq.conf</code></p><p>DNS 请求传入 dnsmasq 后通过其配置文件来进行 DNS 查询，首先查询 hosts 文件，如果设置了自定义 hosts 文件和系统默认 hosts 一起查询，没有匹配到的话就进入 conf 配置文件内部的 server 及 address 项进行匹配，如果依然没有结果则查询 relolv 自定义配置文件定义的上游 DNS 服务器。</p><p><code>/etc/dnsmasq.d</code> 文件夹和 <code>/etc/dnsmasq.conf</code> 文件是 dnsmasq 的配置路径，可以设置监听地址，自定义 hosts.dnsmasq 文件地址，自定义 resolv.dnsmasq.conf 文件地址，也可以在文件内直接指定某域名使用的 DNS 解析服务器等。</p><p><code>/etc/dnsmasq.d</code> 文件夹可以存放用户自定义的 dnsmasq 配置文件，效果等同于直接写入 dnsmasq.conf 文件内，方便整理自定义规则。</p><h4>dnsmasq 配置文件</h4><p>下面介绍 dnsmasq 配置常用的语句：</p><pre><code># 监听地址：
+# 如果只写 127.0.0.1 则只处理本机的 DNS 解析，不写这句默认监听所有网口
+listen-address=127.0.0.1,192.168.8.132
+
+# 指定自定义 hosts 文件：
+addn-hosts=/etc/hosts.dnsmasq
+
+# 指定上游 DNS 服务列表的配置文件
+resolv-file=/etc/resolv.dnsmasq.conf
+
+# 按照 DNS 列表一个个查询，否则将请求发送到所有 DNS 服务器
+strict-order
+
+# 表示对下面设置的所有 server 发起查询请求，选择响应最快的服务器的结果
+all-servers
+
+# 指定默认查询的上游服务器
+server=8.8.8.8
+server=114.114.114.114
+
+# 指定 .cn 的域名全部通过 114.114.114.114 这台国内DNS服务器来解析
+server=/cn/114.114.114.114
+
+# 给 *.apple.com 和 taobao.com 使用专用的 DNS
+server=/taobao.com/223.5.5.5
+server=/.apple.com/223.6.6.6
+
+# 增加一个域名，强制解析到所指定的地址上，dns 欺骗
+address=/360.com/127.0.0.1
+
+# 加载外部配置文件，如：特定目录下的扩展名为 conf 的文件
+conf-dir=/etc/config/dnsmasq, *.conf
+
+# 设置DNS缓存大小(单位：DNS解析条数)
+cache-size=500
+
+# 存储域名解析的 IP 地址结果存储到 saveresult 的 ipset 结果中，可以交给iptables识别和转发
+ipset=/test.com/saveresult</code></pre><h3>DHCP 服务</h3><p>待整理。。。</p><h3>升级 dnsmasq-full</h3><p>openWrt 默认安装的 dnsmasq 缺少一些选项功能，如：ipset，可以安装 dnsmasq-full 来实现更多功能，由于 dnsmasq 管理着域名解析工作，卸载 dnsmasq 后会导致无法正确解析域名从无法联网。有 2 种方法避免这种情况：</p><ul><li>修改 <code>resolv.conf</code> 文件手动指定 DNS 服务器</li><li>提前下载好 dnsmasq-full 安装文件。</li></ul><h4>手动指定 DNS 解析地址</h4><p>修改 <code>/etc/resolv.conf</code> 文件，指定上游 DNS 服务器：</p><pre><code>nameserver 114.114.114.114
+</code></pre><p>卸载及安装新程序：</p><pre><code>opkg remove dnsmasq &amp;&amp; opkg install dnsmasq-full
+opkg install ipset
+</code></pre><h4>提前下载安装包</h4><pre><code># 下载安装包
+opkg download dnsmasq-full
+# 查看下载的安装包名称：
+ls
+# 尝试安装，会提示失败，但可以安装好需要的依赖包
+opkg install dnsmasq-full
+# 删除原 dnsmasq
+opkg remove dnsmasq
+# 安装下载好的包
+opkg install dnsmasq-full_2.80-15_x86_64.ipk
+# 安装完成后可以删除安装包文件
+rm dnsmasq-full_2.80-15_x86_64.ipk 
+
+记得 ipset 也需要单独安装：
+    opkg install ipset</code></pre><h3>参考链接</h3><p><a href="https://www.solarck.com/openwrt-v2ray.html">一文玩转V2ray 透明代理</a><br><a href="http://www.enkichen.com/2017/05/23/dnsmasq-introduce/">Dnsmasq 介绍与使用</a><br><a href="https://blog.csdn.net/lvshaorong/article/details/52981169">Dnsmasq+ipset+iptables基于域名的流量管理</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1869.html#comments" thr:count="3" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1869.html" thr:count="3"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[iptables 使用教程]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1863.html" />
+<id>https://blog.niekun.net/archives/1863.html</id>
+<updated>2020-10-23T09:59:00+08:00</updated>
+<published>2020-10-23T09:59:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[ipatbles 是 Linux 下的网络防火墙规则管理/修改工具，通过控制 Linux 内核 netfilter 模块，来管理网络数据包的处理和转发。用来识别路由表中特定的流量然后执行设定的规...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1863.html" xml:lang="zh-CN"><![CDATA[
+<p>ipatbles 是 Linux 下的网络防火墙规则管理/修改工具，通过控制 Linux 内核 netfilter 模块，来管理网络数据包的处理和转发。用来识别路由表中特定的流量然后执行设定的规则。只用于处理 IPv4 数据包；而对于 IPv6 数据包，则使用类似的 ip6tables 命令。</p><h3>基本概念</h3><p>结构：</p><ul><li>Tables 路由表：用来区分不同类型的数据包，如 filter，nat，mangle，每个表包含几个路由链</li><li>Chain 路由链：流量的类型，如 INPUT ，FORWARD ，OUTPUT ，每种类型流量可以设置不同规则</li><li>Rule 规则：用来匹配特定类型的流量，如匹配来自 192.168.1.230 的流量</li><li>Target 目标：用来处理匹配到的流量，如 ACCEPT, DROP, QUEUE.</li><li>Policy 策略：是默认的处理动作，用来处理没有匹配到的流量，如 ACCEPT or DROP.</li></ul><p>iptables、ip6tables等都使用Xtables框架。存在“表（tables）”、“链（chain）”和“规则（rules）”三个层面。</p><p>每个“表”指的是不同类型的数据包处理流程，如filter表表示进行数据包过滤，而nat表针对连接进行地址转换操作。每个表中又可以存在多个“链”，系统按照预订的规则将数据包通过某个内建链，例如将从本机发出的数据通过OUTPUT链。在“链”中可以存在若干“规则”，这些规则会被逐一进行匹配，如果匹配，可以执行相应的动作，如修改数据包，或者跳转。跳转可以直接接受该数据包或拒绝该数据包，也可以跳转到其他链继续进行匹配，或者从当前链返回调用者链。当链中所有规则都执行完仍然没有跳转时，将根据该链的默认策略（“policy”）执行对应动作；如果也没有默认动作，则是返回调用者链。</p><!--more--><pre><code>                                           netfilter hooks
+
+                                  +-----------&gt; local +-----------+
+                                  |             process           |
+                                  |                               |
+                                  |                               |
+                                  |                               |
+                                  |                               v
+  MANGLE            +-------------+--------+
+  FILTER            |                      |               +----------------------+    RAW
+  SECURITY          |        input         |               |                      |    conntrack
+  SNAT              |                      |               |     output           |    MANGLE
+                    +------+---------------+               |                      |    DNAT
+                           ^                               +-------+--------------+    routing
+                           |                                       |                   FILTER
+                           |                                       |                   SECURITY
+                           |            +---------------------+    |         +-------------+
+     +-----------+                      |                     |    +-------&gt; |             |
++--&gt; |pre routing+----  route    -----&gt; |      forward        |              |post routing +----&gt;
+     |           |      lookup          |                     +------------&gt; |             |
+     +-----------+                      +---------------------+              +-------------+
+     
+     RAW                                       MANGLE                         MANGLE
+     conntrack                                 FILTER                         SNAT
+     MANGLE                                    SECURITY
+     DNAT
+     routing
+     </code></pre><p><strong>内建的路由表：</strong></p><ul><li>filter: 是默认的表，如果不指明表则使用此表。其通常用于过滤数据包。It includes chains like INPUT, OUTPUT and FORWARD.</li><li>nat : 用于地址转换操作。It includes PREROUTING and POSTROUTING chains.</li><li>mangle : 用于修改或标记数据包。</li><li>raw : 用于处理异常。Built-in chains are PREROUTING and OUTPUT.</li><li>security : Used for Mandatory Access Control</li></ul><p><strong>内建的路由链：</strong></p><ul><li>INPUT :输入链。发往本机的数据包通过此链</li><li>FORWARD :转发链。本机转发的数据包通过此链</li><li>OUTPUT :输出链。从本机发出的数据包通过此链</li><li>PREROUTING :路由前链，在处理路由规则前通过此链，通常用于目的地址转换（DNAT）</li><li>POSTROUTING :路由后链，完成路由规则后通过此链，通常用于源地址转换（SNAT）</li></ul><p><strong>Note: 用户可以创建自定义路由链</strong></p><p><strong>目标：</strong></p><ul><li>RETURN 允许并结束在 chains 里继续匹配</li><li>ACCEPT 允许但依然要在其他 chains 里继续进行匹配</li><li>REJECT 拒绝</li><li>DROP 丢弃</li><li>REDIRECT 重定向。只适用于 NAT 路由表的 PREROUTING 和 OUTPUT 路由链</li><li>MARK 只适用于 mangle 路由表。用来给特定流量做标记。</li></ul><pre><code>root@OpenWrt:~# iptables -h
+iptables v1.8.3
+
+Usage: iptables -[ACD] chain rule-specification [options]
+       iptables -I chain [rulenum] rule-specification [options]
+       iptables -R chain rulenum rule-specification [options]
+       iptables -D chain rulenum [options]
+       iptables -[LS] [chain [rulenum]] [options]
+       iptables -[FZ] [chain] [options]
+       iptables -[NX] chain
+       iptables -E old-chain-name new-chain-name
+       iptables -P chain target [options]
+       iptables -h (print this help information)
+
+Commands:
+Either long or short options are allowed.
+  --append  -A chain        Append to chain
+  --check   -C chain        Check for the existence of a rule
+  --delete  -D chain        Delete matching rule from chain
+  --delete  -D chain rulenum
+                Delete rule rulenum (1 = first) from chain
+  --insert  -I chain [rulenum]
+                Insert in chain as rulenum (default 1=first)
+  --replace -R chain rulenum
+                Replace rule rulenum (1 = first) in chain
+  --list    -L [chain [rulenum]]
+                List the rules in a chain or all chains
+  --list-rules -S [chain [rulenum]]
+                Print the rules in a chain or all chains
+  --flush   -F [chain]        Delete all rules in  chain or all chains
+  --zero    -Z [chain [rulenum]]
+                Zero counters in chain or all chains
+  --new     -N chain        Create a new user-defined chain
+  --delete-chain
+            -X [chain]        Delete a user-defined chain
+  --policy  -P chain target
+                Change policy on chain to target
+  --rename-chain
+            -E old-chain new-chain
+                Change chain name, (moving any references)
+Options:
+    --ipv4    -4        Nothing (line is ignored by ip6tables-restore)
+    --ipv6    -6        Error (line is ignored by iptables-restore)
+[!] --protocol    -p proto    protocol: by number or name, eg. `tcp'
+[!] --source    -s address[/mask][...]
+                source specification
+[!] --destination -d address[/mask][...]
+                destination specification
+[!] --in-interface -i input name[+]
+                network interface name ([+] for wildcard)
+ --jump    -j target
+                target for rule (may load target extension)
+  --goto      -g chain
+                              jump to chain with no return
+  --match    -m match
+                extended match (may load extension)
+  --numeric    -n        numeric output of addresses and ports
+[!] --out-interface -o output name[+]
+                network interface name ([+] for wildcard)
+  --table    -t table    table to manipulate (default: `filter')
+  --verbose    -v        verbose mode
+  --wait    -w [seconds]    maximum wait to acquire xtables lock before give up
+  --wait-interval -W [usecs]    wait time to try to acquire xtables lock
+                default is 1 second
+  --line-numbers        print line numbers when listing
+  --exact    -x        expand numbers (display exact values)
+[!] --fragment    -f        match second or further fragments only
+  --modprobe=&lt;command&gt;        try to insert modules using this command
+  --set-counters PKTS BYTES    set the counter during insert/append
+[!] --version    -V        print package version.</code></pre><p><strong>语法结构：</strong></p><pre><code>iptables -t [TABLE] [-A/-C/-D...] [CHAIN] rule -j Target
+</code></pre><h3>路由链操作</h3><h4>-A 链添加规则</h4><p><code>-A</code> 在链表后添加规则和动作，新加的规则排在表的最后。</p><p>允许所有发往本机的流量：</p><pre><code>iptables -t filter -A INPUT -j ACCEPT
+</code></pre><h4>-I 插入规则</h4><p><code>-I</code> 指令添加规则并可指定新规则在链表的位置，不指定排序数字的话默认插入的规则放置到路由链第一条。</p><p>新建规则并作为 INPUT 路由链第一条规则：</p><pre><code>iptables -t filter -I INPUT -j ACCEPT
+</code></pre><p>新建规则并作为 INPUT 路由链第二条规则：</p><pre><code>iptables -t filter -I INPUT 2 -j ACCEPT
+</code></pre><p>由于链表的规则是顺序读取的，所以将规则放在前面有时候会确保规则的正确执行，使用 <code>-I</code> 参数比较合适。</p><h4>-D 链删除规则</h4><p>删除设定的发往本机的编号为 2 的规则：</p><pre><code>iptables -t filter -D INPUT 2
+</code></pre><h4>-C 链检查规则是否存在</h4><p>检查是否有丢弃来自 192.168.1.123 的流量的规则：</p><pre><code>iptables -t filter -C INPUT -s 192.168.1.123 -j DROP
+</code></pre><h4>-L 路由规则列表</h4><p>列出当前设定的所有规则并按顺序排序：</p><pre><code>iptables -L -n
+</code></pre><p>列出特定路由表的规则：</p><pre><code>iptbales -t [TABLE] -L
+</code></pre><p>列出特定路由表的某条链的规则：</p><pre><code>iptbales -t [TABLE] -L INPUT
+</code></pre><h4>举例说明</h4><p>分别使用 <code>-A</code> <code>-I</code> 建立规则，然后 <code>-L</code> 查看规则，<code>-D</code> 删除规则：</p><pre><code>$ iptables -I INPUT -s 192.168.1.101 -j ACCEPT
+$ iptables -A INPUT -s 192.168.1.102 -j ACCEPT
+$ iptables -I INPUT -s 192.168.1.103 -j ACCEPT
+$ iptables -I INPUT 2 -s 192.168.1.104 -j ACCEPT
+
+$ iptables -L INPUT
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+ACCEPT     all  --  192.168.1.103        anywhere            
+ACCEPT     all  --  192.168.1.104        anywhere            
+ACCEPT     all  --  192.168.1.101        anywhere            
+ACCEPT     all  --  192.168.1.102        anywhere
+
+$ iptables -D INPUT 2
+$ iptables -L INPUT
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+ACCEPT     all  --  192.168.1.103        anywhere            
+ACCEPT     all  --  192.168.1.101        anywhere            
+ACCEPT     all  --  192.168.1.102        anywhere</code></pre><h3>规则匹配</h3><h4>-p 匹配特定协议的流量</h4><p>可能的流量类型: tcp, udp, icmp, ssh etc.</p><p>屏蔽对本机的 ping 请求：</p><pre><code>iptables -t filter -A INPUT -p icmp -j DROP
+</code></pre><p>丢弃发往本机的 udp 流量：</p><pre><code>iptables -t filter -A INPUT -p udp -j DROP
+</code></pre><h4>--dport 匹配特定端口</h4><p>丢弃访问本机 1080 端口的 tcp 流量：(默认是 filter 路由表)</p><pre><code>iptables -A INPUT -p tcp --dport 1080 -j DROP
+</code></pre><h4>-s 匹配源地址流量</h4><p>接收来自 192.168.1.230 发往本机的流量：</p><pre><code>iptables -t filter -A INPUT -s 192.168.1.230 -j ACCEPT
+</code></pre><h4>-d 目标地址的流量</h4><p>丢弃发往 192.168.1.123 的流量：</p><pre><code>iptables -t filter -A OUTPUT -d 192.168.1.123 -j DROP
+</code></pre><h4>-i 匹配特定网络入口的流量：</h4><p>丢弃所有来自 wlan0 无线网口的流量：</p><pre><code>iptables -t filter -A INPUT -i wlan0 -j DROP
+</code></pre><h4>-o 匹配特定网络出口的流量：</h4><p>丢弃所有发往 eth0 网口的流量：</p><pre><code>iptables -t filter -A OUTPUT -i eth0 -j DROP
+</code></pre><h4>允许 loopback 本地访问</h4><p>允许来自本地的访问(127.0.0.1) 非常重要，应该保证为打开状态：(<code>lo</code> 表示本机网口-interface)</p><pre><code>iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+</code></pre><h3>规则动作</h3><h4>-j 规则匹配后的动作</h4><p>丢弃所有转发链流量：</p><pre><code>iptables -t filter -A FORWARD -j DROP
+</code></pre><h3>-m 匹配参数的使用</h3><h4>-m multiport 同时处理多端口</h4><p>允许访问本机的多个端口的 tcp 流量：(默认是 filter 路由表)</p><pre><code>iptables -A INPUT -p tcp -m multiport --dports 22,80,443 -j ACCEPT
+</code></pre><h4>-m mac 匹配特定 mac 地址</h4><p>丢弃某个 mac 地址对本地的访问：</p><pre><code>iptables -A INPUT -m mac --mac-source 00:00:00:00:00:00 -j DROP
+</code></pre><h3>路由转发</h3><p>将特定的流量转发到另一个地方，需要用到 PREROUTING 路由表来预处理流量。</p><p>将来自 eth0 网口的访问本机 25 端口的 tcp 流量转发到 2525 端口：</p><pre><code>iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 25 -j REDIRECT --to-port 2525
+</code></pre><h3>新建路由链</h3><p>通过新建自定义路由链，可以放入自定义的规则到里面。<strong>自定义规则并不能被直接使用</strong>，需要使用系统内置的 chains 然后 jump 到自定义 chain。</p><p>语法：</p><pre><code>iptables -t [TABLE] -N [CHAIN]
+</code></pre><p>在 NAT 路由表下新建路由链 custom-chain：</p><pre><code>iptables -t nat -N custom-chain
+</code></pre><p>查看新建的路由链：</p><pre><code>iptables -L custom-chain
+</code></pre><p>将流量转到自定义路由链：</p><pre><code>iptables -A INPUT -p tcp -j custom-chain
+</code></pre><h3>标记流量</h3><p>MARK 目标用来给流量做标记，方便识别及处理。只适用于 mangle 路由表：</p><pre><code>iptables -t mangle -A PREROUTING -p udp --dport 53 -j MARK --set-mark 1
+</code></pre><h3>常用命令</h3><p>清除设置的规则，默认为 filter 路由表：</p><pre><code>iptables -t [TABLE] -F
+</code></pre><p>保存规则：</p><pre><code>iptables-save &gt; /path/to/file
+</code></pre><p>恢复规则：</p><pre><code>iptables-restore &lt; /path/to/file
+</code></pre><p><strong>直接使用iptables命令修改防火墙配置的时候，防火墙规则只是保存在内存中，系统重启后就会失效。如需保存规则，需要使用以上命令保存和恢复。</strong></p><h3>参考文章</h3><p><a href="https://www.geeksforgeeks.org/iptables-command-in-linux-with-examples/">iptables command in Linux with Examples</a><br><a href="https://www.tecmint.com/linux-iptables-firewall-rules-examples-commands/">25 Useful IPtable Firewall Rules Every Linux Administrator Should Know</a><br><a href="https://zh.wikipedia.org/wiki/Iptables">iptables wikipedia</a><br><a href="https://gist.github.com/mcastelino/c38e71eb0809d1427a6650d843c42ac2">https://gist.github.com/mcastelino/c38e71eb0809d1427a6650d843c42ac2</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1863.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1863.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[openwrt 的安装与配置]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1818.html" />
+<id>https://blog.niekun.net/archives/1818.html</id>
+<updated>2020-10-15T16:51:00+08:00</updated>
+<published>2020-10-15T16:51:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[openWrt 是专门为嵌入式设备设计的 Linux 系统，常用来作为软路由系统使用。LEDE 和 openWrt 已经合并到一起。官网：https://openwrt.org/最近研究软路由，...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1818.html" xml:lang="zh-CN"><![CDATA[
+<p>openWrt 是专门为嵌入式设备设计的 Linux 系统，常用来作为软路由系统使用。LEDE 和 openWrt 已经合并到一起。</p><p>官网：<a href="https://openwrt.org/">https://openwrt.org/</a></p><p>最近研究软路由，所以先使用 VMware 虚拟机安装测试 openWrt，由于 VMware 只能识别 vmdk 格式的虚拟磁盘镜像，而官网下载的是 img 镜像，所以需要进行格式转换。</p><!--more--><h3>固件下载及转换</h3><p>openWrt 固件也是区分不同硬件平台的，需要根据硬件情况下载对应的系统镜像。</p><p>官方固件下载地址：<a href="https://downloads.openwrt.org/">https://downloads.openwrt.org/</a></p><p>目前最新的版本是 19.07.4，我电脑是 x86 平台 64位系统需下载 x86_64 固件，进入列表下载 <code>combined-ext4.img.gz</code> 到本地:<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2820863057.jpg" alt="1.jpg" title="1.jpg"></p><p>将下载的压缩包解压出 img 镜像文件。由于我是虚拟机安装，所以需要将下载的 img 镜像转换为 VMware 的虚拟硬盘格式：<code>.vmdk</code>，最方便的是使用 Linux 工具 <code>qemu-img</code> 来完成，这里我是用 wsl 子系统来处理：</p><pre><code>apt install qemu qemu-utils
+qemu-img convert -f raw -O vmdk openwrt-19.07.4-x86-64-combined-ext4.img openwrt-19.07.4-x86-64-combined-ext4.vmdk</code></pre><p>完成后得到 vmdk 文件。</p><h3>建立虚拟机</h3><p>新建虚拟机，选择自定义模式：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1077455176.jpg" alt="2.jpg" title="2.jpg"></p><p>硬件兼容选择最新的即可：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1008180166.jpg" alt="3.jpg" title="3.jpg"></p><p>然后选择稍后安装操作系统：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/689721582.jpg" alt="4.jpg" title="4.jpg"></p><p>系统选择 Linux 系统，19.07 版本是 4.14 内核，我下载的是 64 位固件，所以选择<strong>其他 Linux 4.x内核，64位</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1075618772.jpg" alt="5.jpg" title="5.jpg"></p><p>虚拟机名称自己定义：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2232764296.jpg" alt="6.jpg" title="6.jpg"></p><p>处理器默认即可：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1085680336.jpg" alt="7.jpg" title="7.jpg"></p><p>内存分配1G：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/89327964.jpg" alt="8.jpg" title="8.jpg"></p><p>剩下的全部默认确定即可，虚拟机初步建立完成。</p><p>下一步开始配置虚拟网卡用来分配给 openwrt 的 lan 内网网卡，点击<strong>编辑 - 虚拟网络编辑器</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1374273348.jpg" alt="9.jpg" title="9.jpg"></p><p>点击右下角<strong>更改设置</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/691892215.jpg" alt="10.jpg" title="10.jpg"></p><p>点击<strong>添加网络</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1419508697.jpg" alt="11.jpg" title="11.jpg"></p><p>选择一个可用的网络点击确定，我选择 vnet2：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/44933613.jpg" alt="12.jpg" title="12.jpg"></p><p>选择<strong>仅主机模式</strong>，由于 openwrt 自带 DHCP 控制所以这里取消勾选 DHCP 服务：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2381585332.jpg" alt="13.jpg" title="13.jpg"></p><p>点击确认，完成虚拟网卡的建立，子网 IP 段是 192.168.111.0，子网掩码 255.255.255.0。</p><p>下面编辑刚才建立的虚拟机，点击<strong>编辑虚拟机设置</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1011907668.jpg" alt="14.jpg" title="14.jpg"></p><p>移除不需要的硬件，包括硬盘，保留网络适配器。快捷键 alt + R：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/731943422.jpg" alt="15.jpg" title="15.jpg"></p><p>将上面转换的 vmdk 文件拷贝到此虚拟机文件夹：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1633164225.jpg" alt="16.jpg" title="16.jpg"></p><p>点击添加硬件：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1582850006.jpg" alt="17.jpg" title="17.jpg"></p><p>选择<strong>硬盘</strong>，点击下一步：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1091507877.jpg" alt="18.jpg" title="18.jpg"></p><p>选择<strong>使用现有虚拟磁盘</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/3795351894.jpg" alt="19.jpg" title="19.jpg"></p><p>选择刚才复制到目录的 vmdk 文件，点击完成：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/3286075109.jpg" alt="20.jpg" title="20.jpg"></p><p>选择<strong>转换</strong>：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/3939975986.jpg" alt="21.jpg" title="21.jpg"></p><p>再次添加一个网络适配器：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/903097129.jpg" alt="22.jpg" title="22.jpg"></p><p>这里我们有了两个网络适配器，第一个分配给 lan 第二个分配给 wan，注意顺序，<strong>openWrt 默认识别第一个网卡为 lan</strong>。后期进入系统后也可以修改网卡顺序。</p><p>第一个网卡 lan 设置为我们刚才建立的虚拟网卡 vnet2，用来给 openWrt 路由的内网使用：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2504631771.jpg" alt="23.jpg" title="23.jpg"></p><p>第二个网卡 wan 设置为桥接模式，用来连接物理外网：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2177677516.jpg" alt="24.jpg" title="24.jpg"></p><p>确认后启动虚拟机，等待进入进入系统。<strong>进入系统后可以设置一个快照方便以后恢复。</strong></p><h3>网络配置</h3><p>进入系统后，我们需要设置 lan 的 IP 地址为我们创建的虚拟网卡所在的 IP 段，就能从主机访问 openwrt 了。</p><p>首先通过 <code>ip l</code> 命令查看当前安装的网卡名称：</p><pre><code>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP qlen 1000
+    link/ether 00:0c:29:c5:39:8d brd ff:ff:ff:ff:ff:ff
+3: eth1: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP qlen 1000
+    link/ether 00:0c:29:c5:39:97 brd ff:ff:ff:ff:ff:ff</code></pre><p>可以看到除了 lo 本地网络外，有两个网卡 eth0 和 eth1，分别对应第一个网卡和第二个网卡。</p><p>下面我们编辑 <code>/etc/config/network</code> 配置文件，默认配置文件如下：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/3506271504.jpg" alt="25.jpg" title="25.jpg"></p><p>这里我们需要关闭网桥模式(用 #井号 屏蔽)，然后修改 lan 段里的 ipaddr 地址为虚拟网卡网段。我们这里修改为 <code>192.168.111.2</code>:<br><img src="https://blog.niekun.net/usr/uploads/2020/10/265255040.jpg" alt="40.jpg" title="40.jpg"></p><p>修改完成后 reboot 系统。</p><p>重启完成后使用 <code>ip addr</code> 查看系统网络配置，可以看到 wan 口 eth1 分配到主机网络所在局域网 IP 地址，lan 口 eth0 是虚拟网卡 IP 地址：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2989248495.jpg" alt="39.jpg" title="39.jpg"></p><p>使用 ping 查看是否可以连接外网：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/3233271645.jpg" alt="31.jpg" title="31.jpg"></p><p>如果无法 ping 通，则需要检查配置问题。</p><p>主机网络适配器里找到 vnet 2 虚拟网卡：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/133092593.jpg" alt="29.jpg" title="29.jpg"></p><p>查看信息，ip 地址是否正确，<strong>注意</strong>如果 openwrt 里的 IP 设置为了 <code>192.168.111.1</code>，则这里的IPv4 地址就需要修改为其他地址了，不然就冲突了：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/43426789.jpg" alt="30.jpg" title="30.jpg"></p><p>这时候使用主机访问 <code>192.168.111.2</code> 应该就可以进入 LuCl 界面了：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/811268622.jpg" alt="28.jpg" title="28.jpg"></p><p>默认没有密码，可以使用 <code>passwd</code> 设置登录密码。</p><p>我们先给 openWrt 设置一个静态 wan 口 Ip，这样局域网设备就可以方便访问了。点击 network - interface：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/1641305336.jpg" alt="32.jpg" title="32.jpg"></p><p>wan 口配置点击 edit：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2975940019.jpg" alt="33.jpg" title="33.jpg"></p><p>protocol 选择 static address，点击 switch protocol：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2765529412.jpg" alt="34.jpg" title="34.jpg"></p><p>设置本地局域网内的 IP 地址，网关地址和 DNS 地址，点击保存：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2870937409.jpg" alt="38.jpg" title="38.jpg"></p><p>点击 save：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/366895487.jpg" alt="36.jpg" title="36.jpg"></p><h3>更换国内源</h3><p>由于虚拟机内不方便复制粘贴文本，我们使用 ssh 连接虚拟机：<br><img src="https://blog.niekun.net/usr/uploads/2020/10/2079947691.jpg" alt="37.jpg" title="37.jpg"></p><p>类似于 Debian，openWrt 也有包管理系统 <code>opkg</code>。默认都是国外源地址访问比较慢，可以替换为国内镜像地址，这里使用清华园镜像：<a href="https://mirrors.tuna.tsinghua.edu.cn/help/openwrt/">https://mirrors.tuna.tsinghua.edu.cn/help/openwrt/</a></p><p>列表路径是：<code>/etc/opkg/</code>，有两个 conf 文件：<code>distfeeds.conf</code>, <code>customfeeds.conf</code></p><p>一键替换命令：</p><pre><code>sed -i 's_downloads.openwrt.org_mirrors.tuna.tsinghua.edu.cn/openwrt_' /etc/opkg/distfeeds.conf
+</code></pre><p>更新列表：</p><pre><code>opkg update
+</code></pre><p>安装常用工具：</p><pre><code>opkg install git-http vim-full curl ca-certificates ca-bundle libopenssl luci-ssl-openssl lsof wget ipset
+</code></pre><p>虚拟机下可以安装 vmtools 来开启虚拟机管理等功能：</p><pre><code>opkg install open-vm-tools
+</code></pre><p>可以安装中文 luci 语言包：</p><pre><code>opkg luci-i18n-base-zh-cn
+</code></pre><p>自带的 dnsmasq 是精简版的不支持一些高级语法，可以参考我的文章升级为 dnsmasq-full：<a href="https://blog.niekun.net/archives/1869.html">https://blog.niekun.net/archives/1869.html</a></p><p>如果需要进行透明代理，需要安装 iptables 的 tproxy 扩展：</p><pre><code>opkg install iptables-mod-tproxy iptables-mod-extra
+</code></pre><p>iptables 的操作教程参考：<a href="https://blog.niekun.net/archives/1872.html">https://blog.niekun.net/archives/1872.html</a></p><p>需要 sftp 连接系统的话需要安装支持包：</p><pre><code>opkg install openssh-sftp-server
+</code></pre><p>如果需要打开网络发现，这样其他设备就可以主动找到此服务器，可以安装扩展：</p><pre><code>opkg install announce
+</code></pre><p>如果安装了 openssh-sftp-server 就会在网络上声明此 sftp 服务的存在。</p><p>也可以直接安装下载好的 ipk 包：</p><pre><code>opkg install test.ipk
+</code></pre><h3>使用第三方源</h3><p><strong>使用第三方源步骤：</strong></p><ul><li>添加 第三方源 key 文件</li><li>源仓库地址加入 <code>/etc/opkg/customfeeds.conf</code> 文件</li><li>opkg update</li></ul><p>源仓库地址格式：</p><pre><code>src/gz example_feed_name http://www.example.com/path/to/files
+</code></pre><p><strong>示例，加入第三方开发者 kuoruan 的源：</strong></p><p>添加 key：</p><pre><code>wget -O kuoruan-public.key http://openwrt.kuoruan.net/packages/public.key
+opkg-key add kuoruan-public.key</code></pre><p>添加仓库地址到配置文件：</p><pre><code>echo &quot;src/gz kuoruan_packages http://openwrt.kuoruan.net/packages/releases/$(. /etc/openwrt_release ; echo $DISTRIB_ARCH)&quot; \
+  &gt;&gt; /etc/opkg/customfeeds.conf
+
+opkg update</code></pre><p>然后就可以安装第三方库的软件了，例如：</p><pre><code>opkg install v2ray-core
+</code></pre><h3>外网访问</h3><p>默认设置下，openwrt 会禁止 wan 网络对主机的 INPUT 和 FORWARD 流量，只会转发信息给其他设备。这样是为了安全因素。</p><p>如果需要通过 wan 口的网络访问 luci 管理页面，或者远程 ssh 访问 openwrt，就需要打开防火墙设置。如果要<strong>彻底关闭防火墙</strong>，可以进入 <strong>network - firewall - general settings</strong>，编辑下面的 <strong>zone</strong> 中的 <strong>wan</strong> 设置：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/1813628993.png" alt="2021-03-30T08:41:16.png" title="2021-03-30T08:41:16.png"></p><p>将 input，output，forward 都设置为 accept：<br><img src="https://blog.niekun.net/usr/uploads/2021/03/926631505.png" alt="2021-03-30T08:42:14.png" title="2021-03-30T08:42:14.png"></p><p>这样就会完全开放网络的访问，也可以根据需要只开放指定的端口或服务。</p><p>这样就可以通过 wan 口访问 openwrt 本地服务了。但是为了安全期间，请设置强度高的 root 密码。</p><p>注意通过我的测试，无法使用 frp 的内网穿透访问 luci 界面，会一直进入 307 重定向死循环导致网页卡死。具体原因未知。配置 ssh 远程访问正常。</p><h3>参考链接：</h3><p><a href="https://openwrt.org/docs/guide-user/virtualization/vmware">https://openwrt.org/docs/guide-user/virtualization/vmware</a><br><a href="https://github.com/kuoruan/luci-app-v2ray">https://github.com/kuoruan/luci-app-v2ray</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1818.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1818.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[wsl 2 激活 systemd]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1805.html" />
+<id>https://blog.niekun.net/archives/1805.html</id>
+<updated>2020-10-13T12:03:00+08:00</updated>
+<published>2020-10-13T12:03:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[wsl 默认不支持 systemd，执行 systemd 命令会返回错误提示：# hostnamectlSystem has not been booted with systemd as in...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1805.html" xml:lang="zh-CN"><![CDATA[
+<p>wsl 默认不支持 systemd，执行 systemd 命令会返回错误提示：</p><pre><code># hostnamectl
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to create bus connection: Host is down</code></pre><p>可以安装第三方的工具 genie 来激活 systemd。</p><p>GitHub：<a href="https://github.com/arkane-systems/genie">https://github.com/arkane-systems/genie</a></p><!--more--><h3>安装</h3><p>添加第三方 apt 库，在 <code>/etc/apt/sources.list.d</code> 目录下新建文件 <code>wsl-translinux.list</code>，文件内容如下：</p><pre><code>deb [trusted=yes] https://wsl-translinux.arkane-systems.net/apt/ /</code></pre><p>更新库列表：</p><pre><code>apt update &amp;&amp; apt upgrade
+</code></pre><p>安装依赖包：</p><p>安装 Microsoft 依赖，下载对应系统版本的 prod 包：<a href="https://packages.microsoft.com/config/：">https://packages.microsoft.com/config/：</a></p><pre><code>curl -O https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+dpkg -i packages-microsoft-prod.deb</code></pre><p>安装其他依赖：</p><pre><code>apt update &amp;&amp; apt install apt-transport-https daemonize dotnet-runtime-3.1</code></pre><p>安装 genie：</p><pre><code>apt install systemd-genie
+</code></pre><h3>使用</h3><p>退出 wsl 系统后关闭 所有已打开的 wsl：</p><pre><code>wsl --shutdown
+</code></pre><p>启动 wsl：</p><pre><code>wsl genie -s
+</code></pre><p>启动的 Linux 系统就可以正常使用 systemd 了。</p><p>参考链接：<br><a href="https://gist.github.com/djfdyuruiry/6720faa3f9fc59bfdf6284ee1f41f950">https://gist.github.com/djfdyuruiry/6720faa3f9fc59bfdf6284ee1f41f950</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1805.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1805.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[wsl 2 设置静态 DNS 服务地址及 Linux 和 Windows 主机网络互相访问设置]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1801.html" />
+<id>https://blog.niekun.net/archives/1801.html</id>
+<updated>2020-10-13T10:01:00+08:00</updated>
+<published>2020-10-13T10:01:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[在升级到 wsl 2 后发现一些网络问题和之前的 wsl 不一样了，主要是 DNS 解析和 wsl 和 Windows 网络互访问题，这里介绍如何处理。DNS 解析wsl 2 使用的 DNS 解...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1801.html" xml:lang="zh-CN"><![CDATA[
+<p>在升级到 wsl 2 后发现一些网络问题和之前的 wsl 不一样了，主要是 DNS 解析和 wsl 和 Windows 网络互访问题，这里介绍如何处理。</p><h3>DNS 解析</h3><p>wsl 2 使用的 DNS 解析服务器设置在文件：<code>/etc/resolv.conf</code> 内设置，这是一个 link 文件，真正的文件路径是：<code>/run/resolvconf/resolv.conf</code>，这个文件是每次 wsl 启动时自动生成的，内容如下：</p><pre><code># This file was automatically generated by WSL. To stop automatic generation of this file, add the following entry to /etc/wsl.conf:
+# [network]
+# generateResolvConf = false
+nameserver 172.24.144.1</code></pre><!--more--><p>nameserver 后面的就是指定的 DNS 服务器地址。我发现有时候分配的服务器地址是无效的，如：<code>127.0.0.53</code>，使用 ping 来测试发现提示无法解析地址。需要设置一个固定的 DNS 地址，方法如下：</p><ul><li><p>新建文件：<code>/etc/wsl.conf</code>，内容如下：</p><pre><code>[network]
+generateResolvConf = false</code></pre></li></ul><p>以上配置好就不会自动创建 <code>/run/resolvconf/resolv.conf</code> 文件了。</p><p>退出 wsl，关机然后重新启动：</p><pre><code>exit
+wsl --shutdown
+wsl
+</code></pre><p>删除 link 文件：<code>/etc/resolv.conf</code>:</p><pre><code>rm /etc/resolv.conf
+</code></pre><p>然后新建 <code>/etc/resolv.conf</code> 文件，内容如下，可自定义 nameserver 地址：</p><pre><code>nameserver 114.114.114.114
+</code></pre><p>再次退出 wsl，关机然后重新启动：</p><pre><code>exit
+wsl --shutdown
+wsl
+</code></pre><p>查看 <code>/etc/resolv.conf</code> 文件是否是之前自定义的地址：</p><pre><code>cat /etc/resolv.conf
+</code></pre><p>测试网络服务：</p><pre><code>ping niekun.net
+</code></pre><p>参考链接：<a href="https://github.com/microsoft/WSL/issues/5256#issuecomment-666545999">https://github.com/microsoft/WSL/issues/5256#issuecomment-666545999</a></p><h3>网络访问配置</h3><p>以前使用 wsl 时 Linux 子系统和 Windows 主机的网络好像是直接互通的，比如我在 Windows 下建立了一个 http 网页 <code>http://127.0.0.1:6000</code>，可以在 Linux 子系统下直接访问地址 <code>http://127.0.0.1:6000</code>，同理对于 Windows 主机访问 Linux 子系统的服务也是可以使用 localhost 直接访问的。</p><p>在升级到 wsl 2 后发现这一特性没有了，无法直接通过 localhost 地址来互通，查询官方说明关于<a href="https://docs.microsoft.com/en-us/windows/wsl/compare-versions#accessing-network-applications">wsl 2 访问网络服务</a> 的方法可以实现访问，但是每次关机后 wsl 和 Windows 本地地址会发生变化不方便使用。</p><p><strong>可以设置静态 IP 来固定地址。Windows 终端下执行下面命令：</strong></p><p>在 wsl 下增加 IP 地址：<code>192.168.50.16</code>，名称为：<code>eth0:1</code>:(以 Ubuntu 系统为例)</p><pre><code>wsl -d Ubuntu -u root ip addr add 192.168.50.16/24 broadcast 192.168.50.255 dev eth0 label eth0:1
+</code></pre><p>在 Windows 10 下增加一个 IP 地址：(此命令需要管理员权限执行)</p><pre><code>netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255.255.0
+</code></pre><p>执行后，在 wsl 下通过 IP：<code>192.168.50.88</code> 访问 Windows 服务。在 Windows 下通过 IP：<code>192.168.50.16</code> 访问 wsl 服务。</p><p>完成后再终端使用 ipconfig 查看设置：</p><pre><code>Ethernet adapter vEthernet (WSL):
+
+   Connection-specific DNS Suffix  . :
+   Link-local IPv6 Address . . . . . : fe60::b525:6b90:8fb0:f513%58
+   IPv4 Address. . . . . . . . . . . : 172.23.64.1
+   Subnet Mask . . . . . . . . . . . : 255.255.240.0
+   IPv4 Address. . . . . . . . . . . : 192.168.50.88
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . :</code></pre><p>以上两个命令可以写在一个 powershell 脚本文件内，脚本内设置管理员权限执行，由于需要管理员权限所以<strong>无法通过建立 shortcut 放到开机自启动文件夹来自动启动址</strong>。</p><p><code>wsl_ip.ps1</code> 脚本内容如下，会自动请求管理员权限：</p><pre><code>if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] &quot;Administrator&quot;))  
+{  
+  $arguments = &quot;&amp; '&quot; +$myinvocation.mycommand.definition + &quot;'&quot;
+  Start-Process powershell -Verb runAs -ArgumentList $arguments
+  Break
+}
+
+wsl -d Ubuntu -u root ip addr add 192.168.50.16/24 broadcast 192.168.50.255 dev eth0 label eth0:1
+netsh interface ip add address &quot;vEthernet (WSL)&quot; 192.168.50.88 255.255.255.0
+</code></pre><p>为了方便使用，可以将脚本路径加入系统 PATH 中，这样可以方便的在终端直接运行脚本，PATH 设置参考：<a href="https://blog.niekun.net/archives/413.html">https://blog.niekun.net/archives/413.html</a></p><p>完成后打开终端直接执行命令：<code>wsl_ip</code> 即可快速设置 IP。</p><p>如果在 powershell 中执行脚本时报错，可能是由于当前系统设置的脚本执行策略有问题，管理员权限打开 ps 后执行以下指令：</p><pre><code>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+</code></pre><p>更多关于系统执行策略设置参考官方文档：<a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.1">About Execution Policies</a></p><h3>wsl 使用主机代理</h3><p>wsl 可以直接使用 Windows 主机搭建的代理服务，ip 地址就使用上面我们创建的 Windows 端的地址即可。</p><p>wsl 中编辑 <code>.bashrc</code> 文件:</p><pre><code>vim ~/.bashrc
+</code></pre><p>将下面代码加入文件：</p><pre><code>alias proxy='export all_proxy=socks5://192.168.50.88:1080 &amp;&amp; export http_proxy=http://192.168.50.88:1082 &amp;&amp; export https_proxy=http://192.168.50.88:1082'
+alias unproxy='unset all_proxy &amp;&amp; export http_proxy= &amp;&amp; export https_proxy='</code></pre><p>保存文件后，重新载入配置：</p><pre><code>source ~/.bashrc
+</code></pre><p>运行命令测试alias是否生效：</p><pre><code>proxy
+</code></pre><p>如果无法使用代理，可能是 Windows 防火墙限制代理软件的访问权限，Windows 下打开<strong>允许应用通过 Windows 防火墙</strong>设置：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/231829215.jpg" alt="1.jpg" title="1.jpg"></p><p>将对应代理软件打开 private 和 public 访问权限：<br><img src="https://blog.niekun.net/usr/uploads/2021/01/4268618643.png" alt="2021-01-06T05:30:16.png" title="2021-01-06T05:30:16.png"></p><p>再次在 wsl 中测试 proxy 是否生效。</p><h3>参考链接</h3><p><a href="https://github.com/MicrosoftDocs/WSL/issues/418#issuecomment-648570865">Static IP on WSL 2</a><br><a href="https://jiayaoo3o.github.io/2020/06/23/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1WSL2%E7%9A%84%E7%BD%91%E7%BB%9C%E4%BB%A3%E7%90%86%E9%85%8D%E7%BD%AE/">记录一次WSL2的网络代理配置</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1801.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1801.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[解决 proxifier 和 wsl 2 无法同时使用的问题]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1797.html" />
+<id>https://blog.niekun.net/archives/1797.html</id>
+<updated>2020-10-12T15:18:00+08:00</updated>
+<published>2020-10-12T15:18:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[今天将 Windows 10 升级到了 build 2004 版，顺便将 wsl 升级到了 wsl 2，升级教程参考：https://blog.niekun.net/archives/1785....]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1797.html" xml:lang="zh-CN"><![CDATA[
+<p>今天将 Windows 10 升级到了 build 2004 版，顺便将 wsl 升级到了 wsl 2，升级教程参考：<a href="https://blog.niekun.net/archives/1785.html。">https://blog.niekun.net/archives/1785.html。</a></p><p>运行 wsl 2 时，发现如下报错：</p><pre><code>PS C:\Users\Marco Nie&gt; wsl
+The attempted operation is not supported for the type of object referenced.</code></pre><p>无法正常使用 wsl，查询后得知是由于我正在使用的 proxifier 和 wsl 有了冲突，proxifier 是我一直使用的用来代理程序的应用。在 wsl 的 github 项目讨论中看到有人问了 proxifier 开发者，得到了解决方法，需要使用提供的程序来让 wsl 在运行时不要加载 LSP DLLs。</p><ul><li>下载 <a href="https://blog.niekun.net/usr/uploads/2020/10/3243699170.zip">NoLsp.zip</a>，解压得到 NoLsp.exe</li><li>以管理员权限运行 terminal，执行 <code>&amp;&quot;path\to\NoLsp.exe&quot; &quot;c:\windows\system32\wsl.exe&quot;</code></li></ul><p>看到终端显示 <code>Succsess!</code>，表示操作完成，然后 wsl 系统就可以正常打开使用同时不影响 proxifier。</p><p>参考链接：<a href="https://github.com/microsoft/WSL/issues/4177">https://github.com/microsoft/WSL/issues/4177</a></p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1797.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1797.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[Windows 重建图标缓存]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1793.html" />
+<id>https://blog.niekun.net/archives/1793.html</id>
+<updated>2020-10-12T11:10:00+08:00</updated>
+<published>2020-10-12T11:10:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[在使用 Windows 中有时候会发现某个程序或文件的图标显示不正常，一般是图标缓存的问题，重建一下即可。以 Windows 10 为例，图标缓存文件路径为：%LOCALAPPDATA%\Mic...]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1793.html" xml:lang="zh-CN"><![CDATA[
+<p>在使用 Windows 中有时候会发现某个程序或文件的图标显示不正常，一般是图标缓存的问题，重建一下即可。</p><p>以 Windows 10 为例，图标缓存文件路径为：<code>%LOCALAPPDATA%\Microsoft\Windows\Explorer</code></p><p>文件夹内的 <code>iconcache_*.db</code> 就是图标缓存文件，删除这些文件然后重启 explorer 即可。</p><p>下面介绍命令的方式处理，使用 power shell 终端：</p><pre><code># 停止 explorer 进程
+taskkill /f /im explorer.exe
+
+# 删除缓存图标文件，ps 中使用 $Env:&lt;variable-name&gt; 表达环境变量
+del &quot;$env:LOCALAPPDATA\Microsoft\Windows\Explorer\iconcache*.db&quot;
+
+# 重启 explorer
+start explorer</code></pre><p>完成后查看图标是否已经正常显示。</p>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1793.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1793.html" thr:count="0"/>
+</entry>
+<entry>
+<title type="html"><![CDATA[Windows 常用终端命令]]></title>
+<link rel="alternate" type="text/html" href="https://blog.niekun.net/archives/1788.html" />
+<id>https://blog.niekun.net/archives/1788.html</id>
+<updated>2020-10-12T09:30:00+08:00</updated>
+<published>2020-10-12T09:30:00+08:00</published>
+<author>
+    <name>admin</name>
+    <uri>https://niekun.net</uri>
+</author>
+<summary type="html"><![CDATA[系统版本：winver系统详细信息：systeminfo当前用户名：whoami]]></summary>
+<content type="html" xml:base="https://blog.niekun.net/archives/1788.html" xml:lang="zh-CN"><![CDATA[
+<p>系统版本：</p><pre><code>winver
+</code></pre><p>系统详细信息：</p><pre><code>systeminfo
+</code></pre><p>当前用户名：</p><pre><code>whoami
+
+</code></pre><!--more--><p>本地网络：</p><pre><code>ipconfig
+</code></pre><p>刷新 DNS 缓存：</p><pre><code>ipconfig /flushdns
+</code></pre><p>路由信息：</p><pre><code>pathping
+tracert
+</code></pre><p>cmd 命令换行符：</p><pre><code>echo abc
+等同于：
+echo ^
+abc</code></pre><p>powershell 命令换行符：</p><pre><code>echo abc
+等同于：
+echo `
+abc</code></pre><p>信息过滤：类似 Linux 的 grep</p><pre><code>findstr
+systeminfo | findstr &quot;System Type&quot;
+</code></pre><p>查看命令的帮助：</p><pre><code>pathping /?
+findstr /?
+systeminfo /?
+</code></pre><p>显示所有端口情况：</p><pre><code>netstat -ano
+</code></pre><p>显示某个端口的占用情况 返回的数据中最后的数字为 PID 号：</p><pre><code>netstat -aon|findstr &quot;7200&quot;
+</code></pre><p>根据 PID 号结束对应进程：</p><pre><code>taskkill /f /pid  7200
+</code></pre><p>结束某个进程：</p><pre><code>taskkill /f /im explorer.exe
+</code></pre><p>删除某个文件：</p><pre><code>del &quot;IconCache.db&quot;
+</code></pre><p>启动某个程序：</p><pre><code>start explorer
+</code></pre>
+]]></content>
+<link rel="replies" type="text/html" href="https://blog.niekun.net/archives/1788.html#comments" thr:count="0" />
+<link rel="replies" type="application/atom+xml" href="https://blog.niekun.net/feed/atom/archives/1788.html" thr:count="0"/>
+</entry>
+</feed>

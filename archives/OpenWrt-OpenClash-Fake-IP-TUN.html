@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenWrt 安装 OpenClash 教程（Fake-IP + TUN） | Marco Nie</title>
+    <link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+        <link rel="canonical" href="OpenWrt-OpenClash-Fake-IP-TUN.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="OpenWrt 安装 OpenClash 教程（Fake-IP + TUN） &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/OpenWrt-OpenClash-Fake-IP-TUN.html" />
+<link rel="alternate" type="application/rdf+xml" title="OpenWrt 安装 OpenClash 教程（Fake-IP + TUN） &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/OpenWrt-OpenClash-Fake-IP-TUN.html" />
+<link rel="alternate" type="application/atom+xml" title="OpenWrt 安装 OpenClash 教程（Fake-IP + TUN） &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/OpenWrt-OpenClash-Fake-IP-TUN.html" />
+<meta name="description" content="用 OpenClash（mihomo / Meta 内核）替代原来的 v2ray + dnsmasq nftset 透明代理方案。配置文件是同目录的 openclash.yaml。目录环境与方案..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/OpenWrt-OpenClash-Fake-IP-TUN.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="OpenWrt 安装 OpenClash 教程（Fake-IP + TUN）" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="用 OpenClash（mihomo / Meta 内核）替代原来的 v2ray + dnsmasq nftset 透明代理方案。配置文件是同目录的 openclash.yaml。目录环境与方案..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="de2f0f2e3e62b8d9bb98dea0-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-3113'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-3113-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-3113-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-3113'),
+                holder = this.dom('#respond-post-3113-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="de2f0f2e3e62b8d9bb98dea0-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-3113');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _WuY = //'nRA'
+'1c'+'b2'//'g'
++//'cC4'
+'5'+//'uMb'
+'0d'+'76f'//'Ra'
++'0'//'eIq'
++//'SN'
+'0'+//'Q'
+'465'+'a'//'Sp'
++//'A'
+'6'+//'8'
+'0f'+'2'//'DJ'
++'b'//'89'
++//'mw'
+'d10'+//'u'
+'u'+//'W'
+'70'+//'r'
+'6a'+//'RX'
+'0fb'+/* 'Xd'//'Xd' */''+''///*'o'*/'o'
++//'S'
+'S'+'d'//'DyC'
+, _NpD9C = [[24,25],[31,32]];
+    
+    for (var i = 0; i < _NpD9C.length; i ++) {
+        _WuY = _WuY.substring(0, _NpD9C[i][0]) + _WuY.substring(_NpD9C[i][1]);
+    }
+
+    return _WuY;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+
+<body>
+
+<header class="site-navbar container-fluid">
+    <nav>
+        <ul class="site-name">
+                    <li>
+                <a href="../index.html" class="brand">Marco Nie</a>
+            </li>
+            <li class="desc">you are the company you keep...</li>
+                </ul>
+
+        <ul>
+            <li>
+                <label for="nav-toggler" class="nav-toggler-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                </label>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="site-nav">
+        <input type="checkbox" id="nav-toggler">
+
+        <ul class="nav-menu">
+            <li>
+                <a href="../index.html">首页</a>
+            </li>
+
+                                    <li>
+                <a href="../start-page.html">关于我</a>
+            </li>
+                        <li>
+                <form method="post" action="../index.html">
+                    <input type="search" id="s" name="s">
+                </form>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="container-thin">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+                <header class="entry-header text-center">
+        <h1 class="entry-title" itemprop="name headline">
+            <a href="OpenWrt-OpenClash-Fake-IP-TUN.html" itemprop="url">OpenWrt 安装 OpenClash 教程（Fake-IP + TUN）</a>
+        </h1>
+                <ul class="entry-meta list-inline text-muted">
+            <li class="feather-calendar"><time datetime="2026-11-13T11:01:00+00:00" itemprop="datePublished">2026-11-13</time></li>
+            <li class="feather-folder"><a href="../category/Linux/index.html">Linux</a></li>
+            <li class="feather-message"><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#comments"  itemprop="discussionUrl">暂无评论</a></li>
+        </ul>
+            </header>
+
+            <div class="entry-content fmt" itemprop="articleBody">
+                <p>用 OpenClash（mihomo / Meta 内核）替代原来的 v2ray + dnsmasq nftset 透明代理方案。配置文件是同目录的 <a href="https://blog.niekun.net/archives/openclash.yaml"><code>openclash.yaml</code></a>。</p><h2>目录</h2><ol><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#1-环境与方案选择">环境与方案选择</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#2-远程操作前回滚定时器">远程操作前：回滚定时器</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#3-安装依赖">安装依赖</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#4-停用旧的-v2ray-方案">停用旧的 v2ray 方案</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#5-安装-openclash">安装 OpenClash</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#6-下载内核">下载内核</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#7-插件设置">插件设置</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#8-准备配置文件">准备配置文件</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#9-启动与验证">启动与验证</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#10-开机自启与计划任务">开机自启与计划任务</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#11-升级备份列表">升级备份列表</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#12-控制面板说明">控制面板说明</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#13-故障排查">故障排查</a></li><li><a href="OpenWrt-OpenClash-Fake-IP-TUN.html#14-回滚到-v2ray-方案">回滚到 v2ray 方案</a></li></ol><!--more--><hr><h2>1. 环境与方案选择</h2><p>本文基于以下环境：</p><table><thead><tr><th>项目</th><th>值</th></tr></thead><tbody><tr><td>系统</td><td>OpenWrt 23.05.3</td></tr><tr><td>架构</td><td>x86_64</td></tr><tr><td>防火墙</td><td>firewall4（nftables）</td></tr><tr><td>DNS</td><td>dnsmasq-full</td></tr><tr><td>远程管理</td><td>通过 Tailscale 访问路由器</td></tr></tbody></table><p><strong>为什么选 OpenClash，不选 Nikki</strong></p><p>Nikki（原 luci-app-mihomo）更轻量，但只支持 OpenWrt 24.10 及以上。在 23.05 上运行它的安装脚本会报 <code>unsupported release: 23.05.3</code>。如果你已经是 24.10，可以考虑 Nikki；23.05 用 OpenClash。</p><p><strong>相比 v2ray + dnsmasq 的好处</strong></p><ul><li>fake-ip 模式下，所有 DNS 都由内核接管，连接时按域名匹配规则，分流不再依赖 dnsmasq 把 IP 写进 nftset 的时机。</li><li>有策略组和 rule-provider，规则集由内核每天自动更新，不再需要自己写更新脚本。</li><li>TCP 和 UDP 都能经 TUN 统一处理。</li></ul><hr><h2>2. 远程操作前：回滚定时器</h2><p>如果你是远程登录路由器（比如通过 Tailscale），代理一旦启动出错，可能连远程连接一起断掉。<strong>每次启动、重启 OpenClash 或改它的设置之前</strong>，先在后台埋一个 5 分钟后自动停掉 OpenClash 的定时器：</p><pre><code class="lang-bash">pkill -f &quot;openclash-guard&quot; 2&gt;/dev/null; kill $(cat /tmp/openclash-guard.pid) 2&gt;/dev/null
+(sleep 300; /etc/init.d/openclash stop; logger -t openclash-guard &quot;auto stopped&quot;) &gt;/dev/null 2&gt;&amp;1 &amp;
+echo $! &gt; /tmp/openclash-guard.pid</code></pre><p>第一行先清掉之前没取消的定时器。如果不清，旧的定时器会在你确认一切正常之后照样到点停掉 OpenClash。</p><p>确认一切正常后，取消定时器：</p><pre><code class="lang-bash">kill $(cat /tmp/openclash-guard.pid) 2&gt;/dev/null; jobs</code></pre><p><code>jobs</code> 没有输出，说明后台已经没有定时器了。如果断线了，就等 5 分钟，OpenClash 会自动停掉，网络随之恢复。</p><hr><h2>3. 安装依赖</h2><pre><code class="lang-bash">opkg update &amp;&amp; opkg install kmod-tun kmod-nft-tproxy ip-full ca-bundle curl</code></pre><p>确认 TUN 设备可用，并查看内存和存储空间：</p><pre><code class="lang-bash">ls /dev/net/tun &amp;&amp; free -m &amp;&amp; df -h /overlay</code></pre><p>内存至少 256MB，规则多的话最好 512MB 以上。存储方面，内核加规则集需要几十 MB 空间。</p><p><strong>dnsmasq 必须是 dnsmasq-full</strong></p><pre><code class="lang-bash">opkg list-installed | grep dnsmasq</code></pre><p>如果显示的是 <code>dnsmasq-full</code>，跳过这一步。如果只有 <code>dnsmasq</code>，先把 dnsmasq-full 下载到本地再替换。顺序不能反：先删掉 dnsmasq 的话，路由器自己就没法解析域名，也就下载不了新包。</p><pre><code class="lang-bash">cd /tmp &amp;&amp; opkg download dnsmasq-full
+opkg remove dnsmasq &amp;&amp; opkg install /tmp/dnsmasq-full_*.ipk
+[ -f /etc/config/dhcp-opkg ] &amp;&amp; mv /etc/config/dhcp-opkg /etc/config/dhcp; /etc/init.d/dnsmasq restart</code></pre><p>OpenClash 的其余依赖：</p><pre><code class="lang-bash">opkg install bash coreutils-nohup libcap libcap-bin ruby ruby-yaml unzip kmod-inet-diag luci-compat</code></pre><hr><h2>4. 停用旧的 v2ray 方案</h2><p>两套透明代理同时运行，防火墙规则和 DNS 会互相冲突。旧方案必须先清干净。</p><p><strong>停止服务，删除 nft 表</strong></p><pre><code class="lang-bash">/etc/init.d/transparent stop; /etc/init.d/transparent disable
+/etc/init.d/v2ray stop; /etc/init.d/v2ray disable
+nft delete table ip v2ray 2&gt;/dev/null</code></pre><p><strong>删除每日更新任务</strong></p><p>先看一眼要删的是哪一行，再删：</p><pre><code class="lang-bash">grep v2ray-update /etc/crontabs/root
+sed -i &#039;/v2ray-update/d&#039; /etc/crontabs/root &amp;&amp; /etc/init.d/cron restart</code></pre><p><strong>清理 dnsmasq 配置</strong></p><p>OpenClash 用 fake-ip 时，dnsmasq 会把所有查询转给 Clash。<code>/etc/dnsmasq/</code> 里的下面这些文件会跟它冲突：</p><table><thead><tr><th>文件</th><th>处理</th><th>原因</th></tr></thead><tbody><tr><td><code>proxy-gfwlist.conf</code>、<code>proxy-added.conf</code></td><td>移走</td><td>里面的 <code>nftset</code> 指向已经删掉的 v2ray 表，分流改由 Clash 规则负责</td></tr><tr><td><code>apple-server.conf</code></td><td>移走</td><td><code>server=/apple.com/223.5.5.5</code> 这类配置会绕过 Clash DNS</td></tr><tr><td><code>base.conf</code></td><td>删掉 <code>all-servers</code> 和所有 <code>server=</code> 行，<strong>保留</strong> <code>address=/*.home.marco/...</code></td><td>内网域名还要靠它解析</td></tr><tr><td><code>reject-*.conf</code></td><td>删除</td><td>去广告改由 Clash 的 <code>ads</code> 规则集负责（广告拦截 组默认 REJECT，每天自动更新）；<code>custom_reject</code> 已包含 360 等域名。dnsmasq 的列表不会自动更新，保留只会越来越旧</td></tr></tbody></table><pre><code class="lang-bash">mkdir -p /etc/dnsmasq.bak &amp;&amp; cd /etc/dnsmasq
+mv proxy-gfwlist.conf proxy-added.conf apple-server.conf reject-*.conf /etc/dnsmasq.bak/
+cp base.conf /etc/dnsmasq.bak/ &amp;&amp; sed -i &#039;/^all-servers/d;/^server=/d&#039; base.conf
+/etc/init.d/dnsmasq restart</code></pre><p>dnsmasq 重启时可能输出 <code>udhcpc: no lease, failing</code>。这是启动脚本在检测局域网里有没有别的 DHCP 服务器，"no lease" 表示没有，属于正常输出。</p><hr><h2>5. 安装 OpenClash</h2><p>到 GitHub 上 <code>vernesong/OpenClash</code> 的 Releases 页面，下载最新的 <code>luci-app-openclash_*_all.ipk</code>，用 scp 传到路由器的 <code>/tmp</code>，然后安装：</p><pre><code class="lang-bash">opkg install /tmp/luci-app-openclash_*_all.ipk</code></pre><p>安装结束时输出的 <code>cfgXXXXXX</code> 是 OpenClash 初始化 uci 配置时打印的，不是报错。装完刷新 LuCI，菜单里会出现 <strong>服务 → OpenClash</strong>。</p><hr><h2>6. 下载内核</h2><p>在 <strong>服务 → OpenClash → 插件设置 → 版本更新</strong>：</p><table><thead><tr><th>选项</th><th>设置</th><th>说明</th></tr></thead><tbody><tr><td>编译版本</td><td><code>linux-amd64-v1</code> 或 <code>v3</code></td><td>见下方 AVX2 检查</td></tr><tr><td>更新分支</td><td>Master</td><td>默认下载 Meta alpha 内核</td></tr><tr><td>Smart 内核</td><td>停用</td><td>见下方说明</td></tr></tbody></table><p><strong>选 v1 还是 v3</strong></p><pre><code class="lang-bash">grep -o -w avx2 /proc/cpuinfo | head -1</code></pre><ul><li>有输出：CPU 支持 AVX2，可以用 <code>v3</code>，性能会稍好一些。</li><li>没有输出：只能用 <code>v1</code>。选 <code>v3</code> 的话，内核根本起不来。</li></ul><p><strong>Smart 内核是什么</strong></p><p>Smart 内核是 OpenClash 作者维护的 mihomo 分支，多了一种 <code>smart</code> 策略组，会根据各节点过去的延迟、成功率等数据自动挑选节点。它适合节点很多的机场订阅。只有一个自建节点时用不上，保持停用即可。</p><p>下载失败的话，可以在同一页换一个下载地址（jsdelivr 等 CDN），或者手动上传内核安装包。</p><hr><h2>7. 插件设置</h2><h3>7.1 模式设置</h3><table><thead><tr><th>选项</th><th>设置</th></tr></thead><tbody><tr><td>运行模式</td><td><strong>Fake-IP（TUN）模式</strong>，对应 uci 里的 <code>en_mode=&#039;fake-ip-tun&#039;</code></td></tr><tr><td>TUN 堆栈</td><td><strong>Mixed</strong>（见下表）</td></tr><tr><td>路由本机代理</td><td><strong>关闭</strong></td></tr></tbody></table><p><strong>TUN 堆栈怎么选</strong></p><table><thead><tr><th>堆栈</th><th>TCP 处理</th><th>UDP 处理</th><th>性能</th><th>兼容性</th></tr></thead><tbody><tr><td>System</td><td>内核协议栈</td><td>内核协议栈</td><td>最好</td><td>个别环境下 UDP 有问题</td></tr><tr><td>gVisor</td><td>用户态协议栈</td><td>用户态协议栈</td><td>CPU 和内存占用高</td><td>最好</td></tr><tr><td><strong>Mixed</strong></td><td>内核协议栈</td><td>用户态协议栈</td><td>接近 System</td><td>接近 gVisor</td></tr></tbody></table><p>一般选 Mixed。游戏或语音的 UDP 不正常时换 gVisor；追求最高吞吐时试 System。</p><blockquote><p>⚠️ 已知问题：在界面上保存堆栈设置时，可能被写成无效值 <code>mips</code>，导致 TUN 网卡起不来。每次在界面改完设置都检查一下：</p><pre><code class="lang-bash">uci get openclash.config.stack_type</code></pre><p>如果不是 <code>mixed</code>，用命令行改回来：</p><pre><code class="lang-bash">uci set openclash.config.stack_type=&#039;mixed&#039; &amp;&amp; uci commit openclash &amp;&amp; /etc/init.d/openclash restart</code></pre></blockquote><p><strong>为什么要关闭"路由本机代理"</strong></p><p>关掉后，路由器自己的流量（<code>tailscaled</code>、opkg 等）不经过 Clash，只有局域网设备的流量会走代理。这样即使 OpenClash 出了问题，Tailscale 远程访问也不会断。</p><h3>7.2 DNS 设置</h3><table><thead><tr><th>选项</th><th>设置</th></tr></thead><tbody><tr><td>本地 DNS 劫持</td><td>开启，方式选 <strong>使用 Dnsmasq 转发</strong></td></tr><tr><td>覆写设置 → 自定义上游 DNS 服务器</td><td><strong>不要启用</strong>，否则配置文件里 <code>dns</code> 段的上游会被替换掉</td></tr><tr><td>覆写设置 → DNS → respect-rules（遵循规则）</td><td><strong>开启</strong>。OpenClash 会按这个开关改写配置文件里的 <code>respect-rules</code>，默认写成 <code>false</code></td></tr></tbody></table><p><strong>为什么必须开启 respect-rules</strong></p><p><code>respect-rules: false</code> 时，<code>nameserver</code> 里的 Cloudflare、Google DoH 会从路由器直连，在国内基本连不上。普通国外域名拿的是 fake-ip，真正的解析在代理服务器上完成，所以看不出问题；但 <code>fake-ip-filter</code> 里又不在国内规则集里的域名（比如 <code>time.google.com</code>）只能靠这两个 DoH，会全部返回空结果（<code>No answer</code>）。</p><p>开关的 uci 名称可以这样查，启动后再确认生效值：</p><pre><code class="lang-bash">uci show openclash | grep -i respect
+grep -n &quot;respect-rules&quot; /etc/openclash/openclash.yaml   # 应为 true</code></pre><h3>7.3 GEO 数据库订阅</h3><p><code>openclash.yaml</code> 的分流全部用 <code>.mrs</code> 规则集，没有 <code>GEOIP</code>、<code>GEOSITE</code>、<code>IP-ASN</code> 规则，所以用不到 GEO 数据库。在 <strong>插件设置 → GEO 数据库订阅</strong> 里，把 GeoIP、GeoSite、GeoIP Dat、GeoASN 的自动更新都关掉。</p><p>这些任务不要去 crontab 里手动删。带 <code>#openclash-cron-task</code> 标记的行由 OpenClash 自己管理，保存或重启时会重新写回去。</p><hr><h2>8. 准备配置文件</h2><p>以 <a href="https://blog.niekun.net/archives/openclash.yaml"><code>openclash.yaml</code></a> 为基础，把节点信息里的占位符换成你自己的：</p><table><thead><tr><th>占位符</th><th>替换为</th></tr></thead><tbody><tr><td><code>111.111.111.111</code></td><td>服务器地址或域名</td></tr><tr><td><code>uuid-uuid-uuid-uuid</code></td><td>UUID</td></tr><tr><td><code>xxx.com</code></td><td>TLS SNI 和 WebSocket 的 Host</td></tr><tr><td><code>/path</code></td><td>WebSocket 路径，与服务端、nginx 保持一致</td></tr></tbody></table><p>在 <strong>配置文件管理</strong> 上传这个文件。上传后它存放在 <code>/etc/openclash/config/</code> 下。</p><h3>配置要点</h3><ul><li><strong>端口、<code>tun</code> 段、DNS 监听、<code>enhanced-mode</code>、<code>fake-ip-range</code></strong>：这些由 OpenClash 界面管理，启动时会覆盖，配置文件里不用写。</li><li><strong>YAML 1.1 的坑</strong>：OpenClash 会先用 Ruby（YAML 1.1）改写配置。不加引号的 <code>off</code>、<code>on</code>、<code>yes</code>、<code>no</code> 会被当成布尔值，所以必须加引号，比如 <code>find-process-mode: &quot;off&quot;</code>。不加引号的话，内核会报 <code>invalid find process mode</code>。</li><li><strong>规则集路径</strong>：OpenClash 会把 rule-providers 的 <code>path</code> 统一改到 <code>./rule_provider/</code>，实际文件位于 <code>/etc/openclash/rule_provider/</code>。</li><li><p><strong><code>*.home.marco</code> 内网域名</strong>：</p><ul><li>在 <code>fake-ip-filter</code> 里，所以返回真实 IP，不会被分配假地址；</li><li><code>nameserver-policy</code> 把它交给本机的 dnsmasq（<code>127.0.0.1</code>）解析；</li><li>嗅探的 <code>skip-domain</code> 也包含它，避免直连时拿域名去国内 DNS 解析而失败。</li></ul></li><li><strong>个人站 <code>niekun.net</code></strong>：直连，并且在 <code>fake-ip-filter</code> 里需要真实解析，所以在 <code>nameserver-policy</code> 里单独交给国内 DoH，不依赖经代理的国外 DoH。</li><li><strong>Tailscale 和内网网段</strong>：<code>100.64.0.0/10</code>、<code>fd7a:115c:a1e0::/48</code>、<code>192.168.x.x</code> 都在 <code>private_ip</code> 规则集里，这是第一条规则，全部直连。</li><li><strong>未匹配的 UDP 直连</strong>：Tailscale、RustDesk 打洞以及 BT、游戏 P2P 大多是直接连 IP 的 UDP。送进代理会导致打洞失败，所以兜底规则前面加了 <code>NETWORK,UDP,DIRECT</code>。</li><li><strong>自定义列表只放上游规则集没收录的域名</strong>：增删前可以先查一下域名是否已在 <code>geolocation-!cn</code>、<code>cn</code> 等规则集里，避免重复。</li><li><strong>GLOBAL 组</strong>：配置里重新定义了内置的 GLOBAL 组，只列出 节点选择、out-vmess、DIRECT。它只在全局模式下起作用。</li></ul><hr><h2>9. 启动与验证</h2><p>先埋好<a href="OpenWrt-OpenClash-Fake-IP-TUN.html#2-远程操作前回滚定时器">回滚定时器</a>，然后在 LuCI 的 <strong>运行状态</strong> 页点"启动"，或者执行：</p><pre><code class="lang-bash">/etc/init.d/openclash start</code></pre><p>启动日志里出现"OpenClash 启动成功"就可以开始验证。</p><p><strong>1. 远程连接</strong></p><p>新开一个 SSH 或 LuCI 会话（用 Tailscale 地址或 <code>openwrt.home.marco</code>），确认还能连上。</p><p><strong>2. DNS</strong></p><pre><code class="lang-bash">nslookup nas.home.marco 127.0.0.1; nslookup google.com 127.0.0.1; nslookup baidu.com 127.0.0.1</code></pre><table><thead><tr><th>域名</th><th>预期结果</th></tr></thead><tbody><tr><td><code>nas.home.marco</code></td><td><code>192.168.122.5</code>，真实内网 IP</td></tr><tr><td><code>google.com</code></td><td><code>198.18.x.x</code>，fake-ip 生效</td></tr><tr><td><code>baidu.com</code></td><td><code>198.18.x.x</code> 也正常，连接时会被 <code>cn_domain</code> 规则匹配后直连</td></tr></tbody></table><p><strong>3. 进程、TUN、堆栈</strong></p><pre><code class="lang-bash">pgrep -af clash | head -3
+ip addr show utun | grep inet
+grep -A2 &quot;^tun:&quot; /etc/openclash/*.yaml</code></pre><p>正常的话会看到：</p><ul><li>内核进程 <code>/etc/openclash/clash -d /etc/openclash ...</code> 和守护进程 <code>openclash_watchdog.sh</code>；</li><li><code>inet 198.18.0.1/30</code>；</li><li><code>stack: mixed</code>。</li></ul><p><strong>4. 规则集</strong></p><pre><code class="lang-bash">ls -la /etc/openclash/rule_provider/
+grep -iE &quot;provider|rule-set&quot; /tmp/openclash.log | tail</code></pre><p>目录里应该有 19 个 <code>.mrs</code> 文件（inline 规则集不生成文件），日志里没有报错。规则集是通过 节点选择 下载的，能下载下来也说明节点是通的。</p><p><strong>5. 分流</strong></p><p>在局域网设备上分别打开 google.com、chatgpt.com、baidu.com，然后在控制面板的"连接"页核对它们走的策略组：</p><table><thead><tr><th>网站</th><th>预期策略组</th></tr></thead><tbody><tr><td>google.com</td><td>节点选择</td></tr><tr><td>chatgpt.com</td><td>AI 服务</td></tr><tr><td>baidu.com</td><td>DIRECT</td></tr></tbody></table><p>全部正常后，<a href="OpenWrt-OpenClash-Fake-IP-TUN.html#2-远程操作前回滚定时器">取消回滚定时器</a>。</p><hr><h2>10. 开机自启与计划任务</h2><p><strong>开机自启</strong></p><pre><code class="lang-bash">ls /etc/rc.d/ | grep -i openclash; uci get openclash.config.enable</code></pre><p>需要看到 <code>S99openclash</code>、<code>K15openclash</code> 和 <code>1</code>。缺哪项就补上：</p><pre><code class="lang-bash">/etc/init.d/openclash enable; uci set openclash.config.enable=&#039;1&#039;; uci commit openclash</code></pre><p>确认旧方案不会开机启动：</p><pre><code class="lang-bash">ls /etc/rc.d/ | grep -iE &quot;v2ray|transparent&quot;</code></pre><p>这条应该没有输出。</p><p>找个方便的时间运行一次 <code>reboot</code> 实测。1～2 分钟后连回来，确认 <code>pgrep -af clash</code> 和 <code>utun</code> 都正常。</p><p><strong>每周定时重启</strong>（可选）</p><p>每周一凌晨 1 点重启，排在 OpenClash 周一 0 点的 GEO 更新之后：</p><pre><code class="lang-bash">sed -i &#039;s|^0 1 \* \* \* /sbin/reboot|0 1 * * 1 /sbin/reboot|&#039; /etc/crontabs/root &amp;&amp; /etc/init.d/cron restart
+crontab -l</code></pre><p>第 5 个字段是星期几：<code>0</code> 是周日，<code>1</code> 是周一，依此类推。cron 用的是路由器本地时区，可以检查一下：</p><pre><code class="lang-bash">uci get system.@system[0].zonename; date</code></pre><p>正常应该显示 <code>Asia/Shanghai</code>，<code>date</code> 的时间也应该和本地一致。</p><hr><h2>11. 升级备份列表</h2><p><code>/etc/sysupgrade.conf</code> 里列出的文件，会在系统升级或用 LuCI 备份时保留。<code>/etc/config/openclash</code> 在 <code>/etc/config/</code> 下，系统默认就会保留，但上传的配置文件和自定义规则要手动加进来。<code>core/</code> 和 <code>rule_provider/</code> 能重新下载，不用备份。</p><pre><code class="lang-bash">cat &gt; /etc/sysupgrade.conf &lt;&lt;&#039;EOF&#039;
+## This file contains files and directories that should
+## be preserved during an upgrade.
+
+# 系统
+/etc/crontabs/
+/etc/ethers
+/etc/installed_packages.txt
+
+# dnsmasq（base.conf 内网域名；.bak 是旧 v2ray 代理列表）
+/etc/dnsmasq/
+/etc/dnsmasq.bak/
+/etc/dnsmasq.conf
+
+# OpenClash（/etc/config/openclash 默认已保留；core、rule_provider 可重新下载，不备份）
+/etc/openclash/config/
+/etc/openclash/custom/
+
+# 旧 v2ray 方案，留作回滚；OpenClash 稳定运行一段时间后可删除这几行
+/etc/init.d/transparent
+/etc/init.d/v2ray
+/etc/v2ray/
+EOF</code></pre><p>检查实际会备份哪些文件：</p><pre><code class="lang-bash">sysupgrade -l | grep -E &quot;openclash|dnsmasq|v2ray|crontabs&quot;</code></pre><hr><h2>12. 控制面板说明</h2><p>OpenClash 自带 MetaCubeXD 等控制面板，可以切换规则、全局、直连模式，选节点，查看连接和日志。</p><p><strong>面板上改的设置只对当前运行有效。</strong> 面板是通过 API 直接改正在运行的内核，不会写回 OpenClash。OpenClash 一重启（开机、更新规则、在 LuCI 里点"应用"），就会按 uci 设置重新生成配置，面板上的改动会被覆盖。</p><ul><li>长期设置（TUN、堆栈、端口）：在 OpenClash 的 LuCI 页面或用 uci 改。</li><li>分流规则：改 <code>openclash.yaml</code>。</li></ul><p><strong>GLOBAL 组</strong>只在全局模式下起作用，规则模式下选什么都不影响分流。全局模式会把内网和 Tailscale 的流量也送进代理，只建议临时排查问题时用。</p><hr><h2>13. 故障排查</h2><table><thead><tr><th>现象</th><th>原因</th><th>处理</th></tr></thead><tbody><tr><td>Nikki 安装脚本报 <code>unsupported release: 23.05.3</code></td><td>Nikki 只支持 24.10 及以上</td><td>改用 OpenClash，或者先升级系统</td></tr><tr><td>内核日志报 <code>Parse config error: invalid find process mode</code></td><td>不加引号的 <code>off</code> 被 Ruby 改写成了 <code>false</code></td><td>改成 <code>find-process-mode: &quot;off&quot;</code></td></tr><tr><td>界面上的"TUN 转发"自动关闭，<code>utun</code> 不存在</td><td><code>stack_type</code> 被保存成了 <code>mips</code></td><td>用 <code>uci set openclash.config.stack_type=&#039;mixed&#039;</code> 改回，然后重启</td></tr><tr><td><code>/etc/openclash/ruleset/</code> 目录不存在</td><td>OpenClash 把路径改成了 <code>rule_provider/</code></td><td>去 <code>/etc/openclash/rule_provider/</code> 下看</td></tr><tr><td><code>rule_provider/</code> 是空的</td><td>节点不通，规则集经代理下载失败</td><td>检查节点配置，看 <code>/tmp/openclash.log</code></td></tr><tr><td><code>*.home.marco</code> 返回 <code>198.18.x.x</code></td><td>fake-ip-filter 没生效</td><td>在 覆写设置 → DNS → Fake-IP-Filter 里再加一遍</td></tr><tr><td><code>niekun.net</code>、<code>time.google.com</code> 等 fake-ip-filter 里的域名 <code>nslookup</code> 返回 <code>No answer</code>，网站打不开</td><td>OpenClash 把 <code>respect-rules</code> 改写成了 <code>false</code>，国外 DoH 被直连而失败</td><td>在界面开启 respect-rules（见 7.2），重启后用 <code>nslookup -port=7874 time.google.com 127.0.0.1</code> 验证</td></tr><tr><td>OpenClash 莫名其妙停了</td><td>之前的回滚定时器没取消，到点执行了 stop</td><td>先清掉旧定时器再埋新的（见第 2 节）；守护进程通常会自动把内核拉起来</td></tr><tr><td>游戏或语音的 UDP 不正常</td><td>堆栈兼容性问题</td><td>把 TUN 堆栈换成 gVisor 试试</td></tr><tr><td>Tailscale 远程连接断开</td><td>开了路由本机代理，或者用了全局模式</td><td>关闭路由本机代理，切回规则模式</td></tr></tbody></table><p>常用日志：</p><pre><code class="lang-bash">tail -50 /tmp/openclash.log
+logread | grep -iE &quot;openclash|openclash-guard&quot; | tail -30</code></pre><hr><h2>14. 回滚到 v2ray 方案</h2><pre><code class="lang-bash">/etc/init.d/openclash stop; /etc/init.d/openclash disable; uci set openclash.config.enable=&#039;0&#039;; uci commit openclash
+mv /etc/dnsmasq/base.conf /etc/dnsmasq/base.conf.openclash
+cp /etc/dnsmasq.bak/* /etc/dnsmasq/
+/etc/init.d/dnsmasq restart
+/etc/init.d/v2ray enable; /etc/init.d/v2ray start
+/etc/init.d/transparent enable; /etc/init.d/transparent start
+echo &#039;0 5 * * * sh /etc/v2ray/script/v2ray-update.sh update 2&gt;&amp;1 | logger -t v2ray-update&#039; &gt;&gt; /etc/crontabs/root &amp;&amp; /etc/init.d/cron restart</code></pre><p><code>/etc/dnsmasq.bak/</code> 里存着原来的 <code>base.conf</code> 和三个代理列表，复制回去就恢复了原来的 DNS 分流。</p>                <p itemprop="keywords">标签：无</p>
+            </div>
+        </article>
+
+        <nav class="post-nav">
+            <ul class="page-navigator">
+                <li class="prev"><a href="Ubuntu-OpenWrt-Tailscale-P2P.html" title="基于 Ubuntu 与 OpenWrt 构建 Tailscale 家庭子网路由与 P2P 直连极速访问指南">基于 Ubuntu 与 OpenWrt 构建 Tailscale 家庭子网路由与 P2P 直连极速访问指南</a></li>
+                <li class="next"><a href="3116.html" title="OpenWrt 彻底关闭 IPv6 教程">OpenWrt 彻底关闭 IPv6 教程</a></li>
+            </ul>
+        </nav>
+
+        <div id="comments">
+        
+            <div id="respond-post-3113" class="respond">
+            <div class="cancel-comment-reply">
+                <a id="cancel-comment-reply-link" href="OpenWrt-OpenClash-Fake-IP-TUN.html#respond-post-3113" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-de2f0f2e3e62b8d9bb98dea0-="">取消回复</a>            </div>
+
+            <h5 id="response">你的评论</h5>
+
+            <form method="post" action="https://blog.niekun.net/archives/OpenWrt-OpenClash-Fake-IP-TUN.html/comment" id="comment-form" role="form">
+                <div class="grid">
+                    <textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+                </div>
+                                <div class="grid">
+                    <input type="text" placeholder="名字" name="author" id="author" value="" required/>
+                    <input type="email" placeholder="Email" name="mail" id="mail" value="" required />
+                    <input type="url" placeholder="http://网站（选填）" name="url" id="url" value="" />
+                </div>
+                                <button type="submit">提交评论</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</main>
+
+<footer class="site-footer container-fluid">
+    <div class="d-flex justify-content-between">
+        <ul class="list-inline text-muted">
+            <li>&copy; 2026 <a href="../index.html">Marco Nie</a></li>
+            <li><a href="../feed/index.html">RSS</a></li>
+        </ul>
+        <ul class="list-inline text-muted">
+            <li>
+                Powered by <a href="https://typecho.org">Typecho</a>            </li>
+        </ul>
+    </div>
+</footer>
+
+
+<script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="de2f0f2e3e62b8d9bb98dea0-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5a791f95c644022',t:'MTc5NDY3NTYwMw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a5a791f95c644022',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

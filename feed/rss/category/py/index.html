@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/category/py/">
+<title>Marco Nie - python</title>
+<link>https://blog.niekun.net/category/py/</link>
+<description></description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Cython-python.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/env-python.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1758.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1753.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1718.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1688.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1685.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1684.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/880.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/438.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/Cython-python.html">
+<title> 使用 Cython 对 python 代码加密打包</title>
+<link>https://blog.niekun.net/archives/Cython-python.html</link>
+<dc:date>2025-08-14T08:10:00+00:00</dc:date>
+<description>目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可执行文件（如 Windows 下的 .exe 文件）或一个包含所有文件的目录中。打包后的文件中包含的是 Python 的字节码 .pyc 文件，这个文件是可以被反编译回近似的源代码的。通过使用 Cython 将 Python 源代码编译成 C 语言，然后再生成本地二进制文件（.pyd）。然后正常使用 cx_Freeze 打包，这样做可以极大地提高代码的保护级别，防止被轻易逆向。安装必要的 Python 包需要安装 Cython 和 Numpy，在终端或命令行中运行：pip install Cython numpy
+安装 C/C++ 编译器Cython 将 Python 代码转换成 C 代码，但最终需要一个 C 编译器来将 C 代码编译成机器码。这是最关键的一步。对于 Windows 用户：访问 Visual Studio 下载页面：https://visualstudio.microsoft.com/zh-hans/downloads/。在 "Tools for Visual Studio" (所有下载 -&gt; Visual Studio 工具) 中找到并下载 "Build Tools for Visual Studio"。运行安装程序，在 "工作负荷" 标签页中，勾选 "使用 C++ 的桌面开发"。点击安装。安装完成后，您可能需要重启电脑。对于 macOS 用户：打开终端并运行 xcode-select --install。这会安装苹果的命令行开发者工具，其中包含了 Clang 编译器。对于 Linux 用户 (例如 Ubuntu/Debian)：打开终端并运行 sudo apt update &amp;&amp; sudo apt install build-essential。修改 setup.py 文件如果项目目录结构如下：/my_project
+    |-- main.py           # 你的主程序文件
+    |-- /src              # 你的其他模块目录
+    |   |-- func1.py
+    |   |-- func2.py
+    |-- setup.py            # cx_Freeze 的配置文件根据以上目录结构，下面是一个配置文件示例：from cx_Freeze import setup, Executable
+import sys, os, io
+
+# =============================================================================
+# Cython 自动化编译集成
+# =============================================================================
+try:
+    from Cython.Build import cythonize
+    from setuptools import Extension
+    import numpy
+except ImportError:
+    print(&quot;\n[错误] 缺少必要的库。请先安装 Cython 和 Numpy:&quot;)
+    print(&quot;pip install Cython numpy&quot;)
+    sys.exit(1)
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding=&#039;utf-8&#039;)  # 修复非中文系统打包时报错
+
+# 增加递归调用深度限制
+sys.setrecursionlimit(1500)
+
+# 定义相关路径
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+ENTRY_POINT = &quot;main.py&quot;
+
+# 检查是否为打包命令
+build_commands = {&quot;build&quot;, &quot;bdist_msi&quot;, &quot;bdist_dmg&quot;, &quot;bdist_mac&quot;}
+is_building = any(cmd in sys.argv for cmd in build_commands)
+
+# --- Cython 编译配置 ---
+# 此函数会自动查找 src 目录下的所有 .py 文件并准备将它们编译
+def find_extensions_to_compile(dir_path=&quot;src&quot;):
+    &quot;&quot;&quot;Find all .py files to be compiled by Cython.&quot;&quot;&quot;
+    extensions = []
+    # 添加 numpy 的头文件路径，这对于编译依赖 numpy/scipy 的代码至关重要
+    numpy_include = numpy.get_include()
+    
+    for root, dirs, files in os.walk(dir_path):
+        for file in files:
+            # 我们只编译 .py 文件，但跳过 __init__.py 文件
+            if file.endswith(&quot;.py&quot;) and file != &quot;__init__.py&quot;:
+                path = os.path.join(root, file)
+                
+                # 检查文件是否包含 numba 相关代码
+                try:
+                    with open(path, &#039;r&#039;, encoding=&#039;utf-8&#039;) as f:
+                        content = f.read()
+                    
+                    # 检查是否包含 numba 关键字
+                    numba_keywords = [&#039;from numba import&#039;, &#039;import numba&#039;, &#039;@jit&#039;, &#039;@njit&#039;, &#039;numba.jit&#039;, &#039;numba.njit&#039;]
+                    has_numba = any(keyword in content for keyword in numba_keywords)
+                    
+                    if has_numba:
+                        print(f&quot;--- 跳过包含 Numba 的文件: {path}&quot;)
+                        continue
+                        
+                except Exception as e:
+                    print(f&quot;--- 警告：无法读取文件 {path}: {e}&quot;)
+                    continue
+                
+                # 将文件路径转换为模块路径，例如 &quot;src/library/function.py&quot; -&gt; &quot;src.library.function&quot;
+                module_path = path.replace(os.sep, &#039;.&#039;)[:-3]
+                
+                extensions.append(
+                    Extension(
+                        name=module_path,
+                        sources=[path],
+                        include_dirs=[numpy_include]  # 包含 numpy 头文件
+                    )
+                )
+    print(f&quot;--- 找到 {len(extensions)} 个模块准备通过 Cython 编译...&quot;)
+    return extensions
+
+# 仅在执行打包命令时才准备编译列表
+extensions = []
+if is_building:
+    # 1. 编译 src 目录下的所有模块（自动排除包含 numba 的文件）
+    extensions.extend(find_extensions_to_compile(&quot;src&quot;))
+
+# =============================================================================
+# cx_Freeze 配置
+# =============================================================================
+
+# 安装依赖
+build_exe_options = {
+    &quot;packages&quot;: [
+    ],
+    &quot;excludes&quot;: [&quot;email&quot;] + [ext.name for ext in extensions], # 排除 Cython 编译的模块
+    &quot;include_files&quot;: [
+        ],
+    &quot;includes&quot;: [],
+
+    # 性能优化选项
+    &quot;optimize&quot;: 2,           # 使用Python优化
+    &quot;include_msvcr&quot;: False,  # 不包含MSVC运行库
+}
+
+# 基础设置
+base = &quot;Win32GUI&quot; if sys.platform == &quot;win32&quot; else None
+
+directory_table = [
+    # ...
+]
+
+shortcut_table = [
+    (
+        # ...
+    ),
+    (
+        # ...
+    ),
+]
+
+msi_data = {&quot;Directory&quot;: directory_table, &quot;Shortcut&quot;: shortcut_table}
+
+bdist_msi_options = {
+    # ...
+}
+
+executables = [
+    Executable(
+        &quot;main.py&quot;, # 入口文件 依然调用 py 程序，cx_Freeze 会自动识别并使用加密后的文件
+        # ...
+    )
+]
+
+# =============================================================================
+# 清理函数
+# =============================================================================
+def cleanup_generated_files():
+    &quot;&quot;&quot;查找并删除由 Cython 生成的所有 .c 文件。&quot;&quot;&quot;
+    print(&quot;\n--- 正在运行清理程序：删除生成的 C 文件... ---&quot;)
+    for root, dirs, files in os.walk(ROOT_DIR):
+        # 避免进入不相关的目录
+        if &#039;myenv&#039; in root or &#039;.git&#039; in root or &#039;build&#039; in root or &#039;dist&#039; in root:
+            continue
+        for file in files:
+            if file.endswith(&#039;.c&#039;):
+                file_path = os.path.join(root, file)
+                try:
+                    os.remove(file_path)
+                    print(f&quot;--- 已删除: {file_path}&quot;)
+                except OSError as e:
+                    print(f&quot;--- 删除失败 {file_path}: {e}&quot;)
+
+# =============================================================================
+# 执行打包
+# =============================================================================
+
+try:
+    setup(
+        # ...
+        # 关键步骤：将找到的 .py 文件交给 Cythonize 进行编译
+        ext_modules=cythonize(
+            extensions,
+            compiler_directives={&#039;language_level&#039;: &quot;3&quot;}, # 使用 Python 3 语法
+            quiet=True # 减少不必要的编译输出
+        ) if is_building else [],
+        # ...
+    )
+finally:
+    # 只有在执行打包命令时才运行清理
+    if is_building:
+        cleanup_generated_files()运行打包命令打包即可，如：python setup.py bdist_msi
+检查加密情况安装完成后，进入安装路径的 Lib/site-packages 文件夹，会看到加密后的 .pyd 程序文件。.pyd 文件是 Windows 上的二进制动态链接库，本质上和 .dll 文件一样。如果加密失败：会在这里看到 .pyc 文件或者甚至原始的 .py 文件。Python 包管理约定：普通 .py 文件：可以放在任何 Python 路径中扩展模块 (.pyd/.so)：通常放在 site-packages 中cx_Freeze 的处理逻辑：检测到 .py 文件 → 按源码文件处理 → 保持原目录结构检测到 .pyd 文件 → 按扩展模块处理 → 放入 site-packages模块导入机制：import src.library.functionPython 会在 sys.path 中搜索不加密：在 lib/ 中找到 src/library/function.pyc加密：需要在 lib/site-packages/ 中找到 src/library/function.pyd由于加密后的文件路径发生了变化，打包后访问加密后文件中的内容会报错，所以主程序在索引时需要特殊处理加密打包后的路径问题，主程序中使用下面函数可以自适应：# 路径修正代码
+def fix_module_paths():
+    &quot;&quot;&quot;修正打包后的模块搜索路径&quot;&quot;&quot;
+    if getattr(sys, &#039;frozen&#039;, False):  # 检查是否为打包后的可执行文件
+        # 获取可执行文件所在目录
+        base_dir = os.path.dirname(sys.executable)
+        
+        # 可能的src模块路径
+        possible_src_paths = [
+            os.path.join(base_dir, &#039;lib&#039;, &#039;site-packages&#039;),  # Cython编译后的位置
+            os.path.join(base_dir, &#039;lib&#039;),  # 标准位置
+            base_dir,  # 根目录
+        ]
+        
+        # 将可能的路径添加到sys.path的开头
+        for path in possible_src_paths:
+            if os.path.exists(path) and path not in sys.path:
+                sys.path.insert(0, path)
+                print(f&quot;Added to Python path: {path}&quot;)
+        
+        # 特别检查src目录
+        src_path = os.path.join(base_dir, &#039;lib&#039;, &#039;site-packages&#039;, &#039;src&#039;)
+        if os.path.exists(src_path):
+            parent_dir = os.path.dirname(src_path)
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+                print(f&quot;Added src parent directory to Python path: {parent_dir}&quot;)
+
+# 执行路径修正
+fix_module_paths()以上函数中，会将 src 文件夹下的函数库进行正确的索引。Numba 装饰器问题Numba 不兼容 Cython 编译后的函数。Numba 装饰器（如 @jit, @njit）期望装饰的是普通的 Python 函数，但 Cython 编译后生成的是 cython_function_or_method 类型，导致 Numba 无法识别。需要将包含 numba 的文件排除出编译列表。具体可见 setup.py 函数。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/env-python.html">
+<title>使用虚拟环境 env 开发 python</title>
+<link>https://blog.niekun.net/archives/env-python.html</link>
+<dc:date>2024-07-01T02:17:13+00:00</dc:date>
+<description>使用虚拟环境进行Python开发有助于隔离项目的依赖，避免不同项目之间的库版本冲突。以下是如何创建和使用虚拟环境的详细步骤。Python 3.3 及以上版本自带 venv 模块，可以直接使用。使用 venv 创建虚拟环境创建虚拟环境在你的项目目录下，运行以下命令来创建一个虚拟环境，这将在项目目录下创建一个名为 myenv 的文件夹，其中包含虚拟环境的所有文件：python -m venv myenv
+激活虚拟环境Windows：myenv\Scripts\activate
+macOS 和 Linux：source myenv/bin/activate
+安装依赖在虚拟环境中，你可以使用 pip 来安装项目所需的库：pip install requests
+安装的库将只会影响当前虚拟环境，而不会影响系统的 Python 环境或其他项目。冻结依赖为了确保你的项目依赖可以在其他环境中重现，你可以使用以下命令将当前环境的依赖写入 requirements.txt 文件：pip freeze &gt; requirements.txt
+requirements.txt 文件将包含所有当前环境中的安装包及其版本信息。使用 requirements.txt 安装依赖在新的环境中，你可以使用 requirements.txt 文件来安装所需的所有依赖：pip install -r requirements.txt
+退出虚拟环境当你完成工作时，可以通过以下命令退出虚拟环境：deactivate
+使用虚拟环境进行Python开发可以有效地隔离项目依赖，避免版本冲突。通过创建和激活虚拟环境、安装依赖、冻结依赖并在新环境中重新安装依赖，可以确保你的项目在不同环境中具有一致的运行表现。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1758.html">
+<title>从源码编译安装 python</title>
+<link>https://blog.niekun.net/archives/1758.html</link>
+<dc:date>2020-09-21T08:35:00+00:00</dc:date>
+<description>从源码编译程序的好处是可以使用最新版本，下面介绍如何在 Linux 下编译安装 python 和 pip 环境。下载源码包python 官网：https://www.python.org/当前最新版是 3.8.5，在这个页面找到地址：https://www.python.org/downloads/release/python-385/下载 tgz 压缩包到本地并解压：cd /tmp
+wget https://www.python.org/ftp/python/3.8.5/Python-3.8.5.tgz
+tar xvf Python-3.8.5.tgz环境安装编译需要安装一些依赖：apt install libffi-dev libgdbm-dev libsqlite3-dev libssl-dev zlib1g-dev
+编译python 源码使用标准 GNU 编译系统，详细说明参考：https://blog.niekun.net/archives/883.html将 python 安装到 /opt 目录，先创建文件夹：mkdir /opt/python3.8.5
+然后配置 configure：cd /tmp/Python-3.8.5
+
+./configure \
+--prefix=/opt/python3.8.5 \
+--enable-optimizations \没有错误提示的话就开始编译和安装：make
+make install
+安装完成后测试执行：/opt/python3.8.5/bin/python3 --version
+返回版本信息则安装完成。下面将可执行文件加入系统路径，创建软连接：ln -s /opt/python3.8.5/bin/python3 /usr/bin/python
+测试运行：python --version
+安装 pip源码编译安装的 python 不自带 pip，需要自己安装，可以使用 get-pip.py 脚本来安装。官网：https://pip.pypa.io/en/stable/installing/下载脚本到本地：curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py使用刚才安装的 python 执行脚本：/opt/python3.8.5/bin/python3 get-pip.py
+pip 的安装路径是 /opt/python3.8.5/bin/，测试命令：/opt/python3.8.5/bin/pip3 --version
+返回版本信息则安装完成。添加软连接到系统路径：ln -s /opt/python3.8.5/bin/pip3 /usr/bin/pip
+测试命令：pip --version
+参考链接https://docs.rstudio.com/resources/install-python-source/</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1753.html">
+<title>使用 subprocess.check_output 执行cmd命令并返回结果到字符串</title>
+<link>https://blog.niekun.net/archives/1753.html</link>
+<dc:date>2020-09-18T07:13:51+00:00</dc:date>
+<description>语法：subprocess.check_output(args, *, stdin=None, stderr=None, shell=False, universal_newlines=False)
+执行cmd命令并返回结果到字符串。用法：import subprocess
+
+output = check_output([&quot;cat&quot;, &quot;/etc/hostname&quot;]).strip()
+print(output)以上脚本会执行 cat /etc/hostname 命令然后将结果赋值给 output 变量。strip() 可以将 string 的前后空格去掉。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1718.html">
+<title>argparse and struct in python</title>
+<link>https://blog.niekun.net/archives/1718.html</link>
+<dc:date>2020-08-14T03:20:39+00:00</dc:date>
+<description>https://docs.python.org/3/library/argparse.htmlhttps://docs.python.org/3/library/struct.html</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1688.html">
+<title>string &amp;lt;-&amp;gt; byte in python</title>
+<link>https://blog.niekun.net/archives/1688.html</link>
+<dc:date>2020-08-12T06:08:00+00:00</dc:date>
+<description>To transform a unicode string to a byte string in Python do this:&gt;&gt;&gt; &#039;foo&#039;.encode(&#039;utf_8&#039;)
+b&#039;foo&#039;
+To transform a byte string to a unicode string:&gt;&gt;&gt; b&#039;foo&#039;.decode(&#039;utf_8&#039;)
+&#039;foo&#039;
+
+To convert a string to bytes.data = &quot;&quot;               #string
+data = &quot;&quot;.encode()      #bytes
+data = b&quot;&quot;              #bytesTo convert bytes to a String.data = b&quot;&quot;              #bytes
+data = b&quot;&quot;.decode()     #string
+data = str(b&quot;&quot;)         #string</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1685.html">
+<title>winreg 操作 Windows 注册表 in python</title>
+<link>https://blog.niekun.net/archives/1685.html</link>
+<dc:date>2020-08-12T05:56:00+00:00</dc:date>
+<description>https://docs.python.org/3/library/winreg.html#https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registryimport winreg
+
+REG_PATH = r&quot;Control Panel\Mouse&quot;
+
+def set_reg(name, value):
+    try:
+        winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, 
+                                       winreg.KEY_WRITE)
+        winreg.SetValueEx(registry_key, name, 0, winreg.REG_SZ, value)
+        winreg.CloseKey(registry_key)
+        return True
+    except WindowsError:
+        return False
+
+def get_reg(name):
+    try:
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
+                                       winreg.KEY_READ)
+        value, regtype = winreg.QueryValueEx(registry_key, name)
+        winreg.CloseKey(registry_key)
+        return value
+    except WindowsError:
+        return None
+
+#Example MouseSensitivity
+#Read value 
+print (get_reg(&#039;MouseSensitivity&#039;))
+
+#Set Value 1/20 (will just write the value to reg, the changed mouse val requires a win re-log to apply*)
+set_reg(&#039;MouseSensitivity&#039;, str(10))
+
+#*For instant apply of SystemParameters like the mouse speed on-write, you can use win32gui/SPI
+#http://docs.activestate.com/activepython/3.4/pywin32/win32gui__SystemParametersInfo_meth.html</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1684.html">
+<title>使用 opencv 处理图像</title>
+<link>https://blog.niekun.net/archives/1684.html</link>
+<dc:date>2020-08-07T03:37:51+00:00</dc:date>
+<description>安装：https://pypi.org/project/opencv-python/使用：https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_setup/py_table_of_contents_setup/py_table_of_contents_setup.html示例：https://www.askaswiss.com/2016/01/how-to-create-pencil-sketch-opencv-python.html打包 exe：https://pypi.org/project/auto-py-to-exe/</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/880.html">
+<title>使用 TelegramBot 键盘 InlineKeyboardButton 提示 BUTTON_DATA_INVALID 报错原因分析</title>
+<link>https://blog.niekun.net/archives/880.html</link>
+<dc:date>2020-02-01T10:06:06+00:00</dc:date>
+<description>今天在测试 telegram Bot 的时候，发现 keyboard 不能正确弹出来，后台查看发现报错了，提示 Bad Request: BUTTON_DATA_INVALID反复检查代码没有发现语法错误，查找之后了解到 InlineKeyboardButton 响应后返回的 Callback Data 有大小限制，最大64位：的确我想返回的内容长度的确超过了大小限制，优化源码后问题解决了。参考链接：https://core.telegram.org/bots/api#inlinekeyboardbuttonhttps://stackoverflow.com/questions/46389040/inlinekeyboardbutton-are-limited-in-inlinekeyboardmarkup-telegram-bot-c-sharp</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/438.html">
+<title>python 常用语法收集</title>
+<link>https://blog.niekun.net/archives/438.html</link>
+<dc:date>2019-10-17T06:52:00+00:00</dc:date>
+<description>在我使用过程中遇到的常用语法，这里做一些记录。os.system()可以用来运行终端命令：import os
+os.system(&#039;date&#039;)
+-----------------------
+The current date is: 10/17/2019 Thu glob用来将匹配的文件放入数组：import glob
+import os
+CWD = os.getcwd()#当前目录路径
+for name in glob.glob(CWD+&#039;/*&#039;):
+    print(name)以上输出当前目录下所有文件的文件名。for name in glob.glob(CWD+&#039;/file?.txt&#039;):
+    print(name)以上输出  filea.txt, fileb.txt filec.txt 等文件名。可以使用类似正则表达式的方式匹配文件名：glob.glob(CWD+&#039;/*[12].*&#039;)
+从python3.5开始，支持使用一下方法进行递归搜索目录内文件及文件夹：for name in glob.glob(CWD+&#039;/**/*&#039;, recursive=True):
+    print(name)以上会输出目录内文件及子文件夹内文件。split()字符串分割：按空格分割，注意两个部分之间的空格可以是1个或多个，不影响分割效果：txt = &quot;welcome to the jungle&quot;
+x = txt.split()将 txt 字符串按空格来分成4个部分，x 是数组。分割成设定的个数：txt = &quot;welcome to the jungle&quot;
+x = txt.split(&#039; &#039;, 1)输出结果：x = ['welcome', 'to the jungle']按特定字符分割：txt = &quot;apple#banana#cherry#orange&quot;
+x = txt.split(&quot;#&quot;, 1)输出结果：x = ['apple', 'banana#cherry#orange']next()用于 iterator 的顺序提取。mylist = iter([&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;])
+x = next(mylist)
+print(x)
+y = next(mylist)
+print(x)
+z = next(mylist)
+print(x)输出结果：x = 'apple' y = 'banana' z = 'cherry'format()用于字符串内的赋值：print (&quot;{}, A computer science portal for geeks&quot;.format(&quot;GeeksforGeeks&quot;))输出：GeeksforGeeks, A computer science portal for geeks多个输入参数：print (&quot;Hi ! My name is {} and I am {} years old&quot;
+                            .format(&quot;User&quot;, 19)) 带索引的多参数输入：print(&quot;Every {3} should know the use of {2} {1} programming and {0}&quot;
+        .format(&quot;programmer&quot;, &quot;Open&quot;, &quot;Source&quot;, &quot;Operating Systems&quot;)) 输出结果：Every Operating Systems should know the use of Source Open programming and programmerstrip()删除字符串前和后的空格：txt = &quot;     banana     &quot;
+x = txt.strip()输出：x = 'banana'删除字符串前和后的自定义字符：txt = &quot;,,,,,rrttgg.....banana....rrr&quot;
+x = txt.strip(&quot;,.grt&quot;)输出： x = 'banana'</description>
+</item>
+</rdf:RDF>
