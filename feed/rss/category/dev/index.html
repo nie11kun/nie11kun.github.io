@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/category/dev/">
+<title>Marco Nie - Development</title>
+<link>https://blog.niekun.net/category/dev/</link>
+<description></description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Qt.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/sentinel.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Cython-python.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/3024.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/3021.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/env-python.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/codesys-enum.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/codesys.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/ethercat.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/Qt.html">
+<title>Qt 项目图片压缩库环境配置教程</title>
+<link>https://blog.niekun.net/archives/Qt.html</link>
+<dc:date>2026-03-28T08:02:47+00:00</dc:date>
+<description>适用平台：Windows (MinGW) / macOS (Apple Silicon)涉及库：libpng · zlib · libimagequant用途：Qt 项目中对 PNG 进行缩放后有损压缩，效果接近 tinypng一、原理说明库作用zlib通用压缩库，libpng 的底层依赖libpngPNG 编码/解码，负责将量化后的调色板写入 PNG 文件libimagequant核心量化算法，将 RGBA 图像减色为 256 色调色板（与 tinypng 同类算法）二、Windows (MinGW) 配置2.1 前置要求Qt（含 MinGW 工具链，如 mingw1310_64）CMake 3.16+（https://cmake.org/download/）Git确保 MinGW 在 PATH 中，在 cmd 执行：set PATH=C:\Qt\Tools\mingw1310_64\bin;%PATH%⚠️ 重要：后续所有编译步骤必须在无空格路径下进行。如果你的用户目录包含空格（如 C:\Users\Marco Nie），请在 C:\ 根目录下建立工作目录。mkdir C:\build_libs
+cd C:\build_libs2.2 编译 zlibcd C:\build_libs
+
+git clone https://github.com/madler/zlib.git --branch v1.3.1 --depth 1
+cd zlib
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DBUILD_SHARED_LIBS=OFF ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/zlib
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\zlib\
+  include\   ← zlib.h, zconf.h
+  lib\       ← libzlibstatic.a2.3 编译 libpngcd C:\build_libs
+
+git clone https://github.com/pnggroup/libpng.git --branch v1.6.43 --depth 1
+cd libpng
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DPNG_SHARED=OFF ^
+  -DPNG_STATIC=ON ^
+  -DPNG_TESTS=OFF ^
+  -DZLIB_ROOT=C:/build_libs/third_party/zlib ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/libpng
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\libpng\
+  include\   ← png.h, pngconf.h, pnglibconf.h
+  lib\       ← libpng16.a2.4 编译 libimagequantlibimagequant 2.17+ 已用 Rust 重写，MinGW 下需使用最后一个纯 C 版本 2.12.6，该版本没有 CMakeLists.txt，直接用 gcc 手动编译。cd C:\build_libs
+
+git clone https://github.com/ImageOptim/libimagequant.git ^
+  --branch 2.12.6 --depth 1 libimagequant_c
+
+cd libimagequant_c
+
+:: 编译所有源文件
+gcc -c -O3 -std=c99 -ffast-math ^
+  libimagequant.c blur.c kmeans.c mediancut.c mempool.c nearest.c pam.c
+
+:: 打包静态库
+ar rcs libimagequant.a ^
+  libimagequant.o blur.o kmeans.o mediancut.o mempool.o nearest.o pam.o
+
+:: 手动安装
+mkdir C:\build_libs\third_party\libimagequant\include
+mkdir C:\build_libs\third_party\libimagequant\lib
+
+copy libimagequant.h C:\build_libs\third_party\libimagequant\include\
+copy libimagequant.a C:\build_libs\third_party\libimagequant\lib\
+
+cd ..安装结果：C:\build_libs\third_party\libimagequant\
+  include\   ← libimagequant.h
+  lib\       ← libimagequant.a2.5 复制到项目目录将编译好的库复制到你指定的目录，例如 C:\Users\Marco Nie\Library\imageprocess：xcopy /E /I C:\build_libs\third_party\zlib ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\zlib&quot;
+
+xcopy /E /I C:\build_libs\third_party\libpng ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libpng&quot;
+
+xcopy /E /I C:\build_libs\third_party\libimagequant ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libimagequant&quot;最终目录结构：C:\Users\Marco Nie\Library\imageprocess\
+  zlib\
+    include\
+    lib\
+  libpng\
+    include\
+    lib\
+  libimagequant\
+    include\
+    lib\2.6 配置 .pro 文件（Windows 部分）win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}三、macOS (Apple Silicon) 配置3.1 前置要求Homebrew（https://brew.sh）Qt for macOS3.2 安装依赖brew install libpng zlib libimagequant安装路径（Apple Silicon 固定为 /opt/homebrew/opt/）：库路径libpng/opt/homebrew/opt/libpngzlib/opt/homebrew/opt/zliblibimagequant/opt/homebrew/opt/libimagequantIntel Mac 的 Homebrew 前缀为 /usr/local/opt/，将下方路径中的 /opt/homebrew 替换为 /usr/local 即可。3.3 配置 .pro 文件（macOS 部分）macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}注意：macOS 下链接名与 Windows 不同：libpng 是 -lpng（不带版本号）zlib 是 -lz（不是 -lzlibstatic）四、完整 .pro 配置win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}
+
+macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}
+
+HEADERS += src/image_compress.h
+SOURCES += src/image_compress.cpp五、常见问题错误信息原因解决方法cannot find -lpng16库名不匹配检查 lib\ 下实际文件名，改为对应的 -lpng 或 -lpng16undefined reference to inflatezlib 未链接确认 -lzlibstatic 在 LIBS 中且在 -lpng16 之后png.h: No such file or directoryINCLUDEPATH 路径错误核对实际头文件路径与 .pro 中配置是否一致Z_FILTERED undeclared缺少 zlib 头文件在 image_compress.cpp 顶部添加 #include &lt;zlib.h&gt;CMake 路径含空格报错MinGW windres 不支持空格路径在无空格路径（如 C:\build_libs）下编译libimagequant clone 后无 .c 文件拉取到了 Rust 重写版本明确指定 --branch 2.12.6</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/sentinel.html">
+<title>sentinel 加密锁应用</title>
+<link>https://blog.niekun.net/archives/sentinel.html</link>
+<dc:date>2025-10-10T06:03:00+00:00</dc:date>
+<description>最近使用 sentinel 的加密狗对软件进行加密，整个操作流程还是有一定门槛的，下面对安装到配置进行简要介绍。下载及安装 sentinel LDK官网下载地址：Sentinel-LDK_SDK备用下载：Sentinel-LDK选择下载最新的 sdk 和升级包：runtime 包用于客户端安装：安装最新版 SDK 及升级包，安装过程中注意选择本地模式的 EMS：配置主锁和产品启动程序前，插入 master 主锁和一个测试用的子锁。安装完成后启动 LDK，点击进入 master 主锁向导：初始默认用户名和密码都是：admin，按照提示下载需要的各种 API 支撑库文件：注意此处的文件就是主锁的开发商代码文件：开发商代码文件存放在用户目录下：Documents\Thales\Sentinel LDK 10.0\VendorCodes。二次开发需要用的 API 库文件存放在用户目录下：Documents\Thales\Sentinel LDK 10.0\API\Licensing。主锁 API 相关文件下载完成后，点击 LDK-EMS 进入管理界面：初始默认用户名和密码都是：admin，登录后会提示你需要修改密码。目录栏中切换到上面主锁向导中定义的开发商代码文件名，默认的 demoma 文件是一个用于测试的虚拟主锁文件：sentinel 的授权逻辑是：定义产品，唯一的 ID 号每个产品都可以有多个功能，每个功能配置唯一的 ID 号sentinel 的加密锁最终是通过功能 ID 号来识别是否授权而不是产品号所以我们即使有多个软件产品，每个软件产品有多个不同的功能块要授权，不同产品之间的功能块ID也需要不同，这样就不会出错了。我们做一个示例来说明如何定义一个产品。假设我们的产品名称为 EnveloGrinding，我们定义一个 login 的功能，用于软件登录的验证。进入功能选项卡，注意切换开发号到当前主锁的开发商代码名称，点击新功能选项，设置功能名称，以及唯一的功能 ID 号：点击确认后，此功能就在功能列表中了。然后进入产品选项卡，同样切换开发号到当前主锁的开发商代码，点击新产品：设置唯一的产品名称和 ID 号，在页面下方点击添加功能按钮，选择刚才创建的 login 功能：因为登录功能授权属于最基本的软件授权，所以这里选择此产品总是包含，如果其他更多的功能需要选择性的添加到产品，可以选择可以排除选项，这样再授权的时候就可以灵活组合授权哪些功能。点击另存为完成后，这个产品就定义成功了。此时我们给加密锁进行授权，将这个产品写入加密锁中。首选我们添加客户信息，也就是这个加密狗最终是交付给谁使用的，用于后期管理维护。客户选项卡点击新客户按钮：设置好所有信息后点击保存即可。点击授权选项卡，切换到正确的开发号后，点击新授权：首先在客户栏输入建立好的客户名称，这里不需要写全部字符，点击旁边的搜索图标，弹窗中点击搜索即可自动提取完整的客户信息。然后在下方点击添加产品，在弹窗中选择需要授权的产品即可：点击生成按钮进入最后的流程：如果已经插入了加密锁，此时会自动识别到下方的框里，选择一个加密锁，点击烧制即可将此产品授权写入加密锁中：以上就完成了基本的操作流程，此时加密锁已经授权了此产品中对应功能ID的授权。后续编程中需要对此功能 ID 进行检测，如果匹配即可验证成功。同时需要开发商代码 VendorCodes。Vendor ID 与 Key ID 的辨析（常见误区）在实际使用中，如果公司先后购买过不止一把主锁，很容易产生一个疑惑：明明代码里只写死了一份 vendor code，为什么用另一把主锁配出来的加密锁也能验证通过？而一旦手动改动 vendor code，两把主锁配出的锁又同时全部失效？原因在于 Sentinel 的验证体系里存在两个完全不同的编号，很容易被混淆：Vendor ID：Thales 分配给开发商账号的唯一编号，通常是 5~6 位数字。hasp_login() 真正验证的就是这个编号——vendor code 本质上是"能否证明自己属于某个 Vendor ID"的加密凭证，跟具体哪一把物理狗无关。同一家公司名下的所有主锁，只要是同一个开发商账号，Vendor ID 就是完全一致的。Key ID：每一把物理狗自身的唯一序列号，也叫 HASP ID，一长串数字，每把狗天生都不一样，哪怕属于同一个 Vendor ID 也各不相同。这个编号只用于精确定位某一把具体的狗（比如生成 C2V/V2C 文件、离线更新时），跟登录验证逻辑无关。在 ACC 的 Sentinel Keys 页面里，两者分别显示在不同列：Vendor 列：显示「供应商名称 + (Vendor ID)」，例如 WOKEZ (10XXXX)。对于主锁/开发者锁，这一列展示的就是 Batch Code 和 Vendor ID。Key ID 列：显示这把狗自己的物理序列号，一长串数字，每把都不同。如果两把主锁的 Vendor ID 一致（Vendor 列括号里的数字相同），说明它们本来就属于同一个开发商账号，用其中任意一份 vendor code 都能验证通过是正常现象，不用纠结「到底该用哪一份」。如何屏蔽 EMS 里默认的 demoMA 测试主锁新装的 EMS 环境里，除了自己的开发商批次（比如上面的 WOKEZ）之外，通常还会看到一个默认的 demoMA。这是 Sentinel LDK-EMS 内置的测试批次码，用 admin 账号是没办法直接卸载或删除的——只有在安装阶段选择 Advanced 安装方式并主动跳过 demoMA 数据写入，才能避免它出现；已经装好的环境事后无法彻底清除这部分数据。比较实用的做法是新建一个用户，角色选择 Batch Code Admin，并只勾选自己的开发商批次（比如 WOKEZ）。这个角色的权限和 admin 基本一致，产品、功能、客户、授权等操作都能正常做，唯一区别是它只能看到/操作自己被授权访问的批次，不会显示 demoMA。以后日常操作直接用这个新建的账号登录即可，界面清爽很多，不用每次都面对一堆自带的示例数据。加密锁授权更新如果需要对一个已经授权过的加密锁进行上面介绍的常规方式进行二次授权，会产生的现象是：以前老的授权功能 ID 依然可用，新的授权功能 ID 也可用。如果需要擦除老的授权，需要进行以下操作。点击新授权按钮后，选择保护锁更新，然后点击下方的查找按钮：点击锁ID，点击查找，在列表中选择需要更新的加密锁，然后点击添加到列表，然后点击确认即可：点击添加产品，选择当前需要更新的产品，然后点击生成：在弹窗中选择应用更新前清除锁，点击生成：此时会显示已生成 V2CP 文件，点击下载 V2CP 文件到本地：此时我们需要手动将此文件刷入加密锁中。点击进入控制管理中心：更新/依附栏选择下载的 V2CP 文件：点击应用文件可以将新授权刷入加密锁中。数据库备份与恢复EMS 数据库存放则产品/功能/授权/用户等重要信息，如果 ems 是本地模式则卸载软件或重装系统后数据就会丢失，所以定期备份数据很重要。官方教程：https://supportportal.thalesgroup.com/csm?sys_kb_id=52bcd4861b134850f12064606e4bcbca&id=kb_article_view&sysparm_rank=5&sysparm_tsqueryId=df79bdcd3be07614381ecfaf55e45aac&sysparm_article=KB0021094#2首先需要安装微软的 SQL Server Management Studio (ssms)，官网地址：https://learn.microsoft.com/zh-cn/ssms/install/install，目前最新版为 ssms21。运行安装包后根据提示安装即可，如果安装失败，可能是系统缺少 Visual C++ runtime 库，需要自行手动安装以下。下载地址：https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist安装 ssms 完成后即可启动 SQL Server Management Studio 应用程序，点击 connect object explorer：点击 browse 选择 emsdatabase：下方会自动填入相关信息，authentication 选择 sql server authentication，用户名为 sa，密码为 DBA!sa@EMSDB123,可选保存密码方便下次直接访问，encrypt 选择 optional，设置完成后点击 connect 连接：备份进入数据后，打开 databases，在 EMSDB 右键选择 task - backup：在 general 选项卡按照图片设置，然后点击 add 按钮添加备份文件地址：media option 中可以设置验证备份：设置完成后就可以直接按 ok 键备份了。恢复恢复方式也很简单，在 EMSDB 右键选择 task - restore - database：general 栏选择 device，然后点击按钮添加备份文件地址：在弹窗中点击 add 添加需要恢复的备份文件地址，完成后点击 ok 退出：此时就会显示从备份文件中读取到的数据库信息，在下方勾选需要恢复的数据库：这里需要注意的是，恢复 EMSDB 数据库需要先停止 EMS Service，否则会提示恢复失败。首先 win+R 弹出运行框，然后输入 Services.msc 并确认，打开服务窗口，在其中找到 Sentinel LDK-EMS Service 右键选择 stop 即可关闭此服务：关闭后回到 ssms，执行 ok 即可恢复此数据库：恢复完成后，需要重新启动 EMS Service 服务，同样的在 Sentinel LDK-EMS Service 服务右键选择 start 即可。以上就是 sentinel 加密锁的基本使用方法。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Cython-python.html">
+<title> 使用 Cython 对 python 代码加密打包</title>
+<link>https://blog.niekun.net/archives/Cython-python.html</link>
+<dc:date>2025-08-14T08:10:00+00:00</dc:date>
+<description>目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可执行文件（如 Windows 下的 .exe 文件）或一个包含所有文件的目录中。打包后的文件中包含的是 Python 的字节码 .pyc 文件，这个文件是可以被反编译回近似的源代码的。通过使用 Cython 将 Python 源代码编译成 C 语言，然后再生成本地二进制文件（.pyd）。然后正常使用 cx_Freeze 打包，这样做可以极大地提高代码的保护级别，防止被轻易逆向。安装必要的 Python 包需要安装 Cython 和 Numpy，在终端或命令行中运行：pip install Cython numpy
+安装 C/C++ 编译器Cython 将 Python 代码转换成 C 代码，但最终需要一个 C 编译器来将 C 代码编译成机器码。这是最关键的一步。对于 Windows 用户：访问 Visual Studio 下载页面：https://visualstudio.microsoft.com/zh-hans/downloads/。在 "Tools for Visual Studio" (所有下载 -&gt; Visual Studio 工具) 中找到并下载 "Build Tools for Visual Studio"。运行安装程序，在 "工作负荷" 标签页中，勾选 "使用 C++ 的桌面开发"。点击安装。安装完成后，您可能需要重启电脑。对于 macOS 用户：打开终端并运行 xcode-select --install。这会安装苹果的命令行开发者工具，其中包含了 Clang 编译器。对于 Linux 用户 (例如 Ubuntu/Debian)：打开终端并运行 sudo apt update &amp;&amp; sudo apt install build-essential。修改 setup.py 文件如果项目目录结构如下：/my_project
+    |-- main.py           # 你的主程序文件
+    |-- /src              # 你的其他模块目录
+    |   |-- func1.py
+    |   |-- func2.py
+    |-- setup.py            # cx_Freeze 的配置文件根据以上目录结构，下面是一个配置文件示例：from cx_Freeze import setup, Executable
+import sys, os, io
+
+# =============================================================================
+# Cython 自动化编译集成
+# =============================================================================
+try:
+    from Cython.Build import cythonize
+    from setuptools import Extension
+    import numpy
+except ImportError:
+    print(&quot;\n[错误] 缺少必要的库。请先安装 Cython 和 Numpy:&quot;)
+    print(&quot;pip install Cython numpy&quot;)
+    sys.exit(1)
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding=&#039;utf-8&#039;)  # 修复非中文系统打包时报错
+
+# 增加递归调用深度限制
+sys.setrecursionlimit(1500)
+
+# 定义相关路径
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+ENTRY_POINT = &quot;main.py&quot;
+
+# 检查是否为打包命令
+build_commands = {&quot;build&quot;, &quot;bdist_msi&quot;, &quot;bdist_dmg&quot;, &quot;bdist_mac&quot;}
+is_building = any(cmd in sys.argv for cmd in build_commands)
+
+# --- Cython 编译配置 ---
+# 此函数会自动查找 src 目录下的所有 .py 文件并准备将它们编译
+def find_extensions_to_compile(dir_path=&quot;src&quot;):
+    &quot;&quot;&quot;Find all .py files to be compiled by Cython.&quot;&quot;&quot;
+    extensions = []
+    # 添加 numpy 的头文件路径，这对于编译依赖 numpy/scipy 的代码至关重要
+    numpy_include = numpy.get_include()
+    
+    for root, dirs, files in os.walk(dir_path):
+        for file in files:
+            # 我们只编译 .py 文件，但跳过 __init__.py 文件
+            if file.endswith(&quot;.py&quot;) and file != &quot;__init__.py&quot;:
+                path = os.path.join(root, file)
+                
+                # 检查文件是否包含 numba 相关代码
+                try:
+                    with open(path, &#039;r&#039;, encoding=&#039;utf-8&#039;) as f:
+                        content = f.read()
+                    
+                    # 检查是否包含 numba 关键字
+                    numba_keywords = [&#039;from numba import&#039;, &#039;import numba&#039;, &#039;@jit&#039;, &#039;@njit&#039;, &#039;numba.jit&#039;, &#039;numba.njit&#039;]
+                    has_numba = any(keyword in content for keyword in numba_keywords)
+                    
+                    if has_numba:
+                        print(f&quot;--- 跳过包含 Numba 的文件: {path}&quot;)
+                        continue
+                        
+                except Exception as e:
+                    print(f&quot;--- 警告：无法读取文件 {path}: {e}&quot;)
+                    continue
+                
+                # 将文件路径转换为模块路径，例如 &quot;src/library/function.py&quot; -&gt; &quot;src.library.function&quot;
+                module_path = path.replace(os.sep, &#039;.&#039;)[:-3]
+                
+                extensions.append(
+                    Extension(
+                        name=module_path,
+                        sources=[path],
+                        include_dirs=[numpy_include]  # 包含 numpy 头文件
+                    )
+                )
+    print(f&quot;--- 找到 {len(extensions)} 个模块准备通过 Cython 编译...&quot;)
+    return extensions
+
+# 仅在执行打包命令时才准备编译列表
+extensions = []
+if is_building:
+    # 1. 编译 src 目录下的所有模块（自动排除包含 numba 的文件）
+    extensions.extend(find_extensions_to_compile(&quot;src&quot;))
+
+# =============================================================================
+# cx_Freeze 配置
+# =============================================================================
+
+# 安装依赖
+build_exe_options = {
+    &quot;packages&quot;: [
+    ],
+    &quot;excludes&quot;: [&quot;email&quot;] + [ext.name for ext in extensions], # 排除 Cython 编译的模块
+    &quot;include_files&quot;: [
+        ],
+    &quot;includes&quot;: [],
+
+    # 性能优化选项
+    &quot;optimize&quot;: 2,           # 使用Python优化
+    &quot;include_msvcr&quot;: False,  # 不包含MSVC运行库
+}
+
+# 基础设置
+base = &quot;Win32GUI&quot; if sys.platform == &quot;win32&quot; else None
+
+directory_table = [
+    # ...
+]
+
+shortcut_table = [
+    (
+        # ...
+    ),
+    (
+        # ...
+    ),
+]
+
+msi_data = {&quot;Directory&quot;: directory_table, &quot;Shortcut&quot;: shortcut_table}
+
+bdist_msi_options = {
+    # ...
+}
+
+executables = [
+    Executable(
+        &quot;main.py&quot;, # 入口文件 依然调用 py 程序，cx_Freeze 会自动识别并使用加密后的文件
+        # ...
+    )
+]
+
+# =============================================================================
+# 清理函数
+# =============================================================================
+def cleanup_generated_files():
+    &quot;&quot;&quot;查找并删除由 Cython 生成的所有 .c 文件。&quot;&quot;&quot;
+    print(&quot;\n--- 正在运行清理程序：删除生成的 C 文件... ---&quot;)
+    for root, dirs, files in os.walk(ROOT_DIR):
+        # 避免进入不相关的目录
+        if &#039;myenv&#039; in root or &#039;.git&#039; in root or &#039;build&#039; in root or &#039;dist&#039; in root:
+            continue
+        for file in files:
+            if file.endswith(&#039;.c&#039;):
+                file_path = os.path.join(root, file)
+                try:
+                    os.remove(file_path)
+                    print(f&quot;--- 已删除: {file_path}&quot;)
+                except OSError as e:
+                    print(f&quot;--- 删除失败 {file_path}: {e}&quot;)
+
+# =============================================================================
+# 执行打包
+# =============================================================================
+
+try:
+    setup(
+        # ...
+        # 关键步骤：将找到的 .py 文件交给 Cythonize 进行编译
+        ext_modules=cythonize(
+            extensions,
+            compiler_directives={&#039;language_level&#039;: &quot;3&quot;}, # 使用 Python 3 语法
+            quiet=True # 减少不必要的编译输出
+        ) if is_building else [],
+        # ...
+    )
+finally:
+    # 只有在执行打包命令时才运行清理
+    if is_building:
+        cleanup_generated_files()运行打包命令打包即可，如：python setup.py bdist_msi
+检查加密情况安装完成后，进入安装路径的 Lib/site-packages 文件夹，会看到加密后的 .pyd 程序文件。.pyd 文件是 Windows 上的二进制动态链接库，本质上和 .dll 文件一样。如果加密失败：会在这里看到 .pyc 文件或者甚至原始的 .py 文件。Python 包管理约定：普通 .py 文件：可以放在任何 Python 路径中扩展模块 (.pyd/.so)：通常放在 site-packages 中cx_Freeze 的处理逻辑：检测到 .py 文件 → 按源码文件处理 → 保持原目录结构检测到 .pyd 文件 → 按扩展模块处理 → 放入 site-packages模块导入机制：import src.library.functionPython 会在 sys.path 中搜索不加密：在 lib/ 中找到 src/library/function.pyc加密：需要在 lib/site-packages/ 中找到 src/library/function.pyd由于加密后的文件路径发生了变化，打包后访问加密后文件中的内容会报错，所以主程序在索引时需要特殊处理加密打包后的路径问题，主程序中使用下面函数可以自适应：# 路径修正代码
+def fix_module_paths():
+    &quot;&quot;&quot;修正打包后的模块搜索路径&quot;&quot;&quot;
+    if getattr(sys, &#039;frozen&#039;, False):  # 检查是否为打包后的可执行文件
+        # 获取可执行文件所在目录
+        base_dir = os.path.dirname(sys.executable)
+        
+        # 可能的src模块路径
+        possible_src_paths = [
+            os.path.join(base_dir, &#039;lib&#039;, &#039;site-packages&#039;),  # Cython编译后的位置
+            os.path.join(base_dir, &#039;lib&#039;),  # 标准位置
+            base_dir,  # 根目录
+        ]
+        
+        # 将可能的路径添加到sys.path的开头
+        for path in possible_src_paths:
+            if os.path.exists(path) and path not in sys.path:
+                sys.path.insert(0, path)
+                print(f&quot;Added to Python path: {path}&quot;)
+        
+        # 特别检查src目录
+        src_path = os.path.join(base_dir, &#039;lib&#039;, &#039;site-packages&#039;, &#039;src&#039;)
+        if os.path.exists(src_path):
+            parent_dir = os.path.dirname(src_path)
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+                print(f&quot;Added src parent directory to Python path: {parent_dir}&quot;)
+
+# 执行路径修正
+fix_module_paths()以上函数中，会将 src 文件夹下的函数库进行正确的索引。Numba 装饰器问题Numba 不兼容 Cython 编译后的函数。Numba 装饰器（如 @jit, @njit）期望装饰的是普通的 Python 函数，但 Cython 编译后生成的是 cython_function_or_method 类型，导致 Numba 无法识别。需要将包含 numba 的文件排除出编译列表。具体可见 setup.py 函数。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html">
+<title>DeepWiki-open 生成项目 wiki</title>
+<link>https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html</link>
+<dc:date>2025-07-17T05:57:00+00:00</dc:date>
+<description>DeepWiki-open可以为任何GitHub、GitLab或BitBucket代码仓库自动创建美观、交互式的Wiki，也可以提交本地仓库给它。试用了下发现效果还不错，可以作为项目开发指南。GitHub 主页：https://github.com/AsyncFuncAI/deepwiki-open使用方法很简单，clone 仓库代码，配置环境变量，启动前端和后端服务即可。下载git clone https://github.com/AsyncFuncAI/deepwiki-open.git
+cd deepwiki-open配置需要提前准备 openai 和 google ai 的 api key。Google AI api：https://makersuite.google.com/app/apikeyopenai api：https://platform.openai.com/api-keys根目录新建 .env 文件，配置环境变量：GOOGLE_API_KEY=XXXXXXXXXXXXXXXXXXX
+OPENAI_API_KEY=XXXXXXXXXXXXXXXXXXX
+OPENROUTER_API_KEY=XXXXXXXXXXXXXXXOPENROUTER_API_KEY 是可选项，其他两个是必须项。注意，我测试发现免费帐户的 openai api 在生成少数几个 wiki 后就会报错超出最大请求次数 error。而且项目必须使用 OpenAI-Compatible Embedding Models，解决方法是给 openai 充值或者使用 Alibaba Qwen 的 openai 兼容 api。alibaba qwen api：https://bailian.console.alibabacloud.com/?tab=app#/api-key如果使用其他 OpenAI-Compatible Embedding Models 需要将环境变量的 OPENAI_API_KEY 改为此第三方的 api key，然后在环境变量指定 OPENAI_BASE_URL：OPENAI_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1  #示例中是 alibaba cloud 的 base url 地址然后修改 api/config/embedder.json 为：{
+  &quot;embedder&quot;: {
+    &quot;client_class&quot;: &quot;OpenAIClient&quot;,
+    &quot;initialize_kwargs&quot;: {
+      &quot;api_key&quot;: &quot;${OPENAI_API_KEY}&quot;,
+      &quot;base_url&quot;: &quot;${OPENAI_BASE_URL}&quot;
+    },
+    &quot;batch_size&quot;: 10,
+    &quot;model_kwargs&quot;: {
+      &quot;model&quot;: &quot;text-embedding-v3&quot;,
+      &quot;dimensions&quot;: 512,
+      &quot;encoding_format&quot;: &quot;float&quot;
+    }
+  },
+  &quot;embedder_ollama&quot;: {
+    &quot;client_class&quot;: &quot;OllamaClient&quot;,
+    &quot;model_kwargs&quot;: {
+      &quot;model&quot;: &quot;nomic-embed-text&quot;
+    }
+  },
+  &quot;retriever&quot;: {
+    &quot;top_k&quot;: 20
+  },
+  &quot;text_splitter&quot;: {
+    &quot;split_by&quot;: &quot;word&quot;,
+    &quot;chunk_size&quot;: 350,
+    &quot;chunk_overlap&quot;: 100
+  }
+}使用安装环境并启动后端，提前建立一个虚拟环境：python -m venv .venv
+.venv\Scripts\activate
+
+pip install -r api/requirements.txt
+python -m api.main安装环境并启动前端：npm install
+npm run dev然后打开浏览器访问：http://localhost:3000，即可按照提示操作。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/3024.html">
+<title>建立本地 Web 服务器</title>
+<link>https://blog.niekun.net/archives/3024.html</link>
+<dc:date>2025-04-24T01:04:00+00:00</dc:date>
+<description>建立一个本地 Web 服务器来快速查看本地网站（HTML, CSS, JavaScript 文件）有几种非常快速的方法，通常只需要一行命令。这里介绍几种最常用的：1. 使用 Python 内置的 HTTP 服务器 (通常最快，无需额外安装)如果你的电脑上安装了 Python 3 (现在大多数操作系统都自带或容易安装)，这是最快的方法之一，因为它不需要安装任何额外的库。步骤:打开你的终端或命令提示符 (Terminal / Command Prompt / PowerShell)。使用 cd 命令导航到你的网站文件所在的根目录（也就是包含 index.html 文件的那个文件夹）。运行以下命令：python -m http.server如果你使用的是较旧的 Python 2 版本 (尽量避免使用)，命令是：python -m SimpleHTTPServer终端会显示类似 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ... 的信息。打开你的网页浏览器，访问 http://localhost:8000 或者 http://127.0.0.1:8000。如果你的根目录下没有 index.html，它会列出目录中的文件。要停止服务器，回到终端按 Ctrl + C。优点: 极快启动，通常无需安装额外软件。指定端口: 如果 8000 端口被占用，你可以指定其他端口：python -m http.server 80802. 使用 Node.js 的 http-server 或 live-server (功能更强，需要 Node.js)如果你安装了 Node.js 和 npm (Node Package Manager)，可以使用一些非常方便的包。a) http-server (基础服务器)首次安装 (全局安装，只需一次):npm install -g http-server启动服务器:在终端中，cd 到你的网站根目录。运行：http-server终端会显示可用的访问地址，通常是 http://127.0.0.1:8080。在浏览器中打开该地址。按 Ctrl + C 停止。b) live-server (带自动刷新功能)  live-server 会在你修改并保存文件后自动刷新浏览器，非常适合开发调试。首次安装 (全局安装，只需一次):npm install -g live-server启动服务器:在终端中，cd 到你的网站根目录。运行：live-server它通常会自动在你的默认浏览器中打开网站 (http://127.0.0.1:8080 或类似地址)。当你修改并保存 HTML/CSS/JS 文件时，浏览器会自动刷新。按 Ctrl + C 停止。优点: 功能更强（特别是 live-server 的自动刷新），Node.js 在 Web 开发中很常用。缺点: 需要先安装 Node.js 和对应的 npm 包。3. 使用 VS Code 扩展 "Live Server" (集成在编辑器中，非常方便)如果你使用 Visual Studio Code 编辑器，这是最方便的方法之一。步骤:打开 VS Code。转到扩展视图 (Extensions view, 图标通常在左侧边栏)。搜索 "Live Server" (作者通常是 Ritwick Dey)。点击 "Install" 安装。安装完成后，打开你的网站项目文件夹。在你的 index.html 文件上右键单击，选择 "Open with Live Server"。或者，点击 VS Code 底部状态栏右下角的 "Go Live" 按钮。服务器会启动，并在浏览器中自动打开页面，同样支持自动刷新。要停止，可以再次点击状态栏的端口号按钮 (显示为 "Port: 5500" 或类似)。优点: 无需命令行操作，与编辑器紧密集成，带自动刷新。缺点: 需要使用 VS Code 编辑器。4. 使用 PHP 内置服务器 (如果已安装 PHP)如果你的系统碰巧安装了 PHP (通常用于后端开发，但也可用于快速启动静态服务器)。步骤:打开终端或命令提示符。cd 到你的网站根目录。运行：php -S localhost:8000你可以将 8000 替换为其他端口号。在浏览器中访问 http://localhost:8000。按 Ctrl + C 停止。优点: 如果已安装 PHP，则命令简单。缺点: 不如 Python 那么普遍预装，也不如 Node.js 工具或 VS Code 扩展功能丰富（如自动刷新）。哪个最快？如果你有 Python: python -m http.server 通常是最快的，因为它很可能已经安装好了。如果你用 VS Code: 安装并使用 "Live Server" 扩展几乎是最方便、启动最快的方式（点击按钮即可）。如果你常用 Node.js: live-server 或 http-server 也非常快，并且 live-server 提供了非常有用的自动刷新功能。选择哪种取决于你电脑上已有的环境和你个人的偏好。对于纯粹的“快速启动一个能看本地网页的服务器”，Python 的内置服务器通常拔得头筹。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/3021.html">
+<title>honkit 使用教程及部署github page</title>
+<link>https://blog.niekun.net/archives/3021.html</link>
+<dc:date>2025-01-17T09:14:00+00:00</dc:date>
+<description>1. 什么是 Honkit？Honkit 是一个现代化的静态书籍生成工具，它是基于旧版 GitBook 开发的，支持 Markdown 文件的编写和多种输出格式，如 HTML 和 PDF。2. 初始化 Honkit 项目2.1 创建 Honkit 项目创建项目目录：mkdir my-honkit-project
+cd my-honkit-project初始化 Honkit 项目：npx honkit init这会生成以下两个文件：README.md：书籍的主页面。SUMMARY.md：目录结构的定义。安装 Honkit：npm install honkit --save-dev3. 本地构建书籍3.1 运行开发服务器在项目目录中运行以下命令启动本地预览：npx honkit serve默认情况下，书籍会在 http://localhost:4000 上运行。3.2 生成静态文件当书籍准备好后，运行以下命令生成静态 HTML 文件：npx honkit build生成的文件会存储在 _book 目录中。4. 生成 PDF 文件Honkit 支持将书籍生成 PDF 文件，但需要预先安装 Calibre 电子书管理软件。4.1 安装 Calibre下载 Calibre (与 honkit 兼容性最好的是 calibre 5.x 版本)：访问 Calibre 官网：calibre release (5.44.0)。下载并安装适合您系统的版本。确保 Calibre 路径正确：检查环境变量：通常，Calibre 安装会自动将路径添加到系统的环境变量 PATH 中。如果未自动添加，手动将 Calibre 的安装目录路径添加到 PATH 环境变量中。例如，Windows 系统下，路径可能为：C:\Program Files\Calibre2Linux 和 macOS 用户可通过以下命令验证：which ebook-convert如果返回路径为空，说明需要手动添加。重新打开终端：添加路径后，确保关闭并重新打开终端。4.2 生成 PDF运行以下命令生成 PDF 文件：npx honkit pdf . output.pdf. 表示当前目录。output.pdf 是生成的 PDF 文件名。5. 部署到 GitHub Pages5.1 创建 GitHub 仓库前往 GitHub 创建一个新仓库（例如 my-honkit-book）。将本地项目与远程仓库关联：git init
+git remote add origin https://github.com/&lt;username&gt;/my-honkit-book.git
+git add .
+git commit -m &quot;Initial commit&quot;
+git branch -M main
+git push -u origin main5.2 配置 GitHub Actions 自动部署创建 GitHub Actions 配置文件：在项目的根目录下创建 .github/workflows/deploy.yml 文件，内容如下：name: Deploy Honkit to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: &#039;18&#039;
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Build Honkit
+      run: npx honkit build
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./_book提交配置文件：提交并推送配置文件到 GitHub：git add .github/workflows/deploy.yml
+git commit -m &quot;Add GitHub Actions for deployment&quot;
+git push origin main启用 GitHub Pages：进入仓库的 Settings &gt; Pages。在 Source 下选择 gh-pages 分支(如果没有需要手动新建此分支)，点击保存。6. 绑定自定义域名6.1 配置 GitHub Pages进入仓库的 Settings &gt; Pages。在 Custom domain 中输入您的自定义域名（例如 www.example.com）。点击 Save。GitHub 会自动生成一个 CNAME 文件。6.2 配置 DNS 记录登录您的域名注册商控制台，添加以下 DNS 记录：绑定子域名（例如 www.example.com）：添加 CNAME 记录：www  CNAME  &lt;username&gt;.github.io注意：将 &lt;username&gt; 替换为您的 GitHub 用户名。6.3 启用 HTTPS返回 GitHub 仓库的 Settings &gt; Pages。勾选 Enforce HTTPS，以启用 HTTPS 访问。自定义域名每次推送后消失的解决方法当每次推送代码后，自定义域名设置消失，通常是由于 CNAME 文件被覆盖或删除。GitHub Pages 需要根目录的 CNAME 文件来保存自定义域名信息。如果该文件丢失或被覆盖，GitHub 就无法识别您的自定义域名。解决方法手动将 CNAME 文件添加到源码目录创建 CNAME 文件：在项目根目录（如 main 分支）下创建一个 CNAME 文件，并在文件中输入您的自定义域名，例如：www.example.com提交更改：提交并推送 CNAME 文件到远程仓库：git add CNAME
+git commit -m &quot;Add CNAME file&quot;
+git push origin main验证：每次部署后，CNAME 文件会自动被包含在 gh-pages 分支中，不会被覆盖。验证步骤检查 CNAME 文件：进入 GitHub 仓库的 gh-pages 分支，确认根目录下有 CNAME 文件。文件内容应为您的自定义域名，例如：www.example.com检查 GitHub Pages 设置：转到 Settings &gt; Pages。确认自定义域名已正确显示，并启用 HTTPS。测试访问：使用您的自定义域名访问页面，确认是否能够正确加载。7. 常见问题及解决方法问题 1：npx honkit pdf 报错 Command failed: ebook-convert not found原因：  Calibre 未正确安装，或 ebook-convert 工具未添加到系统的 PATH 环境变量中。解决方法：确保 Calibre 已安装，并重新确认安装路径：Windows 默认路径：C:\Program Files\Calibre2。macOS/Linux 使用 which ebook-convert 检查路径。手动将 Calibre 的安装路径添加到系统环境变量中：Windows：打开“环境变量”设置，找到 PATH。添加 C:\Program Files\Calibre2。Linux/macOS：编辑 ~/.bashrc 或 ~/.zshrc 文件，添加以下内容：export PATH=&quot;/path/to/calibre:$PATH&quot;替换 /path/to/calibre 为 Calibre 的实际路径。保存后运行 source ~/.bashrc 或 source ~/.zshrc 使更改生效。重新运行 npx honkit pdf。问题 2：GitHub Actions 部署失败，提示 Permission denied原因：  GitHub Actions 无法向 gh-pages 分支推送更改，通常是因为缺少权限。解决方法：确保 GitHub 仓库的 Settings &gt; Actions &gt; General 中已启用 Read and write permissions：打开 Workflow permissions，选择 Read and write permissions。勾选 Allow GitHub Actions to create and approve pull requests。确认 GitHub Actions 配置文件中使用的是 github_token：with:
+  github_token: ${{ secrets.GITHUB_TOKEN }}问题 3：GitHub Pages 部署成功，但自定义域名未生效原因：  DNS 记录配置错误或未生效。解决方法：登录域名管理平台，检查 DNS 配置：确认 A 记录或 CNAME 记录配置正确。等待 DNS 记录生效（可能需要 5-48 小时）。检查仓库根目录下是否有 CNAME 文件，内容是否正确（应与自定义域名一致）。验证 DNS 配置是否正确：使用 DNS Checker 验证域名解析。启用 HTTPS：进入 Settings &gt; Pages，勾选 Enforce HTTPS。问题 4：生成的书籍内容显示错乱或样式缺失原因：Markdown 文件中格式不正确。SUMMARY.md 的目录结构未正确链接。解决方法：确认 Markdown 文件的格式是否符合规范。检查 SUMMARY.md 中的链接是否与文件路径一致：* [章节标题](path/to/file.md)清理并重新构建书籍：npx honkit build问题 5：自定义 PDF 样式未生效原因：  未指定自定义样式文件或样式文件路径错误。解决方法：创建一个 CSS 样式文件（如 custom.css），自定义 PDF 的排版样式。使用以下命令生成 PDF 并指定样式文件：npx honkit pdf --css custom.css . output.pdf8. 支持与反馈如果您遇到未列出的问题或有其他疑问，请参考以下支持途径：Honkit 官方文档：https://honkit.netlify.appGitHub 仓库：https://github.com/honkit/honkit社区支持：搜索相关问题或发帖提问。完成这些步骤后，您可以成功使用 Honkit 创建、部署和管理文档，解决常见问题，并生成符合您需求的 HTML 和 PDF 文档！</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/env-python.html">
+<title>使用虚拟环境 env 开发 python</title>
+<link>https://blog.niekun.net/archives/env-python.html</link>
+<dc:date>2024-07-01T02:17:13+00:00</dc:date>
+<description>使用虚拟环境进行Python开发有助于隔离项目的依赖，避免不同项目之间的库版本冲突。以下是如何创建和使用虚拟环境的详细步骤。Python 3.3 及以上版本自带 venv 模块，可以直接使用。使用 venv 创建虚拟环境创建虚拟环境在你的项目目录下，运行以下命令来创建一个虚拟环境，这将在项目目录下创建一个名为 myenv 的文件夹，其中包含虚拟环境的所有文件：python -m venv myenv
+激活虚拟环境Windows：myenv\Scripts\activate
+macOS 和 Linux：source myenv/bin/activate
+安装依赖在虚拟环境中，你可以使用 pip 来安装项目所需的库：pip install requests
+安装的库将只会影响当前虚拟环境，而不会影响系统的 Python 环境或其他项目。冻结依赖为了确保你的项目依赖可以在其他环境中重现，你可以使用以下命令将当前环境的依赖写入 requirements.txt 文件：pip freeze &gt; requirements.txt
+requirements.txt 文件将包含所有当前环境中的安装包及其版本信息。使用 requirements.txt 安装依赖在新的环境中，你可以使用 requirements.txt 文件来安装所需的所有依赖：pip install -r requirements.txt
+退出虚拟环境当你完成工作时，可以通过以下命令退出虚拟环境：deactivate
+使用虚拟环境进行Python开发可以有效地隔离项目依赖，避免版本冲突。通过创建和激活虚拟环境、安装依赖、冻结依赖并在新环境中重新安装依赖，可以确保你的项目在不同环境中具有一致的运行表现。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/codesys-enum.html">
+<title>codesys enum 枚举数据类型单元的使用</title>
+<link>https://blog.niekun.net/archives/codesys-enum.html</link>
+<dc:date>2024-03-07T00:21:07+00:00</dc:date>
+<description>enum 类型的 dut 可以定义一组属性及其值，调用的时候可以方便的通过写其属性名称得到属性的值，也可以获取到属性本身的名称。下面举一个例子说明：{attribute &#039;qualified_only&#039;}            // 必须先写类型名称再写属性名称 (例如 eColor.Red)
+// {attribute &#039;strict&#039;}                 //取消 &#039;strict&#039; 以允许转换 UDINT 数据类型
+{attribute &#039;to_string&#039;}                 // 运行字符串转换 (例如 TO_STRING(eColor.Red) = &#039;Red&#039;)
+TYPE eColor :
+(
+    Red         := 16#FFFF0000,
+    Green       := 16#FF00FF00,
+    Blue        := 16#FF0000FF
+    Yellow      := 16#FFFFFF00,
+) UDINT;                                // 声明 UDINT 作为 int 整形类型
+END_TYPE
+
+// 定义一些变量
+    ColorVar1   : eColor;
+    ColorVar2   : eColor;
+    ColorName   : STRING;
+    ColorValue  : UDINT;
+
+    ColorVar1 := eColor.Green;            // ColorVar1 = 16#FF00FF00
+    ColorName := TO_STRING(ColorVar1);    // ColorName = &#039;Green&#039;;
+    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FF00FF00
+
+    ColorVar2 := 16#FF00FF00;             // ColorVar2.Green
+    ColorName := TO_STRING(ColorVar2);    // ColorName = &#039;Green&#039;;
+    ColorValue := TO_UDINT(ColorVar2);    // ColorValue = 16#FF00FF00
+
+    ColorVar1 := ColorVar2 OR eColor.Red; // 按位相与得到 Yellow=16#FFFFFF00
+    ColorName := TO_STRING(ColorVar1);    // ColorName = &#039;Yellow&#039;;
+    ColorValue := TO_UDINT(ColorVar1);    // ColorValue = 16#FFFFFF00以上示例列举了常用的 enum 类型可进行的数据交互方式。eColor.Green 可以获取enum类型属性的值，并可以赋值给其他对应 enum 实例TO_STRING(ColorVar1) 可以转换获取 enum 实例当前值对应属性名称字符串</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/codesys.html">
+<title>codesys 常见编译及下载时报错解决方法</title>
+<link>https://blog.niekun.net/archives/codesys.html</link>
+<dc:date>2024-03-06T08:35:00+00:00</dc:date>
+<description>No source code available for this object下载时出现此报警，原因是 task 任务中对 gou 的排序有问题，放在前面的 pou 中使用了后面 pou 才设定好的数据，需要重新排列 task 任务序列：SMC_FB_CALLED_FROM_WRONG_TASKmc_power mc_jog 等控制轴的功能块，一运行就报错 SMC_FB_CALLED_FROM_WRONG_TASK，可能是不同的 pou 放在了多个 task 任务中，循环中内部有了冲突，将所有的 pou 放在同一个 task 中就可以解决问题。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/ethercat.html">
+<title>RTE runtime添加 ethercat master 的步骤</title>
+<link>https://blog.niekun.net/archives/ethercat.html</link>
+<dc:date>2024-02-23T07:41:00+00:00</dc:date>
+<description>codesys 配置 rte runtime 添加 ethercat 组件的方法。主要步骤为：安装 RTE runtime安装适配网卡驱动添加 ethercat master 设备安装 RTE runtime首先需要配置工控机啊 BIOS 设置，将一些超线程，电源管理等选项关掉：关闭超线程：关闭BIOS 中激活的所有节能选项Intel Speed Step动态节能技术EIST智能降频C-States省电模式PowerNow动态调整CPU的工作频率和电压Hibernation休眠MWAIT停用可能导致系统管理中断的所有内容BIOS self tests BIOS自检USB Legacy Device Support 传统USB设备支持然后就可以安装 RTE，官网下载需要的 runtime 安装包，注意区分 x86 还是 x64 设备。我下载的是 **CODESYS Control RTE SL （×86Windows 实时）。官网下载地址：http://store.codesys.cn/codesys/store/index.html在工控机上解压并安装需要的 RTE runtime，基本都是直接下一步即可，期间注意选择带不带 softmotion：Control RTE 文件路径：C:\Program Files\CODESYS\CODESYS Control RTE3Control RTE 安装路径：C:\ProgramData\CODESYS\CODESYSControlRTEV3网卡驱动支持的网卡：Systems with Windows and CODESYS Control RTE (Real-time SoftPLC):Realtek® 8139 (CmpRTL81x9Mpd)Realtek RTL8139 and compatible Ethernet-Controller, as well 8100/8110Realtek 8169 (CmpRTL8169Mpd)Realtek 8169/810, RTL8111B / RTL8111DIntel® EtherExpressPro1000 (CmpEt1000Drv) --- All gigabit adapters from IntelIntel EtherExpress PRO/100 (CmpEt100Drv)  --- All 100 Mbit adapters from Intel一般情况下 intel 的千兆网卡都可以安装 CmpEt1000Drv 驱动。首先进入设备管理器，选择需要更新 codesys 驱动的网卡，右键选择更新驱动：选择从本地查找驱动程序：选择从磁盘安装，从 RTE 文件路径找到对应的驱动目录并安装：右键选择 plc configuration：在 components manager 中在最后一个空行中填入安装的驱动名称，这里我填的是 CmpEt1000Drv：确定并重启 plc 即可完成网卡驱动的安装及配置。添加 ethercat master在codesys 开发项目中进行以下操作。建立一个支持 softmotion 的设备添加 ethercat master softmotion 主站  （会自动添加 ethercat_task 任务 不可删除)扫描并连接到控制器配置 ethercat master 网卡，RTE 版 runtime 需要选择适配 codesys 的网卡下载程序到控制器，如果上面没有在 components manager 中添加网卡组件的话，这里下载会报错退出登录 扫描从站并添加如果设备描述文件没有在系统内置库中 需要手动导入描述文件然后才能扫描识别给扫描到的从站添加 cia402 轴配置电子齿轮比以上就是 RTE runtime 版添加 ethercat master 主站的简单方法。参考链接：Control RTE SL and profinet connections</description>
+</item>
+</rdf:RDF>

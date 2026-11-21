@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/">
+<title>Marco Nie</title>
+<link>https://blog.niekun.net/</link>
+<description>you are the company you keep...</description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/3116.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/OpenWrt-OpenClash-Fake-IP-TUN.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/3090.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Qt.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Windows-11.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/sentinel.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/dumpbin-dll.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Cython-python.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/3116.html">
+<title>OpenWrt 彻底关闭 IPv6 教程</title>
+<link>https://blog.niekun.net/archives/3116.html</link>
+<dc:date>2026-11-14T04:24:45+00:00</dc:date>
+<description>适用版本：OpenWrt 21.02 / 22.03 / 23.05 / 24.10（含 OpenClash 等代理插件的环境）操作方式：SSH 登录路由器执行命令，或在 LuCI 网页界面中操作目录为什么要分层关闭第 1 步：关闭 WAN/LAN 接口的 IPv6第 2 步：关闭 RA / DHCPv6 / NDP 并停用 odhcpd第 3 步：DNS 过滤 AAAA 记录第 4 步：内核层面禁用 IPv6第 5 步：代理插件中关闭 IPv6（OpenClash）第 6 步：重启服务并验证LuCI 网页操作对照常见输出说明如何恢复 IPv6为什么要分层关闭OpenWrt 中的 IPv6 涉及多个环节，只关其中一个往往不彻底：层面负责的事不关的后果WAN 接口从运营商获取 IPv6 地址/前缀路由器仍拿到公网 IPv6LAN 接口 + odhcpd向局域网设备下发 IPv6 地址客户端仍获得 240x: / fdxx: 地址内核协议栈IPv6 本身的运行接口仍可自动生成 IPv6 地址DNS返回 AAAA（IPv6）记录客户端尝试 IPv6 连接，导致网页卡顿代理插件插件自身的 IPv6 代理/解析插件绕过上述设置重新引入 IPv6第 1 步：关闭 WAN/LAN 接口的 IPv6uci delete network.wan6                 # 删除 WAN6 接口（不存在会提示 Entry not found，可忽略）
+uci set network.wan.ipv6=&#039;0&#039;            # PPPoE 拨号时阻止自动获取 IPv6
+uci set network.lan.ipv6=&#039;0&#039;
+uci delete network.lan.ip6assign        # 取消 LAN 的 IPv6 前缀分配
+uci delete network.globals.ula_prefix   # 删除 ULA 前缀（fdxx::/48）
+uci commit network第 2 步：关闭 RA / DHCPv6 / NDP 并停用 odhcpduci set dhcp.lan.ra=&#039;disabled&#039;
+uci set dhcp.lan.dhcpv6=&#039;disabled&#039;
+uci set dhcp.lan.ndp=&#039;disabled&#039;
+uci delete dhcp.wan6 2&gt;/dev/null
+uci commit dhcp
+
+/etc/init.d/odhcpd stop
+/etc/init.d/odhcpd disable第 3 步：DNS 过滤 AAAA 记录uci set dhcp.@dnsmasq[0].filter_aaaa=&#039;1&#039;   # 23.05 及以上版本支持
+uci commit dhcp旧版本若无此选项，可在 /etc/dnsmasq.conf 中加入 filter-AAAA（需 dnsmasq 2.87+）。第 4 步：内核层面禁用 IPv6cat &gt;&gt; /etc/sysctl.conf &lt;&lt;&#039;EOF&#039;
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+EOF
+sysctl -p⚠️ 这里没有禁用 lo（回环接口）的 IPv6。部分服务（如 uhttpd 及某些插件）会监听 ::1，禁用后可能导致异常。第 5 步：代理插件中关闭 IPv6（OpenClash）如果路由器装了 OpenClash 等代理插件，DNS 会被插件接管（Fake-IP 模式下解析结果为 198.18.x.x），必须在插件中同步关闭 IPv6。进入 服务 → OpenClash → 插件设置：IPv6 设置 标签页☐ IPv6 流量代理 —— 取消勾选☐ 允许 IPv6 类型 DNS 解析 —— 取消勾选DNS 设置 标签页本地 DNS 劫持：保持 使用 Dnsmasq 转发（这样第 3 步的 AAAA 过滤与插件设置同时生效）点击 保存配置 → 应用配置如直接编辑 mihomo（Clash Meta）配置文件，设置顶层 ipv6: false 以及 dns: 下的 ipv6: false。第 6 步：重启服务并验证/etc/init.d/network restart
+/etc/init.d/dnsmasq restart
+# 建议最后执行一次 reboot，确认设置重启后依然生效验证 1：路由器无 IPv6 地址ip -6 addr期望输出（只剩回环地址）：1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 state UNKNOWN qlen 1000
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever验证 2：路由器可正常上网ping -c 3 223.5.5.5验证 3：DNS 只返回 IPv4nslookup www.qq.com 127.0.0.1结果中只应出现 IPv4 地址（使用 OpenClash Fake-IP 时为 198.18.x.x），不应出现 IPv6 地址。验证 4：客户端无 IPv6 地址客户端先断开网络再重连，然后检查：系统命令Windowsipconfig /allmacOSifconfigLinuxip -6 addr✅ 只有 fe80:: 开头的地址 —— 正常（链路本地地址，系统自动生成，无法上网）❌ 出现 240x: 或 fdxx: 开头的地址 —— IPv6 仍未关干净macOS 上 utun*、awdl0、llw0 等接口的 fe80:: 地址属于系统服务（iCloud、AirDrop、VPN 等），与路由器无关，忽略即可。LuCI 网页操作对照位置操作网络 → 接口删除 WAN6网络 → 接口 → WAN → 高级设置“获取 IPv6 地址”设为 禁用网络 → 接口 → LAN → 高级设置“IPv6 分配长度”设为 禁用网络 → 接口 → 全局网络选项清空 IPv6 ULA 前缀LAN → DHCP 服务器 → IPv6 设置RA 服务 / DHCPv6 服务 / NDP 代理 全部 禁用网络 → DHCP/DNS → 高级设置勾选 过滤 IPv6 AAAA 记录服务 → OpenClash → 插件设置 → IPv6 设置取消两个 IPv6 选项常见输出说明输出含义uci: Entry not found要删除的配置项本来就不存在，可忽略udhcpc: no lease, failingdnsmasq 启动时检测局域网是否有其他 DHCP 服务器，没找到是正常情况198.18.x.xOpenClash / mihomo 的 Fake-IP 地址，属正常如何恢复 IPv6# 1. 恢复内核 IPv6
+sed -i &#039;/disable_ipv6/d&#039; /etc/sysctl.conf
+sysctl -w net.ipv6.conf.all.disable_ipv6=0
+sysctl -w net.ipv6.conf.default.disable_ipv6=0
+
+# 2. 恢复接口
+uci set network.wan6=interface
+uci set network.wan6.device=&#039;@wan&#039;
+uci set network.wan6.proto=&#039;dhcpv6&#039;
+uci delete network.wan.ipv6
+uci delete network.lan.ipv6
+uci set network.lan.ip6assign=&#039;60&#039;
+uci commit network
+
+# 3. 恢复 RA / DHCPv6
+uci set dhcp.lan.ra=&#039;server&#039;
+uci set dhcp.lan.dhcpv6=&#039;server&#039;
+uci delete dhcp.lan.ndp
+uci set dhcp.@dnsmasq[0].filter_aaaa=&#039;0&#039;
+uci commit dhcp
+/etc/init.d/odhcpd enable
+/etc/init.d/odhcpd start
+
+# 4. 重启
+reboot最后在 OpenClash 中重新勾选 IPv6 流量代理 和 允许 IPv6 类型 DNS 解析。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/OpenWrt-OpenClash-Fake-IP-TUN.html">
+<title>OpenWrt 安装 OpenClash 教程（Fake-IP + TUN）</title>
+<link>https://blog.niekun.net/archives/OpenWrt-OpenClash-Fake-IP-TUN.html</link>
+<dc:date>2026-11-13T03:01:00+00:00</dc:date>
+<description>用 OpenClash（mihomo / Meta 内核）替代原来的 v2ray + dnsmasq nftset 透明代理方案。配置文件是同目录的 openclash.yaml。目录环境与方案选择远程操作前：回滚定时器安装依赖停用旧的 v2ray 方案安装 OpenClash下载内核插件设置准备配置文件启动与验证开机自启与计划任务升级备份列表控制面板说明故障排查回滚到 v2ray 方案1. 环境与方案选择本文基于以下环境：项目值系统OpenWrt 23.05.3架构x86_64防火墙firewall4（nftables）DNSdnsmasq-full远程管理通过 Tailscale 访问路由器为什么选 OpenClash，不选 NikkiNikki（原 luci-app-mihomo）更轻量，但只支持 OpenWrt 24.10 及以上。在 23.05 上运行它的安装脚本会报 unsupported release: 23.05.3。如果你已经是 24.10，可以考虑 Nikki；23.05 用 OpenClash。相比 v2ray + dnsmasq 的好处fake-ip 模式下，所有 DNS 都由内核接管，连接时按域名匹配规则，分流不再依赖 dnsmasq 把 IP 写进 nftset 的时机。有策略组和 rule-provider，规则集由内核每天自动更新，不再需要自己写更新脚本。TCP 和 UDP 都能经 TUN 统一处理。2. 远程操作前：回滚定时器如果你是远程登录路由器（比如通过 Tailscale），代理一旦启动出错，可能连远程连接一起断掉。每次启动、重启 OpenClash 或改它的设置之前，先在后台埋一个 5 分钟后自动停掉 OpenClash 的定时器：pkill -f &quot;openclash-guard&quot; 2&gt;/dev/null; kill $(cat /tmp/openclash-guard.pid) 2&gt;/dev/null
+(sleep 300; /etc/init.d/openclash stop; logger -t openclash-guard &quot;auto stopped&quot;) &gt;/dev/null 2&gt;&amp;1 &amp;
+echo $! &gt; /tmp/openclash-guard.pid第一行先清掉之前没取消的定时器。如果不清，旧的定时器会在你确认一切正常之后照样到点停掉 OpenClash。确认一切正常后，取消定时器：kill $(cat /tmp/openclash-guard.pid) 2&gt;/dev/null; jobsjobs 没有输出，说明后台已经没有定时器了。如果断线了，就等 5 分钟，OpenClash 会自动停掉，网络随之恢复。3. 安装依赖opkg update &amp;&amp; opkg install kmod-tun kmod-nft-tproxy ip-full ca-bundle curl确认 TUN 设备可用，并查看内存和存储空间：ls /dev/net/tun &amp;&amp; free -m &amp;&amp; df -h /overlay内存至少 256MB，规则多的话最好 512MB 以上。存储方面，内核加规则集需要几十 MB 空间。dnsmasq 必须是 dnsmasq-fullopkg list-installed | grep dnsmasq如果显示的是 dnsmasq-full，跳过这一步。如果只有 dnsmasq，先把 dnsmasq-full 下载到本地再替换。顺序不能反：先删掉 dnsmasq 的话，路由器自己就没法解析域名，也就下载不了新包。cd /tmp &amp;&amp; opkg download dnsmasq-full
+opkg remove dnsmasq &amp;&amp; opkg install /tmp/dnsmasq-full_*.ipk
+[ -f /etc/config/dhcp-opkg ] &amp;&amp; mv /etc/config/dhcp-opkg /etc/config/dhcp; /etc/init.d/dnsmasq restartOpenClash 的其余依赖：opkg install bash coreutils-nohup libcap libcap-bin ruby ruby-yaml unzip kmod-inet-diag luci-compat4. 停用旧的 v2ray 方案两套透明代理同时运行，防火墙规则和 DNS 会互相冲突。旧方案必须先清干净。停止服务，删除 nft 表/etc/init.d/transparent stop; /etc/init.d/transparent disable
+/etc/init.d/v2ray stop; /etc/init.d/v2ray disable
+nft delete table ip v2ray 2&gt;/dev/null删除每日更新任务先看一眼要删的是哪一行，再删：grep v2ray-update /etc/crontabs/root
+sed -i &#039;/v2ray-update/d&#039; /etc/crontabs/root &amp;&amp; /etc/init.d/cron restart清理 dnsmasq 配置OpenClash 用 fake-ip 时，dnsmasq 会把所有查询转给 Clash。/etc/dnsmasq/ 里的下面这些文件会跟它冲突：文件处理原因proxy-gfwlist.conf、proxy-added.conf移走里面的 nftset 指向已经删掉的 v2ray 表，分流改由 Clash 规则负责apple-server.conf移走server=/apple.com/223.5.5.5 这类配置会绕过 Clash DNSbase.conf删掉 all-servers 和所有 server= 行，保留 address=/*.home.marco/...内网域名还要靠它解析reject-*.conf删除去广告改由 Clash 的 ads 规则集负责（广告拦截 组默认 REJECT，每天自动更新）；custom_reject 已包含 360 等域名。dnsmasq 的列表不会自动更新，保留只会越来越旧mkdir -p /etc/dnsmasq.bak &amp;&amp; cd /etc/dnsmasq
+mv proxy-gfwlist.conf proxy-added.conf apple-server.conf reject-*.conf /etc/dnsmasq.bak/
+cp base.conf /etc/dnsmasq.bak/ &amp;&amp; sed -i &#039;/^all-servers/d;/^server=/d&#039; base.conf
+/etc/init.d/dnsmasq restartdnsmasq 重启时可能输出 udhcpc: no lease, failing。这是启动脚本在检测局域网里有没有别的 DHCP 服务器，"no lease" 表示没有，属于正常输出。5. 安装 OpenClash到 GitHub 上 vernesong/OpenClash 的 Releases 页面，下载最新的 luci-app-openclash_*_all.ipk，用 scp 传到路由器的 /tmp，然后安装：opkg install /tmp/luci-app-openclash_*_all.ipk安装结束时输出的 cfgXXXXXX 是 OpenClash 初始化 uci 配置时打印的，不是报错。装完刷新 LuCI，菜单里会出现 服务 → OpenClash。6. 下载内核在 服务 → OpenClash → 插件设置 → 版本更新：选项设置说明编译版本linux-amd64-v1 或 v3见下方 AVX2 检查更新分支Master默认下载 Meta alpha 内核Smart 内核停用见下方说明选 v1 还是 v3grep -o -w avx2 /proc/cpuinfo | head -1有输出：CPU 支持 AVX2，可以用 v3，性能会稍好一些。没有输出：只能用 v1。选 v3 的话，内核根本起不来。Smart 内核是什么Smart 内核是 OpenClash 作者维护的 mihomo 分支，多了一种 smart 策略组，会根据各节点过去的延迟、成功率等数据自动挑选节点。它适合节点很多的机场订阅。只有一个自建节点时用不上，保持停用即可。下载失败的话，可以在同一页换一个下载地址（jsdelivr 等 CDN），或者手动上传内核安装包。7. 插件设置7.1 模式设置选项设置运行模式Fake-IP（TUN）模式，对应 uci 里的 en_mode=&#039;fake-ip-tun&#039;TUN 堆栈Mixed（见下表）路由本机代理关闭TUN 堆栈怎么选堆栈TCP 处理UDP 处理性能兼容性System内核协议栈内核协议栈最好个别环境下 UDP 有问题gVisor用户态协议栈用户态协议栈CPU 和内存占用高最好Mixed内核协议栈用户态协议栈接近 System接近 gVisor一般选 Mixed。游戏或语音的 UDP 不正常时换 gVisor；追求最高吞吐时试 System。⚠️ 已知问题：在界面上保存堆栈设置时，可能被写成无效值 mips，导致 TUN 网卡起不来。每次在界面改完设置都检查一下：uci get openclash.config.stack_type如果不是 mixed，用命令行改回来：uci set openclash.config.stack_type=&#039;mixed&#039; &amp;&amp; uci commit openclash &amp;&amp; /etc/init.d/openclash restart为什么要关闭"路由本机代理"关掉后，路由器自己的流量（tailscaled、opkg 等）不经过 Clash，只有局域网设备的流量会走代理。这样即使 OpenClash 出了问题，Tailscale 远程访问也不会断。7.2 DNS 设置选项设置本地 DNS 劫持开启，方式选 使用 Dnsmasq 转发覆写设置 → 自定义上游 DNS 服务器不要启用，否则配置文件里 dns 段的上游会被替换掉覆写设置 → DNS → respect-rules（遵循规则）开启。OpenClash 会按这个开关改写配置文件里的 respect-rules，默认写成 false为什么必须开启 respect-rulesrespect-rules: false 时，nameserver 里的 Cloudflare、Google DoH 会从路由器直连，在国内基本连不上。普通国外域名拿的是 fake-ip，真正的解析在代理服务器上完成，所以看不出问题；但 fake-ip-filter 里又不在国内规则集里的域名（比如 time.google.com）只能靠这两个 DoH，会全部返回空结果（No answer）。开关的 uci 名称可以这样查，启动后再确认生效值：uci show openclash | grep -i respect
+grep -n &quot;respect-rules&quot; /etc/openclash/openclash.yaml   # 应为 true7.3 GEO 数据库订阅openclash.yaml 的分流全部用 .mrs 规则集，没有 GEOIP、GEOSITE、IP-ASN 规则，所以用不到 GEO 数据库。在 插件设置 → GEO 数据库订阅 里，把 GeoIP、GeoSite、GeoIP Dat、GeoASN 的自动更新都关掉。这些任务不要去 crontab 里手动删。带 #openclash-cron-task 标记的行由 OpenClash 自己管理，保存或重启时会重新写回去。8. 准备配置文件以 openclash.yaml 为基础，把节点信息里的占位符换成你自己的：占位符替换为111.111.111.111服务器地址或域名uuid-uuid-uuid-uuidUUIDxxx.comTLS SNI 和 WebSocket 的 Host/pathWebSocket 路径，与服务端、nginx 保持一致在 配置文件管理 上传这个文件。上传后它存放在 /etc/openclash/config/ 下。配置要点端口、tun 段、DNS 监听、enhanced-mode、fake-ip-range：这些由 OpenClash 界面管理，启动时会覆盖，配置文件里不用写。YAML 1.1 的坑：OpenClash 会先用 Ruby（YAML 1.1）改写配置。不加引号的 off、on、yes、no 会被当成布尔值，所以必须加引号，比如 find-process-mode: &quot;off&quot;。不加引号的话，内核会报 invalid find process mode。规则集路径：OpenClash 会把 rule-providers 的 path 统一改到 ./rule_provider/，实际文件位于 /etc/openclash/rule_provider/。*.home.marco 内网域名：在 fake-ip-filter 里，所以返回真实 IP，不会被分配假地址；nameserver-policy 把它交给本机的 dnsmasq（127.0.0.1）解析；嗅探的 skip-domain 也包含它，避免直连时拿域名去国内 DNS 解析而失败。个人站 niekun.net：直连，并且在 fake-ip-filter 里需要真实解析，所以在 nameserver-policy 里单独交给国内 DoH，不依赖经代理的国外 DoH。Tailscale 和内网网段：100.64.0.0/10、fd7a:115c:a1e0::/48、192.168.x.x 都在 private_ip 规则集里，这是第一条规则，全部直连。未匹配的 UDP 直连：Tailscale、RustDesk 打洞以及 BT、游戏 P2P 大多是直接连 IP 的 UDP。送进代理会导致打洞失败，所以兜底规则前面加了 NETWORK,UDP,DIRECT。自定义列表只放上游规则集没收录的域名：增删前可以先查一下域名是否已在 geolocation-!cn、cn 等规则集里，避免重复。GLOBAL 组：配置里重新定义了内置的 GLOBAL 组，只列出 节点选择、out-vmess、DIRECT。它只在全局模式下起作用。9. 启动与验证先埋好回滚定时器，然后在 LuCI 的 运行状态 页点"启动"，或者执行：/etc/init.d/openclash start启动日志里出现"OpenClash 启动成功"就可以开始验证。1. 远程连接新开一个 SSH 或 LuCI 会话（用 Tailscale 地址或 openwrt.home.marco），确认还能连上。2. DNSnslookup nas.home.marco 127.0.0.1; nslookup google.com 127.0.0.1; nslookup baidu.com 127.0.0.1域名预期结果nas.home.marco192.168.122.5，真实内网 IPgoogle.com198.18.x.x，fake-ip 生效baidu.com198.18.x.x 也正常，连接时会被 cn_domain 规则匹配后直连3. 进程、TUN、堆栈pgrep -af clash | head -3
+ip addr show utun | grep inet
+grep -A2 &quot;^tun:&quot; /etc/openclash/*.yaml正常的话会看到：内核进程 /etc/openclash/clash -d /etc/openclash ... 和守护进程 openclash_watchdog.sh；inet 198.18.0.1/30；stack: mixed。4. 规则集ls -la /etc/openclash/rule_provider/
+grep -iE &quot;provider|rule-set&quot; /tmp/openclash.log | tail目录里应该有 19 个 .mrs 文件（inline 规则集不生成文件），日志里没有报错。规则集是通过 节点选择 下载的，能下载下来也说明节点是通的。5. 分流在局域网设备上分别打开 google.com、chatgpt.com、baidu.com，然后在控制面板的"连接"页核对它们走的策略组：网站预期策略组google.com节点选择chatgpt.comAI 服务baidu.comDIRECT全部正常后，取消回滚定时器。10. 开机自启与计划任务开机自启ls /etc/rc.d/ | grep -i openclash; uci get openclash.config.enable需要看到 S99openclash、K15openclash 和 1。缺哪项就补上：/etc/init.d/openclash enable; uci set openclash.config.enable=&#039;1&#039;; uci commit openclash确认旧方案不会开机启动：ls /etc/rc.d/ | grep -iE &quot;v2ray|transparent&quot;这条应该没有输出。找个方便的时间运行一次 reboot 实测。1～2 分钟后连回来，确认 pgrep -af clash 和 utun 都正常。每周定时重启（可选）每周一凌晨 1 点重启，排在 OpenClash 周一 0 点的 GEO 更新之后：sed -i &#039;s|^0 1 \* \* \* /sbin/reboot|0 1 * * 1 /sbin/reboot|&#039; /etc/crontabs/root &amp;&amp; /etc/init.d/cron restart
+crontab -l第 5 个字段是星期几：0 是周日，1 是周一，依此类推。cron 用的是路由器本地时区，可以检查一下：uci get system.@system[0].zonename; date正常应该显示 Asia/Shanghai，date 的时间也应该和本地一致。11. 升级备份列表/etc/sysupgrade.conf 里列出的文件，会在系统升级或用 LuCI 备份时保留。/etc/config/openclash 在 /etc/config/ 下，系统默认就会保留，但上传的配置文件和自定义规则要手动加进来。core/ 和 rule_provider/ 能重新下载，不用备份。cat &gt; /etc/sysupgrade.conf &lt;&lt;&#039;EOF&#039;
+## This file contains files and directories that should
+## be preserved during an upgrade.
+
+# 系统
+/etc/crontabs/
+/etc/ethers
+/etc/installed_packages.txt
+
+# dnsmasq（base.conf 内网域名；.bak 是旧 v2ray 代理列表）
+/etc/dnsmasq/
+/etc/dnsmasq.bak/
+/etc/dnsmasq.conf
+
+# OpenClash（/etc/config/openclash 默认已保留；core、rule_provider 可重新下载，不备份）
+/etc/openclash/config/
+/etc/openclash/custom/
+
+# 旧 v2ray 方案，留作回滚；OpenClash 稳定运行一段时间后可删除这几行
+/etc/init.d/transparent
+/etc/init.d/v2ray
+/etc/v2ray/
+EOF检查实际会备份哪些文件：sysupgrade -l | grep -E &quot;openclash|dnsmasq|v2ray|crontabs&quot;12. 控制面板说明OpenClash 自带 MetaCubeXD 等控制面板，可以切换规则、全局、直连模式，选节点，查看连接和日志。面板上改的设置只对当前运行有效。 面板是通过 API 直接改正在运行的内核，不会写回 OpenClash。OpenClash 一重启（开机、更新规则、在 LuCI 里点"应用"），就会按 uci 设置重新生成配置，面板上的改动会被覆盖。长期设置（TUN、堆栈、端口）：在 OpenClash 的 LuCI 页面或用 uci 改。分流规则：改 openclash.yaml。GLOBAL 组只在全局模式下起作用，规则模式下选什么都不影响分流。全局模式会把内网和 Tailscale 的流量也送进代理，只建议临时排查问题时用。13. 故障排查现象原因处理Nikki 安装脚本报 unsupported release: 23.05.3Nikki 只支持 24.10 及以上改用 OpenClash，或者先升级系统内核日志报 Parse config error: invalid find process mode不加引号的 off 被 Ruby 改写成了 false改成 find-process-mode: &quot;off&quot;界面上的"TUN 转发"自动关闭，utun 不存在stack_type 被保存成了 mips用 uci set openclash.config.stack_type=&#039;mixed&#039; 改回，然后重启/etc/openclash/ruleset/ 目录不存在OpenClash 把路径改成了 rule_provider/去 /etc/openclash/rule_provider/ 下看rule_provider/ 是空的节点不通，规则集经代理下载失败检查节点配置，看 /tmp/openclash.log*.home.marco 返回 198.18.x.xfake-ip-filter 没生效在 覆写设置 → DNS → Fake-IP-Filter 里再加一遍niekun.net、time.google.com 等 fake-ip-filter 里的域名 nslookup 返回 No answer，网站打不开OpenClash 把 respect-rules 改写成了 false，国外 DoH 被直连而失败在界面开启 respect-rules（见 7.2），重启后用 nslookup -port=7874 time.google.com 127.0.0.1 验证OpenClash 莫名其妙停了之前的回滚定时器没取消，到点执行了 stop先清掉旧定时器再埋新的（见第 2 节）；守护进程通常会自动把内核拉起来游戏或语音的 UDP 不正常堆栈兼容性问题把 TUN 堆栈换成 gVisor 试试Tailscale 远程连接断开开了路由本机代理，或者用了全局模式关闭路由本机代理，切回规则模式常用日志：tail -50 /tmp/openclash.log
+logread | grep -iE &quot;openclash|openclash-guard&quot; | tail -3014. 回滚到 v2ray 方案/etc/init.d/openclash stop; /etc/init.d/openclash disable; uci set openclash.config.enable=&#039;0&#039;; uci commit openclash
+mv /etc/dnsmasq/base.conf /etc/dnsmasq/base.conf.openclash
+cp /etc/dnsmasq.bak/* /etc/dnsmasq/
+/etc/init.d/dnsmasq restart
+/etc/init.d/v2ray enable; /etc/init.d/v2ray start
+/etc/init.d/transparent enable; /etc/init.d/transparent start
+echo &#039;0 5 * * * sh /etc/v2ray/script/v2ray-update.sh update 2&gt;&amp;1 | logger -t v2ray-update&#039; &gt;&gt; /etc/crontabs/root &amp;&amp; /etc/init.d/cron restart/etc/dnsmasq.bak/ 里存着原来的 base.conf 和三个代理列表，复制回去就恢复了原来的 DNS 分流。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html">
+<title>基于 Ubuntu 与 OpenWrt 构建 Tailscale 家庭子网路由与 P2P 直连极速访问指南</title>
+<link>https://blog.niekun.net/archives/Ubuntu-OpenWrt-Tailscale-P2P.html</link>
+<dc:date>2026-08-31T02:35:00+00:00</dc:date>
+<description>本指南专注且纯粹地介绍如何利用家庭内网的一台 Ubuntu 服务器 作为 Tailscale 子网路由器（Subnet Router） 与 出口节点（Exit Node），并配合 上级光猫 与 OpenWrt 路由器 进行网络优化，实现外部设备（手机、笔记本等）在公网环境下 100% P2P 高速直连 访问家庭局域网内的所有设备（如 NAS、软路由、光猫后台、虚拟化集群等），并支持 内网自定义域名（如 *.home.marco）自动条件分流解析。本方案在设计上实现了全链路静态化与常驻心跳保活，即使家庭遭遇断电、路由器重启或运营商动态 IP 轮换，通电后均能全自动恢复秒级直连，永久有效。目录一、 网络拓扑与工作原理二、 第一步：光猫端配置（打通最外层端口）三、 第二步：OpenWrt 主路由配置（静态WAN、转发与分流）四、 第三步：Ubuntu 服务器配置（核心节点、加速与保活）五、 第四步：Tailscale 云端控制台配置（路由与 DNS）六、 第五步：各端客户端接入与配置七、 第六步：连通性验证与访问测试八、 常见问题与排错指南 (FAQ)一、 网络拓扑与工作原理1. 全局网络层级图解家庭网络通常包含三层结构。配置的目标是让外网握手数据包一路绿灯直达 Ubuntu 的 41641 监听端口：  [外部移动设备: 手机 5G / 出差笔记本]
+                    │
+                    ▼  1. 发起 WireGuard 握手 (UDP 41641)
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第一层：光猫 (192.168.1.1) [拥有公网 IP]                      │
+  │    └─ 虚拟主机：将外网 UDP 41641 静态映射至 192.168.1.6:41641  │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 2. 透传至二级路由 (全静态 IP，绝不漂移)
+                                 ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第二层：OpenWrt 主路由 (WAN 静态: 192.168.1.6, LAN: 192.168.122.1)│
+  │    ├─ 防火墙转发：UDP 41641 -&gt; 192.168.122.2:41641          │
+  │    ├─ 内网 DNS：Dnsmasq 解析 *.home.marco                    │
+  │    └─ 鉴权代理接口：192.168.122.1:10809 (保障国内重启秒连)    │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 3. 精准到达子网路由器
+                                 ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 第三层：Ubuntu 服务器 (局域网静态 IP: 192.168.122.2)            │
+  │    ├─ 角色: Tailscale 子网路由器 (Subnet Router)             │
+  │    ├─ 广播网段: 192.168.122.0/24 与 192.168.1.0/24           │
+  │    ├─ 硬件加速: UDP GRO 网卡转发加速                          │
+  │    └─ 守护进程: tailscale-keepalive (20s 心跳锁死 NAT 会话)   │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │ 4. 自动内网转发 (SNAT)
+         ┌───────────────────────┼───────────────────────┐
+         ▼                       ▼                       ▼
+    局域网 NAS              局域网 PC               上级光猫后台
+  (192.168.122.5)         (192.168.122.x)         (192.168.1.1)2. 为什么需要这几步配置？未配置光猫映射与保活时：
+外部设备 ──(UDP 41641)──&gt; [ 光猫拦截/超时闭合 ] ──► 绕路海外 DERP 服务器中转 (延迟 280ms~600ms, 限速) ──► 家里
+
+配置静态映射与 20s 常驻保活后（100% P2P 极速直连）：
+外部设备 ──(UDP 41641)──&gt; [ 光猫 ] ──► [ OpenWrt ] ──► [ Ubuntu ]
+  └────────────────────── 建立端到端加密直连隧道 (5ms~35ms 极速秒开) ──────────────────────┘二、 第一步：光猫端配置（打通最外层端口）光猫是外部流量进入家庭的第一道门。我们需要锁定 41641 端口，避免光猫因为 NAT 会话超时导致连接降级为中继。1. 登录光猫后台使用连接光猫 Wi-Fi 或插网线的电脑，在浏览器打开：http://192.168.1.1；输入管理员账号与密码（见光猫背面机身铭牌贴纸）。2. 添加虚拟主机/端口映射（强烈推荐 ⭐⭐⭐⭐⭐）找到 【NAT 设置】 ➜ 【虚拟主机配置】（或称“端口转发 / 虚拟服务器”）；点击新建，按以下参数填写：使能端口映射：勾选WAN名称：选择当前主上网通道（例如 2_INTERNET_R_VID_10）协议：选择 UDP外部开始端口 / 外部结束端口：41641 / 41641内部开始端口 / 内部结束端口：41641 / 41641内部主机 IP：填写 OpenWrt 路由器的 WAN 口 IP（192.168.1.6）点击 【应用 / 保存】。3. 开启 DMZ 主机（可选双保险）找到 【安全设置 / 高级设置】 ➜ 【DMZ 配置】；勾选 启用 DMZ，并将 DMZ IP 地址填写为 OpenWrt 的 WAN 口 IP（192.168.1.6）；保存生效。三、 第二步：OpenWrt 主路由配置（静态WAN、转发与分流）在 OpenWrt 路由器上需要完成 4 项设置：WAN 口静态化、端口转发、DNS 跨网段响应与鉴权域名分流。1. 将 WAN 口配置为静态 IP（消除断电 IP 漂移隐患）为了防止家庭断电重启时光猫 DHCP 发生竞争导致 OpenWrt IP 漂移（从而使光猫的端口转发失效），通过 SSH 登录 OpenWrt 路由器（ssh root@192.168.122.1），执行以下命令将 WAN 口固化为静态 IP：uci set network.wan.proto=&#039;static&#039;
+uci set network.wan.ipaddr=&#039;192.168.1.6&#039;
+uci set network.wan.netmask=&#039;255.255.255.0&#039;
+uci set network.wan.gateway=&#039;192.168.1.1&#039;
+uci set network.wan.dns=&#039;192.168.1.1 114.114.114.114&#039;
+uci commit network
+/etc/init.d/network reload2. 防火墙端口转发与硬件加速继续在 OpenWrt 终端中执行：# 1. 添加 UDP 41641 转发至 Ubuntu 服务器
+uci add firewall redirect
+uci set firewall.@redirect[-1].name=&#039;Tailscale_Ubuntu&#039;
+uci set firewall.@redirect[-1].src=&#039;wan&#039;
+uci set firewall.@redirect[-1].proto=&#039;udp&#039;
+uci set firewall.@redirect[-1].src_dport=&#039;41641&#039;
+uci set firewall.@redirect[-1].dest=&#039;lan&#039;
+uci set firewall.@redirect[-1].dest_ip=&#039;192.168.122.2&#039;
+uci set firewall.@redirect[-1].dest_port=&#039;41641&#039;
+uci set firewall.@redirect[-1].target=&#039;DNAT&#039;
+
+# 2. 开启流量卸载加速（提升转发吞吐量、降低软路由 CPU 占用）
+uci set firewall.@defaults[0].flow_offloading=&#039;1&#039;
+
+# 3. 提交并重载防火墙
+uci commit firewall
+/etc/init.d/firewall reload3. Dnsmasq 允许跨网段与防重绑配置让 OpenWrt 的 Dnsmasq 允许响应来自 Tailscale 虚拟网段的查询，并允许返回内网私有 IP：# 1. 允许响应非本地直连网段的 DNS 请求
+uci set dhcp.@dnsmasq[0].localservice=&#039;0&#039;
+
+# 2. 将内网域名加入防 DNS 重绑白名单
+uci add_list dhcp.@dnsmasq[0].rebind_domain=&#039;home.marco&#039;
+
+# 3. 提交并重启 Dnsmasq
+uci commit dhcp
+/etc/init.d/dnsmasq restart4. Tailscale 云端鉴权域名分流与局域网代理配置A. 为什么需要做这部分配置？在国内网络环境下，Tailscale 的官方控制中心（controlplane.tailscale.com 及 *.tailscale.com、*.ts.net）的 HTTPS 443 端口经常遭受网络干扰或阻断。现象：当家庭路由器或服务器开机/重启时，Tailscale 无法完成初始身份认证与节点密钥交换，导致设备一直处于离线状态。核心目标：让发往 Tailscale 云端控制中心的鉴权小流量（仅几 KB）通过代理通道顺畅握手，而实际的内网数据传输（WireGuard UDP:41641）依然保持原生直连。B. 实现方式说明（支持多种路由方案）根据您路由器上运行的代理工具不同，任选以下一种方式实现即可：方案 1：Dnsmasq + V2Ray / Xray 方案（本教程示例）在 OpenWrt 的自定义代理域名列表 /etc/dnsmasq/proxy-added.conf 中追加规则：nftset=/tailscale.com/4#ip#v2ray#gfwlist
+nftset=/tailscale.io/4#ip#v2ray#gfwlist
+nftset=/ts.net/4#ip#v2ray#gfwlist重启 Dnsmasq：/etc/init.d/dnsmasq restart在 /etc/v2ray/config.json 的 inbounds 中开启局域网 HTTP 代理端口（供内网 Ubuntu 调用）：{
+    &quot;tag&quot;: &quot;http-proxy&quot;,
+    &quot;port&quot;: &quot;10809&quot;,
+    &quot;listen&quot;: &quot;0.0.0.0&quot;,
+    &quot;protocol&quot;: &quot;http&quot;
+}重启服务：/etc/init.d/v2ray restart方案 2：OpenClash / PassWall / SSR-Plus / ShellCrash 方案如果您的 OpenWrt 使用的是常见的图形化代理插件：添加分流规则：在插件的「自定义分流规则」中添加以下规则走代理策略组：DOMAIN-SUFFIX,tailscale.com,PROXYDOMAIN-SUFFIX,ts.net,PROXYDOMAIN-SUFFIX,tailscale.io,PROXY开启局域网共享：在插件设置中勾选 「允许局域网连接 (Allow LAN)」，记录其提供的 HTTP 代理端口（例如 OpenClash 默认为 7890，后续在 Ubuntu 中将端口对应改为 7890 即可）。方案 3：Ubuntu 服务器端本地代理方案（路由器无代理时使用）如果您的主路由器没有安装任何代理服务：可在 Ubuntu 服务器本地运行轻量级代理客户端（如 Sing-Box / Mihomo / Xray），监听本地 127.0.0.1:10809；后续在 /etc/default/tailscaled 中将代理地址写为 http://127.0.0.1:10809 同样可以完美生效。四、 第三步：Ubuntu 服务器配置（核心节点、加速与保活）通过 SSH 登录 Ubuntu 服务器（ssh marco@192.168.122.2），进行系统与 Tailscale 核心配置。1. 开启系统内核网络转发# 写入持久化转发配置
+sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/sysctl.d/99-tailscale.conf
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+EOF&#039;
+
+# 立即应用生效
+sudo sysctl -p /etc/sysctl.d/99-tailscale.conf2. 安装 Tailscale# 导入软件源
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg &gt;/dev/null
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+
+# 安装并启动
+sudo apt-get update
+sudo apt-get install -y tailscale
+sudo systemctl enable --now tailscaled3. 配置重启自动鉴权防掉线（核心加固）创建 /etc/default/tailscaled，指定固定监听端口 41641，并将鉴权请求指向 OpenWrt 代理端口：sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/default/tailscaled
+PORT=&quot;41641&quot;
+FLAGS=&quot;&quot;
+HTTP_PROXY=&quot;http://192.168.122.1:10809&quot;
+HTTPS_PROXY=&quot;http://192.168.122.1:10809&quot;
+EOF&#039;
+
+# 重启 tailscaled 使环境变量生效
+sudo systemctl restart tailscaled原理说明：只有开机向云端进行 HTTPS 鉴权握手时会走代理，实际传输内网数据（WireGuard UDP 41641）依然是原生直连，不耗费代理流量。4. 启动并广播多子网与出口节点执行以下命令启动 Tailscale：sudo tailscale up --advertise-routes=192.168.122.0/24,192.168.1.0/24 --advertise-exit-node --accept-routes=true --reset终端会输出一个类似 https://login.tailscale.com/a/xxxxxx 的链接；在电脑浏览器打开链接，登录您的 Tailscale 账号完成绑定。5. 开启 UDP GRO 网卡硬件加速（消除性能瓶颈）# 1. 安装 ethtool
+sudo apt-get install -y ethtool
+
+# 2. 针对主网卡 (如 ens160) 开启 UDP GRO 加速
+sudo ethtool -K ens160 rx-udp-gro-forwarding on rx-gro-list off
+
+# 3. 创建开机自启服务保证重启依然生效
+sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/systemd/system/tailscale-gro.service
+[Unit]
+Description=Tailscale UDP GRO optimization for ens160
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ethtool -K ens160 rx-udp-gro-forwarding on rx-gro-list off
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF&#039;
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now tailscale-gro.service6. 部署常驻心跳保活守护服务（锁死光猫 NAT，防休眠退化）国内家庭宽带光猫通常在空闲 30~60 秒后自动超时关闭 UDP 临时会话表，导致长时间不使用的外部客户端发起连接时需要先走中继唤醒。部署常驻心跳服务，每 20 秒向外部节点和 STUN 发送微弱探测包，即可实现全天候 24 小时保持极速直连状态：# 1. 创建保活脚本
+sudo bash -c &#039;cat &lt;&lt; &quot;EOF&quot; &gt; /usr/local/bin/tailscale-keepalive.sh
+#!/bin/bash
+# Tailscale NAT Keepalive Daemon (20s interval)
+while true; do
+    # 周期性向对端发送微量探测，锁死 NAT 通道
+    tailscale ping --c 1 --until-direct=false 100.70.12.55 &gt;/dev/null 2&gt;&amp;1
+    sleep 20
+done
+EOF&#039;
+
+sudo chmod +x /usr/local/bin/tailscale-keepalive.sh
+
+# 2. 配置 systemd 开机自启守护进程
+sudo bash -c &#039;cat &lt;&lt; EOF &gt; /etc/systemd/system/tailscale-keepalive.service
+[Unit]
+Description=Tailscale UDP NAT Keepalive Service
+After=network.target tailscaled.service
+Requires=tailscaled.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/tailscale-keepalive.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF&#039;
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now tailscale-keepalive.service五、 第四步：Tailscale 云端控制台配置（路由与 DNS）1. 审批激活广播子网与 Exit Node打开浏览器登录 Tailscale 管理控制台 - Machines 页面；找到服务器 ubuntu-home-marco，点击右侧菜单 ... ➜ Edit route settings...；勾选 192.168.122.0/24 与 192.168.1.0/24；勾选 Use as exit node；点击 Save 保存。2. 开启“永久免登录”防掉线 (Disable Key Expiry)在同一页面点击 ubuntu-home-marco 右侧菜单 ...；点击 Disable key expiry；状态变为 Expiry disabled，该服务器将终身永久在线。3. 配置 Split DNS 条件分流解析进入 Tailscale 控制台 - DNS 页面；确保顶部的 MagicDNS 处于开启状态；在 Nameservers 区域点击 Add nameserver ➜ 选择 Custom...：Nameserver IP：192.168.122.1（OpenWrt 路由器 IP）勾选 Restrict to search domainDomain：home.marco勾选 Use with exit node点击 Save 保存。六、 第五步：各端客户端接入与配置1. 生成永久登录密钥 (Auth Key)为了解决移动端（特别是 iOS）在登录时因 VPN 槽位冲突导致无法完成网页认证的问题，推荐使用 Auth Key 登录：在电脑浏览器打开 Tailscale Keys 页面；点击 Generate auth key... ➜ 勾选 Reusable ➜ 点击 Generate key；复制生成的密钥（形如 tskey-auth-kxxxxxxxxxxxx）。2. 各端客户端登录方法A. iPhone / iPad (iOS 设备)在 App Store 下载并安装 Tailscale；打开 App，在登录界面右上角点击 ... 图标；选择 Log in with auth key...；粘贴复制的密钥，点击登录即可瞬间秒级登录成功。B. Windows 电脑安装 Tailscale 官方客户端；右键右下角系统托盘的 Tailscale 图标 ➜ 选择 Log in...；浏览器登录账号完成绑定；在控制台的 Machines 页面同样对该 Windows 电脑点击 Disable key expiry。C. Windows 远程桌面 (RDP) 极速优化（必配 ⭐⭐⭐⭐⭐）如果您需要使用外部 Windows 笔记本远程桌面控制家里的 Windows 电脑（如 windows.home.marco），强烈建议在外部笔记本上关闭客户端的 RDP-UDP 传输：优化原理：微软 RDP 默认启用的 UDP 协议会发送 1400~1500 字节大包，而 Tailscale 虚拟网卡 MTU 为 1280 字节，导致大量数据包分片丢失，系统误判网络拥堵将延迟上调至 400ms、带宽限死在 1.3 Mbps。关闭 UDP 强制走 TCP 后，TCP 会自动自适应 MTU，往返延迟瞬间降至 35ms，带宽直接解锁至满速。一键配置（以管理员身份运行 PowerShell）：reg add &quot;HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client&quot; /v fClientDisableUDP /t REG_DWORD /d 1 /f图形化配置（可选）：按 Win + R 运行 gpedit.msc ➜ 计算机配置 ➜ 管理模板 ➜ Windows 组件 ➜ 远程桌面服务 ➜ 远程桌面连接客户端 ➜ 双击【在客户端上关闭 UDP】➜ 勾选【已启用】保存。七、 第六步：连通性验证与访问测试在外部设备（如手机断开家庭 Wi-Fi 开启 5G，或笔记本连接外部热点）连接 Tailscale 后进行验证。1. 验证 P2P 直连与低延迟在客户端终端执行：tailscale ping openwrt.home.marco正常直连输出：pong from ubuntu-home-marco (100.98.71.30) via &lt;公网IP&gt;:&lt;端口&gt; in 10ms~35ms往返延迟应稳定在 10~35ms 之间，说明 100% 原生 P2P 隧道已建立。2. 常用服务浏览器直接访问地址目标服务推荐访问地址说明OpenWrt 路由后台http://openwrt.home.marco对应内网 IP: 192.168.122.1光猫管理后台http://192.168.1.1对应内网 IP: 192.168.1.1ESXi 虚拟化后台https://esxi.home.marco必须使用 https 协议 (IP: 192.168.1.3)NAS 存储管理http://nas.home.marco:5000对应内网 IP: 192.168.122.5Ubuntu 服务器http://ubuntu.home.marco对应内网 IP: 192.168.122.2八、 常见问题与排错指南 (FAQ)Q1: 客户端本地运行了代理软件（v2rayN / Clash），无法打开 *.home.marco 网页？原因：电脑上的代理软件劫持了所有网络请求，并尝试将 *.home.marco 送往海外代理节点，导致报错 503 Service Unavailable。  解决方法：在代理软件的路由分流中将 home.marco 加入直连白名单：v2rayN：设置 ➜ 路由设置 ➜ 「直连的 Domain」添加 domain:home.marco；Clash / Clash Verge：规则添加 DOMAIN-SUFFIX,home.marco,DIRECT；SwitchyOmega：Bypass List 添加 *.home.marco。Q2: 为什么有时长时间没连，初次 ping 发现前几个包走了 DERP 中继？原因：这是运营商动态公网 IP 轮换或长时间无数据通信后，光猫 NAT 会话休眠造成的正常自愈过程。Tailscale 为了防止丢包会先调用官方 DERP 兜底送达，并在后台完成打洞升级。  彻底解决：部署本教程第四步的 tailscale-keepalive.service，让后台每 20 秒发送微量心跳包锁死光猫 NAT 通道，即可实现 24 小时随连随通、秒级直连。Q3: 家庭整个网络断电或路由器重启后，是否能够全自动恢复直连？是的，完全自动恢复。整套网络已经完成全链路全静态化锁定：光猫虚拟主机（UDP 41641）固化在硬件中，断电不丢失；OpenWrt WAN 口固化为静态 IP 192.168.1.6，绝不会因 DHCP 竞争而漂移；Ubuntu 内网 IP 与监听端口 41641 固化；tailscaled 与 tailscale-keepalive 开机自启。  来电后，光猫完成拨号、软路由与服务器开机，10~15 秒内自动完成握手并无缝锁定直连，无需任何人工干预。Q4: 局域网内的其他设备（如 NAS、打印机）需要更改网关吗？完全不需要。 Tailscale 子网路由默认自带 SNAT（源地址伪装）。内网所有设备收到的请求源 IP 都是 Ubuntu 服务器的 192.168.122.2，回包会自动返回 Ubuntu 并送回外部客户端。Q5: 在外面出差时，外部 Wi-Fi 的网段也是 192.168.1.1，如何访问家里的光猫？在客户端的 Tailscale 菜单中开启 Exit Node ➜ 选择 ubuntu-home-marco。此时所有网络流量强制经由家庭 Ubuntu 发送，即可准确命中家里的光猫后台 192.168.1.1。Q6: 使用 Windows 远程桌面 (RDP) 访问家里电脑时，提示延迟高达 400ms、可用带宽仅 1.3 Mbps？原因：这是微软 RDP 客户端启用 UDP 与 WireGuard/Tailscale 默认 MTU 1280 产生的丢包冲突所致。  解决方法：在外部 Windows 客户端上关闭 RDP 的 UDP 传输通道（强制走纯 TCP 模式）：  以管理员身份运行 PowerShell 执行以下命令：reg add &quot;HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client&quot; /v fClientDisableUDP /t REG_DWORD /d 1 /f修改后彻底关闭远程桌面窗口并重新连接，传输协议会自动切换为稳定的 TCP/WebSocket，往返延迟瞬间从 400ms 骤降至 30ms~40ms 极速响应，可用带宽飙升至 10+ Mbps，彻底告别卡顿！</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/3090.html">
+<title>记一次完美的家庭网络改造：弱电箱“单线复用”与透明代理排错全指南</title>
+<link>https://blog.niekun.net/archives/3090.html</link>
+<dc:date>2026-05-01T12:25:10+00:00</dc:date>
+<description>1. 改造背景与痛点家里目前的网络拓扑比较典型：核心设备：一台 6 网口的软路由（底层安装 ESXi，将 6 个网口全部分配给虚拟的 OpenWrt。其中网口 1 作为 WAN 口拨号，其余均为 LAN 口）。物理布线：门口弱电箱到客厅、卧室均只有一条网线，且客厅到卧室之间没有网线。痛点：软路由原本塞在弱电箱里，光猫网线直连软路由网口 1，网口 2 接客厅，网口 3 接卧室。但由于弱电箱空间狭小，散热成了大问题。为了解决散热，我需要将软路由挪到客厅放置。但这就面临一个死局：弱电箱到客厅只有一根网线，如果这根线用来走光猫的 WAN 数据，那客厅软路由处理好的 LAN 数据就无法传回弱电箱发给卧室了。我的终极诉求：解决散热，软路由移至客厅。绝对不改变软路由（ESXi 和 OpenWrt）端的任何内部设置（即软路由依然认为网口 1 是 WAN，网口 2/3 是 LAN）。保证千兆内网网速无损。2. 解决方案：双网管交换机“单线复用”在只有一根网线且不改动路由配置的前提下，最完美的方案是利用两台支持 802.1Q VLAN 功能的千兆网管交换机进行“单线复用”。原理解释（小白秒懂）：把那根唯一的网线想象成一条高速公路。光猫的数据（外网）和局域网的数据（内网）如果混在一起跑会乱套。交换机的作用就是给这两种数据“贴标签”。弱电箱交换机给外网数据贴上“红色标签”，内网数据贴上“蓝色标签”，一起扔上高速公路。客厅交换机收到后，把红标签撕掉交给路由器的 WAN 口，蓝标签撕掉交给路由器的 LAN 口。路由器全程只会看到没有标签的普通数据，完全察觉不到中间的复杂过程。准备工作两台 5 口千兆网管交换机（假设为交换机 A 和交换机 B）。为了方便日后管理，先用电脑直连它们，将管理 IP 修改为软路由同网段内未使用的固定 IP（例如软路由是 192.168.132.1，交换机则设为 192.168.132.2 和 192.168.132.3）。3. 详细配置步骤我们将两台交换机的 5号口 作为互联的“主干道（Trunk）”。交换机 A（放置于弱电箱）物理接线：1号口：接光猫2号口：接通往卧室的网线5号口：接通往客厅的网线（主干道）VLAN 配置（802.1Q VLAN）：新建 VLAN 10（外网用）：包含 1、5 口。1 口设为 Untagged（不带标签），5 口设为 Tagged（带标签）。新建 VLAN 20（内网用）：包含 2、5 口。2 口设为 Untagged，5 口设为 Tagged。PVID 配置：1号口 PVID 设为 102号口 PVID 设为 205号口 PVID 保持默认 1交换机 B（放置于客厅）物理接线：1号口：接软路由 网口 1（WAN）2号口：接软路由 网口 2（LAN）3、4号口：接客厅其他局域网设备（如电视机顶盒、AP面板）5号口：接墙壁网口（即弱电箱过来的主干道）VLAN 配置：新建 VLAN 10（外网用）：包含 1、5 口。1 口设为 Untagged，5 口设为 Tagged。新建 VLAN 20（内网用）：包含 2、3、4、5 口。2、3、4 口设为 Untagged，5 口设为 Tagged。PVID 配置：1号口 PVID 设为 102、3、4号口 PVID 统一设为 205号口 PVID 保持默认 1完成以上设置并接好线后，网络成功通了！软路由顺利拨号，卧室和客厅的设备都能正常上网。但是，一个诡异的暗坑出现了。4. 踩坑与排错：透明代理为何突然失效？故障现象：网络连通后，国内网站访问一切正常，但我部署在 OpenWrt 上的透明代理（dnsmasq + nftables + v2ray）失效了，所有走代理的外部链接全部连不通。在此之前（没加交换机时），这套代理配置是完美运行的。深度排查与原理分析：既然软件配置没变，问题必然出在新增的交换机这种“二层物理设备”对网络底层逻辑的影响上。最终锁定了元凶：IPv6 广播泄漏导致的代理被绕过。绝大多数家用网管交换机出厂时，所有端口默认都属于 VLAN 1（Untagged）。虽然我划分了 VLAN 10 和 VLAN 20，但如果这些端口没有从默认的 VLAN 1 中剥离，交换机底层依然存在一个相通的广播域。光猫非常喜欢向局域网发送 IPv6 的 RA（路由宣告）广播包。这些广播包顺着没清理干净的 VLAN 1 穿透了交换机，绕过软路由，直接下发给了我内网的手机和电脑。由于我的 nftables 透明代理脚本仅对 IPv4（ipv4_addr）进行了拦截和重定向，终端设备拿到光猫下发的 IPv6 地址后，访问外网时优先走了 IPv6 裸奔，直接撞墙，导致代理看似失效。终极解决办法：逻辑硬隔离进入两台交换机的 VLAN 1 设置页面，将刚才配置过 VLAN 10 和 VLAN 20 的端口（1、2、3、4、5口），全部在 VLAN 1 中设置为 Not Member（非成员）。这一步彻底切断了底层的隐形桥梁，将光猫的 IPv6 广播完美阻挡在弱电箱内。配置完成后，透明代理瞬间恢复正常工作。(注：部分交换机的 Web 管理后台默认全局监听，即便将内网端口从 VLAN 1 移出，只要访问设置好的同网段 IP，依然可以正常进入管理页面，无需强求寻找“管理 VLAN”选项。)5. 总结通过两台廉价的网管交换机，我成功将软路由移至客厅解决了散热危机，且实现了真正的“软路由零设置修改”。这次改造不仅理清了 VLAN Tagged/Untagged 的基本逻辑，更深刻体会到了二层网络广播域隔离不彻底对上层应用（如透明代理）造成的隐性破坏。希望这篇记录能帮到有同样家庭网络改造需求的朋友！</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Qt.html">
+<title>Qt 项目图片压缩库环境配置教程</title>
+<link>https://blog.niekun.net/archives/Qt.html</link>
+<dc:date>2026-03-28T08:02:47+00:00</dc:date>
+<description>适用平台：Windows (MinGW) / macOS (Apple Silicon)涉及库：libpng · zlib · libimagequant用途：Qt 项目中对 PNG 进行缩放后有损压缩，效果接近 tinypng一、原理说明库作用zlib通用压缩库，libpng 的底层依赖libpngPNG 编码/解码，负责将量化后的调色板写入 PNG 文件libimagequant核心量化算法，将 RGBA 图像减色为 256 色调色板（与 tinypng 同类算法）二、Windows (MinGW) 配置2.1 前置要求Qt（含 MinGW 工具链，如 mingw1310_64）CMake 3.16+（https://cmake.org/download/）Git确保 MinGW 在 PATH 中，在 cmd 执行：set PATH=C:\Qt\Tools\mingw1310_64\bin;%PATH%⚠️ 重要：后续所有编译步骤必须在无空格路径下进行。如果你的用户目录包含空格（如 C:\Users\Marco Nie），请在 C:\ 根目录下建立工作目录。mkdir C:\build_libs
+cd C:\build_libs2.2 编译 zlibcd C:\build_libs
+
+git clone https://github.com/madler/zlib.git --branch v1.3.1 --depth 1
+cd zlib
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DBUILD_SHARED_LIBS=OFF ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/zlib
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\zlib\
+  include\   ← zlib.h, zconf.h
+  lib\       ← libzlibstatic.a2.3 编译 libpngcd C:\build_libs
+
+git clone https://github.com/pnggroup/libpng.git --branch v1.6.43 --depth 1
+cd libpng
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DPNG_SHARED=OFF ^
+  -DPNG_STATIC=ON ^
+  -DPNG_TESTS=OFF ^
+  -DZLIB_ROOT=C:/build_libs/third_party/zlib ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/libpng
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\libpng\
+  include\   ← png.h, pngconf.h, pnglibconf.h
+  lib\       ← libpng16.a2.4 编译 libimagequantlibimagequant 2.17+ 已用 Rust 重写，MinGW 下需使用最后一个纯 C 版本 2.12.6，该版本没有 CMakeLists.txt，直接用 gcc 手动编译。cd C:\build_libs
+
+git clone https://github.com/ImageOptim/libimagequant.git ^
+  --branch 2.12.6 --depth 1 libimagequant_c
+
+cd libimagequant_c
+
+:: 编译所有源文件
+gcc -c -O3 -std=c99 -ffast-math ^
+  libimagequant.c blur.c kmeans.c mediancut.c mempool.c nearest.c pam.c
+
+:: 打包静态库
+ar rcs libimagequant.a ^
+  libimagequant.o blur.o kmeans.o mediancut.o mempool.o nearest.o pam.o
+
+:: 手动安装
+mkdir C:\build_libs\third_party\libimagequant\include
+mkdir C:\build_libs\third_party\libimagequant\lib
+
+copy libimagequant.h C:\build_libs\third_party\libimagequant\include\
+copy libimagequant.a C:\build_libs\third_party\libimagequant\lib\
+
+cd ..安装结果：C:\build_libs\third_party\libimagequant\
+  include\   ← libimagequant.h
+  lib\       ← libimagequant.a2.5 复制到项目目录将编译好的库复制到你指定的目录，例如 C:\Users\Marco Nie\Library\imageprocess：xcopy /E /I C:\build_libs\third_party\zlib ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\zlib&quot;
+
+xcopy /E /I C:\build_libs\third_party\libpng ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libpng&quot;
+
+xcopy /E /I C:\build_libs\third_party\libimagequant ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libimagequant&quot;最终目录结构：C:\Users\Marco Nie\Library\imageprocess\
+  zlib\
+    include\
+    lib\
+  libpng\
+    include\
+    lib\
+  libimagequant\
+    include\
+    lib\2.6 配置 .pro 文件（Windows 部分）win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}三、macOS (Apple Silicon) 配置3.1 前置要求Homebrew（https://brew.sh）Qt for macOS3.2 安装依赖brew install libpng zlib libimagequant安装路径（Apple Silicon 固定为 /opt/homebrew/opt/）：库路径libpng/opt/homebrew/opt/libpngzlib/opt/homebrew/opt/zliblibimagequant/opt/homebrew/opt/libimagequantIntel Mac 的 Homebrew 前缀为 /usr/local/opt/，将下方路径中的 /opt/homebrew 替换为 /usr/local 即可。3.3 配置 .pro 文件（macOS 部分）macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}注意：macOS 下链接名与 Windows 不同：libpng 是 -lpng（不带版本号）zlib 是 -lz（不是 -lzlibstatic）四、完整 .pro 配置win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}
+
+macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}
+
+HEADERS += src/image_compress.h
+SOURCES += src/image_compress.cpp五、常见问题错误信息原因解决方法cannot find -lpng16库名不匹配检查 lib\ 下实际文件名，改为对应的 -lpng 或 -lpng16undefined reference to inflatezlib 未链接确认 -lzlibstatic 在 LIBS 中且在 -lpng16 之后png.h: No such file or directoryINCLUDEPATH 路径错误核对实际头文件路径与 .pro 中配置是否一致Z_FILTERED undeclared缺少 zlib 头文件在 image_compress.cpp 顶部添加 #include &lt;zlib.h&gt;CMake 路径含空格报错MinGW windres 不支持空格路径在无空格路径（如 C:\build_libs）下编译libimagequant clone 后无 .c 文件拉取到了 Rust 重写版本明确指定 --branch 2.12.6</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Windows-11.html">
+<title>Windows 11 安装绕过登录微软账户</title>
+<link>https://blog.niekun.net/archives/Windows-11.html</link>
+<dc:date>2026-01-21T05:13:39+00:00</dc:date>
+<description>在 Windows 11 安装过程中，按下 Shift + F10 组合键打开命令提示符，输入start ms-cxh:localonly，即可直接创建本地账户，而且无需重启设备，无需先跳过联网步骤。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/sentinel.html">
+<title>sentinel 加密锁应用</title>
+<link>https://blog.niekun.net/archives/sentinel.html</link>
+<dc:date>2025-10-10T06:03:00+00:00</dc:date>
+<description>最近使用 sentinel 的加密狗对软件进行加密，整个操作流程还是有一定门槛的，下面对安装到配置进行简要介绍。下载及安装 sentinel LDK官网下载地址：Sentinel-LDK_SDK备用下载：Sentinel-LDK选择下载最新的 sdk 和升级包：runtime 包用于客户端安装：安装最新版 SDK 及升级包，安装过程中注意选择本地模式的 EMS：配置主锁和产品启动程序前，插入 master 主锁和一个测试用的子锁。安装完成后启动 LDK，点击进入 master 主锁向导：初始默认用户名和密码都是：admin，按照提示下载需要的各种 API 支撑库文件：注意此处的文件就是主锁的开发商代码文件：开发商代码文件存放在用户目录下：Documents\Thales\Sentinel LDK 10.0\VendorCodes。二次开发需要用的 API 库文件存放在用户目录下：Documents\Thales\Sentinel LDK 10.0\API\Licensing。主锁 API 相关文件下载完成后，点击 LDK-EMS 进入管理界面：初始默认用户名和密码都是：admin，登录后会提示你需要修改密码。目录栏中切换到上面主锁向导中定义的开发商代码文件名，默认的 demoma 文件是一个用于测试的虚拟主锁文件：sentinel 的授权逻辑是：定义产品，唯一的 ID 号每个产品都可以有多个功能，每个功能配置唯一的 ID 号sentinel 的加密锁最终是通过功能 ID 号来识别是否授权而不是产品号所以我们即使有多个软件产品，每个软件产品有多个不同的功能块要授权，不同产品之间的功能块ID也需要不同，这样就不会出错了。我们做一个示例来说明如何定义一个产品。假设我们的产品名称为 EnveloGrinding，我们定义一个 login 的功能，用于软件登录的验证。进入功能选项卡，注意切换开发号到当前主锁的开发商代码名称，点击新功能选项，设置功能名称，以及唯一的功能 ID 号：点击确认后，此功能就在功能列表中了。然后进入产品选项卡，同样切换开发号到当前主锁的开发商代码，点击新产品：设置唯一的产品名称和 ID 号，在页面下方点击添加功能按钮，选择刚才创建的 login 功能：因为登录功能授权属于最基本的软件授权，所以这里选择此产品总是包含，如果其他更多的功能需要选择性的添加到产品，可以选择可以排除选项，这样再授权的时候就可以灵活组合授权哪些功能。点击另存为完成后，这个产品就定义成功了。此时我们给加密锁进行授权，将这个产品写入加密锁中。首选我们添加客户信息，也就是这个加密狗最终是交付给谁使用的，用于后期管理维护。客户选项卡点击新客户按钮：设置好所有信息后点击保存即可。点击授权选项卡，切换到正确的开发号后，点击新授权：首先在客户栏输入建立好的客户名称，这里不需要写全部字符，点击旁边的搜索图标，弹窗中点击搜索即可自动提取完整的客户信息。然后在下方点击添加产品，在弹窗中选择需要授权的产品即可：点击生成按钮进入最后的流程：如果已经插入了加密锁，此时会自动识别到下方的框里，选择一个加密锁，点击烧制即可将此产品授权写入加密锁中：以上就完成了基本的操作流程，此时加密锁已经授权了此产品中对应功能ID的授权。后续编程中需要对此功能 ID 进行检测，如果匹配即可验证成功。同时需要开发商代码 VendorCodes。Vendor ID 与 Key ID 的辨析（常见误区）在实际使用中，如果公司先后购买过不止一把主锁，很容易产生一个疑惑：明明代码里只写死了一份 vendor code，为什么用另一把主锁配出来的加密锁也能验证通过？而一旦手动改动 vendor code，两把主锁配出的锁又同时全部失效？原因在于 Sentinel 的验证体系里存在两个完全不同的编号，很容易被混淆：Vendor ID：Thales 分配给开发商账号的唯一编号，通常是 5~6 位数字。hasp_login() 真正验证的就是这个编号——vendor code 本质上是"能否证明自己属于某个 Vendor ID"的加密凭证，跟具体哪一把物理狗无关。同一家公司名下的所有主锁，只要是同一个开发商账号，Vendor ID 就是完全一致的。Key ID：每一把物理狗自身的唯一序列号，也叫 HASP ID，一长串数字，每把狗天生都不一样，哪怕属于同一个 Vendor ID 也各不相同。这个编号只用于精确定位某一把具体的狗（比如生成 C2V/V2C 文件、离线更新时），跟登录验证逻辑无关。在 ACC 的 Sentinel Keys 页面里，两者分别显示在不同列：Vendor 列：显示「供应商名称 + (Vendor ID)」，例如 WOKEZ (10XXXX)。对于主锁/开发者锁，这一列展示的就是 Batch Code 和 Vendor ID。Key ID 列：显示这把狗自己的物理序列号，一长串数字，每把都不同。如果两把主锁的 Vendor ID 一致（Vendor 列括号里的数字相同），说明它们本来就属于同一个开发商账号，用其中任意一份 vendor code 都能验证通过是正常现象，不用纠结「到底该用哪一份」。如何屏蔽 EMS 里默认的 demoMA 测试主锁新装的 EMS 环境里，除了自己的开发商批次（比如上面的 WOKEZ）之外，通常还会看到一个默认的 demoMA。这是 Sentinel LDK-EMS 内置的测试批次码，用 admin 账号是没办法直接卸载或删除的——只有在安装阶段选择 Advanced 安装方式并主动跳过 demoMA 数据写入，才能避免它出现；已经装好的环境事后无法彻底清除这部分数据。比较实用的做法是新建一个用户，角色选择 Batch Code Admin，并只勾选自己的开发商批次（比如 WOKEZ）。这个角色的权限和 admin 基本一致，产品、功能、客户、授权等操作都能正常做，唯一区别是它只能看到/操作自己被授权访问的批次，不会显示 demoMA。以后日常操作直接用这个新建的账号登录即可，界面清爽很多，不用每次都面对一堆自带的示例数据。加密锁授权更新如果需要对一个已经授权过的加密锁进行上面介绍的常规方式进行二次授权，会产生的现象是：以前老的授权功能 ID 依然可用，新的授权功能 ID 也可用。如果需要擦除老的授权，需要进行以下操作。点击新授权按钮后，选择保护锁更新，然后点击下方的查找按钮：点击锁ID，点击查找，在列表中选择需要更新的加密锁，然后点击添加到列表，然后点击确认即可：点击添加产品，选择当前需要更新的产品，然后点击生成：在弹窗中选择应用更新前清除锁，点击生成：此时会显示已生成 V2CP 文件，点击下载 V2CP 文件到本地：此时我们需要手动将此文件刷入加密锁中。点击进入控制管理中心：更新/依附栏选择下载的 V2CP 文件：点击应用文件可以将新授权刷入加密锁中。数据库备份与恢复EMS 数据库存放则产品/功能/授权/用户等重要信息，如果 ems 是本地模式则卸载软件或重装系统后数据就会丢失，所以定期备份数据很重要。官方教程：https://supportportal.thalesgroup.com/csm?sys_kb_id=52bcd4861b134850f12064606e4bcbca&id=kb_article_view&sysparm_rank=5&sysparm_tsqueryId=df79bdcd3be07614381ecfaf55e45aac&sysparm_article=KB0021094#2首先需要安装微软的 SQL Server Management Studio (ssms)，官网地址：https://learn.microsoft.com/zh-cn/ssms/install/install，目前最新版为 ssms21。运行安装包后根据提示安装即可，如果安装失败，可能是系统缺少 Visual C++ runtime 库，需要自行手动安装以下。下载地址：https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist安装 ssms 完成后即可启动 SQL Server Management Studio 应用程序，点击 connect object explorer：点击 browse 选择 emsdatabase：下方会自动填入相关信息，authentication 选择 sql server authentication，用户名为 sa，密码为 DBA!sa@EMSDB123,可选保存密码方便下次直接访问，encrypt 选择 optional，设置完成后点击 connect 连接：备份进入数据后，打开 databases，在 EMSDB 右键选择 task - backup：在 general 选项卡按照图片设置，然后点击 add 按钮添加备份文件地址：media option 中可以设置验证备份：设置完成后就可以直接按 ok 键备份了。恢复恢复方式也很简单，在 EMSDB 右键选择 task - restore - database：general 栏选择 device，然后点击按钮添加备份文件地址：在弹窗中点击 add 添加需要恢复的备份文件地址，完成后点击 ok 退出：此时就会显示从备份文件中读取到的数据库信息，在下方勾选需要恢复的数据库：这里需要注意的是，恢复 EMSDB 数据库需要先停止 EMS Service，否则会提示恢复失败。首先 win+R 弹出运行框，然后输入 Services.msc 并确认，打开服务窗口，在其中找到 Sentinel LDK-EMS Service 右键选择 stop 即可关闭此服务：关闭后回到 ssms，执行 ok 即可恢复此数据库：恢复完成后，需要重新启动 EMS Service 服务，同样的在 Sentinel LDK-EMS Service 服务右键选择 start 即可。以上就是 sentinel 加密锁的基本使用方法。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/dumpbin-dll.html">
+<title>使用 dumpbin 检测 dll 文件中包含的函数</title>
+<link>https://blog.niekun.net/archives/dumpbin-dll.html</link>
+<dc:date>2025-10-10T05:12:09+00:00</dc:date>
+<description>dumpbin 是微软 Visual Studio 工具集 自带的一个命令行工具，用于分析可执行文件（.exe、.dll、.obj、.lib）内部结构。dumpbin 位于 Visual Studio 工具链中，一般路径如下：C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\&lt;version&gt;\bin\Hostx64\x64\dumpbin.exe
+要使用它，可以通过以下方式：打开 “Developer Command Prompt for VS 2022”（开发者命令提示符），该环境自动配置好 PATH；然后在命令行中直接输入：  dumpbin /?如果能看到帮助信息，说明环境已正确配置。查看 DLL 的导出函数dumpbin /exports your.dll
+输出说明：Microsoft (R) COFF/PE Dumper Version 14.42.34433.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file C:\Users\Marco Nie\TEST.dll
+
+File Type: DLL
+
+  Section contains the following exports for hasp_windows_x64_107043.dll
+
+    00000000 characteristics
+    68DB892A time date stamp Tue Sep 30 15:39:22 2025
+        0.00 version
+           1 ordinal base
+          79 number of functions
+          79 number of names
+
+ordinal hint RVA      name
+      1    0 00001000 MyFunctionA
+      2    1 00002000 MyFunctionB
+
+  Summary
+
+       A1000 .data
+        D000 .pdata
+      133000 .rdata
+        6000 .reloc
+        1000 .rsrc
+      483000 .textordinal：函数序号name：导出函数名（重点）RVA：函数在文件中的相对虚拟地址用途：验证 DLL 是否正确导出了接口，比如你加密或封装的 DLL 是否暴露了预期的函数。如果想要检测是否包含特定名称的函数可以过滤结果：dumpbin /exports your.dll  | findstr str111
+以上指令会输出包含 str111 的行。查看 DLL 依赖的其他库dumpbin /imports your.dll
+这会列出该 DLL 引用的其他 DLL（比如 KERNEL32.dll, USER32.dll 等）。查看 DLL 架构（32位 / 64位）dumpbin /headers your.dll | findstr machine
+输出示例：14C machine (x86)
+8664 machine (x64)查看完整头部信息（详细模式）dumpbin /all your.dll &gt; result.txt
+这样可以把所有信息输出到文件中慢慢查看，包括节区、符号、导入表、导出表、资源等。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Cython-python.html">
+<title> 使用 Cython 对 python 代码加密打包</title>
+<link>https://blog.niekun.net/archives/Cython-python.html</link>
+<dc:date>2025-08-14T08:10:00+00:00</dc:date>
+<description>目前我在使用 cx_Freeze 对 python 程序打包成可执行文件，但是 cx_Freeze 的核心功能是将 Python 脚本、Python 解释器以及所有依赖的库文件打包到一个独立的可执行文件（如 Windows 下的 .exe 文件）或一个包含所有文件的目录中。打包后的文件中包含的是 Python 的字节码 .pyc 文件，这个文件是可以被反编译回近似的源代码的。通过使用 Cython 将 Python 源代码编译成 C 语言，然后再生成本地二进制文件（.pyd）。然后正常使用 cx_Freeze 打包，这样做可以极大地提高代码的保护级别，防止被轻易逆向。安装必要的 Python 包需要安装 Cython 和 Numpy，在终端或命令行中运行：pip install Cython numpy
+安装 C/C++ 编译器Cython 将 Python 代码转换成 C 代码，但最终需要一个 C 编译器来将 C 代码编译成机器码。这是最关键的一步。对于 Windows 用户：访问 Visual Studio 下载页面：https://visualstudio.microsoft.com/zh-hans/downloads/。在 "Tools for Visual Studio" (所有下载 -&gt; Visual Studio 工具) 中找到并下载 "Build Tools for Visual Studio"。运行安装程序，在 "工作负荷" 标签页中，勾选 "使用 C++ 的桌面开发"。点击安装。安装完成后，您可能需要重启电脑。对于 macOS 用户：打开终端并运行 xcode-select --install。这会安装苹果的命令行开发者工具，其中包含了 Clang 编译器。对于 Linux 用户 (例如 Ubuntu/Debian)：打开终端并运行 sudo apt update &amp;&amp; sudo apt install build-essential。修改 setup.py 文件如果项目目录结构如下：/my_project
+    |-- main.py           # 你的主程序文件
+    |-- /src              # 你的其他模块目录
+    |   |-- func1.py
+    |   |-- func2.py
+    |-- setup.py            # cx_Freeze 的配置文件根据以上目录结构，下面是一个配置文件示例：from cx_Freeze import setup, Executable
+import sys, os, io
+
+# =============================================================================
+# Cython 自动化编译集成
+# =============================================================================
+try:
+    from Cython.Build import cythonize
+    from setuptools import Extension
+    import numpy
+except ImportError:
+    print(&quot;\n[错误] 缺少必要的库。请先安装 Cython 和 Numpy:&quot;)
+    print(&quot;pip install Cython numpy&quot;)
+    sys.exit(1)
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding=&#039;utf-8&#039;)  # 修复非中文系统打包时报错
+
+# 增加递归调用深度限制
+sys.setrecursionlimit(1500)
+
+# 定义相关路径
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+ENTRY_POINT = &quot;main.py&quot;
+
+# 检查是否为打包命令
+build_commands = {&quot;build&quot;, &quot;bdist_msi&quot;, &quot;bdist_dmg&quot;, &quot;bdist_mac&quot;}
+is_building = any(cmd in sys.argv for cmd in build_commands)
+
+# --- Cython 编译配置 ---
+# 此函数会自动查找 src 目录下的所有 .py 文件并准备将它们编译
+def find_extensions_to_compile(dir_path=&quot;src&quot;):
+    &quot;&quot;&quot;Find all .py files to be compiled by Cython.&quot;&quot;&quot;
+    extensions = []
+    # 添加 numpy 的头文件路径，这对于编译依赖 numpy/scipy 的代码至关重要
+    numpy_include = numpy.get_include()
+    
+    for root, dirs, files in os.walk(dir_path):
+        for file in files:
+            # 我们只编译 .py 文件，但跳过 __init__.py 文件
+            if file.endswith(&quot;.py&quot;) and file != &quot;__init__.py&quot;:
+                path = os.path.join(root, file)
+                
+                # 检查文件是否包含 numba 相关代码
+                try:
+                    with open(path, &#039;r&#039;, encoding=&#039;utf-8&#039;) as f:
+                        content = f.read()
+                    
+                    # 检查是否包含 numba 关键字
+                    numba_keywords = [&#039;from numba import&#039;, &#039;import numba&#039;, &#039;@jit&#039;, &#039;@njit&#039;, &#039;numba.jit&#039;, &#039;numba.njit&#039;]
+                    has_numba = any(keyword in content for keyword in numba_keywords)
+                    
+                    if has_numba:
+                        print(f&quot;--- 跳过包含 Numba 的文件: {path}&quot;)
+                        continue
+                        
+                except Exception as e:
+                    print(f&quot;--- 警告：无法读取文件 {path}: {e}&quot;)
+                    continue
+                
+                # 将文件路径转换为模块路径，例如 &quot;src/library/function.py&quot; -&gt; &quot;src.library.function&quot;
+                module_path = path.replace(os.sep, &#039;.&#039;)[:-3]
+                
+                extensions.append(
+                    Extension(
+                        name=module_path,
+                        sources=[path],
+                        include_dirs=[numpy_include]  # 包含 numpy 头文件
+                    )
+                )
+    print(f&quot;--- 找到 {len(extensions)} 个模块准备通过 Cython 编译...&quot;)
+    return extensions
+
+# 仅在执行打包命令时才准备编译列表
+extensions = []
+if is_building:
+    # 1. 编译 src 目录下的所有模块（自动排除包含 numba 的文件）
+    extensions.extend(find_extensions_to_compile(&quot;src&quot;))
+
+# =============================================================================
+# cx_Freeze 配置
+# =============================================================================
+
+# 安装依赖
+build_exe_options = {
+    &quot;packages&quot;: [
+    ],
+    &quot;excludes&quot;: [&quot;email&quot;] + [ext.name for ext in extensions], # 排除 Cython 编译的模块
+    &quot;include_files&quot;: [
+        ],
+    &quot;includes&quot;: [],
+
+    # 性能优化选项
+    &quot;optimize&quot;: 2,           # 使用Python优化
+    &quot;include_msvcr&quot;: False,  # 不包含MSVC运行库
+}
+
+# 基础设置
+base = &quot;Win32GUI&quot; if sys.platform == &quot;win32&quot; else None
+
+directory_table = [
+    # ...
+]
+
+shortcut_table = [
+    (
+        # ...
+    ),
+    (
+        # ...
+    ),
+]
+
+msi_data = {&quot;Directory&quot;: directory_table, &quot;Shortcut&quot;: shortcut_table}
+
+bdist_msi_options = {
+    # ...
+}
+
+executables = [
+    Executable(
+        &quot;main.py&quot;, # 入口文件 依然调用 py 程序，cx_Freeze 会自动识别并使用加密后的文件
+        # ...
+    )
+]
+
+# =============================================================================
+# 清理函数
+# =============================================================================
+def cleanup_generated_files():
+    &quot;&quot;&quot;查找并删除由 Cython 生成的所有 .c 文件。&quot;&quot;&quot;
+    print(&quot;\n--- 正在运行清理程序：删除生成的 C 文件... ---&quot;)
+    for root, dirs, files in os.walk(ROOT_DIR):
+        # 避免进入不相关的目录
+        if &#039;myenv&#039; in root or &#039;.git&#039; in root or &#039;build&#039; in root or &#039;dist&#039; in root:
+            continue
+        for file in files:
+            if file.endswith(&#039;.c&#039;):
+                file_path = os.path.join(root, file)
+                try:
+                    os.remove(file_path)
+                    print(f&quot;--- 已删除: {file_path}&quot;)
+                except OSError as e:
+                    print(f&quot;--- 删除失败 {file_path}: {e}&quot;)
+
+# =============================================================================
+# 执行打包
+# =============================================================================
+
+try:
+    setup(
+        # ...
+        # 关键步骤：将找到的 .py 文件交给 Cythonize 进行编译
+        ext_modules=cythonize(
+            extensions,
+            compiler_directives={&#039;language_level&#039;: &quot;3&quot;}, # 使用 Python 3 语法
+            quiet=True # 减少不必要的编译输出
+        ) if is_building else [],
+        # ...
+    )
+finally:
+    # 只有在执行打包命令时才运行清理
+    if is_building:
+        cleanup_generated_files()运行打包命令打包即可，如：python setup.py bdist_msi
+检查加密情况安装完成后，进入安装路径的 Lib/site-packages 文件夹，会看到加密后的 .pyd 程序文件。.pyd 文件是 Windows 上的二进制动态链接库，本质上和 .dll 文件一样。如果加密失败：会在这里看到 .pyc 文件或者甚至原始的 .py 文件。Python 包管理约定：普通 .py 文件：可以放在任何 Python 路径中扩展模块 (.pyd/.so)：通常放在 site-packages 中cx_Freeze 的处理逻辑：检测到 .py 文件 → 按源码文件处理 → 保持原目录结构检测到 .pyd 文件 → 按扩展模块处理 → 放入 site-packages模块导入机制：import src.library.functionPython 会在 sys.path 中搜索不加密：在 lib/ 中找到 src/library/function.pyc加密：需要在 lib/site-packages/ 中找到 src/library/function.pyd由于加密后的文件路径发生了变化，打包后访问加密后文件中的内容会报错，所以主程序在索引时需要特殊处理加密打包后的路径问题，主程序中使用下面函数可以自适应：# 路径修正代码
+def fix_module_paths():
+    &quot;&quot;&quot;修正打包后的模块搜索路径&quot;&quot;&quot;
+    if getattr(sys, &#039;frozen&#039;, False):  # 检查是否为打包后的可执行文件
+        # 获取可执行文件所在目录
+        base_dir = os.path.dirname(sys.executable)
+        
+        # 可能的src模块路径
+        possible_src_paths = [
+            os.path.join(base_dir, &#039;lib&#039;, &#039;site-packages&#039;),  # Cython编译后的位置
+            os.path.join(base_dir, &#039;lib&#039;),  # 标准位置
+            base_dir,  # 根目录
+        ]
+        
+        # 将可能的路径添加到sys.path的开头
+        for path in possible_src_paths:
+            if os.path.exists(path) and path not in sys.path:
+                sys.path.insert(0, path)
+                print(f&quot;Added to Python path: {path}&quot;)
+        
+        # 特别检查src目录
+        src_path = os.path.join(base_dir, &#039;lib&#039;, &#039;site-packages&#039;, &#039;src&#039;)
+        if os.path.exists(src_path):
+            parent_dir = os.path.dirname(src_path)
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+                print(f&quot;Added src parent directory to Python path: {parent_dir}&quot;)
+
+# 执行路径修正
+fix_module_paths()以上函数中，会将 src 文件夹下的函数库进行正确的索引。Numba 装饰器问题Numba 不兼容 Cython 编译后的函数。Numba 装饰器（如 @jit, @njit）期望装饰的是普通的 Python 函数，但 Cython 编译后生成的是 cython_function_or_method 类型，导致 Numba 无法识别。需要将包含 numba 的文件排除出编译列表。具体可见 setup.py 函数。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html">
+<title>DeepWiki-open 生成项目 wiki</title>
+<link>https://blog.niekun.net/archives/DeepWiki-open-wiki-1.html</link>
+<dc:date>2025-07-17T05:57:00+00:00</dc:date>
+<description>DeepWiki-open可以为任何GitHub、GitLab或BitBucket代码仓库自动创建美观、交互式的Wiki，也可以提交本地仓库给它。试用了下发现效果还不错，可以作为项目开发指南。GitHub 主页：https://github.com/AsyncFuncAI/deepwiki-open使用方法很简单，clone 仓库代码，配置环境变量，启动前端和后端服务即可。下载git clone https://github.com/AsyncFuncAI/deepwiki-open.git
+cd deepwiki-open配置需要提前准备 openai 和 google ai 的 api key。Google AI api：https://makersuite.google.com/app/apikeyopenai api：https://platform.openai.com/api-keys根目录新建 .env 文件，配置环境变量：GOOGLE_API_KEY=XXXXXXXXXXXXXXXXXXX
+OPENAI_API_KEY=XXXXXXXXXXXXXXXXXXX
+OPENROUTER_API_KEY=XXXXXXXXXXXXXXXOPENROUTER_API_KEY 是可选项，其他两个是必须项。注意，我测试发现免费帐户的 openai api 在生成少数几个 wiki 后就会报错超出最大请求次数 error。而且项目必须使用 OpenAI-Compatible Embedding Models，解决方法是给 openai 充值或者使用 Alibaba Qwen 的 openai 兼容 api。alibaba qwen api：https://bailian.console.alibabacloud.com/?tab=app#/api-key如果使用其他 OpenAI-Compatible Embedding Models 需要将环境变量的 OPENAI_API_KEY 改为此第三方的 api key，然后在环境变量指定 OPENAI_BASE_URL：OPENAI_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1  #示例中是 alibaba cloud 的 base url 地址然后修改 api/config/embedder.json 为：{
+  &quot;embedder&quot;: {
+    &quot;client_class&quot;: &quot;OpenAIClient&quot;,
+    &quot;initialize_kwargs&quot;: {
+      &quot;api_key&quot;: &quot;${OPENAI_API_KEY}&quot;,
+      &quot;base_url&quot;: &quot;${OPENAI_BASE_URL}&quot;
+    },
+    &quot;batch_size&quot;: 10,
+    &quot;model_kwargs&quot;: {
+      &quot;model&quot;: &quot;text-embedding-v3&quot;,
+      &quot;dimensions&quot;: 512,
+      &quot;encoding_format&quot;: &quot;float&quot;
+    }
+  },
+  &quot;embedder_ollama&quot;: {
+    &quot;client_class&quot;: &quot;OllamaClient&quot;,
+    &quot;model_kwargs&quot;: {
+      &quot;model&quot;: &quot;nomic-embed-text&quot;
+    }
+  },
+  &quot;retriever&quot;: {
+    &quot;top_k&quot;: 20
+  },
+  &quot;text_splitter&quot;: {
+    &quot;split_by&quot;: &quot;word&quot;,
+    &quot;chunk_size&quot;: 350,
+    &quot;chunk_overlap&quot;: 100
+  }
+}使用安装环境并启动后端，提前建立一个虚拟环境：python -m venv .venv
+.venv\Scripts\activate
+
+pip install -r api/requirements.txt
+python -m api.main安装环境并启动前端：npm install
+npm run dev然后打开浏览器访问：http://localhost:3000，即可按照提示操作。</description>
+</item>
+</rdf:RDF>

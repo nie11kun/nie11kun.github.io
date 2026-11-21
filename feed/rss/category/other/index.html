@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/category/other/">
+<title>Marco Nie - other</title>
+<link>https://blog.niekun.net/category/other/</link>
+<description>杂文</description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/3116.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/3090.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Windows-11.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/dumpbin-dll.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/docker-compose.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/3014.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Linux-warp.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2999.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/pip.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/nftables.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/3116.html">
+<title>OpenWrt 彻底关闭 IPv6 教程</title>
+<link>https://blog.niekun.net/archives/3116.html</link>
+<dc:date>2026-11-14T04:24:45+00:00</dc:date>
+<description>适用版本：OpenWrt 21.02 / 22.03 / 23.05 / 24.10（含 OpenClash 等代理插件的环境）操作方式：SSH 登录路由器执行命令，或在 LuCI 网页界面中操作目录为什么要分层关闭第 1 步：关闭 WAN/LAN 接口的 IPv6第 2 步：关闭 RA / DHCPv6 / NDP 并停用 odhcpd第 3 步：DNS 过滤 AAAA 记录第 4 步：内核层面禁用 IPv6第 5 步：代理插件中关闭 IPv6（OpenClash）第 6 步：重启服务并验证LuCI 网页操作对照常见输出说明如何恢复 IPv6为什么要分层关闭OpenWrt 中的 IPv6 涉及多个环节，只关其中一个往往不彻底：层面负责的事不关的后果WAN 接口从运营商获取 IPv6 地址/前缀路由器仍拿到公网 IPv6LAN 接口 + odhcpd向局域网设备下发 IPv6 地址客户端仍获得 240x: / fdxx: 地址内核协议栈IPv6 本身的运行接口仍可自动生成 IPv6 地址DNS返回 AAAA（IPv6）记录客户端尝试 IPv6 连接，导致网页卡顿代理插件插件自身的 IPv6 代理/解析插件绕过上述设置重新引入 IPv6第 1 步：关闭 WAN/LAN 接口的 IPv6uci delete network.wan6                 # 删除 WAN6 接口（不存在会提示 Entry not found，可忽略）
+uci set network.wan.ipv6=&#039;0&#039;            # PPPoE 拨号时阻止自动获取 IPv6
+uci set network.lan.ipv6=&#039;0&#039;
+uci delete network.lan.ip6assign        # 取消 LAN 的 IPv6 前缀分配
+uci delete network.globals.ula_prefix   # 删除 ULA 前缀（fdxx::/48）
+uci commit network第 2 步：关闭 RA / DHCPv6 / NDP 并停用 odhcpduci set dhcp.lan.ra=&#039;disabled&#039;
+uci set dhcp.lan.dhcpv6=&#039;disabled&#039;
+uci set dhcp.lan.ndp=&#039;disabled&#039;
+uci delete dhcp.wan6 2&gt;/dev/null
+uci commit dhcp
+
+/etc/init.d/odhcpd stop
+/etc/init.d/odhcpd disable第 3 步：DNS 过滤 AAAA 记录uci set dhcp.@dnsmasq[0].filter_aaaa=&#039;1&#039;   # 23.05 及以上版本支持
+uci commit dhcp旧版本若无此选项，可在 /etc/dnsmasq.conf 中加入 filter-AAAA（需 dnsmasq 2.87+）。第 4 步：内核层面禁用 IPv6cat &gt;&gt; /etc/sysctl.conf &lt;&lt;&#039;EOF&#039;
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+EOF
+sysctl -p⚠️ 这里没有禁用 lo（回环接口）的 IPv6。部分服务（如 uhttpd 及某些插件）会监听 ::1，禁用后可能导致异常。第 5 步：代理插件中关闭 IPv6（OpenClash）如果路由器装了 OpenClash 等代理插件，DNS 会被插件接管（Fake-IP 模式下解析结果为 198.18.x.x），必须在插件中同步关闭 IPv6。进入 服务 → OpenClash → 插件设置：IPv6 设置 标签页☐ IPv6 流量代理 —— 取消勾选☐ 允许 IPv6 类型 DNS 解析 —— 取消勾选DNS 设置 标签页本地 DNS 劫持：保持 使用 Dnsmasq 转发（这样第 3 步的 AAAA 过滤与插件设置同时生效）点击 保存配置 → 应用配置如直接编辑 mihomo（Clash Meta）配置文件，设置顶层 ipv6: false 以及 dns: 下的 ipv6: false。第 6 步：重启服务并验证/etc/init.d/network restart
+/etc/init.d/dnsmasq restart
+# 建议最后执行一次 reboot，确认设置重启后依然生效验证 1：路由器无 IPv6 地址ip -6 addr期望输出（只剩回环地址）：1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 state UNKNOWN qlen 1000
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever验证 2：路由器可正常上网ping -c 3 223.5.5.5验证 3：DNS 只返回 IPv4nslookup www.qq.com 127.0.0.1结果中只应出现 IPv4 地址（使用 OpenClash Fake-IP 时为 198.18.x.x），不应出现 IPv6 地址。验证 4：客户端无 IPv6 地址客户端先断开网络再重连，然后检查：系统命令Windowsipconfig /allmacOSifconfigLinuxip -6 addr✅ 只有 fe80:: 开头的地址 —— 正常（链路本地地址，系统自动生成，无法上网）❌ 出现 240x: 或 fdxx: 开头的地址 —— IPv6 仍未关干净macOS 上 utun*、awdl0、llw0 等接口的 fe80:: 地址属于系统服务（iCloud、AirDrop、VPN 等），与路由器无关，忽略即可。LuCI 网页操作对照位置操作网络 → 接口删除 WAN6网络 → 接口 → WAN → 高级设置“获取 IPv6 地址”设为 禁用网络 → 接口 → LAN → 高级设置“IPv6 分配长度”设为 禁用网络 → 接口 → 全局网络选项清空 IPv6 ULA 前缀LAN → DHCP 服务器 → IPv6 设置RA 服务 / DHCPv6 服务 / NDP 代理 全部 禁用网络 → DHCP/DNS → 高级设置勾选 过滤 IPv6 AAAA 记录服务 → OpenClash → 插件设置 → IPv6 设置取消两个 IPv6 选项常见输出说明输出含义uci: Entry not found要删除的配置项本来就不存在，可忽略udhcpc: no lease, failingdnsmasq 启动时检测局域网是否有其他 DHCP 服务器，没找到是正常情况198.18.x.xOpenClash / mihomo 的 Fake-IP 地址，属正常如何恢复 IPv6# 1. 恢复内核 IPv6
+sed -i &#039;/disable_ipv6/d&#039; /etc/sysctl.conf
+sysctl -w net.ipv6.conf.all.disable_ipv6=0
+sysctl -w net.ipv6.conf.default.disable_ipv6=0
+
+# 2. 恢复接口
+uci set network.wan6=interface
+uci set network.wan6.device=&#039;@wan&#039;
+uci set network.wan6.proto=&#039;dhcpv6&#039;
+uci delete network.wan.ipv6
+uci delete network.lan.ipv6
+uci set network.lan.ip6assign=&#039;60&#039;
+uci commit network
+
+# 3. 恢复 RA / DHCPv6
+uci set dhcp.lan.ra=&#039;server&#039;
+uci set dhcp.lan.dhcpv6=&#039;server&#039;
+uci delete dhcp.lan.ndp
+uci set dhcp.@dnsmasq[0].filter_aaaa=&#039;0&#039;
+uci commit dhcp
+/etc/init.d/odhcpd enable
+/etc/init.d/odhcpd start
+
+# 4. 重启
+reboot最后在 OpenClash 中重新勾选 IPv6 流量代理 和 允许 IPv6 类型 DNS 解析。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/3090.html">
+<title>记一次完美的家庭网络改造：弱电箱“单线复用”与透明代理排错全指南</title>
+<link>https://blog.niekun.net/archives/3090.html</link>
+<dc:date>2026-05-01T12:25:10+00:00</dc:date>
+<description>1. 改造背景与痛点家里目前的网络拓扑比较典型：核心设备：一台 6 网口的软路由（底层安装 ESXi，将 6 个网口全部分配给虚拟的 OpenWrt。其中网口 1 作为 WAN 口拨号，其余均为 LAN 口）。物理布线：门口弱电箱到客厅、卧室均只有一条网线，且客厅到卧室之间没有网线。痛点：软路由原本塞在弱电箱里，光猫网线直连软路由网口 1，网口 2 接客厅，网口 3 接卧室。但由于弱电箱空间狭小，散热成了大问题。为了解决散热，我需要将软路由挪到客厅放置。但这就面临一个死局：弱电箱到客厅只有一根网线，如果这根线用来走光猫的 WAN 数据，那客厅软路由处理好的 LAN 数据就无法传回弱电箱发给卧室了。我的终极诉求：解决散热，软路由移至客厅。绝对不改变软路由（ESXi 和 OpenWrt）端的任何内部设置（即软路由依然认为网口 1 是 WAN，网口 2/3 是 LAN）。保证千兆内网网速无损。2. 解决方案：双网管交换机“单线复用”在只有一根网线且不改动路由配置的前提下，最完美的方案是利用两台支持 802.1Q VLAN 功能的千兆网管交换机进行“单线复用”。原理解释（小白秒懂）：把那根唯一的网线想象成一条高速公路。光猫的数据（外网）和局域网的数据（内网）如果混在一起跑会乱套。交换机的作用就是给这两种数据“贴标签”。弱电箱交换机给外网数据贴上“红色标签”，内网数据贴上“蓝色标签”，一起扔上高速公路。客厅交换机收到后，把红标签撕掉交给路由器的 WAN 口，蓝标签撕掉交给路由器的 LAN 口。路由器全程只会看到没有标签的普通数据，完全察觉不到中间的复杂过程。准备工作两台 5 口千兆网管交换机（假设为交换机 A 和交换机 B）。为了方便日后管理，先用电脑直连它们，将管理 IP 修改为软路由同网段内未使用的固定 IP（例如软路由是 192.168.132.1，交换机则设为 192.168.132.2 和 192.168.132.3）。3. 详细配置步骤我们将两台交换机的 5号口 作为互联的“主干道（Trunk）”。交换机 A（放置于弱电箱）物理接线：1号口：接光猫2号口：接通往卧室的网线5号口：接通往客厅的网线（主干道）VLAN 配置（802.1Q VLAN）：新建 VLAN 10（外网用）：包含 1、5 口。1 口设为 Untagged（不带标签），5 口设为 Tagged（带标签）。新建 VLAN 20（内网用）：包含 2、5 口。2 口设为 Untagged，5 口设为 Tagged。PVID 配置：1号口 PVID 设为 102号口 PVID 设为 205号口 PVID 保持默认 1交换机 B（放置于客厅）物理接线：1号口：接软路由 网口 1（WAN）2号口：接软路由 网口 2（LAN）3、4号口：接客厅其他局域网设备（如电视机顶盒、AP面板）5号口：接墙壁网口（即弱电箱过来的主干道）VLAN 配置：新建 VLAN 10（外网用）：包含 1、5 口。1 口设为 Untagged，5 口设为 Tagged。新建 VLAN 20（内网用）：包含 2、3、4、5 口。2、3、4 口设为 Untagged，5 口设为 Tagged。PVID 配置：1号口 PVID 设为 102、3、4号口 PVID 统一设为 205号口 PVID 保持默认 1完成以上设置并接好线后，网络成功通了！软路由顺利拨号，卧室和客厅的设备都能正常上网。但是，一个诡异的暗坑出现了。4. 踩坑与排错：透明代理为何突然失效？故障现象：网络连通后，国内网站访问一切正常，但我部署在 OpenWrt 上的透明代理（dnsmasq + nftables + v2ray）失效了，所有走代理的外部链接全部连不通。在此之前（没加交换机时），这套代理配置是完美运行的。深度排查与原理分析：既然软件配置没变，问题必然出在新增的交换机这种“二层物理设备”对网络底层逻辑的影响上。最终锁定了元凶：IPv6 广播泄漏导致的代理被绕过。绝大多数家用网管交换机出厂时，所有端口默认都属于 VLAN 1（Untagged）。虽然我划分了 VLAN 10 和 VLAN 20，但如果这些端口没有从默认的 VLAN 1 中剥离，交换机底层依然存在一个相通的广播域。光猫非常喜欢向局域网发送 IPv6 的 RA（路由宣告）广播包。这些广播包顺着没清理干净的 VLAN 1 穿透了交换机，绕过软路由，直接下发给了我内网的手机和电脑。由于我的 nftables 透明代理脚本仅对 IPv4（ipv4_addr）进行了拦截和重定向，终端设备拿到光猫下发的 IPv6 地址后，访问外网时优先走了 IPv6 裸奔，直接撞墙，导致代理看似失效。终极解决办法：逻辑硬隔离进入两台交换机的 VLAN 1 设置页面，将刚才配置过 VLAN 10 和 VLAN 20 的端口（1、2、3、4、5口），全部在 VLAN 1 中设置为 Not Member（非成员）。这一步彻底切断了底层的隐形桥梁，将光猫的 IPv6 广播完美阻挡在弱电箱内。配置完成后，透明代理瞬间恢复正常工作。(注：部分交换机的 Web 管理后台默认全局监听，即便将内网端口从 VLAN 1 移出，只要访问设置好的同网段 IP，依然可以正常进入管理页面，无需强求寻找“管理 VLAN”选项。)5. 总结通过两台廉价的网管交换机，我成功将软路由移至客厅解决了散热危机，且实现了真正的“软路由零设置修改”。这次改造不仅理清了 VLAN Tagged/Untagged 的基本逻辑，更深刻体会到了二层网络广播域隔离不彻底对上层应用（如透明代理）造成的隐性破坏。希望这篇记录能帮到有同样家庭网络改造需求的朋友！</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Windows-11.html">
+<title>Windows 11 安装绕过登录微软账户</title>
+<link>https://blog.niekun.net/archives/Windows-11.html</link>
+<dc:date>2026-01-21T05:13:39+00:00</dc:date>
+<description>在 Windows 11 安装过程中，按下 Shift + F10 组合键打开命令提示符，输入start ms-cxh:localonly，即可直接创建本地账户，而且无需重启设备，无需先跳过联网步骤。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/dumpbin-dll.html">
+<title>使用 dumpbin 检测 dll 文件中包含的函数</title>
+<link>https://blog.niekun.net/archives/dumpbin-dll.html</link>
+<dc:date>2025-10-10T05:12:09+00:00</dc:date>
+<description>dumpbin 是微软 Visual Studio 工具集 自带的一个命令行工具，用于分析可执行文件（.exe、.dll、.obj、.lib）内部结构。dumpbin 位于 Visual Studio 工具链中，一般路径如下：C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\&lt;version&gt;\bin\Hostx64\x64\dumpbin.exe
+要使用它，可以通过以下方式：打开 “Developer Command Prompt for VS 2022”（开发者命令提示符），该环境自动配置好 PATH；然后在命令行中直接输入：  dumpbin /?如果能看到帮助信息，说明环境已正确配置。查看 DLL 的导出函数dumpbin /exports your.dll
+输出说明：Microsoft (R) COFF/PE Dumper Version 14.42.34433.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file C:\Users\Marco Nie\TEST.dll
+
+File Type: DLL
+
+  Section contains the following exports for hasp_windows_x64_107043.dll
+
+    00000000 characteristics
+    68DB892A time date stamp Tue Sep 30 15:39:22 2025
+        0.00 version
+           1 ordinal base
+          79 number of functions
+          79 number of names
+
+ordinal hint RVA      name
+      1    0 00001000 MyFunctionA
+      2    1 00002000 MyFunctionB
+
+  Summary
+
+       A1000 .data
+        D000 .pdata
+      133000 .rdata
+        6000 .reloc
+        1000 .rsrc
+      483000 .textordinal：函数序号name：导出函数名（重点）RVA：函数在文件中的相对虚拟地址用途：验证 DLL 是否正确导出了接口，比如你加密或封装的 DLL 是否暴露了预期的函数。如果想要检测是否包含特定名称的函数可以过滤结果：dumpbin /exports your.dll  | findstr str111
+以上指令会输出包含 str111 的行。查看 DLL 依赖的其他库dumpbin /imports your.dll
+这会列出该 DLL 引用的其他 DLL（比如 KERNEL32.dll, USER32.dll 等）。查看 DLL 架构（32位 / 64位）dumpbin /headers your.dll | findstr machine
+输出示例：14C machine (x86)
+8664 machine (x64)查看完整头部信息（详细模式）dumpbin /all your.dll &gt; result.txt
+这样可以把所有信息输出到文件中慢慢查看，包括节区、符号、导入表、导出表、资源等。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/docker-compose.html">
+<title>docker compose 配置自动更新</title>
+<link>https://blog.niekun.net/archives/docker-compose.html</link>
+<dc:date>2024-08-18T13:42:00+00:00</dc:date>
+<description>docker compose 配置文件可以很方便的配置和运行 docker 容器，手动更新容器的方法是在 yml 目录下运行以下命令：docker compose pull &amp;&amp; docker compose up -d
+可以通过在 compose 文件中设置 watchtower 来定期自动拉取最新镜像并启动容器，同时可以配置删除旧镜像和容器。在 docker-compose.yml 文件中增加以下内容：version: &#039;3&#039;
+services:
+
+  ...
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 3600 --cleanup --remove-volumes
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_REMOVE_VOLUMES=true以下是主要的配置说明：将 --interval 参数设置为 3600。这意味着 Watchtower 将每 3600 秒（即每小时）检查一次更新。--cleanup 和 WATCHTOWER_CLEANUP=true 确保在更新后清理旧的镜像。--remove-volumes 和 WATCHTOWER_REMOVE_VOLUMES=true 确保删除与旧容器关联的匿名卷。使用这个配置，Watchtower 将：每小时检查一次你的容器是否有更新如果发现更新，它会停止旧容器，启动新容器删除旧的容器和相关的匿名卷删除旧的镜像这个配置应该能满足大多数用例的需求，既能保持你的容器相对最新，又不会过于频繁地进行检查和更新操作。需要注意的是:Watchtower 只会删除它更新的容器的旧版本。它不会删除系统中的其他未使用的容器或镜像。它只删除匿名卷,不会删除命名卷。如果你想删除所有未使用的镜像(不仅仅是 Watchtower 更新的),你可能需要定期运行 docker image prune 命令。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/3014.html">
+<title>通过浏览器访问服务器指定文件内容</title>
+<link>https://blog.niekun.net/archives/3014.html</link>
+<dc:date>2024-08-14T07:58:01+00:00</dc:date>
+<description>通过 nginx 可以反代服务器指定文件，然后就可以在网页中查看文件内容。核心就是通过 alias 关联文件路径。配置文件如下：location /test.log {
+    alias /home/script/igd/app.log;
+
+    default_type text/plain;
+    add_header Content-Type &quot;text/plain; charset=utf-8&quot;;
+    charset utf-8;
+
+    # 确保不会缓存内容
+    add_header Cache-Control &quot;no-cache, no-store, must-revalidate&quot;;
+    add_header Pragma &quot;no-cache&quot;;
+    add_header Expires &quot;0&quot;;
+}location 路径替换为需要的路径。alias 设置文件实际路径。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Linux-warp.html">
+<title>服务器装 warp 解锁 chatgpt</title>
+<link>https://blog.niekun.net/archives/Linux-warp.html</link>
+<dc:date>2024-06-27T07:12:00+00:00</dc:date>
+<description>最近在使用 chatgpt 中发现 ios 端无法登录 app，网页端正常使用。提示信息为：Something went wrong. You may be connected to a disallowed ISP If youare using VPN, try disabling it. Otherwise try a different Wi-Fi network or data connection。经过查询发现是我的 vps 服务商只提供网页端 chatgpt 解锁，不支持 app 端。由于 chatgpt 服务也是通过 cloudflare 的 cdn 服务，所以通过将流量转发到 warp 来访问就可以解决问题。首先需要在服务端安装官方的 warp 命令行工具：warp-cli。官方教程：https://developers.cloudflare.com/warp-client/get-started/linux/官方手动添加包仓库教程：https://pkg.cloudflareclient.com/#ubuntu安装在命令行输入以下指令来安装第三方仓库并安装包：# Add cloudflare gpg key
+curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+
+# Add this repo to your apt repositories
+echo &quot;deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main&quot; | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+
+# Install
+sudo apt-get update &amp;&amp; sudo apt-get install cloudflare-warp配置安装好后需要注册一个新账户：warp-cli registration new
+查看当前账户信息：warp-cli registration show
+更换新的 license：warp-cli registration license xxxxx-xxxxxx-xxxxxx
+然后需要设置代理模式，可选有：warp, doh, warp+doh, dot, warp+dot, proxy, tunnel_only。我只想要它提供一个 socks5 代理端口即可，所以设置为 proxy 模式，它会在本地 40000 端口监听：warp-cli mode proxy
+启动 warp：warp-cli connect
+此时 warp 会在本地 40000 端口建立一个 sock5 代理，只需要将需要转发的流量转发到此端口即可走 warp。并且 warp 会自动配置为 Always On 模式，开机自动运行代理。查看 warp 当前配置：# warp-cli settings
+Merged configuration:
+(derived)       Always On: true
+(default)       Switch Locked: false
+(user set)      Mode: WarpProxy on port 40000
+(Not set)       WARP tunnel protocol: MASQUE
+(default)       Disabled for Wifi: false
+(default)       Disabled for Ethernet: false
+(Not set)       Resolve via: cloudflare-dns.com @ [162.159.36.1, 2606:4700:4700::1111]
+(Not set)       qlog logging: Disabled
+(default)       Onboarding: true
+(API defaults)  Exclude mode, with hosts/ips:
+  10.0.0.0/8
+  100.64.0.0/10
+  169.254.0.0/16
+  172.16.0.0/12
+  192.0.0.0/24
+  192.168.0.0/16
+  224.0.0.0/24
+  240.0.0.0/4
+  239.255.255.250/32
+  255.255.255.255/32
+  fe80::/10
+  fd00::/8
+  ff01::/16
+  ff02::/16
+  ff03::/16
+  ff04::/16
+  ff05::/16
+  fc00::/7
+
+(default)       Fallback domains:
+  intranet
+  internal
+  private
+  localdomain
+  domain
+  lan
+  home
+  host
+  corp
+  local
+  localhost
+  home.arpa
+  invalid
+  test
+(Not set)       Daemon Teams Auth: false
+(default)       Disable Auto Fallback: false
+(Not set)       Allow Updates: true查看代理是否生效：export ALL_PROXY=socks5://127.0.0.1:40000
+curl ifconfig.me代理工具转发流量服务端的配置文件需要添加和修改的地方如下：{
+    &quot;outbounds&quot;: [
+        ...
+        {
+            &quot;protocol&quot;: &quot;socks&quot;,
+            &quot;settings&quot;: {
+                &quot;address&quot;: &quot;127.0.0.1&quot;,
+                &quot;port&quot;: 40000
+            },
+            &quot;tag&quot;:&quot;socks_out&quot;
+        }
+    ],
+    &quot;router&quot;: {
+        &quot;domainStrategy&quot;: &quot;AsIs&quot;,
+        &quot;rule&quot;: [
+            ...
+            {
+                &quot;tag&quot;: &quot;socks_out&quot;,
+                &quot;geoDomain&quot;: [
+                    {
+                        &quot;code&quot;: &quot;openai&quot;,
+                        &quot;filePath&quot;: &quot;geosite.dat&quot;
+                    }
+                ],
+                &quot;domainMatcher&quot;: &quot;mph&quot;
+            }
+        ]
+    },
+    &quot;inbounds&quot;: [
+        {
+            &quot;protocol&quot;: &quot;vmess&quot;,
+            ...
+            &quot;sniffing&quot;: {
+                &quot;enabled&quot;: true,
+                &quot;destOverride&quot;: [
+                    &quot;http&quot;,
+                    &quot;tls&quot;
+                ]
+            },
+            ...注意需要安装扩展版的 geosite.dat 才有 openai 的条目：https://github.com/Loyalsoldier/v2ray-rules-dat通过访问以下网址测试是否已经解锁 ios app 端：https://ios.chat.openai.com/public-api/mobile/server_status/v1以上就是解决 chatgpt 无法访问的方法。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2999.html">
+<title>蜗杆基础知识</title>
+<link>https://blog.niekun.net/archives/2999.html</link>
+<dc:date>2024-06-24T01:51:49+00:00</dc:date>
+<description>http://www.qsjsj.com/zhinan/ptyzwgcdfljjgff.htmlhttps://domm.muzing.top/chapter_11#pu-tong-yuan-zhu-wo-gan-chuan-dong-de-ji-ben-can-shu-ji-qi-xuan-zehttps://m.cadhome.net/news/proejc/716.htmlhttp://www.qsjsj.com/zhinan/AJMDWGJYHYZWGCSJSGS.htmlhttp://www.lyfy.net/wheel/ptcwstyle.htm</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/pip.html">
+<title>修改 pip 为国内源</title>
+<link>https://blog.niekun.net/archives/pip.html</link>
+<dc:date>2024-05-30T12:02:55+00:00</dc:date>
+<description>一键替换命令：# 清华源
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 阿里源
+pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
+
+# 腾讯源
+pip config set global.index-url http://mirrors.cloud.tencent.com/pypi/simple
+
+# 豆瓣源
+pip config set global.index-url http://pypi.douban.com/simple/
+
+# 换回默认源
+pip config unset global.index-url</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/nftables.html">
+<title>nftables 使用教程</title>
+<link>https://blog.niekun.net/archives/nftables.html</link>
+<dc:date>2024-05-08T02:14:00+00:00</dc:date>
+<description>新版本的 openwrt 使用 fw4 防火墙，默认已经从 iptables 切换到了 nftables，语法有了很大的变化，下面介绍 nftables 的使用方法。路由表配置路由表是 nftables 中最顶层的容器，它管理着  chains, sets, maps, flowtables, 和 stateful objects.family 集合每个路由表都只能属于一个 family 集合，可用的 family 有：ip      监听 ipv4 的流量ip6     监听 ipv6 的流量inet    同时监听 ipv4 和 ipv6 的流量arp     监听 ARP-level 地址解析协议的流量bridge  监听 bridge 桥接流量 如交换机netdev  用于监听某个单独网卡的流量基本语法新建路由表：nft add table ip tabletest
+以上命令在 ip 集合中新建一个名称为 tabletest 的路由表，可以处理 ipv4 流量路由表列表：# 列出所有路由表
+nft list tables
+
+# 列出所有 ip 集合的路由表
+nft list tables ip删除一个路由表：nft delete table ip tabletest
+路由链配置不同于 iptables，nftables 没有预定义的链，如 input output 等。想要在某个环节处理流量，需要定义一个自定义名称的基本链，然后将其挂载在一个特定的 netfilter hook 钩子上。下图是流量包在 linux 网络中的传输路径：外部访问流量传输到本机后如果目标地址是本机，流量传输路径是 prerouting -&gt; input hooks -&gt; 本机，然后经过本机处理后流向  本机 -&gt; output -&gt; postrouting hooks。如果传入本机的外部流量目标地址不是本机，则受 forward hook 监听，这类流量的传输路径是 prerouting -&gt; forward -&gt; postrouting。本机访问外部地址的流量传输路径是 本机 -&gt; output -&gt; postrouting hooks。注意如果本机作为 router 路由使用，需要提前开启 ip 转发功能：echo 1 &gt; /proc/sys/net/ipv4/ip_forward
+以下是 netfilter 可用的 chains 和 hooks 列表：基本语法建立基本链，挂载在一个特定 type 的 netfilter hook：nft add chain [&lt;family&gt;] &lt;table_name&gt; &lt;chain_name&gt; { type &lt;type&gt; hook &lt;hook&gt; priority &lt;value&gt; \; [policy &lt;policy&gt; \;] [comment \&quot;text comment\&quot; \;] }
+注意，由于 nft 语法使用了特殊字符，如: ;，在命令行中执行需要加转义符 \。或者可以使用单引号 &#039;` 将 nft 后的语句包起来，以下两种写法效果相同：nft add chain ip tabletest input { type filter hook input priority 0 \; }
+nft &#039;add chain ip tabletest input { type filter hook input priority 0 ; }&#039;
+另一种方法是运行 nft 在交互模式，执行以下命令后就可以不加转义符: nft -i。上面的命令在 tebletest 路由表中新建一个 input 链，挂载在 filter 路由链的 input hook 上。这样就可以监听所有进入本地的流量。priority 决定了所有链的顺序，例如在 filter input hook 上挂载了多个自定义链，通过 priority 决定其执行顺序。数值越低执行优先级越高，例如 -12, -1, 0, 10。如果给多个挂载在同一个 hook 上的自定义基本链同样的 priority，它们的先后执行顺序就是不确定的。添加以下命令后就可以在 tabletest 基本链中监听本机输出的流量：nft &#039;add chain ip tabletest output { type filter hook output priority 0 ; }&#039;
+如果不定义大括号中的内容，也就是不挂载在特定 hook 上，则路由链不会监听任何流量。policy 定义了默认的策略，可用的默认策略为：accept 和 drop，如果路由链中的规则都没有匹配则会应用默认策略：accept 没有匹配到的流量继续在网络层传输drop   没有匹配到的流量被丢弃type 指定自定义路由链挂载到那个基本 chain，可用的基本链：filter, 用于过滤流量包route, 用于重路由，等同于 iptables 的 mangle 路由链的 output hook (其他 mangle hooks 可以使用 filter 代替)nat, 用于运行 Networking Address Translation (NAT). 只有第一个 nat 流量包会匹配到此链剩余的包会跳过此链，因此尽量不要使用此链过滤流量hook 定义了挂载的基本链 hook，可用的 hooks 如下：ingress 只能用于 netdev 和 inet family: 监听来自于 NIC driver 的流量, 早于 prerouting.prerouting: 监听所有在 routing 前的入口流量. 流量可能重定向到 local 或 remote systems.input: 监听所有被路由或重定向到 local system 的入口流量forward: 监听所有不被重定向到 local system 的入口流量output: 监听所有在 local machine 被管理的出口流量postrouting: 监听所有被路由后的即将离开 local system 的出口流量列出一个路由表的所有路由链：nft list ip table tabletest
+列出一个路由表的指定路由链：nft list chain ip tabletest output
+comment 可以给规则添加注释：nft add rule ip tabletest input counter comment \&quot;test comment\&quot;
+基本规则配置通过规则可以控制路由链上的流量。基本语法添加规则：nft add rule ip tabletest output ip daddr 8.8.8.8 counter
+以上命令会在 tabletest 路由表的 output 链中添加一条规则，匹配出口流量中 ip 地址为 8.8.8.8 的流量并对匹配次数计数，nftables 中 counter 会默认启用即使不写。以上命令相当于 iptables 中的 -A 命令。列出某个链包含的规则：root@OpenWrt:~# nft list chain ip tabletest output
+table ip tabletest {
+        chain output {
+                type filter hook output priority filter; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0
+        }
+}下面测试以上规则是否生效，执行以下命令：ping -c 1 8.8.8.8再次查看此链的规则：root@OpenWrt:~# nft list chain ip tabletest output
+table ip tabletest {
+        chain output {
+                type filter hook output priority filter; policy accept;
+                ip daddr 8.8.8.8 counter packets 1 bytes 84
+        }
+}可以看到已经有一次计数了。指定位置添加规则：nftables 中必须通过 handle num 编号来在指定位置添加规则，需要通过 -a 查看链中已经存在的规则的编号：nft -n -a list table ip tabletest
+-n 可以按数字顺序排号避免出现重复编号。再次查看链中的规则：root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+        }
+}handle 5 就是这条规则的编号。下面我们通过 handle 索引在这条规则后添加一条新规则：nft add rule ip tabletest output position 5 ip daddr 127.0.0.8 drop
+查看链中的规则：root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+                ip daddr 127.0.0.8 drop # handle 6
+        }
+}如果要在某条规则前插入一条规则需要使用 insert 指令：nft insert rule ip tabletest output position 5 ip daddr 127.1.1.8 drop
+查看效果：root@OpenWrt:~# nft -n -a list table ip tabletest
+table ip tabletest { # handle 4
+        chain output { # handle 1
+                type filter hook output priority 0; policy accept;
+                ip daddr 127.1.1.8 drop # handle 7
+                ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 5
+                ip daddr 127.0.0.8 drop # handle 6
+        }
+}在某条链最前面添加一条规则：nft insert rule ip tabletest output ip daddr 192.168.2.1 counter
+在最前面添加规则就不需要指定 handle 了。替换某条规则：替换一条规则也需要 handle 编号。下面示例会替换 handle 5 为新的规则：nft replace rule ip tabletest output handle 5 ip daddr 1.1.1.1
+删除规则：同样的，删除某一条规则也需要获取这条规则的 handle 编号。删除 tabletest 链的 handle 7 规则： nft delete rule ip tabletest output handle 7
+删除链中所有规则：nft flush chain ip tabletest output
+删除路由表中所有链的所有规则：nft flush table ip tabletest
+ruleset 层级的操作显示所有 family 的所有 rule 规则：nft list ruleset
+显示某一个集合的所有 rule： % nft list ruleset arp
+ % nft list ruleset ip
+ % nft list ruleset ip6
+ % nft list ruleset bridge
+ % nft list ruleset inet清除所有集合的所有规则：nft flush ruleset
+清除某一个集合的所有规则： % nft flush ruleset arp
+ % nft flush ruleset ip
+ % nft flush ruleset ip6
+ % nft flush ruleset bridge
+ % nft flush ruleset inet备份规则到文件：# 备份所有集合的所有规则
+nft list ruleset &gt;&gt; backup.nft
+
+# 备份 ip 集合的所有规则
+nft list ruleset ip &gt;&gt; backup.nft从文件恢复规则：nft -f backup.nft
+以 json 格式显示所有规则：nft --json list ruleset
+流量元信息匹配通过 meta 选择器可以进行流量匹配或流量设置。下面简单介绍几个常用的匹配模式，更加详细的参考官方资料：https://wiki.nftables.org/wiki-nftables/index.php/Matching_packet_metainformationiifname 匹配网卡名称：# lo 网卡的入口流量会被接收
+nft add rule tabletest input meta iifname lo acceptmark 匹配流量标记：# 流量标记为 123 的出口流量计数
+nft add rule tabletest output meta mark 123 counterskgid 匹配流量由特定 gid 用户产生的数据：# 匹配来自 gid 用户 1000 的流量
+nft add rule tabletest output meta skgid 1000 counter流量头信息匹配通过 ip {saddr | daddr}  可以匹配 ipv4 的源流量或目标流量：# 匹配来自 192.168.1.100 且去往 192.168.1.1 的流量并计数
+# 注意本机地址必须为 192.168.1.1 才可以由 input hook 截获
+nft add rule ip tabletest input ip saddr 192.168.1.100 ip daddr 192.168.1.1 counter通过 icmp type 关键词来匹配 icmp 流量，如 ping request：nft add rule ip tabletest input icmp type echo-request counter drop
+可以通过命令查询所有可用的 icmp type 类型：root@OpenWrt:~# nft describe icmp type
+payload expression, datatype icmp_type (ICMP type) (basetype integer), 8 bits
+
+pre-defined symbolic constants (in decimal):
+        echo-reply                                         0
+        destination-unreachable                            3
+        source-quench                                      4
+        redirect                                           5
+        echo-request                                       8
+        router-advertisement                               9
+        router-solicitation                               10
+        time-exceeded                                     11
+        parameter-problem                                 12
+        timestamp-request                                 13
+        timestamp-reply                                   14
+        info-request                                      15
+        info-reply                                        16
+        address-mask-request                              17
+        address-mask-reply                                18通过 ip protocol 匹配 ip family 任意类型的协议：# 匹配所有 tcp 流量
+nft add rule ip tabletest output ip protocol tcp
+
+# 匹配所有 tcp udp 流量
+nft add rule ip tabletest output ip protocol { tcp, udp }通过 meta l4proto 匹配 inet family 任意类型的协议：# tabletest 需要定义为 inet 集合
+nft add rule inet tabletest output meta l4proto tcp匹配特定端口的流量：# 丢弃所有端口为 1-1024 的 tcp 流量访问本机
+nft add rule ip tabletest input tcp dport 1-1024 counter drop流量匹配动作accept 和 dropdrop 可以对匹配的流量直接丢弃，注意 drop 不能和其他动作组合使用：nft add rule ip tabletest input ip protocol udp drop
+accept 可以对匹配的流量接收，可以和其他动作组合使用 如 counter 计数：nft add rule ip tabletest input counter accept
+reject 流量不同于 drop，reject 可以在拒绝流量的基础上进行很多其他动作，如返回给源请求地址无法访问的原因等。如果不指定其他动作，默认会返回源地址一个 ICMP/ICMPv6 port unreachable 的流量包。示例如下：# 拒绝所有 input 的 udp 流量
+nft add rule ip tabletest input ip protocol udp reject
+
+# 拒绝指定流量并返回 icmp host-unreachable
+nft add rule ip tabletest input reject with icmp type host-unreachableicmp 可用如下原因：net-unreachable: Destination network unreachable
+host-unreachable: Destination host unreachable
+prot-unreachable: Destination protocol unreachable
+port-unreachable: Destination port unreachable (this is the default)
+net-prohibited: Network administratively prohibited
+host-prohibited: Host administratively prohibited
+admin-prohibited: Communication administratively prohibitedjump 跳转到其他 chain注意只能跳转到同一个路由表的其他 chain。首先我们新建一个 chain：nft add chain ip tabletest tcp-chain
+然后定义这个链的规则：nft add rule ip tabletest tcp-chain counter
+然后可以定义将所有匹配的流量跳转过去：ft add rule ip tabletest input ip protocol tcp jump tcp-chain
+以上示例实现的就是将所有 input 的 tcp 流量跳转到 tcp-chain 计数，然后就返回原始 input 环节继续流转。log 日志通过 log 可以记录匹配到的流量信息，在系统日志中可以查看到。下面是一个示例，可以记录所有对本机的 ping 请求：nft add rule ip tabletest input icmp type echo-request log prefix \&quot;New ping request: \&quot; accept从局域网对本机进行 ping 后，系统日志如下：Thu May  9 11:58:04 2024 kern.warn kernel: [ 3741.786865] New ping request: IN=br-lan OUT= MAC=00:0c:29:c5:39:8d:00:50:56:c0:00:02:08:00 SRC=192.168.244.2 DST=192.168.244.1 LEN=60 TOS=0x00 PREC=0x00 TTL=128 ID=49655 PROTO=ICMP TYPE=8 CODE=0 ID=1 SEQ=6609网络地址转换nat 链类型可以执行网络地址转换的功能，这种链类型有其特有的属性：流量中只有第一个包会被用来进行匹配规则流量包中后续的流量不会被检查nat 链类型特有的规则赋予其他链类型会报错先定义一个 nat 类型的基本链：nft add chain ip tabletest postrouting { type nat hook postrouting priority 0 \; }
+以上定义了一个 nat 类型的基本链挂载在 postrouting hook 上。snat 表示源地址。下面的规则可以将来自 192.168.1.0/24 从 eth0 网卡发出的流量在发送出去的时候，将源地址修改为 1.2.3.4nft add rule ip tabletest postrouting ip saddr 192.168.1.0/24 oif eth0 snat to 1.2.3.4
+也可以定义一个地址范围：# 将所有 tcp 流量的源地址都修改为指定的ip范围内
+nft add rule ip tabletest postrouting ip protocol tcp snat ip to 10.0.0.1-10.0.0.100:3000-4000下面介绍如何修改目标地址，再定义一个 nat 类型的基本链：nft add chain ip tabletest prerouting { type nat hook prerouting priority 0 \; }
+以上定义了一个 nat 类型的基本链挂载在 prerouting hook 上。dnat 表示目标地址。下面规则会将要进入 eth0 的 tcp 80 443 端口的流量的目标地址改为 192.168.1.120 也就是重定向：nft &#039;add rule ip tabletest prerouting iif eth0 tcp dport { 80, 443 } dnat to 192.168.1.120&#039;
+redirect 是一种特殊的 dnat，它会将流量重定向到本机设备上：nft add rule ip tabletest prerouting tcp dport 22 redirect to 2222
+以上规则会将进入的 tcp 22 端口的流量转发到本机 2222端口上。需要注意的是 redirect 只能应用于 nat 链类型的 prerouting 和 output hooks。设置流量包元信息设置 mark 标记：nft add rule ip tabletest output mark set 123
+set 架构nftables 提供了 set 架构可以用任意支持的选择器来搭建 sets。匿名 set匿名 set 是直接定义在 rule 内的 set，它没有特定的名称，也不可以更新 set 中的元素，下面是一个示例：nft add rule ip tabletest output tcp dport { 22, 23 } counter
+{ 22, 23 } 就属于一个匿名 set。规则会去尝试匹配 set 中的每个元素。非匿名 set可以通过 nft add set 来创建一个有名称的 set，例如：nft add set ip tabletest blackhole { type ipv4_addr \; comment \&quot;drop all packets from these hosts\&quot; \; }
+blackhole 就是这个 set 的名称，后续可以再 rule 中使用。set 类型指定是 ipv4 数据。set 名称需要小于等于16个字符，comment 注释是可选项。可用的 type 类型有：ipv4_addr: IPv4 addressipv6_addr: IPv6 address.ether_addr: Ethernet address.inet_proto: Inet protocol type.inet_service: Internet service (read tcp port for example)mark: Mark type.ifname: Network interface name (eth0, eth1..)建立好之后就可以往 set 里添加元素了：nft add element ip tabletest blackhole { 192.168.3.4 }
+nft add element ip tabletest blackhole { 192.168.1.4, 192.168.1.5 }如果要添加一个 ip 网段则需要将 set 定义 flags interval：nft add set ip tabletest blackhole { type ipv4_addr \; flags interval \; }
+然后就可以添加一个 ip 网段了：nft add element ip tabletest blackhole { 192.168.1.0/24 }
+可以查询 set 中现有的元素：root@OpenWrt:~# nft list set ip tabletest blackhole
+table ip tabletest {
+        set blackhole {
+                type ipv4_addr
+                comment &quot;drop all packets from these hosts&quot;
+                elements = { 192.168.1.4, 192.168.1.5,
+                             192.168.3.4 }
+        }
+}下面就可以通过 set 名称在 nftables 规则中应用：nft add rule ip tabletest input ip saddr @blackhole drop
+nft add rule ip tabletest output ip daddr != @blackhole accept以上就是 natables 的基本用法。参考链接nftables HOWTO documentation pageNftables familiesNetfilter hooksOperations at ruleset level</description>
+</item>
+</rdf:RDF>

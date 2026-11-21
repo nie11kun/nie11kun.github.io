@@ -1,0 +1,737 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/2021/03/">
+<title>Marco Nie - 2021年3月</title>
+<link>https://blog.niekun.net/2021/03/</link>
+<description>you are the company you keep...</description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2281.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2278.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2277.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2213.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2208.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2205.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2204.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2203.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2198.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2195.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/2281.html">
+<title>Ubuntu desktop 配置 vnc server</title>
+<link>https://blog.niekun.net/archives/2281.html</link>
+<dc:date>2021-03-31T11:26:00+08:00</dc:date>
+<description>通过 VNC(Virtual Network Computing) 可以使用一个图形化的界面来访问远程服务器。这样对服务器的操作可以更加便捷直观。下面我们在 Ubuntu 上安装 TightVNC vnc server 并通过更加安全的 SSH tunnel 来连接服务器。环境需求：远程主机 Ubuntu desktop 20.04关闭 ufw 防火墙或配置允许 openssh 远程连接本地设备 vnc 客户端需要支持 SSH tunnels 连接，如： TightVNC, RealVNC, or UltraVNC.安装桌面环境如果安装的是 Ubuntu server，它默认并没有按照桌面环境，开机后就显示一个 shell 环境。如果是 Ubuntu desktop 版本则默认安装了 Ubuntu desktop 桌面环境。如果我们需要远程访问 vnc，最好选择一个轻量级的桌面环境，这样访问的时候会流畅很多，推荐安装 xfce。在后续章节，会介绍安装其他桌面环境的方法，如：GNOME，LXDE，KDE。首先安装 xfce 及其增强包：sudo apt install xfce4 xfce4-goodies
+安装过程中会提示需要选择 xfce 的一个默认 display manager 显示管理器，它是用来在登录系统时的一个图像界面来输入用户及密码的，由于我们只是使用 xfce 来连接 vnc 客户端，且此时已经登陆了对应账户了，所以这里我们任意选择一个显示管理器即可。可以通过命令查看当前系统已经安装的桌面环境：ls /usr/share/xsessions/
+
+gnome.desktop                   gnome-flashback-metacity.desktop  ubuntu.desktop
+gnome-flashback-compiz.desktop  gnome-xorg.desktop                xfce.desktop文件中定义了桌面环境启动指令。安装 vncserverUbuntu 本身没有安装 vnc 服务， TigerVNC 来实现，它们都很轻量及快速，很适合配置 vnc server。下面安装 TigerVNC server：sudo apt install tigervnc-standalone-server
+安装完成后，我们运行 vncserver 来设置一个 vnc 密码，并且初始化相关配置文件：vncserver
+此时会提示要求输入一个密码及 verify 验证密码：You will require a password to access your desktops.
+
+Password: 
+Verify:  然后会提示是否需要设置一个 view-only 密码，通过这个密码登录后，不可以使用鼠标或键盘操作服务器。不需要的话输入 n 不创建即可。然后就会创建相关的默认配置文件和显示相关连接信息，同时会启动一个运行在 5901 端口的 vnc 服务实例：Would you like to enter a view-only password (y/n)? n
+xauth:  file /home/sammy/.Xauthority does not exist
+
+New 'X' desktop is marco-virtual-machine:1
+
+Creating default startup script /home/marco/.vnc/xstartup
+Starting applications specified in /home/marco/.vnc/xstartup
+Log file is /home/marco/.vnc/marco-virtual-machine:1.log后期如果需要修改 vnc 密码可以输入 vncpasswd 设置：vncpasswd
+此时我们的 vnc server 就安装完成并且启动了，下面我们配置启动 xfce。配置vnc server 在启动时需要知道需要执行哪些命令，以及需要连接到哪个 graphical desktop environment 图形环境。vnc server 启动时所执行的命令是在 xstartup 文件中定义的。他在当前登录用户的 home 目录的 .vnc 文件夹内。这个文件在我们第一次启动 vncserver 时会自动创建。下面我们对它进行修改。由于我们上面已经启动了 vncserver，它启动了一个运行在 5901 端口的 vnc 实例。我们首先关闭这个服务：vncserver -kill :1
+输出信息如下：Killing Xtightvnc process ID 17648
+下面我们打开 ~/.vnc/xstartup 文件，修改为以下内容：#!/bin/sh
+
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+
+[ -x /etc/vnc/xstartup ] &amp;&amp; exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] &amp;&amp; xrdb $HOME/.Xresources
+xsetroot -solid grey
+vncconfig -iconic &amp;
+
+startxfce4 &amp;这里我们配置了使用 xfce4 作为桌面环境。注意前三句是需要添加的，否则远程连接会显示为灰屏。最后一句我们启动了 xfce 桌面环境。如果使用其他桌面环境，可以同查看对应 desktop 文件里的启动命令找到如何正确的启动对应桌面，如 ubuntu.desktop 文件内容如下：cat /usr/share/xsessions/ubuntu.desktop
+
+[Desktop Entry]
+Name=Ubuntu
+Comment=This session logs you into Ubuntu
+Exec=env GNOME_SHELL_SESSION_MODE=ubuntu /usr/bin/gnome-session --systemd --session=ubuntu
+TryExec=/usr/bin/gnome-shell
+Type=Application
+DesktopNames=ubuntu:GNOME
+X-GDM-SessionRegisters=true
+X-Ubuntu-Gettext-Domain=gnome-session-3.0可以看到启动命令有如下两条：Exec=env GNOME_SHELL_SESSION_MODE=ubuntu /usr/bin/gnome-session --systemd --session=ubuntu
+TryExec=/usr/bin/gnome-shell在 xstartup 自定义配置中加入以上两条即可。然后给配置文件添加执行权限：chmod +x ~/.vnc/xstartup
+然后我们重新启动 vncserver：vncserver -localhost
+注意这里我们添加了 -localhost 参数，意味着此 vnc 服务只可以在本机内被连接。如果不添加这个参数，则开放所有网络连接。我们这里只打开本地网络连接服务，然后通过 ssh tunnel 在远程和本地建立安全的连接并转发 vnc 本地端口。连接vnc 本身并不支持通过一些安全的协议进行连接，下面我们通过 ssh tunnel 隧道在本地和远程主机间建立一个安全的链接，然后告诉 vnc 客户端使用这个安全隧道连接远程服务器。上面我们已经启动了一个 vncserver 在 5901 端口，它可以在本地网络内被连接但无法被外部网络连接。首先我们通过 ssh 在本地和远程建立一个安全链接，并转发远程主机的 localhost 及端口到本地的特定端口：ssh -L 59000:localhost:5901 -C -N -l user xxx.xxx.xxx.xxx
+以上命令意义如下：-L 59000:localhost:5901：使用 -L 参数来转发一个本地端口到远程主机的 host 地址和端口，这里我们将本地 59000 端口转发到远程主机的本地 localhost 的 5901 端口，也就是启动的 vnc server 地址。-C 参数用来启用传输数据压缩，可以提高传输效率-N 参数用来告诉 ssh 我们不需要执行任何远程命令，当我们仅仅需要建立一个端口转发隧道时，此参数很有用-l 定义远程主机的用户名和 IP 地址ssh tunnel 建立好后，我们就可以打开 vnc 客户端进行连接了。这里我使用 ultraVNC 访问 localhost:59000：输入我们之前创建的 vnc 密码后就连接到远程服务器了：当然也可以不使用 ssh tunnel ，但是需要取消 -localhost 参数，就可以直接连接 vnc server。配置 vnc systemd 服务为了方便的启动和停止 vncserver 我们可以将其定义为一个 systemd 服务。在 /usr/lib/systemd/system 目录下新建文件 vncserver@.service，其中的 @ 可以让我们在操作此服务时添加传递参数，在配置文件中使用 %1 可以读取这个参数。内容如下：[Unit]
+Description=Start TightVNC server at startup
+After=syslog.target network.target
+
+[Service]
+Type=forking
+User=user
+Group=user
+WorkingDirectory=/home/user
+
+PIDFile=/home/user/.vnc/%H:%i.pid
+ExecStartPre=-/usr/bin/vncserver -kill :%i &gt; /dev/null 2&gt;&amp;1
+ExecStart=/usr/bin/vncserver -depth 24 -geometry 1280x800 -localhost :%i
+ExecStop=/usr/bin/vncserver -kill :%i
+
+[Install]
+WantedBy=multi-user.target注意上面的配置中，需要将 user 修改为你实际登录的用户名称，共有 4 个地方ExecStart 中我们定义了 24 位色深 1280x800 的 vnc 显示，可以根据需要自行修改使用了 -localhost 参数，所以只能使用 ssh tunnel 的方式访问然后重新加载配置：sudo systemctl daemon-reload
+启动一个 vncserver 使用参数 1 来定义 vnc 服务号：sudo systemctl start vncserver@1
+此时我们就启动了一个 vncserver 且其服务号为 :1。关闭启动的 :1 vncserver：systemctl stop vncserver@1
+开机自动启动 vncserver 服务：systemctl enable vncserver@1
+这样就可以实现开机自动部署 vncserver 服务了。使用 gnome 桌面环境gnome 是 Ubuntu desktop 默认的桌面环境，使用它近似于原生的 Ubuntu 界面。安装依赖：sudo apt install gnome-session gnome-terminal gnome-panel gnome-settings-daemon metacity nautilus
+修改 ~/.vnc/xstartup 如下：#!/bin/bash
+
+PATH=/usr/bin
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+
+export XKL_XMODMAP_DISABLE=1
+export XDG_CURRENT_DESKTOP=&quot;GNOME-Flashback:GNOME&quot;
+export XDG_MENU_PREFIX=&quot;gnome-flashback-&quot;
+
+[ -x /etc/vnc/xstartup ] &amp;&amp; exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] &amp;&amp; xrdb $HOME/.Xresources
+xsetroot -solid grey
+vncconfig -iconic &amp;
+
+gnome-session --builtin --session=gnome-flashback-metacity --disable-acceleration-check --debug &amp;
+nautilus &amp;
+gnome-terminal &amp;重启 vncserver 服务，连接可以查看效果。参考链接How to Install and Configure VNC on Ubuntu 20.04VNC grey screen, x cursor, nothing helpsvncserver grey screen ubuntu 16.04 LTSHow to Install & Configure VNC Server on Ubuntu 20.04How to properly configure xstartup file for TightVNC with Ubuntu 20.04 LTS GNOME environment</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2278.html">
+<title>openwrt 配置 LuCI ssl 证书</title>
+<link>https://blog.niekun.net/archives/2278.html</link>
+<dc:date>2021-03-30T22:00:32+08:00</dc:date>
+<description>openwrt 提供了一个 luci 管理界面可以通过图形化的方式进行配置管理。我们通过 lan 网地址 http 访问 luci 界面，会有一个提示不安全的链接，一般浏览器提供了一个跳过选项可以忽略警告。但是当我们通过 wan 口地址访问 luci 界面时，新版的 chrome 会强制拒绝访问 http 不安全的链接，这样我们就无法通过外网访问 luci 界面了。注意如果想要从 wan 口访问 luci 界面，需要配置防火墙放行，具体参考：https://blog.niekun.net/archives/1818.html解决方法是我们给 luci 配置一个 ssl 证书，这样浏览器就会放行了。首先安装相关程序：opkg update &amp;&amp; opkg install openssl-util luci-app-uhttpd
+以上我们安装了 openssl 套件和 uhttpd 的 ui 配置接口，可以图形化的方式配置 uhttpd。下面我们来生成需要的 ssl 证书文件。首先创建文件 etc/ssl/myconfig.conf：[req]
+distinguished_name  = req_distinguished_name
+x509_extensions     = v3_req
+prompt              = no
+string_mask         = utf8only
+ 
+[req_distinguished_name]
+C                   = US
+ST                  = VA
+L                   = SomeCity
+O                   = OpenWrt
+OU                  = Home Router
+CN                  = luci.openwrt
+ 
+[v3_req]
+keyUsage            = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage    = serverAuth
+subjectAltName      = @alt_names
+ 
+[alt_names]
+DNS.1               = luci.openwrt
+IP.1                = 192.168.1.1可以修改 C (country), ST (state), L (location), O (organization), OU (organization unit) 为你想要的内容。CN 和 DNS.1 必须是一样的地址，它们表示此证书代表的域名，和 IP 是对应的。如果配置了 luci 界面地址的 hosts，这里就可以定义为对应的域名。之后我们就可以通过访问这个域名来访问 IP。IP.1 就是 luci web 地址，设置为对应的地址即可。配置文件保存后返回 ssl 目录：cd /etc/ssl
+执行下面的命令：openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout mycert.key -out mycert.crt -config myconfig.conf
+会自动在当前目录下创建 mycert.key 和 mycert.crt 文件。然后我们先通过 lan 内网访问 luci web 界面，在顶部我们可以看到多了一个 services 菜单，点击其中的 uhttpd 进入配置界面，在 HTTPS Certificate 和 HTTPS Private Key 中分别上传 crt 和 key 文件：然后点击 save and apply。重启 uhttpd 服务：/etc/init.d/uhttpd restart
+此时我们通过 wan 口地址访问 luci web 界面，应该就可以正常进入了。下面我们将刚才生成的 ssl 文件加入 backup 列表。默认情况下 /etc/config 下的文件会自动进行备份。我们进入 System → Backup/Flash Firmware，点击 configuration 栏，然后将 /etc/ssl/mycert.crt 和  /etc/ssl/mycert.key 加入列表中，点击 save 即可。之后我们生成的备份就会包含这些文件。参考链接How to get rid of LuCI HTTPS certificate warnings</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2277.html">
+<title>openwrt procd init script 自启动脚本服务</title>
+<link>https://blog.niekun.net/archives/2277.html</link>
+<dc:date>2021-03-30T21:29:00+08:00</dc:date>
+<description>openwrt 是针对于嵌入式设备的精简版 Linux 系统。所以一些常规的 Linux 服务都没有，比如 systemd 等。openwrt 是通过 init.d 来管理服务的。所有的服务都在 /etc/init.d 目录下。对某个服务进行操作也很方便，例如对 network 服务：# 启动 network
+/etc/init.d/network start
+
+# 重启 network
+/etc/init.d/network restart
+
+# 停止 network
+/etc/init.d/network stop如果需要某个服务开机自启动，可以 enable：/etc/init.d/frp enable会自动在 /etc/rc.d/ 目录下建立一个链接指向 /etc/init.d 下的对应服务，如：S95frp。S95 表示此服务的启动顺序，下面会做介绍。基本结构script 配置文件基本结构如下：#!/bin/sh /etc/rc.common
+
+USE_PROCD=1
+START=95
+STOP=15
+
+start_service() {
+}
+service_triggers() {
+}
+stop_service() {
+}
+restart_service() {
+}首先定义 shebang，定义脚本执行的相关依赖。然后通过 USE_PROCD 定义我们的脚本是新的 procd 脚本而不是老版本的 init 脚本。START=95 定义此服务开机启动时，其服务启动顺序序号。最大为 95，数字越大启动排序越靠后。STOP=15 定义此服务在关机时，其服务关闭顺序序号。数字越小关闭排序越靠前。Init script 有两个主要任务：定义此服务的配置定义何时重新配置此服务每个服务都有各自特定需要执行的指令，他们都存储在 procd 内部。需要在 start_service() 中定义服务配置内容。start_servicestart_service() 的主要任务是：启动一个服务需要执行的命令监测某些信息的变化，如：文件或网络的变化配置 procd 需要的设定，如：auto respawning, logging stdout以上的任务作为一个服务实例状态存储在 procd 中。当特定的系统配置发生变化，会自动根据 trigger 的设定调用 start_service()。需要通过设定参数来配置服务实例，常用的参数是直接在 start_service 中设定，如 command，一般我么通过 procd_set_param() 和 procd_append_param() 来设定参数。下面列举了支持的参数，有些需要设定有些可以省略：start_service() {
+         procd_open_instance [instance_name] # 给服务实例定义一个名称
+         procd_set_param command /sbin/your_service_daemon -b -a --foo # 需要在前台被执行的服务
+         procd_append_param command -bar 42 # 给以上命令附加的指令参数
+
+         # 如果服务意外中止了，定义 redpawn 可以自动重启它，如果服务命令的确只需要运行一次，需要谨慎设定这里
+         # 如果进程在 respawn_threshold 定义的时间内结束了，则判定为进程崩溃并尝试重启它，尝试5次后会停止重启
+         procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
+
+         procd_set_param env SOME_VARIABLE=funtimes  # 给进程传递环境变量
+         procd_set_param limits core=&quot;unlimited&quot;  # If you need to set ulimit for your process
+         procd_set_param file /var/etc/your_service.conf # 如果此处定义的文件发生了变化，则会触发 /etc/init.d/your_service reload 重启进程
+         procd_set_param netdev dev # likewise, except if dev's ifindex changes.
+         procd_set_param data name=value ... # likewise, except if this data changes.
+         procd_set_param stdout 1 # 转发 stdout 输出到 logd
+         procd_set_param stderr 1 # same for stderr
+         procd_set_param user nobody # 以 nobody 用户运行服务
+         procd_set_param pidfile /var/run/somefile.pid # 在服务启动时写入一个 pid 文件，在停止服务时删除此 pid 文件
+         procd_close_instance # 结束服务实例配置
+}当我们通过 start 参数执行这个脚本时，会自动运行 start_service()：/etc/init.d/test start
+stop_service如果需要在服务进程被终止时，执行特定的命令，可以在 stop_service() 中定义。如：stop_service() {
+        kill $(ps | grep v2ray | awk '/-confdir/ {print $1}')
+}通过 stop 参数可以直接调用此 method：/etc/init.d/test stop
+restart_service当我们想要重启某个服务，可以通过单独执行 stop 和 start 来实现，也可以直接定义一个 restart_service() 来自动完成这个过程：restart_service() {
+        stop
+        start
+}注意，在脚本内部调用某个 function 只需要写它的前面的名称即可。重启服务只需要运行以下命令即可：/etc/init.d/test restart
+service_triggers可以定义当某个 event 被触发时，自动运行某个 function。service_triggers()
+{
+        procd_add_reload_trigger &quot;&lt;uci-file-name&gt;&quot; &quot;&lt;second-uci-file&gt;&quot;
+        procd_add_reload_interface_trigger &lt;interface&gt;
+}以上配置会在 luci 的配置文件发生修改时，自动触发 reload function。参考链接https://openwrt.org/docs/guide-developer/procd-init-scriptshttps://openwrt.org/docs/guide-developer/procd-init-script-example</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2213.html">
+<title>ESXi 的安装与使用</title>
+<link>https://blog.niekun.net/archives/2213.html</link>
+<dc:date>2021-03-29T14:51:00+08:00</dc:date>
+<description>什么是 VMware vSphereVMware vSphere 是 VMware 的虚拟化平台，可将数据中心转换为包括 CPU、存储和网络资源的聚合计算基础架构。vSphere 将这些基础架构作为一个统一的运行环境进行管理，并为您提供工具来管理加入该环境的数据中心。vSphere 的两个核心组件是 ESXi  和 vCenter Server。ESXi 是用于创建并运行虚拟机和虚拟设备的虚拟化平台。vCenter Server 是一项服务，用于管理网络中连接的多个主机，并将主机资源池化。vSphere Hypervisor 虚拟领域管理程序是一种可将服务器虚拟化的裸机管理程序，依托 VMware vSphere ESXi 体系架构构建。ESXi 是安装在物理机上的管理器。vSphere Client 安装在一个笔记本或者桌面PC上，用于访问 ESXi 服务器进行虚拟机的创建和管理。vCenter server 像一个虚拟机一样安装在 ESXi 上面。在拥有多个 ESXi 服务器和数十个虚拟机时，vCenter server的应用就比较频繁了。在小环境下的管理通常都会使用 vSphere client 来直连 ESXi 服务器。简单来说 ESXi 是直接安装在物理机器上用来管理硬件设备，相当于一个操作系统，然后在 ESXi 中安装虚拟机。它可以方便的给不同的虚拟机分配硬件资源，以及管理。类似 VMware workstation 等产品是需要安装在某个操作系统内部运行的。下载镜像我们需要下载 vSphere Hypervisor 的 iso 镜像。最简单的是登陆账号后在下面网址搜索下载：https://customerconnect.vmware.com/downloads/#my_products也可以进入官网下载：https://www.vmware.com/products/vsphere-hypervisor.html在右侧点击 download 会提示登录账号，然后需要注册下产品，点击 register：然后找到 esxi ISO 镜像下载地址，点击下载：当前最新版为 VMware vSphere 7.0 Update 2。安装然后我们需要将制作一个启动盘来安装 esxi，推荐使用 ventoy 来加载镜像，非常方便：https://www.ventoy.net/en/index.html开机进入 boot 设置，将对应的启动盘设置为第一项启动，然后就可以进入 ventoy 引导画面了。选择 esxi 镜像文件 enter 进入，下面我们就进入 esxi 安装程序了。这里有第一个需要注意的地方，esxi 在第一次全新安装中会默认划分 120G 的虚拟闪存，类似于 Windows 的虚拟内存，提供更大的交换空间，为虚拟机提供读缓存，提升虚拟机的存储性能。但是对于家用设备来说，120G 的空间白白占用有点浪费，所以我们需要自定义设置这个虚拟闪存的大小。在引导进入安装界面后，立刻按下 shift + o 键，会停留在如下画面：在下方可以输入命令行的地方，我们在已有命令后添加一句：autoPartitionOSDataSize=4096:表示设置虚拟闪存大小为 4 GB，可以按照需要调整，数字就是 1024 乘以需要的 GB 大小。回车确认后继续引导安装程序，期间会自动识别设备硬件。根据提示点击 enter 继续：点击 F11 继续：选择安装到那个硬盘，enter 确认继续：选择键盘布局，默认即可：设置 root 密码：最后点击 F11 开始安装：安装完成后提示可以移除引导盘并重启了：连接管理系统重启后，会自动识别第一个网口的网络地址，我们可以在同一局域网下通过 ESXi 的地址访问管理页面：我们也可以通过网线将其他设备连接到第一个网口的方式进入管理页面，需要首先设置 esxi 的网络地址。点击 F2 进入配置界面，需要输入 root 密码：进入 config management network：默认选中的管理网络为第一个网口，可以自行修改：我们需要配置 IPv4 configuration：空格键选中 set static ipv4 address，并配置合适的 ip 地址，稍后需要将连接的设备也设置为同一网段才可以连接：完成后点击 esc 退出配置，会弹出是否重启网络提示框，点击 Y 确认。然后我们需要在通过网线连接的设备端配置网络到上面设置的同一网段内。这样就可以通过设置的静态地址来访问 esxi 管理页面了。以上两种方式都可以进入 esxi 管理界面，这里我是通过局域网设备来实现的。进入 esxi 管理访问 esxi 的管理地址，这里我的 esxi 地址为 27.168.1.181。在局域网下其他设备浏览器打开这个地址：登录 root 账户：可以看到 esxi 7 自身占用了 1.3GB 内存和 2.5GB 硬盘空间。hardware 栏里的 virtual flash 就是我们安装时候自定义的 4GB 虚拟闪存空间：我们安装的是 esxi 评估版可以免费使用 60 天，如果想要一直使用则需要输入有效的序列号。可以通过 manage - licensing - actions - assign license 输入序列号：配置磁盘安装 esxi 的时候会格式化系统对应的磁盘，如果安装了多个磁盘并且需要在 esxi 中作为存储设备，就需要单独配置它们了。点击左侧导航栏的 storage，然后选择 devices：可以看到我有两块硬盘和一个 cdrom。其中最下面的 10G 的硬盘是 esxi 安装盘，点击进入可以查看详细信息：其中 VMFSL 就是虚拟闪存空间，剩下的 VMFS 分区就是可用的数据分区。点击进入第二个硬盘查看：我们看到这里什么都没有，这是因为这块硬盘没有分配 datastore。我们点击 new datastore，首先给这个数据区取一个名字：在下面的页面，我们首先选择 use full disk，这样会见整块硬盘都作为这个 datastore，然后点击 next：点击 finish 后，datastroe 就建立完成了，这时候可以看到这块磁盘的信息：返回 datastore 选项卡可以看到新建立的 datastore2 在列表中：在后续的虚拟机安装中，我们可以选择将虚拟机安装到哪一个 datastore 中。点击 datastore browser 可以查看其中的数据文件：可以看到左上角有一个 upload 选项，我们可以远程将文件复制到 datasotre 中：后续安装虚拟机时，我会通过这种方法将系统镜像文件复制到 datastore 中。配置网卡下面我们来配置网卡，这也是 esxi 的核心之一。我们可以将主机上的物理网卡定义为虚拟交换机，然后分配给虚拟机使用。这里的配置非常自由，需要根据实际需求来设置，我们可以将每个网卡单独配置一个虚拟交换机，也可以将多个网卡设置为一个虚拟交换机。选择左侧导航栏的 networking，然后点击 physical NICs，就是主机上的所有物理网卡，这里有三个：然后我们切换到 virtual switches，这里就是定义虚拟交换机，默认有一个 vSwitch0，我们点击进去看看它的配置：可以看到它绑定了我们的第一个网卡。我们点击 edit settings 进入配置：uplink 定义了绑定到那个物理网卡。注意我们将 security 里的三个选项都设置为 accept 来使网络功能完整支持。点击 save 保存配置。如果需要将另一个网卡也绑定到这个虚拟交换机，可以点击左上角的 add uplink：这里我们将每个网卡都配置单独的虚拟交换机。返回 virtual switches 栏，点击 add standard virtual switch 添加新的交换机：将第二个网卡配置给 vSwitch1，同样的设置 security 为 accept。然后通过相同的方法配置第三个网卡，最终我们配置好了所有的交换机：最后我们配置 port group 端口组，可以定义一个虚拟交换机的集合。我们安装虚拟机为其分配网卡时就是分配给其某个 port group。同一个虚拟交换机可以定义到多个集合中。默认有两个集合，可以看到它们都是对应 vSwtich0：注意不要修改第二个 Management Network 的配置，否则可能无法访问 esxi 管理页面。我们将另外两个刚才建立的虚拟交换机定义到 port group 中，以便虚拟机可以调用。点击 add port group：这里注意 group 名称如果最后一个是数字，则不要再前面加空格，否则虚拟机无法识别到它。将所有的虚拟交换机都配置对应的 port group：这样我们就配置好了所有的网卡部分。这里有个进阶教程，可以将某个网卡或其他物理设备设置为直通模式，可以供虚拟机直接调用。可以提高性能。这样就不需要配置虚拟交换机了。通过 manage - hardware - PCI devices 查看所有的硬件：如果又可以直通的硬件，前面的复选框就可为可选状态，然后点击 左上角的 toggle passthrough 就可以切换直通模式了，这里我由于是虚拟机中安装的 esxi 所有网卡不可以设置为直通模式。创建虚拟机下面我们就可以创建虚拟机了。首先配置虚拟机，左侧导航栏选择 virtual machines，然后点击 create/register vm 进入引导页面：如果时创建新虚拟机则选择第一项，如果是添加已有的虚拟机则选择第三项，这里我们创建新虚拟机，点击 next。设置虚拟机名称和系统类型，这里我安装一个 openwrt 系统：然后选择虚拟机安装位置，也就是选择一个 datastore：然后是定义虚拟机硬件配置，可以根据需要设置，这里我通过顶部的菜单添加一个新的 network adapter：然后我们配置网络适配器对应的 port group，点击后面的下拉菜单可以看到我们在 port group 中定义的所有集合：我给两个网络适配器分别分配不同的集合，也就是对应不同的虚拟交换机：如果需要通过系统镜像的方式安装虚拟机，则需要配置 cdrom 为 datastore ISO file，然后选择提前上传到 datastore 的镜像文件：这里我是通过提前准备好的 vmdk 虚拟磁盘文件来直接启动虚拟机，所以我需要将虚拟磁盘添加进来。首先将默认的 disk 删除，然后选择 add hard disk - existing hard disk：然后选中对应的磁盘文件，这里我们直接将磁盘文件放在 openwrt 目录内，方便后期管理：然后点击 finish 完成虚拟机的硬件配置：现在可以看到我们刚添加的 openwrt：点击 openwrt 进入监控界面：然后点击 power on 就可以启动虚拟机了。开机自启可以通过设置，让 esxi 启动后自动启动某个虚拟机，点击 manage - system - autostart，然后选中需要自动启动的虚拟机，点击 enable 即可：如果有多个虚拟机需要自动启动，还可以设置它们的启动顺序。以上就是 esxi 的简单安装和使用教程。参考链接VMware vSphere 文档</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2208.html">
+<title>QT 中通过 QCustomPlot widget 绘制可视化曲线表</title>
+<link>https://blog.niekun.net/archives/2208.html</link>
+<dc:date>2021-03-19T17:24:46+08:00</dc:date>
+<description>今天在项目中需要添加一个柱状图，但由于我们的项目是 QT 4.8 的所以不支持 QtCharts。查询了下发现有 QCustomPlot 可以完美的实现需求，使用方法也很简单。官网：https://www.qcustomplot.com/下载：https://www.qcustomplot.com/index.php/downloadQCustomPlot 只有两个文件 qcustomplot.cpp 和 qcustomplot.h，将其复制到项目目录中并添加到项目中。然后引用头文件即可：#include &quot;qcustomplot.h&quot;
+我们需要在 ui 中添加一个 widget 然后右键点击控件，选择提升：提升的 class 名称修改为 QCustomPlot：点击 add 然后点击 promote 即可。编译后可以看到图表样式：在使用中如果需要根据数据变化刷新渲染的图形，记得在修改数据后调用</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2205.html">
+<title>使用 instaloader 下载 Instagram 图片-视频</title>
+<link>https://blog.niekun.net/archives/2205.html</link>
+<dc:date>2021-03-16T11:55:00+08:00</dc:date>
+<description>一直在使用 telegram bot 来下载 YouTube 或 twitter 视频，很方便快捷。关于配置自己的 bot 参考之前的文章：https://blog.niekun.net/archives/428.html我的应用于 telegram bot 的 YouTube 下载器源码地址：https://github.com/nie11kun/telegram-bot-youtube-downloader最近想给我的 telegram bot 添加 Instagram 图片的下载功能，但是 youtube-dl 并不支持 Instagram。查询了下发现了 instaloader 这个开源软件可以完美实现我想要的功能。instaloader 官网：https://instaloader.github.io/GitHub：https://github.com/instaloader/instaloader安装instaloader 需要 python 3.5 以上。推荐直接安装最新版 python。使用 pip3 安装：pip3 install instaloader --upgrade
+注意必须通过 pip3 而不是 pip 安装，否则使用中会报错。使用安装完成后就可以使用 instaloader 命令来下载了。注意如果 python 安装到了自定义目录，如 /opt 则需要手动链接 instaloader 可执行程序到 /usr/local/bin 目录。下载 post如果要下载一个 post 中的图片，提取链接中的 shortcode 来下载，如下是一个 Instagram post 的链接：https://www.instagram.com/p/CMcMZycLpbS/?utm_source=ig_web_copy_link，其中的 CMcMZycLpbS 就是 shortcode 代码。需要通过 -shortcode 参数来下载对应的图片，且需要通过 -- 告诉 instaloader 不要将 -shortcode 作为 option 对待，如：instaloader -- -CMcMZycLpbS
+关于命令中的特殊字符处理参考：https://blog.niekun.net/archives/2204.html默认会下载到当前目录下，并新建文件夹 -shortcode，媒体文件及相关文本文件就在其中，注意到文件夹是以特殊字符 - 开头的，所以访问目录需要加上 --，如：cd -- -CMcMZycLpbS
+自定义下载目录通过 --dirname-pattern 参数可以指定下载目录，如：instaloader --dirname-pattern=/tmp/test -- -CMcMZycLpbS
+就会将对应 post 的媒体下载到 /tmp/test 目录内。instaloader 的功能很强大，可以下载一个用户的所有发布内容，可以下载一个 #hashtag 标签的所有内容等。具体可以参考官方文档：https://instaloader.github.io/basic-usage.html#download-pictures-from-instagram我将 instaloader 加入了 telegram bot 中，可以很方便的下载一个 post 的媒体内容，有兴趣的可以查看：https://github.com/nie11kun/telegram-bot-youtube-downloader</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2204.html">
+<title>cd 到以 '-' dash 开头的目录的方法</title>
+<link>https://blog.niekun.net/archives/2204.html</link>
+<dc:date>2021-03-16T10:33:44+08:00</dc:date>
+<description>Linux 下，当文件或文件夹包含空格或其他特殊符号如 $，在引用时需要将其放在单引号 '' 或 &quot;&quot; 中，如：cd '$abc'
+cd &quot;abc de f&quot;
+当文件以 - dash 开头时，命令会将其作为 option 处理，如：ls -lh
+此时如果需要让命令将其识别为文件名称而不是 option 需要加入 -- 作为参数：cd -- '-abc'
+这样命令就会将 - 开头的字符作为文件名称处理了。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2203.html">
+<title>React 入门教程之七 -- List 和 Form</title>
+<link>https://blog.niekun.net/archives/2203.html</link>
+<dc:date>2021-03-05T16:13:00+08:00</dc:date>
+<description>list 列表和 key在 JavaScript 中我们通常使用 map method 来对一个 list 的每个元素进行操作：const numbers = [1, 2, 3, 4, 5];
+const double = numbers.map((number) =&gt; { return number * 2});
+console.log(double)
+
+//output:
+//[ 2, 4, 6, 8, 10 ]在 React 中对一个 list 的元素进行操作方法类似。我们可以在 JSX 中通过大括号{} 来建立一个 elements 的集合，下面示例中我们将 map 的返回定义为 &lt;li&gt; 元素并赋值给 listItems：const numbers = [1, 2, 3, 4, 5];
+const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+
+ReactDOM.render(
+    &lt;ul&gt;{listItems}&lt;/ul&gt;,
+    document.getElementById('root')
+);注意在 render 中我们将 listItems 放在 &lt;ul&gt; 元素中。通常情况下我们将 lists 放在一个 component 中：const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt; &lt;li&gt;{number}&lt;/li&gt;)
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    )
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers}/&gt;,
+    document.getElementById('root')
+);当运行以上代码时，在浏览器终端会有一个 warning 警告信息：Each child in a list should have a unique "key" prop.：Key 是一个特殊的 string 字符串属性需要给创建的 list element 添加的。它可以用来定位 list 中的每个元素。下面我们给 list item 添加 Key 字符串属性：const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;li key={number.toString()}&gt;
+            {number}
+        &lt;/li&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}添加后报警就会消除。KeysKey 可以帮助 React 识别哪个 item 修改过，被删除，被添加。以上示例中，我们在 map 中创建 item 时给其 key 属性，这样每个 item 可以有确切的属性值。每个 list item 最好设置一个特殊的标识 key string 来区别于其他 items。最常用的就是使用数据中的 ID 作为 key：const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo) =&gt; 
+        &lt;li key={todo.id}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+const todos = [
+    {id: 1, text: '123'},
+    {id: 2, text: '456'}
+];
+ReactDOM.render(
+    &lt;TodoItems todos={todos} /&gt;,
+    document.getElementById('root')
+);当没有特定的 ID 来作为标识时，作为最后的选择，可以使用 item 的 index 作为 key：const TodoItems = (props) =&gt; {
+    const todos = props.todos;
+    const listItems = todos.map((todo, index) =&gt; 
+        &lt;li key={index}&gt;
+            {todo.text}
+        &lt;/li&gt;
+    )
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}如果 items 的顺序可能会发生变化的话，不推荐使用 index 作为 key 使用，因为可能对性能产生影响并且对 component 的 state 造成问题。如果没有定义确切的 key 给 items，React 默认会使用 index 作为 keys。拆解 component 时 key 的处理keys 是对应与一个数组的内容而言的，它并不能单独存在。例如我们要拆解上面的 NumberList，提取出 ListItem，则需要将 key 定义在 &lt;ListItem /&gt; 元素中而不是 ListItem component 内部的 &lt;li&gt; 中：const ListItem = (props) =&gt; {
+    return (
+        &lt;li&gt;{props.value}&lt;/li&gt;
+    );
+}
+
+const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+    &lt;NumberList numbers={numbers} /&gt;,
+    document.getElementById('root')
+);如果写成下面模式就是错误的：function ListItem(props) {
+  const value = props.value;
+  return (
+    &lt;li key={value.toString()}&gt;
+      {value}
+    &lt;/li&gt;
+  );
+}每个 item 的 key 必须是特定的数组中每个 items 使用的 key 必须是互相独立且不相同的，但并不需要在全局下互相独立。在两个单独的数组中可以，其元素可以使用相同的 key：const React = require('react')
+const ReactDOM = require('react-dom')
+
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;li key={post.id}&gt;{post.title}&lt;/li&gt;
+            )}
+        &lt;/ul&gt;
+    );
+    const content = props.posts.map((post) =&gt;
+        &lt;div key={post.id}&gt;
+            &lt;h3&gt;{post.title}&lt;/h3&gt;
+            &lt;p&gt;{post.content}&lt;/p&gt;
+        &lt;/div&gt;
+    );
+    return (
+        &lt;div&gt;
+            {sideBar}
+            &lt;hr/&gt;
+            {content}
+        &lt;/div&gt;
+    );
+}
+
+const posts = [
+    {id: 1, title: 'Hello World', content: 'Welcome to learning React!'},
+    {id: 2, title: 'Installation', content: 'You can install React from npm.'}
+];
+
+ReactDOM.render(
+    &lt;Blog posts={posts} /&gt;,
+    document.getElementById('root')
+);上面示例中，我们在 Blog component 中定义了两个 JSX，都创建了 list elements，每个元素的 key 使用了对应的 id 属性。在每个 list 内部 key 是互相独立的。可以看到不只是 &lt;li&gt; 元素可以加 key，只要通过 map 定义了一个 array 数组，就可以给每个元素加上 key 属性来互相独立识别。key 是为了给 React 识别用的。它本身并不作为一个普通 prop 传给 components，也就是在 component 内部并不能使用这个 key 数据，如果想要在 component 中使用这个数据则需要单独定义一个其他 prop 来传入 key 数据：const Post = (props) =&gt; {
+    return (
+        &lt;li&gt;
+            {props.id}: {props.title}
+        &lt;/li&gt;
+    )
+}
+const Blog = (props) =&gt; {
+    const sideBar = (
+        &lt;ul&gt;
+            {props.posts.map((post) =&gt;
+                &lt;Post key={post.id} id={post.id} title={post.title} /&gt;
+            )}
+        &lt;/ul&gt;
+    );
+...
+...
+...
+}上面示例中，Post component 无法直接访问 key 的数据，所以我们在调用 Post 时单独定义一个 id 属性并赋值为 key 相同的数据，这样就间接的可以在 Post component 中通过 id 来读取 key 的数据。在之前的 ListItem 示例中，我们声明了一个单独的 listItems 变量并在后续返回中将其放在 &lt;ul&gt; 中：const NumberList = (props) =&gt; {
+    const numbers = props.numbers;
+    const listItems = numbers.map((number) =&gt;
+        &lt;ListItem key={number.toString()} value={number}/&gt;);
+    return (
+        &lt;ul&gt;{listItems}&lt;/ul&gt;
+    );
+}JSX 支持嵌入任何的 JavaScript 表达式，只需要使用大括号包围即可，所以上面的代码可以修改为以下模式：    return (
+        &lt;ul&gt;
+            {numbers.map((number) =&gt;
+                &lt;ListItem key={number.toString()} value={number} /&gt;);}
+        &lt;/ul&gt;
+    );使用哪种方式来定义 JSX 取决于对应的使用场景，总的原则是要方便与代码阅读，逻辑清晰。需要注意的是如果 map() method 中层级太复杂，可以考虑将其拆分为多个 components。Forms 表格HTML 的 form element 和其他 DOM elements 有点区别，因为 form element 包含有一些内部 state 数据，例如下面的 html 示例包含一个 from 表格：&lt;form&gt;
+    &lt;label&gt;
+        Name:
+        &lt;input type=&quot;text&quot; name=&quot;name&quot;&gt;
+    &lt;/label&gt;
+    &lt;input type=&quot;submit&quot; value=&quot;Submit&quot;&gt;
+&lt;/form&gt;以上示例中的 form 表格会有一个默认的 behavior 动作，那就是当用户点击 submit 按钮时会打开一个新页面。如果你不需要这个默认行为，同时需要提取 input 的信息时，需要在 submit event 事件发生时对其使用 preventDefault() method，标准的实现方法是通过 controlled components 可控构件 来处理。controlled components在 html 中，form 的元素如：&lt;input&gt;, &lt;textarea&gt;, 和 &lt;select&gt; 都有他们自己的 state 且随着用户输入信息而自动更新。在 react 中，可变的 state 存储在 component 的 state property 中且只能通过 setState() 更新。我们可以将 from 元素的 state 和 component 的 state 合并起来作为唯一的数据来源，这样 component 既可以渲染 form 也可以控制 form 中的输入信息。一个 input 输入信息受 react component 控制的 form element 叫做 controlled component。如下示例中，我们构建一个 controlled component 来记录用户 input 的内容：const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: ''};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`a name has been submited: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    Name:
+                    &lt;input type=&quot;text&quot; value={this.state.value} onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);我们将 input 的 value 属性定义为 this.state.value 的值，这里显示的永远是当前 state value 的值。当 handleChange 被触发时，会将当前用户输入的内容更新到 state value 中，然后触发 render 更新 form。通过 controlled component 可以使 form 中 input 的内容受控于 state，这样我们就可以操作输入的数据用于其他任何地方了。textarea 标签在 html 中我们使用 textarea 来定义一段文本区域：&lt;textarea&gt;
+  Hello there, this is some text in a text area
+&lt;/textarea&gt;在 react 中，类似于上面的 input 标签，我们将文本内容放在 value 属性中，如下示例：const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: 'please write some words to discribe yourself'};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`a discribe has been submited: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    TextArea:
+                    &lt;textarea type=&quot;text&quot; value={this.state.value} onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);注意我们在构造器中给他 state value 定义了初始值，这样在第一次访问页面时就会有一段默认文字了。select 标签在 html 中 select 标签可以创建一个下拉菜单控件：&lt;select&gt;
+  &lt;option value=&quot;grapefruit&quot;&gt;Grapefruit&lt;/option&gt;
+  &lt;option value=&quot;lime&quot;&gt;Lime&lt;/option&gt;
+  &lt;option selected value=&quot;coconut&quot;&gt;Coconut&lt;/option&gt;
+  &lt;option value=&quot;mango&quot;&gt;Mango&lt;/option&gt;
+&lt;/select&gt;注意上面的示例中，Coconut 选项会默认选中，因为其定义了 selected 属性。在 react 中我们可以在 select 根标签中直接定义 value 属性来定义当前选中的是哪一个 option。这在 controlled component 中可以很方便的管理及更新 select element 的 value：const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: 'sports'};
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
+
+    handleSubmit(event) {
+        alert(`you favorite is: ${this.state.value}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    your favorite:
+                    &lt;select value={this.state.value} onChange={this.handleChange}&gt;
+                        &lt;option value=&quot;sleep&quot;&gt;Sleep&lt;/option&gt;
+                        &lt;option value=&quot;sports&quot;&gt;Sports&lt;/option&gt;
+                        &lt;option value=&quot;takePhoto&quot;&gt;Take Photo&lt;/option&gt;
+                        &lt;option value=&quot;work&quot;&gt;Work&lt;/option&gt;
+                    &lt;/select&gt;
+                &lt;/label&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);以上示例中，我们将 state 的 value 赋值给 select 的 value 这样 select 当前选中项总是 state 中的值，在 handleChange 触发时会更新 state 中的 value 并 render 页面。注意我们可以给 value 赋值一个数组，这样就可以同时选中多个 option：&lt;select multiple={true} value={['B', 'C']}&gt;以上几种 form 控件起始基本结构都类似，他们都核心概念就是将元素的 value 属性和 state 挂钩，从而使 controlled component 生效。处理多个 input 输入源当我们需要在 component 中同时处理多个 input 元素时，可以给每个 input 添加 name 属性，然后再对应的 handle function 中通过 event.target.name 来区分他们：const React = require('react')
+const ReactDOM = require('react-dom')
+
+class NameForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isGoing: true,
+            numberOfGuests: 2
+        };
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    };
+
+    handleChange(event) {
+        const target = event.target;
+        const value = target.type === 'checkbox' ? target.checked : target.value;
+        const name = target.name;
+        this.setState({[name]: value});
+    }
+
+    handleSubmit(event) {
+        alert(`Is Going: ${this.state.isGoing}, Number Of Guests: ${this.state.numberOfGuests}`);
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            &lt;form onSubmit={this.handleSubmit}&gt;
+                &lt;label&gt;
+                    Is Going:
+                    &lt;input
+                    name=&quot;isGoing&quot;
+                    type=&quot;checkbox&quot;
+                    checked={this.state.isGoing}
+                    onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;br /&gt;
+                &lt;label&gt;
+                    Number of Guests:
+                    &lt;input
+                    name=&quot;numberOfGuests&quot;
+                    type=&quot;number&quot;
+                    value={this.state.numberOfGuests}
+                    onChange={this.handleChange} /&gt;
+                &lt;/label&gt;
+                &lt;br /&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Submit&quot; /&gt;
+            &lt;/form&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;NameForm /&gt;,
+    document.getElementById('root')
+);以上示例中我们使用了 ES6 中新加入的特性: this.setState({[name]: value}); 再 object 中使用方括号 [] 来调用变量。setState() 会自动合并更新到 state 中。input Null value我们可以给一个 input 元素定义初值，默认情况下在页面加载完成后，input 框就可以立刻被用户进行编辑，有时候我们不希望再一开始就让用户修改 input 中的数据，此时可以临时给 input 的 value 属性赋值为 null 或 undefined 就可以了：const React = require('react')
+const ReactDOM = require('react-dom')
+
+ReactDOM.render(
+    &lt;input value=&quot;hi&quot; /&gt;,
+    document.getElementById('root')
+);
+
+setTimeout(() =&gt; {
+    ReactDOM.render(
+        &lt;input value={null} /&gt;,
+        document.getElementById('root')
+    );
+}, 2000);以上示例中，在页面刚加载的前 2 秒，用户无法修改默认的 hi 字符串。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2198.html">
+<title>升级 command line tool 后 QT 编译 boost 库报错问题</title>
+<link>https://blog.niekun.net/archives/2198.html</link>
+<dc:date>2021-03-03T21:03:37+08:00</dc:date>
+<description>今天打开一个 QT 项目后进行编译发现报错了，查看了下什么都没有修改就比较奇怪了。根据日志是 boost 库出了问题，报错为：Undefined symbols for architecture x86_64，但是 boost 库是以前编译好的从来没动过。回想起来前几天重新安装了下 command line tool 会不会有关系。看了下 QT kit 配置里面发现 clang 的设置居然有叹号。重新识别了下系统编译器：然后重建下项目配置：重新编译项目依然有报错。最后就是 boost 库的确有问题了。于是我重新编译了一次。居然问题就解决了。原来真的是由于系统的 Clang 更新后原来编译的 boost 库不兼容了，在此使用当前系统的 Clang 编译一次就行了。boost 库编译方法参考：https://blog.niekun.net/archives/1174.html</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2195.html">
+<title>React 入门教程之六 -- Conditional Rendering</title>
+<link>https://blog.niekun.net/archives/2195.html</link>
+<dc:date>2021-03-02T23:10:22+08:00</dc:date>
+<description>在 React 中，我们可以创建独立的 component 来封装特定的功能。因此，可以根据不同的程序的 state 选择性的做部分渲染。和 JavaScript 的相同，React 中也可以使用 conditions 语法来选择性的渲染内容。如使用 if 或 conditional operator 来根据不同 state 状态创建不同 elements 然后让 React 更新 UI 来匹配 DOM。考虑下面两个 components：const UserGreeting = (props) =&gt; {
+    return &lt;h1&gt;welcome back&lt;/h1&gt;
+}
+
+const GuestGreeting = (props) =&gt; {
+    return &lt;h1&gt;please sign up&lt;/h1&gt;
+}然后我们创建一个 Greeting component 来根据是否有用户登陆来显示以上两个中的一个：const Greeting = (props) =&gt; {
+    let isLoggedIn = props.isLoggedIn;
+    if (isLoggedIn)
+        return &lt;UserGreeting /&gt;;
+    else
+        return &lt;GuestGreeting /&gt;;
+}
+
+ReactDOM.render(
+    &lt;Greeting isLoggedIn={true} /&gt;,
+    document.getElementById('root')
+);以上示例会根据 isLoggedIn 属性的值来渲染不同的内容。elements 变量可以使用变量存储 elements，这样可以方便的根据情况 render 部分的 component 而不需要改变输出的指令内容。考虑下面两个 component 表示 login 和 logout：const LoginButton = (props) =&gt; {
+    return (
+        &lt;button onClick={props.onClick}&gt;
+            login
+        &lt;/button&gt;
+    );
+}
+
+const LogoutButton = (props) =&gt; {
+    return (
+        &lt;button onClick={props.onClick}&gt;
+            logout
+        &lt;/button&gt;
+    );
+}然后我们创建 LoginControl component，它将根据当前情况渲染 login 或 logout button 以及之前创建的 Greeting element：class LoginControl extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleLoginClick = this.handleLoginClick.bind(this);
+        this.handleLogoutClick = this.handleLogoutClick.bind(this);
+        this.state = {isLoggedIn: false};
+    }
+
+    handleLoginClick() {
+        this.setState({isLoggedIn: true});
+    }
+
+    handleLogoutClick() {
+        this.setState({isLoggedIn: false});
+    }
+
+    render() {
+        let isLoggedIn = this.state.isLoggedIn;
+        let button;
+        if (isLoggedIn)
+            button = &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
+        else
+            button = &lt;LoginButton onClick={this.handleLoginClick} /&gt;
+
+        return (
+            &lt;div&gt;
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+            &lt;/div&gt;
+        );
+    }
+
+}
+
+ReactDOM.render(
+    &lt;LoginControl /&gt;,
+    document.getElementById('root')
+);inline condition 单语句判断使用 element 变量以及使用 if 语句根据条件渲染 component 是一种很好的方法。但是有时候可以使用简化语法。下面接收几种 inline condition 语法。inline if with && operator在 JSX 可以通过使用大括号{}来嵌入 JavaScript 表达式，包括逻辑符号：&amp;&amp;，在根据条件判断是否包含一个 element 时很有用。请看下面示例：const InlineCom = (props) =&gt; {
+    return(
+        &lt;div&gt;
+            &lt;h1&gt;hello world&lt;/h1&gt;
+            {props.count &gt; 10 &amp;&amp;
+                &lt;h2&gt;count is: {props.count}&lt;/h2&gt;
+            }
+        &lt;/div&gt;
+    );
+}
+
+ReactDOM.render(
+    &lt;InlineCom count={20} /&gt;,
+    document.getElementById('root')
+);如果 props.count &gt; 10 满足条件则后面的 element 就会成为 component 一部分。在 JavaScript 中，true &amp;&amp; expression 将会评估为 expression，而 false &amp;&amp; expression 将会评估为 false。因此当 condition 为 true 时，&amp;&amp; 后的 element 将会输出，否则 React 将会忽略它。inline condition operator另一种根据情况通过 inline 单行判断来渲染 element 就是使用 JavaScript conditional operator：condition ? true : false。给 LoginControl 的返回添加如下：        return (
+            &lt;div&gt;
+                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+            &lt;/div&gt;
+        );通过 inline conditional operator 来输出不同的信息。也可以在较长的表达式中使用，例如可以将示例中 button 部分在 render 中这样处理：        return (
+            &lt;div&gt;
+                the user is &lt;b&gt;{isLoggedIn ? 'currenty' : 'not'}&lt;/b&gt; logged in.
+                &lt;Greeting isLoggedIn={isLoggedIn} /&gt;
+                {button}
+                {isLoggedIn 
+                    ? &lt;LogoutButton onClick={this.handleLogoutClick} /&gt;
+                    : &lt;LoginButton onClick={this.handleLoginClick} /&gt;
+                }
+            &lt;/div&gt;
+        );使用中根据实际情况选择最合适的方式处理 condition，最终目的是为了使结构更加清晰，代码易读。注意如果判断过复杂就需要考虑拆解 component 为多个个体了。阻止 component 渲染某些情况下我们可能需要将一个 component 隐藏起来，即使它在别的 component 中已经渲染了。可以通过 return null 来代替它的输出。下面示例中 WarningBanner 会根据 warn 属性的值来选择性渲染：const React = require('react')
+const ReactDOM = require('react-dom')
+
+const WarningBanner = (props) =&gt; {
+    if (!props.warn) {
+        return null;
+    }
+    return (
+        &lt;div className='warning'&gt;
+            warning!
+        &lt;/div&gt;
+    );
+}
+
+class Page extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {showWarning: true};
+        this.handelToggleClick = this.handelToggleClick.bind(this);
+    }
+    handelToggleClick() {
+        this.setState({showWarning: !this.state.showWarning});
+    }
+
+    render() {
+        return (
+            &lt;div&gt;
+                &lt;WarningBanner warn={this.state.showWarning} /&gt;
+                &lt;button onClick={this.handelToggleClick}&gt;
+                    {this.state.showWarning ? 'hide' : 'show'}
+                &lt;/button&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+ReactDOM.render(
+    &lt;Page /&gt;,
+    document.getElementById('root')
+);在 render method 中 return null 不会影响到 component 的 lifecycle method。例如每次更新 componentDidUpdate 依然会被自动调用。</description>
+</item>
+</rdf:RDF>
