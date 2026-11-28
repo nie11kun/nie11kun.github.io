@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/2022/09/">
+<title>Marco Nie - 2022年9月</title>
+<link>https://blog.niekun.net/2022/09/</link>
+<description>you are the company you keep...</description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/2770.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2769.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2757.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/2770.html">
+<title>命令行激活 Windows 密钥</title>
+<link>https://blog.niekun.net/archives/2770.html</link>
+<dc:date>2022-09-19T09:22:00+08:00</dc:date>
+<description>注意：安装新密钥及激活时需要在管理员权限下运行终端。安装新密钥，会自动替换当前密钥：slmgr /ipk xxxx-xxxx-xxxx-xxxx-xxxx
+激活 Windows：slmgr /ato
+显示当前授权信息：slmgr /dli
+显示详细授权信息：slmgr /dlv
+显示授权剩余日期：slmgr /xpr
+密钥可用性在线检测：https://dbmer.com/checkkey/</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2769.html">
+<title>Ubuntu 安装 FTP server</title>
+<link>https://blog.niekun.net/archives/2769.html</link>
+<dc:date>2022-09-16T09:28:00+08:00</dc:date>
+<description>虽然平时可以用 sftp 或 webdav 代替，但是有些时候客户端只支持 ftp 链接，所以介绍下在服务器上安装 ftp server 的简单方法。系统平台：Ubuntu server 20.04安装 vsftpd主要是通过 vsftpd 实现 ftp 功能的，首先安装：apt update &amp;&amp; apt install vsftpd
+安装好后，vsftpd 会自动启动，可以查看当前运行状态：systemctl status vsftpd
+
+● vsftpd.service - vsftpd FTP server
+     Loaded: loaded (/lib/systemd/system/vsftpd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2020-04-27 19:35:30 IST; 13s ago
+   Main PID: 54532 (vsftpd)
+      Tasks: 1 (limit: 1137)
+     Memory: 652.0K
+     CGroup: /system.slice/vsftpd.service
+             └─54532 /usr/sbin/vsftpd /etc/vsftpd.conf
+
+Apr 27 19:35:30 ubuntu systemd[1]: Starting vsftpd FTP server...
+Apr 27 19:35:30 ubuntu systemd[1]: Started vsftpd FTP server.设置为开机自动启动：systemctl enable vsftpd
+创建 ftp 用户默认安装好后，会自动创建一个 ftp 用户，这个用户经过我测试无法登录 ftp 服务，这里我们自己创建一个新用户用于登录 ftp，这里创建用户名为 ftpuser：adduser ftpuser
+期间会提示输入创建用户的密码。我们只需要这个新用户登录 ftp 不需要它能够访问 ssh 服务，所以下面我们将这个用户排除在 ssh 用户之外，编辑 /etc/ssh/sshd_config 文件，在最后一行添加以下内容：DenyUsers ftpuser保存后重启 ssh 服务：sudo service sshd restart
+ftp 目录及权限我们新建一个用于 ftp 的目录：mkdir /home/www/ftp
+将此目录所有者设置为上面创建的 ftpuser：chown -R ftpuser:ftpuser /home/www/ftp
+默认情况下 ftp 目录的根路径不允许有写权限，否则链接的时候会报错，所以我们取消这个文件夹的对应权限：chmod a-w /home/www/ftp
+如果想要上传文件，我们可以在这个文件夹内新建一个文件夹专门用来上传：mkdir /home/www/ftp/uploads
+同样的文件夹所有者为 ftpuser：chown -R ftpuser:ftpuser /home/www/ftp/uploads
+vsftpd 配置文件vsftpd 配置文件路径为：/etc/vsftpd.conf，打开并修改如下设置，最后一行配置文件中没有的话需要自己创建一下：listen=NO
+listen_ipv6=YES
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+local_umask=022
+dirmessage_enable=YES
+use_localtime=YES
+xferlog_enable=YES
+connect_from_port_20=YES
+chroot_local_user=YES
+secure_chroot_dir=/var/run/vsftpd/empty
+pam_service_name=vsftpd
+
+local_root=/home/www/ftp
+#allow_writeable_chroot=YES修改完成后重启服务：systemctl restart vsftpd
+此时就可以使用 ftp 客户端连接到 ftp 服务器了。如果登录的时候提示：500 oops vsftpd refusing to run with writable root inside chroot()，报错，则简单的方法就是在 /etc/vsftpd.conf 添加一句：allow_writeable_chroot=YES，然后重启 vsftpd 服务即可。为了更加安全，推荐配置 ssl 证书，可以参考：Secure FTP with TLS (Recommended)以上就是 ftp server 的简单安装及配置教程。参考链接How To Install an FTP server (vsftpd) on Ubuntu 20.04/20.10FTP Server</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2757.html">
+<title>Windows 配置 FTP 服务器</title>
+<link>https://blog.niekun.net/archives/2757.html</link>
+<dc:date>2022-09-15T15:04:00+08:00</dc:date>
+<description>Windows 10 以上系统自带 FTP server，可以简单的搭建一个局域网内应用的 FTP 服务器。下面介绍具体操作流程。搜索 windows feature 打开功能开关配置界面：开启如下 ftp 相关选项，确认后等待安装完成：搜索 Administrative Tools：双击 Internet Information Services (IIS) Manager:sites 上右键点击 add ftp site：设置名称及共享路径：选择无 ssl：选择 basic 验证以及指定可登录 FTP 的用户，设置读写权限：可以单独建立一个用户用来登录 ftp，建立账户可以参考我的教程：https://blog.niekun.net/archives/2103.html#title-4设置完成后，点击完成即可。然后配置防火墙例外，搜索 allow an app through windows firewall:在列表中找到 ftp server 并打勾即可：以上就完成了 Windows 端 ftp 服务器的搭建，可以使用 ftp 客户端登录此 ftp 服务器了。参考链接：How to set up and manage an FTP server on Windows 10</description>
+</item>
+</rdf:RDF>

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/category/ubuntu/">
+<title>Marco Nie - ubuntu</title>
+<link>https://blog.niekun.net/category/ubuntu/</link>
+<description></description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Linux-warp.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/immich.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Ubuntu-20-04-ppa.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2703.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2451.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1316.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/1161.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/891.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/Linux-warp.html">
+<title>服务器装 warp 解锁 chatgpt</title>
+<link>https://blog.niekun.net/archives/Linux-warp.html</link>
+<dc:date>2024-06-27T07:12:00+00:00</dc:date>
+<description>最近在使用 chatgpt 中发现 ios 端无法登录 app，网页端正常使用。提示信息为：Something went wrong. You may be connected to a disallowed ISP If youare using VPN, try disabling it. Otherwise try a different Wi-Fi network or data connection。经过查询发现是我的 vps 服务商只提供网页端 chatgpt 解锁，不支持 app 端。由于 chatgpt 服务也是通过 cloudflare 的 cdn 服务，所以通过将流量转发到 warp 来访问就可以解决问题。首先需要在服务端安装官方的 warp 命令行工具：warp-cli。官方教程：https://developers.cloudflare.com/warp-client/get-started/linux/官方手动添加包仓库教程：https://pkg.cloudflareclient.com/#ubuntu安装在命令行输入以下指令来安装第三方仓库并安装包：# Add cloudflare gpg key
+curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+
+# Add this repo to your apt repositories
+echo &quot;deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main&quot; | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+
+# Install
+sudo apt-get update &amp;&amp; sudo apt-get install cloudflare-warp配置安装好后需要注册一个新账户：warp-cli registration new
+查看当前账户信息：warp-cli registration show
+更换新的 license：warp-cli registration license xxxxx-xxxxxx-xxxxxx
+然后需要设置代理模式，可选有：warp, doh, warp+doh, dot, warp+dot, proxy, tunnel_only。我只想要它提供一个 socks5 代理端口即可，所以设置为 proxy 模式，它会在本地 40000 端口监听：warp-cli mode proxy
+启动 warp：warp-cli connect
+此时 warp 会在本地 40000 端口建立一个 sock5 代理，只需要将需要转发的流量转发到此端口即可走 warp。并且 warp 会自动配置为 Always On 模式，开机自动运行代理。查看 warp 当前配置：# warp-cli settings
+Merged configuration:
+(derived)       Always On: true
+(default)       Switch Locked: false
+(user set)      Mode: WarpProxy on port 40000
+(Not set)       WARP tunnel protocol: MASQUE
+(default)       Disabled for Wifi: false
+(default)       Disabled for Ethernet: false
+(Not set)       Resolve via: cloudflare-dns.com @ [162.159.36.1, 2606:4700:4700::1111]
+(Not set)       qlog logging: Disabled
+(default)       Onboarding: true
+(API defaults)  Exclude mode, with hosts/ips:
+  10.0.0.0/8
+  100.64.0.0/10
+  169.254.0.0/16
+  172.16.0.0/12
+  192.0.0.0/24
+  192.168.0.0/16
+  224.0.0.0/24
+  240.0.0.0/4
+  239.255.255.250/32
+  255.255.255.255/32
+  fe80::/10
+  fd00::/8
+  ff01::/16
+  ff02::/16
+  ff03::/16
+  ff04::/16
+  ff05::/16
+  fc00::/7
+
+(default)       Fallback domains:
+  intranet
+  internal
+  private
+  localdomain
+  domain
+  lan
+  home
+  host
+  corp
+  local
+  localhost
+  home.arpa
+  invalid
+  test
+(Not set)       Daemon Teams Auth: false
+(default)       Disable Auto Fallback: false
+(Not set)       Allow Updates: true查看代理是否生效：export ALL_PROXY=socks5://127.0.0.1:40000
+curl ifconfig.me代理工具转发流量服务端的配置文件需要添加和修改的地方如下：{
+    &quot;outbounds&quot;: [
+        ...
+        {
+            &quot;protocol&quot;: &quot;socks&quot;,
+            &quot;settings&quot;: {
+                &quot;address&quot;: &quot;127.0.0.1&quot;,
+                &quot;port&quot;: 40000
+            },
+            &quot;tag&quot;:&quot;socks_out&quot;
+        }
+    ],
+    &quot;router&quot;: {
+        &quot;domainStrategy&quot;: &quot;AsIs&quot;,
+        &quot;rule&quot;: [
+            ...
+            {
+                &quot;tag&quot;: &quot;socks_out&quot;,
+                &quot;geoDomain&quot;: [
+                    {
+                        &quot;code&quot;: &quot;openai&quot;,
+                        &quot;filePath&quot;: &quot;geosite.dat&quot;
+                    }
+                ],
+                &quot;domainMatcher&quot;: &quot;mph&quot;
+            }
+        ]
+    },
+    &quot;inbounds&quot;: [
+        {
+            &quot;protocol&quot;: &quot;vmess&quot;,
+            ...
+            &quot;sniffing&quot;: {
+                &quot;enabled&quot;: true,
+                &quot;destOverride&quot;: [
+                    &quot;http&quot;,
+                    &quot;tls&quot;
+                ]
+            },
+            ...注意需要安装扩展版的 geosite.dat 才有 openai 的条目：https://github.com/Loyalsoldier/v2ray-rules-dat通过访问以下网址测试是否已经解锁 ios app 端：https://ios.chat.openai.com/public-api/mobile/server_status/v1以上就是解决 chatgpt 无法访问的方法。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/immich.html">
+<title>服务器部署 immich 照片备份工具</title>
+<link>https://blog.niekun.net/archives/immich.html</link>
+<dc:date>2024-03-04T01:30:00+00:00</dc:date>
+<description>目前有很多的云备份服务可以使用，比如 icloud，google photos 等。immich 是一款实现类似功能的本地部署工具，将数据都存储在自己本地服务器上，拥有完善的手机端 app 可以方便的同步备份手机图片。GitHub 主页：https://github.com/immich-app/immich官网教程：https://immich.app/docs/overview/introduction/安装服务端使用 docker compose 安装，新建一个 immich 文件夹，下载 docker-compose.yml 和 .env 文件到文件夹：wget https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
+wget -O .env https://github.com/immich-app/immich/releases/latest/download/example.env打开 .env 文件配置环境变量，主要就是配置备份路径和数据库密码，修改 UPLOAD_LOCATION 和 DB_PASSWORD。启动容器：docker compose up -d后续更新只需要进入 immich 文件夹执行下面命令即可：docker compose pull &amp;&amp; docker compose up -d
+docker-compose.yml 文件中默认将 3001 端口映射到了本地 2283 端口，3001就是服务端访问端口号。下面是所有可用的端口，根据需要可以修改 docker-compose 文件映射到本地：PORTWeb Port3000webSERVER_PORTServer Port3001serverMICROSERVICES_PORTMicroservices Port3002microservicesMACHINE_LEARNING_HOSTMachine Learning Host0.0.0.0machine learningMACHINE_LEARNING_PORTMachine Learning Port3003machine learning配置账户网页端访问：http://you.machine.ip:2283 进入配置页面，根据提示建立一个管理员账户，后续可以在管理员账户中建立其他子账户供其他人使用。登录 app下载手机端 app，ios 直接在 app store 搜索 immich 下载，安卓在 github 发布页下载 apk：https://github.com/immich-app/immich/releases在手机端输入以下网址进入：http://you.machine.ip:2283/api然后就可以配置需要备份的手机端图片文件夹了。外网访问服务器在本地，如果要外网域名远程访问图库，需要一些额外的配置，我这里是通过 cloudflare 配置子域名，nginx 配置反向代理到 frps，最后本地服务器 frpc 配置本地 2283 端口绑定到远程域名访问即可。可以参考我之前的关于 frp 的教程：https://blog.niekun.net/archives/539.html</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Ubuntu-20-04-ppa.html">
+<title>Ubuntu 20.04 添加第三方 ppa</title>
+<link>https://blog.niekun.net/archives/Ubuntu-20-04-ppa.html</link>
+<dc:date>2024-02-22T01:18:33+00:00</dc:date>
+<description>我服务器目前安装的是 Ubuntu 20.04 系统，很多新的软件包并没有在官方维护的源中提供，所以为了方便需要可以添加第三方的源。添加需要用到的命令是：add-apt-repository，但是默认系统并没有安装这个环境，需要先手动安装 package software-properties-common：sudo apt install software-properties-common
+然后就可以安装需要的源了，推荐两个：https://launchpad.net/%7Esavoury1/+archive/ubuntu/backports?field.series_filter=bionichttps://launchpad.net/%7Esavoury1/+archive/ubuntu/utilities?field.series_filter=bionic安装方法很简单：sudo add-apt-repository ppa:savoury1/backports
+sudo add-apt-repository ppa:savoury1/utilities
+sudo apt-get update执行 apt update 后会发现很多可更新的软件了。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2703.html">
+<title>Ubuntu 开启 RDP 远程连接</title>
+<link>https://blog.niekun.net/archives/2703.html</link>
+<dc:date>2022-05-23T02:18:00+00:00</dc:date>
+<description>之前介绍过通过安装 TightVNC vnc server 远程连接 Ubuntu 桌面的教程，Windows 下常用的是 RDP 方式远程，使用体验非常流畅，不占用带宽。Linux 下也可以通过安装 Xrdp 的方式实现 rdp 连接。参考教程：Ubuntu desktop 配置 vnc serverxrdp 是对 Windows rdp 协议的开源实现。安装我的系统是 Ubuntu desktop 20.04，首先需要保证有一个已经安装的桌面环境，desktop 版默认是 genome，也可以安装其他的如 xfce：sudo apt install ubuntu-desktop安装 xrdp：sudo apt install xrdp安装完成后，xrdp 会自动启动，可以通过命令查看状态：$  sudo systemctl status xrdp
+ 
+● xrdp.service - xrdp daemon
+     Loaded: loaded (/lib/systemd/system/xrdp.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2022-05-23 09:50:43 CST; 20min ago
+       Docs: man:xrdp(8)
+             man:xrdp.ini(5)
+    Process: 83586 ExecStartPre=/bin/sh /usr/share/xrdp/socksetup (code=exited, status=0/SUCCESS)
+    Process: 83594 ExecStart=/usr/sbin/xrdp $XRDP_OPTIONS (code=exited, status=0/SUCCESS)
+   Main PID: 83595 (xrdp)
+      Tasks: 2 (limit: 9459)
+     Memory: 26.4M
+     CGroup: /system.slice/xrdp.service
+             ├─83595 /usr/sbin/xrdp
+             └─83597 /usr/sbin/xrdp默认 rdp 端口为 3389.配置xrdp 安装后，会自动创建一个新系统用户 xrdp，并且将一个 ssl key ssl-cert-snakeoil.key 放入 /etc/ssl/private/ 文件夹，需要将 xrdp 用户添加到 ssl-cert 用户组确保 xrdp 可以读取这个 ssl key：sudo adduser xrdp ssl-cert默认配置测试访问会有黑屏问题，显示不出来界面，需要修改 /etc/xrdp/startwm.sh 文件，在文件最后的 test -x /etc/X11/Xsession 前面加入如下内容：unset DBUS_SESSION_BUS_ADDRESS
+unset XDG_RUNTIME_DIR重启 xrdp 服务：sudo systemctl restart xrdp现在就可以正常通过 rdp 连接到 Ubuntu了。在使用中，我出现了输入用户密码后停留在解锁界面无法登录进去的问题，经过查询 xdrp 目前不可以同时在多个设备上尝试登录。同时登录 xrdp 的用户如果和正常在主机上登录的是同一个用户，需要删除 dbus-user-session 包，用 dbus-x11 代替。第三点，需要保证 gdm3 运行，执行下面的命令：sudo apt remove dbus-user-session
+sudo apt install dbus-x11
+
+sudo systemctl set-default graphical
+sudo systemctl isolate graphical重启 xrdp 服务：sudo systemctl restart xrdp此时应该就可以正常通过 rdp 客户端链接 ubuntu 界面了。但是我测试发现，第一次登录进去没问题，关闭后过一会儿再次尝试链接发现卡在登录界面没反应了，尝试执行如下命令：echo xfce4-session &gt; $HOME/.xsession
+chmod +x .xsession发现问题似乎解决了，但是调用的事 xfce 桌面环境。远程登录在局域网下访问比较流畅，但是在外网下发现没法达到 Windows rdp 流畅的效果。解决方法可以是在外网通过 rdp 链接一个局域网下 Windows 设备，然后在 Windows 设备下通过 rdp 链接局域网内的 ubuntu 设备。参考链接How to Install Xrdp on Ubuntu 20.04Xrdp stuck on login, after password is entered, unblocked if I unlock from the ubuntu rdp serverUsing the console and XRDP together in Debian / Ubuntu / MintXRDP session immediately closes after loggin in</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2451.html">
+<title>Ubuntu 18.04 升级 Ubuntu 20.04 记录</title>
+<link>https://blog.niekun.net/archives/2451.html</link>
+<dc:date>2022-03-12T07:32:00+00:00</dc:date>
+<description>昨天决定把服务器的系统从 Ubuntu 18.04 升级到 Ubuntu 20.04，其中经历了不少问题点，下面记录下处理过程。首先就是升级当前系统所有包到最新：apt update &amp;&amp; apt upgrade -y
+apt autoremove &amp;&amp; apt purge
+然后安装升级需要的管理包，不过一般系统都是自带的：apt install update-manager-core
+然后就可以更新系统了：do-release-upgrade
+标准流程就是以上几步，但是在最后一步的时候问题就开始出现了。在执行升级命令后出现报警：Failed to connect to https://changelogs.ubuntu.com/meta-release-lts. Check your Internet connection or proxy settings
+在查询一些资料后，原来是 ssl certificates 验证问题，系统无法鉴定上面的 https 链接证书是否有效就返回错误了。这个问题也是我这个系统的一个遗留问题，每次执行 wget 或 curl 下载东西的时候就会提示证书报错，需要通过附加指令跳过证书验证，但这就会存在安全问题了。解决方法就是更新本地证书库后添加 SSL_CERT_DIR 环境变量指向系统证书目录：update-ca-certificates --verbose --fresh
+export SSL_CERT_DIR=/etc/ssl/certs
+为了方便以后使用，将环境变量添加到 ~/.bashrc 文件中。这样就解决了 https 链接证书验证问题。然后先删除之前执行升级命令后错误内容：rm /var/lib/ubuntu-release-upgrader/release-upgrade-available
+/usr/lib/ubuntu-release-upgrader/release-upgrade-motd
+之后再次执行升级命令 do-release-upgrade。这时候报错信息变化了，这时候提示的是 python3 有问题，原因是我当前系统使用的是自己编译的 python 3.8，路径在 /opt 目录下。当时将系统软链接 /usr/bin/python 和 /usr/bin/python3 都指向了自己安装的 python，需要将他们恢复到指向系统内置的 python 程序。下面需要介绍下系统内 python 主程序和软链接的分布：python2 主应用程序为 /usr/bin/python2.7
+python3 主应用程序为 /usr/bin/python3.6
+pip 主程序为 /usr/bin/pip
+pip3 主程序为 /usr/bin/pip3下面是默认的软链接及指向的应用程序：/usr/bin/python  -&gt;  /usr/bin/python2.7
+/usr/bin/python2  -&gt;  /usr/bin/python2.7
+/usr/bin/python3  -&gt;  /usr/bin/python3.6
+/usr/local/bin/pip  -&gt;  /usr/bin/pip
+/usr/local/bin/pip3  -&gt;  /usr/bin/pip3如果你修改过这些软链接到自己的 python 版本，就需要修改回来：ln -sf /usr/bin/python2.7 /usr/bin/python
+ln -sf /usr/bin/python2.7 /usr/bin/python2
+ln -sf /usr/bin/python3.6 /usr/bin/python3
+ln -sf /usr/bin/pip /usr/local/bin/pip
+ln -sf /usr/bin/pip3 /usr/local/bin/pip3
+ldconfig以上问题都处理完后，再次执行升级命令，一切都正常了。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1316.html">
+<title>Windows 下 VMware 安装 Ubuntu 虚拟机</title>
+<link>https://blog.niekun.net/archives/1316.html</link>
+<dc:date>2020-03-13T06:00:00+00:00</dc:date>
+<description>虽然 Windows 10 自带有 WSL，可以安装 Linux 系统，但是在实际使用中发现还是有很多限制的。所以想要完整的 Linux 系统，还是安装了虚拟机。WSL 开启参考：https://blog.niekun.net/archives/1148.html我使用的是 VMware workstation 安装了 Ubuntu 18.04 LTS。安装过程中与遇到了一些问题，需要特别的进行处理，在此做一下记录。VMware workstation & Ubuntu官网下载 VMware workstation，需要购买序列号：https://my.vmware.com/en/web/vmware/info/slug/desktop_end_user_computing/vmware_workstation_pro/15_0下载完成后进行安装，然后根据提示重启及输入序列号。Ubuntu 18.04 LTS 镜像下载：http://releases.ubuntu.com/18.04.4/ubuntu-18.04.4-desktop-amd64.iso镜像下载完成后就可以开始准备安装虚拟机了，点击 文件 - 新建虚拟机：选择 典型 安装，然后下一步，点击浏览找到 Ubuntu 镜像文件：下面就根据提示设置虚拟机账户密码等信息，完成安装后会自动启动虚拟机，使用刚才设置的用户名密码登录虚拟机。分辨率设置光标退出虚拟机的快捷键是：ctrl alt。我的主机显示比例是 16:9 的1920 × 1080，开机后显示比例是 16:10 的，所以需要设置下全屏。首先点击保持纵横比拉伸来让显示尽量铺满全屏：进入 Ubuntu，点击右下角扩展键：搜索 displays，然后进入显示设置：选择一个和主机一样比例的分辨率：这样虚拟机就可以全屏了。VMware toolsVMware tools 可以让主机和虚拟机实现数据交互，很多功能依赖于 VMware tools，如：共享文件夹，网络桥接，共享剪贴板等。但是我在安装虚拟机后，VMware tools 安装项是灰色的：查询后了解到 Linux 的 tools 需要手动安装，官网对 Linux 虚拟机安装 VMware tools  有一篇教程：https://www.vmware.com/support/ws5/doc/ws_newguest_tools_linux.htmlVMware 安装的时候在安装目录下会有一个 linux.iso 文件，这就是 VMware tools 安装镜像，我的路径是：C:\Program Files (x86)\VMware\VMware Workstation\linux.iso首先在虚拟机设置里添加一个新的 cd/dvd，挂载 VMware 安装目录下的 linux.iso 镜像：进入 Ubuntu，桌面会有 VMware tools，终端路径是：/media/USERNAME/VMware Tools：进入 VMware Tools 目录，里面有一个压缩包：VMwareTools-10.3.10-13959562.tar.gz，执行如下命令：cd /tmp
+tar xvf &#039;/media/USERNAME/VMware Tools/VMwareTools-10.3.10-13959562.tar.gz&#039;
+cd vmware-tools-distrib
+sudo ./vmware-install.pl执行解压目录下的 vmware-install.pl，一路 enter 即可。执行结束后就完成了 VMware Tools 的安装，重启系统。网络设置在虚拟机设置里将网络连接设置为桥接模式，这样虚拟机和主机就在一个 IP 网段内，如果不设置为桥接模式，虚拟机内可能无法执行一些网络命令，如：mtr：设置完成后重启虚拟机，主机使用命令 ipconfig 查看当前 IP：虚拟机使用命令 ifconfig 查看当前 IP：两个 IP 在一个网段内则设置成功。共享文件夹根据需要可以设置共享主机文件夹，在虚拟机内可以访问，共享文件夹路径是：/mnt/hgfs：在虚拟机终端测试访问：共享主机代理如果主机设置了代理，虚拟机可以直接共享此代理设置。首先设置主机代理端口开放给局域网，如果是显示只监听本地地址则 listen 地址设置为 127.0.0.1，如果开放监听局域网地址，则 listen 地址设置为 0.0.0.0 即可。在主机使用命令 ipconfig 查看主机 IP 地址。如果要在虚拟机设置系统代理，在虚拟机 Ubuntu 设置里搜索 proxy，点击 network proxy 手动设置代理地址：如果不想设置系统代理，也可以根据上面的主机地址和端口，在单独的应用程序里设置代理，如浏览器。终端代理设置参考我之前的文章，也是使用上面得到的主机 IP 和代理端口：https://blog.niekun.net/archives/97.html以上就是我用 VMware workstation 安装 Ubuntu 的过程。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/1161.html">
+<title>Ubuntu 修改 apt 国内源</title>
+<link>https://blog.niekun.net/archives/1161.html</link>
+<dc:date>2020-02-26T05:25:00+00:00</dc:date>
+<description>国内使用 apt 安装软件如果感觉比较慢，可能是 deb 源是国外的，通过修改为国内源，可以很好的进行加速下载。系统代号每一个版本的 Ubuntu 都会有一个代号: codename，用来识别不同的版本，比如：14.04 LTS 代号是 trusty16.04 LTS 代号是 xenial18.04 LTS 代号是 bionic在更换源的时候需要使用到代号codename，可以使用如下命令查看当前系统版本代号：lsb_release -a
+
+备份系统源文件为防止修改错误或其他问题，将系统自带源文件进行备份很有必要，执行如下指令：sudo cp /etc/apt/sources.list /etc/apt/sources.list_bak
+修改 sources.list 源文件打开 sources.list 文件，将内容修改为想要的国内源：vim /etc/apt/sources.list
+输入命令 ggdG 清空内容，修改为清华源加入如下内容：# 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+
+# 预发布软件源，不建议启用
+# deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse可以看到每行内容里都有对应系统代号信息，如果要修改其他版本系统的 apt 源，只需要将里面系统代号替换即可。常用国内源：清华源：https://mirror.tuna.tsinghua.edu.cn/help/ubuntu/阿里源：https://developer.aliyun.com/mirror/</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/891.html">
+<title>ffmpeg build from source</title>
+<link>https://blog.niekun.net/archives/891.html</link>
+<dc:date>2020-02-09T12:27:00+00:00</dc:date>
+<description>https://trac.ffmpeg.org/wiki/CompilationGuide/UbuntuUbuntu 14.04add ppa：https://launchpad.net/~mc3man/+archive/ubuntu/trusty-media</description>
+</item>
+</rdf:RDF>

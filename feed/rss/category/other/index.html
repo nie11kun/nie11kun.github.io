@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/category/other/">
+<title>Marco Nie - other</title>
+<link>https://blog.niekun.net/category/other/</link>
+<description>杂文</description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/3119.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/3116.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/3090.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Windows-11.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/dumpbin-dll.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/docker-compose.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/3014.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Linux-warp.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2999.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/pip.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/3119.html">
+<title>VPS 安装配置 sing-box 指南（VLESS + REALITY &amp;amp; Hysteria2）</title>
+<link>https://blog.niekun.net/archives/3119.html</link>
+<dc:date>2026-11-27T02:22:44+00:00</dc:date>
+<description>在已有 Nginx 网站（TCP 80/443）与 V2Ray（VMess + WS + TLS）的 VPS 上，用单个轻量级 sing-box 进程并行部署 VLESS + XTLS-Vision + REALITY 与 Hysteria2（含端口跳跃），并对现有网站、证书续签与 Docker 服务保持零影响。配置文件模板见同目录 config.json。目录架构与端口规划前置检查与系统调优安装 sing-box生成凭证与配置配置 systemd 服务与证书续签联动防火墙与 Hysteria2 端口跳跃客户端接入与常见踩坑验证、升级与排障1. 架构与端口规划若 VPS 上已运行大量 Nginx 虚拟主机，将 TCP 443 改为 SNI 前置分流往往需要全量调整站点监听端口和 proxy_protocol，改造面大、风险高。本方案采用 “协议隔离 + 端口错开” 架构：协议与角色监听端口证书 / 伪装与现有服务关系VLESS + Vision + REALITY（日常主力）TCP 8443借用大站 TLS 1.3 指纹（www.apple.com）与 Nginx 零交集，消除 TLS-in-TLS 特征Hysteria2（晚高峰高速）UDP 443 + 40000-40500/udp 跳跃复用站点通配符/域名正式证书Nginx 仅监听 TCP 443，UDP 443 完全不冲突原 VMess + WS + TLS（保底备用）TCP 443 → Nginx → V2Ray原有配置保持不动遇到严苛防火墙/封 UDP 时兜底如果宿主机未启用路由级或本地 WARP，可将 config.json 中 geosite-openai 等 AI 分流规则改回 direct 出口。若本机已跑 Cloudflare WARP 本地 SOCKS5（127.0.0.1:40000），sing-box 可直接复用它解锁 AI 服务。2. 前置检查与系统调优1. 确认公网网卡名与端口未被占用ip route get 1.1.1.1 | awk &#039;{for(i=1;i&lt;=NF;i++) if($i==&quot;dev&quot;) print $(i+1)}&#039;
+ss -tulnp | grep -E &#039;:(8443|443)\b&#039;确认输出中 TCP 8443 与 UDP 443 均无进程占用（仅看到 Nginx 占用 TCP 443 属正常）。若公网网卡不是 eth0（例如 ens3），后续配置端口跳跃规则时请替换为实际网卡名。2. 开启 BBR 与调大网络/UDP 缓冲区Hysteria2 基于 UDP/QUIC，若内核接收缓冲偏小容易在高速下载时丢包。建议在 /etc/sysctl.d/99-singbox-optimize.conf 中写入：net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.core.rmem_default = 1048576
+net.core.wmem_default = 1048576
+net.ipv4.udp_rmem_min = 16384
+net.ipv4.udp_wmem_min = 16384应用并核对生效：sysctl --system
+sysctl net.ipv4.tcp_congestion_control net.core.default_qdisc net.core.rmem_max3. 确认 TLS 证书权限与 WARP（可选）ls -l /path/to/fullchain.pem /path/to/privkey.pem
+ss -tlnp | grep 40000 || echo &quot;无本地 WARP，请调整 config.json 路由&quot;后文会让 sing-box 以站点用户身份（如 www-data）运行，只要 www-data 对证书和私钥具备只读权限即可，无需改动 Nginx 现有的证书文件权限。3. 安装 sing-box从 GitHub 官方 Releases 下载最新的 Linux amd64 二进制并安装（以下以自动获取最新版为例）：VER=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep -oE &#039;&quot;tag_name&quot;:\s*&quot;v[^&quot;]+&quot;&#039; | cut -d&#039;&quot;&#039; -f4 | sed &#039;s/^v//&#039;)
+echo &quot;Downloading sing-box v${VER}...&quot;
+
+TMPD=$(mktemp -d)
+curl -fsSL -o &quot;$TMPD/sing-box.tar.gz&quot; &quot;https://github.com/SagerNet/sing-box/releases/download/v${VER}/sing-box-${VER}-linux-amd64.tar.gz&quot;
+tar -xzf &quot;$TMPD/sing-box.tar.gz&quot; -C &quot;$TMPD&quot;
+install -m 0755 &quot;$TMPD&quot;/sing-box-*/sing-box /usr/local/bin/sing-box
+rm -rf &quot;$TMPD&quot;
+
+sing-box version创建配置目录与状态缓存目录（用于持久化 .srs 规则集缓存）：install -d -m 0750 -o root -g www-data /etc/sing-box
+install -d -m 0750 -o www-data -g www-data /var/lib/sing-box4. 生成凭证与配置1. 实测挑选 REALITY 伪装目标（server_name / handshake.server）优先挑选支持 TLS 1.3 + HTTP/2 (h2) + X25519 且延迟最低、国内未被屏蔽的大型网站：for host in www.apple.com www.microsoft.com addons.mozilla.org; do
+    t=$(curl -so /dev/null -w &quot;tcp=%{time_connect}s tls=%{time_appconnect}s code=%{http_code}&quot; --max-time 4 &quot;https://$host/&quot;)
+    info=$(echo | openssl s_client -connect &quot;$host:443&quot; -servername &quot;$host&quot; -alpn h2 -tls1_3 2&gt;/dev/null | grep -E &#039;ALPN protocol|Server Temp Key&#039; | tr &#039;\n&#039; &#039; &#039;)
+    echo &quot;$host =&gt; $t | $info&quot;
+done选出返回 200/301、协商出 X25519 与 ALPN protocol: h2 且握手最快的目标（通常 www.apple.com 或 www.microsoft.com 仅 25–40 ms）。2. 使用内置命令生成密钥与随机数sing-box generate uuid
+sing-box generate reality-keypair
+sing-box generate rand --hex 4    # 用作 short_id（8 位十六进制）
+sing-box generate rand --hex 16   # 用作 Hysteria2 密码注意保存好输出结果：PrivateKey 填进服务端 config.json 的 reality.private_key；PublicKey 填进客户端配置的 public-key（不要把私钥填到客户端）。3. 写入 /etc/sing-box/config.json 并校验参照同目录 config.json，将占位符替换为实际值后写入 /etc/sing-box/config.json：uuid-here → 生成的 UUIDyour-reality-private-key → 生成的 PrivateKey1234abcd → 生成的 8 位 short_idyour-hy2-password → 生成的 Hysteria2 密码/path/to/fullchain.pem、/path/to/privkey.pem → 你的域名证书链与私钥路径up_mbps / down_mbps → 建议贴合家庭宽带上/下行能力适当留余量（例如家宽 1000M 下行 / 50M 上行，服务端可设 &quot;up_mbps&quot;: 100, &quot;down_mbps&quot;: 300，既能拉满日常下载又防单核 VPS CPU 过载或过度消耗流量）设定只读组权限并校验语法：chown root:www-data /etc/sing-box/config.json
+chmod 0640 /etc/sing-box/config.json
+sing-box check -c /etc/sing-box/config.json看到无报错返回即表示配置合法。5. 配置 systemd 服务与证书续签联动1. 创建 /etc/systemd/system/sing-box.service以 www-data 身份运行，仅赋予绑定特权端口（UDP 443）所需的最小 capability：[Unit]
+Description=sing-box service
+After=network-online.target nss-lookup.target warp-svc.service
+Wants=network-online.target
+
+[Service]
+User=www-data
+Group=www-data
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+ExecStart=/usr/local/bin/sing-box run -c /etc/sing-box/config.json
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5s
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target2. 配置证书变更自动重载（不改动 acme.sh 与 Nginx）通过 systemd .path 单元直接监听证书文件改动并触发重启加载新证书：cat &gt; /etc/systemd/system/sing-box-cert-reload.service &lt;&lt;&#039;EOF&#039;
+[Unit]
+Description=Restart sing-box when SSL certificate changes
+
+[Service]
+Type=oneshot
+ExecStart=/bin/systemctl restart sing-box.service
+EOF
+
+cat &gt; /etc/systemd/system/sing-box-cert-reload.path &lt;&lt;&#039;EOF&#039;
+[Unit]
+Description=Watch SSL certificate for sing-box reload
+
+[Path]
+PathChanged=/path/to/fullchain.pem
+
+[Install]
+WantedBy=multi-user.target
+EOF(记得将 /path/to/fullchain.pem 替换为与 config.json 中一致的证书实际路径。)6. 防火墙与 Hysteria2 端口跳跃1. UFW 放行端口ufw allow 8443/tcp comment &#039;VLESS REALITY&#039;
+ufw allow 443/udp comment &#039;Hysteria2 QUIC&#039;
+ufw allow 40000:40500/udp comment &#039;Hysteria2 Port Hopping&#039;2. 持久化端口跳跃转发（40000:40500/udp → 443/udp）为什么不推荐直接改 /etc/ufw/before.rules？若 VPS 上同时运行了 Docker（例如 RustDesk、自建容器），Docker 会维护自己的 nat 链；直接把 *nat :PREROUTING ACCEPT 写死在 before.rules 并在重载 UFW 时刷新规则，容易干扰甚至冲掉容器的端口转发。使用独立的 systemd oneshot 服务幂等追加一条 REDIRECT 规则更安全、可随时启停。创建 /etc/systemd/system/sing-box-hy2-hop.service（若第 2 节查到的公网网卡不是 eth0，请同步替换 -i eth0）：[Unit]
+Description=Hysteria2 UDP Port Hopping (40000-40500 -&gt; 443)
+After=network-online.target ufw.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c &#039;iptables -t nat -C PREROUTING -i eth0 -p udp --dport 40000:40500 -j REDIRECT --to-ports 443 2&gt;/dev/null || iptables -t nat -A PREROUTING -i eth0 -p udp --dport 40000:40500 -j REDIRECT --to-ports 443&#039;
+ExecStop=/bin/sh -c &#039;iptables -t nat -D PREROUTING -i eth0 -p udp --dport 40000:40500 -j REDIRECT --to-ports 443 2&gt;/dev/null || true&#039;
+
+[Install]
+WantedBy=multi-user.target3. 全部启用并启动systemctl daemon-reload
+systemctl enable --now sing-box.service sing-box-cert-reload.path sing-box-hy2-hop.service7. 客户端接入与常见踩坑1. Clash Verge / OpenClash / Stash 节点片段proxies:
+  - name: out-reality
+    type: vless
+    server: 111.111.111.111
+    port: 8443
+    uuid: uuid-uuid-uuid-uuid
+    network: tcp
+    tls: true
+    udp: true
+    flow: xtls-rprx-vision
+    servername: www.apple.com
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: your-reality-public-key
+      short-id: &quot;1234abcd&quot; # 必须加双引号！OpenClash 的 Ruby YAML 1.1 解析器遇到纯数字或特定字符的裸 short-id 会报错失败
+
+  - name: out-hy2
+    type: hysteria2
+    server: 111.111.111.111
+    port: 443
+    ports: 40000-40500
+    password: your-hy2-password
+    sni: xxx.com
+    up: &quot;50 Mbps&quot;
+    down: &quot;300 Mbps&quot;
+    skip-cert-verify: falseOpenClash 踩坑提醒：OpenClash 启动时会通过 Ruby 脚本改写配置，short-id 务必用双引号括起，否则若 short-id 凑巧是纯数字或含特殊前缀，Step 3 格式校验会直接报错并停止服务。Hysteria2 限速填写：客户端 up 填写家里真实的上行带宽（如 &quot;50 Mbps&quot;），不要虚高填写，否则 Brutal 拥塞控制会过量重传导致严重丢包和断流。2. Shadowrocket 分享链接模板将占位符替换后直接复制导入 Shadowrocket：vless://uuid-here@111.111.111.111:8443?encryption=none&amp;flow=xtls-rprx-vision&amp;security=reality&amp;sni=www.apple.com&amp;fp=chrome&amp;pbk=your-reality-public-key&amp;sid=1234abcd&amp;type=tcp&amp;headerType=none#REALITY
+
+hysteria2://your-hy2-password@111.111.111.111:443/?sni=xxx.com&amp;mport=40000-40500&amp;upmbps=50&amp;downmbps=300#HY28. 验证、升级与排障1. 服务端全面检查# 查看服务状态
+systemctl is-active sing-box sing-box-cert-reload.path sing-box-hy2-hop nginx
+
+# 核对监听端口（Nginx 仍在 TCP 443，sing-box 在 TCP 8443 + UDP 443）
+ss -tulnp | grep -E &#039;sing-box|:8443|:443&#039;
+
+# 核对 NAT 端口跳跃规则与 Docker 共存情况
+iptables -t nat -L PREROUTING -n
+
+# 确认原有网站访问正常
+curl -so /dev/null -w &quot;%{http_code}\n&quot; https://xxx.com/2. 平滑升级 sing-box重复第 3 节下载新版二进制覆盖 /usr/local/bin/sing-box 后执行：sing-box check -c /etc/sing-box/config.json &amp;&amp; systemctl restart sing-box3. 常见日志与排查journalctl -u sing-box -n 50 --no-pager看到少量公网扫描 IP 报 TLS handshake: REALITY: processed invalid connection：属于正常现象，说明扫描器未携带正确 short_id/公钥，已被 REALITY 拦截并回落伪装站点。Hysteria2 无法建连：依次检查 ① UFW 是否放行了 443/udp 与 40000:40500/udp；② 商家后台安全组是否放行了 UDP；③ 客户端 sni 与服务端 certificate_path 证书域名是否匹配；④ 客户端 up/down 是否超过了线路承载能力。REALITY 连不上或延迟高：检查 VPS 到 handshake.server（如 www.apple.com）是否能正常返回 200 及 h2；若使用 IP 直连请确认 server 填的是 VPS 公网 IP。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/3116.html">
+<title>OpenWrt 彻底关闭 IPv6 教程</title>
+<link>https://blog.niekun.net/archives/3116.html</link>
+<dc:date>2026-11-14T04:24:45+00:00</dc:date>
+<description>适用版本：OpenWrt 21.02 / 22.03 / 23.05 / 24.10（含 OpenClash 等代理插件的环境）操作方式：SSH 登录路由器执行命令，或在 LuCI 网页界面中操作目录为什么要分层关闭第 1 步：关闭 WAN/LAN 接口的 IPv6第 2 步：关闭 RA / DHCPv6 / NDP 并停用 odhcpd第 3 步：DNS 过滤 AAAA 记录第 4 步：内核层面禁用 IPv6第 5 步：代理插件中关闭 IPv6（OpenClash）第 6 步：重启服务并验证LuCI 网页操作对照常见输出说明如何恢复 IPv6为什么要分层关闭OpenWrt 中的 IPv6 涉及多个环节，只关其中一个往往不彻底：层面负责的事不关的后果WAN 接口从运营商获取 IPv6 地址/前缀路由器仍拿到公网 IPv6LAN 接口 + odhcpd向局域网设备下发 IPv6 地址客户端仍获得 240x: / fdxx: 地址内核协议栈IPv6 本身的运行接口仍可自动生成 IPv6 地址DNS返回 AAAA（IPv6）记录客户端尝试 IPv6 连接，导致网页卡顿代理插件插件自身的 IPv6 代理/解析插件绕过上述设置重新引入 IPv6第 1 步：关闭 WAN/LAN 接口的 IPv6uci delete network.wan6                 # 删除 WAN6 接口（不存在会提示 Entry not found，可忽略）
+uci set network.wan.ipv6=&#039;0&#039;            # PPPoE 拨号时阻止自动获取 IPv6
+uci set network.lan.ipv6=&#039;0&#039;
+uci delete network.lan.ip6assign        # 取消 LAN 的 IPv6 前缀分配
+uci delete network.globals.ula_prefix   # 删除 ULA 前缀（fdxx::/48）
+uci commit network第 2 步：关闭 RA / DHCPv6 / NDP 并停用 odhcpduci set dhcp.lan.ra=&#039;disabled&#039;
+uci set dhcp.lan.dhcpv6=&#039;disabled&#039;
+uci set dhcp.lan.ndp=&#039;disabled&#039;
+uci delete dhcp.wan6 2&gt;/dev/null
+uci commit dhcp
+
+/etc/init.d/odhcpd stop
+/etc/init.d/odhcpd disable第 3 步：DNS 过滤 AAAA 记录uci set dhcp.@dnsmasq[0].filter_aaaa=&#039;1&#039;   # 23.05 及以上版本支持
+uci commit dhcp旧版本若无此选项，可在 /etc/dnsmasq.conf 中加入 filter-AAAA（需 dnsmasq 2.87+）。第 4 步：内核层面禁用 IPv6cat &gt;&gt; /etc/sysctl.conf &lt;&lt;&#039;EOF&#039;
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+EOF
+sysctl -p⚠️ 这里没有禁用 lo（回环接口）的 IPv6。部分服务（如 uhttpd 及某些插件）会监听 ::1，禁用后可能导致异常。第 5 步：代理插件中关闭 IPv6（OpenClash）如果路由器装了 OpenClash 等代理插件，DNS 会被插件接管（Fake-IP 模式下解析结果为 198.18.x.x），必须在插件中同步关闭 IPv6。进入 服务 → OpenClash → 插件设置：IPv6 设置 标签页☐ IPv6 流量代理 —— 取消勾选☐ 允许 IPv6 类型 DNS 解析 —— 取消勾选DNS 设置 标签页本地 DNS 劫持：保持 使用 Dnsmasq 转发（这样第 3 步的 AAAA 过滤与插件设置同时生效）点击 保存配置 → 应用配置如直接编辑 mihomo（Clash Meta）配置文件，设置顶层 ipv6: false 以及 dns: 下的 ipv6: false。第 6 步：重启服务并验证/etc/init.d/network restart
+/etc/init.d/dnsmasq restart
+# 建议最后执行一次 reboot，确认设置重启后依然生效验证 1：路由器无 IPv6 地址ip -6 addr期望输出（只剩回环地址）：1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 state UNKNOWN qlen 1000
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever验证 2：路由器可正常上网ping -c 3 223.5.5.5验证 3：DNS 只返回 IPv4nslookup www.qq.com 127.0.0.1结果中只应出现 IPv4 地址（使用 OpenClash Fake-IP 时为 198.18.x.x），不应出现 IPv6 地址。验证 4：客户端无 IPv6 地址客户端先断开网络再重连，然后检查：系统命令Windowsipconfig /allmacOSifconfigLinuxip -6 addr✅ 只有 fe80:: 开头的地址 —— 正常（链路本地地址，系统自动生成，无法上网）❌ 出现 240x: 或 fdxx: 开头的地址 —— IPv6 仍未关干净macOS 上 utun*、awdl0、llw0 等接口的 fe80:: 地址属于系统服务（iCloud、AirDrop、VPN 等），与路由器无关，忽略即可。LuCI 网页操作对照位置操作网络 → 接口删除 WAN6网络 → 接口 → WAN → 高级设置“获取 IPv6 地址”设为 禁用网络 → 接口 → LAN → 高级设置“IPv6 分配长度”设为 禁用网络 → 接口 → 全局网络选项清空 IPv6 ULA 前缀LAN → DHCP 服务器 → IPv6 设置RA 服务 / DHCPv6 服务 / NDP 代理 全部 禁用网络 → DHCP/DNS → 高级设置勾选 过滤 IPv6 AAAA 记录服务 → OpenClash → 插件设置 → IPv6 设置取消两个 IPv6 选项常见输出说明输出含义uci: Entry not found要删除的配置项本来就不存在，可忽略udhcpc: no lease, failingdnsmasq 启动时检测局域网是否有其他 DHCP 服务器，没找到是正常情况198.18.x.xOpenClash / mihomo 的 Fake-IP 地址，属正常如何恢复 IPv6# 1. 恢复内核 IPv6
+sed -i &#039;/disable_ipv6/d&#039; /etc/sysctl.conf
+sysctl -w net.ipv6.conf.all.disable_ipv6=0
+sysctl -w net.ipv6.conf.default.disable_ipv6=0
+
+# 2. 恢复接口
+uci set network.wan6=interface
+uci set network.wan6.device=&#039;@wan&#039;
+uci set network.wan6.proto=&#039;dhcpv6&#039;
+uci delete network.wan.ipv6
+uci delete network.lan.ipv6
+uci set network.lan.ip6assign=&#039;60&#039;
+uci commit network
+
+# 3. 恢复 RA / DHCPv6
+uci set dhcp.lan.ra=&#039;server&#039;
+uci set dhcp.lan.dhcpv6=&#039;server&#039;
+uci delete dhcp.lan.ndp
+uci set dhcp.@dnsmasq[0].filter_aaaa=&#039;0&#039;
+uci commit dhcp
+/etc/init.d/odhcpd enable
+/etc/init.d/odhcpd start
+
+# 4. 重启
+reboot最后在 OpenClash 中重新勾选 IPv6 流量代理 和 允许 IPv6 类型 DNS 解析。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/3090.html">
+<title>记一次完美的家庭网络改造：弱电箱“单线复用”与透明代理排错全指南</title>
+<link>https://blog.niekun.net/archives/3090.html</link>
+<dc:date>2026-05-01T12:25:10+00:00</dc:date>
+<description>1. 改造背景与痛点家里目前的网络拓扑比较典型：核心设备：一台 6 网口的软路由（底层安装 ESXi，将 6 个网口全部分配给虚拟的 OpenWrt。其中网口 1 作为 WAN 口拨号，其余均为 LAN 口）。物理布线：门口弱电箱到客厅、卧室均只有一条网线，且客厅到卧室之间没有网线。痛点：软路由原本塞在弱电箱里，光猫网线直连软路由网口 1，网口 2 接客厅，网口 3 接卧室。但由于弱电箱空间狭小，散热成了大问题。为了解决散热，我需要将软路由挪到客厅放置。但这就面临一个死局：弱电箱到客厅只有一根网线，如果这根线用来走光猫的 WAN 数据，那客厅软路由处理好的 LAN 数据就无法传回弱电箱发给卧室了。我的终极诉求：解决散热，软路由移至客厅。绝对不改变软路由（ESXi 和 OpenWrt）端的任何内部设置（即软路由依然认为网口 1 是 WAN，网口 2/3 是 LAN）。保证千兆内网网速无损。2. 解决方案：双网管交换机“单线复用”在只有一根网线且不改动路由配置的前提下，最完美的方案是利用两台支持 802.1Q VLAN 功能的千兆网管交换机进行“单线复用”。原理解释（小白秒懂）：把那根唯一的网线想象成一条高速公路。光猫的数据（外网）和局域网的数据（内网）如果混在一起跑会乱套。交换机的作用就是给这两种数据“贴标签”。弱电箱交换机给外网数据贴上“红色标签”，内网数据贴上“蓝色标签”，一起扔上高速公路。客厅交换机收到后，把红标签撕掉交给路由器的 WAN 口，蓝标签撕掉交给路由器的 LAN 口。路由器全程只会看到没有标签的普通数据，完全察觉不到中间的复杂过程。准备工作两台 5 口千兆网管交换机（假设为交换机 A 和交换机 B）。为了方便日后管理，先用电脑直连它们，将管理 IP 修改为软路由同网段内未使用的固定 IP（例如软路由是 192.168.132.1，交换机则设为 192.168.132.2 和 192.168.132.3）。3. 详细配置步骤我们将两台交换机的 5号口 作为互联的“主干道（Trunk）”。交换机 A（放置于弱电箱）物理接线：1号口：接光猫2号口：接通往卧室的网线5号口：接通往客厅的网线（主干道）VLAN 配置（802.1Q VLAN）：新建 VLAN 10（外网用）：包含 1、5 口。1 口设为 Untagged（不带标签），5 口设为 Tagged（带标签）。新建 VLAN 20（内网用）：包含 2、5 口。2 口设为 Untagged，5 口设为 Tagged。PVID 配置：1号口 PVID 设为 102号口 PVID 设为 205号口 PVID 保持默认 1交换机 B（放置于客厅）物理接线：1号口：接软路由 网口 1（WAN）2号口：接软路由 网口 2（LAN）3、4号口：接客厅其他局域网设备（如电视机顶盒、AP面板）5号口：接墙壁网口（即弱电箱过来的主干道）VLAN 配置：新建 VLAN 10（外网用）：包含 1、5 口。1 口设为 Untagged，5 口设为 Tagged。新建 VLAN 20（内网用）：包含 2、3、4、5 口。2、3、4 口设为 Untagged，5 口设为 Tagged。PVID 配置：1号口 PVID 设为 102、3、4号口 PVID 统一设为 205号口 PVID 保持默认 1完成以上设置并接好线后，网络成功通了！软路由顺利拨号，卧室和客厅的设备都能正常上网。但是，一个诡异的暗坑出现了。4. 踩坑与排错：透明代理为何突然失效？故障现象：网络连通后，国内网站访问一切正常，但我部署在 OpenWrt 上的透明代理（dnsmasq + nftables + v2ray）失效了，所有走代理的外部链接全部连不通。在此之前（没加交换机时），这套代理配置是完美运行的。深度排查与原理分析：既然软件配置没变，问题必然出在新增的交换机这种“二层物理设备”对网络底层逻辑的影响上。最终锁定了元凶：IPv6 广播泄漏导致的代理被绕过。绝大多数家用网管交换机出厂时，所有端口默认都属于 VLAN 1（Untagged）。虽然我划分了 VLAN 10 和 VLAN 20，但如果这些端口没有从默认的 VLAN 1 中剥离，交换机底层依然存在一个相通的广播域。光猫非常喜欢向局域网发送 IPv6 的 RA（路由宣告）广播包。这些广播包顺着没清理干净的 VLAN 1 穿透了交换机，绕过软路由，直接下发给了我内网的手机和电脑。由于我的 nftables 透明代理脚本仅对 IPv4（ipv4_addr）进行了拦截和重定向，终端设备拿到光猫下发的 IPv6 地址后，访问外网时优先走了 IPv6 裸奔，直接撞墙，导致代理看似失效。终极解决办法：逻辑硬隔离进入两台交换机的 VLAN 1 设置页面，将刚才配置过 VLAN 10 和 VLAN 20 的端口（1、2、3、4、5口），全部在 VLAN 1 中设置为 Not Member（非成员）。这一步彻底切断了底层的隐形桥梁，将光猫的 IPv6 广播完美阻挡在弱电箱内。配置完成后，透明代理瞬间恢复正常工作。(注：部分交换机的 Web 管理后台默认全局监听，即便将内网端口从 VLAN 1 移出，只要访问设置好的同网段 IP，依然可以正常进入管理页面，无需强求寻找“管理 VLAN”选项。)5. 总结通过两台廉价的网管交换机，我成功将软路由移至客厅解决了散热危机，且实现了真正的“软路由零设置修改”。这次改造不仅理清了 VLAN Tagged/Untagged 的基本逻辑，更深刻体会到了二层网络广播域隔离不彻底对上层应用（如透明代理）造成的隐性破坏。希望这篇记录能帮到有同样家庭网络改造需求的朋友！</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Windows-11.html">
+<title>Windows 11 安装绕过登录微软账户</title>
+<link>https://blog.niekun.net/archives/Windows-11.html</link>
+<dc:date>2026-01-21T05:13:39+00:00</dc:date>
+<description>在 Windows 11 安装过程中，按下 Shift + F10 组合键打开命令提示符，输入start ms-cxh:localonly，即可直接创建本地账户，而且无需重启设备，无需先跳过联网步骤。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/dumpbin-dll.html">
+<title>使用 dumpbin 检测 dll 文件中包含的函数</title>
+<link>https://blog.niekun.net/archives/dumpbin-dll.html</link>
+<dc:date>2025-10-10T05:12:09+00:00</dc:date>
+<description>dumpbin 是微软 Visual Studio 工具集 自带的一个命令行工具，用于分析可执行文件（.exe、.dll、.obj、.lib）内部结构。dumpbin 位于 Visual Studio 工具链中，一般路径如下：C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\&lt;version&gt;\bin\Hostx64\x64\dumpbin.exe
+要使用它，可以通过以下方式：打开 “Developer Command Prompt for VS 2022”（开发者命令提示符），该环境自动配置好 PATH；然后在命令行中直接输入：  dumpbin /?如果能看到帮助信息，说明环境已正确配置。查看 DLL 的导出函数dumpbin /exports your.dll
+输出说明：Microsoft (R) COFF/PE Dumper Version 14.42.34433.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file C:\Users\Marco Nie\TEST.dll
+
+File Type: DLL
+
+  Section contains the following exports for hasp_windows_x64_107043.dll
+
+    00000000 characteristics
+    68DB892A time date stamp Tue Sep 30 15:39:22 2025
+        0.00 version
+           1 ordinal base
+          79 number of functions
+          79 number of names
+
+ordinal hint RVA      name
+      1    0 00001000 MyFunctionA
+      2    1 00002000 MyFunctionB
+
+  Summary
+
+       A1000 .data
+        D000 .pdata
+      133000 .rdata
+        6000 .reloc
+        1000 .rsrc
+      483000 .textordinal：函数序号name：导出函数名（重点）RVA：函数在文件中的相对虚拟地址用途：验证 DLL 是否正确导出了接口，比如你加密或封装的 DLL 是否暴露了预期的函数。如果想要检测是否包含特定名称的函数可以过滤结果：dumpbin /exports your.dll  | findstr str111
+以上指令会输出包含 str111 的行。查看 DLL 依赖的其他库dumpbin /imports your.dll
+这会列出该 DLL 引用的其他 DLL（比如 KERNEL32.dll, USER32.dll 等）。查看 DLL 架构（32位 / 64位）dumpbin /headers your.dll | findstr machine
+输出示例：14C machine (x86)
+8664 machine (x64)查看完整头部信息（详细模式）dumpbin /all your.dll &gt; result.txt
+这样可以把所有信息输出到文件中慢慢查看，包括节区、符号、导入表、导出表、资源等。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/docker-compose.html">
+<title>docker compose 配置自动更新</title>
+<link>https://blog.niekun.net/archives/docker-compose.html</link>
+<dc:date>2024-08-18T13:42:00+00:00</dc:date>
+<description>docker compose 配置文件可以很方便的配置和运行 docker 容器，手动更新容器的方法是在 yml 目录下运行以下命令：docker compose pull &amp;&amp; docker compose up -d
+可以通过在 compose 文件中设置 watchtower 来定期自动拉取最新镜像并启动容器，同时可以配置删除旧镜像和容器。在 docker-compose.yml 文件中增加以下内容：version: &#039;3&#039;
+services:
+
+  ...
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 3600 --cleanup --remove-volumes
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_REMOVE_VOLUMES=true以下是主要的配置说明：将 --interval 参数设置为 3600。这意味着 Watchtower 将每 3600 秒（即每小时）检查一次更新。--cleanup 和 WATCHTOWER_CLEANUP=true 确保在更新后清理旧的镜像。--remove-volumes 和 WATCHTOWER_REMOVE_VOLUMES=true 确保删除与旧容器关联的匿名卷。使用这个配置，Watchtower 将：每小时检查一次你的容器是否有更新如果发现更新，它会停止旧容器，启动新容器删除旧的容器和相关的匿名卷删除旧的镜像这个配置应该能满足大多数用例的需求，既能保持你的容器相对最新，又不会过于频繁地进行检查和更新操作。需要注意的是:Watchtower 只会删除它更新的容器的旧版本。它不会删除系统中的其他未使用的容器或镜像。它只删除匿名卷,不会删除命名卷。如果你想删除所有未使用的镜像(不仅仅是 Watchtower 更新的),你可能需要定期运行 docker image prune 命令。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/3014.html">
+<title>通过浏览器访问服务器指定文件内容</title>
+<link>https://blog.niekun.net/archives/3014.html</link>
+<dc:date>2024-08-14T07:58:01+00:00</dc:date>
+<description>通过 nginx 可以反代服务器指定文件，然后就可以在网页中查看文件内容。核心就是通过 alias 关联文件路径。配置文件如下：location /test.log {
+    alias /home/script/igd/app.log;
+
+    default_type text/plain;
+    add_header Content-Type &quot;text/plain; charset=utf-8&quot;;
+    charset utf-8;
+
+    # 确保不会缓存内容
+    add_header Cache-Control &quot;no-cache, no-store, must-revalidate&quot;;
+    add_header Pragma &quot;no-cache&quot;;
+    add_header Expires &quot;0&quot;;
+}location 路径替换为需要的路径。alias 设置文件实际路径。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Linux-warp.html">
+<title>服务器装 warp 解锁 chatgpt</title>
+<link>https://blog.niekun.net/archives/Linux-warp.html</link>
+<dc:date>2024-06-27T07:12:00+00:00</dc:date>
+<description>最近在使用 chatgpt 中发现 ios 端无法登录 app，网页端正常使用。提示信息为：Something went wrong. You may be connected to a disallowed ISP If youare using VPN, try disabling it. Otherwise try a different Wi-Fi network or data connection。经过查询发现是我的 vps 服务商只提供网页端 chatgpt 解锁，不支持 app 端。由于 chatgpt 服务也是通过 cloudflare 的 cdn 服务，所以通过将流量转发到 warp 来访问就可以解决问题。首先需要在服务端安装官方的 warp 命令行工具：warp-cli。官方教程：https://developers.cloudflare.com/warp-client/get-started/linux/官方手动添加包仓库教程：https://pkg.cloudflareclient.com/#ubuntu安装在命令行输入以下指令来安装第三方仓库并安装包：# Add cloudflare gpg key
+curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+
+# Add this repo to your apt repositories
+echo &quot;deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main&quot; | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+
+# Install
+sudo apt-get update &amp;&amp; sudo apt-get install cloudflare-warp配置安装好后需要注册一个新账户：warp-cli registration new
+查看当前账户信息：warp-cli registration show
+更换新的 license：warp-cli registration license xxxxx-xxxxxx-xxxxxx
+然后需要设置代理模式，可选有：warp, doh, warp+doh, dot, warp+dot, proxy, tunnel_only。我只想要它提供一个 socks5 代理端口即可，所以设置为 proxy 模式，它会在本地 40000 端口监听：warp-cli mode proxy
+启动 warp：warp-cli connect
+此时 warp 会在本地 40000 端口建立一个 sock5 代理，只需要将需要转发的流量转发到此端口即可走 warp。并且 warp 会自动配置为 Always On 模式，开机自动运行代理。查看 warp 当前配置：# warp-cli settings
+Merged configuration:
+(derived)       Always On: true
+(default)       Switch Locked: false
+(user set)      Mode: WarpProxy on port 40000
+(Not set)       WARP tunnel protocol: MASQUE
+(default)       Disabled for Wifi: false
+(default)       Disabled for Ethernet: false
+(Not set)       Resolve via: cloudflare-dns.com @ [162.159.36.1, 2606:4700:4700::1111]
+(Not set)       qlog logging: Disabled
+(default)       Onboarding: true
+(API defaults)  Exclude mode, with hosts/ips:
+  10.0.0.0/8
+  100.64.0.0/10
+  169.254.0.0/16
+  172.16.0.0/12
+  192.0.0.0/24
+  192.168.0.0/16
+  224.0.0.0/24
+  240.0.0.0/4
+  239.255.255.250/32
+  255.255.255.255/32
+  fe80::/10
+  fd00::/8
+  ff01::/16
+  ff02::/16
+  ff03::/16
+  ff04::/16
+  ff05::/16
+  fc00::/7
+
+(default)       Fallback domains:
+  intranet
+  internal
+  private
+  localdomain
+  domain
+  lan
+  home
+  host
+  corp
+  local
+  localhost
+  home.arpa
+  invalid
+  test
+(Not set)       Daemon Teams Auth: false
+(default)       Disable Auto Fallback: false
+(Not set)       Allow Updates: true查看代理是否生效：export ALL_PROXY=socks5://127.0.0.1:40000
+curl ifconfig.me代理工具转发流量服务端的配置文件需要添加和修改的地方如下：{
+    &quot;outbounds&quot;: [
+        ...
+        {
+            &quot;protocol&quot;: &quot;socks&quot;,
+            &quot;settings&quot;: {
+                &quot;address&quot;: &quot;127.0.0.1&quot;,
+                &quot;port&quot;: 40000
+            },
+            &quot;tag&quot;:&quot;socks_out&quot;
+        }
+    ],
+    &quot;router&quot;: {
+        &quot;domainStrategy&quot;: &quot;AsIs&quot;,
+        &quot;rule&quot;: [
+            ...
+            {
+                &quot;tag&quot;: &quot;socks_out&quot;,
+                &quot;geoDomain&quot;: [
+                    {
+                        &quot;code&quot;: &quot;openai&quot;,
+                        &quot;filePath&quot;: &quot;geosite.dat&quot;
+                    }
+                ],
+                &quot;domainMatcher&quot;: &quot;mph&quot;
+            }
+        ]
+    },
+    &quot;inbounds&quot;: [
+        {
+            &quot;protocol&quot;: &quot;vmess&quot;,
+            ...
+            &quot;sniffing&quot;: {
+                &quot;enabled&quot;: true,
+                &quot;destOverride&quot;: [
+                    &quot;http&quot;,
+                    &quot;tls&quot;
+                ]
+            },
+            ...注意需要安装扩展版的 geosite.dat 才有 openai 的条目：https://github.com/Loyalsoldier/v2ray-rules-dat通过访问以下网址测试是否已经解锁 ios app 端：https://ios.chat.openai.com/public-api/mobile/server_status/v1以上就是解决 chatgpt 无法访问的方法。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2999.html">
+<title>蜗杆基础知识</title>
+<link>https://blog.niekun.net/archives/2999.html</link>
+<dc:date>2024-06-24T01:51:49+00:00</dc:date>
+<description>http://www.qsjsj.com/zhinan/ptyzwgcdfljjgff.htmlhttps://domm.muzing.top/chapter_11#pu-tong-yuan-zhu-wo-gan-chuan-dong-de-ji-ben-can-shu-ji-qi-xuan-zehttps://m.cadhome.net/news/proejc/716.htmlhttp://www.qsjsj.com/zhinan/AJMDWGJYHYZWGCSJSGS.htmlhttp://www.lyfy.net/wheel/ptcwstyle.htm</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/pip.html">
+<title>修改 pip 为国内源</title>
+<link>https://blog.niekun.net/archives/pip.html</link>
+<dc:date>2024-05-30T12:02:55+00:00</dc:date>
+<description>一键替换命令：# 清华源
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 阿里源
+pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
+
+# 腾讯源
+pip config set global.index-url http://mirrors.cloud.tencent.com/pypi/simple
+
+# 豆瓣源
+pip config set global.index-url http://pypi.douban.com/simple/
+
+# 换回默认源
+pip config unset global.index-url</description>
+</item>
+</rdf:RDF>

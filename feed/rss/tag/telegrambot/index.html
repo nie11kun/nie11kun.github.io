@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/tag/telegrambot/">
+<title>Marco Nie - telegrambot</title>
+<link>https://blog.niekun.net/tag/telegrambot/</link>
+<description></description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/428.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/428.html">
+<title>使用 telegram bot 做一个视频下载器</title>
+<link>https://blog.niekun.net/archives/428.html</link>
+<dc:date>2019-10-16T07:56:00+00:00</dc:date>
+<description>需要环境：Linuxpython3python-telegram-botyt-dlpinstaloaderpython我是用的是 python3.8，使用系统包管理器安装：apt install python3
+如果系统内安装了多个版本的 python，修改 /usr/bin/python 的默认链接，具体修改方法查看此教程：https://niekun.net/index.php/archives/413.htmlpython-telegram-bot安装或升级： pip install python-telegram-bot --upgrade
+yt-dlp 安装原来的 youtube-dl 最近好久不更新了，发现下载速度极慢，最近切换到 yt-dlp 效果很好。GitHub：https://github.com/yt-dlp/yt-dlppip 方式安装及更新：python3 -m pip install -U yt-dlp
+instaloader 安装instaloader 可以下载 Instagram 的图片或视频。GitHub 主页：https://github.com/instaloader/instaloaderinstaloader 需要 python 3.5 以上。推荐直接安装最新版 python。使用 pip3 安装：pip3 install instaloader --upgrade
+telegram bot首先在 telegram 客户端内添加 BotFatherCreating a new botUse the /newbot command to create a new bot. The BotFather will ask you for a name and username, then generate an authorization token for your new bot.The name of your bot is displayed in contact details and elsewhere.The Username is a short name, to be used in mentions and telegram.me links. Usernames are 5-32 characters long and are case insensitive, but may only include Latin characters, numbers, and underscores. Your bot's username must end in ‘bot’, e.g. ‘tetris_bot’ or ‘TetrisBot’.The token is a string along the lines of 110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw that is required to authorize the bot and send requests to the Bot API. Keep your token secure and store it safely, it can be used by anyone to control your bot.Generating an authorization tokenIf your existing token is compromised or you lost it for some reason, use the /token command to generate a new one.bot 源码我的开源地址：https://github.com/nie11kun/telegram-bot-youtube-downloader使用脚本需要配置两个环境变量：BOT_TOKEN, INS_ACCOUNT。分别是 bot token 和你的 Instagram 用户名。开机自动运行脚本较新的 Linux 发行版可以使用 systemd 来实现自动启动，参考：https://blog.niekun.net/archives/1334.html以下是 telegrambot-downloader.service unit 内容：[Unit]
+Description=telegrambot to download media Service
+After=network.target nss-lookup.target
+
+[Service]
+User=root
+EnvironmentFile=/etc/env_addon
+ExecStart=/usr/bin/python /home/script/telegram-bot-youtube-downloader/main.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target其中 EnvironmentFile 指向了自定义的环境变量文件地址，文件内容如下：BOT_TOKEN=xxxxxxxxxxxxxx
+INS_ACCOUNT=xxxxxx可能运行报错问题及解决执行脚本后，出现类似如下错误：from tornado.httpserver import HTTPServer from tornado.httpserver import HTTPServer 
+syntaxError: invalid syntax可能是 tornado 版本过高，需要进行降级：pip install tornado==4.5.3
+</description>
+</item>
+</rdf:RDF>

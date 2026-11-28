@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://blog.niekun.net/feed/rss/category/Windows/">
+<title>Marco Nie - Windows</title>
+<link>https://blog.niekun.net/category/Windows/</link>
+<description></description>
+<items>
+<rdf:Seq>
+<rdf:li resource="https://blog.niekun.net/archives/Qt.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/Windows-11.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/dumpbin-dll.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/path.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/intel-12-CPU-vmwre.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/windows.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2860.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2770.html"/>
+<rdf:li resource="https://blog.niekun.net/archives/2757.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://blog.niekun.net/archives/Qt.html">
+<title>Qt 项目图片压缩库环境配置教程</title>
+<link>https://blog.niekun.net/archives/Qt.html</link>
+<dc:date>2026-03-28T08:02:47+00:00</dc:date>
+<description>适用平台：Windows (MinGW) / macOS (Apple Silicon)涉及库：libpng · zlib · libimagequant用途：Qt 项目中对 PNG 进行缩放后有损压缩，效果接近 tinypng一、原理说明库作用zlib通用压缩库，libpng 的底层依赖libpngPNG 编码/解码，负责将量化后的调色板写入 PNG 文件libimagequant核心量化算法，将 RGBA 图像减色为 256 色调色板（与 tinypng 同类算法）二、Windows (MinGW) 配置2.1 前置要求Qt（含 MinGW 工具链，如 mingw1310_64）CMake 3.16+（https://cmake.org/download/）Git确保 MinGW 在 PATH 中，在 cmd 执行：set PATH=C:\Qt\Tools\mingw1310_64\bin;%PATH%⚠️ 重要：后续所有编译步骤必须在无空格路径下进行。如果你的用户目录包含空格（如 C:\Users\Marco Nie），请在 C:\ 根目录下建立工作目录。mkdir C:\build_libs
+cd C:\build_libs2.2 编译 zlibcd C:\build_libs
+
+git clone https://github.com/madler/zlib.git --branch v1.3.1 --depth 1
+cd zlib
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DBUILD_SHARED_LIBS=OFF ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/zlib
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\zlib\
+  include\   ← zlib.h, zconf.h
+  lib\       ← libzlibstatic.a2.3 编译 libpngcd C:\build_libs
+
+git clone https://github.com/pnggroup/libpng.git --branch v1.6.43 --depth 1
+cd libpng
+
+cmake -B build -G &quot;MinGW Makefiles&quot; ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DPNG_SHARED=OFF ^
+  -DPNG_STATIC=ON ^
+  -DPNG_TESTS=OFF ^
+  -DZLIB_ROOT=C:/build_libs/third_party/zlib ^
+  -DCMAKE_INSTALL_PREFIX=C:/build_libs/third_party/libpng
+
+cmake --build build
+cmake --install build
+
+cd ..安装结果：C:\build_libs\third_party\libpng\
+  include\   ← png.h, pngconf.h, pnglibconf.h
+  lib\       ← libpng16.a2.4 编译 libimagequantlibimagequant 2.17+ 已用 Rust 重写，MinGW 下需使用最后一个纯 C 版本 2.12.6，该版本没有 CMakeLists.txt，直接用 gcc 手动编译。cd C:\build_libs
+
+git clone https://github.com/ImageOptim/libimagequant.git ^
+  --branch 2.12.6 --depth 1 libimagequant_c
+
+cd libimagequant_c
+
+:: 编译所有源文件
+gcc -c -O3 -std=c99 -ffast-math ^
+  libimagequant.c blur.c kmeans.c mediancut.c mempool.c nearest.c pam.c
+
+:: 打包静态库
+ar rcs libimagequant.a ^
+  libimagequant.o blur.o kmeans.o mediancut.o mempool.o nearest.o pam.o
+
+:: 手动安装
+mkdir C:\build_libs\third_party\libimagequant\include
+mkdir C:\build_libs\third_party\libimagequant\lib
+
+copy libimagequant.h C:\build_libs\third_party\libimagequant\include\
+copy libimagequant.a C:\build_libs\third_party\libimagequant\lib\
+
+cd ..安装结果：C:\build_libs\third_party\libimagequant\
+  include\   ← libimagequant.h
+  lib\       ← libimagequant.a2.5 复制到项目目录将编译好的库复制到你指定的目录，例如 C:\Users\Marco Nie\Library\imageprocess：xcopy /E /I C:\build_libs\third_party\zlib ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\zlib&quot;
+
+xcopy /E /I C:\build_libs\third_party\libpng ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libpng&quot;
+
+xcopy /E /I C:\build_libs\third_party\libimagequant ^
+  &quot;C:\Users\Marco Nie\Library\imageprocess\libimagequant&quot;最终目录结构：C:\Users\Marco Nie\Library\imageprocess\
+  zlib\
+    include\
+    lib\
+  libpng\
+    include\
+    lib\
+  libimagequant\
+    include\
+    lib\2.6 配置 .pro 文件（Windows 部分）win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}三、macOS (Apple Silicon) 配置3.1 前置要求Homebrew（https://brew.sh）Qt for macOS3.2 安装依赖brew install libpng zlib libimagequant安装路径（Apple Silicon 固定为 /opt/homebrew/opt/）：库路径libpng/opt/homebrew/opt/libpngzlib/opt/homebrew/opt/zliblibimagequant/opt/homebrew/opt/libimagequantIntel Mac 的 Homebrew 前缀为 /usr/local/opt/，将下方路径中的 /opt/homebrew 替换为 /usr/local 即可。3.3 配置 .pro 文件（macOS 部分）macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}注意：macOS 下链接名与 Windows 不同：libpng 是 -lpng（不带版本号）zlib 是 -lz（不是 -lzlibstatic）四、完整 .pro 配置win32 {
+    IMAGEPROCESS = &quot;C:/Users/Marco Nie/Library/imageprocess&quot;
+
+    INCLUDEPATH += \
+        $${IMAGEPROCESS}/libimagequant/include \
+        $${IMAGEPROCESS}/libpng/include \
+        $${IMAGEPROCESS}/zlib/include
+
+    LIBS += \
+        -L$${IMAGEPROCESS}/libimagequant/lib -limagequant \
+        -L$${IMAGEPROCESS}/libpng/lib        -lpng16 \
+        -L$${IMAGEPROCESS}/zlib/lib          -lzlibstatic
+}
+
+macx {
+    INCLUDEPATH += \
+        /opt/homebrew/opt/libimagequant/include \
+        /opt/homebrew/opt/libpng/include \
+        /opt/homebrew/opt/zlib/include
+
+    LIBS += \
+        -L/opt/homebrew/opt/libimagequant/lib -limagequant \
+        -L/opt/homebrew/opt/libpng/lib        -lpng \
+        -L/opt/homebrew/opt/zlib/lib          -lz
+}
+
+HEADERS += src/image_compress.h
+SOURCES += src/image_compress.cpp五、常见问题错误信息原因解决方法cannot find -lpng16库名不匹配检查 lib\ 下实际文件名，改为对应的 -lpng 或 -lpng16undefined reference to inflatezlib 未链接确认 -lzlibstatic 在 LIBS 中且在 -lpng16 之后png.h: No such file or directoryINCLUDEPATH 路径错误核对实际头文件路径与 .pro 中配置是否一致Z_FILTERED undeclared缺少 zlib 头文件在 image_compress.cpp 顶部添加 #include &lt;zlib.h&gt;CMake 路径含空格报错MinGW windres 不支持空格路径在无空格路径（如 C:\build_libs）下编译libimagequant clone 后无 .c 文件拉取到了 Rust 重写版本明确指定 --branch 2.12.6</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/Windows-11.html">
+<title>Windows 11 安装绕过登录微软账户</title>
+<link>https://blog.niekun.net/archives/Windows-11.html</link>
+<dc:date>2026-01-21T05:13:39+00:00</dc:date>
+<description>在 Windows 11 安装过程中，按下 Shift + F10 组合键打开命令提示符，输入start ms-cxh:localonly，即可直接创建本地账户，而且无需重启设备，无需先跳过联网步骤。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/dumpbin-dll.html">
+<title>使用 dumpbin 检测 dll 文件中包含的函数</title>
+<link>https://blog.niekun.net/archives/dumpbin-dll.html</link>
+<dc:date>2025-10-10T05:12:09+00:00</dc:date>
+<description>dumpbin 是微软 Visual Studio 工具集 自带的一个命令行工具，用于分析可执行文件（.exe、.dll、.obj、.lib）内部结构。dumpbin 位于 Visual Studio 工具链中，一般路径如下：C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\&lt;version&gt;\bin\Hostx64\x64\dumpbin.exe
+要使用它，可以通过以下方式：打开 “Developer Command Prompt for VS 2022”（开发者命令提示符），该环境自动配置好 PATH；然后在命令行中直接输入：  dumpbin /?如果能看到帮助信息，说明环境已正确配置。查看 DLL 的导出函数dumpbin /exports your.dll
+输出说明：Microsoft (R) COFF/PE Dumper Version 14.42.34433.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file C:\Users\Marco Nie\TEST.dll
+
+File Type: DLL
+
+  Section contains the following exports for hasp_windows_x64_107043.dll
+
+    00000000 characteristics
+    68DB892A time date stamp Tue Sep 30 15:39:22 2025
+        0.00 version
+           1 ordinal base
+          79 number of functions
+          79 number of names
+
+ordinal hint RVA      name
+      1    0 00001000 MyFunctionA
+      2    1 00002000 MyFunctionB
+
+  Summary
+
+       A1000 .data
+        D000 .pdata
+      133000 .rdata
+        6000 .reloc
+        1000 .rsrc
+      483000 .textordinal：函数序号name：导出函数名（重点）RVA：函数在文件中的相对虚拟地址用途：验证 DLL 是否正确导出了接口，比如你加密或封装的 DLL 是否暴露了预期的函数。如果想要检测是否包含特定名称的函数可以过滤结果：dumpbin /exports your.dll  | findstr str111
+以上指令会输出包含 str111 的行。查看 DLL 依赖的其他库dumpbin /imports your.dll
+这会列出该 DLL 引用的其他 DLL（比如 KERNEL32.dll, USER32.dll 等）。查看 DLL 架构（32位 / 64位）dumpbin /headers your.dll | findstr machine
+输出示例：14C machine (x86)
+8664 machine (x64)查看完整头部信息（详细模式）dumpbin /all your.dll &gt; result.txt
+这样可以把所有信息输出到文件中慢慢查看，包括节区、符号、导入表、导出表、资源等。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/path.html">
+<title>将路径加入系统 path</title>
+<link>https://blog.niekun.net/archives/path.html</link>
+<dc:date>2024-08-10T03:06:00+00:00</dc:date>
+<description>将路径加入系统 path 可以方便的在终端调用目录中的可执行文件或脚本。windows 和 macOS 设置方法不同，下面分别介绍。windows参考之前的文章：https://blog.niekun.net/archives/413.htmlmacos确定您的 shell 类型。打开终端，运行以下命令：echo $SHELL
+这通常会返回 /bin/zsh 或 /bin/bash。根据您的 shell 类型，编辑相应的配置文件：对于 Zsh（最新的 macOS 默认使用）：编辑 ~/.zshrc对于 Bash：编辑 ~/.bash_profile 或 ~/.bashrc使用文本编辑器打开相应的文件。例如，对于 zsh：vim ~/.zshrc
+在文件末尾添加以下行（替换为您的实际脚本目录路径）：export PATH=&quot;/path/script:$PATH&quot;
+保存并关闭文件。使更改生效，可以重新加载配置文件或重启终端。要重新加载，运行：source ~/.zshrc  # 如果使用 Zsh
+source ~/.bash_profile  # 如果使用 Bash
+验证 PATH 更新：echo $PATH
+您应该能看到您的脚本目录已被添加。现在，您应该能够直接运行脚本，而不需要指定完整路径：test.sh
+注意事项：确保您的脚本有正确的执行权限（chmod +x script_name.sh）。如果脚本名称与系统命令冲突，考虑重命名脚本或使用唯一前缀</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/intel-12-CPU-vmwre.html">
+<title>解决在 intel 12代以后的 CPU 上 vmwre 虚拟机性能低下问题</title>
+<link>https://blog.niekun.net/archives/intel-12-CPU-vmwre.html</link>
+<dc:date>2024-04-18T05:01:52+00:00</dc:date>
+<description>最近更换了新的电脑，是 i7 12700H 的 CPU，按理说比以前的电脑性能好一些，但是导入之前的 vmware 虚拟机后发现运行起来优点卡顿，但是观察主机资源占用很低，cpu 占用也很低，研究了下才发现是由于新款 cpu 采用了大小核设计导致这个问题。我的这一款是 6 大核 8 小核 20 线程设计。默认情况下启动虚拟机资源分配是交给 windows 主机自己协调的，很可能会分配给小核运行虚拟机导致运行卡顿，资源管理器可以看到 cpu 负载都在后面的小核上：解决方法就是以管理员权限运行 vmware，这样 VMware 会自己调度资源使用，优先级大概是大核&gt;小核&gt;超线程。实际效果很明显，基本都运行在了大核上：</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/windows.html">
+<title>windows 相对路径快捷方式</title>
+<link>https://blog.niekun.net/archives/windows.html</link>
+<dc:date>2024-03-18T02:09:15+00:00</dc:date>
+<description>一般系统默认创建的都是指向某个文件绝对路径的快捷方式，如果移动原始文件位置后，快捷方式就失效了。可以自己修改快捷方式的属性来建立一个以快捷方式所在地址为准的指向一个相对路径的文件。这样适用于需要同时移动原始文件与快捷方式的情况。首先右键创建一个文件的快捷方式，然后右键选择快捷方式的属性，将目标位置地址改为：explorer.exe path/to/file.exe。注意 explorer.exe 后面的空格：后面的路径就是相对于快捷方式地址的相对路径。确认后默认快捷方式图标会变成资源管理器的图标，可以在属性里修改为其他图标。</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html">
+<title>WSA (Windows Subsystem for Android) 的安装及使用</title>
+<link>https://blog.niekun.net/archives/WSA-Windows-Subsystem-for-Android.html</link>
+<dc:date>2024-02-20T07:47:00+00:00</dc:date>
+<description>之前介绍过 Windows10 安装 wsl 的教程，可以方便的在 Windows 下使用 Ubuntu 系统。今天介绍安装 wsa 用来在 Windows 下使用 Android 系统及安装第三方 apk。安装wsa 没有在官方的 store 中提供，这里使用开源的 WSA-Script 很方便的一键安装。GitHub 主页：https://github.com/YT-Advanced/WSA-Script在 release 页面下载最新打包的版本：https://github.com/YT-Advanced/WSA-Script/releases/latest我需要使用 google play 框架及 root 权限，所以下载的是框出来的版本：下载好解压到一个特定的目录，运行 Run.bat，期间会提示需要管理员权限以及提示收集信息的对话框，点击确认即可。安装完成后会自动运行 Windows Subsystem For Android™ 应用。设置代理如果需要使用 play 商店，就需要配置代理服务。如果本机有代理工具的话，可以让 wsa 直接调用本机代理。这里需要使用 adb 工具，下载链接：https://dl.google.com/android/repository/platform-tools-latest-windows.zip解压压缩包，可以看到其中有一个 adb.exe，可以将目录添加到系统 path 以方便在 terminal 调用。首先需要设置 wsa 打开开发者模式，进入设置打开选项：默认 wsa 是运行在本地的 58526 端口的。建立一个 powershell 脚本，如：wsaproxy.ps1，内容如下：$WinNetIP=$(Get-NetIPAddress -InterfaceAlias &#039;vEthernet (WSLCore)&#039; -AddressFamily IPV4) # get android network gateway addr
+adb connect 127.0.0.1:58526 # android port
+adb shell settings put global http_proxy &quot;$($WinNetIP.IPAddress):1082&quot; # local proxy port第一次执行会弹出对话框是否信任外部访问，点击允许即可。以上脚本会获取到 wsa 所在网卡的网关地址，然后用 adb 连接到 wsa，最后配置代理，注意脚本里的本地代理端口修改为实际值即可。运行脚本即可让 wsa 配置好代理服务。以后只需要执行这个脚本就可以自动设置代理。如果需要取消代理运行下面命令即可：adb shell settings put global http_proxy :0安装 apk推荐直接在 play 商店安装应用程序，如果需要安装自己下载的第三方 apk，直接使用 adb 工具即可。安装命令：adb connect 127.0.0.1:58526
+adb install xxx.apk文件共享可以配置一个 Windows 主机的路径作为同 wsa 共享目录，这样两边就可以互传文件了。打开 Windows Subsystem For Android™ 进入 advanced settings - experimental feature，启用 share user folders 功能并选择一个本地目录作为共享目录：通过 system - turnoff 关闭 wsa，然后点击 files 会重新运行 wsa：可以看到有一个 windows 文件夹：这个文件夹就是对应的 windows 共享目录。系统设置默认情况下只有在第一次安装成功后会自动启动 Android 设置界面，并且找不到设置的启动图标在哪里，我们可以在浏览器里直接访问 android settings 地址的方式启动。浏览器中输入以下地址并访问：wsa://com.android.settings，会提示是否需要跳转到设置，点击确认即可进入设置：参考链接Windows Android 子系统 WSA 代理设置方法教程WSA (Windows Subsystem for Android) 使用 Windows 上的代理</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2860.html">
+<title>Windows 下虚拟机安装 MacOS</title>
+<link>https://blog.niekun.net/archives/2860.html</link>
+<dc:date>2023-11-03T01:08:00+00:00</dc:date>
+<description>经过测试，我的电脑安装好后可以启动，但是每次输入管理员口令就会四国。可能和我的电脑 cpu 不能完美支持 macos 内核有关，下面介绍安装方法。工具：vmware workstationunlockermacos Monterey iso image环境准备首先需要主板支持虚拟化 VT，需要在 bios 中打开对应选项。注意此项必须配置，否则安装会不成功。VMware workstation 默认不支持安装 macos，需要使用第三方工具 unlocker 来开启支持，直接在上方提供的 github 主页下载最新版本即可，运行 windows 文件夹下的 unlock.exe 即可。然后下载 macos iso 镜像文件，在我上面提供的网站中下载即可。配置虚拟机按照正常的新建虚拟机的方式新建，添加下载好的系统镜像用来安装，配置好确认后先不要启动虚拟机，先修改对应虚拟机文件夹下的 vmx 文件。文本编辑器打开 vmx 文件后，在最后一行添加一句：smc.version = 0
+保存后即可启动虚拟机，进入 recovery 工具后，先格式化硬盘，然后安装系统，提示一步步安装即可。参考链接How To Install macOS Monterey On Vmware On Windows PcWindows用VM虚拟机安装MacOS Ventura 13.6系统全流程教程</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2770.html">
+<title>命令行激活 Windows 密钥</title>
+<link>https://blog.niekun.net/archives/2770.html</link>
+<dc:date>2022-09-19T01:22:00+00:00</dc:date>
+<description>注意：安装新密钥及激活时需要在管理员权限下运行终端。安装新密钥，会自动替换当前密钥：slmgr /ipk xxxx-xxxx-xxxx-xxxx-xxxx
+激活 Windows：slmgr /ato
+显示当前授权信息：slmgr /dli
+显示详细授权信息：slmgr /dlv
+显示授权剩余日期：slmgr /xpr
+密钥可用性在线检测：https://dbmer.com/checkkey/</description>
+</item>
+<item rdf:about="https://blog.niekun.net/archives/2757.html">
+<title>Windows 配置 FTP 服务器</title>
+<link>https://blog.niekun.net/archives/2757.html</link>
+<dc:date>2022-09-15T07:04:00+00:00</dc:date>
+<description>Windows 10 以上系统自带 FTP server，可以简单的搭建一个局域网内应用的 FTP 服务器。下面介绍具体操作流程。搜索 windows feature 打开功能开关配置界面：开启如下 ftp 相关选项，确认后等待安装完成：搜索 Administrative Tools：双击 Internet Information Services (IIS) Manager:sites 上右键点击 add ftp site：设置名称及共享路径：选择无 ssl：选择 basic 验证以及指定可登录 FTP 的用户，设置读写权限：可以单独建立一个用户用来登录 ftp，建立账户可以参考我的教程：https://blog.niekun.net/archives/2103.html#title-4设置完成后，点击完成即可。然后配置防火墙例外，搜索 allow an app through windows firewall:在列表中找到 ftp server 并打勾即可：以上就完成了 Windows 端 ftp 服务器的搭建，可以使用 ftp 客户端登录此 ftp 服务器了。参考链接：How to set up and manage an FTP server on Windows 10</description>
+</item>
+</rdf:RDF>

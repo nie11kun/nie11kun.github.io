@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPS 安装配置 sing-box 指南（VLESS + REALITY &amp; Hysteria2） | Marco Nie</title>
+    <link rel="stylesheet" href="../usr/themes/classic-22/static/css/style.css">
+        <link rel="canonical" href="3119.html" />
+<link rel="pingback" href="../action/xmlrpc" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../action/xmlrpc?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="../action/xmlrpc?wlw" />
+<link rel="alternate" type="application/rss+xml" title="VPS 安装配置 sing-box 指南（VLESS + REALITY &amp; Hysteria2） &raquo; Marco Nie &raquo; RSS 2.0" href="../feed/archives/3119.html" />
+<link rel="alternate" type="application/rdf+xml" title="VPS 安装配置 sing-box 指南（VLESS + REALITY &amp; Hysteria2） &raquo; Marco Nie &raquo; RSS 1.0" href="../feed/rss/archives/3119.html" />
+<link rel="alternate" type="application/atom+xml" title="VPS 安装配置 sing-box 指南（VLESS + REALITY &amp; Hysteria2） &raquo; Marco Nie &raquo; ATOM 1.0" href="../feed/atom/archives/3119.html" />
+<meta name="description" content="在已有 Nginx 网站（TCP 80/443）与 V2Ray（VMess + WS + TLS）的 VPS 上，用单个轻量级 sing-box 进程并行部署 VLESS + XTLS-Visi..." />
+<meta name="generator" content="Typecho 1.3.0" />
+<meta name="template" content="classic-22" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.niekun.net/archives/3119.html" />
+<meta name="twitter:title" property="og:title" itemprop="name" content="VPS 安装配置 sing-box 指南（VLESS + REALITY &amp;amp; Hysteria2）" />
+<meta name="twitter:description" property="og:description" itemprop="description" content="在已有 Nginx 网站（TCP 80/443）与 V2Ray（VMess + WS + TLS）的 VPS 上，用单个轻量级 sing-box 进程并行部署 VLESS + XTLS-Visi..." />
+<meta property="og:site_name" content="Marco Nie" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:domain" content="blog.niekun.net" />
+<script type="080834b64eb76c48a42e7952-text/javascript">
+(function () {
+    window.TypechoComment = {
+        dom : function (sel) {
+            return document.querySelector(sel);
+        },
+        
+        visiable: function (el, show) {
+            el.style.display = show ? '' : 'none';
+        },
+    
+        create : function (tag, attr) {
+            const el = document.createElement(tag);
+        
+            for (const key in attr) {
+                el.setAttribute(key, attr[key]);
+            }
+        
+            return el;
+        },
+        
+        inputParent: function (response, coid) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            let input = form.querySelector('input[name=parent]');
+            
+            if (null == input && coid) {
+                input = this.create('input', {
+                    'type' : 'hidden',
+                    'name' : 'parent'
+                });
+
+                form.appendChild(input);
+            }
+            
+            if (coid) {
+                input.setAttribute('value', coid);
+            } else if (input) {
+                input.parentNode.removeChild(input);
+            }
+        },
+        
+        getChild: function (root, node) {
+            const parentNode = node.parentNode;
+            
+            if (parentNode === null) {
+                return null;
+            } else if (parentNode === root) {
+                return node;
+            } else {
+                return this.getChild(root, parentNode);
+            }
+        },
+
+        reply : function (htmlId, coid, btn) {
+            const response = this.dom('#respond-post-3119'),
+                textarea = response.querySelector('textarea[name=text]'),
+                comment = this.dom('#' + htmlId),
+                child = this.getChild(comment, btn);
+
+            this.inputParent(response, coid);
+
+            if (this.dom('#respond-post-3119-holder') === null) {
+                const holder = this.create('div', {
+                    'id' : 'respond-post-3119-holder'
+                });
+
+                response.parentNode.insertBefore(holder, response);
+            }
+            
+            if (child) {
+                comment.insertBefore(response, child.nextSibling);
+            } else {
+                comment.appendChild(response);
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), true);
+
+            if (null != textarea) {
+                textarea.focus();
+            }
+
+            return false;
+        },
+
+        cancelReply : function () {
+            const response = this.dom('#respond-post-3119'),
+                holder = this.dom('#respond-post-3119-holder');
+
+            this.inputParent(response, false);
+
+            if (null === holder) {
+                return true;
+            }
+
+            this.visiable(this.dom('#cancel-comment-reply-link'), false);
+            holder.parentNode.insertBefore(response, holder);
+            return false;
+        }
+    };
+})();
+</script><script type="080834b64eb76c48a42e7952-text/javascript">
+(function () {
+    const events = ['scroll', 'mousemove', 'keyup', 'touchstart'];
+    let added = false;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const response = document.querySelector('#respond-post-3119');
+
+        if (null != response) {
+            const form = 'form' === response.tagName ? response : response.querySelector('form');
+            const input = document.createElement('input');
+            
+            input.type = 'hidden';
+            input.name = '_';
+            input.value = (function () {
+    var _HdJST = //'3P'
+'56'+'bb'//'Fx'
++'D'//'D'
++//'dK'
+'dK'+'e'//'uTF'
++//'5YA'
+'ddb'+'f'//'Jdy'
++//'X5'
+'e'+//'I'
+'3'+'4'//'t'
++//'p'
+'75b'+'d3'//'PKA'
++'ce'//'3o'
++//'CI'
+'34'+//'D'
+'aa'+'db'//'r7'
++'dc6'//'3'
++//'8Y'
+'8Y'+//'SS'
+'1e'+//'o'
+'17', _pabC = [[4,5],[4,6],[28,30]];
+    
+    for (var i = 0; i < _pabC.length; i ++) {
+        _HdJST = _HdJST.substring(0, _pabC[i][0]) + _HdJST.substring(_pabC[i][1]);
+    }
+
+    return _HdJST;
+})();;
+ 
+            if (form) {
+                function append() {
+                    if (!added) {
+                        form.appendChild(input);
+                        added = true;
+                    }
+                }
+            
+                for (const event of events) {
+                    window.addEventListener(event, append);
+                }
+            }
+        }
+    });
+})();
+</script></head>
+
+<body>
+
+<header class="site-navbar container-fluid">
+    <nav>
+        <ul class="site-name">
+                    <li>
+                <a href="../index.html" class="brand">Marco Nie</a>
+            </li>
+            <li class="desc">you are the company you keep...</li>
+                </ul>
+
+        <ul>
+            <li>
+                <label for="nav-toggler" class="nav-toggler-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                </label>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="site-nav">
+        <input type="checkbox" id="nav-toggler">
+
+        <ul class="nav-menu">
+            <li>
+                <a href="../index.html">首页</a>
+            </li>
+
+                                    <li>
+                <a href="../start-page.html">关于我</a>
+            </li>
+                        <li>
+                <form method="post" action="../index.html">
+                    <input type="search" id="s" name="s">
+                </form>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="container-thin">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+                <header class="entry-header text-center">
+        <h1 class="entry-title" itemprop="name headline">
+            <a href="3119.html" itemprop="url">VPS 安装配置 sing-box 指南（VLESS + REALITY &amp; Hysteria2）</a>
+        </h1>
+                <ul class="entry-meta list-inline text-muted">
+            <li class="feather-calendar"><time datetime="2026-11-27T10:22:44+00:00" itemprop="datePublished">2026-11-27</time></li>
+            <li class="feather-folder"><a href="../category/other/index.html">other</a></li>
+            <li class="feather-message"><a href="3119.html#comments"  itemprop="discussionUrl">暂无评论</a></li>
+        </ul>
+            </header>
+
+            <div class="entry-content fmt" itemprop="articleBody">
+                <p>在已有 Nginx 网站（<code>TCP 80/443</code>）与 V2Ray（<code>VMess + WS + TLS</code>）的 VPS 上，用单个轻量级 <strong><code>sing-box</code></strong> 进程并行部署 <strong>VLESS + XTLS-Vision + REALITY</strong> 与 <strong>Hysteria2（含端口跳跃）</strong>，并对现有网站、证书续签与 Docker 服务保持零影响。</p><p>配置文件模板见同目录 <a href="https://blog.niekun.net/archives/config.json"><code>config.json</code></a>。</p><h2>目录</h2><ol><li><a href="3119.html#1-架构与端口规划">架构与端口规划</a></li><li><a href="3119.html#2-前置检查与系统调优">前置检查与系统调优</a></li><li><a href="3119.html#3-安装-sing-box">安装 sing-box</a></li><li><a href="3119.html#4-生成凭证与配置">生成凭证与配置</a></li><li><a href="3119.html#5-配置-systemd-服务与证书续签联动">配置 systemd 服务与证书续签联动</a></li><li><a href="3119.html#6-防火墙与-hysteria2-端口跳跃">防火墙与 Hysteria2 端口跳跃</a></li><li><a href="3119.html#7-客户端接入与常见踩坑">客户端接入与常见踩坑</a></li><li><a href="3119.html#8-验证升级与排障">验证、升级与排障</a></li></ol><!--more--><hr><h2>1. 架构与端口规划</h2><p>若 VPS 上已运行大量 Nginx 虚拟主机，将 <code>TCP 443</code> 改为 SNI 前置分流往往需要全量调整站点监听端口和 <code>proxy_protocol</code>，改造面大、风险高。本方案采用 <strong>“协议隔离 + 端口错开”</strong> 架构：</p><table><thead><tr><th>协议与角色</th><th>监听端口</th><th>证书 / 伪装</th><th>与现有服务关系</th></tr></thead><tbody><tr><td><strong>VLESS + Vision + REALITY</strong>（日常主力）</td><td><code>TCP 8443</code></td><td>借用大站 TLS 1.3 指纹（<code>www.apple.com</code>）</td><td>与 Nginx 零交集，消除 TLS-in-TLS 特征</td></tr><tr><td><strong>Hysteria2</strong>（晚高峰高速）</td><td><code>UDP 443</code> + <code>40000-40500/udp</code> 跳跃</td><td>复用站点通配符/域名正式证书</td><td>Nginx 仅监听 <code>TCP 443</code>，<code>UDP 443</code> 完全不冲突</td></tr><tr><td><strong>原 VMess + WS + TLS</strong>（保底备用）</td><td><code>TCP 443</code> → Nginx → V2Ray</td><td>原有配置保持不动</td><td>遇到严苛防火墙/封 UDP 时兜底</td></tr></tbody></table><blockquote>如果宿主机未启用路由级或本地 WARP，可将 <code>config.json</code> 中 <code>geosite-openai</code> 等 AI 分流规则改回 <code>direct</code> 出口。若本机已跑 Cloudflare WARP 本地 SOCKS5（<code>127.0.0.1:40000</code>），<code>sing-box</code> 可直接复用它解锁 AI 服务。</blockquote><hr><h2>2. 前置检查与系统调优</h2><p><strong>1. 确认公网网卡名与端口未被占用</strong></p><pre><code class="lang-bash">ip route get 1.1.1.1 | awk &#039;{for(i=1;i&lt;=NF;i++) if($i==&quot;dev&quot;) print $(i+1)}&#039;
+ss -tulnp | grep -E &#039;:(8443|443)\b&#039;</code></pre><p>确认输出中 <code>TCP 8443</code> 与 <code>UDP 443</code> 均无进程占用（仅看到 Nginx 占用 <code>TCP 443</code> 属正常）。若公网网卡不是 <code>eth0</code>（例如 <code>ens3</code>），后续配置端口跳跃规则时请替换为实际网卡名。</p><p><strong>2. 开启 BBR 与调大网络/UDP 缓冲区</strong></p><p>Hysteria2 基于 UDP/QUIC，若内核接收缓冲偏小容易在高速下载时丢包。建议在 <code>/etc/sysctl.d/99-singbox-optimize.conf</code> 中写入：</p><pre><code class="lang-ini">net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.core.rmem_default = 1048576
+net.core.wmem_default = 1048576
+net.ipv4.udp_rmem_min = 16384
+net.ipv4.udp_wmem_min = 16384</code></pre><p>应用并核对生效：</p><pre><code class="lang-bash">sysctl --system
+sysctl net.ipv4.tcp_congestion_control net.core.default_qdisc net.core.rmem_max</code></pre><p><strong>3. 确认 TLS 证书权限与 WARP（可选）</strong></p><pre><code class="lang-bash">ls -l /path/to/fullchain.pem /path/to/privkey.pem
+ss -tlnp | grep 40000 || echo &quot;无本地 WARP，请调整 config.json 路由&quot;</code></pre><p>后文会让 <code>sing-box</code> 以站点用户身份（如 <code>www-data</code>）运行，只要 <code>www-data</code> 对证书和私钥具备只读权限即可，<strong>无需改动 Nginx 现有的证书文件权限</strong>。</p><hr><h2>3. 安装 sing-box</h2><p>从 GitHub 官方 Releases 下载最新的 Linux <code>amd64</code> 二进制并安装（以下以自动获取最新版为例）：</p><pre><code class="lang-bash">VER=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep -oE &#039;&quot;tag_name&quot;:\s*&quot;v[^&quot;]+&quot;&#039; | cut -d&#039;&quot;&#039; -f4 | sed &#039;s/^v//&#039;)
+echo &quot;Downloading sing-box v${VER}...&quot;
+
+TMPD=$(mktemp -d)
+curl -fsSL -o &quot;$TMPD/sing-box.tar.gz&quot; &quot;https://github.com/SagerNet/sing-box/releases/download/v${VER}/sing-box-${VER}-linux-amd64.tar.gz&quot;
+tar -xzf &quot;$TMPD/sing-box.tar.gz&quot; -C &quot;$TMPD&quot;
+install -m 0755 &quot;$TMPD&quot;/sing-box-*/sing-box /usr/local/bin/sing-box
+rm -rf &quot;$TMPD&quot;
+
+sing-box version</code></pre><p>创建配置目录与状态缓存目录（用于持久化 <code>.srs</code> 规则集缓存）：</p><pre><code class="lang-bash">install -d -m 0750 -o root -g www-data /etc/sing-box
+install -d -m 0750 -o www-data -g www-data /var/lib/sing-box</code></pre><hr><h2>4. 生成凭证与配置</h2><p><strong>1. 实测挑选 REALITY 伪装目标（<code>server_name</code> / <code>handshake.server</code>）</strong></p><p>优先挑选支持 <strong>TLS 1.3 + HTTP/2 (<code>h2</code>) + X25519</strong> 且延迟最低、国内未被屏蔽的大型网站：</p><pre><code class="lang-bash">for host in www.apple.com www.microsoft.com addons.mozilla.org; do
+    t=$(curl -so /dev/null -w &quot;tcp=%{time_connect}s tls=%{time_appconnect}s code=%{http_code}&quot; --max-time 4 &quot;https://$host/&quot;)
+    info=$(echo | openssl s_client -connect &quot;$host:443&quot; -servername &quot;$host&quot; -alpn h2 -tls1_3 2&gt;/dev/null | grep -E &#039;ALPN protocol|Server Temp Key&#039; | tr &#039;\n&#039; &#039; &#039;)
+    echo &quot;$host =&gt; $t | $info&quot;
+done</code></pre><p>选出返回 <code>200</code>/<code>301</code>、协商出 <code>X25519</code> 与 <code>ALPN protocol: h2</code> 且握手最快的目标（通常 <code>www.apple.com</code> 或 <code>www.microsoft.com</code> 仅 25–40 ms）。</p><p><strong>2. 使用内置命令生成密钥与随机数</strong></p><pre><code class="lang-bash">sing-box generate uuid
+sing-box generate reality-keypair
+sing-box generate rand --hex 4    # 用作 short_id（8 位十六进制）
+sing-box generate rand --hex 16   # 用作 Hysteria2 密码</code></pre><p>注意保存好输出结果：</p><ul><li><strong><code>PrivateKey</code></strong> 填进服务端 <code>config.json</code> 的 <code>reality.private_key</code>；</li><li><strong><code>PublicKey</code></strong> 填进客户端配置的 <code>public-key</code>（不要把私钥填到客户端）。</li></ul><p><strong>3. 写入 <code>/etc/sing-box/config.json</code> 并校验</strong></p><p>参照同目录 <a href="https://blog.niekun.net/archives/config.json"><code>config.json</code></a>，将占位符替换为实际值后写入 <code>/etc/sing-box/config.json</code>：</p><ul><li><code>uuid-here</code> → 生成的 UUID</li><li><code>your-reality-private-key</code> → 生成的 <code>PrivateKey</code></li><li><code>1234abcd</code> → 生成的 8 位 <code>short_id</code></li><li><code>your-hy2-password</code> → 生成的 Hysteria2 密码</li><li><code>/path/to/fullchain.pem</code>、<code>/path/to/privkey.pem</code> → 你的域名证书链与私钥路径</li><li><code>up_mbps</code> / <code>down_mbps</code> → 建议贴合家庭宽带上/下行能力适当留余量（例如家宽 1000M 下行 / 50M 上行，服务端可设 <code>&quot;up_mbps&quot;: 100, &quot;down_mbps&quot;: 300</code>，既能拉满日常下载又防单核 VPS CPU 过载或过度消耗流量）</li></ul><p>设定只读组权限并校验语法：</p><pre><code class="lang-bash">chown root:www-data /etc/sing-box/config.json
+chmod 0640 /etc/sing-box/config.json
+sing-box check -c /etc/sing-box/config.json</code></pre><p>看到无报错返回即表示配置合法。</p><hr><h2>5. 配置 systemd 服务与证书续签联动</h2><p><strong>1. 创建 <code>/etc/systemd/system/sing-box.service</code></strong></p><p>以 <code>www-data</code> 身份运行，仅赋予绑定特权端口（<code>UDP 443</code>）所需的最小 capability：</p><pre><code class="lang-ini">[Unit]
+Description=sing-box service
+After=network-online.target nss-lookup.target warp-svc.service
+Wants=network-online.target
+
+[Service]
+User=www-data
+Group=www-data
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+ExecStart=/usr/local/bin/sing-box run -c /etc/sing-box/config.json
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5s
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target</code></pre><p><strong>2. 配置证书变更自动重载（不改动 <code>acme.sh</code> 与 Nginx）</strong></p><p>通过 systemd <code>.path</code> 单元直接监听证书文件改动并触发重启加载新证书：</p><pre><code class="lang-bash">cat &gt; /etc/systemd/system/sing-box-cert-reload.service &lt;&lt;&#039;EOF&#039;
+[Unit]
+Description=Restart sing-box when SSL certificate changes
+
+[Service]
+Type=oneshot
+ExecStart=/bin/systemctl restart sing-box.service
+EOF
+
+cat &gt; /etc/systemd/system/sing-box-cert-reload.path &lt;&lt;&#039;EOF&#039;
+[Unit]
+Description=Watch SSL certificate for sing-box reload
+
+[Path]
+PathChanged=/path/to/fullchain.pem
+
+[Install]
+WantedBy=multi-user.target
+EOF</code></pre><p><em>(记得将 <code>/path/to/fullchain.pem</code> 替换为与 <code>config.json</code> 中一致的证书实际路径。)</em></p><hr><h2>6. 防火墙与 Hysteria2 端口跳跃</h2><p><strong>1. UFW 放行端口</strong></p><pre><code class="lang-bash">ufw allow 8443/tcp comment &#039;VLESS REALITY&#039;
+ufw allow 443/udp comment &#039;Hysteria2 QUIC&#039;
+ufw allow 40000:40500/udp comment &#039;Hysteria2 Port Hopping&#039;</code></pre><p><strong>2. 持久化端口跳跃转发（<code>40000:40500/udp → 443/udp</code>）</strong></p><blockquote><strong>为什么不推荐直接改 <code>/etc/ufw/before.rules</code>？</strong><br>若 VPS 上同时运行了 Docker（例如 RustDesk、自建容器），Docker 会维护自己的 <code>nat</code> 链；直接把 <code>*nat :PREROUTING ACCEPT</code> 写死在 <code>before.rules</code> 并在重载 UFW 时刷新规则，容易干扰甚至冲掉容器的端口转发。使用独立的 systemd oneshot 服务幂等追加一条 <code>REDIRECT</code> 规则更安全、可随时启停。</blockquote><p>创建 <code>/etc/systemd/system/sing-box-hy2-hop.service</code>（若第 2 节查到的公网网卡不是 <code>eth0</code>，请同步替换 <code>-i eth0</code>）：</p><pre><code class="lang-ini">[Unit]
+Description=Hysteria2 UDP Port Hopping (40000-40500 -&gt; 443)
+After=network-online.target ufw.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c &#039;iptables -t nat -C PREROUTING -i eth0 -p udp --dport 40000:40500 -j REDIRECT --to-ports 443 2&gt;/dev/null || iptables -t nat -A PREROUTING -i eth0 -p udp --dport 40000:40500 -j REDIRECT --to-ports 443&#039;
+ExecStop=/bin/sh -c &#039;iptables -t nat -D PREROUTING -i eth0 -p udp --dport 40000:40500 -j REDIRECT --to-ports 443 2&gt;/dev/null || true&#039;
+
+[Install]
+WantedBy=multi-user.target</code></pre><p><strong>3. 全部启用并启动</strong></p><pre><code class="lang-bash">systemctl daemon-reload
+systemctl enable --now sing-box.service sing-box-cert-reload.path sing-box-hy2-hop.service</code></pre><hr><h2>7. 客户端接入与常见踩坑</h2><p><strong>1. Clash Verge / OpenClash / Stash 节点片段</strong></p><pre><code class="lang-yaml">proxies:
+  - name: out-reality
+    type: vless
+    server: 111.111.111.111
+    port: 8443
+    uuid: uuid-uuid-uuid-uuid
+    network: tcp
+    tls: true
+    udp: true
+    flow: xtls-rprx-vision
+    servername: www.apple.com
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: your-reality-public-key
+      short-id: &quot;1234abcd&quot; # 必须加双引号！OpenClash 的 Ruby YAML 1.1 解析器遇到纯数字或特定字符的裸 short-id 会报错失败
+
+  - name: out-hy2
+    type: hysteria2
+    server: 111.111.111.111
+    port: 443
+    ports: 40000-40500
+    password: your-hy2-password
+    sni: xxx.com
+    up: &quot;50 Mbps&quot;
+    down: &quot;300 Mbps&quot;
+    skip-cert-verify: false</code></pre><ul><li><strong>OpenClash 踩坑提醒</strong>：OpenClash 启动时会通过 Ruby 脚本改写配置，<strong><code>short-id</code> 务必用双引号括起</strong>，否则若 <code>short-id</code> 凑巧是纯数字或含特殊前缀，<code>Step 3</code> 格式校验会直接报错并停止服务。</li><li><strong>Hysteria2 限速填写</strong>：客户端 <code>up</code> 填写家里真实的<strong>上行带宽</strong>（如 <code>&quot;50 Mbps&quot;</code>），不要虚高填写，否则 Brutal 拥塞控制会过量重传导致严重丢包和断流。</li></ul><p><strong>2. Shadowrocket 分享链接模板</strong></p><p>将占位符替换后直接复制导入 Shadowrocket：</p><pre><code class="lang-text">vless://<a href="https://blog.niekun.net/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2257574b460f4a475047621313130c1313130c1313130c131313">[email&#160;protected]</a>:8443?encryption=none&amp;flow=xtls-rprx-vision&amp;security=reality&amp;sni=www.apple.com&amp;fp=chrome&amp;pbk=your-reality-public-key&amp;sid=1234abcd&amp;type=tcp&amp;headerType=none#REALITY
+
+hysteria2://<a href="https://blog.niekun.net/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c2bbadb7b0efaabbf0efb2a3b1b1b5adb0a682f3f3f3ecf3f3f3ecf3f3f3ecf3f3f3">[email&#160;protected]</a>:443/?sni=xxx.com&amp;mport=40000-40500&amp;upmbps=50&amp;downmbps=300#HY2</code></pre><hr><h2>8. 验证、升级与排障</h2><p><strong>1. 服务端全面检查</strong></p><pre><code class="lang-bash"># 查看服务状态
+systemctl is-active sing-box sing-box-cert-reload.path sing-box-hy2-hop nginx
+
+# 核对监听端口（Nginx 仍在 TCP 443，sing-box 在 TCP 8443 + UDP 443）
+ss -tulnp | grep -E &#039;sing-box|:8443|:443&#039;
+
+# 核对 NAT 端口跳跃规则与 Docker 共存情况
+iptables -t nat -L PREROUTING -n
+
+# 确认原有网站访问正常
+curl -so /dev/null -w &quot;%{http_code}\n&quot; https://xxx.com/</code></pre><p><strong>2. 平滑升级 sing-box</strong></p><p>重复第 3 节下载新版二进制覆盖 <code>/usr/local/bin/sing-box</code> 后执行：</p><pre><code class="lang-bash">sing-box check -c /etc/sing-box/config.json &amp;&amp; systemctl restart sing-box</code></pre><p><strong>3. 常见日志与排查</strong></p><pre><code class="lang-bash">journalctl -u sing-box -n 50 --no-pager</code></pre><ul><li><strong>看到少量公网扫描 IP 报 <code>TLS handshake: REALITY: processed invalid connection</code></strong>：属于正常现象，说明扫描器未携带正确 <code>short_id</code>/公钥，已被 REALITY 拦截并回落伪装站点。</li><li><strong>Hysteria2 无法建连</strong>：依次检查 ① UFW 是否放行了 <code>443/udp</code> 与 <code>40000:40500/udp</code>；② 商家后台安全组是否放行了 UDP；③ 客户端 <code>sni</code> 与服务端 <code>certificate_path</code> 证书域名是否匹配；④ 客户端 <code>up</code>/<code>down</code> 是否超过了线路承载能力。</li><li><strong>REALITY 连不上或延迟高</strong>：检查 VPS 到 <code>handshake.server</code>（如 <code>www.apple.com</code>）是否能正常返回 <code>200</code> 及 <code>h2</code>；若使用 IP 直连请确认 <code>server</code> 填的是 VPS 公网 IP。</li></ul>                <p itemprop="keywords">标签：无</p>
+            </div>
+        </article>
+
+        <nav class="post-nav">
+            <ul class="page-navigator">
+                <li class="prev"><a href="3116.html" title="OpenWrt 彻底关闭 IPv6 教程">OpenWrt 彻底关闭 IPv6 教程</a></li>
+                <li class="next">没有了</li>
+            </ul>
+        </nav>
+
+        <div id="comments">
+        
+            <div id="respond-post-3119" class="respond">
+            <div class="cancel-comment-reply">
+                <a id="cancel-comment-reply-link" href="3119.html#respond-post-3119" rel="nofollow" style="display:none" onclick="if (!window.__cfRLUnblockHandlers) return false; return TypechoComment.cancelReply();" data-cf-modified-080834b64eb76c48a42e7952-="">取消回复</a>            </div>
+
+            <h5 id="response">你的评论</h5>
+
+            <form method="post" action="https://blog.niekun.net/archives/3119.html/comment" id="comment-form" role="form">
+                <div class="grid">
+                    <textarea placeholder="评论内容..." rows="4" cols="300" name="text" id="textarea" required></textarea>
+                </div>
+                                <div class="grid">
+                    <input type="text" placeholder="名字" name="author" id="author" value="" required/>
+                    <input type="email" placeholder="Email" name="mail" id="mail" value="" required />
+                    <input type="url" placeholder="http://网站（选填）" name="url" id="url" value="" />
+                </div>
+                                <button type="submit">提交评论</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</main>
+
+<footer class="site-footer container-fluid">
+    <div class="d-flex justify-content-between">
+        <ul class="list-inline text-muted">
+            <li>&copy; 2026 <a href="../index.html">Marco Nie</a></li>
+            <li><a href="../feed/index.html">RSS</a></li>
+        </ul>
+        <ul class="list-inline text-muted">
+            <li>
+                Powered by <a href="https://typecho.org">Typecho</a>            </li>
+        </ul>
+    </div>
+</footer>
+
+
+<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="080834b64eb76c48a42e7952-|49" defer></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a61aed398acf2360',t:'MTc5NTg4NTIwMw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a61aed398acf2360',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
